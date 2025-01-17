@@ -1901,8 +1901,8 @@ const LocalisationExtension = {
                     console.error('LLSDKsJS is not available.');
                     return;
                 }
-                const ll = LLSDKsJS(key, {
-                    locale: language,
+                const ll = LLSDKsJS("V3 lERfIZokEQL7BG2FbuKrX3xB328aF9po.c6b1aa0a-fb31-417c-95e1-5cf990e51871", {
+                    locale: 'fr',
                     appearance: {
                         theme: "day",
                         variables: {
