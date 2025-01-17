@@ -1111,3 +1111,7 @@ const FormExtension_Selling_Capture = {
 	window.FormExtension_Property_Search = FormExtension_Property_Search;
   window.FormExtension_Selling_Capture = FormExtension_Selling_Capture;
   window.LocalisationExtension = LocalisationExtension;
+
+
+
+// teste tetubobed
