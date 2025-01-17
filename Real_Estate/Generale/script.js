@@ -1855,7 +1855,10 @@ const LocalisationExtension = {
     render: ({
         trace,
         element
-    }) => {
+    }) => { 
+        const {
+            language, key
+        } = trace.payload; // Extracts the language from the payload
 
         /**
          * Opens the localisation modal and initializes the map.
@@ -1898,8 +1901,8 @@ const LocalisationExtension = {
                     console.error('LLSDKsJS is not available.');
                     return;
                 }
-                const ll = LLSDKsJS("V3 lERfIZokEQL7BG2FbuKrX3xB328aF9po.c6b1aa0a-fb31-417c-95e1-5cf990e51871", {
-                    locale: "en",
+                const ll = LLSDKsJS(key, {
+                    locale: language,
                     appearance: {
                         theme: "day",
                         variables: {
