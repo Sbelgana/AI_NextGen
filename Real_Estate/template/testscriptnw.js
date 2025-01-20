@@ -453,6 +453,14 @@ const SellingExtension = {
       const langCode = isEnglish ? 'en' : 'fr';
 
       // Generate final PropertyTypes object with translations
+      const PropertyTypees = Object.fromEntries(
+          Object.entries(PropertyTypeMappings[langCode]).map(([label, sharedKey]) => [
+             label,
+             SharedPropertyTypes[sharedKey][langCode]
+          ])
+      );
+
+      // Update this part
       const PropertyTypes = Object.fromEntries(
           Object.entries(PropertyTypeMappings[langCode]).map(([label, sharedKey]) => [
              label,
@@ -461,7 +469,7 @@ const SellingExtension = {
       );
 
 
-      const createPropertyTypeRadios = (category, types) => {
+      const createPropertyTypeRadioss = (category, types) => {
          const categoryTypes = SharedPropertyTypes[category];
          return `
     <div>
@@ -481,6 +489,34 @@ const SellingExtension = {
                 value="${frenchValue}"
               >
               <label for="type-${type}">${type}</label>
+            </div>`;
+         }).join("")}
+      </div>
+    </div>
+  `;
+      };
+
+      const createPropertyTypeRadios = (category, types) => {
+         // Get the shared key from PropertyTypeMappings
+         const sharedKey = PropertyTypeMappings[langCode][category];
+
+         return `
+    <div>
+      <div class="collapsible property-category" onclick="toggleCollapse(this)">${category}</div>
+      <div class="collapse-content">
+        ${SharedPropertyTypes[sharedKey][langCode].map((type, index) => {
+            const frenchValue = SharedPropertyTypes[sharedKey].fr[index];
+            return `
+            <div class="radio-item">
+              <input 
+                type="radio" 
+                class="property-radio" 
+                data-category="${category}" 
+                id="type-${type.replace(/\s+/g, '-')}" 
+                name="property-type" 
+                value="${frenchValue}"
+              >
+              <label for="type-${type.replace(/\s+/g, '-')}">${type}</label>
             </div>`;
          }).join("")}
       </div>
