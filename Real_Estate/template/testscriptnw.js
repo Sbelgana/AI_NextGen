@@ -1473,15 +1473,8 @@ const MortgageCalculatorExtension = {
       }
    }
 };
-function openMortgageModal() {
-   console.log('openMortgageModal called');
-   const modal = document.getElementById('mortgage-modal');
-   if (modal) {
-      modal.style.display = 'block';
-   } else {
-      console.error('Modal element not found');
-   }
-}
+
+
 function closeMortgageModal() {
    console.log('closeMortgageModal called');
    const modal = document.getElementById('mortgage-modal');
