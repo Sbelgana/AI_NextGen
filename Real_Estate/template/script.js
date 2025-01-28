@@ -547,6 +547,7 @@ const ContactExtension = {
       element.appendChild(formContainer);
    },
 };
+
 const BookingExtension = {
    name: "Forms",
    type: "response",
@@ -1939,6 +1940,17 @@ const LocalisationExtension = {
             if (widgetContent) {
                widgetContent.innerHTML = ''; // Clear previous content if any
                widgetContent.appendChild(container);
+               const doneElement = document.createElement('div');
+               doneElement.className = 'done-text';
+               doneElement.textContent = 'Done';
+               doneElement.style.cssText = `
+                     text-align: center;
+                     font-size: 18px;
+                     color: #333;
+                     margin-top: 16px;
+                  `;
+               widgetContent.appendChild(doneElement);
+
             } else {
                console.error('Modal content container not found');
                return;
@@ -1992,6 +2004,7 @@ const LocalisationExtension = {
       });
    },
 };
+
 window.ContactExtension = ContactExtension;
 window.BookingExtension = BookingExtension;
 window.SellingExtension = SellingExtension;
