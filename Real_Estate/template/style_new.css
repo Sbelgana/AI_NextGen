@@ -1,0 +1,228 @@
+/* Styles pour la modal */
+.modal {
+  display: none; /* Caché par défaut */
+  position: fixed;
+  z-index: 100000; /* Assure que la modal est au-dessus de tout */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* Active le défilement si nécessaire */
+  background-color: rgba(0, 0, 0, 0.5); /* Fond semi-transparent */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 2.5% auto; /* Centrage vertical et horizontal */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.close-button {
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+}
+
+.modal-arrow-left {
+  position: fixed;
+  left: 12%; /* Distance from the left edge */
+  top: 50%; /* Centered vertically */
+  transform: translateY(-50%);
+  z-index: 1002;
+}
+
+.modal-arrow-right {
+  position: fixed;
+  right: 12%; /* Distance from the right edge */
+  top: 50%; /* Centered vertically */
+  transform: translateY(-50%);
+  z-index: 1002;
+}
+
+.modal-arrow {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eeeeee;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #000;
+  transition: background-color 0.2s;
+}
+
+.modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px !important; /* Add !important to override other styles */
+}
+
+.modal-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-arrow:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+#localisation-modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 10px 0px 10px;
+}
+
+.local-content-container {
+  flex: 1;
+  border: 1px solid rgb(136, 136, 136);
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Styles spécifiques pour la calculatrice hypothécaire */
+.Mortgage {
+  font-family: Arial, sans-serif;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.Mortgage__Title {
+  text-align: center;
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.Mortgage__Row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.Mortgage__Column {
+  flex: 1;
+  min-width: 200px;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.Mortgage__Label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.Mortgage__Input,
+.Mortgage__Select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.Mortgage__Button {
+  padding: 10px 20px;
+  background-color: #a10159;
+  color: white;
+  border: none;
+  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1em;
+}
+
+.Mortgage__Input--Payment {
+  background-color: #e9e9e9;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #555;
+  font-size: 0.9em;
+}
+
+.mortgage_legal {
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  display: none; /* Caché par défaut */
+}
+
+.Modal__Title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.Modal__Content ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.Modal__Content ul.smaller {
+  list-style-type: circle;
+  margin-left: 20px;
+  margin-top: 5px;
+}
+
+.Modal__Content li {
+  margin-bottom: 10px;
+}
+
+.Modal__Content li span {
+  text-align: justify;
+  display: inline-block;
+  width: 100%;
+}
+
+.legal {
+  justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .Mortgage__Row {
+    flex-direction: column;
+  }
+
+  .Mortgage__Column {
+    padding: 0;
+  }
+}
