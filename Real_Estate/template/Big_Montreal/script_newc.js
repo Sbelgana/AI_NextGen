@@ -1777,7 +1777,7 @@ const ImageExtension = {
       modalContainer.innerHTML = `
       <style>
         .thumbs-up {
-          font-size: 24px;
+          font-size: 0.9em;
           cursor: pointer;
           margin-top: 10px;
           display: inline-block;
