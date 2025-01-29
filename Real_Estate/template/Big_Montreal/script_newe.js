@@ -1585,17 +1585,6 @@ const LocalisationExtension = {
             if (widgetContent) {
                widgetContent.innerHTML = ''; // Clear previous content if any
                widgetContent.appendChild(container);
-               const doneElement = document.createElement('div');
-               doneElement.className = 'done-text';
-               doneElement.textContent = 'Done';
-               doneElement.style.cssText = `
-                     text-align: center;
-                     font-size: 18px;
-                     color: #333;
-                     margin-top: 16px;
-                  `;
-               widgetContent.appendChild(doneElement);
-
             } else {
                console.error('Modal content container not found');
                return;
@@ -1647,35 +1636,6 @@ const LocalisationExtension = {
       loadSDKScript().then(openModal).catch((error) => {
          console.error('Error loading SDK script:', error);
       });
-
-      // Construction de l’élément image + bouton « thumbs-up »
-      const modalContainer = document.createElement('div');
-      modalContainer.innerHTML = `
-      <style>
-        .thumbs-up {
-          font-size: 1.2em;
-          cursor: pointer;
-          display: inline-block;
-          transition: transform 0.2s ease-in-out;
-        }
-      </style>
-        <div class="thumbs-up">👍</div>
-    `;
-
-      // Bouton Thumbs-up => envoie l’info à Voiceflow
-      const thumbsUp = modalContainer.querySelector('.thumbs-up');
-      if (thumbsUp) {
-         thumbsUp.addEventListener('click', () => {
-            if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
-               window.voiceflow.chat.interact({ type: 'complete', payload: {} });
-            } else {
-               console.warn('window.voiceflow.chat.interact is not available');
-            }
-         });
-      }
-
-      // Ajout dans l’élément parent (fourni par Voiceflow)
-      element.appendChild(modalContainer);
    },
 };
 
