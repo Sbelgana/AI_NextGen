@@ -1861,6 +1861,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Close button not found');
    }
 });
+
 const LocalisationExtension = {
    name: 'Localisation',
    type: 'response',
