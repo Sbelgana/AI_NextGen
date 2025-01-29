@@ -2414,11 +2414,21 @@ const CombinedCalculatorsExtension = {
       document.addEventListener('keydown', handleKeyPress);
       window.addEventListener('click', handleOutsideClick);
 
+      // Remove any existing navigation buttons to prevent duplication
+      const existingNav = modal.querySelector('.calculator-nav');
+      if (existingNav) {
+         existingNav.remove();
+      }
+
+      // Insert the new navigation buttons
       calculatorContainer.insertAdjacentHTML('beforebegin', navHTML);
+
+      // Re-attach event listeners to the new buttons
       const navButtons = modal.querySelectorAll('.calculator-nav-button');
       navButtons.forEach(button => {
          button.addEventListener('click', () => switchCalculator(button.dataset.calculator));
       });
+
 
       modal.style.display = 'flex';
       switchCalculator('borrowing');
