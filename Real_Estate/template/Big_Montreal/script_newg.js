@@ -2377,7 +2377,7 @@ const CombinedCalculatorsExtension = {
          }
       }
 
-
+      
 
       closeButton.addEventListener('click', e => {
          e.stopPropagation();
