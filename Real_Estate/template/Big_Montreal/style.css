@@ -221,6 +221,23 @@ select {
   border-radius: 8px;
 }
 
+.modal-icon {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.modal-icon svg {
+    fill: black !important;
+    stroke: black !important;
+    width: 24px;
+    height: 24px;
+    display: block !important;
+}
+
+
 .done-text {
   position: absolute;
   bottom: 15px;
