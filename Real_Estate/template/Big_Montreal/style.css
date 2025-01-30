@@ -276,3 +276,18 @@ select {
     padding: 15px;
   }
 }
+
+@media (max-width: 768px) {
+  .modal-carousel--button {
+    width: 35px;
+    height: 35px;
+    background: white !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+  }
+}
