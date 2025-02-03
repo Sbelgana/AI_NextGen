@@ -691,11 +691,11 @@ const BookingExtension = {
    },
 };
 
-const SellingExtension = {
+const SellExtension = {
    name: "Forms",
    type: "response",
    match: ({ trace }) =>
-       trace.type === `ext_selling` || trace.payload.name === `ext_selling`,
+       trace.type === `ext_sell` || trace.payload.name === `ext_sell`,
    render: ({ trace, element }) => {
       const { language } = trace.payload; // Extracts the language from the payload
       const isEnglish = language === "en"; // Determines if the language is English
@@ -2596,7 +2596,7 @@ const CombinedCalculatorsExtension = {
 
 window.ContactExtension = ContactExtension;
 window.BookingExtension = BookingExtension;
-window.SellingExtension = SellingExtension;
+window.SellExtension = SellExtension;
 window.PropertySearchExtension = PropertySearchExtension;
 window.ImageExtension = ImageExtension;
 window.LocalisationExtension = LocalisationExtension;
