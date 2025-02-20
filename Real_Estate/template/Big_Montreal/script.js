@@ -492,7 +492,7 @@ const ContactExtension = {
           min-height: 100px;
         }
         .submit {
-          background: linear-gradient(to right, #CC960A, #CCA60A);
+          background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
           border: none;
           color: white;
           padding: 12px;
@@ -623,7 +623,7 @@ const BookingExtension = {
           box-sizing: border-box;
         }
         .book-now {
-          background: linear-gradient(to right, #CC960A, #CCA60A);
+          background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
           border: none;
           color: white;
           padding: 12px;
@@ -790,7 +790,7 @@ const SellingExtension = {
         min-height: 100px;
       }
       .submit {
-        background: linear-gradient(to right, #CC960A, #CCA60A);
+        background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
         border: none;
         color: white;
         padding: 12px;
@@ -1279,7 +1279,7 @@ const PropertySearchExtension = {
             box-sizing: border-box;
           }
           .submit {
-            background: linear-gradient(to right, #CC960A, #CCA60A);
+            background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
             border: none;
             color: white;
             padding: 12px;
