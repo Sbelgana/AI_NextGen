@@ -60,7 +60,7 @@
   background-color: #e0e0e0;
 }
 .calculator-nav-button.active {
-  background-color: #CC960A;
+  background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
   color: white;
 }
 
@@ -143,7 +143,7 @@ select {
 }
 .result .amount {
   font-size: 2em;
-  color: #CC960A;
+  color: #bb5cf6;
   font-weight: bold;
   margin: 15px 0;
 }
@@ -157,7 +157,7 @@ select {
 .modal-title {
   text-align: center;
   color: #333;
-  border-bottom: 2px solid #CC960A;
+  border-bottom: 2px solid #bb5cf6;
   padding-bottom: 15px;
   margin-bottom: 25px;
   font-size: 1.5em;
