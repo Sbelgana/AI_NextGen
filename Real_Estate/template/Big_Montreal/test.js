@@ -1145,22 +1145,26 @@ const PropertySearchExtension = {
         const formContainer = document.createElement("form");
 
         // Création des cases à cocher pour les villes
-        const createCityCheckboxes = (category, cities) => `
-          <div>
-            <div class="collapsible city-category" onclick="toggleCollapse(this)">${category}</div>
-            <div class="collapse-content">
-              <label class="checkbox-item">
-                <input type="checkbox" class="select-all" data-category="${category}">
-                <strong>${isEnglish ? "Select all" : "Tout sélectionner"}</strong>
-              </label>
-              ${cities.map(city => `
-                <div class="checkbox-item">
-                  <input type="checkbox" class="city-checkbox" data-category="${category}" id="city-${city}" name="cities" value="${city}">
-                  <label for="city-${city}">${city}</label>
-                </div>`).join("")}
-            </div>
+     const createCityCheckboxes = (category, cities) => `
+  <div>
+    <div class="collapsible city-category" onclick="toggleCollapse(this)">${category}</div>
+    <div class="collapse-content">
+      <label class="checkbox-item">
+        <input type="checkbox" class="select-all" data-category="${category}">
+        <strong>${isEnglish ? "Select all" : "Tout sélectionner"}</strong>
+      </label>
+      <div class="city-checkbox-grid">
+        ${cities.map(city => `
+          <div class="checkbox-item">
+            <input type="checkbox" class="city-checkbox" data-category="${category}" id="city-${city}" name="cities" value="${city}">
+            <label for="city-${city}">${city}</label>
           </div>
-        `;
+        `).join("")}
+      </div>
+    </div>
+  </div>
+`;
+
 
         // Création des cases à cocher pour les catégories de propriété
         const createPropertyCategoryCheckboxes = (category, categories) => `
@@ -1292,6 +1296,12 @@ const PropertySearchExtension = {
               align-items: center;
               gap: 8px;
             }
+            .city-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px; /* adjust the gap as needed */
+}
+
           </style>
 
           <!-- Section des villes -->
