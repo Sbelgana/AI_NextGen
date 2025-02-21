@@ -1110,7 +1110,7 @@ const PropertySearchExtension = {
       name: "Forms",
       type: "response",
       match: ({ trace }) =>
-        trace.type === `ext_property_search` || trace.payload.name === `ext_property_search`,
+        trace.type === `ext_property_search` || trace.payload?.name === `ext_property_search`,
       render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === "en";
