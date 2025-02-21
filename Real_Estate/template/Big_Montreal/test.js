@@ -1206,6 +1206,7 @@ const PropertySearchExtension = {
   flex-direction: column;
   width: 100%;
   margin: 0 auto;
+  gap: 5px;
 }
 .flex-row {
       display: flex;
