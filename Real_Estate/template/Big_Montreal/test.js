@@ -1214,7 +1214,7 @@ const PropertySearchExtension = {
     }
     .flex-row > div {
       flex: 1;
-      min-width: 250px;
+      min-width: 300px;
     }
     
 .form-column {
