@@ -492,9 +492,9 @@ const ContactExtension = {
           min-height: 100px;
         }
         .submit {
-          background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
+          color: #9A0DF2;
+          background-color: #F5E7FE;
           border: none;
-          color: white;
           padding: 12px;
           border-radius: 5px;
           width: 100%;
@@ -502,6 +502,11 @@ const ContactExtension = {
           cursor: pointer;
           margin-top: 8px;
         }
+        
+          .submit:hover {
+             color: white;
+             background-color: #9A0DF2;
+         }
       </style>
       <div>
         <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
@@ -623,9 +628,9 @@ const BookingExtension = {
           box-sizing: border-box;
         }
         .book-now {
-          background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
+          color: #9A0DF2;
+          background-color: #F5E7FE;
           border: none;
-          color: white;
           padding: 12px;
           border-radius: 5px;
           width: 100%;
@@ -633,6 +638,10 @@ const BookingExtension = {
           cursor: pointer;
           margin-top: 8px;
         }
+          .book-now:hover {
+             color: white;
+             background-color: #9A0DF2;
+         }
       </style>
       <div>
         <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
@@ -790,9 +799,9 @@ const SellingExtension = {
         min-height: 100px;
       }
       .submit {
-        background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
+        color: #9A0DF2;
+        background-color: #F5E7FE;
         border: none;
-        color: white;
         padding: 12px;
         border-radius: 5px;
         width: 100%;
@@ -800,6 +809,11 @@ const SellingExtension = {
         cursor: pointer;
         margin-top: 8px;
       }
+      
+          .submit:hover {
+             color: white;
+             background-color: #9A0DF2;
+         }
       .inline-field {
         display: flex;
         align-items: center;
@@ -1279,9 +1293,9 @@ const PropertySearchExtension = {
             box-sizing: border-box;
           }
           .submit {
-            background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
+            color: #9A0DF2;
+            background-color: #F5E7FE;
             border: none;
-            color: white;
             padding: 12px;
             border-radius: 5px;
             width: 100%;
@@ -1289,6 +1303,10 @@ const PropertySearchExtension = {
             cursor: pointer;
             margin-top: 8px;
           }
+          .submit:hover {
+             color: white;
+             background-color: #9A0DF2;
+         }
           .bold-label {
             font-weight: bold;
             color: #555;
