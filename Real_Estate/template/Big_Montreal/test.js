@@ -1107,6 +1107,363 @@ const SellingExtension = {
 };
 
 const PropertySearchExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === `ext_property_search` || trace.payload.name === `ext_property_search`,
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
+        const langCode = isEnglish ? "en" : "fr";
+
+        const Cities = Object.fromEntries(
+          Object.entries(CityMappings[langCode]).map(([label, sharedKey]) => [
+            label,
+            SharedCities[sharedKey]
+          ])
+        );
+
+        const PropertyTypes = Object.fromEntries(
+          Object.entries(PropertyTypeMappings[langCode]).map(([label, sharedKey]) => [
+            label,
+            SharedPropertyCategories[sharedKey][langCode]
+          ])
+        );
+
+        const PropertyTypeTranslation = {};
+        Object.entries(SharedPropertyCategories).forEach(([category, translations]) => {
+          translations.en.forEach((enType, index) => {
+            PropertyTypeTranslation[enType] = translations.fr[index];
+          });
+        });
+
+        const BedroomOptions = Options.Bedroom[langCode];
+        const BathroomOptions = Options.Bathroom[langCode];
+        const CarOptions = Options.Car[langCode];
+        const HouseTypeList = SharedPropertyTypes[langCode];
+
+        const formContainer = document.createElement("form");
+
+        // Création des cases à cocher pour les villes
+        const createCityCheckboxes = (category, cities) => `
+          <div>
+            <div class="collapsible city-category" onclick="toggleCollapse(this)">${category}</div>
+            <div class="collapse-content">
+              <label class="checkbox-item">
+                <input type="checkbox" class="select-all" data-category="${category}">
+                <strong>${isEnglish ? "Select all" : "Tout sélectionner"}</strong>
+              </label>
+              ${cities.map(city => `
+                <div class="checkbox-item">
+                  <input type="checkbox" class="city-checkbox" data-category="${category}" id="city-${city}" name="cities" value="${city}">
+                  <label for="city-${city}">${city}</label>
+                </div>`).join("")}
+            </div>
+          </div>
+        `;
+
+        // Création des cases à cocher pour les catégories de propriété
+        const createPropertyCategoryCheckboxes = (category, categories) => `
+          <div>
+            <div class="collapsible property-category" onclick="toggleCollapse(this)">${category}</div>
+            <div class="collapse-content">
+              <label class="checkbox-item">
+                <input type="checkbox" class="select-all-property" data-category="${category}">
+                <strong>${isEnglish ? "Select all" : "Tout sélectionner"}</strong>
+              </label>
+              ${categories.map(cat => {
+                const frenchValue = PropertyTypeTranslation[cat] || cat;
+                return `
+                  <div class="checkbox-item">
+                    <input type="checkbox" class="property-checkbox" data-category="${category}" id="category-${cat}" name="property-categories" value="${isEnglish ? frenchValue : cat}">
+                    <label for="category-${cat}">${cat}</label>
+                  </div>`;
+              }).join("")}
+            </div>
+          </div>
+        `;
+
+        // Création des cases à cocher pour le type de maison
+        const createHouseTypeCheckboxes = (houseTypes) => `
+          <div class="checkbox-container">
+            <label class="checkbox-item">
+              <input type="checkbox" class="select-all-house-type">
+              <strong>${isEnglish ? "Select all" : "Tout sélectionner"}</strong>
+            </label>
+            ${houseTypes.map(ht => `
+              <div class="checkbox-item">
+                <input type="checkbox" class="house-type-checkbox" id="house-type-${ht}" name="house-type" value="${ht}">
+                <label for="house-type-${ht}">${ht}</label>
+              </div>
+            `).join("")}
+          </div>
+        `;
+
+        formContainer.innerHTML = `
+          <style>
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 16px;
+              width: 100%;
+            }
+            .collapsible {
+              cursor: pointer;
+              background: #f1f1f1;
+              padding: 10px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              font-size: 0.9em;
+              margin-bottom: 5px;
+              text-align: left;
+            }
+            .collapsible:after {
+              content: "\\25BC";
+              float: right;
+            }
+            .collapsible.active:after {
+              content: "\\25B2";
+            }
+            .collapse-content {
+              display: none;
+              padding: 10px;
+              background: #fafafa;
+              border: 1px solid #ddd;
+              border-top: none;
+            }
+            .checkbox-container {
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            }
+            .checkbox-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            select,
+            input[type="number"] {
+              width: 100%;
+              border: 1px solid rgba(0, 0, 0, 0.2);
+              border-radius: 4px;
+              padding: 8px;
+              background: #fff;
+              font-size: 0.9em;
+              outline: none;
+              box-sizing: border-box;
+            }
+            .submit {
+              color: #9A0DF2;
+              background-color: #F5E7FE;
+              border: none;
+              padding: 12px;
+              border-radius: 5px;
+              width: 100%;
+              font-size: 1em;
+              cursor: pointer;
+              margin-top: 8px;
+            }
+            .submit:hover {
+              color: white;
+              background-color: #9A0DF2;
+            }
+            .bold-label {
+              font-weight: bold;
+              color: #555;
+              font-size: 0.9em;
+            }
+            .inline-field {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+          </style>
+
+          <!-- Section des villes -->
+          <div>
+            <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+              ${isEnglish ? "Select Cities" : "Sélectionnez des villes"}
+            </div>
+            <div class="collapse-content">
+              <div id="cities-container" class="checkbox-container">
+                ${Object.entries(Cities).map(([category, cities]) => createCityCheckboxes(category, cities)).join("")}
+              </div>
+            </div>
+          </div>
+
+          <!-- Section côte à côte pour Catégories de propriété et Type de maison -->
+          <div class="flex-row">
+            <div>
+              <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+                ${isEnglish ? "Select Property Categories" : "Sélectionnez des catégories de propriété"}
+              </div>
+              <div class="collapse-content">
+                <div id="property-categories-container" class="checkbox-container">
+                  ${Object.entries(PropertyTypes).map(([category, categories]) => createPropertyCategoryCheckboxes(category, categories)).join("")}
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+                ${isEnglish ? "Select House Type" : "Sélectionnez le type de maison"}
+              </div>
+              <div class="collapse-content" id="house-types-container">
+                ${createHouseTypeCheckboxes(HouseTypeList)}
+              </div>
+            </div>
+          </div>
+
+          <!-- Section côte à côte pour Nombre de chambres et Nombre de salles de bains -->
+          <div class="flex-row">
+            <div>
+              <label for="bedrooms-number" class="bold-label">
+                ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+              </label>
+              <select id="bedrooms-number" name="bedrooms-number" required>
+                ${BedroomOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label for="bathrooms-number" class="bold-label">
+                ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+              </label>
+              <select id="bathrooms-number" name="bathrooms-number" required>
+                ${BathroomOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          <!-- Section côte à côte pour Prix minimum et Prix maximum -->
+          <div class="flex-row">
+            <div>
+              <label for="price-min" class="bold-label">
+                ${isEnglish ? "Price Range (Min)" : "Prix minimum"}
+              </label>
+              <input type="number" id="price-min" name="price-min" placeholder="${isEnglish ? "Enter minimum price" : "Entrez le prix minimum"}" step="1000" min="0">
+            </div>
+            <div>
+              <label for="price-max" class="bold-label">
+                ${isEnglish ? "Price Range (Max)" : "Prix maximum"}
+              </label>
+              <input type="number" id="price-max" name="price-max" placeholder="${isEnglish ? "Enter maximum price" : "Entrez le prix maximum"}" step="1000" min="0">
+            </div>
+          </div>
+
+          <!-- Section côte à côte pour Garage et nombre de voitures -->
+          <div class="flex-row">
+            <div>
+              <label for="garage" class="bold-label">
+                ${isEnglish ? "Garage" : "Garage"}
+              </label>
+              <input type="checkbox" id="garage" name="garage" value="Yes">
+            </div>
+            <div>
+              <select id="garage-cars" name="garage-cars" style="display: none;">
+                <option value="">
+                  ${isEnglish ? "Select number of cars" : "Sélectionnez le nombre de voitures"}
+                </option>
+                ${CarOptions.map(option => `<option value="${option.value}">${option.text}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          <!-- Section pour Piscine -->
+          <div class="inline-field">
+            <label for="swimming-pool" class="bold-label">
+              ${isEnglish ? "Swimming Pool" : "Piscine"}
+            </label>
+            <input type="checkbox" id="swimming-pool" name="swimming-pool" value="Yes">
+          </div>
+
+          <!-- Bouton de soumission -->
+          <input type="submit" class="submit" value="${isEnglish ? "Submit" : "Envoyer"}">
+        `;
+
+        formContainer.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const selectedCities = Array.from(formContainer.querySelectorAll(".city-checkbox:checked")).map(input => input.value);
+          const selectedPropertyCategoriesRaw = Array.from(formContainer.querySelectorAll(".property-checkbox:checked")).map(input => input.value);
+          const selectedPropertyCategories = isEnglish
+            ? selectedPropertyCategoriesRaw.map(cat => PropertyTypeTranslation[cat] || cat)
+            : selectedPropertyCategoriesRaw;
+          const selectedHouseTypes = Array.from(formContainer.querySelectorAll(".house-type-checkbox:checked")).map(input => input.value);
+          const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
+          const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+          const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
+          const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+          const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
+          const indoorParkingCars = indoorParking === "Yes"
+            ? parseInt(formContainer.querySelector("#garage-cars").value || 0, 10)
+            : 0;
+          const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+
+          const payload = {
+            cityName: selectedCities,
+            category: selectedPropertyCategories,
+            houseType: selectedHouseTypes,
+            bedrooms: bedroomsNumber,
+            bathrooms: bathroomsNumber,
+            priceMin: priceMin,
+            priceMax: priceMax,
+            parkingIndoor: indoorParking,
+            car: indoorParkingCars,
+            swimmingPool: swimmingPool
+          };
+
+          const airtableFormula = generateAirtableFormula(payload);
+
+          window.voiceflow.chat.interact({
+            type: "complete",
+            payload: { formula: airtableFormula }
+          });
+        });
+
+        formContainer.addEventListener("change", (event) => {
+          if (event.target.classList.contains("select-all")) {
+            const category = event.target.dataset.category;
+            const checkboxes = formContainer.querySelectorAll(`.city-checkbox[data-category="${category}"]`);
+            checkboxes.forEach(checkbox => checkbox.checked = event.target.checked);
+          } else if (event.target.classList.contains("city-checkbox")) {
+            const category = event.target.dataset.category;
+            const allCheckbox = formContainer.querySelector(`.select-all[data-category="${category}"]`);
+            const checkboxes = formContainer.querySelectorAll(`.city-checkbox[data-category="${category}"]`);
+            allCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          } else if (event.target.classList.contains("select-all-property")) {
+            const category = event.target.dataset.category;
+            const checkboxes = formContainer.querySelectorAll(`.property-checkbox[data-category="${category}"]`);
+            checkboxes.forEach(checkbox => checkbox.checked = event.target.checked);
+          } else if (event.target.classList.contains("property-checkbox")) {
+            const category = event.target.dataset.category;
+            const allCheckbox = formContainer.querySelector(`.select-all-property[data-category="${category}"]`);
+            const checkboxes = formContainer.querySelectorAll(`.property-checkbox[data-category="${category}"]`);
+            allCheckbox.checked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          } else if (event.target.classList.contains("select-all-house-type")) {
+            const checkboxes = formContainer.querySelectorAll(".house-type-checkbox");
+            checkboxes.forEach(checkbox => checkbox.checked = event.target.checked);
+          } else if (event.target.classList.contains("house-type-checkbox")) {
+            const allHouseTypeCheckbox = formContainer.querySelector(".select-all-house-type");
+            const houseTypeCheckboxes = formContainer.querySelectorAll(".house-type-checkbox");
+            allHouseTypeCheckbox.checked = Array.from(houseTypeCheckboxes).every(cb => cb.checked);
+          }
+        });
+
+        formContainer.querySelector("#garage").addEventListener("change", (event) => {
+          const carsField = formContainer.querySelector("#garage-cars");
+          if (event.target.checked) {
+            carsField.style.display = "block";
+          } else {
+            carsField.style.display = "none";
+            carsField.value = "";
+          }
+        });
+
+        element.appendChild(formContainer);
+      }
+    };
+
+
+const PropertySearchExtensionnn = {
    name: "Forms",
    type: "response",
    match: ({ trace }) =>
