@@ -57,11 +57,12 @@
   font-size: 1em;
 }
 .calculator-nav-button:hover {
-  background-color: #e0e0e0;
+  color: white;
+  background-color: #9A0DF2;
 }
 .calculator-nav-button.active {
-  background: linear-gradient(90deg, #5b99ff, #8386ff, #bb5cf6, #d0aad6);
-  color: white;
+  color: #9A0DF2;
+  background-color: #F5E7FE;
 }
 
 /* Form + layout */
