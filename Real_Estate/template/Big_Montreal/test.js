@@ -1202,11 +1202,25 @@ const PropertySearchExtension = {
         formContainer.innerHTML = `
           <style>
             form {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-              width: 100%;
-            }
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0 auto;
+}
+.flex-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .flex-row > div {
+      flex: 1;
+      min-width: 250px;
+    }
+    
+.form-column {
+  flex: 1;
+  display: flex;
+  }
             .collapsible {
               cursor: pointer;
               background: #f1f1f1;
