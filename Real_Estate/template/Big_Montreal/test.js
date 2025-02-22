@@ -812,7 +812,7 @@ formContainer.innerHTML = `
     #details {
       width: 100%;
       resize: vertical;
-      min-height: 100px;
+      min-height: 50px;
       max-height: 200px; /* optional: limit maximum height */
       padding: 8px;
       border: 1px solid rgba(0,0,0,0.2);
