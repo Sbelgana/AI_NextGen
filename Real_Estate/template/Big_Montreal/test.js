@@ -794,13 +794,13 @@ formContainer.innerHTML = `
       color: #555;
       font-size: 0.9em;
     }
+    /* Input and select styling */
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    select,
-    textarea {
+    select {
       width: 100%;
-      border: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0,0,0,0.2);
       border-radius: 4px;
       padding: 8px;
       background: #fff;
@@ -808,9 +808,17 @@ formContainer.innerHTML = `
       outline: none;
       box-sizing: border-box;
     }
-    textarea {
+    /* Instead of styling all textareas, only style the details textarea */
+    #details {
+      width: 100%;
       resize: vertical;
       min-height: 100px;
+      max-height: 200px; /* optional: limit maximum height */
+      padding: 8px;
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 4px;
+      font-size: 0.9em;
+      box-sizing: border-box;
     }
     .submit {
       color: #9A0DF2;
@@ -986,12 +994,13 @@ formContainer.innerHTML = `
   <!-- Remaining fields -->
  
 
-  <div>
-    <label for="details" class="bold-label">
-      ${isEnglish ? "Details" : "Détails"}
-    </label>
-    <textarea id="details" rows="2" required></textarea>
-  </div>
+ <!-- Details Textarea (styled individually) -->
+          <div>
+            <label for="details" class="bold-label">
+              ${isEnglish ? "Details" : "Détails"}
+            </label>
+            <textarea id="details" required></textarea>
+          </div>
 
   <button type="submit" class="submit">
     ${isEnglish ? "Submit" : "Envoyer"}
