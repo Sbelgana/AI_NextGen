@@ -691,7 +691,7 @@ const BookingExtension = {
               url: bookingUrl, // Use the dynamically generated booking URL
               parentElement: document.getElementById("calendly-container"), // Render inside the container
               text: isEnglish ? 'Schedule time with me' : 'Planifier du temps avec moi',
-              color: '#0069ff',
+              color: '#9a0df2',
               textColor: '#ffffff',
               branding: false
             });
