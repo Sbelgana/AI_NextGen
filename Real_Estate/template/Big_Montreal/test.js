@@ -777,7 +777,7 @@ formContainer.innerHTML = `
     form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 5px;
       width: 100%;
     }
     .flex-row {
@@ -977,19 +977,20 @@ formContainer.innerHTML = `
       </label>
       <input type="checkbox" id="outside-parking" value="Yes">
     </div>
-  </div>
-
-  <!-- Remaining fields -->
-  <div>
+     <div>
     <label for="swimming-pool" class="bold-label">Piscine?</label>
     <input type="checkbox" id="swimming-pool" value="Yes">
   </div>
+  </div>
+
+  <!-- Remaining fields -->
+ 
 
   <div>
     <label for="details" class="bold-label">
       ${isEnglish ? "Details" : "Détails"}
     </label>
-    <textarea id="details" rows="3" required></textarea>
+    <textarea id="details" rows="2" required></textarea>
   </div>
 
   <button type="submit" class="submit">
