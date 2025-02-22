@@ -627,7 +627,7 @@ const ContactExtension = {
       background-color: #9A0DF2;
     }
           </style>
-          <div>
+         <div>
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
             <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
           </div>
@@ -696,14 +696,22 @@ const ContactExtension = {
           }
         });
 
-        // Place modal close functionality inside the extension
+        // Modal close functionality (close on button click)
         const modal = document.getElementById("bookingModal");
         const closeButton = modal.querySelector(".close-button");
         closeButton.addEventListener("click", function(){
           modal.style.display = "none";
         });
+
+        // Modal close functionality (close when clicking outside modal-content)
+        modal.addEventListener("click", function(event) {
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        });
       },
     };
+
 
 
 
