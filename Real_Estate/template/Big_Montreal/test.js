@@ -698,6 +698,13 @@ const ContactExtension = {
         });
       },
     };
+
+ // Modal close functionality
+      const modal = document.getElementById("bookingModal");
+      const closeButton = modal.querySelector(".close-button");
+      closeButton.addEventListener("click", function(){
+        modal.style.display = "none";
+         
 const SellingExtension = {
   name: "Forms",
   type: "response",
