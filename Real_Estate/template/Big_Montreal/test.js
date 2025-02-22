@@ -600,6 +600,33 @@ const ContactExtension = {
         const isEnglish = language === 'en';
         const formContainer = document.createElement("form");
         formContainer.innerHTML = `
+          <style>
+          input[type="text"], input[type="email"], select {
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+      padding: 8px;
+      background: #fff;
+      font-size: 0.9em;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .book-now {
+      color: #9A0DF2;
+      background-color: #F5E7FE;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .book-now:hover {
+      color: white;
+      background-color: #9A0DF2;
+    }
+          </style>
           <div>
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
             <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
