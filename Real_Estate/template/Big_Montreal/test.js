@@ -589,53 +589,17 @@ const ContactExtension = {
    },
 };
 
-const BookingExtension = {
+// Booking extension rendering function
+    const BookingExtension = {
       name: "Forms",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
+      match: ({ trace }) =>
+          trace.type === `ext_booking` || trace.payload.name === `ext_booking`,
       render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === 'en';
-
         const formContainer = document.createElement("form");
         formContainer.innerHTML = `
-          <style>
-            form {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-              width: 100%;
-            }
-            .bold-label {
-              font-size: 0.9em;
-              color: #555;
-            }
-            input[type="text"], input[type="email"], select {
-              width: 100%;
-              border: 1px solid rgba(0, 0, 0, 0.2);
-              border-radius: 4px;
-              padding: 8px;
-              background: #fff;
-              font-size: 0.9em;
-              outline: none;
-              box-sizing: border-box;
-            }
-            .book-now {
-              color: #9A0DF2;
-              background-color: #F5E7FE;
-              border: none;
-              padding: 12px;
-              border-radius: 5px;
-              width: 100%;
-              font-size: 1em;
-              cursor: pointer;
-              margin-top: 8px;
-            }
-            .book-now:hover {
-              color: white;
-              background-color: #9A0DF2;
-            }
-          </style>
           <div>
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
             <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
@@ -653,19 +617,14 @@ const BookingExtension = {
           </div>
           <button type="button" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
         `;
+        element.appendChild(formContainer);
 
+        // Event listener for "Book Now"
         const bookNowButton = formContainer.querySelector("#book-now");
         bookNowButton.addEventListener("click", () => {
-          console.log("Book Now button clicked!"); // Debugging statement
-
           const fullName = formContainer.querySelector("#full-name").value.trim();
           const email = formContainer.querySelector("#email").value.trim();
           const sellerName = formContainer.querySelector("#seller-name").value.trim();
-
-          console.log("Full Name:", fullName); // Debugging statement
-          console.log("Email:", email); // Debugging statement
-          console.log("Seller Name:", sellerName); // Debugging statement
-
           if (!fullName) {
             alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
             return;
@@ -678,43 +637,40 @@ const BookingExtension = {
             alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
             return;
           }
-
-          if (BookingUrls && BookingUrls[sellerName]) {
+          if (BookingUrls[sellerName]) {
+            // Build the booking URL with query parameters
             const bookingUrl = BookingUrls[sellerName]
-              .replace("{Full_Name}", encodeURIComponent(fullName))
-              .replace("{Email}", encodeURIComponent(email));
+                .replace("{Full_Name}", encodeURIComponent(fullName))
+                .replace("{Email}", encodeURIComponent(email));
 
-            console.log("Booking URL:", bookingUrl); // Debugging statement
-
-            // Initialize Calendly popup widget inside the container
-            Calendly.initPopupWidget({
-              url: bookingUrl, // Use the dynamically generated booking URL
-              parentElement: document.getElementById("calendly-container"), // Render inside the container
-              text: isEnglish ? 'Schedule time with me' : 'Planifier du temps avec moi',
-              color: '#9a0df2',
-              textColor: '#ffffff',
-              branding: false
-            });
-
-            // Notify the chat system that the booking is complete
+            // Interact with Voiceflow (simulated)
             window.voiceflow.chat.interact({
               type: "complete",
-              payload: {
-                fullName,
-                email,
-                sellerName,
-                bookingUrl
-              },
+              payload: { fullName, email, sellerName, bookingUrl },
             });
+
+            // --- Modal logic to display Calendly widget ---
+            const modal = document.getElementById("bookingModal");
+            const calendlyContainer = modal.querySelector("#calendlyContainer");
+            // Insert the Calendly widget with the dynamic URL
+            calendlyContainer.innerHTML = `<div class="calendly-inline-widget" data-url="${bookingUrl}" style="min-width:320px;height:700px;"></div>`;
+            // Remove any existing Calendly script and append a new one to reinitialize the widget
+            const existingScript = calendlyContainer.querySelector("script[src='https://assets.calendly.com/assets/external/widget.js']");
+            if (existingScript) {
+              existingScript.remove();
+            }
+            const script = document.createElement("script");
+            script.src = "https://assets.calendly.com/assets/external/widget.js";
+            script.async = true;
+            calendlyContainer.appendChild(script);
+            // Display the modal
+            modal.style.display = "block";
           } else {
             alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
           }
         });
-
-        element.appendChild(formContainer);
       },
     };
-
 const SellingExtension = {
   name: "Forms",
   type: "response",
