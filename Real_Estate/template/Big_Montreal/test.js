@@ -590,115 +590,129 @@ const ContactExtension = {
 };
 
 const BookingExtension = {
-   name: "Forms",
-   type: "response",
-   match: ({
-              trace
-           }) =>
-       trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
-   render: ({
-               trace,
-               element
-            }) => {
-      const {
-         language
-      } = trace.payload;
-      const isEnglish = language === 'en';
-      const formContainer = document.createElement("form");
-      formContainer.innerHTML = `
-      <style>
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          width: 100%;
-        }
-        .bold-label {
-          font-size: 0.9em;
-          color: #555;
-        }
-        input[type="text"], input[type="email"], select {
-          width: 100%;
-          border: 1px solid rgba(0, 0, 0, 0.2);
-          border-radius: 4px;
-          padding: 8px;
-          background: #fff;
-          font-size: 0.9em;
-          outline: none;
-          box-sizing: border-box;
-        }
-        .book-now {
-          color: #9A0DF2;
-          background-color: #F5E7FE;
-          border: none;
-          padding: 12px;
-          border-radius: 5px;
-          width: 100%;
-          font-size: 1em;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-          .book-now:hover {
-             color: white;
-             background-color: #9A0DF2;
-         }
-      </style>
-      <div>
-        <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-        <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
-      </div>
-      <div>
-        <label for="email" class="bold-label">Email</label>
-        <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
-      </div>
-      <div>
-        <label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
-        <select id="seller-name" name="seller-name" required>
-          <option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
-          ${getSellerOptions(isEnglish, false)}
-        </select>
-      </div>
-      <button type="button" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
-    `;
-      const bookNowButton = formContainer.querySelector("#book-now");
-      bookNowButton.addEventListener("click", () => {
-         const fullName = formContainer.querySelector("#full-name").value.trim();
-         const email = formContainer.querySelector("#email").value.trim();
-         const sellerName = formContainer.querySelector("#seller-name").value.trim();
-         if (!fullName) {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) => trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === 'en';
+
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+          <style>
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 16px;
+              width: 100%;
+            }
+            .bold-label {
+              font-size: 0.9em;
+              color: #555;
+            }
+            input[type="text"], input[type="email"], select {
+              width: 100%;
+              border: 1px solid rgba(0, 0, 0, 0.2);
+              border-radius: 4px;
+              padding: 8px;
+              background: #fff;
+              font-size: 0.9em;
+              outline: none;
+              box-sizing: border-box;
+            }
+            .book-now {
+              color: #9A0DF2;
+              background-color: #F5E7FE;
+              border: none;
+              padding: 12px;
+              border-radius: 5px;
+              width: 100%;
+              font-size: 1em;
+              cursor: pointer;
+              margin-top: 8px;
+            }
+            .book-now:hover {
+              color: white;
+              background-color: #9A0DF2;
+            }
+          </style>
+          <div>
+            <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+          </div>
+          <div>
+            <label for="email" class="bold-label">Email</label>
+            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+          </div>
+          <div>
+            <label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
+            <select id="seller-name" name="seller-name" required>
+              <option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
+              ${getSellerOptions(isEnglish, false)}
+            </select>
+          </div>
+          <button type="button" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
+        `;
+
+        const bookNowButton = formContainer.querySelector("#book-now");
+        bookNowButton.addEventListener("click", () => {
+          console.log("Book Now button clicked!"); // Debugging statement
+
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+
+          console.log("Full Name:", fullName); // Debugging statement
+          console.log("Email:", email); // Debugging statement
+          console.log("Seller Name:", sellerName); // Debugging statement
+
+          if (!fullName) {
             alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
             return;
-         }
-         if (!email || !isValidEmail(email)) {
+          }
+          if (!email || !isValidEmail(email)) {
             alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
             return;
-         }
-         if (!sellerName) {
+          }
+          if (!sellerName) {
             alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
             return;
-         }
-         if (BookingUrls[sellerName]) {
-            const bookingUrl = BookingUrls[sellerName]
-                .replace("{Full_Name}", encodeURIComponent(fullName))
-                .replace("{Email}", encodeURIComponent(email));
-            window.voiceflow.chat.interact({
-               type: "complete",
-               payload: {
-                  fullName,
-                  email,
-                  sellerName,
-                  bookingUrl
-               },
-            });
-            window.open(bookingUrl, "_blank");
-         } else {
-            alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
-         }
-      });
+          }
 
-      element.appendChild(formContainer);
-   },
-};
+          if (BookingUrls && BookingUrls[sellerName]) {
+            const bookingUrl = BookingUrls[sellerName]
+              .replace("{Full_Name}", encodeURIComponent(fullName))
+              .replace("{Email}", encodeURIComponent(email));
+
+            console.log("Booking URL:", bookingUrl); // Debugging statement
+
+            // Initialize Calendly popup widget
+            Calendly.initPopupWidget({
+              url: bookingUrl, // Use the dynamically generated booking URL
+              text: isEnglish ? 'Schedule time with me' : 'Planifier du temps avec moi',
+              color: '#0069ff',
+              textColor: '#ffffff',
+              branding: false
+            });
+
+            // Notify the chat system that the booking is complete
+            window.voiceflow.chat.interact({
+              type: "complete",
+              payload: {
+                fullName,
+                email,
+                sellerName,
+                bookingUrl
+              },
+            });
+          } else {
+            alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
+          }
+        });
+
+        element.appendChild(formContainer);
+      },
+    };
 
 const SellingExtension = {
   name: "Forms",
