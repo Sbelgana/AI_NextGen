@@ -600,7 +600,7 @@ const ContactExtension = {
         const isEnglish = language === 'en';
         const formContainer = document.createElement("form");
         formContainer.innerHTML = `
-          <style>
+        <style>
           input[type="text"], input[type="email"], select {
       width: 100%;
       border: 1px solid rgba(0, 0, 0, 0.2);
@@ -646,7 +646,7 @@ const ContactExtension = {
         `;
         element.appendChild(formContainer);
 
-        // Event listener for "Book Now"
+        // Event listener for "Book Now" click
         const bookNowButton = formContainer.querySelector("#book-now");
         bookNowButton.addEventListener("click", () => {
           const fullName = formContainer.querySelector("#full-name").value.trim();
@@ -665,7 +665,7 @@ const ContactExtension = {
             return;
           }
           if (BookingUrls[sellerName]) {
-            // Build the booking URL with query parameters
+            // Build the booking URL with dynamic query parameters
             const bookingUrl = BookingUrls[sellerName]
                 .replace("{Full_Name}", encodeURIComponent(fullName))
                 .replace("{Email}", encodeURIComponent(email));
@@ -676,12 +676,10 @@ const ContactExtension = {
               payload: { fullName, email, sellerName, bookingUrl },
             });
 
-            // --- Modal logic to display Calendly widget ---
+            // Insert Calendly widget into modal and reinitialize widget
             const modal = document.getElementById("bookingModal");
             const calendlyContainer = modal.querySelector("#calendlyContainer");
-            // Insert the Calendly widget with the dynamic URL
             calendlyContainer.innerHTML = `<div class="calendly-inline-widget" data-url="${bookingUrl}" style="min-width:320px;height:700px;"></div>`;
-            // Remove any existing Calendly script and append a new one to reinitialize the widget
             const existingScript = calendlyContainer.querySelector("script[src='https://assets.calendly.com/assets/external/widget.js']");
             if (existingScript) {
               existingScript.remove();
@@ -690,20 +688,25 @@ const ContactExtension = {
             script.src = "https://assets.calendly.com/assets/external/widget.js";
             script.async = true;
             calendlyContainer.appendChild(script);
+
             // Display the modal
             modal.style.display = "block";
           } else {
             alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
           }
         });
+
+        // Place modal close functionality inside the extension
+        const modal = document.getElementById("bookingModal");
+        const closeButton = modal.querySelector(".close-button");
+        closeButton.addEventListener("click", function(){
+          modal.style.display = "none";
+        });
       },
     };
 
- // Modal close functionality
-      const modal = document.getElementById("bookingModal");
-      const closeButton = modal.querySelector(".close-button");
-      closeButton.addEventListener("click", function(){
-        modal.style.display = "none";
+
+
          
 const SellingExtension = {
   name: "Forms",
