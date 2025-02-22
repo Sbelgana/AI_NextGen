@@ -594,7 +594,7 @@ const ContactExtension = {
       name: "Forms",
       type: "response",
       match: ({ trace }) =>
-          trace.type === `ext_booking` || trace.payload.name === `ext_booking`,
+          trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
       render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === 'en';
