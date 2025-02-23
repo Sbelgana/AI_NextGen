@@ -522,7 +522,7 @@ const SellingExtension = {
   name: "Forms",
   type: "response",
   match: ({ trace }) =>
-    trace.type === "ext_selling" || trace.payload.name === "ext_selling",
+    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
 
   render: ({ trace, element }) => {
     const { language } = trace.payload;
