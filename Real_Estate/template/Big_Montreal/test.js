@@ -519,395 +519,397 @@ const BookingExtension = {
 
        
 const SellingExtension = {
-  name: "Forms",
-  type: "response",
-  match: ({ trace }) => trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
-  render: ({ trace, element }) => {
-    const { language } = trace.payload;
-    const isEnglish = language === "en";
-    const langCode = isEnglish ? "en" : "fr";
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+    render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
+        const langCode = isEnglish ? "en" : "fr";
 
-    // 1) Build category object: 
-    //    e.g. { Residential: ["House","Condo"], Plex: ["Duplex","Triplex"] }
-    const propertyCategories = Object.fromEntries(
-      Object.entries(PropertyTypeMappings[langCode]).map(([label, sharedKey]) => [
-        label,
-        SharedPropertyCategories[sharedKey][langCode]
-      ])
-    );
+        // 1) Build category object: 
+        //    e.g. { Residential: ["House","Condo"], Plex: ["Duplex","Triplex"] }
+        const propertyCategories = Object.fromEntries(
+            Object.entries(PropertyTypeMappings[langCode]).map(([label, sharedKey]) => [
+                label,
+                SharedPropertyCategories[sharedKey][langCode]
+            ])
+        );
 
-    // 2) House-type array: e.g. ["Detached","Semi-detached","Multi-level"]
-    const houseTypes = SharedPropertyTypes[langCode];
+        // 2) House-type array: e.g. ["Detached","Semi-detached","Multi-level"]
+        const houseTypes = SharedPropertyTypes[langCode];
 
-    // Helper to render category radios 
-    function createCategoryRadios(categoryName, items) {
-      return `
-        <div>
-          <div class="collapsible property-category" onclick="toggleCollapse(this)">
-            ${categoryName}
-          </div>
-          <div class="collapse-content">
-            ${items.map((cat) => {
-              return `
-                <div class="radio-item">
-                  <input type="radio" class="property-category-radio" name="property-category" value="${cat}">
-                  <label>${cat}</label>
+        // Helper to render category radios 
+        function createCategoryRadios(categoryName, items) {
+            return `
+                <div>
+                    <div class="collapsible property-category" onclick="toggleCollapse(this)">
+                        ${categoryName}
+                    </div>
+                    <div class="collapse-content">
+                        ${items
+                            .map((cat) => {
+                                return `
+                                    <div class="radio-item">
+                                        <input type="radio" class="property-category-radio" name="property-category" value="${cat}">
+                                        <label>${cat}</label>
+                                    </div>
+                                `;
+                            })
+                            .join("")}
+                    </div>
                 </div>
-              `;
-            }).join("")}
-          </div>
-        </div>
-      `;
-    }
-
-    // Helper to render house-type radios
-    function createHouseTypeRadios(arrayOfTypes) {
-      return arrayOfTypes.map((ht) => `
-        <div class="radio-item">
-          <input type="radio" class="house-type-radio" name="house-type" value="${ht}">
-          <label>${ht}</label>
-        </div>
-      `).join("");
-    }
-
-    // Create the form
-    const formContainer = document.createElement("form");
-
-    formContainer.innerHTML = `
-      <style>
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-          width: 100%;
+            `;
         }
-        .flex-row {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
+
+        // Helper to render house-type radios
+        function createHouseTypeRadios(arrayOfTypes) {
+            return arrayOfTypes
+                .map((ht) => `
+                    <div class="radio-item">
+                        <input type="radio" class="house-type-radio" name="house-type" value="${ht}">
+                        <label>${ht}</label>
+                    </div>
+                `)
+                .join("");
         }
-        .flex-row > div {
-          flex: 1;
-          min-width: 200px;
-        }
-        .bold-label {
-          font-weight: bold;
-          color: #555;
-          font-size: 0.9em;
-        }
-        /* Input and select styling */
-        input[type="text"], input[type="email"], input[type="tel"], select {
-          width: 100%;
-          border: 1px solid rgba(0,0,0,0.2);
-          border-radius: 4px;
-          padding: 8px;
-          background: #fff;
-          font-size: 0.9em;
-          outline: none;
-          box-sizing: border-box;
-        }
-        /* Instead of styling all textareas, only style the details textarea */
-        #details {
-          width: 100%;
-          resize: vertical;
-          min-height: 50px;
-          max-height: 200px;
-          padding: 8px;
-          border: 1px solid rgba(0,0,0,0.2);
-          border-radius: 4px;
-          font-size: 0.9em;
-          box-sizing: border-box;
-        }
-        .submit {
-          color: #9A0DF2;
-          background-color: #F5E7FE;
-          border: none;
-          padding: 12px;
-          border-radius: 5px;
-          font-size: 1em;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .submit:hover {
-          color: white;
-          background-color: #9A0DF2;
-        }
-        .collapsible {
-          cursor: pointer;
-          background: #f1f1f1;
-          padding: 10px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          font-size: 0.9em;
-          margin-bottom: 5px;
-          text-align: left;
-        }
-        .collapsible:after {
-          content: "\\25BC";
-          float: right;
-        }
-        .collapsible.active:after {
-          content: "\\25B2";
-        }
-        .collapse-content {
-          display: none;
-          padding: 10px;
-          background: #fafafa;
-          border: 1px solid #ddd;
-          border-top: none;
-        }
-      </style>
 
-      <!-- Full Name and Email in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="full-name" class="bold-label">
-            ${isEnglish ? "Full Name" : "Nom complet"}
-          </label>
-          <input type="text" id="full-name" required>
-        </div>
-        <div>
-          <label for="email" class="bold-label">Email</label>
-          <input type="email" id="email" required>
-        </div>
-      </div>
+        // Create the form
+        const formContainer = document.createElement("form");
 
-      <!-- Phone and Seller in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="phone" class="bold-label">
-            ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-          </label>
-          <input type="tel" id="phone" required>
-        </div>
-        <div>
-          <label for="seller-name" class="bold-label">
-            ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-          </label>
-          <select id="seller-name" required>
-            <option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
-            ${getSellerOptions(isEnglish)}
-          </select>
-        </div>
-      </div>
+        formContainer.innerHTML = `
+            <style>
+                form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                    width: 100%;
+                }
+                .flex-row {
+                    display: flex;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                }
+                .flex-row > div {
+                    flex: 1;
+                    min-width: 200px;
+                }
+                .bold-label {
+                    font-weight: bold;
+                    color: #555;
+                    font-size: 0.9em;
+                }
+                /* Input and select styling */
+                input[type="text"], input[type="email"], input[type="tel"], select {
+                    width: 100%;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    padding: 8px;
+                    background: #fff;
+                    font-size: 0.9em;
+                    outline: none;
+                    box-sizing: border-box;
+                }
+                /* Instead of styling all textareas, only style the details textarea */
+                #details {
+                    width: 100%;
+                    resize: vertical;
+                    min-height: 50px;
+                    max-height: 200px;
+                    padding: 8px;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                    box-sizing: border-box;
+                }
+                .submit {
+                    color: #9A0DF2;
+                    background-color: #F5E7FE;
+                    border: none;
+                    padding: 12px;
+                    border-radius: 5px;
+                    font-size: 1em;
+                    cursor: pointer;
+                    margin-top: 8px;
+                }
+                .submit:hover {
+                    color: white;
+                    background-color: #9A0DF2;
+                }
+                .collapsible {
+                    cursor: pointer;
+                    background: #f1f1f1;
+                    padding: 10px;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                    margin-bottom: 5px;
+                    text-align: left;
+                }
+                .collapsible:after {
+                    content: "\\25BC";
+                    float: right;
+                }
+                .collapsible.active:after {
+                    content: "\\25B2";
+                }
+                .collapse-content {
+                    display: none;
+                    padding: 10px;
+                    background: #fafafa;
+                    border: 1px solid #ddd;
+                    border-top: none;
+                }
+            </style>
 
-      <!-- Property Category and House Type side-by-side -->
-      <div class="flex-row">
-        <div>
-          <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-            ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-          </div>
-          <div class="collapse-content">
-            ${Object.entries(propertyCategories).map(([catName, items]) => createCategoryRadios(catName, items)).join("")}
-          </div>
-        </div>
-        <div>
-          <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-            ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-          </div>
-          <div class="collapse-content">
-            ${createHouseTypeRadios(houseTypes)}
-          </div>
-        </div>
-      </div>
+            <!-- Full Name and Email in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="full-name" class="bold-label">
+                        ${isEnglish ? "Full Name" : "Nom complet"}
+                    </label>
+                    <input type="text" id="full-name" required>
+                </div>
+                <div>
+                    <label for="email" class="bold-label">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+            </div>
 
-      <!-- Street Address, City, and Postal Code in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="street-address" class="bold-label">
-            ${isEnglish ? "Street Address" : "Adresse de rue"}
-          </label>
-          <input type="text" id="street-address" required>
-        </div>
-        <div>
-          <label for="city" class="bold-label">
-            ${isEnglish ? "City" : "Ville"}
-          </label>
-          <input type="text" id="city" required>
-        </div>
-        <div>
-          <label for="postal-code" class="bold-label">
-            ${isEnglish ? "Postal Code" : "Code Postal"}
-          </label>
-          <input type="text" id="postal-code" required>
-        </div>
-      </div>
+            <!-- Phone and Seller in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="phone" class="bold-label">
+                        ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+                    </label>
+                    <input type="tel" id="phone" required>
+                </div>
+                <div>
+                    <label for="seller-name" class="bold-label">
+                        ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+                    </label>
+                    <select id="seller-name" required>
+                        <option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
+                        ${getSellerOptions(isEnglish)}
+                    </select>
+                </div>
+            </div>
 
-      <!-- Year Built and Area in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="year-build" class="bold-label">
-            ${isEnglish ? "Year Built" : "Année de construction"}
-          </label>
-          <input type="text" id="year-build" required>
-        </div>
-        <div>
-          <label for="area" class="bold-label">
-            ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-          </label>
-          <input type="text" id="area" required>
-        </div>
-      </div>
+            <!-- Property Category and House Type side-by-side -->
+            <div class="flex-row">
+                <div>
+                    <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+                        ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+                    </div>
+                    <div class="collapse-content">
+                        ${Object.entries(propertyCategories)
+                            .map(([catName, items]) => createCategoryRadios(catName, items))
+                            .join("")}
+                    </div>
+                </div>
+                <div>
+                    <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+                        ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+                    </div>
+                    <div class="collapse-content">
+                        ${createHouseTypeRadios(houseTypes)}
+                    </div>
+                </div>
+            </div>
 
-      <!-- Number of Rooms -->
-      <div>
-        <label for="rooms-number" class="bold-label">
-          ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-        </label>
-        <input type="text" id="rooms-number" required>
-      </div>
+            <!-- Street Address, City, and Postal Code in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="street-address" class="bold-label">
+                        ${isEnglish ? "Street Address" : "Adresse de rue"}
+                    </label>
+                    <input type="text" id="street-address" required>
+                </div>
+                <div>
+                    <label for="city" class="bold-label">
+                        ${isEnglish ? "City" : "Ville"}
+                    </label>
+                    <input type="text" id="city" required>
+                </div>
+                <div>
+                    <label for="postal-code" class="bold-label">
+                        ${isEnglish ? "Postal Code" : "Code Postal"}
+                    </label>
+                    <input type="text" id="postal-code" required>
+                </div>
+            </div>
 
-      <!-- Number of Bedrooms and Bathrooms in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="bedrooms-number" class="bold-label">
-            ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-          </label>
-          <input type="text" id="bedrooms-number" required>
-        </div>
-        <div>
-          <label for="bathrooms-number" class="bold-label">
-            ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-          </label>
-          <input type="text" id="bathrooms-number" required>
-        </div>
-      </div>
+            <!-- Year Built and Area in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="year-build" class="bold-label">
+                        ${isEnglish ? "Year Built" : "Année de construction"}
+                    </label>
+                    <input type="text" id="year-build" required>
+                </div>
+                <div>
+                    <label for="area" class="bold-label">
+                        ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+                    </label>
+                    <input type="text" id="area" required>
+                </div>
+            </div>
 
-      <!-- Garage (inside) and Outside Parking in one row -->
-      <div class="flex-row">
-        <div>
-          <label for="garage" class="bold-label">Garage?</label>
-          <input type="checkbox" id="garage" name="garage" value="Yes">
-          <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
-        </div>
-        <div>
-          <label for="outside-parking" class="bold-label">
-            ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
-          </label>
-          <input type="checkbox" id="outside-parking" value="Yes">
-        </div>
-        <div>
-          <label for="swimming-pool" class="bold-label">
-            ${isEnglish ? "Swimming Pool" : "Piscine"}?
-          </label>
-          <input type="checkbox" id="swimming-pool" value="Yes">
-        </div>
-      </div>
+            <!-- Number of Bedrooms, Rooms, and Bathrooms in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="rooms-number" class="bold-label">
+                        ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+                    </label>
+                    <input type="text" id="rooms-number" required>
+                </div>
+                <div>
+                    <label for="bedrooms-number" class="bold-label">
+                        ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+                    </label>
+                    <input type="text" id="bedrooms-number" required>
+                </div>
+                <div>
+                    <label for="bathrooms-number" class="bold-label">
+                        ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+                    </label>
+                    <input type="text" id="bathrooms-number" required>
+                </div>
+            </div>
 
-      <!-- Details Textarea (styled individually) -->
-      <div>
-        <label for="details" class="bold-label">
-          ${isEnglish ? "Details" : "Détails"}
-        </label>
-        <textarea id="details" required></textarea>
-      </div>
+            <!-- Garage (inside) and Outside Parking in one row -->
+            <div class="flex-row">
+                <div>
+                    <label for="garage" class="bold-label">Garage?</label>
+                    <input type="checkbox" id="garage" name="garage" value="Yes">
+                    <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
+                </div>
+                <div>
+                    <label for="outside-parking" class="bold-label">
+                        ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+                    </label>
+                    <input type="checkbox" id="outside-parking" value="Yes">
+                </div>
+                <div>
+                    <label for="swimming-pool" class="bold-label">
+                        ${isEnglish ? "Swimming Pool" : "Piscine"}?
+                    </label>
+                    <input type="checkbox" id="swimming-pool" value="Yes">
+                </div>
+            </div>
 
-      <button type="submit" class="submit">
-        ${isEnglish ? "Submit" : "Envoyer"}
-      </button>
-    `;
+            <!-- Details Textarea (styled individually) -->
+            <div>
+                <label for="details" class="bold-label">
+                    ${isEnglish ? "Details" : "Détails"}
+                </label>
+                <textarea id="details" required></textarea>
+            </div>
 
-    // Show/hide #garage-cars when "Garage?" is checked
-    formContainer.querySelector("#garage").addEventListener("change", (event) => {
-      const carsField = formContainer.querySelector("#garage-cars");
-      if (event.target.checked) {
-        carsField.style.display = "inline-block";
-      } else {
-        carsField.style.display = "none";
-        carsField.value = "";
-      }
-    });
+            <button type="submit" class="submit">
+                ${isEnglish ? "Submit" : "Envoyer"}
+            </button>
+        `;
 
-    // Submit handler
-    formContainer.addEventListener("submit", (event) => {
-      event.preventDefault();
+        // Show/hide #garage-cars when "Garage?" is checked
+        formContainer.querySelector("#garage").addEventListener("change", (event) => {
+            const carsField = formContainer.querySelector("#garage-cars");
+            if (event.target.checked) {
+                carsField.style.display = "inline-block";
+            } else {
+                carsField.style.display = "none";
+                carsField.value = "";
+            }
+        });
 
-      // Gather fields
-      const fullName = formContainer.querySelector("#full-name").value.trim();
-      const email = formContainer.querySelector("#email").value.trim();
-      const phone = formContainer.querySelector("#phone").value.trim();
-      const formattedPhone = formatPhoneNumber(phone);
-      const sellerName = formContainer.querySelector("#seller-name").value.trim();
+        // Submit handler
+        formContainer.addEventListener("submit", (event) => {
+            event.preventDefault();
 
-      // Category & HouseType
-      const categoryRadio = formContainer.querySelector('input[name="property-category"]:checked');
-      const propertyCategory = categoryRadio ? categoryRadio.value : "";
-      const houseTypeRadio = formContainer.querySelector('input[name="house-type"]:checked');
-      const houseType = houseTypeRadio ? houseTypeRadio.value : "";
+            // Gather fields
+            const fullName = formContainer.querySelector("#full-name").value.trim();
+            const email = formContainer.querySelector("#email").value.trim();
+            const phone = formContainer.querySelector("#phone").value.trim();
+            const formattedPhone = formatPhoneNumber(phone);
+            const sellerName = formContainer.querySelector("#seller-name").value.trim();
 
-      const streetAddress = formContainer.querySelector("#street-address").value.trim();
-      const city = formContainer.querySelector("#city").value.trim();
-      const postalCode = formContainer.querySelector("#postal-code").value.trim();
-      const yearBuild = formContainer.querySelector("#year-build").value.trim();
-      const area = formContainer.querySelector("#area").value.trim();
-      const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-      const bedroomsNumber = formContainer.querySelector("#bedrooms-number").value.trim();
-      const bathroomsNumber = formContainer.querySelector("#bathrooms-number").value.trim();
+            // Category & HouseType
+            const categoryRadio = formContainer.querySelector('input[name="property-category"]:checked');
+            const propertyCategory = categoryRadio ? categoryRadio.value : "";
+            const houseTypeRadio = formContainer.querySelector('input[name="house-type"]:checked');
+            const houseType = houseTypeRadio ? houseTypeRadio.value : "";
 
-      const garageChecked = formContainer.querySelector("#garage").checked;
-      const insideParking = garageChecked ? "Yes" : "No";
-      const insideParkingCars = garageChecked ? formContainer.querySelector("#garage-cars").value.trim() : 0;
+            const streetAddress = formContainer.querySelector("#street-address").value.trim();
+            const city = formContainer.querySelector("#city").value.trim();
+            const postalCode = formContainer.querySelector("#postal-code").value.trim();
+            const yearBuild = formContainer.querySelector("#year-build").value.trim();
+            const area = formContainer.querySelector("#area").value.trim();
+            const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
+            const bedroomsNumber = formContainer.querySelector("#bedrooms-number").value.trim();
+            const bathroomsNumber = formContainer.querySelector("#bathrooms-number").value.trim();
 
-      const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
-      const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
-      const details = formContainer.querySelector("#details").value.trim();
+            const garageChecked = formContainer.querySelector("#garage").checked;
+            const insideParking = garageChecked ? "Yes" : "No";
+            const insideParkingCars = garageChecked ? formContainer.querySelector("#garage-cars").value.trim() : 0;
 
-      // Basic validation examples
-      if (!fullName) {
-        alert("Full Name is required.");
-        return;
-      }
-      if (!isValidEmail(email)) {
-        alert("Please enter a valid email.");
-        return;
-      }
-      if (!isValidCanadianPhoneNumber(phone)) {
-        alert("Please enter a valid Canadian phone number.");
-        return;
-      }
-      if (!propertyCategory) {
-        alert("Please select a property category.");
-        return;
-      }
-      if (!houseType) {
-        alert("Please select a house type.");
-        return;
-      }
+            const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
+            const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+            const details = formContainer.querySelector("#details").value.trim();
 
-      // Demo: send data to window.voiceflow.chat
-      window.voiceflow.chat.interact({
-        type: "complete",
-        payload: {
-          fullName,
-          email,
-          phone: formattedPhone,
-          sellerName,
-          propertyCategory,
-          houseType,
-          streetAddress,
-          city,
-          postalCode,
-          yearBuild,
-          area,
-          roomsNumber,
-          bedroomsNumber,
-          bathroomsNumber,
-          insideParking,
-          insideParkingCars,
-          outsideParking,
-          swimmingPool,
-          details
-        }
-      });
-    });
+            // Basic validation examples
+            if (!fullName) {
+                alert("Full Name is required.");
+                return;
+            }
+            if (!isValidEmail(email)) {
+                alert("Please enter a valid email.");
+                return;
+            }
+            if (!isValidCanadianPhoneNumber(phone)) {
+                alert("Please enter a valid Canadian phone number.");
+                return;
+            }
+            if (!propertyCategory) {
+                alert("Please select a property category.");
+                return;
+            }
+            if (!houseType) {
+                alert("Please select a house type.");
+                return;
+            }
 
-    // Append the form to the container element
-    element.appendChild(formContainer);
-  },
+            // Demo: send data to window.voiceflow.chat
+            window.voiceflow.chat.interact({
+                type: "complete",
+                payload: {
+                    fullName,
+                    email,
+                    phone: formattedPhone,
+                    sellerName,
+                    propertyCategory,
+                    houseType,
+                    streetAddress,
+                    city,
+                    postalCode,
+                    yearBuild,
+                    area,
+                    roomsNumber,
+                    bedroomsNumber,
+                    bathroomsNumber,
+                    insideParking,
+                    insideParkingCars,
+                    outsideParking,
+                    swimmingPool,
+                    details
+                }
+            });
+        });
+
+        // Append the form to the container element
+        element.appendChild(formContainer);
+    },
 };
-
-
-
 
 const PropertySearchExtension = {
     name: "Forms",
