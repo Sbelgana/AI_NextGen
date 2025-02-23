@@ -420,127 +420,137 @@ const ContactExtension = {
 
 
 // Booking extension rendering function
-    const BookingExtension = {
-      name: "Forms",
-      type: "response",
-      match: ({ trace }) =>
-          trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
-      render: ({ trace, element }) => {
+const BookingExtension = {
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
+    render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === 'en';
         const formContainer = document.createElement("form");
         formContainer.innerHTML = `
-        <style>
-          input[type="text"], input[type="email"], select {
-      width: 100%;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      border-radius: 4px;
-      padding: 8px;
-      background: #fff;
-      font-size: 0.9em;
-      outline: none;
-      box-sizing: border-box;
-    }
-    .book-now {
-      color: #9A0DF2;
-      background-color: #F5E7FE;
-      border: none;
-      padding: 12px;
-      border-radius: 5px;
-      width: 100%;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .book-now:hover {
-      color: white;
-      background-color: #9A0DF2;
-    }
-          </style>
-         <div>
-            <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
-          </div>
-          <div>
-            <label for="email" class="bold-label">Email</label>
-            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
-          </div>
-          <div>
-            <label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
-            <select id="seller-name" name="seller-name" required>
-              <option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
-              ${getSellerOptions(isEnglish, false)}
-            </select>
-          </div>
-          <button type="button" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
+            <style>
+                input[type="text"],
+                input[type="email"],
+                select {
+                    width: 100%;
+                    border: 1px solid rgba(0, 0, 0, 0.2);
+                    border-radius: 4px;
+                    padding: 8px;
+                    background: #fff;
+                    font-size: 0.9em;
+                    outline: none;
+                    box-sizing: border-box;
+                }
+                .book-now {
+                    color: #9A0DF2;
+                    background-color: #F5E7FE;
+                    border: none;
+                    padding: 12px;
+                    border-radius: 5px;
+                    width: 100%;
+                    font-size: 1em;
+                    cursor: pointer;
+                    margin-top: 8px;
+                }
+                .book-now:hover {
+                    color: white;
+                    background-color: #9A0DF2;
+                }
+            </style>
+            <div>
+                <label for="full-name" class="bold-label">
+                    ${isEnglish ? 'Full Name' : 'Nom complet'}
+                </label>
+                <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+            </div>
+            <div>
+                <label for="email" class="bold-label">Email</label>
+                <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+            </div>
+            <div>
+                <label for="seller-name" class="bold-label">
+                    ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+                </label>
+                <select id="seller-name" name="seller-name" required>
+                    <option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
+                    ${getSellerOptions(isEnglish, false)}
+                </select>
+            </div>
+            <button type="button" class="book-now" id="book-now">
+                ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
+            </button>
         `;
         element.appendChild(formContainer);
 
         // Event listener for "Book Now" click
         const bookNowButton = formContainer.querySelector("#book-now");
         bookNowButton.addEventListener("click", () => {
-          const fullName = formContainer.querySelector("#full-name").value.trim();
-          const email = formContainer.querySelector("#email").value.trim();
-          const sellerName = formContainer.querySelector("#seller-name").value.trim();
-          if (!fullName) {
-            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-            return;
-          }
-          if (!email || !isValidEmail(email)) {
-            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-            return;
-          }
-          if (!sellerName) {
-            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-            return;
-          }
-          if (BookingUrls[sellerName]) {
-            // Build the booking URL with dynamic query parameters
-            const bookingUrl = BookingUrls[sellerName]
-                .replace("{Full_Name}", encodeURIComponent(fullName))
-                .replace("{Email}", encodeURIComponent(email));
-
-            // Interact with Voiceflow (simulated)
-            window.voiceflow.chat.interact({
-              type: "complete",
-              payload: { fullName, email, sellerName, bookingUrl },
-            });
-
-            // Insert Calendly widget into modal and reinitialize widget
-            const modal = document.getElementById("bookingModal");
-            const calendlyContainer = modal.querySelector("#calendlyContainer");
-            calendlyContainer.innerHTML = `<div class="calendly-inline-widget" data-url="${bookingUrl}" style="min-width:320px;height:700px;"></div>`;
-            const existingScript = calendlyContainer.querySelector("script[src='https://assets.calendly.com/assets/external/widget.js']");
-            if (existingScript) {
-              existingScript.remove();
+            const fullName = formContainer.querySelector("#full-name").value.trim();
+            const email = formContainer.querySelector("#email").value.trim();
+            const sellerName = formContainer.querySelector("#seller-name").value.trim();
+            if (!fullName) {
+                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+                return;
             }
-            const script = document.createElement("script");
-            script.src = "https://assets.calendly.com/assets/external/widget.js";
-            script.async = true;
-            calendlyContainer.appendChild(script);
+            if (!email || !isValidEmail(email)) {
+                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+                return;
+            }
+            if (!sellerName) {
+                alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+                return;
+            }
+            if (BookingUrls[sellerName]) {
+                // Disable the "Book Now" button so it can't be clicked again
+                bookNowButton.disabled = true;
+                // Build the booking URL with dynamic query parameters
+                const bookingUrl = BookingUrls[sellerName]
+                    .replace("{Full_Name}", encodeURIComponent(fullName))
+                    .replace("{Email}", encodeURIComponent(email));
 
-            // Display the modal
-            modal.style.display = "block";
-          } else {
-            alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
-          }
+                // Interact with Voiceflow (simulated)
+                window.voiceflow.chat.interact({
+                    type: "complete",
+                    payload: { fullName, email, sellerName, bookingUrl },
+                });
+
+                // Insert Calendly widget into modal and reinitialize widget
+                const modal = document.getElementById("bookingModal");
+                const calendlyContainer = modal.querySelector("#calendlyContainer");
+                calendlyContainer.innerHTML = `<div class="calendly-inline-widget" data-url="${bookingUrl}" style="min-width:320px;height:700px;"></div>`;
+                const existingScript = calendlyContainer.querySelector("script[src='https://assets.calendly.com/assets/external/widget.js']");
+                if (existingScript) {
+                    existingScript.remove();
+                }
+                const script = document.createElement("script");
+                script.src = "https://assets.calendly.com/assets/external/widget.js";
+                script.async = true;
+                calendlyContainer.appendChild(script);
+
+                // Display the modal
+                modal.style.display = "block";
+            } else {
+                alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
+            }
         });
 
         // Modal close functionality (close on button click)
         const modal = document.getElementById("bookingModal");
         const closeButton = modal.querySelector(".close-button");
         closeButton.addEventListener("click", function(){
-          modal.style.display = "none";
+            modal.style.display = "none";
         });
 
         // Modal close functionality (close when clicking outside modal-content)
         modal.addEventListener("click", function(event) {
-          if (event.target === modal) {
-            modal.style.display = "none";
-          }
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
         });
-      },
-    };
+    },
+};
 
        
 const SellingExtension = {
