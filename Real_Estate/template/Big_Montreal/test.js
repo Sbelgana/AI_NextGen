@@ -505,8 +505,6 @@ const BookingExtension = {
 					.replace("{Email}", encodeURIComponent(email));
 
 				// Interact with Voiceflow (simulated)
-				const submitBtn = formContainer.querySelector('input[type="book-now"]');
-				submitBtn.disabled = true;
 				window.voiceflow.chat.interact({
 				  type: "complete",
 				  payload: { 
@@ -912,8 +910,6 @@ const SellingExtension = {
             }
 
             // Demo: send data to window.voiceflow.chat
-	    const submitBtn = formContainer.querySelector('input[type="submit"]');
-	    submitBtn.disabled = true;
             window.voiceflow.chat.interact({
                 type: "complete",
                 payload: {
@@ -1268,8 +1264,6 @@ const PropertySearchExtension = {
 			};
 
 			const airtableFormula = generateAirtableFormula(payload);
-                        const submitBtn = formContainer.querySelector('input[type="submit"]');
-	    		submitBtn.disabled = true;
 			window.voiceflow.chat.interact({
 				type: "complete",
 				payload: { 
