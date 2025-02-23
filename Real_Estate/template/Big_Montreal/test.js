@@ -926,11 +926,7 @@ const SellingExtension = {
                 return;
             }
 
-            // Disable the submit button once all validations pass
-            const submitBtn = formContainer.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-
-            // Demo: send data to window.voiceflow.chat
+            // Call interact first
             window.voiceflow.chat.interact({
                 type: "complete",
                 payload: {
@@ -955,12 +951,19 @@ const SellingExtension = {
                     details
                 }
             });
+
+            // Then disable submit button after a short delay (100ms)
+            const submitBtn = formContainer.querySelector('button[type="submit"]');
+            setTimeout(() => {
+                submitBtn.disabled = true;
+            }, 100);
         });
 
         // Append the form to the container element
         element.appendChild(formContainer);
     },
 };
+
 
 
 const PropertySearchExtension = {
