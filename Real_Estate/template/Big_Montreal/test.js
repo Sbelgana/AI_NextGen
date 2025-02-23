@@ -587,12 +587,7 @@ const SellingExtension = {
                             .map((cat) => {
                                 return `
                                     <div class="radio-item">
-                                        <input 
-                                            type="radio" 
-                                            class="property-category-radio" 
-                                            name="property-category" 
-                                            value="${cat}"
-                                        >
+                                        <input type="radio" class="property-category-radio" name="property-category" value="${cat}">
                                         <label>${cat}</label>
                                     </div>
                                 `;
@@ -608,12 +603,7 @@ const SellingExtension = {
             return arrayOfTypes
                 .map((ht) => `
                     <div class="radio-item">
-                        <input 
-                            type="radio" 
-                            class="house-type-radio"
-                            name="house-type" 
-                            value="${ht}"
-                        >
+                        <input type="radio" class="house-type-radio" name="house-type" value="${ht}">
                         <label>${ht}</label>
                     </div>
                 `)
@@ -646,10 +636,7 @@ const SellingExtension = {
                     font-size: 0.9em;
                 }
                 /* Input and select styling */
-                input[type="text"],
-                input[type="email"],
-                input[type="tel"],
-                select {
+                input[type="text"], input[type="email"], input[type="tel"], select {
                     width: 100%;
                     border: 1px solid rgba(0,0,0,0.2);
                     border-radius: 4px;
@@ -804,8 +791,14 @@ const SellingExtension = {
                 </div>
             </div>
 
-            <!-- Number of Bedrooms and Bathrooms in one row -->
+            <!-- Number of Bedrooms, Rooms, and Bathrooms in one row -->
             <div class="flex-row">
+                <div>
+                    <label for="rooms-number" class="bold-label">
+                        ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+                    </label>
+                    <input type="text" id="rooms-number" required>
+                </div>
                 <div>
                     <label for="bedrooms-number" class="bold-label">
                         ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
@@ -825,10 +818,7 @@ const SellingExtension = {
                 <div>
                     <label for="garage" class="bold-label">Garage?</label>
                     <input type="checkbox" id="garage" name="garage" value="Yes">
-                    <input type="number" 
-                           id="garage-cars" 
-                           placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}"
-                           style="display: none;">
+                    <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
                 </div>
                 <div>
                     <label for="outside-parking" class="bold-label">
@@ -926,7 +916,11 @@ const SellingExtension = {
                 return;
             }
 
-            // Call interact first
+            // Disable the submit button after successful validation to prevent further clicks
+            const submitBtn = formContainer.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            // Demo: send data to window.voiceflow.chat
             window.voiceflow.chat.interact({
                 type: "complete",
                 payload: {
@@ -951,18 +945,13 @@ const SellingExtension = {
                     details
                 }
             });
-
-            // Then disable submit button after a short delay (100ms)
-            const submitBtn = formContainer.querySelector('button[type="submit"]');
-            setTimeout(() => {
-                submitBtn.disabled = true;
-            }, 100);
         });
 
         // Append the form to the container element
         element.appendChild(formContainer);
     },
 };
+
 
 
 
