@@ -260,8 +260,22 @@ const ContactExtension = {
 				form {
 					display: flex;
 					flex-direction: column;
-					gap: 16px;
+					gap: 5px;
 					width: 100%;
+				}
+				.flex-row {
+					display: flex;
+					gap: 16px;
+					flex-wrap: wrap;
+				}
+				.flex-row > div {
+					flex: 1;
+					min-width: 200px;
+				}
+				.bold-label {
+					font-weight: bold;
+					color: #555;
+					font-size: 0.9em;
 				}
 				.bold-label {
 					font-weight: bold;
@@ -307,37 +321,41 @@ const ContactExtension = {
 					background-color: #9A0DF2;
 				}
 			</style>
-			<div>
-				<label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-				<input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
-			</div>
-			<div>
-				<label for="email" class="bold-label">Email</label>
-				<input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
-			</div>
-			<div>
-				<label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-				<input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
-			</div>
-			<div>
-				<label for="service" class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}</label>
-				<select id="service" name="service" required>
-					<option value="">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</option>
-					${getServiceOptions(language)}
-				</select>
-			</div>
-			<div>
-				<label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
-				<select id="seller-name" name="seller-name" required>
-					<option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
-					${getSellerOptions(isEnglish)}
-				</select>
-			</div>
+   			<div class="flex-row">
+				<div>
+					<label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+					<input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+				</div>
+				<div>
+					<label for="email" class="bold-label">Email</label>
+					<input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+				</div>
+				<div>
+					<label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+					<input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
+				</div>
+      			</div>
+    			<div class="flex-row">
+				<div>
+					<label for="service" class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}</label>
+					<select id="service" name="service" required>
+						<option value="">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</option>
+						${getServiceOptions(language)}
+					</select>
+				</div>
+				<div>
+					<label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
+					<select id="seller-name" name="seller-name" required>
+						<option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
+						${getSellerOptions(isEnglish)}
+					</select>
+				</div>
+    			</div>
    			<div>
 				<label for="details" class="bold-label">
-					${isEnglish ? "Write your message here.." : "'Écrivez votre message ici..."}
+					Message
 				</label>
-				<textarea id="details" required></textarea>
+				<textarea id="details"  placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
 			</div>
 
 			<input type="submit" class="submit" value="${isEnglish ? 'Submit' : 'Envoyer'}">
