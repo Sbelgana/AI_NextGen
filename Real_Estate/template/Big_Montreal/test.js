@@ -476,7 +476,7 @@ const BookingExtension = {
 					  ${getSellerOptions(isEnglish, false)}
 				</select>
 			</div>
-			<button type="button" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
+			<button type="book-now" class="book-now" id="book-now">${isEnglish ? 'Book Now' : 'Réserver maintenant'}</button>
         `;
 		element.appendChild(formContainer);
 
@@ -505,6 +505,8 @@ const BookingExtension = {
 					.replace("{Email}", encodeURIComponent(email));
 
 				// Interact with Voiceflow (simulated)
+				const submitBtn = formContainer.querySelector('input[type="book-now"]');
+				submitBtn.disabled = true;
 				window.voiceflow.chat.interact({
 				  type: "complete",
 				  payload: { 
@@ -910,6 +912,8 @@ const SellingExtension = {
             }
 
             // Demo: send data to window.voiceflow.chat
+	    const submitBtn = formContainer.querySelector('input[type="submit"]');
+	    submitBtn.disabled = true;
             window.voiceflow.chat.interact({
                 type: "complete",
                 payload: {
@@ -1264,7 +1268,8 @@ const PropertySearchExtension = {
 			};
 
 			const airtableFormula = generateAirtableFormula(payload);
-
+                        const submitBtn = formContainer.querySelector('input[type="submit"]');
+	    		submitBtn.disabled = true;
 			window.voiceflow.chat.interact({
 				type: "complete",
 				payload: { 
