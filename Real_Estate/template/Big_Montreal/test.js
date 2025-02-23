@@ -522,7 +522,7 @@ const SellingExtension = {
   name: "Forms",
   type: "response",
   match: ({ trace }) =>
-    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+    trace.type === "ext_selling" || trace.payload.name === "ext_selling",
 
   render: ({ trace, element }) => {
     const { language } = trace.payload;
@@ -590,249 +590,247 @@ const SellingExtension = {
     const formContainer = document.createElement("form");
 
     formContainer.innerHTML = `
-      <style>
-      form {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        width: 100%;
-      }
-      .bold-label {
-        font-weight: bold;
-        color: #555;
-        font-size: 0.9em;
-      }
-      input[type="text"], input[type="email"], input[type="tel"], select, textarea {
-        width: 100%;
-        border: 1px solid rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-        padding: 8px;
-        background: #fff;
-        font-size: 0.9em;
-        outline: none;
-        box-sizing: border-box;
-      }
-      textarea {
-        resize: vertical;
-        min-height: 100px;
-      }
-      .submit {
-        color: #9A0DF2;
-        background-color: #F5E7FE;
-        border: none;
-        padding: 12px;
-        border-radius: 5px;
-        width: 100%;
-        font-size: 1em;
-        cursor: pointer;
-        margin-top: 8px;
-      }
-      
-          .submit:hover {
-             color: white;
-             background-color: #9A0DF2;
-         }
-      .inline-field {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .collapsible {
-        cursor: pointer;
-        background: #f1f1f1;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.9em;
-        margin-bottom: 5px;
-        text-align: left;
-      }
-      .collapsible:after {
-        content: "\\25BC";
-        float: right;
-      }
-      .collapsible.active:after {
-        content: "\\25B2";
-      }
-      .collapse-content {
-        display: none;
-        padding: 10px;
-        background: #fafafa;
-        border: 1px solid #ddd;
-        border-top: none;
-      }
-      .radio-container {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .radio-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .radio-item label {
-        font-weight: normal;
-      }
-    </style>
-      <div>
-        <label for="full-name" class="bold-label">
-          ${isEnglish ? "Full Name" : "Nom complet"}
-        </label>
-        <input
-          type="text"
-          id="full-name"
-          required
-        >
-      </div>
+			<style>
+				form {
+					display: flex;
+					flex-direction: column;
+					gap: 5px;
+					width: 100%;
+				}
+				.flex-row {
+					display: flex;
+					gap: 16px;
+					flex-wrap: wrap;
+				}
+				.flex-row > div {
+					flex: 1;
+					min-width: 200px;
+				}
+				.bold-label {
+					font-weight: bold;
+					color: #555;
+					font-size: 0.9em;
+				}
+				/* Input and select styling */
+				input[type="text"], input[type="email"], input[type="tel"], select {
+					width: 100%;
+					border: 1px solid rgba(0,0,0,0.2);
+					border-radius: 4px;
+					padding: 8px;
+					background: #fff;
+					font-size: 0.9em;
+					outline: none;
+					box-sizing: border-box;
+				}
+				/* Instead of styling all textareas, only style the details textarea */
+				#details {
+					width: 100%;
+					resize: vertical;
+					min-height: 50px;
+					max-height: 200px; /* optional: limit maximum height */
+					padding: 8px;
+					border: 1px solid rgba(0,0,0,0.2);
+					border-radius: 4px;
+					font-size: 0.9em;
+					box-sizing: border-box;
+				}
+				.submit {
+					color: #9A0DF2;
+					background-color: #F5E7FE;
+					border: none;
+					padding: 12px;
+					border-radius: 5px;
+					font-size: 1em;
+					cursor: pointer;
+					margin-top: 8px;
+				}
+				.submit:hover {
+					color: white;
+					background-color: #9A0DF2;
+				}
+				.collapsible {
+					cursor: pointer;
+					background: #f1f1f1;
+					padding: 10px;
+					border: 1px solid #ccc;
+					border-radius: 4px;
+					font-size: 0.9em;
+					margin-bottom: 5px;
+					text-align: left;
+				}
+				.collapsible:after {
+					content: "\\25BC";
+					float: right;
+				}
+				.collapsible.active:after {
+					content: "\\25B2";
+				}
+				.collapse-content {
+					display: none;
+					padding: 10px;
+					background: #fafafa;
+					border: 1px solid #ddd;
+					border-top: none;
+				}
+			</style>
 
-      <div>
-        <label for="email" class="bold-label">Email</label>
-        <input
-          type="email"
-          id="email"
-          required
-        >
-      </div>
+			<!-- Full Name and Email in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="full-name" class="bold-label">
+						${isEnglish ? "Full Name" : "Nom complet"}
+					</label>
+					<input type="text" id="full-name" required>
+				</div>
+				<div>
+					<label for="email" class="bold-label">Email</label>
+					<input type="email" id="email" required>
+				</div>
+			</div>
 
-      <div>
-        <label for="phone" class="bold-label">
-          ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          required
-        >
-      </div>
+			<!-- Phone and Seller in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="phone" class="bold-label">
+						${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+					</label>
+					<input type="tel" id="phone" required>
+				</div>
+				<div>
+					<label for="seller-name" class="bold-label">
+						${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+					</label>
+					<select id="seller-name" required>
+						<option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
+						${getSellerOptions(isEnglish)}
+					</select>
+				</div>
+			</div>
 
-      <div>
-        <label for="seller-name" class="bold-label">
-          ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-        </label>
-        <select id="seller-name" required>
-          <option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
-          ${getSellerOptions(isEnglish)}
-        </select>
-      </div>
+			<!-- Property Category and House Type side-by-side -->
+			<div class="flex-row">
+				<div>
+					<div class="collapsible bold-label" onclick="toggleCollapse(this)">
+						${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+					</div>
+					<div class="collapse-content">
+						${Object.entries(propertyCategories).map(([catName, items]) => createCategoryRadios(catName, items)).join("")}
+					</div>
+				</div>
+				<div>
+					<div class="collapsible bold-label" onclick="toggleCollapse(this)">
+						${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+					</div>
+					<div class="collapse-content">
+						${createHouseTypeRadios(houseTypes)}
+					</div>
+				</div>
+			</div>
 
-      <!-- Collapsible for Category -->
-      <div>
-        <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-          ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-        </div>
-        <div class="collapse-content">
-          ${Object.entries(propertyCategories)
-            .map(([catName, items]) => createCategoryRadios(catName, items))
-            .join("")}
-        </div>
-      </div>
+			<!-- Street Address, City, and Postal Code in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="street-address" class="bold-label">
+						${isEnglish ? "Street Address" : "Adresse de rue"}
+					</label>
+					<input type="text" id="street-address" required>
+				</div>
+				<div>
+					<label for="city" class="bold-label">
+						${isEnglish ? "City" : "Ville"}
+					</label>
+					<input type="text" id="city" required>
+				</div>
+				<div>
+					<label for="postal-code" class="bold-label">
+						${isEnglish ? "Postal Code" : "Code Postal"}
+					</label>
+					<input type="text" id="postal-code" required>
+				</div>
+			</div>
 
-      <!-- Collapsible for House Type -->
-      <div>
-        <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-          ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-        </div>
-        <div class="collapse-content">
-          ${createHouseTypeRadios(houseTypes)}
-        </div>
-      </div>
+			<!-- Year Built and Area in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="year-build" class="bold-label">
+						${isEnglish ? "Year Built" : "Année de construction"}
+					</label>
+					<input type="text" id="year-build" required>
+				</div>
+				<div>
+					<label for="area" class="bold-label">
+						${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+					</label>
+					<input type="text" id="area" required>
+				</div>
+			</div>
 
-      <div>
-        <label for="street-address" class="bold-label">
-          ${isEnglish ? "Street Address" : "Adresse de rue"}
-        </label>
-        <input type="text" id="street-address" required>
-      </div>
-      <div>
-        <label for="city" class="bold-label">
-          ${isEnglish ? "City" : "Ville"}
-        </label>
-        <input type="text" id="city" required>
-      </div>
-      <div>
-        <label for="postal-code" class="bold-label">
-          ${isEnglish ? "Postal Code" : "Code Postal"}
-        </label>
-        <input type="text" id="postal-code" required>
-      </div>
+			<!-- Number of Bedrooms and Bathrooms in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="bedrooms-number" class="bold-label">
+						${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+					</label>
+					<input type="text" id="bedrooms-number" required>
+				</div>
+				<div>
+					<label for="bathrooms-number" class="bold-label">
+						${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+					</label>
+					<input type="text" id="bathrooms-number" required>
+				</div>
+			</div>
 
-      <div>
-        <label for="year-build" class="bold-label">
-          ${isEnglish ? "Year Built" : "Année de construction"}
-        </label>
-        <input type="text" id="year-build" required>
-      </div>
+			<!-- Garage (inside) and Outside Parking in one row -->
+			<div class="flex-row">
+				<div>
+					<label for="garage" class="bold-label">Garage?</label>
+					<input type="checkbox" id="garage" name="garage" value="Yes">
+					<input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
+				</div>
+				<div>
+					<label for="outside-parking" class="bold-label">
+						${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+					</label>
+					<input type="checkbox" id="outside-parking" value="Yes">
+				</div>
+				<div>
+					<label for="swimming-pool" class="bold-label"> ${isEnglish ? "Swimming Pool" : "Piscine"}?</label>
+					<input type="checkbox" id="swimming-pool" value="Yes">
+				</div>
+			</div>
 
-      <div>
-        <label for="area" class="bold-label">
-          ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-        </label>
-        <input type="text" id="area" required>
-      </div>
+			<!-- Remaining fields -->
+			
 
-      <div>
-        <label for="rooms-number" class="bold-label">
-          ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-        </label>
-        <input type="text" id="rooms-number" required>
-      </div>
+			<!-- Details Textarea (styled individually) -->
+			<div>
+				<label for="details" class="bold-label">
+					${isEnglish ? "Details" : "Détails"}
+				</label>
+				<textarea id="details" required></textarea>
+			</div>
 
-      <div>
-        <label for="bedrooms-number" class="bold-label">
-          ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-        </label>
-        <input type="text" id="bedrooms-number" required>
-      </div>
+			<button type="submit" class="submit">
+				${isEnglish ? "Submit" : "Envoyer"}
+			</button>
+		`;
 
-      <div>
-        <label for="bathrooms-number" class="bold-label">
-          ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-        </label>
-        <input type="text" id="bathrooms-number" required>
-      </div>
 
-      <div>
-        <label for="garage" class="bold-label">Garage?</label>
-        <input type="checkbox" id="garage" name="garage" value="Yes">
-        <input type="number" 
-               id="garage-cars" 
-               placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}"
-               style="display: none;">
-      </div>
+		// Show/hide #garage-cars when "Garage?" is checked
+		formContainer.querySelector("#garage").addEventListener("change", (event) => {
+			const carsField = formContainer.querySelector("#garage-cars");
+			if (event.target.checked) {
+				carsField.style.display = "inline-block";
+			} else {
+				carsField.style.display = "none";
+				carsField.value = "";
+			}
+		});
 
-      <div>
-        <label for="outside-parking" class="bold-label">
-          ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
-        </label>
-        <input type="checkbox" id="outside-parking" value="Yes">
-      </div>
+   
 
-      <div>
-        <label for="swimming-pool" class="bold-label">Piscine?</label>
-        <input type="checkbox" id="swimming-pool" value="Yes">
-      </div>
 
-      <div>
-        <label for="details" class="bold-label">${isEnglish ? "Details" : "Détails"}</label>
-        <textarea id="details" rows="3" required></textarea>
-      </div>
-
-      <button type="submit" class="submit">
-        ${isEnglish ? "Submit" : "Envoyer"}
-      </button>
-    `;
-
-    // Show/hide #garage-cars when "Garage?" is checked
-    formContainer.querySelector("#garage").addEventListener("change", (event) => {
-      const carsField = formContainer.querySelector("#garage-cars");
-      if (event.target.checked) {
-        carsField.style.display = "inline-block";
-      } else {
-        carsField.style.display = "none";
-        carsField.value = "";
-      }
-    });
 
     // Submit handler
     formContainer.addEventListener("submit", (event) => {
@@ -923,6 +921,7 @@ const SellingExtension = {
     element.appendChild(formContainer);
   },
 };
+
 
 
 const PropertySearchExtension = {
