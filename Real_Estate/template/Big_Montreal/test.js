@@ -248,161 +248,176 @@ function getServiceOptions(language) {
 }
 
 const ContactExtension = {
-	name: "Forms",
-	type: "response",
-	match: ({trace}) => trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
-	render: ({trace,element}) => {
-		const {language} = trace.payload;
-		const isEnglish = language === 'en';
-		const formContainer = document.createElement("form");
-		formContainer.innerHTML = `
-			<style>
-				form {
-					display: flex;
-					flex-direction: column;
-					gap: 5px;
-					width: 100%;
-				}
-				.flex-row {
-					display: flex;
-					gap: 16px;
-					flex-wrap: wrap;
-				}
-				.flex-row > div {
-					flex: 1;
-					min-width: 200px;
-				}
-				.bold-label {
-					font-weight: bold;
-					color: #000;
-					font-size: 0.9em;
-				}
-				/* Input and select styling */
-				input[type="text"], input[type="email"], input[type="tel"], select {
-					width: 100%;
-					border: 1px solid rgba(0,0,0,0.2);
-					border-radius: 4px;
-					padding: 8px;
-					background: #fff;
-					font-size: 0.9em;
-					outline: none;
-					box-sizing: border-box;
-				}
-				/* Instead of styling all textareas, only style the details textarea */
-				#details {
-					width: 100%;
-					resize: vertical;
-					min-height: 50px;
-					max-height: 200px; /* optional: limit maximum height */
-					padding: 8px;
-					border: 1px solid rgba(0,0,0,0.2);
-					border-radius: 4px;
-					font-size: 0.9em;
-					box-sizing: border-box;
-				}
-				.submit {
-					color: #9A0DF2;
-					background-color: #F5E7FE;
-					border: none;
-					padding: 12px;
-					border-radius: 5px;
-					width: 100%;
-					font-size: 1em;
-					cursor: pointer;
-					margin-top: 8px;
-				}
-				.submit:hover {
-					color: white;
-					background-color: #9A0DF2;
-				}
-			</style>
-   			<div class="flex-row">
-				<div>
-					<label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-					<input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
-				</div>
-				<div>
-					<label for="email" class="bold-label">Email</label>
-					<input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
-				</div>
-				<div>
-					<label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-					<input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
-				</div>
-      			</div>
-    			<div class="flex-row">
-				<div>
-					<label for="service" class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}</label>
-					<select id="service" name="service" required>
-						<option value="">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</option>
-						${getServiceOptions(language)}
-					</select>
-				</div>
-				<div>
-					<label for="seller-name" class="bold-label">${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}</label>
-					<select id="seller-name" name="seller-name" required>
-						<option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
-						${getSellerOptions(isEnglish)}
-					</select>
-				</div>
-    			</div>
-   			<div>
-				<label for="details" class="bold-label">
-					Message
-				</label>
-				<textarea id="details"  placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
-			</div>
-
-			<input type="submit" class="submit" value="${isEnglish ? 'Submit' : 'Envoyer'}">
-		`;
-		formContainer.addEventListener("submit", (event) => {
-			event.preventDefault();
-			const fullName = formContainer.querySelector("#full-name").value.trim();
-			const email = formContainer.querySelector("#email").value.trim();
-			const phone = formContainer.querySelector("#phone").value.trim();
-			const formattedPhone = formatPhoneNumber(phone); // Formatage du numéro de téléphone
-			const service = formContainer.querySelector("#service").value.trim(); // Valeur en français
-			const sellerName = formContainer.querySelector("#seller-name").value.trim();
-			const message = formContainer.querySelector("#message").value.trim();
-			if (!fullName) {
-				alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-				return;
-			}
-			if (!email || !isValidEmail(email)) {
-				alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-				return;
-			}
-			if (!phone || !isValidCanadianPhoneNumber(phone)) {
-				alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
-				return;
-			}
-			if (!service) {
-				alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
-				return;
-			}
-			if (!sellerName) {
-				alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-				return;
-			}
-			if (!message) {
-				alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
-				return;
-			}
-			window.voiceflow.chat.interact({
-				type: "complete",
-				payload: {
-					fullName,
-					email,
-					phone: formattedPhone,
-					service,
-					sellerName,
-					message,
-				},
-			});
-		});
-		element.appendChild(formContainer);
-	},
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
+    render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+            <style>
+                form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                    width: 100%;
+                }
+                .flex-row {
+                    display: flex;
+                    gap: 16px;
+                    flex-wrap: wrap;
+                }
+                .flex-row > div {
+                    flex: 1;
+                    min-width: 200px;
+                }
+                .bold-label {
+                    font-weight: bold;
+                    color: #000;
+                    font-size: 0.9em;
+                }
+                /* Input and select styling */
+                input[type="text"],
+                input[type="email"],
+                input[type="tel"],
+                select {
+                    width: 100%;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    padding: 8px;
+                    background: #fff;
+                    font-size: 0.9em;
+                    outline: none;
+                    box-sizing: border-box;
+                }
+                /* Instead of styling all textareas, only style the details textarea */
+                #details {
+                    width: 100%;
+                    resize: vertical;
+                    min-height: 50px;
+                    max-height: 200px;
+                    padding: 8px;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                    box-sizing: border-box;
+                }
+                .submit {
+                    color: #9A0DF2;
+                    background-color: #F5E7FE;
+                    border: none;
+                    padding: 12px;
+                    border-radius: 5px;
+                    width: 100%;
+                    font-size: 1em;
+                    cursor: pointer;
+                    margin-top: 8px;
+                }
+                .submit:hover {
+                    color: white;
+                    background-color: #9A0DF2;
+                }
+            </style>
+            <div class="flex-row">
+                <div>
+                    <label for="full-name" class="bold-label">
+                        ${isEnglish ? 'Full Name' : 'Nom complet'}
+                    </label>
+                    <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+                </div>
+                <div>
+                    <label for="email" class="bold-label">Email</label>
+                    <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+                </div>
+                <div>
+                    <label for="phone" class="bold-label">
+                        ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
+                    </label>
+                    <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
+                </div>
+            </div>
+            <div class="flex-row">
+                <div>
+                    <label for="service" class="bold-label">
+                        ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
+                    </label>
+                    <select id="service" name="service" required>
+                        <option value="">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</option>
+                        ${getServiceOptions(language)}
+                    </select>
+                </div>
+                <div>
+                    <label for="seller-name" class="bold-label">
+                        ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+                    </label>
+                    <select id="seller-name" name="seller-name" required>
+                        <option value="">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</option>
+                        ${getSellerOptions(isEnglish)}
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label for="details" class="bold-label">
+                    ${isEnglish ? 'Message' : 'Message'}
+                </label>
+                <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+            </div>
+            <input type="submit" class="submit" value="${isEnglish ? 'Submit' : 'Envoyer'}">
+        `;
+        formContainer.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const fullName = formContainer.querySelector("#full-name").value.trim();
+            const email = formContainer.querySelector("#email").value.trim();
+            const phone = formContainer.querySelector("#phone").value.trim();
+            const formattedPhone = formatPhoneNumber(phone);
+            const service = formContainer.querySelector("#service").value.trim();
+            const sellerName = formContainer.querySelector("#seller-name").value.trim();
+            const details = formContainer.querySelector("#details").value.trim();
+            if (!fullName) {
+                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+                return;
+            }
+            if (!email || !isValidEmail(email)) {
+                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+                return;
+            }
+            if (!phone || !isValidCanadianPhoneNumber(phone)) {
+                alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
+                return;
+            }
+            if (!service) {
+                alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
+                return;
+            }
+            if (!sellerName) {
+                alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+                return;
+            }
+            if (!details) {
+                alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
+                return;
+            }
+            // Disable the submit button after successful validation
+            const submitBtn = formContainer.querySelector('input[type="submit"]');
+            submitBtn.disabled = true;
+            window.voiceflow.chat.interact({
+                type: "complete",
+                payload: {
+                    fullName,
+                    email,
+                    phone: formattedPhone,
+                    service,
+                    sellerName,
+                    message: details,
+                },
+            });
+        });
+        element.appendChild(formContainer);
+    },
 };
+
 
 // Booking extension rendering function
 const BookingExtension = {
