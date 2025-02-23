@@ -829,7 +829,23 @@ const SellingExtension = {
                 </div>
             </div>
 
-            <!-- Row 5: Garage?, Outside Parking?, Swimming Pool? -->
+     	    <!-- Row 5: Year Built, Area (sq ft) -->
+            <div class="flex-row">
+                <div>
+                    <label for="year-build" class="bold-label">
+                        ${isEnglish ? "Year Built" : "Année de construction"}
+                    </label>
+                    <input type="text" id="year-build" placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}" required>
+                </div>
+                <div>
+                    <label for="area" class="bold-label">
+                        ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+                    </label>
+                    <input type="text" id="area" placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}" required>
+                </div>
+            </div>
+
+            <!-- Row 6: Garage?, Outside Parking?, Swimming Pool? -->
             <div class="flex-row">
                 <div>
                     <label for="garage" class="bold-label">Garage?</label>
@@ -850,21 +866,7 @@ const SellingExtension = {
                 </div>
             </div>
 
-            <!-- Row 6: Year Built, Area (sq ft) -->
-            <div class="flex-row">
-                <div>
-                    <label for="year-build" class="bold-label">
-                        ${isEnglish ? "Year Built" : "Année de construction"}
-                    </label>
-                    <input type="text" id="year-build" placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}" required>
-                </div>
-                <div>
-                    <label for="area" class="bold-label">
-                        ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-                    </label>
-                    <input type="text" id="area" placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}" required>
-                </div>
-            </div>
+           
 
             <!-- Details Textarea -->
             <div>
