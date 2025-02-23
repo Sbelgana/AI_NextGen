@@ -268,9 +268,10 @@ const ContactExtension = {
 					color: #555;
 					font-size: 0.9em;
 				}
-				input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+				/* Input and select styling */
+				input[type="text"], input[type="email"], input[type="tel"], select {
 					width: 100%;
-					border: 1px solid rgba(0, 0, 0, 0.2);
+					border: 1px solid rgba(0,0,0,0.2);
 					border-radius: 4px;
 					padding: 8px;
 					background: #fff;
@@ -278,9 +279,17 @@ const ContactExtension = {
 					outline: none;
 					box-sizing: border-box;
 				}
-				textarea {
+				/* Instead of styling all textareas, only style the details textarea */
+				#details {
+					width: 100%;
 					resize: vertical;
-					min-height: 100px;
+					min-height: 50px;
+					max-height: 200px; /* optional: limit maximum height */
+					padding: 8px;
+					border: 1px solid rgba(0,0,0,0.2);
+					border-radius: 4px;
+					font-size: 0.9em;
+					box-sizing: border-box;
 				}
 				.submit {
 					color: #9A0DF2;
@@ -324,10 +333,13 @@ const ContactExtension = {
 					${getSellerOptions(isEnglish)}
 				</select>
 			</div>
-			<div>
-				<label for="message" class="bold-label">Message</label>
-				<textarea id="message" name="message" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" rows="5" required></textarea>
+   			<div>
+				<label for="details" class="bold-label">
+					${isEnglish ? "Write your message here.." : "'Écrivez votre message ici..."}
+				</label>
+				<textarea id="details" required></textarea>
 			</div>
+
 			<input type="submit" class="submit" value="${isEnglish ? 'Submit' : 'Envoyer'}">
 		`;
 		formContainer.addEventListener("submit", (event) => {
