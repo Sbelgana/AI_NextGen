@@ -274,12 +274,7 @@ const ContactExtension = {
 				}
 				.bold-label {
 					font-weight: bold;
-					color: #555;
-					font-size: 0.9em;
-				}
-				.bold-label {
-					font-weight: bold;
-					color: #555;
+					color: #000;
 					font-size: 0.9em;
 				}
 				/* Input and select styling */
@@ -429,6 +424,11 @@ const BookingExtension = {
 					font-size: 0.9em;
 					outline: none;
 					box-sizing: border-box;
+				}
+				.bold-label {
+					font-weight: bold;
+					color: #000;
+					font-size: 0.9em;
 				}
 				.book-now {
 					color: #9A0DF2;
@@ -615,7 +615,7 @@ const SellingExtension = {
                 }
                 .bold-label {
                     font-weight: bold;
-                    color: #555;
+                    color: #000;
                     font-size: 0.9em;
                 }
                 /* Input and select styling */
@@ -681,149 +681,146 @@ const SellingExtension = {
                 }
             </style>
 
-            <!-- Full Name and Email in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="full-name" class="bold-label">
-                        ${isEnglish ? "Full Name" : "Nom complet"}
-                    </label>
-                    <input type="text" id="full-name" required>
-                </div>
-                <div>
-                    <label for="email" class="bold-label">Email</label>
-                    <input type="email" id="email" required>
-                </div>
-            </div>
+            <!-- Full Name, Email, and Phone in one row -->
+	    <div class="flex-row">
+	    	<div>
+	        	<label for="full-name" class="bold-label">
+	            		${isEnglish ? "Full Name" : "Nom complet"}
+	        	</label>
+	        	<input type="text" id="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+	    	</div>
+	    	<div>
+	        	<label for="email" class="bold-label">Email</label>
+	        	<input type="email" id="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+	    	</div>
+	    	<div>
+	        	<label for="phone" class="bold-label">
+	            		${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+	        	</label>
+	        	<input type="tel" id="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
+	    	</div>
+	</div>
+	
+	<!-- Phone and Seller in one row -->
+	<div class="flex-row">
+	    	<div>
+	        	<label for="seller-name" class="bold-label">
+	            		${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+	        	</label>
+	        	<select id="seller-name" required>
+	            		<option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
+	            		${getSellerOptions(isEnglish)}
+	        	</select>
+	    	</div>
+	    	<div>
+	        	<div class="collapsible bold-label" onclick="toggleCollapse(this)">
+	            		${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+	        	</div>
+	        	<div class="collapse-content">
+	            		${Object.entries(propertyCategories)
+	                	.map(([catName, items]) => createCategoryRadios(catName, items))
+	                	.join("")}
+	       		</div>
+	    </div>
+	    <div>
+	        <div class="collapsible bold-label" onclick="toggleCollapse(this)">
+	            ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+	        </div>
+	        <div class="collapse-content">
+	            ${createHouseTypeRadios(houseTypes)}
+	        </div>
+	    </div>
+	</div>
+	
+	<!-- Street Address, City, and Postal Code in one row -->
+	<div class="flex-row">
+	    <div>
+	        <label for="street-address" class="bold-label">
+	            ${isEnglish ? "Street Address" : "Adresse de rue"}
+	        </label>
+	        <input type="text" id="street-address" placeholder="${isEnglish ? 'Enter your street address' : 'Entrez votre adresse de rue'}" required>
+	    </div>
+	    <div>
+	        <label for="city" class="bold-label">
+	            ${isEnglish ? "City" : "Ville"}
+	        </label>
+	        <input type="text" id="city" placeholder="${isEnglish ? 'Enter your city' : 'Entrez votre ville'}" required>
+	    </div>
+	    <div>
+	        <label for="postal-code" class="bold-label">
+	            ${isEnglish ? "Postal Code" : "Code Postal"}
+	        </label>
+	        <input type="text" id="postal-code" placeholder="${isEnglish ? 'Enter your postal code' : 'Entrez votre code postal'}" required>
+	    </div>
+	</div>
+	
+	<!-- Year Built and Area in one row -->
+	<div class="flex-row">
+	    <div>
+	        <label for="year-build" class="bold-label">
+	            ${isEnglish ? "Year Built" : "Année de construction"}
+	        </label>
+	        <input type="text" id="year-build" placeholder="${isEnglish ? 'Enter the year built' : 'Entrez l\'année de construction'}" required>
+	    </div>
+	    <div>
+	        <label for="area" class="bold-label">
+	            ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+	        </label>
+	        <input type="text" id="area" placeholder="${isEnglish ? 'Enter the area in square feet' : 'Entrez la superficie en pieds carrés'}" required>
+	    </div>
+	</div>
+	
+	<!-- Number of Rooms, Bedrooms, and Bathrooms in one row -->
+	<div class="flex-row">
+	    <div>
+	        <label for="rooms-number" class="bold-label">
+	            ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+	        </label>
+	        <input type="text" id="rooms-number" placeholder="${isEnglish ? 'Enter number of rooms' : 'Entrez le nombre de pièces'}" required>
+	    </div>
+	    <div>
+	        <label for="bedrooms-number" class="bold-label">
+	            ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+	        </label>
+	        <input type="text" id="bedrooms-number" placeholder="${isEnglish ? 'Enter number of bedrooms' : 'Entrez le nombre de chambres'}" required>
+	    </div>
+	    <div>
+	        <label for="bathrooms-number" class="bold-label">
+	            ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+	        </label>
+	        <input type="text" id="bathrooms-number" placeholder="${isEnglish ? 'Enter number of bathrooms' : 'Entrez le nombre de salles de bains'}" required>
+	    </div>
+	</div>
+	
+	<!-- Garage (inside) and Outside Parking in one row -->
+	<div class="flex-row">
+	    <div>
+	        <label for="garage" class="bold-label">Garage?</label>
+	        <input type="checkbox" id="garage" name="garage" value="Yes">
+	        <input type="number" id="garage-cars" placeholder="${isEnglish ? 'Number of cars' : 'Nombre de voitures'}" style="display: none;">
+	    </div>
+	    <div>
+	        <label for="outside-parking" class="bold-label">
+	            ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+	        </label>
+	        <input type="checkbox" id="outside-parking" value="Yes">
+	    </div>
+	    <div>
+	        <label for="swimming-pool" class="bold-label">
+	            ${isEnglish ? "Swimming Pool" : "Piscine"}?
+	        </label>
+	        <input type="checkbox" id="swimming-pool" value="Yes">
+	    </div>
+	</div>
+	
+	<!-- Details Textarea (styled individually) -->
+	<div>
+	    <label for="details" class="bold-label">
+	        ${isEnglish ? "Details" : "Détails"}
+	    </label>
+	    <textarea id="details" placeholder="${isEnglish ? 'Enter additional details' : 'Entrez des détails supplémentaires'}" required></textarea>
+	</div>
 
-            <!-- Phone and Seller in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="phone" class="bold-label">
-                        ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-                    </label>
-                    <input type="tel" id="phone" required>
-                </div>
-                <div>
-                    <label for="seller-name" class="bold-label">
-                        ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-                    </label>
-                    <select id="seller-name" required>
-                        <option value="">${isEnglish ? " -- Select -- " : " -- Sélectionnez -- "}</option>
-                        ${getSellerOptions(isEnglish)}
-                    </select>
-                </div>
-            </div>
-
-            <!-- Property Category and House Type side-by-side -->
-            <div class="flex-row">
-                <div>
-                    <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-                        ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-                    </div>
-                    <div class="collapse-content">
-                        ${Object.entries(propertyCategories)
-                            .map(([catName, items]) => createCategoryRadios(catName, items))
-                            .join("")}
-                    </div>
-                </div>
-                <div>
-                    <div class="collapsible bold-label" onclick="toggleCollapse(this)">
-                        ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-                    </div>
-                    <div class="collapse-content">
-                        ${createHouseTypeRadios(houseTypes)}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Street Address, City, and Postal Code in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="street-address" class="bold-label">
-                        ${isEnglish ? "Street Address" : "Adresse de rue"}
-                    </label>
-                    <input type="text" id="street-address" required>
-                </div>
-                <div>
-                    <label for="city" class="bold-label">
-                        ${isEnglish ? "City" : "Ville"}
-                    </label>
-                    <input type="text" id="city" required>
-                </div>
-                <div>
-                    <label for="postal-code" class="bold-label">
-                        ${isEnglish ? "Postal Code" : "Code Postal"}
-                    </label>
-                    <input type="text" id="postal-code" required>
-                </div>
-            </div>
-
-            <!-- Year Built and Area in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="year-build" class="bold-label">
-                        ${isEnglish ? "Year Built" : "Année de construction"}
-                    </label>
-                    <input type="text" id="year-build" required>
-                </div>
-                <div>
-                    <label for="area" class="bold-label">
-                        ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-                    </label>
-                    <input type="text" id="area" required>
-                </div>
-            </div>
-
-            <!-- Number of Bedrooms, Rooms, and Bathrooms in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="rooms-number" class="bold-label">
-                        ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-                    </label>
-                    <input type="text" id="rooms-number" required>
-                </div>
-                <div>
-                    <label for="bedrooms-number" class="bold-label">
-                        ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-                    </label>
-                    <input type="text" id="bedrooms-number" required>
-                </div>
-                <div>
-                    <label for="bathrooms-number" class="bold-label">
-                        ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-                    </label>
-                    <input type="text" id="bathrooms-number" required>
-                </div>
-            </div>
-
-            <!-- Garage (inside) and Outside Parking in one row -->
-            <div class="flex-row">
-                <div>
-                    <label for="garage" class="bold-label">Garage?</label>
-                    <input type="checkbox" id="garage" name="garage" value="Yes">
-                    <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
-                </div>
-                <div>
-                    <label for="outside-parking" class="bold-label">
-                        ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
-                    </label>
-                    <input type="checkbox" id="outside-parking" value="Yes">
-                </div>
-                <div>
-                    <label for="swimming-pool" class="bold-label">
-                        ${isEnglish ? "Swimming Pool" : "Piscine"}?
-                    </label>
-                    <input type="checkbox" id="swimming-pool" value="Yes">
-                </div>
-            </div>
-
-            <!-- Details Textarea (styled individually) -->
-            <div>
-                <label for="details" class="bold-label">
-                    ${isEnglish ? "Details" : "Détails"}
-                </label>
-                <textarea id="details" required></textarea>
-            </div>
 
             <button type="submit" class="submit">
                 ${isEnglish ? "Submit" : "Envoyer"}
@@ -1107,7 +1104,7 @@ const PropertySearchExtension = {
 				}
 				.bold-label {
 					font-weight: bold;
-					color: #555;
+					color: #000;
 					font-size: 0.9em;
 				}
 				.inline-field {
