@@ -601,11 +601,11 @@ const SellingExtension = {
                     font-size: 0.9em;
                     margin-bottom: 4px;
                 }
+                /* Input and select styling */
                 input[type="text"],
                 input[type="email"],
                 input[type="tel"],
-                select,
-                textarea {
+                select {
                     width: 100%;
                     border: 1px solid rgba(0,0,0,0.2);
                     border-radius: 4px;
@@ -615,10 +615,17 @@ const SellingExtension = {
                     outline: none;
                     box-sizing: border-box;
                 }
-                textarea {
+                /* Instead of styling all textareas, only style the details textarea */
+                #details {
+                    width: 100%;
                     resize: vertical;
                     min-height: 50px;
                     max-height: 200px;
+                    padding: 8px;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                    box-sizing: border-box;
                 }
                 .submit {
                     color: #9A0DF2;
