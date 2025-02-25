@@ -1862,7 +1862,7 @@ const SellingExtension = {
   e.stopPropagation();
   
   // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+  formContainer.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
     if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
@@ -2368,7 +2368,7 @@ const ContactExtension = {
   e.stopPropagation();
   
   // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+  formContainer.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
     if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
@@ -2756,7 +2756,7 @@ const BookingExtension = {
   e.stopPropagation();
   
   // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+  formContainer.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
     if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
