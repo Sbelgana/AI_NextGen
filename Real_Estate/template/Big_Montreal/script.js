@@ -283,73 +283,79 @@ function decrementValue(id, step) {
 
 // Single definition merging both occurrences
 function generateAirtableFormula(input) {
-  const {
-    cityName = [],
-    category = [],
-    houseType = [],
-    bedrooms = 0,
-    bathrooms = 0,
-    priceMax = 0,
-    priceMin = 0,
-    parkingIndoor = "",
-    car = 0,
-    swimmingPool = "",
-  } = input;
+	const {
+		cityName = [],
+		category = [],
+		houseType = [], // ADDED
+		bedrooms = 0,
+		bathrooms = 0,
+		priceMax = 0,
+		priceMin = 0,
+		parkingIndoor = "",
+		car = 0,
+		swimmingPool = "",
+	} = input;
 
-  const conditions = [];
+	const conditions = [];
 
-  // City filter
-  if (cityName.length > 0) {
-    const cityConditions = cityName.map(city => `FIND("${city}", {City})`);
-    const cityFormula = cityConditions.length === 1 ? cityConditions[0] : `OR(${cityConditions.join(", ")})`;
-    conditions.push(cityFormula);
-  }
+	// City filter
+	if (cityName.length > 0) {
+		const cityConditions = cityName.map((city) => `FIND("${city}", {City})`);
+		const cityFormula = cityConditions.length === 1 ? cityConditions[0] : `OR(${cityConditions.join(", ")})`;
+		conditions.push(cityFormula);
+	}
 
-  // Category filter
-  if (category.length > 0) {
-    const categoryConditions = category.map(cat => `{Category} = "${cat}"`);
-    const categoryFormula = categoryConditions.length === 1 ? categoryConditions[0] : `OR(${categoryConditions.join(", ")})`;
-    conditions.push(categoryFormula);
-  }
 
-  // House Type filter (optional)
-  if (houseType.length > 0) {
-    const houseTypeConditions = houseType.map(ht => `FIND("${ht}", {Type})`);
-    const houseTypeFormula = houseTypeConditions.length === 1 ? houseTypeConditions[0] : `OR(${houseTypeConditions.join(", ")})`;
-    conditions.push(houseTypeFormula);
-  }
 
-  // Bedrooms and Bathrooms filter
-  if (bedrooms > 0) {
-    conditions.push(`{Bedrooms} >= ${bedrooms}`);
-  }
-  if (bathrooms > 0) {
-    conditions.push(`{Bathrooms} >= ${bathrooms}`);
-  }
+	// Category filter
+	if (category.length > 0) {
+		const categoryConditions = category.map((cat) => `{Category} = "${cat}"`);
+		const categoryFormula = categoryConditions.length === 1 ? categoryConditions[0] : `OR(${categoryConditions.join(", ")})`;
+		conditions.push(categoryFormula);
+	}
 
-  // Price range filter
-  if (priceMin > 0) {
-    conditions.push(`{Price} >= ${priceMin}`);
-  }
-  if (priceMax > 0) {
-    conditions.push(`{Price} <= ${priceMax}`);
-  }
+	// ADDED: House Type filter (optional)
+	if (houseType.length > 0) {
+		// If your Airtable field is something else, rename {HouseType} below
+		const houseTypeConditions = houseType.map((ht) => `FIND("${ht}", {Type})`);
+		const houseTypeFormula = houseTypeConditions.length === 1 ? houseTypeConditions[0] : `OR(${houseTypeConditions.join(", ")})`;
+		conditions.push(houseTypeFormula);
+	}
 
-  // Parking and Car filter
-  if (parkingIndoor === "Yes") {
-    conditions.push(`{IndoorParking} = "Yes"`);
-  }
-  if (car > 0) {
-    conditions.push(`{CarIndoor} >= ${car}`);
-  }
+	// Bedrooms filter
+	if (bedrooms > 0) {
+		conditions.push(`{Bedrooms} >= ${bedrooms}`);
+	}
 
-  // Swimming pool filter
-  if (swimmingPool === "Yes") {
-    conditions.push(`{SwimmingPool} = "Yes"`);
-  }
+	// Bathrooms filter
+	if (bathrooms > 0) {
+		conditions.push(`{Bathrooms} >= ${bathrooms}`);
+	}
 
-  return `AND(${conditions.join(", ")})`;
+	// Price range
+	if (priceMin > 0) {
+		conditions.push(`{Price} >= ${priceMin}`);
+	}
+	if (priceMax > 0) {
+		conditions.push(`{Price} <= ${priceMax}`);
+	}
+
+	// Parking
+	if (parkingIndoor === "Yes") {
+		conditions.push(`{IndoorParking} = "Yes"`);
+	}
+	if (car > 0) {
+		conditions.push(`{CarIndoor} >= ${car}`);
+	}
+
+	// Swimming pool
+	if (swimmingPool === "Yes") {
+		conditions.push(`{SwimmingPool} = "Yes"`);
+	}
+
+	return `AND(${conditions.join(", ")})`;
 }
+
 
 /*************************************************************
  * 10) Define the 4 Extensions
