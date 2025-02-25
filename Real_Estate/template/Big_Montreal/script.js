@@ -597,7 +597,7 @@ const PropertySearchExtension = {
                   overflow-y: auto;
                   background-color: #fff;
               }
-              .select-btn.open + .list-items { display: block; }
+              .select-btn.open ~ .list-items { display: block; }
               .list-items .item {
                   display: flex;
                   align-items: center;
@@ -1231,7 +1231,7 @@ const SellingExtension = {
                   overflow-y: auto;
                   background-color: #fff;
               }
-              .select-btn.open + .list-items {
+              .select-btn.open ~ .list-items {
                   display: block;
               }
               .select-btn:focus,
@@ -1879,7 +1879,7 @@ const ContactExtension = {
                     max-height: 200px;
                     overflow-y: auto;
                 }
-                .select-btn.open + .list-items {
+                .select-btn.open ~ .list-items {
                     display: block;
                 }
                 .list-items .item {
@@ -2307,7 +2307,7 @@ const BookingExtension = {
                     max-height: 200px;
                     overflow-y: auto;
                 }
-                .select-btn.open + .list-items {
+                .select-btn.open ~ .list-items {
                     display: block;
                 }
                 .list-items .item {
