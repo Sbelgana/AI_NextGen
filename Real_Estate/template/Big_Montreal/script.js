@@ -963,7 +963,7 @@ const PropertySearchExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
