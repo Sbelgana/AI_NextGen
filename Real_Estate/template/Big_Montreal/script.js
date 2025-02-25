@@ -557,7 +557,7 @@ const PropertySearchExtension = {
                   width: 100%;
                   max-width: 920px;
                   margin: 0 auto;
-                  background: #fff;
+                  background: transparent;
                   padding: 16px;
                   border-radius: 6px;
               }
@@ -1371,7 +1371,7 @@ const SellingExtension = {
                   width: 100%;
                   max-width: 920px;
                   margin: 0 auto;
-                  background: #fff;
+                  background: transparent;
                   padding: 16px;
                   border-radius: 6px;
               }
@@ -2120,7 +2120,7 @@ const ContactExtension = {
                     width: 100%;
                     max-width: 920px;
                     margin: 0 auto;
-                    background: #fff;
+                    background: transparent;
                     padding: 16px;
                     border-radius: 6px;
                 }
@@ -2613,7 +2613,7 @@ const BookingExtension = {
                     width: 100%;
                     max-width: 800px;
                     margin: 0 auto;
-                    background: #fff;
+                    background: transparent;
                     padding: 16px;
                     border-radius: 6px;
 		    min-width: 300px;
