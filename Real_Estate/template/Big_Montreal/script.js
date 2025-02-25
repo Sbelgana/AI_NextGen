@@ -1289,7 +1289,6 @@ formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
 };
 
 /************** EXTENSION #2: SellingExtension **************/
-/************** EXTENSION #2: SellingExtension **************/
 const SellingExtension = {
     name: "Forms",
     type: "response",
@@ -1297,7 +1296,7 @@ const SellingExtension = {
         trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
     render: ({ trace, element }) => {
         /*************************************************************
-         * 1) Language Setup
+         * 2) Language Setup
          *************************************************************/
         const { language } = trace.payload;
         const isEnglish = language === "en";
@@ -1314,25 +1313,6 @@ const SellingExtension = {
         const houseTypes = SharedPropertyTypes[language];
 
         /*************************************************************
-         * 2) Helper Functions for Increment/Decrement
-         *************************************************************/
-        function incrementNumber(id, step) {
-            const input = document.getElementById(id);
-            let currentValue = parseInt(input.value, 10) || 0;
-            let newValue = currentValue + step;
-            if (newValue < 0) newValue = 0; // never go below 0
-            input.value = newValue;
-        }
-
-        function decrementNumber(id, step) {
-            const input = document.getElementById(id);
-            let currentValue = parseInt(input.value, 10) || 0;
-            let newValue = currentValue - step;
-            if (newValue < 0) newValue = 0; // never go below 0
-            input.value = newValue;
-        }
-
-        /*************************************************************
          * 3) Build "grouped" HTML for property category
          *************************************************************/
         function buildGroupedCategoryHTML() {
@@ -1346,10 +1326,8 @@ const SellingExtension = {
                     <li class="item">
                         <span class="checkbox">
                              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-                                <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256
-                                 c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5
-                                 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-                            </svg>
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
                         </span>
                         <span class="item-text" data-value="${subItem}">${subItem}</span>
                     </li>
@@ -1362,10 +1340,7 @@ const SellingExtension = {
                         ${groupName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192
-                                 c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4
-                                 c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192
-                                 C240.4 412.9 232.2 416 224 416z"/>
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
@@ -1595,40 +1570,11 @@ const SellingExtension = {
                   display: none;
                   padding-left: 0;
               }
+              /**********************************************
+               * NEW: Change the native checkbox color to #9A0DF2
+               **********************************************/
               input[type="checkbox"] {
                   accent-color: #9A0DF2; /* Modern browser support */
-              }
-
-              /* NEW: Number wrapper styles (for "Number of cars") */
-              .number-wrapper {
-                  position: relative;
-                  width: 100%;
-              }
-              .number-controls {
-                  position: absolute;
-                  right: 0;
-                  top: 1px;
-                  bottom: 1px;
-                  width: 20px;
-                  display: flex;
-                  flex-direction: column;
-                  background-color: #F5E7FE;
-                  border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 4px 4px 0;
-                  overflow: hidden;
-              }
-              .number-up, .number-down {
-                  flex: 1;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: #9A0DF2;
-                  cursor: pointer;
-                  font-size: 8px;
-              }
-              .number-up:hover, .number-down:hover {
-                  background-color: #9A0DF2;
-                  color: #fff;
               }
           </style>
 
@@ -1679,16 +1625,14 @@ const SellingExtension = {
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192
-      c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4
-      c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192
-      C240.4 412.9 232.2 416 224 416z"/>
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
-                      <!-- We'll fill this <ul> with grouped categories -->
-                      <ul class="list-items" id="property-category-grouped"></ul>
+                      <ul class="list-items" id="property-category-grouped">
+                          <!-- We fill this dynamically -->
+                      </ul>
                   </div>
                   <input type="hidden" id="property-category" name="property-category" required>
               </div>
@@ -1703,28 +1647,20 @@ const SellingExtension = {
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192
-      c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4
-      c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192
-      C240.4 412.9 232.2 416 224 416z"/>
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
-                      <ul class="list-items" id="house-type-list">
+                      <ul class="list-items">
                           ${houseTypes
                               .map(
                                   (item) => `
                         <li class="item">
                             <span class="checkbox">
-                                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                                     viewBox="0 0 448 512" width="10" height="10">
-                                    <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 
-                                     0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 
-                                     0l-128-128c-12.5-12.5-12.5-32.8 
-                                     0-45.3s32.8-12.5 45.3 0L160 338.7 
-                                     393.4 105.4c12.5-12.5 32.8-12.5 
-                                     45.3 0z"/>
-                                </svg>
+                                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
                             </span>
                             <span class="item-text" data-value="${item}">${item}</span>
                         </li>
@@ -1746,12 +1682,8 @@ const SellingExtension = {
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375
-      l-192-192c-12.5-12.5-12.5-32.75 
-      0-45.25s32.75-12.5 45.25 0L224 338.8
-      l169.4-169.4c12.5-12.5 32.75-12.5 
-      45.25 0s12.5 32.75 0 45.25l-192 192
-      C240.4 412.9 232.2 416 224 416z"/>
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -1868,21 +1800,7 @@ const SellingExtension = {
               <div style="display: flex; align-items: center; gap: 5px;">
                   <label for="garage" class="bold-label">Garage?</label>
                   <input type="checkbox" id="garage" name="garage" value="Yes">
-                  <!-- NEW WRAPPER for "Number of cars" -->
-                  <div class="number-wrapper" id="garage-cars-wrapper" style="display: none;">
-                    <input
-                      type="number"
-                      id="garage-cars"
-                      placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}"
-                      min="0"
-                      step="1"
-                      value="0"
-                    />
-                    <div class="number-controls">
-                      <div class="number-up" data-input="garage-cars" data-step="1">▲</div>
-                      <div class="number-down" data-input="garage-cars" data-step="1">▼</div>
-                    </div>
-                  </div>
+                  <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
               </div>
               <div style="display: flex; align-items: center; gap: 5px;">
                   <label for="outside-parking" class="bold-label">
@@ -1912,16 +1830,11 @@ const SellingExtension = {
           </button>
         `;
 
-        // Show/hide the entire "number-wrapper" for #garage-cars
+        // Show/hide #garage-cars when "Garage?" is checked
         formContainer.querySelector("#garage").addEventListener("change", (event) => {
-            const wrapper = formContainer.querySelector("#garage-cars-wrapper");
-            if (event.target.checked) {
-                wrapper.style.display = "block";
-            } else {
-                wrapper.style.display = "none";
-                // Reset to 0 if unchecked
-                formContainer.querySelector("#garage-cars").value = "0";
-            }
+            const carsField = formContainer.querySelector("#garage-cars");
+            carsField.style.display = event.target.checked ? "inline-block" : "none";
+            if (!event.target.checked) carsField.value = "";
         });
 
         // Insert the grouped property-category HTML
@@ -1935,59 +1848,63 @@ const SellingExtension = {
         /*************************************************************
          * 5) Single-selection dropdown logic (used for all dropdowns)
          *************************************************************/
-        function setupDropdown(dropdownId, hiddenInputId) {
-            const container = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = container.querySelector(".select-btn");
-            const listEl = container.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-            const listItems = listEl.querySelectorAll(".item");
+       function setupDropdown(dropdownId, hiddenInputId) {
+  // 1) Grab references
+  const container = formContainer.querySelector(`#${dropdownId}`);
+  const selectBtn = container.querySelector(".select-btn");
+  const listEl = container.querySelector(".list-items");
+  const btnText = selectBtn.querySelector(".btn-text");
+  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+  const listItems = listEl.querySelectorAll(".item");
 
-            // Open/close on selectBtn click
-            selectBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                // Close all other dropdowns
-                formContainer.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-                    if (otherContainer !== container) {
-                        const otherSelectBtn = otherContainer.querySelector('.select-btn');
-                        const otherListEl = otherContainer.querySelector('.list-items');
-                        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-                        if (otherListEl) otherListEl.style.display = "none";
-                    }
-                });
-                // Toggle this dropdown
-                selectBtn.classList.toggle("open");
-                listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-            });
+  // 2) Toggle open/close on click
+  selectBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
 
-            // Single-select: remove "checked" from all, then add to clicked
-            listItems.forEach((item) => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    // remove "checked" from all items in this dropdown
-                    listItems.forEach((i) => i.classList.remove("checked"));
-                    // mark the clicked item
-                    item.classList.add("checked");
+    // Close all other dropdowns within this form
+    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+      if (otherContainer !== container) {
+        const otherSelectBtn = otherContainer.querySelector(".select-btn");
+        const otherListEl = otherContainer.querySelector(".list-items");
+        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+        if (otherListEl) otherListEl.style.display = "none";
+      }
+    });
 
-                    // set the text and hidden input
-                    const value = item.querySelector(".item-text").getAttribute("data-value");
-                    btnText.innerText = value;
-                    hiddenInput.value = value;
+    // Toggle this dropdown
+    selectBtn.classList.toggle("open");
+    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+  });
 
-                    // close the dropdown
-                    selectBtn.classList.remove("open");
-                    listEl.style.display = "none";
-                });
-            });
+  // 3) Single‐select logic
+  listItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
 
-            // close dropdown if user clicks outside
-            document.addEventListener("click", (e) => {
-                if (!container.contains(e.target)) {
-                    selectBtn.classList.remove("open");
-                    listEl.style.display = "none";
-                }
-            });
-        }
+      // Uncheck all items in this dropdown
+      listItems.forEach((i) => i.classList.remove("checked"));
+      // Check the clicked item
+      item.classList.add("checked");
+
+      // Update button text & hidden input from the item’s data-value
+      const value = item.querySelector(".item-text").getAttribute("data-value");
+      btnText.innerText = value;
+      hiddenInput.value = value;
+
+      // Close dropdown
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    });
+  });
+
+  // 4) Close if user clicks outside
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    }
+  });
+}
 
         // Setup the 3 dropdowns
         setupDropdown("dropdown-property-category", "property-category");
@@ -1995,23 +1912,7 @@ const SellingExtension = {
         setupDropdown("dropdown-seller", "seller-name");
 
         /*************************************************************
-         * 6) After the form is in the DOM, attach the up/down logic
-         *************************************************************/
-        formContainer.querySelectorAll('.number-up, .number-down').forEach(button => {
-            button.addEventListener('click', function() {
-                const inputId = this.getAttribute('data-input');
-                const step = parseInt(this.getAttribute('data-step'), 10);
-
-                if (this.classList.contains('number-up')) {
-                    incrementNumber(inputId, step);
-                } else {
-                    decrementNumber(inputId, step);
-                }
-            });
-        });
-
-        /*************************************************************
-         * 7) Form Submission
+         * 6) Form Submission
          *************************************************************/
         formContainer.addEventListener("submit", (event) => {
             event.preventDefault();
