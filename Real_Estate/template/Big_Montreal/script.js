@@ -1289,6 +1289,7 @@ formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
 };
 
 /************** EXTENSION #2: SellingExtension **************/
+/************** EXTENSION #2: SellingExtension **************/
 const SellingExtension = {
     name: "Forms",
     type: "response",
@@ -1388,6 +1389,7 @@ const SellingExtension = {
               input[type="text"],
               input[type="email"],
               input[type="tel"],
+              input[type="number"],
               textarea {
                   width: 100%;
                   border: 1px solid rgba(0,0,0,0.2);
@@ -1414,6 +1416,7 @@ const SellingExtension = {
               input[type="text"]:focus,
               input[type="email"]:focus,
               input[type="tel"]:focus,
+              input[type="number"]:focus,
               select:focus,
               #details:focus {
                  border: 2px solid #9A0DF2;
@@ -1575,6 +1578,53 @@ const SellingExtension = {
                **********************************************/
               input[type="checkbox"] {
                   accent-color: #9A0DF2; /* Modern browser support */
+              }
+              /**********************************************
+               * NEW: Add styles for garage-cars-wrapper and controls
+               **********************************************/
+              .garage-cars-wrapper {
+                  position: relative;
+                  width: 100%;
+              }
+              input[type="number"]::-webkit-inner-spin-button,
+              input[type="number"]::-webkit-outer-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+              }
+              input[type="number"] {
+                  -moz-appearance: textfield;
+              }
+              .garage-cars-controls {
+                  position: absolute;
+                  right: 0;
+                  top: 1px;
+                  bottom: 1px;
+                  width: 20px;
+                  display: flex;
+                  flex-direction: column;
+                  background-color: #F5E7FE;
+                  border-left: 1px solid rgba(0,0,0,0.1);
+                  border-radius: 0 4px 4px 0;
+                  overflow: hidden;
+              }
+              .garage-cars-up, .garage-cars-down {
+                  flex: 1;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: #9A0DF2;
+                  cursor: pointer;
+                  font-size: 8px;
+              }
+              .garage-cars-up:hover, .garage-cars-down:hover {
+                  background-color: #9A0DF2;
+                  color: #fff;
+              }
+              .inline-field {
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  margin-bottom: 10px;
               }
           </style>
 
@@ -1797,18 +1847,34 @@ const SellingExtension = {
 
           <!-- Row 6: Garage?, Outside Parking?, Swimming Pool? (all in one row) -->
           <div class="flex-row">
-              <div style="display: flex; align-items: center; gap: 5px;">
-                  <label for="garage" class="bold-label">Garage?</label>
-                  <input type="checkbox" id="garage" name="garage" value="Yes">
-                  <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
+              <!-- UPDATED: Garage section with increment/decrement controls -->
+              <div style="position: relative;">
+                  <div class="inline-field">
+                      <label for="garage" class="bold-label">Garage?</label>
+                      <input type="checkbox" id="garage" name="garage" value="Yes">
+                  </div>
+                  <div id="cars-container" style="display:none; margin-top: 10px;">
+                      <label class="bold-label" for="garage-cars">
+                          ${isEnglish ? "Number of cars" : "Nombre de voitures"}
+                      </label>
+                      <div class="garage-cars-wrapper">
+                          <input type="number" id="garage-cars" 
+                              placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" 
+                              min="1" value="1" />
+                          <div class="garage-cars-controls">
+                              <div class="garage-cars-up" data-input="garage-cars" data-step="1">▲</div>
+                              <div class="garage-cars-down" data-input="garage-cars" data-step="1">▼</div>
+                          </div>
+                      </div>
+                  </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 5px;">
+              <div class="inline-field" style="align-self: flex-start;">
                   <label for="outside-parking" class="bold-label">
                       ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
                   </label>
                   <input type="checkbox" id="outside-parking" value="Yes">
               </div>
-              <div style="display: flex; align-items: center; gap: 5px;">
+              <div class="inline-field" style="align-self: flex-start;">
                   <label for="swimming-pool" class="bold-label">
                       ${isEnglish ? "Swimming Pool" : "Piscine"}?
                   </label>
@@ -1830,11 +1896,37 @@ const SellingExtension = {
           </button>
         `;
 
-        // Show/hide #garage-cars when "Garage?" is checked
+        // UPDATED: Show/hide #cars-container when "Garage?" is checked
         formContainer.querySelector("#garage").addEventListener("change", (event) => {
-            const carsField = formContainer.querySelector("#garage-cars");
-            carsField.style.display = event.target.checked ? "inline-block" : "none";
-            if (!event.target.checked) carsField.value = "";
+            const carsContainer = formContainer.querySelector("#cars-container");
+            carsContainer.style.display = event.target.checked ? "block" : "none";
+            if (!event.target.checked) {
+                formContainer.querySelector("#garage-cars").value = "";
+            } else {
+                // Set default value to 1 when showing
+                formContainer.querySelector("#garage-cars").value = "1";
+            }
+        });
+
+        // ADDED: Handle increment/decrement buttons for garage-cars
+        formContainer.querySelectorAll('.garage-cars-up, .garage-cars-down').forEach(button => {
+            button.addEventListener('click', function() {
+                const inputId = this.getAttribute('data-input');
+                const step = parseInt(this.getAttribute('data-step'), 10);
+                const input = formContainer.querySelector(`#${inputId}`);
+                
+                if (!input) return;
+                
+                let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+                
+                if (this.classList.contains('garage-cars-up')) {
+                    // Increment but ensure at least 1
+                    input.value = Math.max(1, currentValue + step);
+                } else {
+                    // Decrement but not below 1
+                    input.value = Math.max(1, currentValue - step);
+                }
+            });
         });
 
         // Insert the grouped property-category HTML
@@ -1886,7 +1978,7 @@ const SellingExtension = {
       // Check the clicked item
       item.classList.add("checked");
 
-      // Update button text & hidden input from the item’s data-value
+      // Update button text & hidden input from the item's data-value
       const value = item.querySelector(".item-text").getAttribute("data-value");
       btnText.innerText = value;
       hiddenInput.value = value;
