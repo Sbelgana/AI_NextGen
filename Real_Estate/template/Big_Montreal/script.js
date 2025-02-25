@@ -722,7 +722,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-category">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.categoryDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="propertyCategoryList"></ul>
                   </div>
@@ -733,7 +738,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-type">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.typeDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="propertyTypeList"></ul>
                   </div>
@@ -748,7 +758,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-rooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${RoomOptions.map(
@@ -768,7 +783,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bedrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${BedroomOptions.map(
@@ -788,7 +808,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bathrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${BathroomOptions.map(
@@ -841,7 +866,12 @@ const PropertySearchExtension = {
                       <div class="dropdown-container" id="dropdown-cars-number">
                           <div class="select-btn" tabindex="0">
                               <span class="btn-text">${texts.optionDefault}</span>
-                              <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                              <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                           </div>
                           <ul class="list-items single-select">
                               ${CarOptions.map(
@@ -1542,8 +1572,11 @@ const SellingExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
-                              <i class="fa-solid fa-chevron-down"></i>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items" id="property-category-grouped">
                           <!-- We fill this dynamically -->
@@ -1561,8 +1594,11 @@ const SellingExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
-                              <i class="fa-solid fa-chevron-down"></i>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items">
                           ${houseTypes
@@ -1591,8 +1627,11 @@ const SellingExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                           <span class="arrow-dwn">
-                              <i class="fa-solid fa-chevron-down"></i>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items" id="seller-list-items">
                           <!-- We'll fill this from the Sellers array -->
@@ -2166,7 +2205,12 @@ const ContactExtension = {
                     <div class="dropdown-container" id="dropdown-service">
                         <div class="select-btn" tabindex="0">
                             <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
-                            <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                            <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                         </div>
                         <!-- The single-select list -->
                         <ul class="list-items single-select" id="serviceList"></ul>
@@ -2183,7 +2227,12 @@ const ContactExtension = {
                     <div class="dropdown-container" id="dropdown-seller">
                         <div class="select-btn" tabindex="0">
                             <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                            <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                            <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                         </div>
                         <ul class="list-items single-select" id="sellerList"></ul>
                     </div>
@@ -2595,7 +2644,12 @@ const BookingExtension = {
                 <div class="dropdown-container" id="dropdown-seller">
                     <div class="select-btn" tabindex="0">
                         <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                        <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                        <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                     </div>
                     <ul class="list-items single-select" id="sellerList"></ul>
                 </div>
