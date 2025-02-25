@@ -2123,6 +2123,15 @@ const ContactExtension = {
             sellerListEl.appendChild(li);
         });
 
+	window.closeAllDropdowns = function() {
+  document.querySelectorAll('.dropdown-container .select-btn').forEach(btn => {
+    btn.classList.remove('open');
+  });
+  document.querySelectorAll('.dropdown-container .list-items').forEach(list => {
+    list.style.display = 'none';
+  });
+};
+
         /*************************************************************
          * 2b) Single-Select Setup
          *************************************************************/
@@ -2137,6 +2146,7 @@ const ContactExtension = {
             // Toggle open/close on click
          selectBtn.addEventListener("click", (e) => {
   e.stopPropagation();
+		  window.closeAllDropdowns();
   
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
