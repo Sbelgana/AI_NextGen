@@ -18,10 +18,22 @@ function formatPhoneNumber(phoneNumber) {
 }
 
 // IMPORTANT: Define toggleCollapse only once as a global function
+
+
 window.toggleCollapse = function(element) {
   element.classList.toggle("active");
   const content = element.nextElementSibling;
   content.style.display = content.style.display === "block" ? "none" : "block";
+  
+  // Rotate the SVG icon
+  const icon = element.querySelector(".collapse-icon");
+  if (icon) {
+    if (element.classList.contains("active")) {
+      icon.style.transform = "rotate(-180deg)";
+    } else {
+      icon.style.transform = "rotate(0deg)";
+    }
+  }
 }
 
 /*************************************************************
@@ -67,7 +79,9 @@ function buildSellerListItems(sellers, isEnglish) {
       return `
             <li class="item">
               <span class="checkbox">
-                <i class="fa-solid fa-check check-icon"></i>
+                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
               </span>
               <span class="item-text" data-value="${seller}">${displayName}</span>
             </li>
@@ -427,80 +441,99 @@ const PropertySearchExtension = {
         const HouseTypeList = SharedPropertyTypes[language];
 
         function buildGroupedCityHTML(cityData) {
-            return Object.entries(cityData)
-                .map(([areaName, cityList]) => {
-                    const itemsHTML = cityList
-                        .map(
-                            (city) => `
+    return Object.entries(cityData)
+        .map(([areaName, cityList]) => {
+            const itemsHTML = cityList
+                .map(
+                    (city) => `
                 <li class="item">
-                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                     <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `
-                        )
-                        .join("");
-                    return `
+                )
+                .join("");
+            return `
                 <li class="group">
                     <div class="group-header" onclick="toggleCollapse(this)">
                         ${areaName}
-                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                        <span class="collapse-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                            </svg>
+                        </span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-                })
-                .join("");
-        }
-
+        })
+        .join("");
+}
         function buildGroupedCategoryHTML(categoryData) {
-            return Object.entries(categoryData)
-                .map(([groupName, catList]) => {
-                    const itemsHTML = catList
-                        .map(
-                            (cat) => `
+    return Object.entries(categoryData)
+        .map(([groupName, catList]) => {
+            const itemsHTML = catList
+                .map(
+                    (cat) => `
                 <li class="item">
-                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                     <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `
-                        )
-                        .join("");
-                    return `
+                )
+                .join("");
+            return `
                 <li class="group">
                     <div class="group-header" onclick="toggleCollapse(this)">
                         ${groupName}
-                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                        <span class="collapse-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                            </svg>
+                        </span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-                })
-                .join("");
-        }
+        })
+        .join("");
+}
 
         function buildPropertyTypeHTML(typeList) {
             return `
             <li class="item select-all">
-                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
                 .map(
                     (type) => `
               <li class="item">
-                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                  <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                   <span class="item-text" data-value="${type}">${type}</span>
               </li>
             `
@@ -632,7 +665,10 @@ const PropertySearchExtension = {
               .list-items.multi-select .item .checkbox { border-radius: 2px; }
               .list-items.single-select .item .checkbox { border-radius: 50%; }
               .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
-              .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
+              .checkbox .check-icon { 
+	      color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
+       
+       }
               .item.checked .check-icon { transform: scale(1); }
               .group {
                   border-top: 1px solid #eee;
@@ -769,7 +805,9 @@ const PropertySearchExtension = {
                           ${RoomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -794,7 +832,9 @@ const PropertySearchExtension = {
                           ${BedroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -819,7 +859,9 @@ const PropertySearchExtension = {
                           ${BathroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -877,7 +919,9 @@ const PropertySearchExtension = {
                               ${CarOptions.map(
                                   (opt) => `
                     <li class="item">
-                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -1279,7 +1323,9 @@ const SellingExtension = {
                             (subItem) => `
                     <li class="item">
                         <span class="checkbox">
-                            <i class="fa-solid fa-check check-icon"></i>
+                             <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
                         </span>
                         <span class="item-text" data-value="${subItem}">${subItem}</span>
                     </li>
@@ -1606,7 +1652,9 @@ const SellingExtension = {
                                   (item) => `
                         <li class="item">
                             <span class="checkbox">
-                                <i class="fa-solid fa-check check-icon"></i>
+                                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
                             </span>
                             <span class="item-text" data-value="${item}">${item}</span>
                         </li>
@@ -2276,7 +2324,9 @@ const ContactExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                 <span class="item-text" data-value="${item.value}">${item.label}</span>
             `;
             serviceListEl.appendChild(li);
@@ -2288,7 +2338,9 @@ const ContactExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                 <span class="item-text" data-value="${seller}">${seller}</span>
             `;
             sellerListEl.appendChild(li);
@@ -2674,7 +2726,9 @@ const BookingExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                 <span class="item-text" data-value="${seller}">${seller}</span>
             `;
             sellerListEl.appendChild(li);
