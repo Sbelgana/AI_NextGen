@@ -1043,50 +1043,89 @@ const PropertySearchExtension = {
         });
 
         formContainer.addEventListener("submit", (event) => {
-            event.preventDefault();
+    event.preventDefault();
 
-            const cityValues = formContainer.querySelector("#cityValues").value.trim();
-            const propertyCategoryValues = formContainer
-                .querySelector("#propertyCategoryValues")
-                .value.trim();
-            const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
-            const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-            const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
-            const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
-            const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
-            const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
-            const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-            const indoorParkingCars =
-                indoorParking === "Yes"
-                    ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
-                    : 0;
-            const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+    const cityValues = formContainer.querySelector("#cityValues").value.trim();
+    const propertyCategoryValues = formContainer
+        .querySelector("#propertyCategoryValues")
+        .value.trim();
+    const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
+    const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
+    const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
+    const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+    const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
+    const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+    
+    // Explicitly set to English "Yes" or "No", regardless of interface language
+    const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
+    
+    const indoorParkingCars =
+        indoorParking === "Yes"
+            ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+            : 0;
+    
+    // Explicitly set to English "Yes" or "No", regardless of interface language
+    const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
-            const selectedCities = cityValues ? cityValues.split(",") : [];
-            const selectedPropertyCategories = propertyCategoryValues
-                ? propertyCategoryValues.split(",")
-                : [];
-            const selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
-
-            const payload = {
-                cityName: selectedCities,
-                category: selectedPropertyCategories,
-                houseType: selectedHouseTypes,
-                bedrooms: bedroomsNumber,
-                bathrooms: bathroomsNumber,
-                priceMin: priceMin,
-                priceMax: priceMax,
-                parkingIndoor: indoorParking,
-                car: indoorParkingCars,
-                swimmingPool: swimmingPool,
-            };
-
-            const airtableFormula = generateAirtableFormula(payload);
-            window.voiceflow.chat.interact({
-                type: "complete",
-                payload: { formula: airtableFormula },
-            });
+    const selectedCities = cityValues ? cityValues.split(",") : [];
+    
+    // Convert property categories to French
+    let selectedPropertyCategories = propertyCategoryValues
+        ? propertyCategoryValues.split(",")
+        : [];
+        
+    // Translate property categories to French if we're in English mode
+    if (isEnglish) {
+        selectedPropertyCategories = selectedPropertyCategories.map(category => {
+            // Find the French equivalent by looking through the shared categories
+            for (const [group, translations] of Object.entries(SharedPropertyCategories)) {
+                const index = translations.en.indexOf(category);
+                if (index !== -1) {
+                    return translations.fr[index];
+                }
+            }
+            return category; // Return original if no translation found
         });
+    }
+    
+    // Convert property types to French
+    let selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
+    
+    // Translate house types to French if we're in English mode
+    if (isEnglish) {
+        selectedHouseTypes = selectedHouseTypes.map(type => {
+            const index = SharedPropertyTypes.en.indexOf(type);
+            if (index !== -1) {
+                return SharedPropertyTypes.fr[index];
+            }
+            return type; // Return original if no translation found
+        });
+    }
+
+    console.log("Category values being sent:", selectedPropertyCategories);
+    console.log("House types being sent:", selectedHouseTypes);
+    console.log("Indoor parking value:", indoorParking);
+    console.log("Swimming pool value:", swimmingPool);
+
+    const payload = {
+        cityName: selectedCities,
+        category: selectedPropertyCategories,
+        houseType: selectedHouseTypes,
+        bedrooms: bedroomsNumber,
+        bathrooms: bathroomsNumber,
+        priceMin: priceMin,
+        priceMax: priceMax,
+        parkingIndoor: indoorParking, // Always "Yes" or "No" in English
+        car: indoorParkingCars,
+        swimmingPool: swimmingPool, // Always "Yes" or "No" in English
+    };
+
+    const airtableFormula = generateAirtableFormula(payload);
+    window.voiceflow.chat.interact({
+        type: "complete",
+        payload: { formula: airtableFormula },
+    });
+});
 
         element.appendChild(formContainer);
     },
