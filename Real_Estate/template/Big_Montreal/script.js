@@ -1364,7 +1364,7 @@ const SellingExtension = {
                   flex-direction: column;
                   gap: 10px;
                   width: 100%;
-                  max-width: 800px;
+                  max-width: 920px;
                   margin: 0 auto;
                   background: #fff;
                   padding: 16px;
@@ -1375,7 +1375,7 @@ const SellingExtension = {
                   gap: 16px;
                   flex-wrap: wrap;
               }
-              .flex-row > div {flex: 1; min-width: 200px; }
+              .flex-row > div {flex: 1; min-width: 250px; }
               .bold-label {
                   font-weight: 700;
                   color: #000;
@@ -2027,7 +2027,7 @@ const ContactExtension = {
                     flex-direction: column;
                     gap: 10px;
                     width: 100%;
-                    max-width: 800px;
+                    max-width: 920px;
                     margin: 0 auto;
                     background: #fff;
                     padding: 16px;
@@ -2041,7 +2041,7 @@ const ContactExtension = {
                 }
                 .flex-row > div {
                     flex: 1;
-                    min-width: 200px;
+                    min-width: 250px;
                 }
 
                 .bold-label {
@@ -2521,6 +2521,7 @@ const BookingExtension = {
                     background: #fff;
                     padding: 16px;
                     border-radius: 6px;
+		    min-width: 300px;
                 }
 
                 .bold-label {
