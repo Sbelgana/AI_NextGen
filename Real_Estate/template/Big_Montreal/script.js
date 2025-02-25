@@ -957,31 +957,9 @@ const PropertySearchExtension = {
             const btnText = selectBtn.querySelector(".btn-text");
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            function closeAllDropdowns() {
-                document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-                    const otherSelectBtn = otherContainer.querySelector('.select-btn');
-                    const otherListEl = otherContainer.querySelector('.list-items');
-                    if (otherSelectBtn) {
-                        otherSelectBtn.classList.remove("open");
-                    }
-                    if (otherListEl) {
-                        otherListEl.style.display = "none";
-                    }
-                });
-            }
-
-            selectBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                
-                // Close all other dropdowns first
-                closeAllDropdowns();
-
-                // Open current dropdown
-                selectBtn.classList.add("open");
-                listEl.style.display = "block";
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
             });
-
-
 
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
@@ -1036,7 +1014,6 @@ const PropertySearchExtension = {
             document.addEventListener("click", (e) => {
                 if (!container.contains(e.target)) {
                     selectBtn.classList.remove("open");
-			listEl.style.display = "none";
                 }
             });
         }
