@@ -963,7 +963,7 @@ const PropertySearchExtension = {
   e.stopPropagation();
   
   // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+  formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
     // Skip the current container
     if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
@@ -1056,10 +1056,10 @@ const PropertySearchExtension = {
             texts.typeDefault
         );
 
-        function setupDropdownSingle(dropdownId, hiddenInputId) {
-  const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = dropdownContainer.querySelector(".select-btn");
-  const listEl = dropdownContainer.querySelector(".list-items");
+       function setupDropdownSingle(dropdownId, hiddenInputId) {
+  const container = formContainer.querySelector(`#${dropdownId}`);
+  const selectBtn = container.querySelector(".select-btn");
+  const listEl = container.querySelector(".list-items");
   const btnText = selectBtn.querySelector(".btn-text");
   const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
   const listItems = listEl.querySelectorAll(".item");
@@ -1067,50 +1067,48 @@ const PropertySearchExtension = {
   selectBtn.addEventListener("click", (e) => {
     e.stopPropagation();
 
-    // ❌ If you do NOT close other dropdowns here,
-    // the first dropdown will stay open when you open the second one.
-
-    // 1) Close all other dropdowns
-    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== dropdownContainer) {
+    // Close all other dropdowns within this form
+    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+      if (otherContainer !== container) {
         const otherSelectBtn = otherContainer.querySelector(".select-btn");
         const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) {
-          otherSelectBtn.classList.remove("open");
-        }
-        if (otherListEl) {
-          otherListEl.style.display = "none";
-        }
+        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+        if (otherListEl) otherListEl.style.display = "none";
       }
     });
 
-    // 2) Toggle the current dropdown
+    // Toggle the current dropdown
     selectBtn.classList.toggle("open");
     listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
   });
 
+  // When selecting an item...
+  listItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      listItems.forEach((i) => i.classList.remove("checked"));
+      item.classList.add("checked");
 
+      const labelText = item.querySelector(".item-text").innerText;
+      const value = item.querySelector(".item-text").getAttribute("data-value");
+      btnText.innerText = labelText;
+      hiddenInput.value = value;
 
-            listItems.forEach((item) => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    listItems.forEach((i) => i.classList.remove("checked"));
-                    item.classList.add("checked");
-                    const labelText = item.querySelector(".item-text").innerText;
-                    const value = item.querySelector(".item-text").getAttribute("data-value");
-                    btnText.innerText = labelText;
-                    hiddenInput.value = value;
-                    selectBtn.classList.remove("open");
-                });
-            });
+      // Close after selecting
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    });
+  });
 
-            document.addEventListener("click", (e) => {
-                if (!dropdownContainer.contains(e.target)) {
-                    selectBtn.classList.remove("open");
-			listEl.style.display = "none";
-                }
-            });
-        }
+  // Close dropdown if user clicks anywhere else
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    }
+  });
+}
+
 
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
