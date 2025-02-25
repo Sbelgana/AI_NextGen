@@ -67,10 +67,7 @@ function buildSellerListItems(sellers, isEnglish) {
       return `
             <li class="item">
               <span class="checkbox">
-               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
+                <i class="fa-solid fa-check check-icon"></i>
               </span>
               <span class="item-text" data-value="${seller}">${displayName}</span>
             </li>
@@ -436,10 +433,7 @@ const PropertySearchExtension = {
                         .map(
                             (city) => `
                 <li class="item">
-                    <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `
@@ -453,10 +447,7 @@ const PropertySearchExtension = {
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
@@ -474,10 +465,7 @@ const PropertySearchExtension = {
                         .map(
                             (cat) => `
                 <li class="item">
-                    <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `
@@ -491,10 +479,7 @@ const PropertySearchExtension = {
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
@@ -508,20 +493,14 @@ const PropertySearchExtension = {
         function buildPropertyTypeHTML(typeList) {
             return `
             <li class="item select-all">
-                <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
                 .map(
                     (type) => `
               <li class="item">
-                  <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                   <span class="item-text" data-value="${type}">${type}</span>
               </li>
             `
@@ -790,10 +769,7 @@ const PropertySearchExtension = {
                           ${RoomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -818,10 +794,7 @@ const PropertySearchExtension = {
                           ${BedroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -846,10 +819,7 @@ const PropertySearchExtension = {
                           ${BathroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -907,10 +877,7 @@ const PropertySearchExtension = {
                               ${CarOptions.map(
                                   (opt) => `
                     <li class="item">
-                        <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -1312,10 +1279,7 @@ const SellingExtension = {
                             (subItem) => `
                     <li class="item">
                         <span class="checkbox">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
+                            <i class="fa-solid fa-check check-icon"></i>
                         </span>
                         <span class="item-text" data-value="${subItem}">${subItem}</span>
                     </li>
@@ -1642,10 +1606,7 @@ const SellingExtension = {
                                   (item) => `
                         <li class="item">
                             <span class="checkbox">
-                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
+                                <i class="fa-solid fa-check check-icon"></i>
                             </span>
                             <span class="item-text" data-value="${item}">${item}</span>
                         </li>
@@ -2315,10 +2276,7 @@ const ContactExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text" data-value="${item.value}">${item.label}</span>
             `;
             serviceListEl.appendChild(li);
@@ -2330,10 +2288,7 @@ const ContactExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text" data-value="${seller}">${seller}</span>
             `;
             sellerListEl.appendChild(li);
@@ -2719,10 +2674,7 @@ const BookingExtension = {
             const li = document.createElement("li");
             li.classList.add("item");
             li.innerHTML = `
-                <span class="checkbox"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text" data-value="${seller}">${seller}</span>
             `;
             sellerListEl.appendChild(li);
