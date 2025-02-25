@@ -1,7 +1,3 @@
-/*************************************************************
- * 1) Global Helpers
- *************************************************************/
-
 // Email and phone validation/formatting
 function isValidEmail(email) {
   const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
@@ -22,6 +18,8 @@ function formatPhoneNumber(phoneNumber) {
 }
 
 // IMPORTANT: Define toggleCollapse only once as a global function
+
+
 window.toggleCollapse = function(element) {
   element.classList.toggle("active");
   const content = element.nextElementSibling;
@@ -36,7 +34,7 @@ window.toggleCollapse = function(element) {
       icon.style.transform = "rotate(0deg)";
     }
   }
-};
+}
 
 /*************************************************************
  * 2) Shared Data: Property Categories & Types
@@ -82,10 +80,8 @@ function buildSellerListItems(sellers, isEnglish) {
             <li class="item">
               <span class="checkbox">
                  <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-                   <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 
-                   12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 
-                   45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-                 </svg>
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
               </span>
               <span class="item-text" data-value="${seller}">${displayName}</span>
             </li>
@@ -203,39 +199,32 @@ const Options = Object.fromEntries(
 
 const SharedCities = {
   "North Shore": [
-    "Blainville", "Boisbriand", "Bois-des-Filion", "Charlemagne", "Chomedey", "Deux-Montagnes", 
-    "Fabreville", "Gore", "Kirkland", "L'Assomption", "L'Épiphanie", "La Plaine", "Lachenaie", 
-    "Lafontaine", "Lavaltrie", "Laval", "Lorraine", "Le Gardeur", "Mascouche", "Mirabel", "Oka", 
-    "Pointe-Calumet", "Repentigny", "Rosemère", "Saint-Colomban", "Saint-Eustache", "Saint-Jérôme", 
-    "Saint-Joseph-du-Lac", "Saint-Lin/Laurentides", "Saint-Placide", "Saint-Sulpice", 
-    "Sainte-Anne-des-Plaines", "Sainte-Dorothée", "Sainte-Marthe-sur-le-Lac", "Sainte-Sophie", 
+    "Blainville", "Boisbriand", "Bois-des-Filion", "Charlemagne", "Chomedey", "Deux-Montagnes", "Fabreville", "Gore",
+    "Kirkland", "L'Assomption", "L'Épiphanie", "La Plaine", "Lachenaie", "Lafontaine", "Lavaltrie",
+    "Laval", "Lorraine", "Le Gardeur", "Mascouche", "Mirabel", "Oka", "Pointe-Calumet", "Repentigny", "Rosemère",
+    "Saint-Colomban", "Saint-Eustache", "Saint-Jérôme", "Saint-Joseph-du-Lac", "Saint-Lin/Laurentides", "Saint-Placide",
+    "Saint-Sulpice", "Sainte-Anne-des-Plaines", "Sainte-Dorothée", "Sainte-Marthe-sur-le-Lac", "Sainte-Sophie", 
     "Sainte-Thérèse", "Terrebonne",
   ],
   Montreal: [
     "Ahuntsic-Cartierville", "Anjou", "Baie-D'Urfé", "Beaconsfield", "Côte-des-Neiges",
-    "Côte-des-Neiges–Notre-Dame-de-Grâce", "Côte-Saint-Luc", "Dollard-des-Ormeaux", "Dorval", 
-    "Hampstead", "L'Île-Bizard", "L'Île-Bizard–Sainte-Geneviève", "L'Île-Dorval", "LaSalle", 
-    "Lachine", "Le Plateau-Mont-Royal", "Le Sud-Ouest", "Mercier", "Hochelaga-Maisonneuve", 
-    "Mercier–Hochelaga-Maisonneuve", "Mont-Royal", "Montréal", "Montréal-Est", "Montréal-Nord",
-    "Montréal-Ouest", "Notre-Dame-de-Grâce", "Outremont", "Pierrefonds-Roxboro", "P.-a.-T.", 
-    "Pointe-Claire", "R.-d.-P.", "Rivière-des-Prairies", "Pointe-aux-Trembles", 
-    "Rivière-des-Prairies–Pointe-aux-Trembles", "Rosemont–La Petite-Patrie", "Rosemont", 
-    "La Petite-Patrie", "Sainte-Anne-de-Bellevue", "Saint-Laurent", "Saint-Léonard", 
-    "Sainte-Geneviève", "Senneville", "Verdun", "Île-des-Soeurs", "Ville-Marie", "Westmount", 
-    "Villeray–Saint-Michel–Parc-Extension", "Villeray", "Saint-Michel", "Parc-Extension",
+    "Côte-des-Neiges–Notre-Dame-de-Grâce", "Côte-Saint-Luc", "Dollard-des-Ormeaux", "Dorval", "Hampstead", "L'Île-Bizard",
+    "L'Île-Bizard–Sainte-Geneviève", "L'Île-Dorval", "LaSalle", "Lachine", "Le Plateau-Mont-Royal", "Le Sud-Ouest", "Mercier",
+    "Hochelaga-Maisonneuve", "Mercier–Hochelaga-Maisonneuve", "Mont-Royal", "Montréal", "Montréal-Est", "Montréal-Nord",
+    "Montréal-Ouest", "Notre-Dame-de-Grâce", "Outremont", "Pierrefonds-Roxboro", "P.-a.-T.", "Pointe-Claire", "R.-d.-P.",
+    "Rivière-des-Prairies", "Pointe-aux-Trembles", "Rivière-des-Prairies–Pointe-aux-Trembles", "Rosemont–La Petite-Patrie", "Rosemont",
+    "La Petite-Patrie", "Sainte-Anne-de-Bellevue", "Saint-Laurent", "Saint-Léonard", "Sainte-Geneviève", "Senneville", "Verdun",
+    "Île-des-Soeurs", "Ville-Marie", "Westmount", "Villeray–Saint-Michel–Parc-Extension", "Villeray", "Saint-Michel", "Parc-Extension",
   ],
   "South Shore": [
     "Beauharnois", "Beloeil", "Boucherville", "Brossard", "Candiac", "Carignan", "Chambly",
-    "Châteauguay", "Contrecœur", "Delson", "Greenfield Park", "Henryville", "Howick", "Kirkland", 
-    "La Prairie", "Lacolle", "Le Vieux-Longueuil", "Lemoyne", "Léry", "Longueuil", "Marieville", 
-    "McMasterville", "Mercier", "Mont-Saint-Hilaire", "Montérégie", "Napierville", 
-    "Otterburn Park", "Richelieu", "Rougemont", "Saint-Amable", "Saint-Basile-le-Grand",
-    "Saint-Blaise-sur-Richelieu", "Saint-Bruno-de-Montarville", "Saint-Constant", 
-    "Saint-Étienne-de-Beauharnois", "Saint-Hyacinthe", "Saint-Hubert", "Saint-Isidore", 
-    "Saint-Jean-sur-Richelieu", "Saint-Lambert", "Saint-Marc-sur-Richelieu", 
-    "Saint-Mathias-sur-Richelieu", "Saint-Mathieu", "Saint-Mathieu-de-Beloeil", "Saint-Michel", 
-    "Saint-Philippe", "Saint-Rémi", "Sainte-Catherine", "Sainte-Julie", "Sainte-Martine", 
-    "Salaberry-de-Valleyfield", "Sherrington", "Varennes", "Verchères",
+    "Châteauguay", "Contrecœur", "Delson", "Greenfield Park", "Henryville", "Howick", "Kirkland", "La Prairie", "Lacolle",
+    "Le Vieux-Longueuil", "Lemoyne", "Léry", "Longueuil", "Marieville", "McMasterville", "Mercier", "Mont-Saint-Hilaire",
+    "Montérégie", "Napierville", "Otterburn Park", "Richelieu", "Rougemont", "Saint-Amable", "Saint-Basile-le-Grand",
+    "Saint-Blaise-sur-Richelieu", "Saint-Bruno-de-Montarville", "Saint-Constant", "Saint-Étienne-de-Beauharnois",
+    "Saint-Hyacinthe", "Saint-Hubert", "Saint-Isidore", "Saint-Jean-sur-Richelieu", "Saint-Lambert", "Saint-Marc-sur-Richelieu",
+    "Saint-Mathias-sur-Richelieu", "Saint-Mathieu", "Saint-Mathieu-de-Beloeil", "Saint-Michel", "Saint-Philippe", "Saint-Rémi",
+    "Sainte-Catherine", "Sainte-Julie", "Sainte-Martine", "Salaberry-de-Valleyfield", "Sherrington", "Varennes", "Verchères",
   ],
 };
 
@@ -306,6 +295,7 @@ function decrementValue(id, step) {
  * 9) Airtable Formula Generation
  *************************************************************/
 
+// Single definition merging both occurrences
 function generateAirtableFormula(input) {
 	const {
 		cityName = [],
@@ -329,6 +319,8 @@ function generateAirtableFormula(input) {
 		conditions.push(cityFormula);
 	}
 
+
+
 	// Category filter
 	if (category.length > 0) {
 		const categoryConditions = category.map((cat) => `{Category} = "${cat}"`);
@@ -336,8 +328,9 @@ function generateAirtableFormula(input) {
 		conditions.push(categoryFormula);
 	}
 
-	// House Type filter (optional)
+	// ADDED: House Type filter (optional)
 	if (houseType.length > 0) {
+		// If your Airtable field is something else, rename {HouseType} below
 		const houseTypeConditions = houseType.map((ht) => `FIND("${ht}", {Type})`);
 		const houseTypeFormula = houseTypeConditions.length === 1 ? houseTypeConditions[0] : `OR(${houseTypeConditions.join(", ")})`;
 		conditions.push(houseTypeFormula);
@@ -376,6 +369,7 @@ function generateAirtableFormula(input) {
 
 	return `AND(${conditions.join(", ")})`;
 }
+
 
 /*************************************************************
  * 10) Define the 4 Extensions
@@ -447,175 +441,99 @@ const PropertySearchExtension = {
         const HouseTypeList = SharedPropertyTypes[language];
 
         function buildGroupedCityHTML(cityData) {
-            return Object.entries(cityData)
-                .map(([areaName, cityList]) => {
-                    const itemsHTML = cityList
-                        .map(
-                            (city) => `
+    return Object.entries(cityData)
+        .map(([areaName, cityList]) => {
+            const itemsHTML = cityList
+                .map(
+                    (city) => `
                 <li class="item">
-                    <span class="checkbox"> 
-                      <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                           viewBox="0 0 448 512" width="10" height="10">
-                        <path fill="#FFFFFF" 
-                          d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 
-                             12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 
-                             0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 
-                             32.8-12.5 45.3 0z"/>
-                      </svg>
-                    </span>
+                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                     <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `
-                        )
-                        .join("");
-                    return `
+                )
+                .join("");
+            return `
                 <li class="group">
                     <div class="group-header" onclick="toggleCollapse(this)">
                         ${areaName}
                         <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" 
-                                 width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192
-                                     c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 
-                                     45.25 0L224 338.8l169.4-169.4c12.5-12.5 
-                                     32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192
-                                     C240.4 412.9 232.2 416 224 416z"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox">
-                              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="10" height="10">
-                                <path fill="#FFFFFF" 
-                                  d="M438.6 105.4c12.5 12.5 12.5 32.8 0 
-                                     45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 
-                                     0l-128-128c-12.5-12.5-12.5-32.8 
-                                     0-45.3s32.8-12.5 45.3 0L160 338.7 
-                                     393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-                              </svg>
-                            </span>
-                            <span class="item-text">
-                              ${isEnglish ? "Select All" : "Tout sélectionner"}
-                            </span>
+                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
+                            <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-                })
-                .join("");
-        }
-
+        })
+        .join("");
+}
         function buildGroupedCategoryHTML(categoryData) {
-            return Object.entries(categoryData)
-                .map(([groupName, catList]) => {
-                    const itemsHTML = catList
-                        .map(
-                            (cat) => `
+    return Object.entries(categoryData)
+        .map(([groupName, catList]) => {
+            const itemsHTML = catList
+                .map(
+                    (cat) => `
                 <li class="item">
-                    <span class="checkbox">
-                      <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                           viewBox="0 0 448 512" width="10" height="10">
-                        <path fill="#FFFFFF" 
-                          d="M438.6 105.4c12.5 12.5 12.5 32.8 
-                             0 45.3l-256 256c-12.5 12.5-32.8 
-                             12.5-45.3 0l-128-128c-12.5-12.5
-                             -12.5-32.8 0-45.3s32.8-12.5 
-                             45.3 0L160 338.7 393.4 105.4
-                             c12.5-12.5 32.8-12.5 45.3 0z"/>
-                      </svg>
-                    </span>
+                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                     <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `
-                        )
-                        .join("");
-                    return `
+                )
+                .join("");
+            return `
                 <li class="group">
                     <div class="group-header" onclick="toggleCollapse(this)">
                         ${groupName}
                         <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" 
-                                 width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5-12.5
-                                     -12.5-32.75 0-45.25s32.75-12.5 
-                                     45.25 0L224 338.8l169.4-169.4
-                                     c12.5-12.5 32.75-12.5 45.25 
-                                     0s12.5 32.75 0 45.25l-192 
-                                     192C240.4 412.9 232.2 416 
-                                     224 416z"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox">
-                              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="10" height="10">
-                                <path fill="#FFFFFF" 
-                                  d="M438.6 105.4c12.5 12.5 
-                                     12.5 32.8 0 45.3l-256 256
-                                     c-12.5 12.5-32.8 12.5-45.3 
-                                     0l-128-128c-12.5-12.5-12.5
-                                     -32.8 0-45.3s32.8-12.5 45.3 
-                                     0L160 338.7 393.4 105.4c12.5
-                                     -12.5 32.8-12.5 45.3 0z"/>
-                              </svg>
-                            </span>
-                            <span class="item-text">
-                              ${isEnglish ? "Select All" : "Tout sélectionner"}
-                            </span>
+                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
+                            <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-                })
-                .join("");
-        }
+        })
+        .join("");
+}
 
         function buildPropertyTypeHTML(typeList) {
             return `
             <li class="item select-all">
-                <span class="checkbox">
-                  <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                       viewBox="0 0 448 512" width="10" height="10">
-                    <path fill="#FFFFFF" 
-                      d="M438.6 105.4c12.5 12.5 12.5 
-                         32.8 0 45.3l-256 256c-12.5 
-                         12.5-32.8 12.5-45.3 0l-128
-                         -128c-12.5-12.5-12.5-32.8 
-                         0-45.3s32.8-12.5 45.3 
-                         0L160 338.7 393.4 105.4
-                         c12.5-12.5 32.8-12.5 45.3 0z"/>
-                  </svg>
-                </span>
-                <span class="item-text">
-                  ${isEnglish ? "Select All" : "Tout sélectionner"}
-                </span>
+                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
+                <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
                 .map(
                     (type) => `
               <li class="item">
-                  <span class="checkbox">
-                    <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                         viewBox="0 0 448 512" width="10" height="10">
-                      <path fill="#FFFFFF" 
-                        d="M438.6 105.4c12.5 12.5 12.5 
-                           32.8 0 45.3l-256 256c-12.5 
-                           12.5-32.8 12.5-45.3 0l-128
-                           -128c-12.5-12.5-12.5-32.8 
-                           0-45.3s32.8-12.5 45.3 0
-                           L160 338.7 393.4 105.4
-                           c12.5-12.5 32.8-12.5 45.3 0z"/>
-                    </svg>
-                  </span>
+                  <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                   <span class="item-text" data-value="${type}">${type}</span>
               </li>
             `
@@ -628,9 +546,7 @@ const PropertySearchExtension = {
         formContainer.innerHTML = `
           <style>
               @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-              @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css') 
-                      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
-                      crossorigin="anonymous" referrerpolicy="no-referrer";
+       	      @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css') integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer";
 
               form {
                   display: flex;
@@ -750,8 +666,9 @@ const PropertySearchExtension = {
               .list-items.single-select .item .checkbox { border-radius: 50%; }
               .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
               .checkbox .check-icon { 
-                color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
-              }
+	      color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
+       
+       }
               .item.checked .check-icon { transform: scale(1); }
               .group {
                   border-top: 1px solid #eee;
@@ -826,16 +743,11 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.cityDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125-22.62
-                                     -9.375l-192-192c-12.5-12.5-12.5-32.75 
-                                     0-45.25s32.75-12.5 45.25 0L224 338.8
-                                     l169.4-169.4c12.5-12.5 32.75-12.5 
-                                     45.25 0s12.5 32.75 0 45.25l-192 
-                                     192C240.4 412.9 232.2 416 224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="cityList"></ul>
                   </div>
@@ -847,18 +759,11 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.categoryDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5-12.5
-                                     -12.5-32.75 0-45.25s32.75-12.5 
-                                     45.25 0L224 338.8l169.4-169.4
-                                     c12.5-12.5 32.75-12.5 45.25 0s12.5 
-                                     32.75 0 45.25l-192 192C240.4 
-                                     412.9 232.2 416 224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="propertyCategoryList"></ul>
                   </div>
@@ -870,18 +775,11 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.typeDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5-12.5
-                                     -12.5-32.75 0-45.25s32.75-12.5 
-                                     45.25 0L224 338.8l169.4-169.4
-                                     c12.5-12.5 32.75-12.5 45.25 0s
-                                     12.5 32.75 0 45.25l-192 192C240.4 
-                                     412.9 232.2 416 224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="propertyTypeList"></ul>
                   </div>
@@ -897,38 +795,19 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5-12.5
-                                     -12.5-32.75 0-45.25s32.75-12.5 
-                                     45.25 0L224 338.8l169.4-169.4
-                                     c12.5-12.5 32.75-12.5 45.25 
-                                     0s12.5 32.75 0 45.25l-192 
-                                     192C240.4 412.9 232.2 416 
-                                     224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${RoomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox">
-                          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                               viewBox="0 0 448 512" width="10" height="10">
-                            <path fill="#FFFFFF" 
-                              d="M438.6 105.4c12.5 12.5 12.5 
-                                 32.8 0 45.3l-256 256c-12.5 
-                                 12.5-32.8 12.5-45.3 0l-128
-                                 -128c-12.5-12.5-12.5-32.8 
-                                 0-45.3s32.8-12.5 45.3 0
-                                 L160 338.7 393.4 105.4
-                                 c12.5-12.5 32.8-12.5 
-                                 45.3 0z"/>
-                          </svg>
-                        </span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -943,39 +822,19 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5
-                                     -12.5-12.5-32.75 0-45.25s
-                                     32.75-12.5 45.25 0L224 
-                                     338.8l169.4-169.4c12.5-12.5
-                                     32.75-12.5 45.25 0s12.5 
-                                     32.75 0 45.25l-192 192
-                                     C240.4 412.9 232.2 416 
-                                     224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${BedroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox">
-                          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                               viewBox="0 0 448 512" width="10" height="10">
-                            <path fill="#FFFFFF" 
-                              d="M438.6 105.4c12.5 12.5 12.5
-                                 32.8 0 45.3l-256 256c-12.5
-                                 12.5-32.8 12.5-45.3 0l-128
-                                 -128c-12.5-12.5-12.5-32.8 
-                                 0-45.3s32.8-12.5 45.3 0
-                                 L160 338.7 393.4 105.4
-                                 c12.5-12.5 32.8-12.5 
-                                 45.3 0z"/>
-                          </svg>
-                        </span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -990,40 +849,19 @@ const PropertySearchExtension = {
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
                           <span class="arrow-dwn">
-                              <svg xmlns="http://www.w3.org/2000/svg" 
-                                   viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" 
-                                  d="M224 416c-8.188 0-16.38-3.125
-                                     -22.62-9.375l-192-192c-12.5
-                                     -12.5-12.5-32.75 0-45.25s
-                                     32.75-12.5 45.25 0L224 
-                                     338.8l169.4-169.4c12.5-12.5
-                                     32.75-12.5 45.25 0s12.5 
-                                     32.75 0 45.25l-192 192
-                                     C240.4 412.9 232.2 416 
-                                     224 416z"/>
-                              </svg>
-                          </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items single-select">
                           ${BathroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox">
-                          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                               viewBox="0 0 448 512" width="10" height="10">
-                            <path fill="#FFFFFF" 
-                              d="M438.6 105.4c12.5 12.5 
-                                 12.5 32.8 0 45.3l-256 256
-                                 c-12.5 12.5-32.8 12.5
-                                 -45.3 0l-128-128c-12.5
-                                 -12.5-12.5-32.8 0-45.3s
-                                 32.8-12.5 45.3 0L160 
-                                 338.7 393.4 105.4
-                                 c12.5-12.5 32.8-12.5 
-                                 45.3 0z"/>
-                          </svg>
-                        </span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -1039,22 +877,22 @@ const PropertySearchExtension = {
               <div>
                   <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
                   <div class="price-wrapper">
-                      <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
-                      <div class="price-controls">
-                          <div class="price-up" data-input="price-min" data-step="1000">▲</div>
-                          <div class="price-down" data-input="price-min" data-step="1000">▼</div>
-                      </div>
-                  </div>
+    <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
+    <div class="price-controls">
+        <div class="price-up" data-input="price-min" data-step="1000">▲</div>
+        <div class="price-down" data-input="price-min" data-step="1000">▼</div>
+    </div>
+</div>
               </div>
               <div>
                   <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
                   <div class="price-wrapper">
-                      <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
-                      <div class="price-controls">
-                          <div class="price-up" data-input="price-max" data-step="1000">▲</div>
-                          <div class="price-down" data-input="price-max" data-step="1000">▼</div>
-                      </div>
-                  </div>
+    <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
+    <div class="price-controls">
+        <div class="price-up" data-input="price-max" data-step="1000">▲</div>
+        <div class="price-down" data-input="price-max" data-step="1000">▼</div>
+    </div>
+</div>
               </div>
           </div>
           
@@ -1071,39 +909,19 @@ const PropertySearchExtension = {
                           <div class="select-btn" tabindex="0">
                               <span class="btn-text">${texts.optionDefault}</span>
                               <span class="arrow-dwn">
-                                  <svg xmlns="http://www.w3.org/2000/svg" 
-                                       viewBox="0 0 448 512" width="12" height="12">
-                                    <path fill="#9A0DF2" 
-                                      d="M224 416c-8.188 0-16.38-3.125
-                                         -22.62-9.375l-192-192c-12.5
-                                         -12.5-12.5-32.75 0-45.25s
-                                         32.75-12.5 45.25 0L224 
-                                         338.8l169.4-169.4c12.5
-                                         -12.5 32.75-12.5 45.25 0s
-                                         12.5 32.75 0 45.25l-192
-                                         192C240.4 412.9 232.2
-                                         416 224 416z"/>
-                                  </svg>
-                              </span>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                           </div>
                           <ul class="list-items single-select">
                               ${CarOptions.map(
                                   (opt) => `
                     <li class="item">
-                        <span class="checkbox">
-                          <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                               viewBox="0 0 448 512" width="10" height="10">
-                            <path fill="#FFFFFF" 
-                              d="M438.6 105.4c12.5 12.5 12.5
-                                 32.8 0 45.3l-256 256c-12.5
-                                 12.5-32.8 12.5-45.3 0l-128
-                                 -128c-12.5-12.5-12.5-32.8 
-                                 0-45.3s32.8-12.5 45.3 0
-                                 L160 338.7 393.4 105.4
-                                 c12.5-12.5 32.8-12.5 
-                                 45.3 0z"/>
-                          </svg>
-                        </span>
+                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -1132,33 +950,42 @@ const PropertySearchExtension = {
         const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
         propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
 
-        //
-        // === FIXED: setupMultiSelect now compares `otherContainer !== dropdownContainer` properly ===
-        //
-        function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const listEl = dropdownContainer.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+   function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
+    const container = formContainer.querySelector(`#${dropdownId}`);
+    const selectBtn = container.querySelector(".select-btn");
+    const listEl = container.querySelector(".list-items");
+    const btnText = selectBtn.querySelector(".btn-text");
+    const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            selectBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
+    selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+            if (otherContainer !== container) {
+                const otherSelectBtn = otherContainer.querySelector('.select-btn');
+                const otherListEl = otherContainer.querySelector('.list-items');
+                if (otherSelectBtn) {
+                    otherSelectBtn.classList.remove("open");
+                }
+                if (otherListEl) {
+                    otherListEl.style.display = "none";
+                }
+            }
+        });
 
-                // Close all other dropdowns
-                document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-                  if (otherContainer !== dropdownContainer) {
-                    const otherSelectBtn = otherContainer.querySelector(".select-btn");
-                    const otherListEl = otherContainer.querySelector(".list-items");
-                    if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-                    if (otherListEl) otherListEl.style.display = "none";
-                  }
-                });
+        // Toggle the current dropdown
+        selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+    });
 
-                // Toggle the current dropdown
-                selectBtn.classList.toggle("open");
-                listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-            });
+    // Rest of the function remains the same...
+
+
+
+
+
+
 
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
@@ -1176,11 +1003,12 @@ const PropertySearchExtension = {
             formContainer.querySelectorAll(`${listSelector} .item`).forEach((item) => {
                 item.addEventListener("click", (e) => {
                     e.stopPropagation();
-
                     if (item.classList.contains("select-all")) {
                         const groupOptions = item.parentElement;
                         const groupItems = groupOptions.querySelectorAll(".item:not(.select-all)");
-                        const allSelected = Array.from(groupItems).every((i) => i.classList.contains("checked"));
+                        const allSelected = Array.from(groupItems).every((i) =>
+                            i.classList.contains("checked")
+                        );
                         item.classList.toggle("checked");
                         const newState = item.classList.contains("checked");
                         groupItems.forEach((ci) => {
@@ -1202,7 +1030,6 @@ const PropertySearchExtension = {
                         count > 0
                             ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}`
                             : defaultText;
-
                     const values = Array.from(checkedItems).map((ci) =>
                         ci.querySelector(".item-text").getAttribute("data-value")
                     );
@@ -1210,68 +1037,14 @@ const PropertySearchExtension = {
                 });
             });
 
-            // Close if user clicks outside
             document.addEventListener("click", (e) => {
-                if (!dropdownContainer.contains(e.target)) {
+                if (!container.contains(e.target)) {
                     selectBtn.classList.remove("open");
-                    listEl.style.display = "none";
+			listEl.style.display = "none";
                 }
             });
         }
 
-        //
-        // === FIXED: setupDropdownSingle now compares `otherContainer !== dropdownContainer` properly ===
-        //
-        function setupDropdownSingle(dropdownId, hiddenInputId) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const listEl = dropdownContainer.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-            const listItems = listEl.querySelectorAll(".item");
-
-            selectBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-
-                // Close all other dropdowns
-                document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-                  if (otherContainer !== dropdownContainer) {
-                    const otherSelectBtn = otherContainer.querySelector(".select-btn");
-                    const otherListEl = otherContainer.querySelector(".list-items");
-                    if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-                    if (otherListEl) otherListEl.style.display = "none";
-                  }
-                });
-
-                // Toggle the current dropdown
-                selectBtn.classList.toggle("open");
-                listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-            });
-
-            listItems.forEach((item) => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    listItems.forEach((i) => i.classList.remove("checked"));
-                    item.classList.add("checked");
-                    const labelText = item.querySelector(".item-text").innerText;
-                    const value = item.querySelector(".item-text").getAttribute("data-value");
-                    btnText.innerText = labelText;
-                    hiddenInput.value = value;
-                    selectBtn.classList.remove("open");
-                    listEl.style.display = "none";
-                });
-            });
-
-            // Close if user clicks outside
-            document.addEventListener("click", (e) => {
-                if (!dropdownContainer.contains(e.target)) {
-                    selectBtn.classList.remove("open");
-                    listEl.style.display = "none";
-                }
-            });
-        }
-
-        // Initialize multi-selects
         setupMultiSelect("dropdown-city", "#cityList", "cityValues", texts.cityDefault);
         setupMultiSelect(
             "dropdown-property-category",
@@ -1286,13 +1059,66 @@ const PropertySearchExtension = {
             texts.typeDefault
         );
 
-        // Initialize single-selects
+       function setupDropdownSingle(dropdownId, hiddenInputId) {
+    const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+    const selectBtn = dropdownContainer.querySelector(".select-btn");
+    const listEl = dropdownContainer.querySelector(".list-items");
+    const btnText = selectBtn.querySelector(".btn-text");
+    const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+    const listItems = listEl.querySelectorAll(".item");
+
+    selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+            if (otherContainer !== dropdownContainer) {
+                const otherSelectBtn = otherContainer.querySelector('.select-btn');
+                const otherListEl = otherContainer.querySelector('.list-items');
+                if (otherSelectBtn) {
+                    otherSelectBtn.classList.remove("open");
+                }
+                if (otherListEl) {
+                    otherListEl.style.display = "none";
+                }
+            }
+        });
+
+        // Toggle the current dropdown
+        selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+    });
+
+    // Rest of the function remains the same...
+
+
+
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    item.classList.add("checked");
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+                    selectBtn.classList.remove("open");
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+			listEl.style.display = "none";
+                }
+            });
+        }
+
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
         setupDropdownSingle("dropdown-bathrooms-number", "bathrooms-number");
         setupDropdownSingle("dropdown-cars-number", "cars-number");
 
-        // Show/hide the "cars-number" dropdown when Garage is checked/unchecked
         const garageCheckbox = formContainer.querySelector("#garage");
         const carsContainer = formContainer.querySelector("#cars-container");
         garageCheckbox.addEventListener("change", function () {
@@ -1308,151 +1134,163 @@ const PropertySearchExtension = {
                 });
             }
         });
-
-        // Add event listeners for price increment/decrement
-        formContainer.querySelectorAll(".price-up, .price-down").forEach((button) => {
-            button.addEventListener("click", function () {
-                const inputId = this.getAttribute("data-input");
-                const step = parseInt(this.getAttribute("data-step"), 10);
-
-                if (this.classList.contains("price-up")) {
-                    const input = formContainer.querySelector(`#${inputId}`);
-                    if (!input) return;
-                    
-                    let currentValue;
-                    if (inputId === "price-max") {
-                        if (input.value === "") {
-                            const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                            currentValue = Math.max(1000, priceMin);
-                        } else {
-                            currentValue = parseInt(input.value, 10);
-                        }
-                    } else {
-                        currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-                    }
-
-                    let newValue = currentValue + step;
-
-                    if (inputId === "price-min") {
-                        const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
-                        if (priceMax && newValue > priceMax) {
-                            newValue = priceMax;
-                        }
-                        input.value = newValue;
-                        formContainer.querySelector("#price-max").min = newValue;
-                    } else if (inputId === "price-max") {
-                        const minVal = parseInt(input.min, 10) || 0;
-                        if (newValue < minVal) {
-                            newValue = minVal;
-                        }
-                        input.value = newValue;
-                        formContainer.querySelector("#price-min").max = newValue;
-                    }
-                } else {
-                    // Decrement
-                    const input = formContainer.querySelector(`#${inputId}`);
-                    if (!input) return;
-
-                    let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-
-                    if (inputId === "price-max") {
-                        const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                        let newValue = currentValue - step;
-                        if (newValue < priceMin) {
-                            newValue = priceMin;
-                        }
-                        input.value = newValue;
-                        formContainer.querySelector("#price-min").max = newValue;
-                    } else if (inputId === "price-min") {
-                        let newValue = currentValue - step;
-                        if (newValue < 0) {
-                            newValue = 0;
-                        }
-                        input.value = newValue;
-                        formContainer.querySelector("#price-max").min = newValue;
-                    }
-                }
-            });
-        });
-
-        // Handle form submission
-        formContainer.addEventListener("submit", (event) => {
-            event.preventDefault();
-
-            const cityValues = formContainer.querySelector("#cityValues").value.trim();
-            const propertyCategoryValues = formContainer.querySelector("#propertyCategoryValues").value.trim();
-            const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
-            const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-            const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
-            const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
-            const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
-            const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+	// Add event listeners for price increment and decrement
+formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
+    button.addEventListener('click', function() {
+        const inputId = this.getAttribute('data-input');
+        const step = parseInt(this.getAttribute('data-step'), 10);
+        
+        // Call the appropriate function based on button class
+        if (this.classList.contains('price-up')) {
+            // Define increment function locally
+            const input = formContainer.querySelector(`#${inputId}`);
+            if (!input) return;
             
-            // Always "Yes" or "No" in English
-            const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-            const indoorParkingCars =
-                indoorParking === "Yes"
-                    ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
-                    : 0;
-
-            const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
-
-            const selectedCities = cityValues ? cityValues.split(",") : [];
-
-            // Convert property categories to French if needed
-            let selectedPropertyCategories = propertyCategoryValues
-                ? propertyCategoryValues.split(",")
-                : [];
-            if (isEnglish) {
-                selectedPropertyCategories = selectedPropertyCategories.map((category) => {
-                    for (const [group, translations] of Object.entries(SharedPropertyCategories)) {
-                        const index = translations.en.indexOf(category);
-                        if (index !== -1) {
-                            return translations.fr[index];
-                        }
-                    }
-                    return category;
-                });
+            let currentValue;
+            
+            if (inputId === "price-max") {
+                if (input.value === "") {
+                    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+                    currentValue = Math.max(1000, priceMin);
+                } else {
+                    currentValue = parseInt(input.value, 10);
+                }
+            } else {
+                currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
             }
-
-            // Convert property types to French if needed
-            let selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
-            if (isEnglish) {
-                selectedHouseTypes = selectedHouseTypes.map((type) => {
-                    const index = SharedPropertyTypes.en.indexOf(type);
-                    if (index !== -1) {
-                        return SharedPropertyTypes.fr[index];
-                    }
-                    return type;
-                });
+            
+            let newValue = currentValue + step;
+            
+            if (inputId === "price-min") {
+                const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
+                if (priceMax && newValue > priceMax) {
+                    newValue = priceMax;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-max").min = newValue;
+            } else if (inputId === "price-max") {
+                const minVal = parseInt(input.min, 10) || 0;
+                if (newValue < minVal) {
+                    newValue = minVal;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-min").max = newValue;
             }
+        } else {
+            // Define decrement function locally
+            const input = formContainer.querySelector(`#${inputId}`);
+            if (!input) return;
+            
+            let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+            
+            if (inputId === "price-max") {
+                const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+                let newValue = currentValue - step;
+                if (newValue < priceMin) {
+                    newValue = priceMin;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-min").max = newValue;
+            } else if (inputId === "price-min") {
+                let newValue = currentValue - step;
+                if (newValue < 0) {
+                    newValue = 0;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-max").min = newValue;
+            }
+        }
+    });
+});
 
-            const payload = {
-                cityName: selectedCities,
-                category: selectedPropertyCategories,
-                houseType: selectedHouseTypes,
-                bedrooms: bedroomsNumber,
-                bathrooms: bathroomsNumber,
-                priceMin: priceMin,
-                priceMax: priceMax,
-                parkingIndoor: indoorParking,
-                car: indoorParkingCars,
-                swimmingPool: swimmingPool,
-            };
+        formContainer.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-            const airtableFormula = generateAirtableFormula(payload);
-            window.voiceflow.chat.interact({
-                type: "complete",
-                payload: { formula: airtableFormula },
-            });
+    const cityValues = formContainer.querySelector("#cityValues").value.trim();
+    const propertyCategoryValues = formContainer
+        .querySelector("#propertyCategoryValues")
+        .value.trim();
+    const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
+    const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
+    const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
+    const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+    const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
+    const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+    
+    // Explicitly set to English "Yes" or "No", regardless of interface language
+    const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
+    
+    const indoorParkingCars =
+        indoorParking === "Yes"
+            ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+            : 0;
+    
+    // Explicitly set to English "Yes" or "No", regardless of interface language
+    const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+
+    const selectedCities = cityValues ? cityValues.split(",") : [];
+    
+    // Convert property categories to French
+    let selectedPropertyCategories = propertyCategoryValues
+        ? propertyCategoryValues.split(",")
+        : [];
+        
+    // Translate property categories to French if we're in English mode
+    if (isEnglish) {
+        selectedPropertyCategories = selectedPropertyCategories.map(category => {
+            // Find the French equivalent by looking through the shared categories
+            for (const [group, translations] of Object.entries(SharedPropertyCategories)) {
+                const index = translations.en.indexOf(category);
+                if (index !== -1) {
+                    return translations.fr[index];
+                }
+            }
+            return category; // Return original if no translation found
         });
+    }
+    
+    // Convert property types to French
+    let selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
+    
+    // Translate house types to French if we're in English mode
+    if (isEnglish) {
+        selectedHouseTypes = selectedHouseTypes.map(type => {
+            const index = SharedPropertyTypes.en.indexOf(type);
+            if (index !== -1) {
+                return SharedPropertyTypes.fr[index];
+            }
+            return type; // Return original if no translation found
+        });
+    }
+
+    console.log("Category values being sent:", selectedPropertyCategories);
+    console.log("House types being sent:", selectedHouseTypes);
+    console.log("Indoor parking value:", indoorParking);
+    console.log("Swimming pool value:", swimmingPool);
+
+    const payload = {
+        cityName: selectedCities,
+        category: selectedPropertyCategories,
+        houseType: selectedHouseTypes,
+        bedrooms: bedroomsNumber,
+        bathrooms: bathroomsNumber,
+        priceMin: priceMin,
+        priceMax: priceMax,
+        parkingIndoor: indoorParking, // Always "Yes" or "No" in English
+        car: indoorParkingCars,
+        swimmingPool: swimmingPool, // Always "Yes" or "No" in English
+    };
+
+    const airtableFormula = generateAirtableFormula(payload);
+    window.voiceflow.chat.interact({
+        type: "complete",
+        payload: { formula: airtableFormula },
+    });
+});
 
         element.appendChild(formContainer);
     },
 };
-
-// Export your extension(s)
-
 
 /************** EXTENSION #2: SellingExtension **************/
 const SellingExtension = {
