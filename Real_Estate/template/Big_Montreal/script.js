@@ -599,7 +599,6 @@ const PropertySearchExtension = {
                   display: none;
                   max-height: 200px;
                   overflow-y: auto;
-                  z-index: 100;
                   background-color: #fff;
               }
               .select-btn.open + .list-items { display: block; }
@@ -1234,7 +1233,6 @@ const SellingExtension = {
                   display: none;
                   max-height: 200px;
                   overflow-y: auto;
-                  z-index: 100;
                   background-color: #fff;
               }
               .select-btn.open + .list-items {
@@ -1884,7 +1882,6 @@ const ContactExtension = {
                     display: none;
                     max-height: 200px;
                     overflow-y: auto;
-                    z-index: 100;
                 }
                 .select-btn.open + .list-items {
                     display: block;
@@ -2313,7 +2310,6 @@ const BookingExtension = {
                     display: none;
                     max-height: 200px;
                     overflow-y: auto;
-                    z-index: 100;
                 }
                 .select-btn.open + .list-items {
                     display: block;
