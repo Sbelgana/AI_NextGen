@@ -1201,6 +1201,8 @@ formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
 
         formContainer.addEventListener("submit", (event) => {
     event.preventDefault();
+const submitBtn = formContainer.querySelector('button[type="submit"]');
+submitBtn.disabled = true;
 
     const cityValues = formContainer.querySelector("#cityValues").value.trim();
     const propertyCategoryValues = formContainer
