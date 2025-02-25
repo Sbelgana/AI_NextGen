@@ -1645,69 +1645,69 @@ const SellingExtension = {
         /*************************************************************
          * 5) Single-selection dropdown logic (used for all dropdowns)
          *************************************************************/
-        function setupDropdown(dropdownId, hiddenInputId) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+       function setupDropdownSingle(dropdownId, hiddenInputId) {
+    const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+    const selectBtn = dropdownContainer.querySelector(".select-btn");
+    const listEl = dropdownContainer.querySelector(".list-items");
+    const btnText = selectBtn.querySelector(".btn-text");
+    const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+    const listItems = listEl.querySelectorAll(".item");
 
-            // Gather all .item elements (can be in multiple groups)
-            const listItems = dropdownContainer.querySelectorAll(".list-items .item");
-
-            // Open/close on selectBtn click
-          selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== container) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
-      }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
+    // Close all dropdowns within THIS FORM only
+    function closeAllDropdownsInForm() {
+        const allDropdowns = formContainer.querySelectorAll('.dropdown-container');
+        allDropdowns.forEach(dropdown => {
+            const btn = dropdown.querySelector('.select-btn');
+            const list = dropdown.querySelector('.list-items');
+            if (btn) btn.classList.remove("open");
+            if (list) list.style.display = "none";
+        });
     }
-  });
 
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
-
-
-
-            // Single-select: remove "checked" from all, then add to clicked
-            listItems.forEach((item) => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    // remove "checked" from all items in this dropdown
-                    listItems.forEach((i) => i.classList.remove("checked"));
-                    // mark the clicked item
-                    item.classList.add("checked");
-
-                    // set the text and hidden input
-                    const value = item.querySelector(".item-text").getAttribute("data-value");
-                    btnText.innerText = value;
-                    hiddenInput.value = value;
-
-                    // close the dropdown
-                    selectBtn.classList.remove("open");
-                });
-            });
-
-            // (Optional) close dropdown if user clicks outside
-            document.addEventListener("click", (e) => {
-                if (!dropdownContainer.contains(e.target)) {
-                    selectBtn.classList.remove("open");
-		    listEl.style.display = "none";
-                }
-            });
+    selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // If this dropdown is already open, just close it
+        if (selectBtn.classList.contains("open")) {
+            selectBtn.classList.remove("open");
+            listEl.style.display = "none";
+            return;
         }
+        
+        // Otherwise, close all dropdowns in the form and open this one
+        closeAllDropdownsInForm();
+        selectBtn.classList.add("open");
+        listEl.style.display = "block";
+    });
 
+    // Single-select: remove "checked" from all, then add to clicked
+    listItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            // remove "checked" from all items in this dropdown
+            listItems.forEach((i) => i.classList.remove("checked"));
+            // mark the clicked item
+            item.classList.add("checked");
+
+            // set the text and hidden input
+            const value = item.querySelector(".item-text").getAttribute("data-value");
+            btnText.innerText = item.querySelector(".item-text").innerText;
+            hiddenInput.value = value;
+
+            // close the dropdown
+            selectBtn.classList.remove("open");
+            listEl.style.display = "none";
+        });
+    });
+
+    // Close dropdown if user clicks outside
+    document.addEventListener("click", (e) => {
+        if (!dropdownContainer.contains(e.target)) {
+            selectBtn.classList.remove("open");
+            listEl.style.display = "none";
+        }
+    });
+}
         // Setup the 3 dropdowns
         setupDropdown("dropdown-property-category", "property-category");
         setupDropdown("dropdown-house-type", "house-type");
