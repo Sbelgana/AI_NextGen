@@ -706,7 +706,12 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-city">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.cityDefault}</span>
-                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
                       </div>
                       <ul class="list-items multi-select" id="cityList"></ul>
                   </div>
