@@ -1289,870 +1289,716 @@ formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
 };
 
 /************** EXTENSION #2: SellingExtension **************/
-/************** EXTENSION #2: SellingExtension (with numeric up/down) **************/
 const SellingExtension = {
-  name: "Forms",
-  type: "response",
-  match: ({ trace }) =>
-    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
-  render: ({ trace, element }) => {
-    /*************************************************************
-     * 1) Language Setup & Data
-     *************************************************************/
-    const { language } = trace.payload;
-    const isEnglish = language === "en";
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+    render: ({ trace, element }) => {
+        /*************************************************************
+         * 2) Language Setup
+         *************************************************************/
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
 
-    // e.g. propertyCategories from SharedPropertyCategories & PropertyTypeMappings
-    const propertyCategories = Object.fromEntries(
-      Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
-        label,
-        SharedPropertyCategories[sharedKey][language],
-      ])
-    );
-    // e.g. houseTypes from SharedPropertyTypes
-    const houseTypes = SharedPropertyTypes[language];
+        // Build categories object, e.g. { Residential: [...], Plex: [...] }
+        const propertyCategories = Object.fromEntries(
+            Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
+                label,
+                SharedPropertyCategories[sharedKey][language],
+            ])
+        );
 
-    /*************************************************************
-     * 2) Helpers: Build grouped categories & seller list
-     *************************************************************/
-    function buildGroupedCategoryHTML() {
-      const groupLabels = Object.keys(propertyCategories); // e.g. ["Residential","Plex"]
-      return groupLabels
-        .map((groupName) => {
-          const subItems = propertyCategories[groupName] || [];
-          const subItemsHTML = subItems
-            .map(
-              (subItem) => `
-                <li class="item">
-                  <span class="checkbox">
-                    <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                        viewBox="0 0 448 512" width="10" height="10">
-                      <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 
-                        12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5
-                        -45.3 0l-128-128c-12.5-12.5-12.5-32.8 
-                        0-45.3s32.8-12.5 45.3 0L160 338.7 
-                        393.4 105.4c12.5-12.5 32.8-12.5 
-                        45.3 0z"/>
-                    </svg>
-                  </span>
-                  <span class="item-text" data-value="${subItem}">${subItem}</span>
-                </li>
-              `
-            )
-            .join("");
-          return `
-            <li class="group">
-              <div class="group-header" onclick="toggleCollapse(event, this)">
-                ${groupName}
-                <span class="collapse-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" 
-                       viewBox="0 0 448 512" width="12" height="12">
-                    <path fill="#9A0DF2" d="M224 416c-8.188 0
-                      -16.38-3.125-22.62-9.375l-192-192
-                      c-12.5-12.5-12.5-32.75 0-45.25s32.75
-                      -12.5 45.25 0L224 338.8l169.4
-                      -169.4c12.5-12.5 32.75-12.5 
-                      45.25 0s12.5 32.75 0 45.25l
-                      -192 192C240.4 412.9 232.2 416
-                      224 416z"/>
-                  </svg>
-                </span>
-              </div>
-              <ul class="group-options">
-                ${subItemsHTML}
-              </ul>
-            </li>
-          `;
-        })
-        .join("");
-    }
+        // House-type array (e.g. ["Detached","Semi-detached","Multi-level"] in English)
+        const houseTypes = SharedPropertyTypes[language];
 
-    // e.g. buildSellerListItems(Sellers, isEnglish) from your global code
-    // function buildSellerListItems(sellers, isEnglish) { ... }
-
-    /*************************************************************
-     * 3) Build the Form
-     *************************************************************/
-    const formContainer = document.createElement("form");
-    formContainer.innerHTML = `
-      <style>
-          @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-
-          form {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 920px;
-              margin: 0 auto;
-              background: #fff;
-              padding: 16px;
-              border-radius: 6px;
-          }
-          .flex-row {
-              display: flex;
-              gap: 16px;
-              flex-wrap: wrap;
-          }
-          .flex-row > div {
-              flex: 1;
-              min-width: 250px;
-          }
-          .bold-label {
-              font-weight: 700;
-              color: #000;
-              font-size: 14px;
-              margin-bottom: 4px;
-              display: block;
-          }
-          input[type="text"],
-          input[type="email"],
-          input[type="tel"],
-          textarea {
-              width: 100%;
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 4px;
-              padding: 8px;
-              background: #fff;
-              font-size: 13px;
-              outline: none;
-              box-sizing: border-box;
-              height: 40px;
-          }
-          input[type="text"]:focus,
-          input[type="email"]:focus,
-          input[type="tel"]:focus,
-          textarea:focus {
-             border: 2px solid #9A0DF2;
-          }
-          /* Numeric Up/Down controls (like in PropertySearchExtension) */
-          .price-wrapper {
-              position: relative;
-              width: 100%;
-          }
-          .price-controls {
-              position: absolute;
-              right: 0;
-              top: 1px;
-              bottom: 1px;
-              width: 20px;
-              display: flex;
-              flex-direction: column;
-              background-color: #F5E7FE;
-              border-left: 1px solid rgba(0,0,0,0.1);
-              border-radius: 0 4px 4px 0;
-              overflow: hidden;
-          }
-          .price-up,
-          .price-down {
-              flex: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #9A0DF2;
-              cursor: pointer;
-              font-size: 8px;
-          }
-          .price-up:hover,
-          .price-down:hover {
-              background-color: #9A0DF2;
-              color: #fff;
-          }
-          .submit {
-              color: #9A0DF2;
-              background-color: #F5E7FE;
-              border: none;
-              padding: 12px;
-              border-radius: 8px;
-              font-size: 16px;
-              cursor: pointer;
-              margin-top: 8px;
-          }
-          .submit:hover {
-              color: #fff;
-              background-color: #9A0DF2;
-              font-weight: 700;
-          }
-          /* Dropdown containers, group headers, etc. (single-select) */
-          .dropdown-container {
-              position: relative;
-              max-width: 100%;
-          }
-          .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 6px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-          }
-          .select-btn .btn-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #555;
-          }
-          .select-btn .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #9A0DF2;
-              font-size: 13px;
-              border-radius: 50%;
-              background: #F5E7FE;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-          }
-          .select-btn.open .arrow-dwn {
-              transform: rotate(-180deg);
-          }
-          .select-btn:focus,
-          .select-btn.open {
-              border: 2px solid #9A0DF2;
-              outline: none;
-          }
-          .list-items {
-              position: relative;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 6px;
-              padding: 4px 0;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-              background-color: #fff;
-          }
-          .select-btn.open ~ .list-items {
-              display: block;
-          }
-          .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              padding: 0 12px;
-              border-radius: 4px;
-              transition: 0.3s;
-              margin: 4px;
-          }
-          .list-items .item:hover {
-              background-color: #F5E7FE;
-          }
-          .item .item-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #333;
-              margin-left: 8px;
-          }
-          .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              border-radius: 50%;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-          }
-          .item.checked .checkbox {
-              background-color: #9A0DF2;
-              border: 2px solid #9A0DF2;
-          }
-          .checkbox .check-icon {
-              color: #fff;
-              font-size: 12px;
-              transform: scale(0);
-              transition: all 0.2s ease-in-out;
-          }
-          .item.checked .check-icon {
-              transform: scale(1);
-          }
-          /* Grouped categories */
-          .group {
-              border-top: 1px solid #eee;
-              margin-bottom: 10px; 
-              margin-left: 10px;  
-              margin-right: 10px; 
-              border-radius: 4px;
-              overflow: hidden;
-          }
-          .group:first-child {
-              border-top: none;
-          }
-          .group-header {
-              font-weight: 500;
-              padding: 8px 12px;
-              background: #f4eafb;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              color: #9A0DF2;
-          }
-          .group-header .collapse-icon {
-              color: #9A0DF2;
-              font-size: 13px;
-              transition: transform 0.3s;
-              background: #fff;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 24px;  
-              height: 24px;
-              border-radius: 50%;
-              margin-right: 8px;
-          }
-          .group-header.active .collapse-icon {
-              transform: rotate(-180deg);
-          }
-          .group-options {
-              display: none;
-              padding-left: 0;
-          }
-          /* Garage checkbox style (modern browsers) */
-          input[type="checkbox"] {
-              accent-color: #9A0DF2;
-          }
-      </style>
-
-      <!-- Row 1: Full Name, Email, Phone -->
-      <div class="flex-row">
-          <div>
-              <label for="full-name" class="bold-label">
-                  ${isEnglish ? "Full Name" : "Nom complet"}
-              </label>
-              <input
-                  type="text"
-                  id="full-name"
-                  placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
-                  required
-              />
-          </div>
-          <div>
-              <label for="email" class="bold-label">Email</label>
-              <input
-                  type="email"
-                  id="email"
-                  placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
-                  required
-              />
-          </div>
-          <div>
-              <label for="phone" class="bold-label">
-                  ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-              </label>
-              <input
-                  type="tel"
-                  id="phone"
-                  placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
-                  required
-              />
-          </div>
-      </div>
-
-      <!-- Row 2: Property Category (grouped), House Type, Seller -->
-      <div class="flex-row">
-          <div>
-              <label for="property-category" class="bold-label">
-                  ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-              </label>
-              <div class="dropdown-container" id="dropdown-property-category">
-                  <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                      <span class="arrow-dwn">
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                             viewBox="0 0 448 512" width="12" height="12">
-                          <path fill="#9A0DF2" d="M224 416c-8.188 
-                            0-16.38-3.125-22.62-9.375l-192-192
-                            c-12.5-12.5-12.5-32.75 0-45.25s32.75
-                            -12.5 45.25 0L224 338.8l169.4-169.4
-                            c12.5-12.5 32.75-12.5 45.25 
-                            0s12.5 32.75 0 45.25l-192 
-                            192C240.4 412.9 232.2 416 
-                            224 416z"/>
-                        </svg>
-                      </span>
-                  </div>
-                  <ul class="list-items" id="property-category-grouped">
-                      <!-- Filled dynamically -->
-                  </ul>
-              </div>
-              <input type="hidden" id="property-category" required />
-          </div>
-
-          <div>
-              <label for="house-type" class="bold-label">
-                  ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-              </label>
-              <div class="dropdown-container" id="dropdown-house-type">
-                  <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                      <span class="arrow-dwn">
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                             viewBox="0 0 448 512" width="12" height="12">
-                          <path fill="#9A0DF2" d="M224 416c-8.188
-                            0-16.38-3.125-22.62-9.375l-192
-                            -192c-12.5-12.5-12.5-32.75 
-                            0-45.25s32.75-12.5 45.25 0
-                            L224 338.8l169.4-169.4
-                            c12.5-12.5 32.75-12.5 45.25
-                            0s12.5 32.75 0 45.25l-192
-                            192C240.4 412.9 232.2 
-                            416 224 416z"/>
-                        </svg>
-                      </span>
-                  </div>
-                  <ul class="list-items" id="house-type-list">
-                      ${houseTypes
+        /*************************************************************
+         * 3) Build "grouped" HTML for property category
+         *************************************************************/
+        function buildGroupedCategoryHTML() {
+            const groupLabels = Object.keys(propertyCategories); // e.g. ["Residential","Plex"]
+            return groupLabels
+                .map((groupName) => {
+                    const subItems = propertyCategories[groupName] || [];
+                    const subItemsHTML = subItems
                         .map(
-                          (ht) => `
-                            <li class="item">
-                              <span class="checkbox">
-                                <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" 
-                                     viewBox="0 0 448 512" width="10" height="10">
-                                  <path fill="#FFFFFF" d="M438.6 105.4c12.5
-                                    12.5 12.5 32.8 0 45.3l-256 
-                                    256c-12.5 12.5-32.8 12.5-45.3 
-                                    0l-128-128c-12.5-12.5
-                                    -12.5-32.8 0-45.3s32.8
-                                    -12.5 45.3 0L160 338.7
-                                    393.4 105.4c12.5-12.5 
-                                    32.8-12.5 45.3 0z"/>
-                                </svg>
-                              </span>
-                              <span class="item-text" data-value="${ht}">${ht}</span>
-                            </li>
-                          `
+                            (subItem) => `
+                    <li class="item">
+                        <span class="checkbox">
+                             <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
+                        </span>
+                        <span class="item-text" data-value="${subItem}">${subItem}</span>
+                    </li>
+                  `
                         )
-                        .join("")}
-                  </ul>
+                        .join("");
+                    return `
+                <li class="group">
+                    <div class="group-header" onclick="toggleCollapse(event, this)">
+                        ${groupName}
+                        <span class="collapse-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <ul class="group-options">
+                        ${subItemsHTML}
+                    </ul>
+                </li>
+              `;
+                })
+                .join("");
+        }
+
+        /*************************************************************
+         * 4) Build the Form
+         *************************************************************/
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+          <style>
+              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+              
+              form {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  width: 100%;
+                  max-width: 920px;
+                  margin: 0 auto;
+                  background: #fff;
+                  padding: 16px;
+                  border-radius: 6px;
+              }
+              .flex-row {
+                  display: flex;
+                  gap: 16px;
+                  flex-wrap: wrap;
+              }
+              .flex-row > div {flex: 1; min-width: 250px; }
+              .bold-label {
+                  font-weight: 700;
+                  color: #000;
+                  font-size: 14px;
+                  margin-bottom: 4px;
+                  display: block;
+              }
+              input[type="text"],
+              input[type="email"],
+              input[type="tel"],
+              textarea {
+                  width: 100%;
+                  border: 1px solid rgba(0,0,0,0.2);
+                  border-radius: 4px;
+                  padding: 8px;
+                  background: #fff;
+                  font-size: 13px;
+                  outline: none;
+                  box-sizing: border-box;
+                  height: 40px;
+              }
+              #details {
+                  width: 100%;
+                  resize: vertical;
+                  min-height: 50px;
+                  max-height: 200px;
+                  padding: 8px;
+                  border: 1px solid rgba(0,0,0,0.2);
+                  border-radius: 4px;
+                  font-size: 13px;
+                  box-sizing: border-box;
+              }
+              /* Focus states */
+              input[type="text"]:focus,
+              input[type="email"]:focus,
+              input[type="tel"]:focus,
+              select:focus,
+              #details:focus {
+                 border: 2px solid #9A0DF2;
+              }
+              .submit {
+                  color: #9A0DF2;
+                  background-color: #F5E7FE;
+                  border: none;
+                  padding: 12px;
+                  border-radius: 8px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  margin-top: 8px;
+              }
+              .submit:hover {
+                  color: #fff; background-color: #9A0DF2; font-weight: 700;
+              }
+              .dropdown-container {
+                  position: relative; max-width: 100%;
+              }
+              .select-btn {
+                  display: flex;
+                  height: 40px;
+                  align-items: center;
+                  justify-content: space-between;
+                  padding: 0 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  background-color: #fff;
+                  border: 1px solid rgba(0,0,0,0.2);
+              }
+              .select-btn .btn-text {
+                 font-size: 13px; font-weight: 400; color: #555;
+              }
+              .select-btn .arrow-dwn {
+                  display: flex;
+                  height: 24px;
+                  width: 24px;
+                  color: #9A0DF2;
+                  font-size: 13px;
+                  border-radius: 50%;
+                  background: #F5E7FE;
+                  align-items: center;
+                  justify-content: center;
+                  transition: 0.3s;
+              }
+              .select-btn.open .arrow-dwn {
+                  transform: rotate(-180deg);
+              }
+              .list-items {
+                  position: relative;
+                  top: 100%;
+                  left: 0;
+                  right: 0;
+                  margin-top: 4px;
+                  border-radius: 6px;
+                  padding: 4px 0;
+                  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+                  display: none;
+                  max-height: 200px;
+                  overflow-y: auto;
+                  background-color: #fff;
+              }
+              .select-btn.open ~ .list-items {
+                  display: block;
+              }
+              .select-btn:focus,
+              .select-btn.open {
+                  border: 2px solid #9A0DF2;
+                  outline: none;
+              }
+              .list-items .item {
+                  display: flex;
+                  align-items: center;
+                  height: 36px;
+                  cursor: pointer;
+                  padding: 0 12px;
+                  border-radius: 4px;
+                  transition: 0.3s;
+                  margin: 4px;
+              }
+              .list-items .item:hover {
+                  background-color: #F5E7FE;
+              }
+              .item .item-text {
+                  font-size: 13px;
+                  font-weight: 400;
+                  color: #333;
+                  margin-left: 8px;
+              }
+              /* Circle for single selection */
+              .item .checkbox {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 16px;
+                  width: 16px;
+                  border-radius: 50%;
+                  margin-right: 8px;
+                  border: 1.5px solid #c0c0c0;
+                  transition: all 0.3s ease-in-out;
+              }
+              .item.checked .checkbox {
+                  background-color: #9A0DF2;
+                  border: 2px solid #9A0DF2;
+              }
+              .checkbox .check-icon {
+                  color: #fff;
+                  font-size: 12px;
+                  transform: scale(0);
+                  transition: all 0.2s ease-in-out;
+              }
+              .item.checked .check-icon {
+                  transform: scale(1);
+              }
+              .group {
+                  border-top: 1px solid #eee;
+                  margin-bottom: 10px; 
+                  margin-left: 10px;  
+                  margin-right: 10px; 
+                  border-radius: 4px;
+                  overflow: hidden;
+              }
+              .group:first-child {
+                  border-top: none;
+              }
+              .group-header {
+                  font-weight: 500;
+                  padding: 8px 12px;
+                  background: #f4eafb;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  color: #9A0DF2;
+              }
+              .group-header .collapse-icon {
+                  color: #9A0DF2;
+                  font-size: 13px;
+                  transition: transform 0.3s;
+                  background: #fff;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  width: 24px;  
+                  height: 24px;
+                  border-radius: 50%;
+                  margin-right: 8px;
+              }
+              .group-header.active .collapse-icon {
+                  transform: rotate(-180deg);
+              }
+              .group-options {
+                  display: none;
+                  padding-left: 0;
+              }
+              /**********************************************
+               * NEW: Change the native checkbox color to #9A0DF2
+               **********************************************/
+              input[type="checkbox"] {
+                  accent-color: #9A0DF2; /* Modern browser support */
+              }
+          </style>
+
+          <!-- Row 1: Full Name, Email, Phone Number -->
+          <div class="flex-row">
+              <div>
+                  <label for="full-name" class="bold-label">
+                      ${isEnglish ? "Full Name" : "Nom complet"}
+                  </label>
+                  <input
+                      type="text"
+                      id="full-name"
+                      placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
+                      required
+                  >
               </div>
-              <input type="hidden" id="house-type" required />
+              <div>
+                  <label for="email" class="bold-label">Email</label>
+                  <input
+                      type="email"
+                      id="email"
+                      placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
+                      required
+                  >
+              </div>
+              <div>
+                  <label for="phone" class="bold-label">
+                      ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+                  </label>
+                  <input
+                      type="tel"
+                      id="phone"
+                      placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
+                      required
+                  >
+              </div>
           </div>
 
-          <div>
-              <label for="seller-name" class="bold-label">
-                  ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-              </label>
-              <div class="dropdown-container" id="dropdown-seller">
-                  <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                      <span class="arrow-dwn">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             viewBox="0 0 448 512" width="12" height="12">
-                          <path fill="#9A0DF2" d="M224 416c-8.188 0
-                            -16.38-3.125-22.62-9.375l-192-192
-                            c-12.5-12.5-12.5-32.75 0-45.25
-                            s32.75-12.5 45.25 0L224 
-                            338.8l169.4-169.4c12.5-12.5
-                            32.75-12.5 45.25 0s12.5 
-                            32.75 0 45.25l-192 
-                            192C240.4 412.9 232.2 416
-                            224 416z"/>
-                        </svg>
-                      </span>
+          <!-- Row 2: Property Category (grouped) / House Type (simple) / Seller (dynamic) -->
+          <div class="flex-row">
+              <!-- Grouped property category -->
+              <div>
+                  <label for="property-category" class="bold-label">
+                      ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-property-category">
+                      <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
+                      </div>
+                      <ul class="list-items" id="property-category-grouped">
+                          <!-- We fill this dynamically -->
+                      </ul>
                   </div>
-                  <ul class="list-items" id="seller-list-items">
-                      <!-- Filled dynamically -->
-                  </ul>
+                  <input type="hidden" id="property-category" name="property-category" required>
               </div>
-              <input type="hidden" id="seller-name" required />
-          </div>
-      </div>
 
-      <!-- Row 3: Street Address, City, Postal Code -->
-      <div class="flex-row">
-          <div>
-              <label for="street-address" class="bold-label">
-                  ${isEnglish ? "Street Address" : "Adresse de rue"}
-              </label>
-              <input
-                  type="text"
-                  id="street-address"
-                  placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
-                  required
-              />
-          </div>
-          <div>
-              <label for="city" class="bold-label">
-                  ${isEnglish ? "City" : "Ville"}
-              </label>
-              <input
-                  type="text"
-                  id="city"
-                  placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
-                  required
-              />
-          </div>
-          <div>
-              <label for="postal-code" class="bold-label">
-                  ${isEnglish ? "Postal Code" : "Code Postal"}
-              </label>
-              <input
-                  type="text"
-                  id="postal-code"
-                  placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
-                  required
-              />
-          </div>
-      </div>
+              <!-- House Type (simple list) -->
+              <div>
+                  <label for="house-type" class="bold-label">
+                      ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-house-type">
+                      <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
+                      </div>
+                      <ul class="list-items">
+                          ${houseTypes
+                              .map(
+                                  (item) => `
+                        <li class="item">
+                            <span class="checkbox">
+                                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
+                            </span>
+                            <span class="item-text" data-value="${item}">${item}</span>
+                        </li>
+                      `
+                              )
+                              .join("")}
+                      </ul>
+                  </div>
+                  <input type="hidden" id="house-type" name="house-type" required>
+              </div>
 
-      <!-- Row 4: rooms-number, bedrooms-number, bathrooms-number (numeric up/down) -->
-      <div class="flex-row">
-          <div>
-              <label for="rooms-number" class="bold-label">
-                  ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-              </label>
-              <div class="price-wrapper">
-                  <input 
-                      type="number" 
-                      id="rooms-number" 
-                      min="0" 
-                      step="1" 
+              <!-- Seller (dynamic from Sellers array) -->
+              <div>
+                  <label for="seller-name" class="bold-label">
+                      ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-seller">
+                      <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                          <span class="arrow-dwn">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+    <!-- Font Awesome Chevron Down icon SVG path -->
+    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+  </svg>
+</span>
+                      </div>
+                      <ul class="list-items" id="seller-list-items">
+                          <!-- We'll fill this from the Sellers array -->
+                      </ul>
+                  </div>
+                  <input type="hidden" id="seller-name" name="seller-name" required>
+              </div>
+          </div>
+
+          <!-- Row 3: Street Address, City, Postal Code -->
+          <div class="flex-row">
+              <div>
+                  <label for="street-address" class="bold-label">
+                      ${isEnglish ? "Street Address" : "Adresse de rue"}
+                  </label>
+                  <input
+                      type="text"
+                      id="street-address"
+                      placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
+                      required
+                  >
+              </div>
+              <div>
+                  <label for="city" class="bold-label">
+                      ${isEnglish ? "City" : "Ville"}
+                  </label>
+                  <input
+                      type="text"
+                      id="city"
+                      placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
+                      required
+                  >
+              </div>
+              <div>
+                  <label for="postal-code" class="bold-label">
+                      ${isEnglish ? "Postal Code" : "Code Postal"}
+                  </label>
+                  <input
+                      type="text"
+                      id="postal-code"
+                      placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
+                      required
+                  >
+              </div>
+          </div>
+
+          <!-- Row 4: Number of Rooms, Bedrooms, Bathrooms -->
+          <div class="flex-row">
+              <div>
+                  <label for="rooms-number" class="bold-label">
+                      ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+                  </label>
+                  <input
+                      type="text"
+                      id="rooms-number"
                       placeholder="${isEnglish ? "Enter number of rooms" : "Entrez le nombre de pièces"}"
-                  />
-                  <div class="price-controls">
-                      <div class="price-up" data-input="rooms-number" data-step="1">▲</div>
-                      <div class="price-down" data-input="rooms-number" data-step="1">▼</div>
-                  </div>
+                      required
+                  >
               </div>
-          </div>
-          <div>
-              <label for="bedrooms-number" class="bold-label">
-                  ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-              </label>
-              <div class="price-wrapper">
-                  <input 
-                      type="number" 
-                      id="bedrooms-number" 
-                      min="0" 
-                      step="1" 
+              <div>
+                  <label for="bedrooms-number" class="bold-label">
+                      ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+                  </label>
+                  <input
+                      type="text"
+                      id="bedrooms-number"
                       placeholder="${isEnglish ? "Enter number of bedrooms" : "Entrez le nombre de chambres"}"
-                  />
-                  <div class="price-controls">
-                      <div class="price-up" data-input="bedrooms-number" data-step="1">▲</div>
-                      <div class="price-down" data-input="bedrooms-number" data-step="1">▼</div>
-                  </div>
+                      required
+                  >
               </div>
-          </div>
-          <div>
-              <label for="bathrooms-number" class="bold-label">
-                  ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-              </label>
-              <div class="price-wrapper">
-                  <input 
-                      type="number" 
-                      id="bathrooms-number" 
-                      min="0" 
-                      step="1" 
+              <div>
+                  <label for="bathrooms-number" class="bold-label">
+                      ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+                  </label>
+                  <input
+                      type="text"
+                      id="bathrooms-number"
                       placeholder="${isEnglish ? "Enter number of bathrooms" : "Entrez le nombre de salles de bains"}"
-                  />
-                  <div class="price-controls">
-                      <div class="price-up" data-input="bathrooms-number" data-step="1">▲</div>
-                      <div class="price-down" data-input="bathrooms-number" data-step="1">▼</div>
-                  </div>
+                      required
+                  >
               </div>
           </div>
-      </div>
 
-      <!-- Row 5: year-build, area (sq ft) with numeric up/down -->
-      <div class="flex-row">
-          <div>
-              <label for="year-build" class="bold-label">
-                  ${isEnglish ? "Year Built" : "Année de construction"}
-              </label>
-              <div class="price-wrapper">
+          <!-- Row 5: Year Built, Area (sq ft) -->
+          <div class="flex-row">
+              <div>
+                  <label for="year-build" class="bold-label">
+                      ${isEnglish ? "Year Built" : "Année de construction"}
+                  </label>
                   <input
-                      type="number"
+                      type="text"
                       id="year-build"
-                      min="0"
-                      step="1"
                       placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}"
-                  />
-                  <div class="price-controls">
-                      <div class="price-up" data-input="year-build" data-step="1">▲</div>
-                      <div class="price-down" data-input="year-build" data-step="1">▼</div>
-                  </div>
+                      required
+                  >
               </div>
-          </div>
-          <div>
-              <label for="area" class="bold-label">
-                  ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-              </label>
-              <div class="price-wrapper">
+              <div>
+                  <label for="area" class="bold-label">
+                      ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+                  </label>
                   <input
-                      type="number"
+                      type="text"
                       id="area"
-                      min="0"
-                      step="100"
                       placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
-                  />
-                  <div class="price-controls">
-                      <div class="price-up" data-input="area" data-step="100">▲</div>
-                      <div class="price-down" data-input="area" data-step="100">▼</div>
-                  </div>
+                      required
+                  >
               </div>
           </div>
-      </div>
 
-      <!-- Row 6: Garage, Outside Parking, Swimming Pool -->
-      <div class="flex-row">
-          <div style="display: flex; align-items: center; gap: 5px;">
-              <label for="garage" class="bold-label">Garage?</label>
-              <input type="checkbox" id="garage" value="Yes" />
-              <input 
-                  type="number" 
-                  id="garage-cars" 
-                  placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}"
-                  style="display:none;"
-              />
+          <!-- Row 6: Garage?, Outside Parking?, Swimming Pool? (all in one row) -->
+          <div class="flex-row">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="garage" class="bold-label">Garage?</label>
+                  <input type="checkbox" id="garage" name="garage" value="Yes">
+                  <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="outside-parking" class="bold-label">
+                      ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+                  </label>
+                  <input type="checkbox" id="outside-parking" value="Yes">
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="swimming-pool" class="bold-label">
+                      ${isEnglish ? "Swimming Pool" : "Piscine"}?
+                  </label>
+                  <input type="checkbox" id="swimming-pool" value="Yes">
+              </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 5px;">
-              <label for="outside-parking" class="bold-label">
-                  ${isEnglish ? "Outside Parking?" : "Stationnement extérieur?"}
+
+          <!-- Details Textarea -->
+          <div>
+              <label for="details" class="bold-label">
+                  ${isEnglish ? "Details" : "Détails"}
               </label>
-              <input type="checkbox" id="outside-parking" value="Yes" />
+              <textarea id="details" placeholder="${isEnglish ? "Enter additional details" : "Entrez des détails supplémentaires"}" required></textarea>
           </div>
-          <div style="display: flex; align-items: center; gap: 5px;">
-              <label for="swimming-pool" class="bold-label">
-                  ${isEnglish ? "Swimming Pool?" : "Piscine?"}
-              </label>
-              <input type="checkbox" id="swimming-pool" value="Yes" />
-          </div>
-      </div>
 
-      <!-- Details Textarea -->
-      <div>
-          <label for="details" class="bold-label">
-              ${isEnglish ? "Details" : "Détails"}
-          </label>
-          <textarea 
-              id="details"
-              placeholder="${isEnglish ? "Enter additional details" : "Entrez des détails supplémentaires"}"
-              required
-          ></textarea>
-      </div>
+          <!-- Submit Button -->
+          <button type="submit" class="submit">
+              ${isEnglish ? "Submit" : "Envoyer"}
+          </button>
+        `;
 
-      <!-- Submit Button -->
-      <button type="submit" class="submit">
-          ${isEnglish ? "Submit" : "Envoyer"}
-      </button>
-    `;
-
-    // Append to DOM
-    element.appendChild(formContainer);
-
-    /*************************************************************
-     * 4) Insert dynamic HTML for categories & sellers
-     *************************************************************/
-    // 4a) Insert grouped category HTML
-    const categoryListEl = formContainer.querySelector("#property-category-grouped");
-    categoryListEl.innerHTML = buildGroupedCategoryHTML();
-
-    // 4b) Insert seller list items
-    const sellerListEl = formContainer.querySelector("#seller-list-items");
-    sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
-
-    // 4c) Toggle #garage-cars when garage is checked
-    formContainer.querySelector("#garage").addEventListener("change", (e) => {
-      const carsField = formContainer.querySelector("#garage-cars");
-      carsField.style.display = e.target.checked ? "inline-block" : "none";
-      if (!e.target.checked) carsField.value = "";
-    });
-
-    /*************************************************************
-     * 5) Single-select dropdown logic
-     *************************************************************/
-    function setupDropdown(dropdownId, hiddenInputId) {
-      const container = formContainer.querySelector(`#${dropdownId}`);
-      const selectBtn = container.querySelector(".select-btn");
-      const listEl = container.querySelector(".list-items");
-      const btnText = selectBtn.querySelector(".btn-text");
-      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-      const listItems = listEl.querySelectorAll(".item");
-
-      selectBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-
-        // Close all other dropdowns
-        formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-          if (otherContainer !== container) {
-            const otherSelectBtn = otherContainer.querySelector(".select-btn");
-            const otherListEl = otherContainer.querySelector(".list-items");
-            if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-            if (otherListEl) otherListEl.style.display = "none";
-          }
+        // Show/hide #garage-cars when "Garage?" is checked
+        formContainer.querySelector("#garage").addEventListener("change", (event) => {
+            const carsField = formContainer.querySelector("#garage-cars");
+            carsField.style.display = event.target.checked ? "inline-block" : "none";
+            if (!event.target.checked) carsField.value = "";
         });
 
-        // Toggle current
-        selectBtn.classList.toggle("open");
-        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-      });
+        // Insert the grouped property-category HTML
+        const categoryListEl = formContainer.querySelector("#property-category-grouped");
+        categoryListEl.innerHTML = buildGroupedCategoryHTML();
 
-      // Single‐select logic
-      listItems.forEach((item) => {
-        item.addEventListener("click", (e) => {
-          e.stopPropagation();
+        // Insert dynamic seller list
+        const sellerListEl = formContainer.querySelector("#seller-list-items");
+        sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
 
-          // Uncheck all items in this dropdown
-          listItems.forEach((i) => i.classList.remove("checked"));
-          item.classList.add("checked");
+        /*************************************************************
+         * 5) Single-selection dropdown logic (used for all dropdowns)
+         *************************************************************/
+       function setupDropdown(dropdownId, hiddenInputId) {
+  // 1) Grab references
+  const container = formContainer.querySelector(`#${dropdownId}`);
+  const selectBtn = container.querySelector(".select-btn");
+  const listEl = container.querySelector(".list-items");
+  const btnText = selectBtn.querySelector(".btn-text");
+  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+  const listItems = listEl.querySelectorAll(".item");
 
-          // Update button text & hidden input
-          const value = item.querySelector(".item-text").getAttribute("data-value");
-          btnText.innerText = value;
-          hiddenInput.value = value;
+  // 2) Toggle open/close on click
+  selectBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
 
-          // Close
-          selectBtn.classList.remove("open");
-          listEl.style.display = "none";
+    // Close all other dropdowns within this form
+    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+      if (otherContainer !== container) {
+        const otherSelectBtn = otherContainer.querySelector(".select-btn");
+        const otherListEl = otherContainer.querySelector(".list-items");
+        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+        if (otherListEl) otherListEl.style.display = "none";
+      }
+    });
+
+    // Toggle this dropdown
+    selectBtn.classList.toggle("open");
+    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+  });
+
+  // 3) Single‐select logic
+  listItems.forEach((item) => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      // Uncheck all items in this dropdown
+      listItems.forEach((i) => i.classList.remove("checked"));
+      // Check the clicked item
+      item.classList.add("checked");
+
+      // Update button text & hidden input from the item’s data-value
+      const value = item.querySelector(".item-text").getAttribute("data-value");
+      btnText.innerText = value;
+      hiddenInput.value = value;
+
+      // Close dropdown
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    });
+  });
+
+  // 4) Close if user clicks outside
+  document.addEventListener("click", (e) => {
+    if (!container.contains(e.target)) {
+      selectBtn.classList.remove("open");
+      listEl.style.display = "none";
+    }
+  });
+}
+
+        // Setup the 3 dropdowns
+        setupDropdown("dropdown-property-category", "property-category");
+        setupDropdown("dropdown-house-type", "house-type");
+        setupDropdown("dropdown-seller", "seller-name");
+
+        /*************************************************************
+         * 6) Form Submission
+         *************************************************************/
+        formContainer.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const fullName = formContainer.querySelector("#full-name").value.trim();
+            const email = formContainer.querySelector("#email")?.value.trim() || "";
+            const phone = formContainer.querySelector("#phone").value.trim();
+            const formattedPhone = formatPhoneNumber(phone);
+            const sellerName = formContainer.querySelector("#seller-name").value.trim();
+            const propertyCategory = formContainer.querySelector("#property-category").value.trim();
+            const houseType = formContainer.querySelector("#house-type").value.trim();
+            const streetAddress = formContainer.querySelector("#street-address").value.trim();
+            const city = formContainer.querySelector("#city").value.trim();
+            const postalCode = formContainer.querySelector("#postal-code").value.trim();
+            const yearBuild = formContainer.querySelector("#year-build").value.trim();
+            const area = formContainer.querySelector("#area").value.trim();
+            const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
+            const bedroomsNumber = formContainer.querySelector("#bedrooms-number").value.trim();
+            const bathroomsNumber = formContainer.querySelector("#bathrooms-number").value.trim();
+
+            const garageChecked = formContainer.querySelector("#garage").checked;
+            const insideParking = garageChecked ? "Yes" : "No";
+            const insideParkingCars = garageChecked
+                ? formContainer.querySelector("#garage-cars").value.trim()
+                : 0;
+            const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
+            const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+            const details = formContainer.querySelector("#details").value.trim();
+
+            // Basic validations
+            if (!fullName) {
+                alert("Full Name is required.");
+                return;
+            }
+            if (email && !isValidEmail(email)) {
+                alert("Please enter a valid email.");
+                return;
+            }
+            if (!isValidCanadianPhoneNumber(phone)) {
+                alert("Please enter a valid Canadian phone number.");
+                return;
+            }
+            if (!propertyCategory) {
+                alert("Please select a property category.");
+                return;
+            }
+            if (!houseType) {
+                alert("Please select a house type.");
+                return;
+            }
+
+            // Disable to prevent multiple submissions
+            const submitBtn = formContainer.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            // Send data to Voiceflow
+            window.voiceflow.chat.interact({
+                type: "complete",
+                payload: {
+                    fullName,
+                    email,
+                    phone: formattedPhone,
+                    sellerName,
+                    propertyCategory,
+                    houseType,
+                    streetAddress,
+                    city,
+                    postalCode,
+                    yearBuild,
+                    area,
+                    roomsNumber,
+                    bedroomsNumber,
+                    bathroomsNumber,
+                    insideParking,
+                    insideParkingCars,
+                    outsideParking,
+                    swimmingPool,
+                    details,
+                },
+            });
         });
-      });
 
-      // Close if clicked outside
-      document.addEventListener("click", (e) => {
-        if (!container.contains(e.target)) {
-          selectBtn.classList.remove("open");
-          listEl.style.display = "none";
-        }
-      });
-    }
-
-    // Initialize the 3 single-select dropdowns
-    setupDropdown("dropdown-property-category", "property-category");
-    setupDropdown("dropdown-house-type", "house-type");
-    setupDropdown("dropdown-seller", "seller-name");
-
-    /*************************************************************
-     * 6) Numeric Up/Down Clicks
-     *************************************************************/
-    function incrementValue(id, step) {
-      const input = formContainer.querySelector(`#${id}`);
-      const current = parseInt(input.value || "0", 10);
-      input.value = current + step;
-    }
-
-    function decrementValue(id, step) {
-      const input = formContainer.querySelector(`#${id}`);
-      let current = parseInt(input.value || "0", 10);
-      current = current - step < 0 ? 0 : current - step; // no negative
-      input.value = current;
-    }
-
-    formContainer.querySelectorAll(".price-up, .price-down").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const inputId = btn.getAttribute("data-input");
-        const step = parseInt(btn.getAttribute("data-step"), 10);
-
-        if (btn.classList.contains("price-up")) {
-          incrementValue(inputId, step);
-        } else {
-          decrementValue(inputId, step);
-        }
-      });
-    });
-
-    /*************************************************************
-     * 7) Form Submission
-     *************************************************************/
-    formContainer.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      // 7a) Gather all field values
-      const fullName = formContainer.querySelector("#full-name").value.trim();
-      const email = formContainer.querySelector("#email").value.trim();
-      const phone = formContainer.querySelector("#phone").value.trim();
-      const formattedPhone = formatPhoneNumber(phone);
-
-      const propertyCategory = formContainer.querySelector("#property-category").value.trim();
-      const houseType = formContainer.querySelector("#house-type").value.trim();
-      const sellerName = formContainer.querySelector("#seller-name").value.trim();
-
-      const streetAddress = formContainer.querySelector("#street-address").value.trim();
-      const city = formContainer.querySelector("#city").value.trim();
-      const postalCode = formContainer.querySelector("#postal-code").value.trim();
-
-      const roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value || "0", 10);
-      const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || "0", 10);
-      const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || "0", 10);
-      const yearBuilt = parseInt(formContainer.querySelector("#year-build").value || "0", 10);
-      const area = parseInt(formContainer.querySelector("#area").value || "0", 10);
-
-      const garageChecked = formContainer.querySelector("#garage").checked;
-      const insideParking = garageChecked ? "Yes" : "No";
-      const insideParkingCars = garageChecked
-        ? parseInt(formContainer.querySelector("#garage-cars").value || "0", 10)
-        : 0;
-
-      const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
-      const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
-
-      const details = formContainer.querySelector("#details").value.trim();
-
-      // 7b) Basic validations
-      if (!fullName) {
-        alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-        return;
-      }
-      if (!email || !isValidEmail(email)) {
-        alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-        return;
-      }
-      if (!isValidCanadianPhoneNumber(phone)) {
-        alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
-        return;
-      }
-      if (!propertyCategory) {
-        alert(isEnglish ? "Please select a property category." : "Veuillez sélectionner une catégorie.");
-        return;
-      }
-      if (!houseType) {
-        alert(isEnglish ? "Please select a house type." : "Veuillez sélectionner un type de maison.");
-        return;
-      }
-      // etc. for any other required fields
-
-      // 7c) Disable submit button to prevent multiple clicks
-      const submitBtn = formContainer.querySelector("button[type='submit']");
-      submitBtn.disabled = true;
-
-      // 7d) Send data to Voiceflow
-      window.voiceflow.chat.interact({
-        type: "complete",
-        payload: {
-          fullName,
-          email,
-          phone: formattedPhone,
-          propertyCategory,
-          houseType,
-          sellerName,
-          streetAddress,
-          city,
-          postalCode,
-          roomsNumber,
-          bedroomsNumber,
-          bathroomsNumber,
-          yearBuilt,
-          area,
-          insideParking,
-          insideParkingCars,
-          outsideParking,
-          swimmingPool,
-          details,
-        },
-      });
-    });
-  },
+        // Finally, attach the form to the element
+        element.appendChild(formContainer);
+    },
 };
-
 
 /************** EXTENSION #3: ContactExtension **************/
 const ContactExtension = {
