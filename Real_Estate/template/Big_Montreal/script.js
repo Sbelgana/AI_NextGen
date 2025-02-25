@@ -2260,7 +2260,7 @@ const ContactExtension = {
                     phone: formattedPhone,
                     service,
                     sellerName,
-                    message: details,
+                    message: String(details),
                 },
             });
         });
