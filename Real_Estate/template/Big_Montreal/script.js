@@ -967,77 +967,59 @@ const PropertySearchExtension = {
             texts.typeDefault
         );
 
-       function setupDropdownSingle(dropdownContainer, hiddenInputId) {
-  // 'dropdownContainer' is the <div class="dropdown-container"> for this dropdown
-  // 'hiddenInputId' is the ID of the hidden <input> that stores the selected value
+        function setupDropdownSingle(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-  const selectBtn = dropdownContainer.querySelector(".select-btn");
-  const listEl = dropdownContainer.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = document.getElementById(hiddenInputId);
-  const listItems = listEl.querySelectorAll(".item");
-
-  // Click on the select button
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // Prevent click from bubbling up to document
-
-    // Close all other dropdowns
-    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== dropdownContainer) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) {
-          otherSelectBtn.classList.remove("open");
-        }
-        if (otherListEl) {
-          otherListEl.style.display = "none";
-        }
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
       }
-    });
-
-    // Toggle this dropdown
-    selectBtn.classList.toggle("open");
-    if (selectBtn.classList.contains("open")) {
-      listEl.style.display = "block";
-    } else {
-      listEl.style.display = "none";
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
     }
   });
 
-  // Clicking on an item in the list
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // check the clicked item
-      item.classList.add("checked");
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
-      // get the text and value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
 
-      // set the button text and hidden input
-      btnText.innerText = labelText;
-      if (hiddenInput) {
-        hiddenInput.value = value;
-      }
 
-      // close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    item.classList.add("checked");
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+                    selectBtn.classList.remove("open");
+                });
+            });
 
-  // Click anywhere else in the document -> close
-  document.addEventListener("click", (e) => {
-    if (!dropdownContainer.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
-
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+			listEl.style.display = "none";
+                }
+            });
+        }
 
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
@@ -1653,85 +1635,68 @@ const SellingExtension = {
         /*************************************************************
          * 5) Single-selection dropdown logic (used for all dropdowns)
          *************************************************************/
-        function setupDropdown(dropdownContainer, hiddenInputId, defaultText) {
-  // 'dropdownContainer' is the <div class="dropdown-container"> for this dropdown
-  // 'hiddenInputId' is the ID of the hidden <input> that stores the selected values
-  // 'defaultText' is the placeholder text to show if no items are selected
+        function setupDropdown(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-  const selectBtn = dropdownContainer.querySelector(".select-btn");
-  const listEl = dropdownContainer.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = document.getElementById(hiddenInputId);
-  const listItems = listEl.querySelectorAll(".item");
+            // Gather all .item elements (can be in multiple groups)
+            const listItems = dropdownContainer.querySelectorAll(".list-items .item");
 
-  // Click on the select button
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // Prevent click from bubbling up
-
-    // Close all other dropdowns
-    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== dropdownContainer) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) {
-          otherSelectBtn.classList.remove("open");
-        }
-        if (otherListEl) {
-          otherListEl.style.display = "none";
-        }
+            // Open/close on selectBtn click
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
       }
-    });
-
-    // Toggle this dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
-
-  // Click on an item in the list
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // If the item is a "select all" item, check/uncheck all others
-      if (item.classList.contains("select-all")) {
-        const isSelectAllChecked = item.classList.toggle("checked");
-        const groupItems = listEl.querySelectorAll(".item:not(.select-all)");
-        groupItems.forEach((i) => {
-          if (isSelectAllChecked) {
-            i.classList.add("checked");
-          } else {
-            i.classList.remove("checked");
-          }
-        });
-      } else {
-        // Toggle just this item
-        item.classList.toggle("checked");
-        // Optionally handle "select all" if needed
+      if (otherListEl) {
+        otherListEl.style.display = "none";
       }
-
-      // Recompute how many are checked
-      const checkedItems = listEl.querySelectorAll(".item:not(.select-all).checked");
-      const count = checkedItems.length;
-      btnText.innerText = count > 0 ? `${count} Selected` : defaultText;
-
-      // Update hidden input with CSV of selected values
-      const values = Array.from(checkedItems).map((ci) =>
-        ci.querySelector(".item-text").getAttribute("data-value")
-      );
-      if (hiddenInput) {
-        hiddenInput.value = values.join(",");
-      }
-    });
-  });
-
-  // Click anywhere else -> close
-  document.addEventListener("click", (e) => {
-    if (!dropdownContainer.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
     }
   });
-}
+
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
+
+
+
+            // Single-select: remove "checked" from all, then add to clicked
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    // remove "checked" from all items in this dropdown
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    // mark the clicked item
+                    item.classList.add("checked");
+
+                    // set the text and hidden input
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = value;
+                    hiddenInput.value = value;
+
+                    // close the dropdown
+                    selectBtn.classList.remove("open");
+                });
+            });
+
+            // (Optional) close dropdown if user clicks outside
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
+                }
+            });
+        }
 
         // Setup the 3 dropdowns
         setupDropdown("dropdown-property-category", "property-category");
@@ -2163,77 +2128,68 @@ const ContactExtension = {
         /*************************************************************
          * 2b) Single-Select Setup
          *************************************************************/
-       function setupDropdownSingle(dropdownContainer, hiddenInputId) {
-  // 'dropdownContainer' is the <div class="dropdown-container"> for this dropdown
-  // 'hiddenInputId' is the ID of the hidden <input> that stores the selected value
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-  const selectBtn = dropdownContainer.querySelector(".select-btn");
-  const listEl = dropdownContainer.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = document.getElementById(hiddenInputId);
-  const listItems = listEl.querySelectorAll(".item");
-
-  // Click on the select button
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // Prevent click from bubbling up to document
-
-    // Close all other dropdowns
-    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== dropdownContainer) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) {
-          otherSelectBtn.classList.remove("open");
-        }
-        if (otherListEl) {
-          otherListEl.style.display = "none";
-        }
+            // Toggle open/close on click
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
       }
-    });
-
-    // Toggle this dropdown
-    selectBtn.classList.toggle("open");
-    if (selectBtn.classList.contains("open")) {
-      listEl.style.display = "block";
-    } else {
-      listEl.style.display = "none";
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
     }
   });
 
-  // Clicking on an item in the list
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // check the clicked item
-      item.classList.add("checked");
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
-      // get the text and value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
 
-      // set the button text and hidden input
-      btnText.innerText = labelText;
-      if (hiddenInput) {
-        hiddenInput.value = value;
-      }
 
-      // close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
+            // Single item selection
+            listItems.forEach((liItem) => {
+                liItem.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    // uncheck all
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    // check the clicked
+                    liItem.classList.add("checked");
 
-  // Click anywhere else in the document -> close
-  document.addEventListener("click", (e) => {
-    if (!dropdownContainer.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
+                    const labelText = liItem.querySelector(".item-text").innerText;
+                    const value = liItem.querySelector(".item-text").getAttribute("data-value");
 
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+
+                    // close dropdown
+                    selectBtn.classList.remove("open");
+                });
+            });
+
+            // close if click outside
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
+                }
+            });
+        }
 
         // Setup single-select for service
         setupDropdownSingle(
@@ -2553,77 +2509,65 @@ const BookingExtension = {
         /*************************************************************
          * 2b) Setup Single-Select Logic
          *************************************************************/
-        function setupDropdownSingle(dropdownContainer, hiddenInputId) {
-  // 'dropdownContainer' is the <div class="dropdown-container"> for this dropdown
-  // 'hiddenInputId' is the ID of the hidden <input> that stores the selected value
+        function setupDropdownSingle(dropdownContainerId, listId, hiddenInputId, defaultText) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownContainerId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-  const selectBtn = dropdownContainer.querySelector(".select-btn");
-  const listEl = dropdownContainer.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = document.getElementById(hiddenInputId);
-  const listItems = listEl.querySelectorAll(".item");
-
-  // Click on the select button
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // Prevent click from bubbling up to document
-
-    // Close all other dropdowns
-    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== dropdownContainer) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) {
-          otherSelectBtn.classList.remove("open");
-        }
-        if (otherListEl) {
-          otherListEl.style.display = "none";
-        }
+        selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
       }
-    });
-
-    // Toggle this dropdown
-    selectBtn.classList.toggle("open");
-    if (selectBtn.classList.contains("open")) {
-      listEl.style.display = "block";
-    } else {
-      listEl.style.display = "none";
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
     }
   });
 
-  // Clicking on an item in the list
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      // uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // check the clicked item
-      item.classList.add("checked");
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
-      // get the text and value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
+            listItems.forEach(item => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    // Uncheck all
+                    listItems.forEach(i => i.classList.remove("checked"));
+                    // Check the clicked one
+                    item.classList.add("checked");
 
-      // set the button text and hidden input
-      btnText.innerText = labelText;
-      if (hiddenInput) {
-        hiddenInput.value = value;
-      }
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
 
-      // close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
+                    // Update button text & hidden input
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
 
-  // Click anywhere else in the document -> close
-  document.addEventListener("click", (e) => {
-    if (!dropdownContainer.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
+                    // Close dropdown
+                    selectBtn.classList.remove("open");
+                });
+            });
 
+            // Close dropdown if clicked outside
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
+                }
+            });
+        }
 
         // Initialize single-select for Seller
         setupDropdownSingle(
