@@ -2190,6 +2190,7 @@ const ContactExtension = {
                 .submit:hover {
                     color: #fff;
                     background-color: #9A0DF2;
+		    font-weight: 700;
                 }
 
                 /* Dropdown container & styling (single-select from property search extension) */
@@ -2658,7 +2659,7 @@ const BookingExtension = {
                 .book-now:hover {
                     color: #fff;
                     background-color: #9A0DF2;
-                    font-weight: 600;
+                    font-weight: 700;
                 }
 
                 /* Single-Select Dropdown Styles from Property Search Extension */
