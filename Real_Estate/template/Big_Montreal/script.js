@@ -1057,35 +1057,37 @@ const PropertySearchExtension = {
         );
 
         function setupDropdownSingle(dropdownId, hiddenInputId) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const listEl = dropdownContainer.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-            const listItems = listEl.querySelectorAll(".item");
+  const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+  const selectBtn = dropdownContainer.querySelector(".select-btn");
+  const listEl = dropdownContainer.querySelector(".list-items");
+  const btnText = selectBtn.querySelector(".btn-text");
+  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+  const listItems = listEl.querySelectorAll(".item");
 
-          selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== dropdownContainer) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
+  selectBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    // ❌ If you do NOT close other dropdowns here,
+    // the first dropdown will stay open when you open the second one.
+
+    // 1) Close all other dropdowns
+    document.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+      if (otherContainer !== dropdownContainer) {
+        const otherSelectBtn = otherContainer.querySelector(".select-btn");
+        const otherListEl = otherContainer.querySelector(".list-items");
+        if (otherSelectBtn) {
+          otherSelectBtn.classList.remove("open");
+        }
+        if (otherListEl) {
+          otherListEl.style.display = "none";
+        }
       }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
-    }
+    });
+
+    // 2) Toggle the current dropdown
+    selectBtn.classList.toggle("open");
+    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
   });
-
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
 
 
 
