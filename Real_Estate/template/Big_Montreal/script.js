@@ -950,35 +950,40 @@ const PropertySearchExtension = {
         const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
         propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
 
-        function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
-            const container = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = container.querySelector(".select-btn");
-            const listEl = container.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+   function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
+    const container = formContainer.querySelector(`#${dropdownId}`);
+    const selectBtn = container.querySelector(".select-btn");
+    const listEl = container.querySelector(".list-items");
+    const btnText = selectBtn.querySelector(".btn-text");
+    const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== dropdownContainer) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
-      }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
-    }
-  });
+    selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+            if (otherContainer !== container) {
+                const otherSelectBtn = otherContainer.querySelector('.select-btn');
+                const otherListEl = otherContainer.querySelector('.list-items');
+                if (otherSelectBtn) {
+                    otherSelectBtn.classList.remove("open");
+                }
+                if (otherListEl) {
+                    otherListEl.style.display = "none";
+                }
+            }
+        });
 
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
+        // Toggle the current dropdown
+        selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+    });
+
+    // Rest of the function remains the same...
+
+
+
+
 
 
 
@@ -1054,36 +1059,37 @@ const PropertySearchExtension = {
             texts.typeDefault
         );
 
-        function setupDropdownSingle(dropdownId, hiddenInputId) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const listEl = dropdownContainer.querySelector(".list-items");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-            const listItems = listEl.querySelectorAll(".item");
+       function setupDropdownSingle(dropdownId, hiddenInputId) {
+    const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+    const selectBtn = dropdownContainer.querySelector(".select-btn");
+    const listEl = dropdownContainer.querySelector(".list-items");
+    const btnText = selectBtn.querySelector(".btn-text");
+    const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+    const listItems = listEl.querySelectorAll(".item");
 
-          selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== dropdownContainer) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
-      }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
-    }
-  });
+    selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+            if (otherContainer !== dropdownContainer) {
+                const otherSelectBtn = otherContainer.querySelector('.select-btn');
+                const otherListEl = otherContainer.querySelector('.list-items');
+                if (otherSelectBtn) {
+                    otherSelectBtn.classList.remove("open");
+                }
+                if (otherListEl) {
+                    otherListEl.style.display = "none";
+                }
+            }
+        });
 
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
+        // Toggle the current dropdown
+        selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+    });
+
+    // Rest of the function remains the same...
 
 
 
