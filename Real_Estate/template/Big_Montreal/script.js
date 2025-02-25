@@ -553,7 +553,7 @@ const PropertySearchExtension = {
                   flex-direction: column;
                   gap: 10px;
                   width: 100%;
-                  max-width: 800px;
+                  max-width: 920px;
                   margin: 0 auto;
                   background: #fff;
                   padding: 16px;
@@ -564,7 +564,7 @@ const PropertySearchExtension = {
                   gap: 16px;
                   flex-wrap: wrap;
               }
-              .flex-row > div { flex: 1; min-width: 200px; }
+              .flex-row > div { flex: 1; min-width: 300px; }
               .bold-label {
                   font-weight: 700;
                   color: #000;
