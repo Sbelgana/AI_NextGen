@@ -933,6 +933,7 @@ const PropertySearchExtension = {
             document.addEventListener("click", (e) => {
                 if (!container.contains(e.target)) {
                     selectBtn.classList.remove("open");
+			listEl.style.display = "none";
                 }
             });
         }
@@ -985,6 +986,7 @@ const PropertySearchExtension = {
             document.addEventListener("click", (e) => {
                 if (!dropdownContainer.contains(e.target)) {
                     selectBtn.classList.remove("open");
+			listEl.style.display = "none";
                 }
             });
         }
@@ -1646,6 +1648,7 @@ const SellingExtension = {
             document.addEventListener("click", (e) => {
                 if (!dropdownContainer.contains(e.target)) {
                     selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
                 }
             });
         }
@@ -2123,6 +2126,7 @@ const ContactExtension = {
             document.addEventListener("click", (e) => {
                 if (!dropdownContainer.contains(e.target)) {
                     selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
                 }
             });
         }
@@ -2487,6 +2491,7 @@ const BookingExtension = {
             document.addEventListener("click", (e) => {
                 if (!dropdownContainer.contains(e.target)) {
                     selectBtn.classList.remove("open");
+		    listEl.style.display = "none";
                 }
             });
         }
