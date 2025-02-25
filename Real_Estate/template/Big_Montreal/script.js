@@ -950,112 +950,95 @@ const PropertySearchExtension = {
         const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
         propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
 
-   function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
-    // Access the Shadow DOM if it exists, otherwise use the element itself
-    const shadowRoot = element.shadowRoot || element;
+        function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
+            const container = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = container.querySelector(".select-btn");
+            const listEl = container.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-    // Find the dropdown container within the Shadow DOM
-    const container = shadowRoot.querySelector(`#${dropdownId}`);
-    if (!container) {
-        console.error(`Dropdown container with ID ${dropdownId} not found.`);
-        return;
+            selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== dropdownContainer) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
     }
+  });
 
-    const selectBtn = container.querySelector(".select-btn");
-    const listEl = container.querySelector(".list-items");
-    const btnText = selectBtn.querySelector(".btn-text");
-    const hiddenInput = shadowRoot.querySelector(`#${hiddenInputId}`);
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
-    if (!selectBtn || !listEl || !btnText || !hiddenInput) {
-        console.error("Required elements not found in the dropdown.");
-        return;
-    }
 
-    selectBtn.addEventListener("click", (e) => {
-        console.log("Dropdown button clicked"); // Debugging
-        e.stopPropagation();
-        e.preventDefault();
 
-        // Close all other dropdowns within the Shadow DOM
-        shadowRoot.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-            if (otherContainer !== container) {
-                const otherSelectBtn = otherContainer.querySelector('.select-btn');
-                const otherListEl = otherContainer.querySelector('.list-items');
-                if (otherSelectBtn) {
-                    otherSelectBtn.classList.remove("open");
-                }
-                if (otherListEl) {
-                    otherListEl.style.display = "none";
-                }
-            }
-        });
-
-        // Toggle the current dropdown
-        selectBtn.classList.toggle("open");
-        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-        console.log("Dropdown toggled:", listEl.style.display); // Debugging
-    });
-
-    // Handle item selection
-    shadowRoot.querySelectorAll(`${listSelector} .item`).forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (item.classList.contains("select-all")) {
-                const groupOptions = item.parentElement;
-                const groupItems = groupOptions.querySelectorAll(".item:not(.select-all)");
-                const allSelected = Array.from(groupItems).every((i) =>
-                    i.classList.contains("checked")
+            function updateSelectAllState(groupEl) {
+                if (!groupEl) return;
+                const selectAllItem = groupEl.querySelector(".item.select-all");
+                if (!selectAllItem) return;
+                const groupItems = groupEl.querySelectorAll(".item:not(.select-all)");
+                const allChecked = Array.from(groupItems).every((item) =>
+                    item.classList.contains("checked")
                 );
-                item.classList.toggle("checked");
-                const newState = item.classList.contains("checked");
-                groupItems.forEach((ci) => {
-                    newState
-                        ? ci.classList.add("checked")
-                        : ci.classList.remove("checked");
-                });
-            } else {
-                item.classList.toggle("checked");
-                const groupOptions = item.closest(".group-options") || listEl;
-                updateSelectAllState(groupOptions);
+                allChecked
+                    ? selectAllItem.classList.add("checked")
+                    : selectAllItem.classList.remove("checked");
             }
 
-            const checkedItems = shadowRoot.querySelectorAll(
-                `${listSelector} .item:not(.select-all).checked`
-            );
-            const count = checkedItems.length;
-            btnText.innerText =
-                count > 0
-                    ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}`
-                    : defaultText;
-            const values = Array.from(checkedItems).map((ci) =>
-                ci.querySelector(".item-text").getAttribute("data-value")
-            );
-            hiddenInput.value = values.join(",");
-        });
-    });
+            formContainer.querySelectorAll(`${listSelector} .item`).forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    if (item.classList.contains("select-all")) {
+                        const groupOptions = item.parentElement;
+                        const groupItems = groupOptions.querySelectorAll(".item:not(.select-all)");
+                        const allSelected = Array.from(groupItems).every((i) =>
+                            i.classList.contains("checked")
+                        );
+                        item.classList.toggle("checked");
+                        const newState = item.classList.contains("checked");
+                        groupItems.forEach((ci) => {
+                            newState
+                                ? ci.classList.add("checked")
+                                : ci.classList.remove("checked");
+                        });
+                    } else {
+                        item.classList.toggle("checked");
+                        const groupOptions = item.closest(".group-options") || listEl;
+                        updateSelectAllState(groupOptions);
+                    }
 
-    // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-        if (!container.contains(e.target)) {
-            selectBtn.classList.remove("open");
-            listEl.style.display = "none";
+                    const checkedItems = formContainer.querySelectorAll(
+                        `${listSelector} .item:not(.select-all).checked`
+                    );
+                    const count = checkedItems.length;
+                    btnText.innerText =
+                        count > 0
+                            ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}`
+                            : defaultText;
+                    const values = Array.from(checkedItems).map((ci) =>
+                        ci.querySelector(".item-text").getAttribute("data-value")
+                    );
+                    hiddenInput.value = values.join(",");
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!container.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+			listEl.style.display = "none";
+                }
+            });
         }
-    });
-
-    // Helper function to update the "Select All" state
-    function updateSelectAllState(groupEl) {
-        if (!groupEl) return;
-        const selectAllItem = groupEl.querySelector(".item.select-all");
-        if (!selectAllItem) return;
-        const groupItems = groupEl.querySelectorAll(".item:not(.select-all)");
-        const allChecked = Array.from(groupItems).every((item) =>
-            item.classList.contains("checked")
-        );
-        allChecked
-            ? selectAllItem.classList.add("checked")
-            : selectAllItem.classList.remove("checked");
-    }
-}
 
         setupMultiSelect("dropdown-city", "#cityList", "cityValues", texts.cityDefault);
         setupMultiSelect(
@@ -1071,73 +1054,59 @@ const PropertySearchExtension = {
             texts.typeDefault
         );
 
-function setupDropdownSingle(dropdownId, hiddenInputId) {
-    // Access the Shadow DOM if it exists, otherwise use the element itself
-    const shadowRoot = element.shadowRoot || element;
+        function setupDropdownSingle(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-    // Find the dropdown container within the Shadow DOM
-    const dropdownContainer = shadowRoot.querySelector(`#${dropdownId}`);
-    if (!dropdownContainer) {
-        console.error(`Dropdown container with ID ${dropdownId} not found.`);
-        return;
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== dropdownContainer) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
     }
+  });
 
-    const selectBtn = dropdownContainer.querySelector(".select-btn");
-    const listEl = dropdownContainer.querySelector(".list-items");
-    const btnText = selectBtn.querySelector(".btn-text");
-    const hiddenInput = shadowRoot.querySelector(`#${hiddenInputId}`);
-    const listItems = listEl.querySelectorAll(".item");
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
-    if (!selectBtn || !listEl || !btnText || !hiddenInput || !listItems) {
-        console.error("Required elements not found in the dropdown.");
-        return;
-    }
 
-    selectBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
 
-        // Close all other dropdowns within the Shadow DOM
-        shadowRoot.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
-            if (otherContainer !== dropdownContainer) {
-                const otherSelectBtn = otherContainer.querySelector('.select-btn');
-                const otherListEl = otherContainer.querySelector('.list-items');
-                if (otherSelectBtn) {
-                    otherSelectBtn.classList.remove("open");
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    item.classList.add("checked");
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+                    selectBtn.classList.remove("open");
+                });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+			listEl.style.display = "none";
                 }
-                if (otherListEl) {
-                    otherListEl.style.display = "none";
-                }
-            }
-        });
-
-        // Toggle the current dropdown
-        selectBtn.classList.toggle("open");
-        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-    });
-
-    // Handle item selection
-    listItems.forEach((item) => {
-        item.addEventListener("click", (e) => {
-            e.stopPropagation();
-            listItems.forEach((i) => i.classList.remove("checked"));
-            item.classList.add("checked");
-            const labelText = item.querySelector(".item-text").innerText;
-            const value = item.querySelector(".item-text").getAttribute("data-value");
-            btnText.innerText = labelText;
-            hiddenInput.value = value;
-            selectBtn.classList.remove("open");
-        });
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-        if (!dropdownContainer.contains(e.target)) {
-            selectBtn.classList.remove("open");
-            listEl.style.display = "none";
+            });
         }
-    });
-}
 
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
