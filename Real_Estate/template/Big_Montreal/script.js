@@ -871,8 +871,14 @@ const PropertySearchExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
             selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
+  selectBtn.classList.toggle("open");
+  if (selectBtn.classList.contains("open")) {
+    listEl.style.display = "block";
+  } else {
+    listEl.style.display = "none";
+  }
+});
+
 
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
@@ -954,8 +960,14 @@ const PropertySearchExtension = {
             const listItems = listEl.querySelectorAll(".item");
 
             selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
+  selectBtn.classList.toggle("open");
+  if (selectBtn.classList.contains("open")) {
+    listEl.style.display = "block";
+  } else {
+    listEl.style.display = "none";
+  }
+});
+
 
             listItems.forEach((item) => {
                 item.addEventListener("click", (e) => {
@@ -1601,9 +1613,15 @@ const SellingExtension = {
             const listItems = dropdownContainer.querySelectorAll(".list-items .item");
 
             // Open/close on selectBtn click
-            selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
+           selectBtn.addEventListener("click", () => {
+  selectBtn.classList.toggle("open");
+  if (selectBtn.classList.contains("open")) {
+    listEl.style.display = "block";
+  } else {
+    listEl.style.display = "none";
+  }
+});
+
 
             // Single-select: remove "checked" from all, then add to clicked
             listItems.forEach((item) => {
@@ -2071,9 +2089,15 @@ const ContactExtension = {
             const listItems = listEl.querySelectorAll(".item");
 
             // Toggle open/close on click
-            selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
+           selectBtn.addEventListener("click", () => {
+  selectBtn.classList.toggle("open");
+  if (selectBtn.classList.contains("open")) {
+    listEl.style.display = "block";
+  } else {
+    listEl.style.display = "none";
+  }
+});
+
 
             // Single item selection
             listItems.forEach((liItem) => {
@@ -2429,9 +2453,15 @@ const BookingExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-            selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
+           selectBtn.addEventListener("click", () => {
+  selectBtn.classList.toggle("open");
+  if (selectBtn.classList.contains("open")) {
+    listEl.style.display = "block";
+  } else {
+    listEl.style.display = "none";
+  }
+});
+
 
             listItems.forEach(item => {
                 item.addEventListener("click", (e) => {
