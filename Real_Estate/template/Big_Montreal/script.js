@@ -871,14 +871,28 @@ const PropertySearchExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
             selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // Prevent the event from bubbling up
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
+    }
+  });
+
+  // Toggle the current dropdown
   selectBtn.classList.toggle("open");
-  if (selectBtn.classList.contains("open")) {
-    listEl.style.display = "block";
-  } else {
-    listEl.style.display = "none";
-  }
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
 
 
             function updateSelectAllState(groupEl) {
@@ -961,15 +975,29 @@ const PropertySearchExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-           selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // Prevent the event from bubbling up
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
+    }
+  });
+
+  // Toggle the current dropdown
   selectBtn.classList.toggle("open");
-  if (selectBtn.classList.contains("open")) {
-    listEl.style.display = "block";
-  } else {
-    listEl.style.display = "none";
-  }
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
 
 
             listItems.forEach((item) => {
@@ -1618,14 +1646,28 @@ const SellingExtension = {
 
             // Open/close on selectBtn click
           selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // Prevent the event from bubbling up
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
+    }
+  });
+
+  // Toggle the current dropdown
   selectBtn.classList.toggle("open");
-  if (selectBtn.classList.contains("open")) {
-    listEl.style.display = "block";
-  } else {
-    listEl.style.display = "none";
-  }
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
 
 
             // Single-select: remove "checked" from all, then add to clicked
@@ -2095,15 +2137,29 @@ const ContactExtension = {
             const listItems = listEl.querySelectorAll(".item");
 
             // Toggle open/close on click
-           selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // Prevent the event from bubbling up
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
+    }
+  });
+
+  // Toggle the current dropdown
   selectBtn.classList.toggle("open");
-  if (selectBtn.classList.contains("open")) {
-    listEl.style.display = "block";
-  } else {
-    listEl.style.display = "none";
-  }
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
 
 
             // Single item selection
@@ -2461,16 +2517,28 @@ const BookingExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-          selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // Prevent the event from bubbling up
-  selectBtn.classList.toggle("open");
-  if (selectBtn.classList.contains("open")) {
-    listEl.style.display = "block";
-  } else {
-    listEl.style.display = "none";
-  }
-});
+        selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
+    // Skip the current container
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector('.select-btn');
+      const otherListEl = otherContainer.querySelector('.list-items');
+      if (otherSelectBtn) {
+        otherSelectBtn.classList.remove("open");
+      }
+      if (otherListEl) {
+        otherListEl.style.display = "none";
+      }
+    }
+  });
 
+  // Toggle the current dropdown
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+});
 
             listItems.forEach(item => {
                 item.addEventListener("click", (e) => {
