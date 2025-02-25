@@ -876,7 +876,7 @@ const PropertySearchExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -892,6 +892,8 @@ const PropertySearchExtension = {
   selectBtn.classList.toggle("open");
   listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
+
 
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
@@ -979,7 +981,7 @@ const PropertySearchExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -1643,13 +1645,13 @@ const SellingExtension = {
             const listItems = dropdownContainer.querySelectorAll(".list-items .item");
 
             // Open/close on selectBtn click
-         selectBtn.addEventListener("click", (e) => {
+          selectBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -2123,15 +2125,6 @@ const ContactExtension = {
             sellerListEl.appendChild(li);
         });
 
-	window.closeAllDropdowns = function() {
-  document.querySelectorAll('.dropdown-container .select-btn').forEach(btn => {
-    btn.classList.remove('open');
-  });
-  document.querySelectorAll('.dropdown-container .list-items').forEach(list => {
-    list.style.display = 'none';
-  });
-};
-
         /*************************************************************
          * 2b) Single-Select Setup
          *************************************************************/
@@ -2144,14 +2137,13 @@ const ContactExtension = {
             const listItems = listEl.querySelectorAll(".item");
 
             // Toggle open/close on click
-         selectBtn.addEventListener("click", (e) => {
+          selectBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-		  window.closeAllDropdowns();
   
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -2167,6 +2159,7 @@ const ContactExtension = {
   selectBtn.classList.toggle("open");
   listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
 
 
             // Single item selection
@@ -2524,13 +2517,13 @@ const BookingExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-       selectBtn.addEventListener("click", (e) => {
+        selectBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== dropdownContainer) {
+    if (otherContainer !== container) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -2546,6 +2539,7 @@ const BookingExtension = {
   selectBtn.classList.toggle("open");
   listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 });
+
             listItems.forEach(item => {
                 item.addEventListener("click", (e) => {
                     e.stopPropagation();
