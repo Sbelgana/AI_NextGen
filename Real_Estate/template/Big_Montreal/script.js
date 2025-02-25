@@ -963,7 +963,7 @@ const PropertySearchExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== container) {
+    if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -1068,7 +1068,7 @@ const PropertySearchExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== container) {
+    if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -1862,7 +1862,7 @@ const SellingExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== container) {
+    if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -2368,7 +2368,7 @@ const ContactExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== container) {
+    if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
@@ -2756,7 +2756,7 @@ const BookingExtension = {
   // Close all other dropdowns
   document.querySelectorAll('.dropdown-container').forEach((otherContainer) => {
     // Skip the current container
-    if (otherContainer !== container) {
+    if (otherContainer !== dropdownContainer) {
       const otherSelectBtn = otherContainer.querySelector('.select-btn');
       const otherListEl = otherContainer.querySelector('.list-items');
       if (otherSelectBtn) {
