@@ -972,6 +972,7 @@ const PropertySearchExtension = {
     }
 
     selectBtn.addEventListener("click", (e) => {
+        console.log("Dropdown button clicked"); // Debugging
         e.stopPropagation();
         e.preventDefault();
 
@@ -992,6 +993,7 @@ const PropertySearchExtension = {
         // Toggle the current dropdown
         selectBtn.classList.toggle("open");
         listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+        console.log("Dropdown toggled:", listEl.style.display); // Debugging
     });
 
     // Handle item selection
