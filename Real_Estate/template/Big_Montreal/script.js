@@ -20,7 +20,8 @@ function formatPhoneNumber(phoneNumber) {
 // IMPORTANT: Define toggleCollapse only once as a global function
 
 
-window.toggleCollapse = function(element) {
+window.toggleCollapse = function(e, element) {
+  e.stopPropagation();
   element.classList.toggle("active");
   const content = element.nextElementSibling;
   content.style.display = content.style.display === "block" ? "none" : "block";
@@ -35,6 +36,7 @@ window.toggleCollapse = function(element) {
     }
   }
 }
+
 
 /*************************************************************
  * 2) Shared Data: Property Categories & Types
@@ -457,7 +459,7 @@ const PropertySearchExtension = {
                 .join("");
             return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
+                    <div class="group-header" onclick="toggleCollapse(event, this)">
                         ${areaName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
@@ -496,7 +498,7 @@ const PropertySearchExtension = {
                 .join("");
             return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
+                    <div class="group-header" onclick="toggleCollapse(event, this)">
                         ${groupName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
@@ -1334,7 +1336,7 @@ const SellingExtension = {
                         .join("");
                     return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
+                    <div class="group-header" onclick="toggleCollapse(event, this)">
                         ${groupName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
