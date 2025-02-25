@@ -564,7 +564,7 @@ const PropertySearchExtension = {
                   gap: 16px;
                   flex-wrap: wrap;
               }
-              .flex-row > div { flex: 1; min-width: 275px; }
+              .flex-row > div { flex: 1; min-width: 250px; }
               .bold-label {
                   font-weight: 700;
                   color: #000;
