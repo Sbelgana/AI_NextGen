@@ -1,7 +1,3 @@
-/*************************************************************
- * 1) Shared Data & Utilities
- *************************************************************/
-
 // Email and phone validation/formatting
 function isValidEmail(email) {
   const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
@@ -356,7 +352,7 @@ function generateAirtableFormula(input) {
 }
 
 /*************************************************************
- * 10) Define the 9 Extensions
+ * 10) Define the 4 Extensions
  *************************************************************/
 
 /************** EXTENSION #1: PropertySearchExtension **************/
@@ -531,7 +527,7 @@ const PropertySearchExtension = {
               .bold-label {
                   font-weight: 700;
                   color: #000;
-                  font-size: 15px;
+                  font-size: 14px;
                   margin-bottom: 4px;
                   display: block;
               }
@@ -1139,7 +1135,7 @@ const SellingExtension = {
               .bold-label {
                   font-weight: 700;
                   color: #000;
-                  font-size: 15px;
+                  font-size: 14px;
                   margin-bottom: 4px;
                   display: block;
               }
@@ -1280,7 +1276,7 @@ const SellingExtension = {
               }
               .checkbox .check-icon {
                   color: #fff;
-                  font-size: 10px;
+                  font-size: 12px;
                   transform: scale(0);
                   transition: all 0.2s ease-in-out;
               }
@@ -1788,7 +1784,7 @@ const ContactExtension = {
                     border-radius: 4px;
                     padding: 8px;
                     background: #fff;
-                    font-size: 14px;
+                    font-size: 13px;
                     outline: none;
                     box-sizing: border-box;
                 }
@@ -1923,7 +1919,7 @@ const ContactExtension = {
                 }
                 .checkbox .check-icon {
                     color: #fff;
-                    font-size: 10px;
+                    font-size: 12px;
                     transform: scale(0);
                     transition: all 0.2s ease-in-out;
                 }
@@ -2229,7 +2225,7 @@ const BookingExtension = {
                     border-radius: 4px;
                     padding: 8px;
                     background: #fff;
-                    font-size: 14px;
+                    font-size: 13px;
                     outline: none;
                     box-sizing: border-box;
                 }
@@ -2246,7 +2242,7 @@ const BookingExtension = {
                     padding: 12px;
                     border-radius: 5px;
                     width: 100%;
-                    font-size: 1em;
+                    font-size: 16px;
                     cursor: pointer;
                     margin-top: 8px;
                 }
@@ -2349,7 +2345,7 @@ const BookingExtension = {
                 }
                 .checkbox .check-icon {
                     color: #fff;
-                    font-size: 10px;
+                    font-size: 12px;
                     transform: scale(0);
                     transition: all 0.2s ease-in-out;
                 }
@@ -2538,7 +2534,6 @@ const BookingExtension = {
         });
     },
 };
-
 /************** EXTENSION #5: ImageExtension **************/
 const ImageExtension = {
 	name: 'ImageExtension',
