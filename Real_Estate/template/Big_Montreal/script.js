@@ -2970,10 +2970,56 @@ const BookingExtension = {
 
                 // Display the modal
                 modal.style.display = "block";
+                
+                // ADDED: Setup modal closing functionality
+                setupModalClosing(modal);
             } else {
                 alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
             }
         });
+        
+        /*************************************************************
+         * 2d) Modal Closing Functionality (Added)
+         *************************************************************/
+        function setupModalClosing(modal) {
+            // Function to close modal
+            function closeModal() {
+                console.log('Closing booking modal');
+                modal.style.display = 'none';
+                document.removeEventListener('keydown', handleKeyPress);
+                window.removeEventListener('click', handleOutsideClick);
+            }
+            
+            // Handle key presses (Escape to close)
+            function handleKeyPress(event) {
+                if (event.key === 'Escape') {
+                    closeModal();
+                }
+            }
+            
+            // Handle clicks outside the modal content
+            function handleOutsideClick(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            }
+            
+            // Setup close button if it exists
+            const closeButton = modal.querySelector('.close-button');
+            if (closeButton) {
+                // Clone to remove any existing listeners
+                const newCloseButton = closeButton.cloneNode(true);
+                closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+                newCloseButton.addEventListener('click', e => {
+                    e.stopPropagation();
+                    closeModal();
+                });
+            }
+            
+            // Add keyboard and outside click event listeners
+            document.addEventListener('keydown', handleKeyPress);
+            window.addEventListener('click', handleOutsideClick);
+        }
     },
 };
 /************** EXTENSION #5: ImageExtension **************/
