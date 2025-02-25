@@ -870,7 +870,8 @@ const PropertySearchExtension = {
             const btnText = selectBtn.querySelector(".btn-text");
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            selectBtn.addEventListener("click", () => {
+            selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent the event from bubbling up
   selectBtn.classList.toggle("open");
   if (selectBtn.classList.contains("open")) {
     listEl.style.display = "block";
@@ -960,7 +961,8 @@ const PropertySearchExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-            selectBtn.addEventListener("click", () => {
+           selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent the event from bubbling up
   selectBtn.classList.toggle("open");
   if (selectBtn.classList.contains("open")) {
     listEl.style.display = "block";
@@ -1615,7 +1617,8 @@ const SellingExtension = {
             const listItems = dropdownContainer.querySelectorAll(".list-items .item");
 
             // Open/close on selectBtn click
-           selectBtn.addEventListener("click", () => {
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent the event from bubbling up
   selectBtn.classList.toggle("open");
   if (selectBtn.classList.contains("open")) {
     listEl.style.display = "block";
@@ -2092,7 +2095,8 @@ const ContactExtension = {
             const listItems = listEl.querySelectorAll(".item");
 
             // Toggle open/close on click
-           selectBtn.addEventListener("click", () => {
+           selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent the event from bubbling up
   selectBtn.classList.toggle("open");
   if (selectBtn.classList.contains("open")) {
     listEl.style.display = "block";
@@ -2457,7 +2461,8 @@ const BookingExtension = {
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
             const listItems = listEl.querySelectorAll(".item");
 
-           selectBtn.addEventListener("click", () => {
+          selectBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // Prevent the event from bubbling up
   selectBtn.classList.toggle("open");
   if (selectBtn.classList.contains("open")) {
     listEl.style.display = "block";
