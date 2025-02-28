@@ -724,7 +724,6 @@ const PropertySearchExtension = {
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 4px 4px 0;
                   overflow: hidden;
-		  margin-right: 1px;
               }
               .price-up, .price-down {
                   flex: 1;
@@ -1609,7 +1608,6 @@ const SellingExtension = {
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 4px 4px 0;
                   overflow: hidden;
-		  margin-right: 1px;
               }
               .garage-cars-up, .garage-cars-down {
                   flex: 1;
