@@ -724,6 +724,7 @@ const PropertySearchExtension = {
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 4px 4px 0;
                   overflow: hidden;
+		  margin-right: 1px;
               }
               .price-up, .price-down {
                   flex: 1;
@@ -880,7 +881,7 @@ const PropertySearchExtension = {
                   <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
                   <div class="price-wrapper">
     <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
+    <div class="prices">
         <div class="price-up" data-input="price-min" data-step="1000">▲</div>
         <div class="price-down" data-input="price-min" data-step="1000">▼</div>
     </div>
@@ -890,7 +891,7 @@ const PropertySearchExtension = {
                   <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
                   <div class="price-wrapper">
     <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
+    <div class="prices">
         <div class="price-up" data-input="price-max" data-step="1000">▲</div>
         <div class="price-down" data-input="price-max" data-step="1000">▼</div>
     </div>
@@ -1608,6 +1609,7 @@ const SellingExtension = {
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 4px 4px 0;
                   overflow: hidden;
+		  margin-right: 1px;
               }
               .garage-cars-up, .garage-cars-down {
                   flex: 1;
