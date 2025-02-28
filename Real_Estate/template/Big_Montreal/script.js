@@ -714,7 +714,7 @@ const PropertySearchExtension = {
               input[type="number"] { -moz-appearance: textfield; }
               .price-controls {
                   position: absolute;
-                  right: 0;
+                  right: 1px;
                   top: 1px;
                   bottom: 1px;
                   width: 20px;
@@ -1598,7 +1598,7 @@ const SellingExtension = {
               }
               .garage-cars-controls {
                   position: absolute;
-                  right: 0;
+                  right: 1px;
                   top: 1px;
                   bottom: 1px;
                   width: 20px;
