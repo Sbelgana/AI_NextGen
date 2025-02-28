@@ -559,7 +559,7 @@ const PropertySearchExtension = {
                   margin: 0 auto;
                   background: transparent;
                   padding: 16px;
-                  border-radius: 6px;
+                  border-radius: 8px;
               }
               .flex-row {
                   display: flex;
@@ -578,7 +578,7 @@ const PropertySearchExtension = {
               input[type="number"] {
                   width: 100%;
                   border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 4px;
+                  border-radius: 8px;
                   padding: 8px;
                   background: #fff;
                   font-size: 13px;
@@ -606,7 +606,7 @@ const PropertySearchExtension = {
                   align-items: center;
                   justify-content: space-between;
                   padding: 0 12px;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   cursor: pointer;
                   background-color: #fff;
                   border: 1px solid rgba(0,0,0,0.2);
@@ -632,7 +632,7 @@ const PropertySearchExtension = {
                   left: 0;
                   right: 0;
                   margin-top: 4px;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   padding: 4px 0;
                   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
                   display: none;
@@ -647,7 +647,7 @@ const PropertySearchExtension = {
                   height: 36px;
                   cursor: pointer;
                   padding: 0 12px;
-                  border-radius: 4px;
+                  border-radius: 8px;
                   transition: 0.3s;
                   margin: 4px;
               }
@@ -677,7 +677,7 @@ const PropertySearchExtension = {
                   margin-bottom: 10px; 
                   margin-left: 10px;  
                   margin-right: 10px; 
-                  border-radius: 4px;
+                  border-radius: 8px;
                   overflow: hidden;
               }
               .group:first-child { border-top: none; }
@@ -722,7 +722,7 @@ const PropertySearchExtension = {
                   flex-direction: column;
                   background-color: #F5E7FE;
                   border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 4px 4px 0;
+                  border-radius: 0 8px 8px 0;
                   overflow: hidden;
               }
               .price-up, .price-down {
@@ -1373,7 +1373,7 @@ const SellingExtension = {
                   margin: 0 auto;
                   background: transparent;
                   padding: 16px;
-                  border-radius: 6px;
+                  border-radius: 8px;
               }
               .flex-row {
                   display: flex;
@@ -1395,7 +1395,7 @@ const SellingExtension = {
               textarea {
                   width: 100%;
                   border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 4px;
+                  border-radius: 8px;
                   padding: 8px;
                   background: #fff;
                   font-size: 13px;
@@ -1410,7 +1410,7 @@ const SellingExtension = {
                   max-height: 200px;
                   padding: 8px;
                   border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 4px;
+                  border-radius: 8px;
                   font-size: 13px;
                   box-sizing: border-box;
               }
@@ -1445,7 +1445,7 @@ const SellingExtension = {
                   align-items: center;
                   justify-content: space-between;
                   padding: 0 12px;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   cursor: pointer;
                   background-color: #fff;
                   border: 1px solid rgba(0,0,0,0.2);
@@ -1474,7 +1474,7 @@ const SellingExtension = {
                   left: 0;
                   right: 0;
                   margin-top: 4px;
-                  border-radius: 6px;
+                  border-radius: 8px;
                   padding: 4px 0;
                   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
                   display: none;
@@ -1496,7 +1496,7 @@ const SellingExtension = {
                   height: 36px;
                   cursor: pointer;
                   padding: 0 12px;
-                  border-radius: 4px;
+                  border-radius: 8px;
                   transition: 0.3s;
                   margin: 4px;
               }
@@ -1539,7 +1539,7 @@ const SellingExtension = {
                   margin-bottom: 10px; 
                   margin-left: 10px;  
                   margin-right: 10px; 
-                  border-radius: 4px;
+                  border-radius: 8px;
                   overflow: hidden;
               }
               .group:first-child {
@@ -1606,7 +1606,7 @@ const SellingExtension = {
                   flex-direction: column;
                   background-color: #F5E7FE;
                   border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 4px 4px 0;
+                  border-radius: 0 8px 8px 0;
                   overflow: hidden;
               }
               .garage-cars-up, .garage-cars-down {
@@ -2122,7 +2122,7 @@ const ContactExtension = {
                     margin: 0 auto;
                     background: transparent;
                     padding: 16px;
-                    border-radius: 6px;
+                    border-radius: 8px;
                 }
 
                 .flex-row {
@@ -2149,7 +2149,7 @@ const ContactExtension = {
                 textarea {
                     width: 100%;
                     border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 4px;
+                    border-radius: 8px;
                     padding: 8px;
                     background: #fff;
                     font-size: 13px;
@@ -2164,7 +2164,7 @@ const ContactExtension = {
                     max-height: 200px;
                     padding: 8px;
                     border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 4px;
+                    border-radius: 8px;
                     font-size: 13px;
                     box-sizing: border-box;
                 }
@@ -2204,7 +2204,7 @@ const ContactExtension = {
                     align-items: center;
                     justify-content: space-between;
                     padding: 0 12px;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     cursor: pointer;
                     background-color: #fff;
                     border: 1px solid rgba(0,0,0,0.2);
@@ -2240,7 +2240,7 @@ const ContactExtension = {
                     left: 0;
                     right: 0;
                     margin-top: 4px;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     padding: 8px 0;
                     background-color: #fff;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
@@ -2258,7 +2258,7 @@ const ContactExtension = {
                     cursor: pointer;
                     transition: 0.3s;
                     padding: 0 12px;
-                    border-radius: 4px;
+                    border-radius: 8px;
                 }
                 .list-items .item:hover {
                     background-color: #F5E7FE;
@@ -2616,7 +2616,7 @@ const BookingExtension = {
                     margin: 0 auto;
                     background: transparent;
                     padding: 16px;
-                    border-radius: 6px;
+                    border-radius: 8px;
 		    min-width: 300px;
                 }
 
@@ -2632,7 +2632,7 @@ const BookingExtension = {
                 input[type="email"] {
                     width: 100%;
                     border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 4px;
+                    border-radius: 8px;
                     padding: 8px;
                     background: #fff;
                     font-size: 13px;
@@ -2650,7 +2650,7 @@ const BookingExtension = {
                     background-color: #F5E7FE;
                     border: none;
                     padding: 12px;
-                    border-radius: 5px;
+                    border-radius: 8px;
                     width: 100%;
                     font-size: 16px;
                     cursor: pointer;
@@ -2673,7 +2673,7 @@ const BookingExtension = {
                     align-items: center;
                     justify-content: space-between;
                     padding: 0 12px;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     cursor: pointer;
                     background-color: #fff;
                     border: 1px solid rgba(0,0,0,0.2);
@@ -2709,7 +2709,7 @@ const BookingExtension = {
                     left: 0;
                     right: 0;
                     margin-top: 4px;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     padding: 8px 0;
                     background-color: #fff;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
@@ -2727,7 +2727,7 @@ const BookingExtension = {
                     cursor: pointer;
                     transition: 0.3s;
                     padding: 0 12px;
-                    border-radius: 4px;
+                    border-radius: 8px;
                 }
                 .list-items .item:hover {
                     background-color: #F5E7FE;
