@@ -664,7 +664,7 @@ const PropertySearchExtension = {
                   border: 1.5px solid #c0c0c0;
                   transition: all 0.3s ease-in-out;
               }
-              .list-items.multi-select .item .checkbox { border-radius: 2px; }
+              .list-items.multi-select .item .checkbox { border-radius: 8px; }
               .list-items.single-select .item .checkbox { border-radius: 50%; }
               .item.checked .checkbox { background-color: #9c27b0; border: 2px solid #9c27b0; }
               .checkbox .check-icon { 
