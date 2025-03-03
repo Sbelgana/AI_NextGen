@@ -50,7 +50,7 @@
   padding: 12px 24px;
   border: none;
   border-radius: 4px;
-  color: #9A0DF2;
+  color: #9c27b0;
   background-color: #F5E7FE;
   cursor: pointer;
   font-weight: bold;
@@ -59,11 +59,11 @@
 }
 .calculator-nav-button:hover {
   color: white;
-  background-color: #9A0DF2;
+  background-color: #9c27b0;
 }
 .calculator-nav-button.active {
   color: white;
-  background-color: #9A0DF2;
+  background-color: #9c27b0;
 }
 
 /* Form + layout */
