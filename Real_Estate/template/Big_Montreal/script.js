@@ -463,7 +463,7 @@ const PropertySearchExtension = {
                         ${areaName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
@@ -502,7 +502,7 @@ const PropertySearchExtension = {
                         ${groupName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
@@ -587,9 +587,9 @@ const PropertySearchExtension = {
                   height: 40px;
               }
               input[type="text"]:focus,
-              input[type="number"]:focus { border: 2px solid #9A0DF2; }
+              input[type="number"]:focus { border: 2px solid #9c27b0; }
               .submit {
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   background-color: #F5E7FE;
                   border: none;
                   padding: 12px;
@@ -598,7 +598,7 @@ const PropertySearchExtension = {
                   cursor: pointer;
                   margin-top: 8px;
               }
-              .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
+              .submit:hover { color: #fff; background-color: #9c27b0; font-weight: 700; }
               .dropdown-container { position: relative; max-width: 100%; }
               .select-btn {
                   display: flex;
@@ -616,7 +616,7 @@ const PropertySearchExtension = {
                   display: flex;
                   height: 24px;
                   width: 24px;
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   font-size: 13px;
                   border-radius: 50%;
                   background: #F5E7FE;
@@ -625,7 +625,7 @@ const PropertySearchExtension = {
                   transition: 0.3s;
               }
               .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
-              .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
+              .select-btn:focus, .select-btn.open { border: 2px solid #9c27b0; }
               .list-items {
                   position: relative;
                   top: 100%;
@@ -666,7 +666,7 @@ const PropertySearchExtension = {
               }
               .list-items.multi-select .item .checkbox { border-radius: 2px; }
               .list-items.single-select .item .checkbox { border-radius: 50%; }
-              .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
+              .item.checked .checkbox { background-color: #9c27b0; border: 2px solid #9c27b0; }
               .checkbox .check-icon { 
 	      color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
        
@@ -689,10 +689,10 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
-                  color: #9A0DF2;
+                  color: #9c27b0;
               }
               .group-header .collapse-icon {
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   font-size: 13px;
                   transition: transform 0.3s;
                   background: #fff;
@@ -707,7 +707,7 @@ const PropertySearchExtension = {
               .group-header.active .collapse-icon { transform: rotate(-180deg); }
               .group-options { display: none; padding-left: 0; }
               .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-              input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
+              input[type="checkbox"] { accent-color: #9c27b0; width: 18px; height: 18px; cursor: pointer; }
               .price-wrapper { position: relative; width: 100%; }
               input[type="number"]::-webkit-inner-spin-button,
               input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -730,11 +730,11 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   cursor: pointer;
                   font-size: 8px;
               }
-              .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
+              .price-up:hover, .price-down:hover { background-color: #9c27b0; color: #fff; }
           </style>
 
           <!-- City, Category & Property Type -->
@@ -747,7 +747,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -763,7 +763,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -779,7 +779,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -799,7 +799,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -826,7 +826,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -853,7 +853,7 @@ const PropertySearchExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -913,7 +913,7 @@ const PropertySearchExtension = {
                               <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                           </div>
@@ -1343,7 +1343,7 @@ const SellingExtension = {
                         ${groupName}
                         <span class="collapse-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
                             </svg>
                         </span>
                     </div>
@@ -1421,10 +1421,10 @@ const SellingExtension = {
               input[type="number"]:focus,
               select:focus,
               #details:focus {
-                 border: 2px solid #9A0DF2;
+                 border: 2px solid #9c27b0;
               }
               .submit {
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   background-color: #F5E7FE;
                   border: none;
                   padding: 12px;
@@ -1434,7 +1434,7 @@ const SellingExtension = {
                   margin-top: 8px;
               }
               .submit:hover {
-                  color: #fff; background-color: #9A0DF2; font-weight: 700;
+                  color: #fff; background-color: #9c27b0; font-weight: 700;
               }
               .dropdown-container {
                   position: relative; max-width: 100%;
@@ -1457,7 +1457,7 @@ const SellingExtension = {
                   display: flex;
                   height: 24px;
                   width: 24px;
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   font-size: 13px;
                   border-radius: 50%;
                   background: #F5E7FE;
@@ -1487,7 +1487,7 @@ const SellingExtension = {
               }
               .select-btn:focus,
               .select-btn.open {
-                  border: 2px solid #9A0DF2;
+                  border: 2px solid #9c27b0;
                   outline: none;
               }
               .list-items .item {
@@ -1522,8 +1522,8 @@ const SellingExtension = {
                   transition: all 0.3s ease-in-out;
               }
               .item.checked .checkbox {
-                  background-color: #9A0DF2;
-                  border: 2px solid #9A0DF2;
+                  background-color: #9c27b0;
+                  border: 2px solid #9c27b0;
               }
               .checkbox .check-icon {
                   color: #fff;
@@ -1553,10 +1553,10 @@ const SellingExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
-                  color: #9A0DF2;
+                  color: #9c27b0;
               }
               .group-header .collapse-icon {
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   font-size: 13px;
                   transition: transform 0.3s;
                   background: #fff;
@@ -1576,10 +1576,10 @@ const SellingExtension = {
                   padding-left: 0;
               }
               /**********************************************
-               * NEW: Change the native checkbox color to #9A0DF2
+               * NEW: Change the native checkbox color to #9c27b0
                **********************************************/
               input[type="checkbox"] {
-                  accent-color: #9A0DF2; /* Modern browser support */
+                  accent-color: #9c27b0; /* Modern browser support */
               }
               /**********************************************
                * NEW: Add styles for garage-cars-wrapper and controls
@@ -1614,12 +1614,12 @@ const SellingExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  color: #9A0DF2;
+                  color: #9c27b0;
                   cursor: pointer;
                   font-size: 8px;
               }
               .garage-cars-up:hover, .garage-cars-down:hover {
-                  background-color: #9A0DF2;
+                  background-color: #9c27b0;
                   color: #fff;
               }
               .inline-field {
@@ -1678,7 +1678,7 @@ const SellingExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -1700,7 +1700,7 @@ const SellingExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -1735,7 +1735,7 @@ const SellingExtension = {
                           <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                       </div>
@@ -2173,11 +2173,11 @@ const ContactExtension = {
                 input[type="email"]:focus,
                 input[type="tel"]:focus,
                 #details:focus {
-                    border: 2px solid #9A0DF2;
+                    border: 2px solid #9c27b0;
                 }
 
                 .submit {
-                    color: #9A0DF2;
+                    color: #9c27b0;
                     background-color: #F5E7FE;
                     border: none;
                     padding: 12px;
@@ -2189,7 +2189,7 @@ const ContactExtension = {
 
                 .submit:hover {
                     color: #fff;
-                    background-color: #9A0DF2;
+                    background-color: #9c27b0;
 		    font-weight: 700;
                 }
 
@@ -2218,7 +2218,7 @@ const ContactExtension = {
                     display: flex;
                     height: 24px;
                     width: 24px;
-                    color: #9A0DF2;
+                    color: #9c27b0;
                     font-size: 12px;
                     border-radius: 50%;
                     background: #F5E7FE;
@@ -2231,7 +2231,7 @@ const ContactExtension = {
                 }
                 .select-btn:focus,
                 .select-btn.open {
-                    border: 2px solid #9A0DF2;
+                    border: 2px solid #9c27b0;
                     outline: none;
                 }
                 .list-items {
@@ -2283,8 +2283,8 @@ const ContactExtension = {
                     transition: all 0.3s ease-in-out;
                 }
                 .item.checked .checkbox {
-                    background-color: #9A0DF2;
-                    border: 2px solid #9A0DF2;
+                    background-color: #9c27b0;
+                    border: 2px solid #9c27b0;
                 }
                 .checkbox .check-icon {
                     color: #fff;
@@ -2352,7 +2352,7 @@ const ContactExtension = {
                             <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                         </div>
@@ -2374,7 +2374,7 @@ const ContactExtension = {
                             <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                         </div>
@@ -2642,11 +2642,11 @@ const BookingExtension = {
 
                 input[type="text"]:focus,
                 input[type="email"]:focus {
-                    border: 2px solid #9A0DF2;
+                    border: 2px solid #9c27b0;
                 }
 
                 .book-now {
-                    color: #9A0DF2;
+                    color: #9c27b0;
                     background-color: #F5E7FE;
                     border: none;
                     padding: 12px;
@@ -2658,7 +2658,7 @@ const BookingExtension = {
                 }
                 .book-now:hover {
                     color: #fff;
-                    background-color: #9A0DF2;
+                    background-color: #9c27b0;
                     font-weight: 700;
                 }
 
@@ -2687,7 +2687,7 @@ const BookingExtension = {
                     display: flex;
                     height: 24px;
                     width: 24px;
-                    color: #9A0DF2;
+                    color: #9c27b0;
                     font-size: 12px;
                     border-radius: 50%;
                     background: #F5E7FE;
@@ -2700,7 +2700,7 @@ const BookingExtension = {
                 }
                 .select-btn:focus,
                 .select-btn.open {
-                    border: 2px solid #9A0DF2;
+                    border: 2px solid #9c27b0;
                     outline: none;
                 }
                 .list-items {
@@ -2750,8 +2750,8 @@ const BookingExtension = {
                     transition: all 0.3s ease-in-out;
                 }
                 .item.checked .checkbox {
-                    background-color: #9A0DF2;
-                    border: 2px solid #9A0DF2;
+                    background-color: #9c27b0;
+                    border: 2px solid #9c27b0;
                 }
                 .checkbox .check-icon {
                     color: #fff;
@@ -2800,7 +2800,7 @@ const BookingExtension = {
                         <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9A0DF2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                     </div>
