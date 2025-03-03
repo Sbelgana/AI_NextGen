@@ -590,7 +590,7 @@ const PropertySearchExtension = {
               input[type="number"]:focus { border: 2px solid #9c27b0; }
               .submit {
                   color: #9c27b0;
-                  background-color: #F5E7FE;
+                  background-color: #F1D5F6;
                   border: none;
                   padding: 12px;
                   border-radius: 8px;
@@ -619,7 +619,7 @@ const PropertySearchExtension = {
                   color: #9c27b0;
                   font-size: 13px;
                   border-radius: 50%;
-                  background: #F5E7FE;
+                  background: #F1D5F6;
                   align-items: center;
                   justify-content: center;
                   transition: 0.3s;
@@ -651,7 +651,7 @@ const PropertySearchExtension = {
                   transition: 0.3s;
                   margin: 4px;
               }
-              .list-items .item:hover { background-color: #F5E7FE; }
+              .list-items .item:hover { background-color: #F1D5F6; }
               .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
               .list-items.multi-select .item .checkbox,
               .list-items.single-select .item .checkbox {
@@ -720,7 +720,7 @@ const PropertySearchExtension = {
                   width: 20px;
                   display: flex;
                   flex-direction: column;
-                  background-color: #F5E7FE;
+                  background-color: #F1D5F6;
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 8px 8px 0;
                   overflow: hidden;
@@ -1425,7 +1425,7 @@ const SellingExtension = {
               }
               .submit {
                   color: #9c27b0;
-                  background-color: #F5E7FE;
+                  background-color: #F1D5F6;
                   border: none;
                   padding: 12px;
                   border-radius: 8px;
@@ -1460,7 +1460,7 @@ const SellingExtension = {
                   color: #9c27b0;
                   font-size: 13px;
                   border-radius: 50%;
-                  background: #F5E7FE;
+                  background: #F1D5F6;
                   align-items: center;
                   justify-content: center;
                   transition: 0.3s;
@@ -1501,7 +1501,7 @@ const SellingExtension = {
                   margin: 4px;
               }
               .list-items .item:hover {
-                  background-color: #F5E7FE;
+                  background-color: #F1D5F6;
               }
               .item .item-text {
                   font-size: 13px;
@@ -1604,7 +1604,7 @@ const SellingExtension = {
                   width: 20px;
                   display: flex;
                   flex-direction: column;
-                  background-color: #F5E7FE;
+                  background-color: #F1D5F6;
                   border-left: 1px solid rgba(0,0,0,0.1);
                   border-radius: 0 8px 8px 0;
                   overflow: hidden;
@@ -2178,7 +2178,7 @@ const ContactExtension = {
 
                 .submit {
                     color: #9c27b0;
-                    background-color: #F5E7FE;
+                    background-color: #F1D5F6;
                     border: none;
                     padding: 12px;
                     border-radius: 8px;
@@ -2221,7 +2221,7 @@ const ContactExtension = {
                     color: #9c27b0;
                     font-size: 12px;
                     border-radius: 50%;
-                    background: #F5E7FE;
+                    background: #F1D5F6;
                     align-items: center;
                     justify-content: center;
                     transition: 0.3s;
@@ -2261,7 +2261,7 @@ const ContactExtension = {
                     border-radius: 8px;
                 }
                 .list-items .item:hover {
-                    background-color: #F5E7FE;
+                    background-color: #F1D5F6;
                 }
                 .item .item-text {
                     font-size: 13px;
@@ -2647,7 +2647,7 @@ const BookingExtension = {
 
                 .book-now {
                     color: #9c27b0;
-                    background-color: #F5E7FE;
+                    background-color: #F1D5F6;
                     border: none;
                     padding: 12px;
                     border-radius: 8px;
@@ -2690,7 +2690,7 @@ const BookingExtension = {
                     color: #9c27b0;
                     font-size: 12px;
                     border-radius: 50%;
-                    background: #F5E7FE;
+                    background: #F1D5F6;
                     align-items: center;
                     justify-content: center;
                     transition: 0.3s;
@@ -2730,7 +2730,7 @@ const BookingExtension = {
                     border-radius: 8px;
                 }
                 .list-items .item:hover {
-                    background-color: #F5E7FE;
+                    background-color: #F1D5F6;
                 }
                 .item .item-text {
                     font-size: 13px;
