@@ -51,7 +51,7 @@
   border: none;
   border-radius: 4px;
   color: #9c27b0;
-  background-color: #F5E7FE;
+  background-color: #F1D5F6;
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
@@ -133,7 +133,7 @@ select {
 .result {
   margin: 0;
   padding: 20px;
-  background: #F5E7FE;
+  background: #F1D5F6;
   border-radius: 8px;
   text-align: center;
   flex: 1;
@@ -184,7 +184,7 @@ select {
 }
 
 .modal-carousel--button:hover {
-  background: #F5E7FE;
+  background: #F1D5F6;
 }
 
 .modal-carousel--button.left-button {
