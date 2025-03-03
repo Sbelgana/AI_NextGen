@@ -3185,18 +3185,22 @@ const ImageExtension = {
 };
 
 /************** EXTENSION #6: LocalisationExtension **************/
+/************** EXTENSION #6: LocalisationExtension **************/
 const LocalisationExtension = {
 	name: 'Localisation',
 	type: 'response',
-	match: ({trace}) => trace.type === 'ext_localisation' || trace.payload?.name === 'ext_localisation',
-	render: ({trace, element}) => {
-		const {language, key, LAT, LNG } = trace.payload;
+	match: ({ trace }) => trace.type === 'ext_localisation' || trace.payload?.name === 'ext_localisation',
+	render: ({ trace, element }) => {
+		const { language, key, LAT, LNG } = trace.payload;
 
 		function openModal() {
 			const modal = document.getElementById('localisation-modal');
 			if (modal) {
 				modal.style.display = 'block';
 				initializeLocalLogic(language, key, parseFloat(LAT), parseFloat(LNG));
+				// Add global listeners for key presses and clicks outside the modal
+				document.addEventListener('keydown', handleKeyPress);
+				window.addEventListener('click', handleOutsideClick);
 			} else {
 				console.error('Modal element not found');
 			}
@@ -3206,12 +3210,35 @@ const LocalisationExtension = {
 			const modal = document.getElementById('localisation-modal');
 			if (modal) {
 				modal.style.display = 'none';
+				// Remove global event listeners
+				document.removeEventListener('keydown', handleKeyPress);
+				window.removeEventListener('click', handleOutsideClick);
 			}
 		}
 
-		const closeButton = document.querySelector('.close-button');
+		function handleKeyPress(event) {
+			const modal = document.getElementById('localisation-modal');
+			if (modal && modal.style.display === 'block') {
+				if (event.key === 'Escape') closeModal();
+			}
+		}
+
+		function handleOutsideClick(event) {
+			const modal = document.getElementById('localisation-modal');
+			if (modal && event.target === modal) {
+				closeModal();
+			}
+		}
+
+		// Update the close button to remove old listeners (using clone technique)
+		const closeButton = document.querySelector('#localisation-modal .close-button');
 		if (closeButton) {
-			closeButton.addEventListener('click', closeModal);
+			const newCloseButton = closeButton.cloneNode(true);
+			closeButton.parentNode.replaceChild(newCloseButton, closeButton);
+			newCloseButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+				closeModal();
+			});
 		} else {
 			console.error('Close button not found');
 		}
@@ -3260,7 +3287,7 @@ const LocalisationExtension = {
 				}
 
 				console.log('Creating LocalLogic widget with LAT:', lat, 'LNG:', lng);
-				ll.create("local-content", container, {lat, lng, cooperativeGestures: false, marker: {lat,lng}, zoom: 20});
+				ll.create("local-content", container, {lat, lng, cooperativeGestures: false, marker: {lat, lng}, zoom: 20});
 				console.log('LocalLogic widget initialized successfully.');
 			} catch (error) {
 				console.error('Error loading LocalLogic content:', error);
@@ -3297,7 +3324,7 @@ const LocalisationExtension = {
 			console.error('Error loading SDK script:', error);
 		});
 
-		// Construction de l’élément image + bouton « thumbs-up »
+		// Construction of the thumbs-up element (for Voiceflow interaction)
 		const modalContainer = document.createElement('div');
 		modalContainer.innerHTML = `
 			<style>
@@ -3311,7 +3338,6 @@ const LocalisationExtension = {
 			<div class="thumbs-up">👍</div>
 		`;
 
-		// Bouton Thumbs-up => envoie l’info à Voiceflow
 		const thumbsUp = modalContainer.querySelector('.thumbs-up');
 		if (thumbsUp) {
 			thumbsUp.addEventListener('click', () => {
@@ -3323,10 +3349,11 @@ const LocalisationExtension = {
 			});
 		}
 
-		// Ajout dans l’élément parent (fourni par Voiceflow)
+		// Append the thumbs-up element to the provided parent
 		element.appendChild(modalContainer);
 	},
 };
+
 
 /************** EXTENSION #7: MortgageCalculatorExtension **************/
 const MortgageCalculatorExtension = {
