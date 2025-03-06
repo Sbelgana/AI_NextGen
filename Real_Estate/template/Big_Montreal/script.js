@@ -1,3 +1,31 @@
+// Cal element-click embed code begins
+(function (C, A, L) { 
+        let p = function (a, ar) { a.q.push(ar); }; 
+        let d = C.document; 
+        C.Cal = C.Cal || function () { 
+            let cal = C.Cal; 
+            let ar = arguments; 
+            if (!cal.loaded) { 
+                cal.ns = {}; 
+                cal.q = cal.q || []; 
+                d.head.appendChild(d.createElement("script")).src = A; 
+                cal.loaded = true; 
+            } 
+            if (ar[0] === L) { 
+                const api = function () { p(api, arguments); }; 
+                const namespace = ar[1]; 
+                api.q = api.q || []; 
+                if(typeof namespace === "string") {
+                    cal.ns[namespace] = cal.ns[namespace] || api;
+                    p(cal.ns[namespace], ar);
+                    p(cal, ["initNamespace", namespace]);
+                } else p(cal, ar); 
+                return;
+            } 
+            p(cal, ar); 
+        }; 
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+
 // Email and phone validation/formatting
 function isValidEmail(email) {
   const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
@@ -133,6 +161,37 @@ const BookingUrls = {
   "Noah Wilson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
   "Ava Johnson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
 };
+
+const BookingData = {
+      "Emma Thompson": {
+        link: "ainextg/emma-thompson",
+        namespace: "emma-thompson"
+      },
+      "Liam Carter": {
+        link: "ainextg/liam-carter",
+        namespace: "liam-carter"
+      },
+      "Sophia Martinez": {
+        link: "ainextg/sophia-martinez",
+        namespace: "sophia-martinez"
+      },
+      "Ethan Brown": {
+        link: "ainextg/ethan-brown",
+        namespace: "ethan-brown"
+      },
+      "Olivia Davis": {
+        link: "ainextg/olivia-davis",
+        namespace: "olivia-davis"
+      },
+      "Noah Wilson": {
+        link: "ainextg/noah-wilson",
+        namespace: "noah-wilson"
+      },
+      "Ava Johnson": {
+        link: "ainextg/ava-johnson",
+        namespace: "ava-johnson"
+      }
+    };
 
 /*************************************************************
  * 6) Mappings & Options
@@ -2589,7 +2648,389 @@ const ContactExtension = {
 };
 
 /************** EXTENSION #4: BookingExtension **************/
+
 const BookingExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
+
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === 'en';
+
+        // Create the form container
+        const formContainer = document.createElement("form");
+
+        // Insert the style and HTML for the booking form
+        formContainer.innerHTML = `
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              background: transparent;
+              padding: 16px;
+              border-radius: 8px;
+              min-width: 300px;
+            }
+            .bold-label {
+              font-weight: 600;
+              color: #000;
+              font-size: 14px;
+              margin-bottom: 4px;
+              display: block;
+            }
+            input[type="text"],
+            input[type="email"] {
+              width: 100%;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 8px;
+              padding: 8px;
+              background: #fff;
+              font-size: 13px;
+              outline: none;
+              box-sizing: border-box;
+            }
+            input[type="text"]:focus,
+            input[type="email"]:focus {
+              border: 2px solid #9c27b0;
+            }
+            .book-now {
+              color: white;
+              background-color: #9c27b0;
+              border: none;
+              padding: 12px;
+              border-radius: 8px;
+              width: 100%;
+              font-size: 16px;
+              cursor: pointer;
+              margin-top: 8px;
+              transition: background-color 0.3s;
+            }
+            .book-now:hover {
+              background-color: #7b1fa2;
+              font-weight: 700;
+            }
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #555;
+            }
+            .select-btn .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9c27b0;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F8EAFA;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9c27b0;
+              outline: none;
+            }
+            .list-items {
+              position: relative;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 8px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+            }
+            .select-btn.open ~ .list-items {
+              display: block;
+            }
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 8px;
+            }
+            .list-items .item:hover {
+              background-color: #F8EAFA;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            .list-items.single-select .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .item.checked .checkbox {
+              background-color: #9c27b0;
+              border: 2px solid #9c27b0;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 12px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+          </style>
+
+          <!-- Booking Form Fields -->
+          <div>
+              <label for="full-name" class="bold-label">
+                  ${isEnglish ? 'Full Name' : 'Nom complet'}
+              </label>
+              <input
+                  type="text"
+                  id="full-name"
+                  name="full-name"
+                  placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
+                  required
+              />
+          </div>
+
+          <div>
+              <label for="email" class="bold-label">Email</label>
+              <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
+                  required
+              />
+          </div>
+
+          <!-- Single-Select Dropdown for Seller -->
+          <div>
+              <label for="dropdown-seller" class="bold-label">
+                  ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+              </label>
+              <div class="dropdown-container" id="dropdown-seller">
+                  <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                      <span class="arrow-dwn">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                              <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                          </svg>
+                      </span>
+                  </div>
+                  <ul class="list-items single-select" id="sellerList"></ul>
+              </div>
+              <!-- Hidden input to store the chosen seller -->
+              <input type="hidden" id="seller-name" name="seller-name" required />
+          </div>
+
+          <button type="button" class="book-now" id="cal-booking-button">
+              ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
+          </button>
+        `;
+
+        // Append the form container to the provided element
+        element.appendChild(formContainer);
+
+        /*************************************************************
+         * 2a) Populate Single-Select for Sellers
+         *************************************************************/
+        const sellerListEl = formContainer.querySelector("#sellerList");
+        const sellers = getSellerList(false);
+        sellers.forEach(seller => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox">
+              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+                <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+              </svg>
+            </span>
+            <span class="item-text" data-value="${seller}">${seller}</span>
+          `;
+          sellerListEl.appendChild(li);
+        });
+
+        /*************************************************************
+         * 2b) Setup Single-Select Logic
+         *************************************************************/
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
+
+          const listItems = listEl.querySelectorAll(".item");
+
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            // Close other dropdowns if open
+            formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+              if (otherContainer !== container) {
+                const otherSelectBtn = otherContainer.querySelector(".select-btn");
+                const otherListEl = otherContainer.querySelector(".list-items");
+                if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+                if (otherListEl) otherListEl.style.display = "none";
+              }
+            });
+            selectBtn.classList.toggle("open");
+            listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+          });
+
+          listItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach((i) => i.classList.remove("checked"));
+              item.classList.add("checked");
+
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+              
+              // When a seller is selected, initialize Cal for that seller
+              if (BookingData[value]) {
+                const { namespace } = BookingData[value];
+                Cal("init", namespace, {origin:"https://cal.com"});
+                Cal.ns[namespace]("ui", {
+                  "theme": "light",
+                  "cssVarsPerTheme": {
+                    "light": {"cal-brand": "#9c27b0"},
+                    "dark": {"cal-brand": "#9c27b0"}
+                  },
+                  "hideEventTypeDetails": false,
+                  "layout": "month_view"
+                });
+              }
+            });
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!container.contains(e.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // Initialize the single-select dropdown for Seller
+        setupDropdownSingle(
+          "dropdown-seller",
+          "sellerList",
+          "seller-name",
+          isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
+        );
+
+        /*************************************************************
+         * 2c) Booking Logic
+         *************************************************************/
+        const bookNowButton = formContainer.querySelector("#cal-booking-button");
+
+        bookNowButton.addEventListener("click", () => {
+          console.log("Book Now button clicked");
+          
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+
+          // Validations
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!email || !isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          if (!sellerName) {
+            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+            return;
+          }
+
+          if (BookingData[sellerName]) {
+              bookNowButton.disabled = true;
+            const { link, namespace } = BookingData[sellerName];
+            
+            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+
+            // Voiceflow integration
+            window.voiceflow.chat.interact({
+              type: "complete",
+              payload: { fullName, email, sellerName, link },
+            });
+
+            // Create a new button that will trigger Cal
+            const calTrigger = document.createElement('button');
+            calTrigger.style.display = 'none';
+            
+            // Add name and email as URL parameters
+            const calLinkWithParams = `${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+            
+            calTrigger.setAttribute('data-cal-link', calLinkWithParams);
+            calTrigger.setAttribute('data-cal-namespace', namespace);
+            calTrigger.setAttribute('data-cal-config', JSON.stringify({
+              layout: "month_view",
+              theme: "light"
+            }));
+            
+            // Append and click
+            document.body.appendChild(calTrigger);
+            calTrigger.click();
+          } else {
+            alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
+          }
+        });
+      },
+    };
+
+const BookingExtensionOld = {
     name: "Forms",
     type: "response",
     match: ({ trace }) =>
