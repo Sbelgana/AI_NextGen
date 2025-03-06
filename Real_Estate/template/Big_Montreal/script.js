@@ -2701,7 +2701,7 @@ const BookingExtension = {
               border: 2px solid #9c27b0;
             }
             .book-now {
-              color: white;
+              color: #9c27b0;
               background-color: #F8EAFA;
               border: none;
               padding: 12px;
@@ -2715,6 +2715,7 @@ const BookingExtension = {
             .book-now:hover {
               background-color: #9c27b0;
               font-weight: 700;
+	      color : #fff;
             }
             /* Dropdown Styles */
             .dropdown-container {
