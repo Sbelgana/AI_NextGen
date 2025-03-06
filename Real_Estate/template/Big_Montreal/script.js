@@ -24,7 +24,7 @@
             } 
             p(cal, ar); 
         }; 
-    })(window, "https://app.cal.com/embed/embed.js", "init");
+    })(window, "https://cdn.jsdelivr.net/gh/Sbelgana/VoiceFlow_AI_NextGen@refs/heads/main/Real_Estate/template/Big_Montreal/cal_embed.js", "init");
 
 // Email and phone validation/formatting
 function isValidEmail(email) {
