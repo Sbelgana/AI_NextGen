@@ -4310,6 +4310,216 @@ const CombinedCalculatorsExtension = {
 	},
 };
 
+const UserInformationExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === 'ext_information' || trace.payload?.name === 'ext_information',
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === 'en';
+        const formContainer = document.createElement("form");
+
+        formContainer.innerHTML = `
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              background: transparent;
+              padding: 16px;
+              border-radius: 8px;
+              min-width: 300px;
+            }
+            .bold-label {
+              font-weight: 600;
+              color: #000;
+              font-size: 14px;
+              margin-bottom: 4px;
+              display: block;
+            }
+            input[type="text"],
+            input[type="email"] {
+              width: 100%;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 8px;
+              padding: 8px;
+              background: #fff;
+              font-size: 13px;
+              outline: none;
+              box-sizing: border-box;
+            }
+            input[type="text"]:focus,
+            input[type="email"]:focus {
+              border: 2px solid #9c27b0;
+            }
+            .book-now {
+              color: #9c27b0;
+              background-color: #F8EAFA;
+              border: none;
+              padding: 12px;
+              border-radius: 8px;
+              width: 100%;
+              font-size: 16px;
+              cursor: pointer;
+              margin-top: 8px;
+              transition: background-color 0.3s;
+            }
+            .book-now:hover {
+              background-color: #9c27b0;
+              font-weight: 700;
+	      color : #fff;
+            }
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #555;
+            }
+            .select-btn .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9c27b0;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F8EAFA;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9c27b0;
+              outline: none;
+            }
+            .list-items {
+              position: relative;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 8px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+            }
+            .select-btn.open ~ .list-items {
+              display: block;
+            }
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 8px;
+            }
+            .list-items .item:hover {
+              background-color: #F8EAFA;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            .list-items.single-select .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .item.checked .checkbox {
+              background-color: #9c27b0;
+              border: 2px solid #9c27b0;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 12px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+          </style>
+          <div>
+            <label for="full-name" class="bold-label">
+              ${isEnglish ? 'Full Name' : 'Nom complet'}
+            </label>
+            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+          </div>
+          <div>
+            <label for="email" class="bold-label">Email</label>
+            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+          </div>
+          <button type="button" class="book-now" id="book-now">
+            ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
+          </button>
+        `;
+
+        element.appendChild(formContainer);
+
+        // Event listener for "Book Now" click
+        const bookNowButton = formContainer.querySelector("#book-now");
+        bookNowButton.addEventListener("click", () => {
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!email || !isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          
+          // Disable the button to prevent multiple clicks
+          bookNowButton.disabled = true;
+          
+          // Interact with Voiceflow (simulated)
+          window.voiceflow.chat.interact({
+            type: "complete",
+            payload: { fullName, email }
+          });
+        });
+      },
+    };
+
+window.UserInformationExtension = UserInformationExtension;
 window.ContactExtension = ContactExtension;
 window.BookingExtension = BookingExtension;
 window.SellingExtension = SellingExtension;
