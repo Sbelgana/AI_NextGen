@@ -136,32 +136,32 @@ const BookingUrls = {
 
 const BookingData = {
       "Emma Thompson": {
-        link: "ainextg/emma-thompson",
-        namespace: "emma-thompson"
+        link: "ainextg-emma-thompsonn/meeting",
+        namespace: "meeting"
       },
       "Liam Carter": {
-        link: "ainextg/liam-carter",
-        namespace: "liam-carter"
+        link: "ainextg-liam-carter/meeting",
+        namespace: "meeting"
       },
       "Sophia Martinez": {
-        link: "ainextg/sophia-martinez",
-        namespace: "sophia-martinez"
+        link: "ainextg-sophia-martinez/meeting",
+        namespace: "meeting"
       },
       "Ethan Brown": {
-        link: "ainextg/ethan-brown",
-        namespace: "ethan-brown"
+        link: "ainextg-ethan-brownn/meeting",
+        namespace: "meeting"
       },
       "Olivia Davis": {
-        link: "ainextg/olivia-davis",
-        namespace: "olivia-davis"
+        link: "ainextg-olivia-daviss/meeting",
+        namespace: "meeting"
       },
       "Noah Wilson": {
-        link: "ainextg/noah-wilson",
-        namespace: "noah-wilson"
+        link: "ainextg-noah-wilsonn/meeting",
+        namespace: "meeting"
       },
       "Ava Johnson": {
-        link: "ainextg/ava-johnson",
-        namespace: "ava-johnson"
+        link: "ainextg-ava-johnson/meeting",
+        namespace: "meeting"
       }
     };
 
