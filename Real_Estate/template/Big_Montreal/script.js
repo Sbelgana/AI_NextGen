@@ -135,35 +135,35 @@ const BookingUrls = {
 };
 
 const BookingData = {
-      "Emma Thompson": {
-        link: "ainextg-emma-thompsonn/meeting",
-        namespace: "meeting"
-      },
-      "Liam Carter": {
-        link: "ainextg-liam-carter/meeting",
-        namespace: "meeting"
-      },
-      "Sophia Martinez": {
-        link: "ainextg-sophia-martinez/meeting",
-        namespace: "meeting"
-      },
-      "Ethan Brown": {
-        link: "ainextg-ethan-brownn/meeting",
-        namespace: "meeting"
-      },
-      "Olivia Davis": {
-        link: "ainextg-olivia-daviss/meeting",
-        namespace: "meeting"
-      },
-      "Noah Wilson": {
-        link: "ainextg-noah-wilsonn/meeting",
-        namespace: "meeting"
-      },
-      "Ava Johnson": {
-        link: "ainextg-ava-johnson/meeting",
-        namespace: "meeting"
-      }
-    };
+  "Emma Thompson": {
+    link: "ainextg-emma-thompsonn",  // Remove the /meeting part
+    namespace: "meeting"
+  },
+  "Liam Carter": {
+    link: "ainextg-liam-carter",
+    namespace: "meeting"
+  },
+  "Sophia Martinez": {
+    link: "ainextg-sophia-martinez",
+    namespace: "meeting"
+  },
+  "Ethan Brown": {
+    link: "ainextg-ethan-brownn",
+    namespace: "meeting"
+  },
+  "Olivia Davis": {
+    link: "ainextg-olivia-daviss",  // Just the username without /meeting
+    namespace: "meeting"
+  },
+  "Noah Wilson": {
+    link: "ainextg-noah-wilsonn",
+    namespace: "meeting"
+  },
+  "Ava Johnson": {
+    link: "ainextg-ava-johnson",
+    namespace: "meeting"
+  }
+};
 
 /*************************************************************
  * 6) Mappings & Options
