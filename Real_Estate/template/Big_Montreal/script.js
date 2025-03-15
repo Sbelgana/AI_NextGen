@@ -2619,6 +2619,468 @@ const ContactExtension = {
     },
 };
 
+const RescheduleExtension = {
+  name: "Forms",
+  type: "response",
+  match: ({ trace }) =>
+    trace.type === "ext_reschedule" || trace.payload?.name === "ext_reschedule",
+
+  render: ({ trace, element }) => {
+    // Handle various payload formats for backward compatibility
+    const { 
+      language = "en", 
+      Uid = trace.payload.rescheduleUid, 
+      email = trace.payload.email, 
+      link = trace.payload.link,
+	  namespace = trace.payload.namespace
+    } = trace.payload;
+    
+    const isEnglish = language === 'en';
+
+    // Create the container
+    const container = document.createElement("div");
+
+    // Insert the style and HTML for the booking button
+    container.innerHTML = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        .booking-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+          background: transparent;
+          padding: 16px;
+          border-radius: 8px;
+          min-width: 300px;
+          align-items: center;
+        }
+        .book-now {
+          color: #9c27b0;
+          background-color: #F8EAFA;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .book-now:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        
+        .book-now:hover:not(:disabled) {
+      background-color: #9c27b0;
+      font-weight: 700;
+      color: #fff;
+    }
+    .book-now:disabled {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    
+        .debug-info {
+          font-size: 12px;
+          color: #666;
+          margin-top: 10px;
+          display: none;
+        }
+      </style>
+
+      <div class="booking-container">
+        <button type="button" class="book-now" id="cal-booking-button">
+            ${isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous'}
+        </button>
+        <div class="debug-info" id="debug-info"></div>
+      </div>
+    `;
+
+    // Append the container to the provided element
+    element.appendChild(container);
+
+    // ====== Cal.com Initialization ======
+    (function(C, A, L) {
+      let p = function(a, ar) {
+        a.q.push(ar);
+      };
+      let d = C.document;
+      C.Cal = C.Cal || function() {
+        let cal = C.Cal;
+        let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function() {
+            p(api, arguments);
+          };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+
+    // ====== Booking Logic ======
+    const bookNowButton = container.querySelector("#cal-booking-button");
+    const debugInfo = container.querySelector("#debug-info");
+    
+    bookNowButton.addEventListener("click", () => {
+
+      // Notify Voiceflow that we're proceeding with booking
+      if (window.voiceflow && window.voiceflow.chat) {
+        window.voiceflow.chat.interact({
+          type: "booking_started",
+          payload: { 
+            email,
+            Uid,
+            link
+          },
+        });
+      }
+      
+      // Disable button to prevent multiple clicks
+      bookNowButton.disabled = true;
+
+      
+      try {
+        // Initialize Cal for the namespace
+        Cal("init", namespace, {
+          origin: "https://cal.com"
+        });
+        
+        // Set UI preferences
+        Cal.ns[namespace]("ui", {
+          "theme": "light",
+          "cssVarsPerTheme": {
+            "light": {"cal-brand": "#9c27b0"},
+            "dark": {"cal-brand": "#9c27b0"}
+          },
+          "hideEventTypeDetails": false,
+          "layout": "week_view"
+        });
+        
+        // Create a button with data-cal-link attribute that will trigger Cal.com directly
+        const calTrigger = document.createElement('button');
+        calTrigger.style.display = 'none';
+        
+        // Build the link with reschedule parameters - this is the key part that needs fixing
+        const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
+        
+       
+        
+        // Set up the data-cal-link attributes
+        calTrigger.setAttribute('data-cal-link', calLinkWithParams);
+        calTrigger.setAttribute('data-cal-namespace', namespace);
+        calTrigger.setAttribute('data-cal-config', JSON.stringify({
+          layout: "week_view",
+          theme: "light"
+        }));
+        
+        // Setup event listener for successful booking
+        Cal.ns[namespace]("on", {
+          action: "booking_successful",
+          callback: (event) => {
+            console.log("Booking successful", event);
+            
+            // Notify Voiceflow that booking is complete
+            if (window.voiceflow && window.voiceflow.chat) {
+              window.voiceflow.chat.interact({
+                type: "complete",
+                payload: { 
+                  email,
+                  link,
+                  Uid
+                },
+              });
+            }
+          }
+        });
+        
+        // Append the trigger to the body and click it
+        document.body.appendChild(calTrigger);
+        
+        // Small timeout to ensure Cal.js has initialized
+        setTimeout(() => {
+          calTrigger.click();
+        }, 300);
+      } catch (error) {
+        console.error("Error initializing Cal:", error);
+        debugInfo.textContent = `Error: ${error.message}`;
+        debugInfo.style.display = 'block';
+        bookNowButton.disabled = false;
+        bookNowButton.textContent = isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous';
+      }
+    });
+
+    // Return a cleanup function
+    return function cleanup() {
+      bookNowButton.render({ trace, element: container });
+    };
+  },
+};
+
+const CancellationExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "ext_cancellation" || trace.payload?.name === "ext_cancellation",
+
+      render: ({ trace, element }) => {
+        // Handle various payload formats for backward compatibility
+        const { 
+          language = "en", 
+          Uid = trace.payload.Uid, 
+          email = trace.payload.email, 
+          namespace = trace.payload.namespace
+        } = trace.payload;
+        
+        const isEnglish = language === 'en';
+
+        // Create the container
+        const container = document.createElement("div");
+
+        // Insert the style and HTML for the cancellation button
+        container.innerHTML = `
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+            .booking-container {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              background: transparent;
+              padding: 16px;
+              border-radius: 8px;
+              min-width: 300px;
+              align-items: center;
+            }
+            .book-now {
+              color: #d32f2f;
+              background-color: #ffebee;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-size: 16px;
+              font-weight: 500;
+              cursor: pointer;
+              margin-top: 8px;
+              transition: all 0.3s ease;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+
+            .book-now:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            }
+            
+            .book-now:hover:not(:disabled) {
+              background-color: #d32f2f;
+              font-weight: 700;
+              color: #fff;
+            }
+            .book-now:disabled {
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+            }
+            
+            .debug-info {
+              font-size: 12px;
+              color: #666;
+              margin-top: 10px;
+              display: none;
+            }
+          </style>
+
+          <div class="booking-container">
+            <button type="button" class="book-now" id="cal-booking-button">
+                ${isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous'}
+            </button>
+            <div class="debug-info" id="debug-info"></div>
+          </div>
+        `;
+
+        // Append the container to the provided element
+        element.appendChild(container);
+
+        // ====== Cal.com Initialization ======
+        (function(C, A, L) {
+          let p = function(a, ar) {
+            a.q.push(ar);
+          };
+          let d = C.document;
+          C.Cal = C.Cal || function() {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function() {
+                p(api, arguments);
+              };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              if (typeof namespace === "string") {
+                cal.ns[namespace] = cal.ns[namespace] || api;
+                p(cal.ns[namespace], ar);
+                p(cal, ["initNamespace", namespace]);
+              } else p(cal, ar);
+              return;
+            }
+            p(cal, ar);
+          };
+        })(window, "https://app.cal.com/embed/embed.js", "init");
+
+        // ====== Booking Logic ======
+        const bookNowButton = container.querySelector("#cal-booking-button");
+        const debugInfo = container.querySelector("#debug-info");
+        
+        bookNowButton.addEventListener("click", () => {
+
+          
+          // Notify Voiceflow that we're proceeding with cancellation
+          if (window.voiceflow && window.voiceflow.chat) {
+            window.voiceflow.chat.interact({
+              type: "cancellation_started",
+              payload: { 
+                email,
+                Uid
+              },
+            });
+          }
+          
+          // Disable button to prevent multiple clicks
+          bookNowButton.disabled = true;
+
+          try {
+            // Initialize Cal for the namespace
+            Cal("init", namespace, {
+              origin: "https://cal.com"
+            });
+            
+            // Set UI preferences
+            Cal.ns[namespace]("ui", {
+              "theme": "light",
+              "cssVarsPerTheme": {
+                "light": {"cal-brand": "#d32f2f"},
+                "dark": {"cal-brand": "#d32f2f"}
+              },
+              "hideEventTypeDetails": false,
+              "layout": "week_view"
+            });
+            
+            // Create a button with data-cal-link attribute that will trigger Cal.com directly
+            const calTrigger = document.createElement('button');
+            calTrigger.style.display = 'none';
+            
+            // Build the cancellation link with the data attributes to open Cal.com inline
+            // The key difference: we need to use the data attributes to make it open in same page
+            const cancellationLink = `booking/${Uid}?cancel=true&allRemainingBookings=false&cancelledBy=${email}`;
+            
+            // Set data attributes to match the Cal.com SDK expected format
+            calTrigger.setAttribute('data-cal-link', cancellationLink);
+            calTrigger.setAttribute('data-cal-namespace', namespace);
+            calTrigger.setAttribute('data-cal-config', JSON.stringify({
+              layout: "week_view",
+              theme: "light",
+              hideEventTypeDetails: false,
+              // This is the key to making it cancel instead of reschedule:
+              actionType: "cancel",
+              cancelParams: {
+                allRemainingBookings: false,
+                cancelledBy: decodeURIComponent(email)
+              }
+            }));
+            
+            // Setup event listener for successful cancellation
+            Cal.ns[namespace]("on", {
+              action: "booking_cancelled",
+              callback: (event) => {
+                console.log("Booking cancelled", event);
+                
+                // Notify Voiceflow that cancellation is complete
+                if (window.voiceflow && window.voiceflow.chat) {
+                  window.voiceflow.chat.interact({
+                    type: "cancellation_complete",
+                    payload: { 
+                      email,
+                      Uid
+                    },
+                  });
+                }
+                
+                // Re-enable button 
+                bookNowButton.disabled = false;
+                bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+              }
+            });
+            
+            // Listen for any failure events
+            Cal.ns[namespace]("on", {
+              action: "error",
+              callback: (error) => {
+                console.error("Cal error:", error);
+                debugInfo.textContent = `Cal error: ${JSON.stringify(error)}`;
+                debugInfo.style.display = 'block';
+                
+                // Re-enable button
+                bookNowButton.disabled = false;
+                bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+              }
+            });
+            
+            // Append the trigger to the body and click it
+            document.body.appendChild(calTrigger);
+            
+            // Small timeout to ensure Cal.js has initialized
+            setTimeout(() => {
+              calTrigger.click();
+            }, 300);
+          } catch (error) {
+            console.error("Error initializing Cal:", error);
+            debugInfo.textContent = `Error: ${error.message}`;
+            debugInfo.style.display = 'block';
+            bookNowButton.disabled = false;
+            bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+          }
+        });
+
+        // Return a cleanup function
+        return function cleanup() {
+          // This should be fixed to properly remove the event listener
+          const button = container.querySelector("#cal-booking-button");
+          if (button) {
+            button.remove();
+          }
+        };
+      },
+    };
+
+
 /************** EXTENSION #4: BookingExtension **************/
 
 const BookingExtension = {
@@ -4523,6 +4985,8 @@ const UserInformationExtension = {
 window.UserInformationExtension = UserInformationExtension;
 window.ContactExtension = ContactExtension;
 window.BookingExtension = BookingExtension;
+window.RescheduleExtension = RescheduleExtension;
+window.CancellationExtension = CancellationExtension;
 window.SellingExtension = SellingExtension;
 window.PropertySearchExtension = PropertySearchExtension;
 window.ImageExtension = ImageExtension;
