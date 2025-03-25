@@ -3918,19 +3918,27 @@ const BookingExtension = {
           const listItems = listEl.querySelectorAll(".item");
 
           selectBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            // Close other dropdowns if open
-            formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-              if (otherContainer !== container) {
-                const otherSelectBtn = otherContainer.querySelector(".select-btn");
-                const otherListEl = otherContainer.querySelector(".list-items");
-                if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-                if (otherListEl) otherListEl.style.display = "none";
-              }
-            });
-            selectBtn.classList.toggle("open");
-            listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-          });
+  e.stopPropagation();
+  
+  // Close other dropdowns if open
+  formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+    if (otherContainer !== container) {
+      const otherSelectBtn = otherContainer.querySelector(".select-btn");
+      const otherListEl = otherContainer.querySelector(".list-items");
+      if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+      if (otherListEl) otherListEl.style.display = "none";
+    }
+  });
+
+  selectBtn.classList.toggle("open");
+  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+
+  // **Scroll to top when opened**
+  if (selectBtn.classList.contains("open")) {
+    listEl.scrollTop = 0;
+  }
+});
+
 
           listItems.forEach((item) => {
             item.addEventListener("click", (e) => {
