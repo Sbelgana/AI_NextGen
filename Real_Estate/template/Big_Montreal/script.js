@@ -1400,7 +1400,6 @@ formContainer.addEventListener("submit", (event) => {
         element.appendChild(formContainer);
     },
 };
-
 /************** EXTENSION #2: SellingExtension **************/
 /************** EXTENSION #2: SellingExtension **************/
 const SellingExtension = {
