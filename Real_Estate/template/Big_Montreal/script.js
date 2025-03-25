@@ -503,7 +503,7 @@ window.toggleCollapse = function(element) {
             .join("");
           return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
+                    <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${areaName}
                         <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
@@ -533,7 +533,7 @@ window.toggleCollapse = function(element) {
             .join("");
           return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
+                    <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${groupName}
                         <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
