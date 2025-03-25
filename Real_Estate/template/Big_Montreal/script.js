@@ -1000,7 +1000,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-map-marker-alt with SVG_ADDRESS -->
               <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Filter by Location & Category" : "Filtrer par Emplacement & Catégorie"}</div>
+                <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1053,7 +1053,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-dollar-sign with SVG_DOLLAR -->
               <div class="section-icon">${SVG_DOLLAR}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Define Your Price Range" : "Définissez Votre Plage de Prix"}</div>
+                <div class="section-title">${isEnglish ? "Price Range" : "Plage de Prix"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1096,7 +1096,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-list with SVG_LIST -->
               <div class="section-icon">${SVG_LIST}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Customize Home Specifications" : "Personnalisez les Caractéristiques de la Propriété"}</div>
+                <div class="section-title">${isEnglish ? "Property Specifications" : "Caractéristiques de la Propriété"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
