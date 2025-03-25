@@ -548,7 +548,6 @@ const PropertySearchExtension = {
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
       <style>
-          /* Your CSS styles (same as provided originally) */
           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
           form {
               display: flex;
@@ -905,8 +904,8 @@ const PropertySearchExtension = {
                   <div class="price-wrapper">
                     <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
-                      <div class="price-up" onclick="incrementValue('price-min', 1000)">▲</div>
-                      <div class="price-down" onclick="decrementValue('price-min', 1000)">▼</div>
+                      <div class="price-up">▲</div>
+                      <div class="price-down">▼</div>
                     </div>
                   </div>
                 </div>
@@ -915,8 +914,8 @@ const PropertySearchExtension = {
                   <div class="price-wrapper">
                     <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
-                      <div class="price-up" onclick="incrementValue('price-max', 1000)">▲</div>
-                      <div class="price-down" onclick="decrementValue('price-max', 1000)">▼</div>
+                      <div class="price-up">▲</div>
+                      <div class="price-down">▼</div>
                     </div>
                   </div>
                 </div>
@@ -1056,7 +1055,7 @@ const PropertySearchExtension = {
       <button type="submit" class="submit">${texts.submitBtn}</button>
     `;
 
-    // Local function to toggle accordion sections
+    // Accordion toggle for sections using data-target attribute
     function toggleSection(sectionId) {
       const section = formContainer.querySelector(`#${sectionId}`);
       const parentSection = section.parentElement;
@@ -1064,7 +1063,7 @@ const PropertySearchExtension = {
       const collapseIcon = card.querySelector('.collapse-icon i');
       const wasExpanded = section.classList.contains('expanded');
 
-      // Close all sections within the form
+      // Close all sections
       formContainer.querySelectorAll('.collapsible-section').forEach(sec => sec.classList.remove('expanded'));
       formContainer.querySelectorAll('.collapse-icon i').forEach(icon => icon.classList.remove('active'));
       formContainer.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
@@ -1076,16 +1075,15 @@ const PropertySearchExtension = {
       }
     }
 
-    // Attach event listeners to section cards (using data-target attribute)
-    const sectionCards = formContainer.querySelectorAll('.section-card');
-    sectionCards.forEach(card => {
+    // Attach event listeners to section cards
+    formContainer.querySelectorAll('.section-card').forEach(card => {
       const targetId = card.getAttribute('data-target');
       card.addEventListener('click', () => {
         toggleSection(targetId);
       });
     });
 
-    // Setup multi-select dropdowns
+    // Setup multi-select dropdowns (with stopPropagation on click)
     function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
       const container = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = container.querySelector(".select-btn");
@@ -1093,7 +1091,8 @@ const PropertySearchExtension = {
       const btnText = selectBtn.querySelector(".btn-text");
       const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-      selectBtn.addEventListener("click", () => {
+      selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         selectBtn.classList.toggle("open");
       });
 
@@ -1123,7 +1122,6 @@ const PropertySearchExtension = {
             const groupOptions = item.closest(".group-options") || listEl;
             updateSelectAllState(groupOptions);
           }
-
           const checkedItems = formContainer.querySelectorAll(`${listSelector} .item:not(.select-all).checked`);
           const count = checkedItems.length;
           btnText.innerText = count > 0 ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}` : defaultText;
@@ -1143,7 +1141,7 @@ const PropertySearchExtension = {
     setupMultiSelect("dropdown-property-category", "#propertyCategoryList", "propertyCategoryValues", texts.categoryDefault);
     setupMultiSelect("dropdown-property-type", "#propertyTypeList", "propertyTypeValues", texts.typeDefault);
 
-    // Setup single-select dropdowns
+    // Setup single-select dropdowns (with stopPropagation)
     function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
@@ -1152,7 +1150,8 @@ const PropertySearchExtension = {
       const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
       const listItems = listEl.querySelectorAll(".item");
 
-      selectBtn.addEventListener("click", () => {
+      selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         selectBtn.classList.toggle("open");
       });
 
@@ -1181,6 +1180,7 @@ const PropertySearchExtension = {
     setupDropdownSingle("dropdown-bathrooms-number", "bathrooms-number");
     setupDropdownSingle("dropdown-cars-number", "cars-number");
 
+    // Toggle car dropdown based on garage checkbox
     const garageCheckbox = formContainer.querySelector("#garage");
     const carsContainer = formContainer.querySelector("#cars-container");
     garageCheckbox.addEventListener("change", function () {
@@ -1196,16 +1196,29 @@ const PropertySearchExtension = {
       }
     });
 
+    // Attach event listeners to price controls (remove inline onclick)
+    formContainer.querySelectorAll('.price-wrapper').forEach(wrapper => {
+      const input = wrapper.querySelector('input[type="number"]');
+      const priceUp = wrapper.querySelector('.price-up');
+      const priceDown = wrapper.querySelector('.price-down');
+      if (input && priceUp && priceDown) {
+        if (input.id === "price-min") {
+          priceUp.addEventListener("click", (e) => { e.stopPropagation(); incrementValue("price-min", 1000); });
+          priceDown.addEventListener("click", (e) => { e.stopPropagation(); decrementValue("price-min", 1000); });
+        } else if (input.id === "price-max") {
+          priceUp.addEventListener("click", (e) => { e.stopPropagation(); incrementValue("price-max", 1000); });
+          priceDown.addEventListener("click", (e) => { e.stopPropagation(); decrementValue("price-max", 1000); });
+        }
+      }
+    });
+
+    // Form submission
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
       const formElements = formContainer.querySelectorAll("input, select, textarea, button");
-      formElements.forEach(el => {
-        el.disabled = true;
-      });
+      formElements.forEach(el => { el.disabled = true; });
       const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach(el => {
-        el.classList.add("disabled");
-      });
+      customControls.forEach(el => { el.classList.add("disabled"); });
       const submitButton = formContainer.querySelector("button[type='submit']");
       submitButton.textContent = "Processing...";
 
@@ -1214,9 +1227,7 @@ const PropertySearchExtension = {
       const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
 
       let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value, 10);
-      if (isNaN(roomsNumber)) {
-        roomsNumber = 0;
-      }
+      if (isNaN(roomsNumber)) { roomsNumber = 0; }
       roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
 
       const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
