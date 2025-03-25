@@ -5256,7 +5256,7 @@ const CombinedCalculatorsExtension = {
 				mortgageContainer.id = 'mortgage-calculator-modal-content';
 				calculatorContainer.appendChild(mortgageContainer);
 				MortgageCalculatorExtension.render({
-					trace: { payload: { language, propertyCost: 300000 } },
+					trace: { payload: { language, propertyCost} },
 					element: mortgageContainer
 				});
 			}
