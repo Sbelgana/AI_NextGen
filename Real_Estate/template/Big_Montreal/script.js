@@ -265,6 +265,7 @@ const SharedCities = {
  * 8) Custom Price Input Controls
  *************************************************************/
 
+// Increment price values - define ONCE globally
 function incrementValue(id, step) {
   const input = document.getElementById(id);
   let currentValue;
@@ -322,6 +323,7 @@ function decrementValue(id, step) {
     document.getElementById("price-max").min = newValue;
   }
 }
+
 /*************************************************************
  * 9) Airtable Formula Generation
  *************************************************************/
