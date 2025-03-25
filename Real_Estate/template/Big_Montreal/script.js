@@ -503,7 +503,7 @@ const SVG_MESSAGE = `
 const PropertySearchExtension = {
   name: "PropertySearch",
   type: "response",
-  match: ({ trace }) => trace.type === "ext_property_search",
+  match: ({ trace }) => trace.type === "ext_property_search" || trace.payload?.name === "ext_property_search",
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
