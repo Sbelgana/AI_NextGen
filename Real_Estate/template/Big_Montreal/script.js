@@ -4022,7 +4022,7 @@ const BookingExtension = {
             calTrigger.style.display = 'none';
             
             // Add name and email as URL parameters
-            const calLinkWithParams = `${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+            const calLinkWithParams = `${link}/${namespace}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
             
             calTrigger.setAttribute('data-cal-link', calLinkWithParams);
             calTrigger.setAttribute('data-cal-namespace', namespace);
