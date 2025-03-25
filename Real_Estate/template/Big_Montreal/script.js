@@ -1510,7 +1510,8 @@ const PropertySearchExtension = {
 const SellingExtension = {
   name: "Forms",
   type: "response",
-  match: ({ trace }) => trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+  match: ({ trace }) =>
+    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
   render: ({ trace, element }) => {
     /*************************************************************
      * 1) Language Setup
@@ -1519,11 +1520,23 @@ const SellingExtension = {
     const isEnglish = language === "en";
 
     /*************************************************************
-     * 2) GROUP COLLAPSE FOR PROPERTY CATEGORY
+     * 2) Helper: Close all other dropdowns
      *************************************************************/
-    // We scope queries inside formContainer (see below)
+    function closeAllOtherDropdowns(currentSelectBtn) {
+      // find all .select-btn inside our form
+      const allSelectBtns = formContainer.querySelectorAll(".select-btn");
+      allSelectBtns.forEach((btn) => {
+        // if not the current button, close it
+        if (btn !== currentSelectBtn) {
+          btn.classList.remove("open");
+        }
+      });
+    }
+
+    /*************************************************************
+     * 3) Group Collapse for property categories
+     *************************************************************/
     function toggleCollapse(element, container) {
-      // Query only within our extension's form
       const groups = container.querySelectorAll(".group");
       groups.forEach((group) => {
         const header = group.querySelector(".group-header");
@@ -1550,16 +1563,15 @@ const SellingExtension = {
     }
 
     /*************************************************************
-     * 3) SECTION TOGGLE FOR .section-card
+     * 4) Section Toggle for .section-card
      *************************************************************/
-    // Replaces the old window.toggleSection; queries inside formContainer
     function toggleSection(sectionId, container) {
       const section = container.querySelector(`#${sectionId}`);
       const sectionParent = section.closest(".section");
       const collapseIcon = sectionParent.querySelector(".collapse-icon");
       const wasExpanded = section.classList.contains("expanded");
 
-      // Close all sections inside the container
+      // close all sections in container
       const allSections = container.querySelectorAll(".collapsible-section");
       const allIcons = container.querySelectorAll(".collapse-icon");
       const allSectionParents = container.querySelectorAll(".section");
@@ -1568,7 +1580,7 @@ const SellingExtension = {
       allIcons.forEach((icon) => icon.classList.remove("active"));
       allSectionParents.forEach((parent) => parent.classList.remove("active"));
 
-      // Only expand if it wasn't already
+      // only expand if not already
       if (!wasExpanded) {
         section.classList.add("expanded");
         collapseIcon.classList.add("active");
@@ -1577,9 +1589,8 @@ const SellingExtension = {
     }
 
     /*************************************************************
-     * 4) Build the "grouped" HTML for property category
+     * 5) Build grouped HTML for property category
      *************************************************************/
-    // Example: building categories from global data
     const propertyCategories = Object.fromEntries(
       Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
         label,
@@ -1621,12 +1632,12 @@ const SellingExtension = {
     }
 
     /*************************************************************
-     * 5) Build the Form
+     * 6) Build the Form
      *************************************************************/
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
       <style>
-           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
               form {
                   display: flex;
                   flex-direction: column;
@@ -2326,14 +2337,14 @@ button:disabled {
       </button>
     `;
 
-    // Show/hide #garage-cars when "Garage?" is checked
+    // Show/hide #garage-cars
     formContainer.querySelector("#garage").addEventListener("change", (event) => {
       const carsField = formContainer.querySelector("#garage-cars");
       carsField.style.display = event.target.checked ? "inline-block" : "none";
       if (!event.target.checked) carsField.value = "";
     });
 
-    // Insert the grouped property-category HTML
+    // Insert property-category HTML
     const categoryListEl = formContainer.querySelector("#property-category-grouped");
     categoryListEl.innerHTML = buildGroupedCategoryHTML();
 
@@ -2342,20 +2353,32 @@ button:disabled {
     sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
 
     /*************************************************************
-     * 6) Single-selection dropdown logic
+     * 7) Single-select dropdown logic (closing others + scroll)
      *************************************************************/
-    function setupDropdown(dropdownId, hiddenInputId) {
+    function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
+      const listEl = dropdownContainer.querySelector(".list-items");
       const btnText = selectBtn.querySelector(".btn-text");
       const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+      const listItems = listEl.querySelectorAll(".item");
 
-      const listItems = dropdownContainer.querySelectorAll(".list-items .item");
-
-      // Open/close on selectBtn click
       selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        // 1) Close any other open dropdowns
+        closeAllOtherDropdowns(selectBtn);
+
+        // 2) Toggle open/close
         selectBtn.classList.toggle("open");
+
+        // 3) If opening, scroll to the first item
+        if (selectBtn.classList.contains("open")) {
+          const firstItem = listEl.firstElementChild;
+          if (firstItem) {
+            firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
       });
 
       // Single-select
@@ -2371,7 +2394,7 @@ button:disabled {
         });
       });
 
-      // close if user clicks outside
+      // Close if user clicks outside
       document.addEventListener("click", (e) => {
         if (!dropdownContainer.contains(e.target)) {
           selectBtn.classList.remove("open");
@@ -2379,19 +2402,34 @@ button:disabled {
       });
     }
 
-    // Setup the 3 dropdowns
-    setupDropdown("dropdown-property-category", "property-category");
-    setupDropdown("dropdown-house-type", "house-type");
-    setupDropdown("dropdown-seller", "seller-name");
+    // Helper to close other dropdowns
+    function closeAllOtherDropdowns(currentSelectBtn) {
+      const allSelectBtns = formContainer.querySelectorAll(".select-btn");
+      allSelectBtns.forEach((btn) => {
+        if (btn !== currentSelectBtn) {
+          btn.classList.remove("open");
+        }
+      });
+    }
+
+    // Setup your single-select dropdowns
+    setupDropdownSingle("dropdown-property-category", "property-category");
+    setupDropdownSingle("dropdown-house-type", "house-type");
+    setupDropdownSingle("dropdown-seller", "seller-name");
 
     /*************************************************************
-     * 7) Multi-select dropdown logic (if needed)
+     * 8) Group collapse (click .group-header)
      *************************************************************/
-    // If you have multi-select categories, you can do similarly to your property search extension
-    // or just single select. This is optional.
+    const groupHeaders = formContainer.querySelectorAll(".group-header");
+    groupHeaders.forEach((header) => {
+      header.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleCollapse(header, formContainer);
+      });
+    });
 
     /*************************************************************
-     * 8) Section Cards - attach event listeners
+     * 9) Section toggles (click .section-card)
      *************************************************************/
     const sectionCards = formContainer.querySelectorAll(".section-card");
     sectionCards.forEach((card) => {
@@ -2402,17 +2440,8 @@ button:disabled {
       });
     });
 
-    // Also attach click to group headers for property categories
-    const groupHeaders = formContainer.querySelectorAll(".group-header");
-    groupHeaders.forEach((header) => {
-      header.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleCollapse(header, formContainer);
-      });
-    });
-
     /*************************************************************
-     * 9) Form Submission
+     * 10) Form Submission
      *************************************************************/
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -2427,7 +2456,7 @@ button:disabled {
       const submitBtn = formContainer.querySelector('button[type="submit"]');
       submitBtn.textContent = "Processing...";
 
-      // gather your form data
+      // Gather values
       const fullName = formContainer.querySelector("#full-name").value.trim();
       const email = (formContainer.querySelector("#email")?.value || "").trim();
       const phone = formContainer.querySelector("#phone").value.trim();
@@ -2443,6 +2472,7 @@ button:disabled {
       let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10) || 0;
       let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10) || 0;
       let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10) || 0;
+
       const garageChecked = formContainer.querySelector("#garage").checked;
       const insideParking = garageChecked ? "Yes" : "No";
       let insideParkingCars = 0;
@@ -2453,7 +2483,7 @@ button:disabled {
       const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked ? "Yes" : "No";
       const details = formContainer.querySelector("#details").value.trim() || "";
 
-      // build your payload
+      // build payload
       const seedPayload = {
         fullName: fullName || "John Doe",
         email: email || "johndoe@example.com",
@@ -2476,7 +2506,6 @@ button:disabled {
         details: details || "No additional details provided.",
       };
 
-      // For debugging
       alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
       console.log("Seed Payload:", seedPayload);
 
@@ -2487,10 +2516,11 @@ button:disabled {
       });
     });
 
-    // 10) Finally, attach the form to the extension element
+    // 11) Finally, attach form
     element.appendChild(formContainer);
   },
 };
+
 
 
 /************** EXTENSION #3: ContactExtension **************/
