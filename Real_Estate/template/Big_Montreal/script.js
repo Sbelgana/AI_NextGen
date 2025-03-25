@@ -2513,497 +2513,655 @@ button:disabled {
 
 /************** EXTENSION #3: ContactExtension **************/
 const ContactExtension = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
+  name: "Forms",
+  type: "response",
+  render: function ({ trace, element }) {
+    const language = trace.payload.language || 'en';
+    const isEnglish = (language === 'en');
 
-    render: ({ trace, element }) => {
-        const { language } = trace.payload;
-        const isEnglish = language === "en";
+    // 1) Create the form container
+    const formContainer = document.createElement("form");
+    formContainer.innerHTML = `
+      <style>
+        /* Basic styling */
+        form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+          background: #fff;
+          padding: 16px;
+          border-radius: 6px;
+        }
+        .flex-row {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .flex-row > div {
+          flex: 1;
+          min-width: 200px;
+        }
+        .bold-label {
+          font-weight: 600;
+          color: #000;
+          font-size: 14px;
+          margin-bottom: 4px;
+          display: block;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea {
+          width: 100%;
+          border: 1px solid rgba(0,0,0,0.2);
+          border-radius: 4px;
+          padding: 8px;
+          background: #fff;
+          font-size: 14px;
+          outline: none;
+          box-sizing: border-box;
+        }
+        #details {
+          resize: vertical;
+          min-height: 100px;
+          max-height: 200px;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        #details:focus {
+          border: 2px solid #9A0DF2;
+        }
+        .submit {
+          color: #9A0DF2;
+          background-color: #F5E7FE;
+          border: none;
+          padding: 12px;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+          margin-top: 8px;
+        }
+        .submit:hover {
+          color: #fff;
+          background-color: #9A0DF2;
+        }
+        .submit:disabled {
+          background-color: #ccc;
+          color: #666;
+          cursor: not-allowed;
+          font-weight: 700;
+        }
+        input:disabled,
+        select:disabled,
+        textarea:disabled,
+        button:disabled {
+          cursor: not-allowed;
+        }
+        .disabled {
+          pointer-events: none;
+          opacity: 0.5;
+        }
 
-        // Create the form container
-        const formContainer = document.createElement("form");
+        /* Section / Accordion Styles */
+        .section {
+          border: 1px solid #eee;
+          border-radius: 6px;
+          margin-bottom: 0;
+          overflow: hidden;
+          background: #fff;
+        }
+        .section-card {
+          padding: 10px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          border-radius: 6px;
+        }
+        .section.active {
+          border-color: #9A0DF2;
+          box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+        }
+        .section:hover {
+          border-color: #9A0DF2;
+          box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+        }
+        .section-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .section-icon {
+          background-color: #F5E7FE;
+          color: #9A0DF2;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .section-title {
+          font-weight: 700;
+          font-size: 14px;
+          color: #444;
+        }
+        .collapse-icon {
+          color: #9A0DF2;
+          font-size: 13px;
+          transition: transform 0.3s;
+          background: #f4eafb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          margin-right: 0px;
+        }
+        .collapse-icon.active {
+          transform: rotate(-180deg);
+        }
+        .collapsible-section {
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.3s ease-out;
+        }
+        .collapsible-section.expanded {
+          max-height: 1000px;
+        }
+        .section-content {
+          padding: 20px;
+          background: #fefefe;
+          border-top: 1px solid #eee;
+        }
 
-        // Insert the style from the property search extension (adjusted for single-select dropdowns)
-        formContainer.innerHTML = `
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        /* Dropdown Styles */
+        .dropdown-container {
+          position: relative;
+          max-width: 100%;
+        }
+        .select-btn {
+          display: flex;
+          height: 40px;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          background-color: #fff;
+          border: 1px solid rgba(0,0,0,0.2);
+        }
+        .select-btn .btn-text {
+          font-size: 13px;
+          font-weight: 400;
+          color: #555;
+        }
+        .select-btn .arrow-dwn {
+          display: flex;
+          height: 24px;
+          width: 24px;
+          color: #9A0DF2;
+          font-size: 12px;
+          border-radius: 50%;
+          background: #F5E7FE;
+          align-items: center;
+          justify-content: center;
+          transition: 0.3s;
+        }
+        .select-btn.open .arrow-dwn {
+          transform: rotate(-180deg);
+        }
+        .select-btn:focus,
+        .select-btn.open {
+          border: 2px solid #9A0DF2;
+          outline: none;
+        }
+        .list-items {
+          position: relative;
+          top: 100%;
+          left: 0;
+          right: 0;
+          margin-top: 4px;
+          border-radius: 6px;
+          padding: 8px 0;
+          background-color: #fff;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+          display: none;
+          max-height: 200px;
+          overflow-y: auto;
+          z-index: 100;
+        }
+        .select-btn.open + .list-items {
+          display: block;
+        }
+        .list-items.single-select .item .checkbox {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          margin-right: 8px;
+          border: 1.5px solid #c0c0c0;
+          transition: all 0.3s ease-in-out;
+        }
+        .list-items .item {
+          display: flex;
+          align-items: center;
+          height: 36px;
+          cursor: pointer;
+          transition: 0.3s;
+          padding: 0 12px;
+          border-radius: 4px;
+        }
+        .list-items .item:hover {
+          background-color: #F5E7FE;
+        }
+        .item .item-text {
+          font-size: 13px;
+          font-weight: 400;
+          color: #333;
+          margin-left: 8px;
+        }
+        .item.checked .checkbox {
+          background-color: #9A0DF2;
+          border: 2px solid #9A0DF2;
+        }
+        .checkbox .check-icon {
+          color: #fff;
+          font-size: 10px;
+          transform: scale(0);
+          transition: all 0.2s ease-in-out;
+        }
+        .item.checked .check-icon {
+          transform: scale(1);
+        }
+      </style>
 
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    width: 100%;
-                    max-width: 920px;
-                    margin: 0 auto;
-                    background: transparent;
-                    padding: 16px;
-                    border-radius: 8px;
-                }
-
-                .flex-row {
-                    display: flex;
-                    gap: 16px;
-                    flex-wrap: wrap;
-                }
-                .flex-row > div {
-                    flex: 1;
-                    min-width: 250px;
-                }
-
-                .bold-label {
-                    font-weight: 600;
-                    color: #000;
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                    display: block;
-                }
-
-                input[type="text"],
-                input[type="email"],
-                input[type="tel"],
-                textarea {
-                    width: 100%;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    padding: 8px;
-                    background: #fff;
-                    font-size: 13px;
-                    outline: none;
-                    box-sizing: border-box;
-                }
-
-                #details {
-                    width: 100%;
-                    resize: vertical;
-                    min-height: 100px;
-                    max-height: 200px;
-                    padding: 8px;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    font-size: 13px;
-                    box-sizing: border-box;
-                }
-
-                input[type="text"]:focus,
-                input[type="email"]:focus,
-                input[type="tel"]:focus,
-                #details:focus {
-                    border: 2px solid #9c27b0;
-                }
-
-                .submit {
-                    color: #9c27b0;
-                    background-color: #F8EAFA;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    margin-top: 8px;
-                }
-
-                .submit:hover {
-                    color: #fff;
-                    background-color: #9c27b0;
-		    font-weight: 700;
-                }
-
-                /* Dropdown container & styling (single-select from property search extension) */
-                .dropdown-container {
-                    position: relative;
-                    max-width: 100%;
-                }
-                .select-btn {
-                    display: flex;
-                    height: 40px;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    background-color: #fff;
-                    border: 1px solid rgba(0,0,0,0.2);
-                }
-                .select-btn .btn-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #555;
-                }
-                .select-btn .arrow-dwn {
-                    display: flex;
-                    height: 24px;
-                    width: 24px;
-                    color: #9c27b0;
-                    font-size: 12px;
-                    border-radius: 50%;
-                    background: #F8EAFA;
-                    align-items: center;
-                    justify-content: center;
-                    transition: 0.3s;
-                }
-                .select-btn.open .arrow-dwn {
-                    transform: rotate(-180deg);
-                }
-                .select-btn:focus,
-                .select-btn.open {
-                    border: 2px solid #9c27b0;
-                    outline: none;
-                }
-                .list-items {
-                    position: relative;
-                    top: 100%;
-                    left: 0;
-                    right: 0;
-                    margin-top: 4px;
-                    border-radius: 8px;
-                    padding: 8px 0;
-                    background-color: #fff;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-                    display: none;
-                    max-height: 200px;
-                    overflow-y: auto;
-                }
-                .select-btn.open ~ .list-items {
-                    display: block;
-                }
-                .list-items .item {
-                    display: flex;
-                    align-items: center;
-                    height: 36px;
-                    cursor: pointer;
-                    transition: 0.3s;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                }
-                .list-items .item:hover {
-                    background-color: #F8EAFA;
-                }
-                .item .item-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #333;
-                    margin-left: 8px;
-                }
-
-                /* Circle radio for single-select dropdowns */
-                .list-items.single-select .item .checkbox {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 16px;
-                    width: 16px;
-                    border-radius: 50%;
-                    margin-right: 8px;
-                    border: 1.5px solid #c0c0c0;
-                    transition: all 0.3s ease-in-out;
-                }
-                .item.checked .checkbox {
-                    background-color: #9c27b0;
-                    border: 2px solid #9c27b0;
-                }
-                .checkbox .check-icon {
-                    color: #fff;
-                    font-size: 12px;
-                    transform: scale(0);
-                    transition: all 0.2s ease-in-out;
-                }
-                .item.checked .check-icon {
-                    transform: scale(1);
-                }
-            </style>
-
-            <!-- Contact Form Fields -->
-            <div class="flex-row">
-                <!-- Full Name -->
-                <div>
-                    <label for="full-name" class="bold-label">
-                        ${isEnglish ? 'Full Name' : 'Nom complet'}
-                    </label>
-                    <input
-                        type="text"
-                        id="full-name"
-                        name="full-name"
-                        placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
-                        required
-                    />
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="email" class="bold-label">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
-                        required
-                    />
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label for="phone" class="bold-label">
-                        ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
-                    </label>
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}"
-                        required
-                    />
-                </div>
+      <!-- First Row: Contact Info + Service & Seller -->
+      <div class="flex-row">
+        <!-- Section 1: Contact Information -->
+        <div class="section">
+          <div class="section-card" data-target="section-contactInfo">
+            <div class="section-info">
+              <!-- Replacing fa-user with your SVG_USER -->
+              <div class="section-icon">
+                ${SVG_USER}
+              </div>
+              <div class="section-title">${isEnglish ? "Contact Information" : "Informations de contact"}</div>
             </div>
-
-            <div class="flex-row">
-                <!-- Service Dropdown (Single-Select) -->
-                <div>
-                    <label for="dropdown-service" class="bold-label">
-                        ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
-                    </label>
-                    <div class="dropdown-container" id="dropdown-service">
-                        <div class="select-btn" tabindex="0">
-                            <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
-                            <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                        </div>
-                        <!-- The single-select list -->
-                        <ul class="list-items single-select" id="serviceList"></ul>
-                    </div>
-                    <!-- Hidden input to store the actual service value -->
-                    <input type="hidden" id="service" name="service" required />
-                </div>
-
-                <!-- Seller (Broker) Dropdown (Single-Select) -->
-                <div>
-                    <label for="dropdown-seller" class="bold-label">
-                        ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-                    </label>
-                    <div class="dropdown-container" id="dropdown-seller">
-                        <div class="select-btn" tabindex="0">
-                            <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                            <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                        </div>
-                        <ul class="list-items single-select" id="sellerList"></ul>
-                    </div>
-                    <!-- Hidden input to store the actual seller value -->
-                    <input type="hidden" id="seller-name" name="seller-name" required />
-                </div>
+            <div class="collapse-icon">
+              <!-- Replacing fa-chevron-down with SVG_CHEVRON -->
+              ${SVG_CHEVRON}
             </div>
-
-            <!-- Message -->
-            <div>
-                <label for="details" class="bold-label">
-                    ${isEnglish ? 'Message' : 'Message'}
-                </label>
-                <textarea
-                    id="details"
-                    name="details"
-                    placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}"
+          </div>
+          <div class="collapsible-section" id="section-contactInfo">
+            <div class="section-content">
+              <div class="flex-row">
+                <div>
+                  <label for="full-name" class="bold-label">
+                    ${isEnglish ? 'Full Name' : 'Nom complet'}
+                  </label>
+                  <input
+                    type="text"
+                    id="full-name"
+                    name="full-name"
+                    placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
                     required
-                ></textarea>
+                  />
+                </div>
+                <div>
+                  <label for="email" class="bold-label">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
+                    required
+                  />
+                </div>
+                <div>
+                  <label for="phone" class="bold-label">
+                    ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}"
+                    required
+                  />
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <input
-                type="submit"
-                class="submit"
-                value="${isEnglish ? 'Submit' : 'Envoyer'}"
-            />
-        `;
+        <!-- Section 2: Service & Seller -->
+        <div class="section">
+          <div class="section-card" data-target="section-serviceSeller">
+            <div class="section-info">
+              <!-- Replacing fa-briefcase with your SVG_BRIEFCASE -->
+              <div class="section-icon">
+                ${SVG_BRIEFCASE}
+              </div>
+              <div class="section-title">${isEnglish ? "Service & Seller" : "Service et vendeur"}</div>
+            </div>
+            <div class="collapse-icon">
+              ${SVG_CHEVRON}
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-serviceSeller">
+            <div class="section-content">
+              <div class="flex-row">
+                <!-- Service Dropdown -->
+                <div>
+                  <label for="dropdown-service" class="bold-label">
+                    ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-service">
+                    <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
+                      <span class="arrow-dwn">
+                        ${SVG_CHEVRON}
+                      </span>
+                    </div>
+                    <ul class="list-items single-select" id="serviceList"></ul>
+                  </div>
+                  <input type="hidden" id="service" name="service" required />
+                </div>
 
-        // Attach to DOM
-        element.appendChild(formContainer);
+                <!-- Seller Dropdown -->
+                <div>
+                  <label for="dropdown-seller" class="bold-label">
+                    ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-seller">
+                    <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                      <span class="arrow-dwn">
+                        ${SVG_CHEVRON}
+                      </span>
+                    </div>
+                    <ul class="list-items single-select" id="sellerList"></ul>
+                  </div>
+                  <input type="hidden" id="seller-name" name="seller-name" required />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        /*************************************************************
-         * 2a) Build Single-Select Items for Service & Seller
-         *************************************************************/
-        const serviceListEl = formContainer.querySelector("#serviceList");
-        const sellerListEl = formContainer.querySelector("#sellerList");
+      <!-- Second Row: Message Section -->
+      <div class="section">
+        <div class="section-card" data-target="section-message">
+          <div class="section-info">
+            <!-- Replacing fa-message with your SVG_MESSAGE -->
+            <div class="section-icon">
+              ${SVG_MESSAGE}
+            </div>
+            <div class="section-title">${isEnglish ? "Message" : "Message"}</div>
+          </div>
+          <div class="collapse-icon">
+            ${SVG_CHEVRON}
+          </div>
+        </div>
+        <div class="collapsible-section" id="section-message">
+          <div class="section-content">
+            <label for="details" class="bold-label">
+              ${isEnglish ? 'Message' : 'Message'}
+            </label>
+            <textarea
+              id="details"
+              name="details"
+              placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}"
+              required
+            ></textarea>
+          </div>
+        </div>
+      </div>
 
-        // 1) We get an array of { label, value } for services
-        const serviceArray = getServiceList(language); // e.g. [{ label: "Sell", value: "Ventes" }, ...]
-        serviceArray.forEach((item) => {
-            const li = document.createElement("li");
-            li.classList.add("item");
-            li.innerHTML = `
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
-                <span class="item-text" data-value="${item.value}">${item.label}</span>
-            `;
-            serviceListEl.appendChild(li);
-        });
+      <button type="submit" class="submit">${isEnglish ? 'Submit' : 'Envoyer'}</button>
+    `;
 
-        // 2) We get an array of sellers as strings (removing "No Preference" if we want)
-        const sellerArray = getSellerList(true); // or false if you want to exclude "No Preference"
-        sellerArray.forEach((seller) => {
-            const li = document.createElement("li");
-            li.classList.add("item");
-            li.innerHTML = `
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
-                <span class="item-text" data-value="${seller}">${seller}</span>
-            `;
-            sellerListEl.appendChild(li);
-        });
+    // 2) Append the form to the element
+    element.appendChild(formContainer);
 
-        /*************************************************************
-         * 2b) Single-Select Setup
-         *************************************************************/
-       function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
-  // 1) Grab references
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  // If you want to find the list by a specific ID, use it; otherwise fall back to .list-items
-  const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+    /*************************************************************
+     * 3) Data population for dropdowns
+     *************************************************************/
+    const serviceListEl = formContainer.querySelector("#serviceList");
+    const sellerListEl = formContainer.querySelector("#sellerList");
 
-  // If you need to set default text on load:
-  if (defaultText) {
-    btnText.innerText = defaultText;
-  }
-
-  // 2) Gather the dropdown items
-  const listItems = listEl.querySelectorAll(".item");
-
-  // 3) Toggle open/close on click
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
+    // Assume getServiceList(language) returns an array of { value, label }
+    const services = getServiceList(language);
+    services.forEach(item => {
+      const li = document.createElement("li");
+      li.classList.add("item");
+      li.innerHTML = `
+        <span class="checkbox">
+          <!-- Replacing fa-check with SVG_CHECK -->
+          ${SVG_CHECK}
+        </span>
+        <span class="item-text" data-value="${item.value}">${item.label}</span>
+      `;
+      serviceListEl.appendChild(li);
     });
 
-    // Toggle the current dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
-
-  // 4) When selecting an item...
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // Uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // Check the clicked item
-      item.classList.add("checked");
-
-      // Update the button text and hidden input value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = labelText;
-      hiddenInput.value = value;
-
-      // Close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
+    // Assume getSellerList(isEnglish2, true) returns an array of seller strings
+    const isEnglish2 = (language === 'en');
+    const sellers = getSellerList(isEnglish2, true);
+    sellers.forEach(seller => {
+      const li = document.createElement("li");
+      li.classList.add("item");
+      li.innerHTML = `
+        <span class="checkbox">
+          ${SVG_CHECK}
+        </span>
+        <span class="item-text" data-value="${seller}">${seller}</span>
+      `;
+      sellerListEl.appendChild(li);
     });
-  });
 
-  // 5) Close dropdown if user clicks anywhere else
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
+    /*************************************************************
+     * 4) Single-select dropdown logic
+     *    - close other dropdowns
+     *    - scroll to first item on open
+     *************************************************************/
+    function closeAllOtherDropdowns(currentBtn) {
+      const allSelectBtns = formContainer.querySelectorAll(".select-btn");
+      allSelectBtns.forEach(btn => {
+        if (btn !== currentBtn) {
+          btn.classList.remove("open");
+        }
+      });
     }
-  });
-}
 
-        // Setup single-select for service
-        setupDropdownSingle(
-            "dropdown-service",
-            "serviceList",
-            "service",
-            isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --"
-        );
+    function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+      const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+      const selectBtn = dropdownContainer.querySelector(".select-btn");
+      const listEl = dropdownContainer.querySelector(".list-items");
+      const btnText = selectBtn.querySelector(".btn-text");
+      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+      const listItems = listEl.querySelectorAll(".item");
 
-        // Setup single-select for seller
-        setupDropdownSingle(
-            "dropdown-seller",
-            "sellerList",
-            "seller-name",
-            isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-        );
+      if (defaultText) btnText.innerText = defaultText;
 
-        /*************************************************************
-         * 2c) Handle Form Submission
-         *************************************************************/
-        formContainer.addEventListener("submit", (event) => {
-            event.preventDefault();
+      selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // close other dropdowns
+        closeAllOtherDropdowns(selectBtn);
+        // toggle
+        selectBtn.classList.toggle("open");
+        // scroll to first item if opening
+        if (selectBtn.classList.contains("open") && listEl.firstElementChild) {
+          listEl.firstElementChild.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
 
-            const fullName = formContainer.querySelector("#full-name").value.trim();
-            const email = formContainer.querySelector("#email").value.trim();
-            const phone = formContainer.querySelector("#phone").value.trim();
-            const formattedPhone = formatPhoneNumber(phone);
-            const service = formContainer.querySelector("#service").value.trim();
-            const sellerName = formContainer.querySelector("#seller-name").value.trim();
-            const details = formContainer.querySelector("#details").value.trim();
+      listItems.forEach(liItem => {
+        liItem.addEventListener("click", (e) => {
+          e.stopPropagation();
+          listItems.forEach(i => i.classList.remove("checked"));
+          liItem.classList.add("checked");
 
-            // Basic validations
-            if (!fullName) {
-                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-                return;
-            }
-            if (!email || !isValidEmail(email)) {
-                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-                return;
-            }
-            if (!phone || !isValidCanadianPhoneNumber(phone)) {
-                alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
-                return;
-            }
-            if (!service) {
-                alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
-                return;
-            }
-            if (!sellerName) {
-                alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-                return;
-            }
-            if (!details) {
-                alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
-                return;
-            }
+          const labelText = liItem.querySelector(".item-text").innerText;
+          const value = liItem.querySelector(".item-text").getAttribute("data-value");
 
-            // Disable the submit button after successful validation
-            const submitBtn = formContainer.querySelector('input[type="submit"]');
-            submitBtn.disabled = true;
+          btnText.innerText = labelText;
+          hiddenInput.value = value;
 
-            // Simulate sending the data to Voiceflow
-            window.voiceflow.chat.interact({
-                type: "complete",
-                payload: {
-                    fullName,
-                    email,
-                    phone: formattedPhone,
-                    service,
-                    sellerName,
-                    message: details,
-                },
-            });
+          selectBtn.classList.remove("open");
         });
-    },
+      });
+
+      // close if user clicks outside
+      document.addEventListener("click", (e) => {
+        if (!dropdownContainer.contains(e.target)) {
+          selectBtn.classList.remove("open");
+        }
+      });
+    }
+
+    setupDropdownSingle(
+      "dropdown-service",
+      "serviceList",
+      "service",
+      isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --"
+    );
+    setupDropdownSingle(
+      "dropdown-seller",
+      "sellerList",
+      "seller-name",
+      isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
+    );
+
+    /*************************************************************
+     * 5) Accordion/Section logic (like SellingExtension)
+     *************************************************************/
+    function closeAllOtherSections(currentId) {
+      const allSections = formContainer.querySelectorAll(".collapsible-section");
+      allSections.forEach(sec => {
+        if (sec.id !== currentId) {
+          sec.classList.remove("expanded");
+          const card = sec.previousElementSibling;
+          card.classList.remove("active");
+          const icon = card.querySelector(".collapse-icon");
+          if (icon) icon.classList.remove("active");
+        }
+      });
+    }
+
+    function toggleSection(sectionId) {
+      const section = formContainer.querySelector(`#${sectionId}`);
+      if (!section) return;
+
+      const parentSection = section.previousElementSibling;
+      const icon = parentSection.querySelector(".collapse-icon");
+
+      const wasExpanded = section.classList.contains("expanded");
+      // close others
+      closeAllOtherSections(sectionId);
+
+      if (!wasExpanded) {
+        section.classList.add("expanded");
+        parentSection.classList.add("active");
+        if (icon) icon.classList.add("active");
+      } else {
+        // if already expanded, just close it
+        section.classList.remove("expanded");
+        parentSection.classList.remove("active");
+        if (icon) icon.classList.remove("active");
+      }
+    }
+
+    // Attach a click to each .section-card
+    const sectionCards = formContainer.querySelectorAll(".section-card");
+    sectionCards.forEach(card => {
+      const targetId = card.getAttribute("data-target");
+      card.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleSection(targetId);
+      });
+    });
+
+    /*************************************************************
+     * 6) Form Submission
+     *************************************************************/
+    formContainer.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const fullName = formContainer.querySelector("#full-name").value.trim();
+      const email = formContainer.querySelector("#email").value.trim();
+      const phone = formContainer.querySelector("#phone").value.trim();
+      const service = formContainer.querySelector("#service").value.trim();
+      const sellerName = formContainer.querySelector("#seller-name").value.trim();
+      const details = formContainer.querySelector("#details").value.trim();
+
+      // Minimal validation example
+      if (!fullName) {
+        alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+        return;
+      }
+      if (!isValidEmail(email)) {
+        alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+        return;
+      }
+      if (!isValidCanadianPhoneNumber(phone)) {
+        alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
+        return;
+      }
+      if (!service) {
+        alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
+        return;
+      }
+      if (!sellerName) {
+        alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+        return;
+      }
+      if (!details) {
+        alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
+        return;
+      }
+
+      // Disable entire form
+      const formEls = formContainer.querySelectorAll("input, select, textarea, button");
+      formEls.forEach(el => (el.disabled = true));
+
+      // Also disable custom dropdown controls
+      const customControls = formContainer.querySelectorAll(".select-btn");
+      customControls.forEach(el => el.classList.add("disabled"));
+
+      // Update the submit button text
+      const submitBtn = formContainer.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = isEnglish ? "Processing..." : "En cours...";
+      }
+
+      // Send data to Voiceflow (or your backend)
+      window.voiceflow.chat.interact({
+        type: "complete",
+        payload: {
+          fullName,
+          email,
+          phone,
+          service,
+          sellerName,
+          message: details,
+        },
+      });
+    });
+  },
 };
+
 
 const RescheduleExtension = {
   name: "Forms",
