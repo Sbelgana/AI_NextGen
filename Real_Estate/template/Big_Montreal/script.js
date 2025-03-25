@@ -2513,11 +2513,14 @@ button:disabled {
 
 /************** EXTENSION #3: ContactExtension **************/
 const ContactExtension = {
-  name: "Forms",
-  type: "response",
-  render: function ({ trace, element }) {
-    const language = trace.payload.language || 'en';
-    const isEnglish = (language === 'en');
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
+
+    render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
 
     // 1) Create the form container
     const formContainer = document.createElement("form");
