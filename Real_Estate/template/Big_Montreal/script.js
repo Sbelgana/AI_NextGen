@@ -503,15 +503,16 @@ const SVG_MESSAGE = `
 const PropertySearchExtension = {
   name: "PropertySearch",
   type: "response",
-  match: ({ trace }) => trace.type === "ext_property_search" || trace.payload?.name === "ext_property_search",
+  match: ({ trace }) =>
+    trace.type === "ext_property_search" || trace.payload?.name === "ext_property_search",
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
 
     // Toggle collapse for dropdown groups
-    window.toggleCollapse = function(element) {
+    window.toggleCollapse = function (element) {
       const groups = document.querySelectorAll(".group");
-      groups.forEach(group => {
+      groups.forEach((group) => {
         const header = group.querySelector(".group-header");
         const options = group.querySelector(".group-options");
         if (header !== element) {
@@ -519,7 +520,7 @@ const PropertySearchExtension = {
           options.style.display = "none";
         }
       });
-      
+
       const groupOptions = element.nextElementSibling;
       if (groupOptions.style.display === "block") {
         groupOptions.style.display = "none";
@@ -556,7 +557,7 @@ const PropertySearchExtension = {
       submitBtn: isEnglish ? "Search Properties" : "Rechercher",
     };
 
-    // Prepare dropdown data (unchanged)
+    // Prepare dropdown data
     const Cities = Object.fromEntries(
       Object.entries(CityMappings[language]).map(([label, sharedKey]) => [
         label,
@@ -582,17 +583,19 @@ const PropertySearchExtension = {
     const CarOptions = Options.Car[language];
     const HouseTypeList = SharedPropertyTypes[language];
 
-    // Build city, category, type HTML (replacing Font Awesome <i> with our SVG constants)
+    // Build city, category, type HTML
     function buildGroupedCityHTML(cityData) {
       return Object.entries(cityData)
         .map(([areaName, cityList]) => {
           const itemsHTML = cityList
-            .map(city => `
+            .map(
+              (city) => `
                 <li class="item">
                   <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${city}">${city}</span>
                 </li>
-              `)
+              `
+            )
             .join("");
           return `
                 <li class="group">
@@ -603,7 +606,9 @@ const PropertySearchExtension = {
                     <ul class="group-options">
                         <li class="item select-all">
                             <span class="checkbox">${SVG_CHECK}</span>
-                            <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
+                            <span class="item-text">${
+                              isEnglish ? "Select All" : "Tout sélectionner"
+                            }</span>
                         </li>
                         ${itemsHTML}
                     </ul>
@@ -617,12 +622,14 @@ const PropertySearchExtension = {
       return Object.entries(categoryData)
         .map(([groupName, catList]) => {
           const itemsHTML = catList
-            .map(cat => `
+            .map(
+              (cat) => `
                 <li class="item">
                   <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
-              `)
+              `
+            )
             .join("");
           return `
                 <li class="group">
@@ -633,7 +640,9 @@ const PropertySearchExtension = {
                     <ul class="group-options">
                         <li class="item select-all">
                             <span class="checkbox">${SVG_CHECK}</span>
-                            <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
+                            <span class="item-text">${
+                              isEnglish ? "Select All" : "Tout sélectionner"
+                            }</span>
                         </li>
                         ${itemsHTML}
                     </ul>
@@ -650,12 +659,14 @@ const PropertySearchExtension = {
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
-              .map(type => `
+              .map(
+                (type) => `
                   <li class="item">
                       <span class="checkbox">${SVG_CHECK}</span>
                       <span class="item-text" data-value="${type}">${type}</span>
                   </li>
-                `)
+                `
+              )
               .join("")}
           `;
     }
@@ -665,7 +676,7 @@ const PropertySearchExtension = {
     formContainer.innerHTML = `
       <!-- The entire form HTML (styles + sections) -->
       <style>
-        /* same CSS as your snippet */
+        /* (Same CSS from your snippet) */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
         form {
             display: flex;
@@ -799,12 +810,8 @@ const PropertySearchExtension = {
             border: 1.5px solid #c0c0c0;
             transition: all 0.3s ease-in-out;
         }
-        .list-items.multi-select .item .checkbox {
-            border-radius: 2px;
-        }
-        .list-items.single-select .item .checkbox {
-            border-radius: 50%;
-        }
+        .list-items.multi-select .item .checkbox { border-radius: 2px; }
+        .list-items.single-select .item .checkbox { border-radius: 50%; }
         .item.checked .checkbox {
             background-color: #9A0DF2;
             border: 2px solid #9A0DF2;
@@ -826,9 +833,7 @@ const PropertySearchExtension = {
             border-radius: 4px;
             overflow: hidden;
         }
-        .group:first-child {
-            border-top: none;
-        }
+        .group:first-child { border-top: none; }
         .group-header {
             font-weight: 500;
             padding: 8px 12px;
@@ -880,9 +885,7 @@ const PropertySearchExtension = {
             -webkit-appearance: none;
             margin: 0;
         }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"] { -moz-appearance: textfield; }
         .price-controls {
             position: absolute;
             right: 0;
@@ -1010,10 +1013,11 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-location-category">
             <div class="section-info">
-              <!-- Replacing fa-map-marker-alt with SVG_ADDRESS -->
               <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
+                <div class="section-title">${
+                  isEnglish ? "Location & Category" : "Emplacement & Catégorie"
+                }</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1033,7 +1037,9 @@ const PropertySearchExtension = {
                 </div>
                 <input type="hidden" id="cityValues" />
                 <div>
-                  <label for="property-category" class="bold-label">${texts.categoryLabel}</label>
+                  <label for="property-category" class="bold-label">${
+                    texts.categoryLabel
+                  }</label>
                   <div class="dropdown-container" id="dropdown-property-category">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.categoryDefault}</span>
@@ -1044,7 +1050,9 @@ const PropertySearchExtension = {
                 </div>
                 <input type="hidden" id="propertyCategoryValues" />
                 <div>
-                  <label for="property-type" class="bold-label">${texts.typeLabel}</label>
+                  <label for="property-type" class="bold-label">${
+                    texts.typeLabel
+                  }</label>
                   <div class="dropdown-container" id="dropdown-property-type">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.typeDefault}</span>
@@ -1063,7 +1071,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-budget">
             <div class="section-info">
-              <!-- Replacing fa-dollar-sign with SVG_DOLLAR -->
               <div class="section-icon">${SVG_DOLLAR}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Budget" : "Budget"}</div>
@@ -1077,7 +1084,9 @@ const PropertySearchExtension = {
                 <div>
                   <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
                   <div class="price-wrapper">
-                    <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
+                    <input type="number" id="price-min" placeholder="${
+                      texts.priceMinPlaceholder
+                    }" step="1000" min="0" />
                     <div class="price-controls">
                       <div class="price-up" data-input="price-min" data-step="1000">▲</div>
                       <div class="price-down" data-input="price-min" data-step="1000">▼</div>
@@ -1087,7 +1096,9 @@ const PropertySearchExtension = {
                 <div>
                   <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
                   <div class="price-wrapper">
-                    <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
+                    <input type="number" id="price-max" placeholder="${
+                      texts.priceMaxPlaceholder
+                    }" step="1000" min="0" />
                     <div class="price-controls">
                       <div class="price-up" data-input="price-max" data-step="1000">▲</div>
                       <div class="price-down" data-input="price-max" data-step="1000">▼</div>
@@ -1106,10 +1117,11 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-specifications">
             <div class="section-info">
-              <!-- Replacing fa-list with SVG_LIST -->
               <div class="section-icon">${SVG_LIST}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Property Specifications" : "Spécifications"}</div>
+                <div class="section-title">${
+                  isEnglish ? "Property Specifications" : "Spécifications"
+                }</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1125,49 +1137,58 @@ const PropertySearchExtension = {
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      <!-- Inserted via build functions -->
-                      ${RoomOptions.map(opt => `
+                      ${RoomOptions.map(
+                        (opt) => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      `).join('')}
+                      `
+                      ).join("")}
                     </ul>
                   </div>
                   <input type="hidden" id="rooms-number" name="rooms-number" required>
                 </div>
                 <div>
-                  <label class="bold-label" for="bedrooms-number">${texts.bedroomsLabel}</label>
+                  <label class="bold-label" for="bedrooms-number">${
+                    texts.bedroomsLabel
+                  }</label>
                   <div class="dropdown-container" id="dropdown-bedrooms-number">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.optionDefault}</span>
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      ${BedroomOptions.map(opt => `
+                      ${BedroomOptions.map(
+                        (opt) => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      `).join('')}
+                      `
+                      ).join("")}
                     </ul>
                   </div>
                   <input type="hidden" id="bedrooms-number" name="bedrooms-number" required>
                 </div>
                 <div>
-                  <label class="bold-label" for="bathrooms-number">${texts.bathroomsLabel}</label>
+                  <label class="bold-label" for="bathrooms-number">${
+                    texts.bathroomsLabel
+                  }</label>
                   <div class="dropdown-container" id="dropdown-bathrooms-number">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.optionDefault}</span>
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      ${BathroomOptions.map(opt => `
+                      ${BathroomOptions.map(
+                        (opt) => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      `).join('')}
+                      `
+                      ).join("")}
                     </ul>
                   </div>
                   <input type="hidden" id="bathrooms-number" name="bathrooms-number" required>
@@ -1181,7 +1202,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-amenities">
             <div class="section-info">
-              <!-- Replacing fa-sliders-h with SVG_SLIDER -->
               <div class="section-icon">${SVG_SLIDER}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
@@ -1205,12 +1225,14 @@ const PropertySearchExtension = {
                         <span class="arrow-dwn">${SVG_CHEVRON}</span>
                       </div>
                       <ul class="list-items single-select">
-                        ${CarOptions.map(opt => `
+                        ${CarOptions.map(
+                          (opt) => `
                           <li class="item">
                             <span class="checkbox">${SVG_CHECK}</span>
                             <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                           </li>
-                        `).join('')}
+                        `
+                        ).join("")}
                       </ul>
                     </div>
                     <input type="hidden" id="cars-number" name="cars-number">
@@ -1230,7 +1252,12 @@ const PropertySearchExtension = {
       <button type="submit" class="submit">${texts.submitBtn}</button>
     `;
 
-    // 1) Populate the dropdowns
+    // Insert the form into the DOM
+    element.appendChild(formContainer);
+
+    /*******************************************************
+     * 1) Populate the multi-select dropdowns
+     *******************************************************/
     const cityListEl = formContainer.querySelector("#cityList");
     const categoryListEl = formContainer.querySelector("#propertyCategoryList");
     const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
@@ -1239,42 +1266,35 @@ const PropertySearchExtension = {
     categoryListEl.innerHTML = buildGroupedCategoryHTML(propertyCategories);
     propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
 
-    // 2) Accordion toggle function
-    function toggleSection(sectionId) {
-      const section = formContainer.querySelector(`#${sectionId}`);
-      const parentSection = section.parentElement;
-      const card = parentSection.querySelector('.section-card');
-      const collapseIcon = card.querySelector('.collapse-icon');
-      const wasExpanded = section.classList.contains('expanded');
-
-      formContainer.querySelectorAll('.collapsible-section').forEach(sec => sec.classList.remove('expanded'));
-      formContainer.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
-
-      if (!wasExpanded) {
-        section.classList.add('expanded');
-        card.classList.add('active');
-      }
-    }
-
-    // Attach event listeners to section cards
-    formContainer.querySelectorAll('.section-card').forEach(card => {
-      const targetId = card.getAttribute('data-target');
-      card.addEventListener('click', () => {
-        toggleSection(targetId);
-      });
-    });
-
-    // 3) Multi-select dropdown
     function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
       const container = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = container.querySelector(".select-btn");
       const listEl = container.querySelector(".list-items");
       const btnText = selectBtn.querySelector(".btn-text");
       const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+      const items = formContainer.querySelectorAll(`${listSelector} .item`);
 
       selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        // Close all other dropdowns first
+        formContainer.querySelectorAll(".dropdown-container").forEach((other) => {
+          if (other !== container) {
+            const otherBtn = other.querySelector(".select-btn");
+            if (otherBtn) otherBtn.classList.remove("open");
+            const otherList = other.querySelector(".list-items");
+            if (otherList) otherList.style.display = "none";
+          }
+        });
+
+        // Toggle this dropdown
         selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+
+        // **Scroll to top** if open and there are items
+        if (selectBtn.classList.contains("open") && items.length > 0) {
+          items[0].scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
 
       function updateSelectAllState(groupEl) {
@@ -1282,33 +1302,37 @@ const PropertySearchExtension = {
         const selectAllItem = groupEl.querySelector(".item.select-all");
         if (!selectAllItem) return;
         const groupItems = groupEl.querySelectorAll(".item:not(.select-all)");
-        const allChecked = Array.from(groupItems).every(item => item.classList.contains("checked"));
+        const allChecked = Array.from(groupItems).every((it) => it.classList.contains("checked"));
         if (allChecked) selectAllItem.classList.add("checked");
         else selectAllItem.classList.remove("checked");
       }
 
-      formContainer.querySelectorAll(`${listSelector} .item`).forEach(item => {
+      items.forEach((item) => {
         item.addEventListener("click", (e) => {
           e.stopPropagation();
           if (item.classList.contains("select-all")) {
             const groupOptions = item.parentElement;
             const groupItems = groupOptions.querySelectorAll(".item:not(.select-all)");
-            const allSelected = Array.from(groupItems).every(i => i.classList.contains("checked"));
+            const allSelected = Array.from(groupItems).every((i) => i.classList.contains("checked"));
             item.classList.toggle("checked");
             const newState = item.classList.contains("checked");
-            groupItems.forEach(ci => {
-              if (newState) ci.classList.add("checked");
-              else ci.classList.remove("checked");
+            groupItems.forEach((ci) => {
+              newState ? ci.classList.add("checked") : ci.classList.remove("checked");
             });
           } else {
             item.classList.toggle("checked");
             const groupOptions = item.closest(".group-options") || listEl;
             updateSelectAllState(groupOptions);
           }
-          const checkedItems = formContainer.querySelectorAll(`${listSelector} .item:not(.select-all).checked`);
+
+          const checkedItems = formContainer.querySelectorAll(
+            `${listSelector} .item:not(.select-all).checked`
+          );
           const count = checkedItems.length;
           btnText.innerText = count > 0 ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}` : defaultText;
-          const values = Array.from(checkedItems).map(ci => ci.querySelector(".item-text").getAttribute("data-value"));
+          const values = Array.from(checkedItems).map((ci) =>
+            ci.querySelector(".item-text").getAttribute("data-value")
+          );
           hiddenInput.value = values.join(",");
         });
       });
@@ -1316,15 +1340,19 @@ const PropertySearchExtension = {
       document.addEventListener("click", (e) => {
         if (!container.contains(e.target)) {
           selectBtn.classList.remove("open");
+          listEl.style.display = "none";
         }
       });
     }
 
+    // Initialize multi-select
     setupMultiSelect("dropdown-city", "#cityList", "cityValues", texts.cityDefault);
     setupMultiSelect("dropdown-property-category", "#propertyCategoryList", "propertyCategoryValues", texts.categoryDefault);
     setupMultiSelect("dropdown-property-type", "#propertyTypeList", "propertyTypeValues", texts.typeDefault);
 
-    // 4) Single-select dropdown
+    /*******************************************************
+     * 2) Single-select dropdown setup
+     *******************************************************/
     function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
@@ -1335,35 +1363,58 @@ const PropertySearchExtension = {
 
       selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        // Close all other dropdowns
+        formContainer.querySelectorAll(".dropdown-container").forEach((other) => {
+          if (other !== dropdownContainer) {
+            const otherBtn = other.querySelector(".select-btn");
+            if (otherBtn) otherBtn.classList.remove("open");
+            const otherList = other.querySelector(".list-items");
+            if (otherList) otherList.style.display = "none";
+          }
+        });
+
+        // Toggle
         selectBtn.classList.toggle("open");
+        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+
+        // **Scroll to top** if open and we have items
+        if (selectBtn.classList.contains("open") && listItems.length > 0) {
+          listItems[0].scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
 
-      listItems.forEach(item => {
+      listItems.forEach((item) => {
         item.addEventListener("click", (e) => {
           e.stopPropagation();
-          listItems.forEach(i => i.classList.remove("checked"));
+          listItems.forEach((i) => i.classList.remove("checked"));
           item.classList.add("checked");
           const labelText = item.querySelector(".item-text").innerText;
           const value = item.querySelector(".item-text").getAttribute("data-value");
           btnText.innerText = labelText;
           hiddenInput.value = value;
           selectBtn.classList.remove("open");
+          listEl.style.display = "none";
         });
       });
 
       document.addEventListener("click", (e) => {
         if (!dropdownContainer.contains(e.target)) {
           selectBtn.classList.remove("open");
+          listEl.style.display = "none";
         }
       });
     }
 
+    // Initialize single-select for rooms, bedrooms, bathrooms, cars
     setupDropdownSingle("dropdown-rooms-number", "rooms-number");
     setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
     setupDropdownSingle("dropdown-bathrooms-number", "bathrooms-number");
     setupDropdownSingle("dropdown-cars-number", "cars-number");
 
-    // Toggle car dropdown based on garage checkbox
+    /*******************************************************
+     * 3) Toggle car dropdown based on garage checkbox
+     *******************************************************/
     const garageCheckbox = formContainer.querySelector("#garage");
     const carsContainer = formContainer.querySelector("#cars-container");
     garageCheckbox.addEventListener("change", function () {
@@ -1373,26 +1424,31 @@ const PropertySearchExtension = {
         carsContainer.style.display = "none";
         formContainer.querySelector("#cars-number").value = "";
         formContainer.querySelector("#dropdown-cars-number .btn-text").innerText = texts.optionDefault;
-        formContainer.querySelectorAll("#dropdown-cars-number .item").forEach(item => {
+        formContainer.querySelectorAll("#dropdown-cars-number .item").forEach((item) => {
           item.classList.remove("checked");
         });
       }
     });
 
-    // 5) Price controls
-    formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
-      button.addEventListener('click', function() {
-        const inputId = this.getAttribute('data-input');
-        const step = parseInt(this.getAttribute('data-step'), 10);
-        
-        if (this.classList.contains('price-up')) {
+    /*******************************************************
+     * 4) Price controls
+     *******************************************************/
+    formContainer.querySelectorAll(".price-up, .price-down").forEach((button) => {
+      button.addEventListener("click", function () {
+        const inputId = this.getAttribute("data-input");
+        const step = parseInt(this.getAttribute("data-step"), 10);
+
+        if (this.classList.contains("price-up")) {
           const input = formContainer.querySelector(`#${inputId}`);
           if (!input) return;
           let currentValue;
 
           if (inputId === "price-max") {
             if (input.value === "") {
-              const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+              const priceMin = parseInt(
+                formContainer.querySelector("#price-min").value,
+                10
+              ) || 0;
               currentValue = Math.max(1000, priceMin);
             } else {
               currentValue = parseInt(input.value, 10);
@@ -1403,7 +1459,10 @@ const PropertySearchExtension = {
           let newValue = currentValue + step;
 
           if (inputId === "price-min") {
-            const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
+            const priceMax = parseInt(
+              formContainer.querySelector("#price-max").value,
+              10
+            ) || 0;
             if (priceMax && newValue > priceMax) {
               newValue = priceMax;
             }
@@ -1418,12 +1477,16 @@ const PropertySearchExtension = {
             formContainer.querySelector("#price-min").max = newValue;
           }
         } else {
+          // Decrement
           const input = formContainer.querySelector(`#${inputId}`);
           if (!input) return;
           let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
 
           if (inputId === "price-max") {
-            const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+            const priceMin = parseInt(
+              formContainer.querySelector("#price-min").value,
+              10
+            ) || 0;
             let newValue = currentValue - step;
             if (newValue < priceMin) {
               newValue = priceMin;
@@ -1442,32 +1505,51 @@ const PropertySearchExtension = {
       });
     });
 
-    // 6) Form submission
+    /*******************************************************
+     * 5) Form submission
+     *******************************************************/
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
-      const formElements = formContainer.querySelectorAll("input, select, textarea, button");
-      formElements.forEach(el => { el.disabled = true; });
+      const formElements = formContainer.querySelectorAll(
+        "input, select, textarea, button"
+      );
+      formElements.forEach((el) => {
+        el.disabled = true;
+      });
       const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach(el => { el.classList.add("disabled"); });
+      customControls.forEach((el) => {
+        el.classList.add("disabled");
+      });
       const submitButton = formContainer.querySelector("button[type='submit']");
       submitButton.textContent = "Processing...";
 
       const cityValues = formContainer.querySelector("#cityValues").value.trim();
-      const propertyCategoryValues = formContainer.querySelector("#propertyCategoryValues").value.trim();
+      const propertyCategoryValues = formContainer
+        .querySelector("#propertyCategoryValues")
+        .value.trim();
       const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
 
       let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value, 10);
-      if (isNaN(roomsNumber)) { roomsNumber = 0; }
+      if (isNaN(roomsNumber)) {
+        roomsNumber = 0;
+      }
       roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
 
-      const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
-      const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+      const bedroomsNumber = parseInt(
+        formContainer.querySelector("#bedrooms-number").value || 0,
+        10
+      );
+      const bathroomsNumber = parseInt(
+        formContainer.querySelector("#bathrooms-number").value || 0,
+        10
+      );
       const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
       const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
       const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-      const indoorParkingCars = indoorParking === "Yes"
-        ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
-        : 0;
+      const indoorParkingCars =
+        indoorParking === "Yes"
+          ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+          : 0;
       const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
       const selectedCities = cityValues ? cityValues.split(",") : [];
@@ -1499,10 +1581,9 @@ const PropertySearchExtension = {
         payload: { formula: airtableFormula },
       });
     });
-
-    element.appendChild(formContainer);
   },
 };
+
 
 
 /************** EXTENSION #2: SellingExtension **************/
