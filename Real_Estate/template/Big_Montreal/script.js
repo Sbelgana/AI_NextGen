@@ -587,14 +587,14 @@ const PropertySearchExtension = {
       return Object.entries(cityData)
         .map(([areaName, cityList]) => {
           const itemsHTML = cityList
-            .map(city => 
+            .map(city => `
                 <li class="item">
                   <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${city}">${city}</span>
                 </li>
-              )
+              `)
             .join("");
-          return 
+          return `
                 <li class="group">
                     <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${areaName}
@@ -608,7 +608,7 @@ const PropertySearchExtension = {
                         ${itemsHTML}
                     </ul>
                 </li>
-              ;
+              `;
         })
         .join("");
     }
@@ -617,14 +617,14 @@ const PropertySearchExtension = {
       return Object.entries(categoryData)
         .map(([groupName, catList]) => {
           const itemsHTML = catList
-            .map(cat => 
+            .map(cat => `
                 <li class="item">
                   <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
-              )
+              `)
             .join("");
-          return 
+          return `
                 <li class="group">
                     <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${groupName}
@@ -638,31 +638,31 @@ const PropertySearchExtension = {
                         ${itemsHTML}
                     </ul>
                 </li>
-              ;
+              `;
         })
         .join("");
     }
 
     function buildPropertyTypeHTML(typeList) {
-      return 
+      return `
             <li class="item select-all">
                 <span class="checkbox">${SVG_CHECK}</span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
-              .map(type => 
+              .map(type => `
                   <li class="item">
                       <span class="checkbox">${SVG_CHECK}</span>
                       <span class="item-text" data-value="${type}">${type}</span>
                   </li>
-                )
+                `)
               .join("")}
-          ;
+          `;
     }
 
     // Create the form container
     const formContainer = document.createElement("form");
-    formContainer.innerHTML = 
+    formContainer.innerHTML = `
       <!-- The entire form HTML (styles + sections) -->
       <style>
         /* same CSS as your snippet */
@@ -1126,12 +1126,12 @@ const PropertySearchExtension = {
                     </div>
                     <ul class="list-items single-select">
                       <!-- Inserted via build functions -->
-                      ${RoomOptions.map(opt => 
+                      ${RoomOptions.map(opt => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      ).join('')}
+                      `).join('')}
                     </ul>
                   </div>
                   <input type="hidden" id="rooms-number" name="rooms-number" required>
@@ -1144,12 +1144,12 @@ const PropertySearchExtension = {
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      ${BedroomOptions.map(opt => 
+                      ${BedroomOptions.map(opt => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      ).join('')}
+                      `).join('')}
                     </ul>
                   </div>
                   <input type="hidden" id="bedrooms-number" name="bedrooms-number" required>
@@ -1162,12 +1162,12 @@ const PropertySearchExtension = {
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      ${BathroomOptions.map(opt => 
+                      ${BathroomOptions.map(opt => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
-                      ).join('')}
+                      `).join('')}
                     </ul>
                   </div>
                   <input type="hidden" id="bathrooms-number" name="bathrooms-number" required>
@@ -1205,12 +1205,12 @@ const PropertySearchExtension = {
                         <span class="arrow-dwn">${SVG_CHEVRON}</span>
                       </div>
                       <ul class="list-items single-select">
-                        ${CarOptions.map(opt => 
+                        ${CarOptions.map(opt => `
                           <li class="item">
                             <span class="checkbox">${SVG_CHECK}</span>
                             <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                           </li>
-                        ).join('')}
+                        `).join('')}
                       </ul>
                     </div>
                     <input type="hidden" id="cars-number" name="cars-number">
@@ -1228,7 +1228,7 @@ const PropertySearchExtension = {
 
       <!-- Submit Button -->
       <button type="submit" class="submit">${texts.submitBtn}</button>
-    ;
+    `;
 
     // 1) Populate the dropdowns
     const cityListEl = formContainer.querySelector("#cityList");
@@ -1241,7 +1241,7 @@ const PropertySearchExtension = {
 
     // 2) Accordion toggle function
     function toggleSection(sectionId) {
-      const section = formContainer.querySelector(#${sectionId});
+      const section = formContainer.querySelector(`#${sectionId}`);
       const parentSection = section.parentElement;
       const card = parentSection.querySelector('.section-card');
       const collapseIcon = card.querySelector('.collapse-icon');
@@ -1266,11 +1266,11 @@ const PropertySearchExtension = {
 
     // 3) Multi-select dropdown
     function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
-      const container = formContainer.querySelector(#${dropdownId});
+      const container = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = container.querySelector(".select-btn");
       const listEl = container.querySelector(".list-items");
       const btnText = selectBtn.querySelector(".btn-text");
-      const hiddenInput = formContainer.querySelector(#${hiddenInputId});
+      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
       selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1287,7 +1287,7 @@ const PropertySearchExtension = {
         else selectAllItem.classList.remove("checked");
       }
 
-      formContainer.querySelectorAll(${listSelector} .item).forEach(item => {
+      formContainer.querySelectorAll(`${listSelector} .item`).forEach(item => {
         item.addEventListener("click", (e) => {
           e.stopPropagation();
           if (item.classList.contains("select-all")) {
@@ -1305,9 +1305,9 @@ const PropertySearchExtension = {
             const groupOptions = item.closest(".group-options") || listEl;
             updateSelectAllState(groupOptions);
           }
-          const checkedItems = formContainer.querySelectorAll(${listSelector} .item:not(.select-all).checked);
+          const checkedItems = formContainer.querySelectorAll(`${listSelector} .item:not(.select-all).checked`);
           const count = checkedItems.length;
-          btnText.innerText = count > 0 ? ${count} ${isEnglish ? "Selected" : "Sélectionné"} : defaultText;
+          btnText.innerText = count > 0 ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}` : defaultText;
           const values = Array.from(checkedItems).map(ci => ci.querySelector(".item-text").getAttribute("data-value"));
           hiddenInput.value = values.join(",");
         });
@@ -1326,11 +1326,11 @@ const PropertySearchExtension = {
 
     // 4) Single-select dropdown
     function setupDropdownSingle(dropdownId, hiddenInputId) {
-      const dropdownContainer = formContainer.querySelector(#${dropdownId});
+      const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
       const listEl = dropdownContainer.querySelector(".list-items");
       const btnText = selectBtn.querySelector(".btn-text");
-      const hiddenInput = formContainer.querySelector(#${hiddenInputId});
+      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
       const listItems = listEl.querySelectorAll(".item");
 
       selectBtn.addEventListener("click", (e) => {
@@ -1386,7 +1386,7 @@ const PropertySearchExtension = {
         const step = parseInt(this.getAttribute('data-step'), 10);
         
         if (this.classList.contains('price-up')) {
-          const input = formContainer.querySelector(#${inputId});
+          const input = formContainer.querySelector(`#${inputId}`);
           if (!input) return;
           let currentValue;
 
@@ -1418,7 +1418,7 @@ const PropertySearchExtension = {
             formContainer.querySelector("#price-min").max = newValue;
           }
         } else {
-          const input = formContainer.querySelector(#${inputId});
+          const input = formContainer.querySelector(`#${inputId}`);
           if (!input) return;
           let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
 
@@ -1503,6 +1503,7 @@ const PropertySearchExtension = {
     element.appendChild(formContainer);
   },
 };
+
 
 /************** EXTENSION #2: SellingExtension **************/
 /************** EXTENSION #2: SellingExtension **************/
