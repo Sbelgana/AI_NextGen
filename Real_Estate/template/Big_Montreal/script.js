@@ -3933,9 +3933,9 @@ const BookingExtension = {
   selectBtn.classList.toggle("open");
   listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
 
-  // **Scroll to top when opened**
-  if (selectBtn.classList.contains("open")) {
-    listEl.scrollTop = 0;
+  // \u2B50 Scroll the first item into view
+  if (selectBtn.classList.contains("open") && listItems.length > 0) {
+    listItems[0].scrollIntoView({ behavior: "smooth", block: "start" });
   }
 });
 
