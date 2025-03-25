@@ -265,13 +265,10 @@ const SharedCities = {
  * 8) Custom Price Input Controls
  *************************************************************/
 
-// Increment price values - define ONCE globally
 function incrementValue(id, step) {
   const input = document.getElementById(id);
   let currentValue;
-  
   if (id === "price-max") {
-    // If empty, start from the greater of 1000 or the minimum price
     if (input.value === "") {
       const priceMin = parseInt(document.getElementById("price-min").value, 10) || 0;
       currentValue = Math.max(1000, priceMin);
@@ -281,9 +278,7 @@ function incrementValue(id, step) {
   } else {
     currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
   }
-  
   let newValue = currentValue + step;
-  
   if (id === "price-min") {
     const priceMax = parseInt(document.getElementById("price-max").value, 10) || 0;
     if (priceMax && newValue > priceMax) {
@@ -301,11 +296,9 @@ function incrementValue(id, step) {
   }
 }
 
-// Decrement price values - define ONCE globally
 function decrementValue(id, step) {
   const input = document.getElementById(id);
   let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-  
   if (id === "price-max") {
     const priceMin = parseInt(document.getElementById("price-min").value, 10) || 0;
     let newValue = currentValue - step;
@@ -323,7 +316,6 @@ function decrementValue(id, step) {
     document.getElementById("price-max").min = newValue;
   }
 }
-
 /*************************************************************
  * 9) Airtable Formula Generation
  *************************************************************/
