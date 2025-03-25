@@ -1237,20 +1237,73 @@ window.toggleCollapse = function(element) {
     // -------------------------------
     //  5) Price controls
     // -------------------------------
-    formContainer.querySelectorAll('.price-wrapper').forEach(wrapper => {
-      const input = wrapper.querySelector('input[type="number"]');
-      const priceUp = wrapper.querySelector('.price-up');
-      const priceDown = wrapper.querySelector('.price-down');
-      if (input && priceUp && priceDown) {
-        if (input.id === "price-min") {
-          priceUp.addEventListener("click", (e) => { e.stopPropagation(); incrementValue("price-min", 1000); });
-          priceDown.addEventListener("click", (e) => { e.stopPropagation(); decrementValue("price-min", 1000); });
-        } else if (input.id === "price-max") {
-          priceUp.addEventListener("click", (e) => { e.stopPropagation(); incrementValue("price-max", 1000); });
-          priceDown.addEventListener("click", (e) => { e.stopPropagation(); decrementValue("price-max", 1000); });
+    formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
+    button.addEventListener('click', function() {
+        const inputId = this.getAttribute('data-input');
+        const step = parseInt(this.getAttribute('data-step'), 10);
+        
+        // Call the appropriate function based on button class
+        if (this.classList.contains('price-up')) {
+            // Define increment function locally
+            const input = formContainer.querySelector(`#${inputId}`);
+            if (!input) return;
+            
+            let currentValue;
+            
+            if (inputId === "price-max") {
+                if (input.value === "") {
+                    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+                    currentValue = Math.max(1000, priceMin);
+                } else {
+                    currentValue = parseInt(input.value, 10);
+                }
+            } else {
+                currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+            }
+            
+            let newValue = currentValue + step;
+            
+            if (inputId === "price-min") {
+                const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
+                if (priceMax && newValue > priceMax) {
+                    newValue = priceMax;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-max").min = newValue;
+            } else if (inputId === "price-max") {
+                const minVal = parseInt(input.min, 10) || 0;
+                if (newValue < minVal) {
+                    newValue = minVal;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-min").max = newValue;
+            }
+        } else {
+            // Define decrement function locally
+            const input = formContainer.querySelector(`#${inputId}`);
+            if (!input) return;
+            
+            let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+            
+            if (inputId === "price-max") {
+                const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+                let newValue = currentValue - step;
+                if (newValue < priceMin) {
+                    newValue = priceMin;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-min").max = newValue;
+            } else if (inputId === "price-min") {
+                let newValue = currentValue - step;
+                if (newValue < 0) {
+                    newValue = 0;
+                }
+                input.value = newValue;
+                formContainer.querySelector("#price-max").min = newValue;
+            }
         }
-      }
     });
+});
 
     // -------------------------------
     //  6) Form submission
