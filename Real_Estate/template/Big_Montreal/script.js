@@ -399,6 +399,107 @@ function generateAirtableFormula(input) {
  *************************************************************/
 
 /************** EXTENSION #1: PropertySearchExtension **************/
+const SVG_DOLLAR = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-355 -250  1024 1024">
+  <path fill="#9a0df2" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
+</svg>
+`;
+
+const SVG_LIST = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-250 -250  1024 1024">
+  <path fill="#9a0df2" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
+</svg>
+`;
+
+const SVG_SLIDER = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-250 -250  1024 1024">
+  <path fill="#9a0df2" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
+</svg>
+`;
+
+const SVG_ADDRESS = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-300 -250  1024 1024">
+  <path fill="#9a0df2" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+</svg>
+`;
+
+const SVG_CHEVRON = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-135 -100  800 800">
+  <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+</svg>
+`;
+
+const SVG_CHECK = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-200 -150  800 800">
+  <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8
+    0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+</svg>
+`;
+
+const SVG_HOUSE = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+  <path fill="#9a0df2" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0
+    c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32
+    14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0
+    -112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7
+    12 15 11 24z"/>
+</svg>
+`;
+
+const SVG_USER = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+  <path fill="#9a0df2" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7
+    13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+</svg>
+`;
+
+const SVG_USER_TIE = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+  <path fill="#9a0df2" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2
+    -8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0
+    0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6
+    -31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
+</svg>
+`;
+
+const SVG_BUILDING_COLUMNS = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#9a0df2" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3
+    0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0
+    196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1
+    -28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0
+    0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+</svg>
+`;
+
+const SVG_NOTE_STICK = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+  <path fill="#9a0df2" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0
+    0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64
+    28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
+</svg>
+`;
+
+const SVG_BRIEFCASE = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#9a0df2" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7
+    96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9
+    0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3
+    28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
+</svg>
+`;
+
+const SVG_MESSAGE = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8
+    14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
+</svg>
+`;
+
+/*************************************************************
+ * 2) EXTENSION CODE
+ *************************************************************/
+
 const PropertySearchExtension = {
   name: "PropertySearch",
   type: "response",
@@ -406,31 +507,33 @@ const PropertySearchExtension = {
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
-// Toggle collapse for dropdown groups
-window.toggleCollapse = function(element) {
-  const groups = document.querySelectorAll(".group");
-  groups.forEach(group => {
-    const header = group.querySelector(".group-header");
-    const options = group.querySelector(".group-options");
-    if (header !== element) {
-      header.classList.remove("active");
-      options.style.display = "none";
-    }
-  });
-  
-  const groupOptions = element.nextElementSibling;
-  if (groupOptions.style.display === "block") {
-    groupOptions.style.display = "none";
-    element.classList.remove("active");
-  } else {
-    groupOptions.style.display = "block";
-    element.classList.add("active");
-    const firstItem = groupOptions.firstElementChild;
-    if (firstItem) {
-      firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
-};
+
+    // Toggle collapse for dropdown groups
+    window.toggleCollapse = function(element) {
+      const groups = document.querySelectorAll(".group");
+      groups.forEach(group => {
+        const header = group.querySelector(".group-header");
+        const options = group.querySelector(".group-options");
+        if (header !== element) {
+          header.classList.remove("active");
+          options.style.display = "none";
+        }
+      });
+      
+      const groupOptions = element.nextElementSibling;
+      if (groupOptions.style.display === "block") {
+        groupOptions.style.display = "none";
+        element.classList.remove("active");
+      } else {
+        groupOptions.style.display = "block";
+        element.classList.add("active");
+        const firstItem = groupOptions.firstElementChild;
+        if (firstItem) {
+          firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+
     // Text labels
     const texts = {
       cityLabel: isEnglish ? "Select City" : "Sélectionnez la ville",
@@ -453,7 +556,7 @@ window.toggleCollapse = function(element) {
       submitBtn: isEnglish ? "Search Properties" : "Rechercher",
     };
 
-    // Prepare dropdown data
+    // Prepare dropdown data (unchanged)
     const Cities = Object.fromEntries(
       Object.entries(CityMappings[language]).map(([label, sharedKey]) => [
         label,
@@ -479,14 +582,14 @@ window.toggleCollapse = function(element) {
     const CarOptions = Options.Car[language];
     const HouseTypeList = SharedPropertyTypes[language];
 
-    // Build city, category, type HTML
+    // Build city, category, type HTML (replacing Font Awesome <i> with our SVG constants)
     function buildGroupedCityHTML(cityData) {
       return Object.entries(cityData)
         .map(([areaName, cityList]) => {
           const itemsHTML = cityList
             .map(city => `
                 <li class="item">
-                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                  <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `)
@@ -495,11 +598,11 @@ window.toggleCollapse = function(element) {
                 <li class="group">
                     <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${areaName}
-                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                        <span class="collapse-icon">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                            <span class="checkbox">${SVG_CHECK}</span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
@@ -516,7 +619,7 @@ window.toggleCollapse = function(element) {
           const itemsHTML = catList
             .map(cat => `
                 <li class="item">
-                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                  <span class="checkbox">${SVG_CHECK}</span>
                   <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `)
@@ -525,11 +628,11 @@ window.toggleCollapse = function(element) {
                 <li class="group">
                     <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
                         ${groupName}
-                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                        <span class="collapse-icon">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                            <span class="checkbox">${SVG_CHECK}</span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
@@ -543,13 +646,13 @@ window.toggleCollapse = function(element) {
     function buildPropertyTypeHTML(typeList) {
       return `
             <li class="item select-all">
-                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                <span class="checkbox">${SVG_CHECK}</span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
               .map(type => `
                   <li class="item">
-                      <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                      <span class="checkbox">${SVG_CHECK}</span>
                       <span class="item-text" data-value="${type}">${type}</span>
                   </li>
                 `)
@@ -560,9 +663,9 @@ window.toggleCollapse = function(element) {
     // Create the form container
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
-      <!-- The entire form HTML (styles + sections) goes here -->
+      <!-- The entire form HTML (styles + sections) -->
       <style>
-        /* (Same CSS as before) */
+        /* same CSS as your snippet */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
         form {
             display: flex;
@@ -612,7 +715,11 @@ window.toggleCollapse = function(element) {
             cursor: pointer;
             margin-top: 8px;
         }
-        .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
+        .submit:hover {
+            color: #fff;
+            background-color: #9A0DF2;
+            font-weight: 700;
+        }
         .dropdown-container { position: relative; max-width: 100%; }
         .select-btn {
             display: flex;
@@ -625,7 +732,11 @@ window.toggleCollapse = function(element) {
             background-color: #fff;
             border: 1px solid rgba(0,0,0,0.2);
         }
-        .select-btn .btn-text { font-size: 13px; font-weight: 400; color: #555; }
+        .select-btn .btn-text {
+            font-size: 13px;
+            font-weight: 400;
+            color: #555;
+        }
         .select-btn .arrow-dwn {
             display: flex;
             height: 24px;
@@ -639,7 +750,9 @@ window.toggleCollapse = function(element) {
             transition: 0.3s;
         }
         .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
-        .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
+        .select-btn:focus, .select-btn.open {
+            border: 2px solid #9A0DF2;
+        }
         .list-items {
             position: relative;
             top: 100%;
@@ -655,7 +768,9 @@ window.toggleCollapse = function(element) {
             z-index: 100;
             background-color: #fff;
         }
-        .select-btn.open + .list-items { display: block; }
+        .select-btn.open + .list-items {
+            display: block;
+        }
         .list-items .item {
             display: flex;
             align-items: center;
@@ -667,7 +782,12 @@ window.toggleCollapse = function(element) {
             margin: 4px;
         }
         .list-items .item:hover { background-color: #F5E7FE; }
-        .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
+        .item .item-text {
+            font-size: 13px;
+            font-weight: 400;
+            color: #333;
+            margin-left: 8px;
+        }
         .list-items.multi-select .item .checkbox,
         .list-items.single-select .item .checkbox {
             display: flex;
@@ -679,20 +799,36 @@ window.toggleCollapse = function(element) {
             border: 1.5px solid #c0c0c0;
             transition: all 0.3s ease-in-out;
         }
-        .list-items.multi-select .item .checkbox { border-radius: 2px; }
-        .list-items.single-select .item .checkbox { border-radius: 50%; }
-        .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
-        .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
-        .item.checked .check-icon { transform: scale(1); }
+        .list-items.multi-select .item .checkbox {
+            border-radius: 2px;
+        }
+        .list-items.single-select .item .checkbox {
+            border-radius: 50%;
+        }
+        .item.checked .checkbox {
+            background-color: #9A0DF2;
+            border: 2px solid #9A0DF2;
+        }
+        .checkbox .check-icon {
+            color: #fff;
+            font-size: 12px;
+            transform: scale(0);
+            transition: all 0.2s ease-in-out;
+        }
+        .item.checked .check-icon {
+            transform: scale(1);
+        }
         .group {
             border-top: 1px solid #eee;
-            margin-bottom: 10px; 
-            margin-left: 10px;  
-            margin-right: 10px; 
+            margin-bottom: 10px;
+            margin-left: 10px;
+            margin-right: 10px;
             border-radius: 4px;
             overflow: hidden;
         }
-        .group:first-child { border-top: none; }
+        .group:first-child {
+            border-top: none;
+        }
         .group-header {
             font-weight: 500;
             padding: 8px 12px;
@@ -711,19 +847,42 @@ window.toggleCollapse = function(element) {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;  
+            width: 24px;
             height: 24px;
             border-radius: 50%;
             margin-right: 8px;
         }
-        .group-header.active .collapse-icon { transform: rotate(-180deg); }
-        .group-options { display: none; padding-left: 0; }
-        .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
-        .price-wrapper { position: relative; width: 100%; }
+        .group-header.active .collapse-icon {
+            transform: rotate(-180deg);
+        }
+        .group-options {
+            display: none;
+            padding-left: 0;
+        }
+        .inline-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input[type="checkbox"] {
+            accent-color: #9A0DF2;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .price-wrapper {
+            position: relative;
+            width: 100%;
+        }
         input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
         .price-controls {
             position: absolute;
             right: 0;
@@ -746,8 +905,10 @@ window.toggleCollapse = function(element) {
             cursor: pointer;
             font-size: 8px;
         }
-        .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
-        /* Accordion / Section Styles */
+        .price-up:hover, .price-down:hover {
+            background-color: #9A0DF2;
+            color: #fff;
+        }
         .section {
             border: 1px solid #eee;
             border-radius: 6px;
@@ -849,14 +1010,13 @@ window.toggleCollapse = function(element) {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-location-category">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-map-marker-alt"></i></div>
+              <!-- Replacing fa-map-marker-alt with SVG_ADDRESS -->
+              <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
               </div>
             </div>
-            <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="collapse-icon">${SVG_CHEVRON}</div>
           </div>
           <div class="collapsible-section" id="section-location-category">
             <div class="section-content">
@@ -866,7 +1026,7 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-city">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.cityDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items multi-select" id="cityList"></ul>
                   </div>
@@ -877,7 +1037,7 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-property-category">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.categoryDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items multi-select" id="propertyCategoryList"></ul>
                   </div>
@@ -888,7 +1048,7 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-property-type">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.typeDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items multi-select" id="propertyTypeList"></ul>
                   </div>
@@ -898,18 +1058,18 @@ window.toggleCollapse = function(element) {
             </div>
           </div>
         </div>
+
         <!-- Budget -->
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-budget">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+              <!-- Replacing fa-dollar-sign with SVG_DOLLAR -->
+              <div class="section-icon">${SVG_DOLLAR}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Budget" : "Budget"}</div>
               </div>
             </div>
-            <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="collapse-icon">${SVG_CHEVRON}</div>
           </div>
           <div class="collapsible-section" id="section-budget">
             <div class="section-content">
@@ -920,7 +1080,7 @@ window.toggleCollapse = function(element) {
                     <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
                       <div class="price-up" data-input="price-min" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-min" data-step="1000">▼</div>
+                      <div class="price-down" data-input="price-min" data-step="1000">▼</div>
                     </div>
                   </div>
                 </div>
@@ -929,8 +1089,8 @@ window.toggleCollapse = function(element) {
                   <div class="price-wrapper">
                     <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
-                     <div class="price-up" data-input="price-max" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-max" data-step="1000">▼</div>
+                      <div class="price-up" data-input="price-max" data-step="1000">▲</div>
+                      <div class="price-down" data-input="price-max" data-step="1000">▼</div>
                     </div>
                   </div>
                 </div>
@@ -946,14 +1106,13 @@ window.toggleCollapse = function(element) {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-specifications">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-list"></i></div>
+              <!-- Replacing fa-list with SVG_LIST -->
+              <div class="section-icon">${SVG_LIST}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Property Specifications" : "Spécifications"}</div>
               </div>
             </div>
-            <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="collapse-icon">${SVG_CHEVRON}</div>
           </div>
           <div class="collapsible-section" id="section-specifications">
             <div class="section-content">
@@ -963,13 +1122,13 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-rooms-number">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.optionDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      <!-- Will be populated dynamically -->
+                      <!-- Inserted via build functions -->
                       ${RoomOptions.map(opt => `
                         <li class="item">
-                          <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                          <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
                       `).join('')}
@@ -982,12 +1141,12 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-bedrooms-number">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.optionDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
                       ${BedroomOptions.map(opt => `
                         <li class="item">
-                          <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                          <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
                       `).join('')}
@@ -1000,12 +1159,12 @@ window.toggleCollapse = function(element) {
                   <div class="dropdown-container" id="dropdown-bathrooms-number">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${texts.optionDefault}</span>
-                      <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
                       ${BathroomOptions.map(opt => `
                         <li class="item">
-                          <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                          <span class="checkbox">${SVG_CHECK}</span>
                           <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                         </li>
                       `).join('')}
@@ -1017,18 +1176,18 @@ window.toggleCollapse = function(element) {
             </div>
           </div>
         </div>
+
         <!-- Amenities -->
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-amenities">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-sliders-h"></i></div>
+              <!-- Replacing fa-sliders-h with SVG_SLIDER -->
+              <div class="section-icon">${SVG_SLIDER}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
               </div>
             </div>
-            <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
-            </div>
+            <div class="collapse-icon">${SVG_CHEVRON}</div>
           </div>
           <div class="collapsible-section" id="section-amenities">
             <div class="section-content">
@@ -1043,12 +1202,12 @@ window.toggleCollapse = function(element) {
                     <div class="dropdown-container" id="dropdown-cars-number">
                       <div class="select-btn" tabindex="0">
                         <span class="btn-text">${texts.optionDefault}</span>
-                        <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                        <span class="arrow-dwn">${SVG_CHEVRON}</span>
                       </div>
                       <ul class="list-items single-select">
                         ${CarOptions.map(opt => `
                           <li class="item">
-                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+                            <span class="checkbox">${SVG_CHECK}</span>
                             <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                           </li>
                         `).join('')}
@@ -1071,37 +1230,28 @@ window.toggleCollapse = function(element) {
       <button type="submit" class="submit">${texts.submitBtn}</button>
     `;
 
-    // -------------------------------
-    //  1) Populate the dropdowns
-    // -------------------------------
-    // Get references to the <ul> elements
+    // 1) Populate the dropdowns
     const cityListEl = formContainer.querySelector("#cityList");
     const categoryListEl = formContainer.querySelector("#propertyCategoryList");
     const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
 
-    // Insert the generated HTML
     cityListEl.innerHTML = buildGroupedCityHTML(Cities);
     categoryListEl.innerHTML = buildGroupedCategoryHTML(propertyCategories);
     propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
 
-    // -------------------------------
-    //  2) Accordion toggle function
-    // -------------------------------
+    // 2) Accordion toggle function
     function toggleSection(sectionId) {
       const section = formContainer.querySelector(`#${sectionId}`);
       const parentSection = section.parentElement;
       const card = parentSection.querySelector('.section-card');
-      const collapseIcon = card.querySelector('.collapse-icon i');
+      const collapseIcon = card.querySelector('.collapse-icon');
       const wasExpanded = section.classList.contains('expanded');
 
-      // Close all sections
       formContainer.querySelectorAll('.collapsible-section').forEach(sec => sec.classList.remove('expanded'));
-      formContainer.querySelectorAll('.collapse-icon i').forEach(icon => icon.classList.remove('active'));
       formContainer.querySelectorAll('.section-card').forEach(c => c.classList.remove('active'));
 
       if (!wasExpanded) {
         section.classList.add('expanded');
-        collapseIcon.classList.add('active');
         card.classList.add('active');
       }
     }
@@ -1114,9 +1264,7 @@ window.toggleCollapse = function(element) {
       });
     });
 
-    // -------------------------------
-    //  3) Multi-select dropdown setup
-    // -------------------------------
+    // 3) Multi-select dropdown
     function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
       const container = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = container.querySelector(".select-btn");
@@ -1135,7 +1283,8 @@ window.toggleCollapse = function(element) {
         if (!selectAllItem) return;
         const groupItems = groupEl.querySelectorAll(".item:not(.select-all)");
         const allChecked = Array.from(groupItems).every(item => item.classList.contains("checked"));
-        allChecked ? selectAllItem.classList.add("checked") : selectAllItem.classList.remove("checked");
+        if (allChecked) selectAllItem.classList.add("checked");
+        else selectAllItem.classList.remove("checked");
       }
 
       formContainer.querySelectorAll(`${listSelector} .item`).forEach(item => {
@@ -1148,14 +1297,14 @@ window.toggleCollapse = function(element) {
             item.classList.toggle("checked");
             const newState = item.classList.contains("checked");
             groupItems.forEach(ci => {
-              newState ? ci.classList.add("checked") : ci.classList.remove("checked");
+              if (newState) ci.classList.add("checked");
+              else ci.classList.remove("checked");
             });
           } else {
             item.classList.toggle("checked");
             const groupOptions = item.closest(".group-options") || listEl;
             updateSelectAllState(groupOptions);
           }
-
           const checkedItems = formContainer.querySelectorAll(`${listSelector} .item:not(.select-all).checked`);
           const count = checkedItems.length;
           btnText.innerText = count > 0 ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}` : defaultText;
@@ -1171,14 +1320,11 @@ window.toggleCollapse = function(element) {
       });
     }
 
-    // Setup multi-select for City, Category, and Property Type
     setupMultiSelect("dropdown-city", "#cityList", "cityValues", texts.cityDefault);
     setupMultiSelect("dropdown-property-category", "#propertyCategoryList", "propertyCategoryValues", texts.categoryDefault);
     setupMultiSelect("dropdown-property-type", "#propertyTypeList", "propertyTypeValues", texts.typeDefault);
 
-    // -------------------------------
-    //  4) Single-select dropdown setup
-    // -------------------------------
+    // 4) Single-select dropdown
     function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
@@ -1212,7 +1358,6 @@ window.toggleCollapse = function(element) {
       });
     }
 
-    // Setup single-select for rooms, bedrooms, bathrooms, cars
     setupDropdownSingle("dropdown-rooms-number", "rooms-number");
     setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
     setupDropdownSingle("dropdown-bathrooms-number", "bathrooms-number");
@@ -1234,80 +1379,70 @@ window.toggleCollapse = function(element) {
       }
     });
 
-    // -------------------------------
-    //  5) Price controls
-    // -------------------------------
+    // 5) Price controls
     formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
-    button.addEventListener('click', function() {
+      button.addEventListener('click', function() {
         const inputId = this.getAttribute('data-input');
         const step = parseInt(this.getAttribute('data-step'), 10);
         
-        // Call the appropriate function based on button class
         if (this.classList.contains('price-up')) {
-            // Define increment function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue;
-            
-            if (inputId === "price-max") {
-                if (input.value === "") {
-                    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                    currentValue = Math.max(1000, priceMin);
-                } else {
-                    currentValue = parseInt(input.value, 10);
-                }
-            } else {
-                currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            }
-            
-            let newValue = currentValue + step;
-            
-            if (inputId === "price-min") {
-                const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
-                if (priceMax && newValue > priceMax) {
-                    newValue = priceMax;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            } else if (inputId === "price-max") {
-                const minVal = parseInt(input.min, 10) || 0;
-                if (newValue < minVal) {
-                    newValue = minVal;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            }
-        } else {
-            // Define decrement function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            
-            if (inputId === "price-max") {
-                const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                let newValue = currentValue - step;
-                if (newValue < priceMin) {
-                    newValue = priceMin;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            } else if (inputId === "price-min") {
-                let newValue = currentValue - step;
-                if (newValue < 0) {
-                    newValue = 0;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            }
-        }
-    });
-});
+          const input = formContainer.querySelector(`#${inputId}`);
+          if (!input) return;
+          let currentValue;
 
-    // -------------------------------
-    //  6) Form submission
-    // -------------------------------
+          if (inputId === "price-max") {
+            if (input.value === "") {
+              const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+              currentValue = Math.max(1000, priceMin);
+            } else {
+              currentValue = parseInt(input.value, 10);
+            }
+          } else {
+            currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+          }
+          let newValue = currentValue + step;
+
+          if (inputId === "price-min") {
+            const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
+            if (priceMax && newValue > priceMax) {
+              newValue = priceMax;
+            }
+            input.value = newValue;
+            formContainer.querySelector("#price-max").min = newValue;
+          } else if (inputId === "price-max") {
+            const minVal = parseInt(input.min, 10) || 0;
+            if (newValue < minVal) {
+              newValue = minVal;
+            }
+            input.value = newValue;
+            formContainer.querySelector("#price-min").max = newValue;
+          }
+        } else {
+          const input = formContainer.querySelector(`#${inputId}`);
+          if (!input) return;
+          let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+
+          if (inputId === "price-max") {
+            const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+            let newValue = currentValue - step;
+            if (newValue < priceMin) {
+              newValue = priceMin;
+            }
+            input.value = newValue;
+            formContainer.querySelector("#price-min").max = newValue;
+          } else if (inputId === "price-min") {
+            let newValue = currentValue - step;
+            if (newValue < 0) {
+              newValue = 0;
+            }
+            input.value = newValue;
+            formContainer.querySelector("#price-max").min = newValue;
+          }
+        }
+      });
+    });
+
+    // 6) Form submission
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
       const formElements = formContainer.querySelectorAll("input, select, textarea, button");
@@ -1330,11 +1465,15 @@ window.toggleCollapse = function(element) {
       const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
       const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
       const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-      const indoorParkingCars = indoorParking === "Yes" ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10) : 0;
+      const indoorParkingCars = indoorParking === "Yes"
+        ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+        : 0;
       const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
       const selectedCities = cityValues ? cityValues.split(",") : [];
-      const selectedPropertyCategories = propertyCategoryValues ? propertyCategoryValues.split(",") : [];
+      const selectedPropertyCategories = propertyCategoryValues
+        ? propertyCategoryValues.split(",")
+        : [];
       const selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
 
       const payload = {
@@ -1361,10 +1500,10 @@ window.toggleCollapse = function(element) {
       });
     });
 
-    // Finally, append the form to the extension element
     element.appendChild(formContainer);
   },
 };
+
 
 /************** EXTENSION #2: SellingExtension **************/
 /************** EXTENSION #2: SellingExtension **************/
