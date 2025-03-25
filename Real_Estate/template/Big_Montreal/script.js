@@ -1958,7 +1958,9 @@ button:disabled {
               <!-- Replace fa-user with your SVG_USER -->
               <div class="section-icon">${SVG_USER}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
+                <div class="section-title">
+  ${isEnglish ? "Your Contact Details" : "Vos coordonnées"}
+</div>
               </div>
             </div>
             <div class="collapse-icon">
@@ -2012,7 +2014,9 @@ button:disabled {
               <!-- Replace fa-user-tie with your SVG_USER_TIE -->
               <div class="section-icon">${SVG_USER_TIE}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
+                <div class="section-title">
+  ${isEnglish ? "Seller Info" : "Informations du vendeur"}
+</div>
               </div>
             </div>
             <div class="collapse-icon">
@@ -2050,7 +2054,9 @@ button:disabled {
               <!-- Replace fa-home with your SVG_HOUSE, or your chosen icon for property category -->
               <div class="section-icon">${SVG_HOUSE}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
+                <div class="section-title">
+  ${isEnglish ? "Type of Property" : "Type de propriété"}
+</div>
               </div>
             </div>
             <div class="collapse-icon">
@@ -2114,7 +2120,9 @@ button:disabled {
               <!-- Replace fa-location-dot with your SVG_ADDRESS -->
               <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
+               <div class="section-title">
+  ${isEnglish ? "Property Location" : "Emplacement de la propriété"}
+</div>
               </div>
             </div>
             <div class="collapse-icon">
@@ -2173,8 +2181,8 @@ button:disabled {
               <div class="section-icon">${SVG_BUILDING_COLUMNS}</div>
               <div>
                 <div class="section-title">
-                  ${isEnglish ? "Basic Property Details" : "Détails de la propriété"}
-                </div>
+  ${isEnglish ? "Key Property Details" : "Détails clés de la propriété"}
+</div>
               </div>
             </div>
             <div class="collapse-icon">
@@ -2250,9 +2258,9 @@ button:disabled {
             <div class="section-info">
               <!-- Replace fa-sliders with your SVG_SLIDER -->
               <div class="section-icon">${SVG_SLIDER}</div>
-              <div>
-                <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
-              </div>
+              <div class="section-title">
+  ${isEnglish ? "Additional Features" : "Caractéristiques supplémentaires"}
+</div>
             </div>
             <div class="collapse-icon">
               ${SVG_CHEVRON}
@@ -2297,8 +2305,8 @@ button:disabled {
             <div class="section-icon">${SVG_NOTE_STICK}</div>
             <div>
               <div class="section-title">
-                ${isEnglish ? "Additional Details" : "Détails supplémentaires"}
-              </div>
+  ${isEnglish ? "Further Details" : "Informations supplémentaires"}
+</div>
             </div>
           </div>
           <div class="collapse-icon">
@@ -2779,7 +2787,9 @@ const ContactExtension = {
               <div class="section-icon">
                 ${SVG_USER}
               </div>
-              <div class="section-title">${isEnglish ? "Contact Information" : "Informations de contact"}</div>
+              <div class="section-title">
+  ${isEnglish ? "Your Contact Details" : "Vos coordonnées"}
+</div>
             </div>
             <div class="collapse-icon">
               <!-- Replacing fa-chevron-down with SVG_CHEVRON -->
