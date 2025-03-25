@@ -1510,8 +1510,7 @@ const PropertySearchExtension = {
 const SellingExtension = {
   name: "Forms",
   type: "response",
-  match: ({ trace }) =>
-    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+  match: ({ trace }) => trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
   render: ({ trace, element }) => {
     /*************************************************************
      * 1) Language Setup
@@ -1522,13 +1521,13 @@ const SellingExtension = {
     /*************************************************************
      * 2) GROUP COLLAPSE FOR PROPERTY CATEGORY
      *************************************************************/
-    // Same approach as in PropertySearchExtension
-    window.toggleCollapse = function (element) {
-      const groups = document.querySelectorAll(".group");
+    // We scope queries inside formContainer (see below)
+    function toggleCollapse(element, container) {
+      // Query only within our extension's form
+      const groups = container.querySelectorAll(".group");
       groups.forEach((group) => {
         const header = group.querySelector(".group-header");
         const options = group.querySelector(".group-options");
-        // close any group not the clicked one
         if (header !== element) {
           header.classList.remove("active");
           options.style.display = "none";
@@ -1546,34 +1545,30 @@ const SellingExtension = {
         const firstItem = groupOptions.firstElementChild;
         if (firstItem) {
           firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          groupOptions.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
-    };
+    }
 
     /*************************************************************
      * 3) SECTION TOGGLE FOR .section-card
      *************************************************************/
-    // Replaces the old window.toggleSection
-    function toggleSection(sectionId) {
-      const section = document.getElementById(sectionId);
+    // Replaces the old window.toggleSection; queries inside formContainer
+    function toggleSection(sectionId, container) {
+      const section = container.querySelector(`#${sectionId}`);
       const sectionParent = section.closest(".section");
-      const collapseIcon = section.previousElementSibling.querySelector(
-        ".collapse-icon i"
-      );
+      const collapseIcon = sectionParent.querySelector(".collapse-icon");
       const wasExpanded = section.classList.contains("expanded");
 
-      // Close all sections first
-      const allSections = document.querySelectorAll(".collapsible-section");
-      const allIcons = document.querySelectorAll(".collapse-icon i");
-      const allSectionParents = document.querySelectorAll(".section");
+      // Close all sections inside the container
+      const allSections = container.querySelectorAll(".collapsible-section");
+      const allIcons = container.querySelectorAll(".collapse-icon");
+      const allSectionParents = container.querySelectorAll(".section");
 
       allSections.forEach((sec) => sec.classList.remove("expanded"));
       allIcons.forEach((icon) => icon.classList.remove("active"));
       allSectionParents.forEach((parent) => parent.classList.remove("active"));
 
-      // Only expand the clicked section if it wasn't already expanded
+      // Only expand if it wasn't already
       if (!wasExpanded) {
         section.classList.add("expanded");
         collapseIcon.classList.add("active");
@@ -1584,6 +1579,7 @@ const SellingExtension = {
     /*************************************************************
      * 4) Build the "grouped" HTML for property category
      *************************************************************/
+    // Example: building categories from global data
     const propertyCategories = Object.fromEntries(
       Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
         label,
@@ -1600,18 +1596,18 @@ const SellingExtension = {
           const subItemsHTML = subItems
             .map(
               (subItem) => `
-              <li class="item">
+                <li class="item">
                   <span class="checkbox">
-                      <i class="fa-solid fa-check check-icon"></i>
+                    <i class="fa-solid fa-check check-icon"></i>
                   </span>
                   <span class="item-text" data-value="${subItem}">${subItem}</span>
-              </li>
-            `
+                </li>
+              `
             )
             .join("");
           return `
             <li class="group">
-              <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
+              <div class="group-header">
                 ${groupName}
                 <i class="fa-solid fa-chevron-down collapse-icon"></i>
               </div>
@@ -1630,7 +1626,7 @@ const SellingExtension = {
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
       <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+           @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
               form {
                   display: flex;
                   flex-direction: column;
@@ -1963,7 +1959,6 @@ button:disabled {
       <div class="flex-row">
         <!-- Section 1: Personal Information -->
         <div class="section">
-          <!-- Instead of onclick, we just set a data-target -->
           <div class="section-card" data-target="section-personalInfo">
             <div class="section-info">
               <div class="section-icon"><i class="fa-solid fa-user"></i></div>
@@ -1971,13 +1966,14 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="personal-info-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
           <div class="collapsible-section" id="section-personalInfo">
             <div class="section-content">
               <div class="flex-row">
+                <!-- Full Name -->
                 <div>
                   <label for="full-name" class="bold-label">
                     ${isEnglish ? "Full Name" : "Nom complet"}
@@ -1989,6 +1985,7 @@ button:disabled {
                     required
                   >
                 </div>
+                <!-- Email -->
                 <div>
                   <label for="email" class="bold-label">Email</label>
                   <input
@@ -1998,6 +1995,7 @@ button:disabled {
                     required
                   >
                 </div>
+                <!-- Phone -->
                 <div>
                   <label for="phone" class="bold-label">
                     ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
@@ -2023,7 +2021,7 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="seller-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
@@ -2053,6 +2051,7 @@ button:disabled {
 
       <!-- Row 2: Property Category + Property Location -->
       <div class="flex-row">
+        <!-- Section 3: Property Category -->
         <div class="section">
           <div class="section-card" data-target="section-propertyType">
             <div class="section-info">
@@ -2061,7 +2060,7 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="property-type-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
@@ -2080,11 +2079,12 @@ button:disabled {
                       </span>
                     </div>
                     <ul class="list-items" id="property-category-grouped">
-                      <!-- we fill dynamically -->
+                      <!-- We'll fill this dynamically -->
                     </ul>
                   </div>
                   <input type="hidden" id="property-category" name="property-category" required>
                 </div>
+                <!-- House Type (simple list) -->
                 <div>
                   <label for="house-type" class="bold-label">
                     ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
@@ -2118,6 +2118,7 @@ button:disabled {
           </div>
         </div>
 
+        <!-- Section 4: Property Location -->
         <div class="section">
           <div class="section-card" data-target="section-location">
             <div class="section-info">
@@ -2126,7 +2127,7 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="location-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
@@ -2174,6 +2175,7 @@ button:disabled {
 
       <!-- Row 3: Basic Property Details + Amenities -->
       <div class="flex-row">
+        <!-- Section 5: Basic Property Details -->
         <div class="section">
           <div class="section-card" data-target="section-basic-details">
             <div class="section-info">
@@ -2182,7 +2184,7 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Basic Property Details" : "Détails de la propriété"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="basic-details-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
@@ -2249,6 +2251,7 @@ button:disabled {
           </div>
         </div>
 
+        <!-- Section 6: Property Amenities -->
         <div class="section">
           <div class="section-card" data-target="section-amenities">
             <div class="section-info">
@@ -2257,7 +2260,7 @@ button:disabled {
                 <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
               </div>
             </div>
-            <div class="collapse-icon" id="amenities-status">
+            <div class="collapse-icon">
               <i class="fa-solid fa-chevron-down"></i>
             </div>
           </div>
@@ -2301,7 +2304,7 @@ button:disabled {
               <div class="section-title">${isEnglish ? "Additional Details" : "Détails supplémentaires"}</div>
             </div>
           </div>
-          <div class="collapse-icon" id="details-status">
+          <div class="collapse-icon">
             <i class="fa-solid fa-chevron-down"></i>
           </div>
         </div>
@@ -2347,7 +2350,6 @@ button:disabled {
       const btnText = selectBtn.querySelector(".btn-text");
       const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-      // Gather all .item elements
       const listItems = dropdownContainer.querySelectorAll(".list-items .item");
 
       // Open/close on selectBtn click
@@ -2377,98 +2379,81 @@ button:disabled {
       });
     }
 
+    // Setup the 3 dropdowns
     setupDropdown("dropdown-property-category", "property-category");
     setupDropdown("dropdown-house-type", "house-type");
     setupDropdown("dropdown-seller", "seller-name");
 
     /*************************************************************
-     * 7) Attach the form submission
+     * 7) Multi-select dropdown logic (if needed)
+     *************************************************************/
+    // If you have multi-select categories, you can do similarly to your property search extension
+    // or just single select. This is optional.
+
+    /*************************************************************
+     * 8) Section Cards - attach event listeners
+     *************************************************************/
+    const sectionCards = formContainer.querySelectorAll(".section-card");
+    sectionCards.forEach((card) => {
+      const targetId = card.getAttribute("data-target");
+      card.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleSection(targetId, formContainer);
+      });
+    });
+
+    // Also attach click to group headers for property categories
+    const groupHeaders = formContainer.querySelectorAll(".group-header");
+    groupHeaders.forEach((header) => {
+      header.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleCollapse(header, formContainer);
+      });
+    });
+
+    /*************************************************************
+     * 9) Form Submission
      *************************************************************/
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
 
       // disable everything
-      const formElements = formContainer.querySelectorAll(
-        "input, select, textarea, button"
-      );
-      formElements.forEach((el) => {
-        el.disabled = true;
-      });
+      const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+      formElements.forEach((el) => (el.disabled = true));
 
       const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach((el) => {
-        el.classList.add("disabled");
-      });
+      customControls.forEach((el) => el.classList.add("disabled"));
 
       const submitBtn = formContainer.querySelector('button[type="submit"]');
       submitBtn.textContent = "Processing...";
 
-      // gather form values
+      // gather your form data
       const fullName = formContainer.querySelector("#full-name").value.trim();
       const email = (formContainer.querySelector("#email")?.value || "").trim();
       const phone = formContainer.querySelector("#phone").value.trim();
       const formattedPhone = formatPhoneNumber(phone);
-      const sellerName =
-        formContainer.querySelector("#seller-name").value.trim();
-      const propertyCategory =
-        formContainer.querySelector("#property-category").value.trim();
-      const houseType =
-        formContainer.querySelector("#house-type").value.trim();
-      const streetAddress =
-        formContainer.querySelector("#street-address").value.trim();
+      const sellerName = formContainer.querySelector("#seller-name").value.trim();
+      const propertyCategory = formContainer.querySelector("#property-category").value.trim();
+      const houseType = formContainer.querySelector("#house-type").value.trim();
+      const streetAddress = formContainer.querySelector("#street-address").value.trim();
       const city = formContainer.querySelector("#city").value.trim();
-      const postalCode =
-        formContainer.querySelector("#postal-code").value.trim();
-      const yearBuild =
-        formContainer.querySelector("#year-build").value.trim();
+      const postalCode = formContainer.querySelector("#postal-code").value.trim();
+      const yearBuild = formContainer.querySelector("#year-build").value.trim();
       const area = formContainer.querySelector("#area").value.trim();
-
-      // parse numbers
-      let roomsNumber = parseInt(
-        formContainer.querySelector("#rooms-number").value.trim(),
-        10
-      );
-      if (isNaN(roomsNumber)) {
-        roomsNumber = 0;
-      }
-      roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
-
-      let bedroomsNumber = parseInt(
-        formContainer.querySelector("#bedrooms-number").value.trim(),
-        10
-      );
-      if (isNaN(bedroomsNumber)) {
-        bedroomsNumber = 0;
-      }
-      let bathroomsNumber = parseInt(
-        formContainer.querySelector("#bathrooms-number").value.trim(),
-        10
-      );
-      if (isNaN(bathroomsNumber)) {
-        bathroomsNumber = 0;
-      }
-
+      let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10) || 0;
+      let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10) || 0;
+      let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10) || 0;
       const garageChecked = formContainer.querySelector("#garage").checked;
       const insideParking = garageChecked ? "Yes" : "No";
       let insideParkingCars = 0;
       if (garageChecked) {
-        insideParkingCars = parseInt(
-          formContainer.querySelector("#garage-cars").value.trim(),
-          10
-        );
-        if (isNaN(insideParkingCars)) {
-          insideParkingCars = 0;
-        }
+        insideParkingCars = parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10) || 0;
       }
-      const outsideParking = formContainer.querySelector("#outside-parking")
-        .checked
-        ? "Yes"
-        : "No";
-      const swimmingPool = formContainer.querySelector("#swimming-pool").checked
-        ? "Yes"
-        : "No";
-      const details = formContainer.querySelector("#details").value.trim();
+      const outsideParking = formContainer.querySelector("#outside-parking")?.checked ? "Yes" : "No";
+      const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked ? "Yes" : "No";
+      const details = formContainer.querySelector("#details").value.trim() || "";
 
+      // build your payload
       const seedPayload = {
         fullName: fullName || "John Doe",
         email: email || "johndoe@example.com",
@@ -2491,32 +2476,22 @@ button:disabled {
         details: details || "No additional details provided.",
       };
 
+      // For debugging
       alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
       console.log("Seed Payload:", seedPayload);
 
+      // Send to Voiceflow
       window.voiceflow.chat.interact({
         type: "complete",
         payload: seedPayload,
       });
     });
 
-    // 8) Attach the form to the extension element
+    // 10) Finally, attach the form to the extension element
     element.appendChild(formContainer);
-
-    /*************************************************************
-     * 9) Attach the click event to each .section-card
-     *************************************************************/
-    // This final step ensures the same behavior as PropertySearchExtension
-    const sectionCards = formContainer.querySelectorAll(".section-card");
-    sectionCards.forEach((card) => {
-      const targetId = card.getAttribute("data-target");
-      card.addEventListener("click", (e) => {
-        e.stopPropagation(); // so it won't conflict with group collapse
-        toggleSection(targetId);
-      });
-    });
   },
 };
+
 
 /************** EXTENSION #3: ContactExtension **************/
 const ContactExtension = {
