@@ -4812,7 +4812,7 @@ const MortgageCalculatorExtension = {
 	type: 'response',
 	match: ({ trace }) => trace.type === 'ext_mortgage_calculator' || trace.payload?.name === 'ext_mortgage_calculator',
 	render: ({ trace }) => {
-		const { propertyCost = 300000, language = 'en' } = trace.payload;
+		const { propertyCost, language = 'en' } = trace.payload;
 		const calculatorContainer = document.getElementById('calculator-container');
 		const translations = {
 			fr: {
