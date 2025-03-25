@@ -4812,7 +4812,7 @@ const MortgageCalculatorExtension = {
 	type: 'response',
 	match: ({ trace }) => trace.type === 'ext_mortgage_calculator' || trace.payload?.name === 'ext_mortgage_calculator',
 	render: ({ trace }) => {
-		const { propertyCost = 300000, language = 'en' } = trace.payload;
+		const { propertyCost, language = 'en' } = trace.payload;
 		const calculatorContainer = document.getElementById('calculator-container');
 		const translations = {
 			fr: {
@@ -5211,7 +5211,7 @@ const CombinedCalculatorsExtension = {
 	type: 'response',
 	match: ({ trace }) => trace.type === 'ext_combined_calculators' || trace.payload?.name === 'ext_combined_calculators',
 	render: ({ trace , element}) => {
-		const { language = 'en' } = trace.payload;
+		const { language = 'en', propertyCost} = trace.payload;
 		const isEnglish = language === 'en';
 
 		const modal = document.getElementById('calculator-modal');
