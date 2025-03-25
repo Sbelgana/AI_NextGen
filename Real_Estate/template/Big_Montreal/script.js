@@ -1508,104 +1508,128 @@ const PropertySearchExtension = {
 /************** EXTENSION #2: SellingExtension **************/
 /************** EXTENSION #2: SellingExtension **************/
 const SellingExtension = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
-    render: ({ trace, element }) => {
-        /*************************************************************
-         * 2) Language Setup
-         *************************************************************/
-        const { language } = trace.payload;
-        const isEnglish = language === "en";
-window.toggleCollapse = function(element) {
-  // Get all groups
-  const groups = document.querySelectorAll(".group");
-  groups.forEach(group => {
-    const header = group.querySelector(".group-header");
-    const options = group.querySelector(".group-options");
-    
-    // Close any group that isn't the one being clicked
-    if (header !== element) {
-      header.classList.remove("active");
-      options.style.display = "none";
-    }
-  });
+  name: "Forms",
+  type: "response",
+  match: ({ trace }) =>
+    trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+  render: ({ trace, element }) => {
+    /*************************************************************
+     * 1) Language Setup
+     *************************************************************/
+    const { language } = trace.payload;
+    const isEnglish = language === "en";
 
-  // Toggle the clicked group
-  const groupOptions = element.nextElementSibling;
-  if (groupOptions.style.display === "block") {
-    groupOptions.style.display = "none";
-    element.classList.remove("active");
-  } else {
-    groupOptions.style.display = "block";
-    element.classList.add("active");
-    
-    // Scroll the first element of the opened collapse into view
-    const firstItem = groupOptions.firstElementChild;
-    if (firstItem) {
-      firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      groupOptions.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
-};
-
-
-
-        // Build categories object, e.g. { Residential: [...], Plex: [...] }
-        const propertyCategories = Object.fromEntries(
-            Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
-                label,
-                SharedPropertyCategories[sharedKey][language],
-            ])
-        );
-
-        // House-type array (e.g. ["Detached","Semi-detached","Multi-level"] in English)
-        const houseTypes = SharedPropertyTypes[language];
-
-        /*************************************************************
-         * 3) Build "grouped" HTML for property category
-         *************************************************************/
-        function buildGroupedCategoryHTML() {
-            const groupLabels = Object.keys(propertyCategories); // e.g. ["Residential","Plex"]
-            return groupLabels
-                .map((groupName) => {
-                    const subItems = propertyCategories[groupName] || [];
-                    const subItemsHTML = subItems
-                        .map(
-                            (subItem) => `
-                    <li class="item">
-                        <span class="checkbox">
-                            <i class="fa-solid fa-check check-icon"></i>
-                        </span>
-                        <span class="item-text" data-value="${subItem}">${subItem}</span>
-                    </li>
-                  `
-                        )
-                        .join("");
-                    return `
-                <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(this)">
-                        ${groupName}
-                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
-                    </div>
-                    <ul class="group-options">
-                        ${subItemsHTML}
-                    </ul>
-                </li>
-              `;
-                })
-                .join("");
+    /*************************************************************
+     * 2) GROUP COLLAPSE FOR PROPERTY CATEGORY
+     *************************************************************/
+    // Same approach as in PropertySearchExtension
+    window.toggleCollapse = function (element) {
+      const groups = document.querySelectorAll(".group");
+      groups.forEach((group) => {
+        const header = group.querySelector(".group-header");
+        const options = group.querySelector(".group-options");
+        // close any group not the clicked one
+        if (header !== element) {
+          header.classList.remove("active");
+          options.style.display = "none";
         }
+      });
 
-        /*************************************************************
-         * 4) Build the Form
-         *************************************************************/
-        const formContainer = document.createElement("form");
-        formContainer.innerHTML = `
-          <!-- The style section remains unchanged -->
-<style>
+      // Toggle the clicked group
+      const groupOptions = element.nextElementSibling;
+      if (groupOptions.style.display === "block") {
+        groupOptions.style.display = "none";
+        element.classList.remove("active");
+      } else {
+        groupOptions.style.display = "block";
+        element.classList.add("active");
+        const firstItem = groupOptions.firstElementChild;
+        if (firstItem) {
+          firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          groupOptions.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+
+    /*************************************************************
+     * 3) SECTION TOGGLE FOR .section-card
+     *************************************************************/
+    // Replaces the old window.toggleSection
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      const sectionParent = section.closest(".section");
+      const collapseIcon = section.previousElementSibling.querySelector(
+        ".collapse-icon i"
+      );
+      const wasExpanded = section.classList.contains("expanded");
+
+      // Close all sections first
+      const allSections = document.querySelectorAll(".collapsible-section");
+      const allIcons = document.querySelectorAll(".collapse-icon i");
+      const allSectionParents = document.querySelectorAll(".section");
+
+      allSections.forEach((sec) => sec.classList.remove("expanded"));
+      allIcons.forEach((icon) => icon.classList.remove("active"));
+      allSectionParents.forEach((parent) => parent.classList.remove("active"));
+
+      // Only expand the clicked section if it wasn't already expanded
+      if (!wasExpanded) {
+        section.classList.add("expanded");
+        collapseIcon.classList.add("active");
+        sectionParent.classList.add("active");
+      }
+    }
+
+    /*************************************************************
+     * 4) Build the "grouped" HTML for property category
+     *************************************************************/
+    const propertyCategories = Object.fromEntries(
+      Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
+        label,
+        SharedPropertyCategories[sharedKey][language],
+      ])
+    );
+    const houseTypes = SharedPropertyTypes[language];
+
+    function buildGroupedCategoryHTML() {
+      const groupLabels = Object.keys(propertyCategories);
+      return groupLabels
+        .map((groupName) => {
+          const subItems = propertyCategories[groupName] || [];
+          const subItemsHTML = subItems
+            .map(
+              (subItem) => `
+              <li class="item">
+                  <span class="checkbox">
+                      <i class="fa-solid fa-check check-icon"></i>
+                  </span>
+                  <span class="item-text" data-value="${subItem}">${subItem}</span>
+              </li>
+            `
+            )
+            .join("");
+          return `
+            <li class="group">
+              <div class="group-header" onclick="event.stopPropagation(); toggleCollapse(this)">
+                ${groupName}
+                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+              </div>
+              <ul class="group-options">
+                ${subItemsHTML}
+              </ul>
+            </li>
+          `;
+        })
+        .join("");
+    }
+
+    /*************************************************************
+     * 5) Build the Form
+     *************************************************************/
+    const formContainer = document.createElement("form");
+    formContainer.innerHTML = `
+      <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
               form {
                   display: flex;
@@ -1933,571 +1957,565 @@ button:disabled {
   pointer-events: none;
   opacity: 0.5; /* Visual cue that it's inactive */
 }
-</style>
+      </style>
 
-<!-- Row 1: Personal Information and Seller Information -->
-<!-- Remove the stray <div> tag before Additional Details section -->
-<!-- Add proper flex-row container around Additional Details and a new Remarks section -->
-
-<!-- Row 1: Personal Information and Seller Information (already correct) -->
-<div class="flex-row">
-    <!-- Section 1: Personal Information -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-personalInfo')">
+      <!-- Row 1: Personal Info + Seller -->
+      <div class="flex-row">
+        <!-- Section 1: Personal Information -->
+        <div class="section">
+          <!-- Instead of onclick, we just set a data-target -->
+          <div class="section-card" data-target="section-personalInfo">
             <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-user"></i></div>
-                <div>
-                    <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
-                </div>
+              <div class="section-icon"><i class="fa-solid fa-user"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
+              </div>
             </div>
             <div class="collapse-icon" id="personal-info-status">
-                <i class="fa-solid fa-chevron-down"></i>
+              <i class="fa-solid fa-chevron-down"></i>
             </div>
-        </div>
-        <div class="collapsible-section" id="section-personalInfo">
+          </div>
+          <div class="collapsible-section" id="section-personalInfo">
             <div class="section-content">
-                <div class="flex-row">
-                    <div>
-                        <label for="full-name" class="bold-label">
-                            ${isEnglish ? "Full Name" : "Nom complet"}
-                        </label>
-                        <input
-                            type="text"
-                            id="full-name"
-                            placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="email" class="bold-label">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="phone" class="bold-label">
-                            ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-                        </label>
-                        <input
-                            type="tel"
-                            id="phone"
-                            placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
-                            required
-                        >
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Section 2: Seller Information -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-seller')">
-            <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-user-tie"></i></div>
+              <div class="flex-row">
                 <div>
-                    <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
+                  <label for="full-name" class="bold-label">
+                    ${isEnglish ? "Full Name" : "Nom complet"}
+                  </label>
+                  <input
+                    type="text"
+                    id="full-name"
+                    placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
+                    required
+                  >
                 </div>
-            </div>
-            <div class="collapse-icon" id="seller-status">
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        </div>
-        <div class="collapsible-section" id="section-seller">
-            <div class="section-content">
                 <div>
-                    <label for="seller-name" class="bold-label">
-                        ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-                    </label>
-                    <div class="dropdown-container" id="dropdown-seller">
-                        <div class="select-btn" tabindex="0">
-                            <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                            <span class="arrow-dwn">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </span>
-                        </div>
-                        <ul class="list-items" id="seller-list-items">
-                            <!-- We'll fill this from the Sellers array -->
-                        </ul>
-                    </div>
-                    <input type="hidden" id="seller-name" name="seller-name" required>
+                  <label for="email" class="bold-label">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
+                    required
+                  >
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Row 2: Property Category and Property Location (already correct) -->
-<div class="flex-row">
-    <!-- Section 3: Property Category -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-propertyType')">
-            <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-home"></i></div>
                 <div>
-                    <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
-                </div>
-            </div>
-            <div class="collapse-icon" id="property-type-status">
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        </div>
-        <div class="collapsible-section" id="section-propertyType">
-            <div class="section-content">
-                <div class="flex-row">
-                    <!-- Grouped property category -->
-                    <div>
-                        <label for="property-category" class="bold-label">
-                            ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-                        </label>
-                        <div class="dropdown-container" id="dropdown-property-category">
-                            <div class="select-btn" tabindex="0">
-                                <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                                <span class="arrow-dwn">
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </span>
-                            </div>
-                            <ul class="list-items" id="property-category-grouped">
-                                <!-- We fill this dynamically -->
-                            </ul>
-                        </div>
-                        <input type="hidden" id="property-category" name="property-category" required>
-                    </div>
-                    
-                    <!-- House Type (simple list) -->
-                    <div>
-                        <label for="house-type" class="bold-label">
-                            ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-                        </label>
-                        <div class="dropdown-container" id="dropdown-house-type">
-                            <div class="select-btn" tabindex="0">
-                                <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                                <span class="arrow-dwn">
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </span>
-                            </div>
-                            <ul class="list-items">
-                                ${houseTypes
-                                    .map(
-                                        (item) => `
-                                <li class="item">
-                                    <span class="checkbox">
-                                        <i class="fa-solid fa-check check-icon"></i>
-                                    </span>
-                                    <span class="item-text" data-value="${item}">${item}</span>
-                                </li>
-                                `
-                                    )
-                                    .join("")}
-                            </ul>
-                        </div>
-                        <input type="hidden" id="house-type" name="house-type" required>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Section 4: Property Location -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-location')">
-            <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-location-dot"></i></div>
-                <div>
-                    <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
-                </div>
-            </div>
-            <div class="collapse-icon" id="location-status">
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        </div>
-        <div class="collapsible-section" id="section-location">
-            <div class="section-content">
-                <div class="flex-row">
-                    <div>
-                        <label for="street-address" class="bold-label">
-                            ${isEnglish ? "Street Address" : "Adresse de rue"}
-                        </label>
-                        <input
-                            type="text"
-                            id="street-address"
-                            placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="city" class="bold-label">
-                            ${isEnglish ? "City" : "Ville"}
-                        </label>
-                        <input
-                            type="text"
-                            id="city"
-                            placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="postal-code" class="bold-label">
-                            ${isEnglish ? "Postal Code" : "Code Postal"}
-                        </label>
-                        <input
-                            type="text"
-                            id="postal-code"
-                            placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
-                            required
-                        >
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Row 3: Basic Property Details and Property Amenities (already correct) -->
-<div class="flex-row">
-    <!-- Section 5: Basic Property Details -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-basic-details')">
-            <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-building-columns"></i></div>
-                <div>
-                    <div class="section-title">${isEnglish ? "Basic Property Details" : "Détails de la propriété"}</div>
-                </div>
-            </div>
-            <div class="collapse-icon" id="basic-details-status">
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        </div>
-        <div class="collapsible-section" id="section-basic-details">
-            <div class="section-content">
-                <div class="flex-row">
-                    <div>
-                        <label for="rooms-number" class="bold-label">
-                            ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-                        </label>
-                        <input
-                            type="text"
-                            id="rooms-number"
-                            placeholder="${isEnglish ? "Enter number of rooms" : "Entrez le nombre de pièces"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="bedrooms-number" class="bold-label">
-                            ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-                        </label>
-                        <input
-                            type="text"
-                            id="bedrooms-number"
-                            placeholder="${isEnglish ? "Enter number of bedrooms" : "Entrez le nombre de chambres"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="bathrooms-number" class="bold-label">
-                            ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-                        </label>
-                        <input
-                            type="text"
-                            id="bathrooms-number"
-                            placeholder="${isEnglish ? "Enter number of bathrooms" : "Entrez le nombre de salles de bains"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="year-build" class="bold-label">
-                            ${isEnglish ? "Year Built" : "Année de construction"}
-                        </label>
-                        <input
-                            type="text"
-                            id="year-build"
-                            placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}"
-                            required
-                        >
-                    </div>
-                    <div>
-                        <label for="area" class="bold-label">
-                            ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-                        </label>
-                        <input
-                            type="text"
-                            id="area"
-                            placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
-                            required
-                        >
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Section 6: Property Amenities -->
-    <div class="section">
-        <div class="section-card" onclick="toggleSection('section-amenities')">
-            <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-sliders"></i></div>
-                <div>
-                    <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
-                </div>
-            </div>
-            <div class="collapse-icon" id="amenities-status">
-                <i class="fa-solid fa-chevron-down"></i>
-            </div>
-        </div>
-        <div class="collapsible-section" id="section-amenities">
-            <div class="section-content">
-                <div class="flex-row">
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <label for="garage" class="bold-label">Garage?</label>
-                        <input type="checkbox" id="garage" name="garage" value="Yes">
-                        <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <label for="outside-parking" class="bold-label">
-                            ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
-                        </label>
-                        <input type="checkbox" id="outside-parking" value="Yes">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <label for="swimming-pool" class="bold-label">
-                            ${isEnglish ? "Swimming Pool" : "Piscine"}?
-                        </label>
-                        <input type="checkbox" id="swimming-pool" value="Yes">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Row 4: Additional Details and Remarks (new arrangement) -->
-<div class="section">
-            <div class="section-card" onclick="toggleSection('section-details')">
-              <div class="section-info">
-                <div class="section-icon"><i class="fa-solid fa-note-sticky"></i></div>
-                <div>
-                  <div class="section-title">${isEnglish ? "Additional Details" : "Détails supplémentaires"}</div>
-                </div>
-              </div>
-              <div class="collapse-icon" id="details-status">
-                <i class="fa-solid fa-chevron-down"></i>
-              </div>
-            </div>
-            <div class="collapsible-section" id="section-details">
-              <div class="section-content">
-                <div style="flex:1; margin-bottom: 10px;">
-                  <label for="details" class="bold-label">${isEnglish ? "Details" : "Détails"}</label>
-                  <textarea id="details" rows="8" required></textarea>
-
+                  <label for="phone" class="bold-label">
+                    ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
+                    required
+                  >
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Submit Button -->
-          <button type="submit" class="submit">${isEnglish ? "Submit" : "Envoyer"}</button>`;
+        <!-- Section 2: Seller -->
+        <div class="section">
+          <div class="section-card" data-target="section-seller">
+            <div class="section-info">
+              <div class="section-icon"><i class="fa-solid fa-user-tie"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
+              </div>
+            </div>
+            <div class="collapse-icon" id="seller-status">
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-seller">
+            <div class="section-content">
+              <div>
+                <label for="seller-name" class="bold-label">
+                  ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+                </label>
+                <div class="dropdown-container" id="dropdown-seller">
+                  <div class="select-btn" tabindex="0">
+                    <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                    <span class="arrow-dwn">
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                  </div>
+                  <ul class="list-items" id="seller-list-items">
+                    <!-- We'll fill this from the Sellers array -->
+                  </ul>
+                </div>
+                <input type="hidden" id="seller-name" name="seller-name" required>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        // Show/hide #garage-cars when "Garage?" is checked
-        formContainer.querySelector("#garage").addEventListener("change", (event) => {
-            const carsField = formContainer.querySelector("#garage-cars");
-            carsField.style.display = event.target.checked ? "inline-block" : "none";
-            if (!event.target.checked) carsField.value = "";
+      <!-- Row 2: Property Category + Property Location -->
+      <div class="flex-row">
+        <div class="section">
+          <div class="section-card" data-target="section-propertyType">
+            <div class="section-info">
+              <div class="section-icon"><i class="fa-solid fa-home"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
+              </div>
+            </div>
+            <div class="collapse-icon" id="property-type-status">
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-propertyType">
+            <div class="section-content">
+              <div class="flex-row">
+                <div>
+                  <label for="property-category" class="bold-label">
+                    ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-property-category">
+                    <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                      <span class="arrow-dwn">
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </span>
+                    </div>
+                    <ul class="list-items" id="property-category-grouped">
+                      <!-- we fill dynamically -->
+                    </ul>
+                  </div>
+                  <input type="hidden" id="property-category" name="property-category" required>
+                </div>
+                <div>
+                  <label for="house-type" class="bold-label">
+                    ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+                  </label>
+                  <div class="dropdown-container" id="dropdown-house-type">
+                    <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                      <span class="arrow-dwn">
+                        <i class="fa-solid fa-chevron-down"></i>
+                      </span>
+                    </div>
+                    <ul class="list-items">
+                      ${houseTypes
+                        .map(
+                          (item) => `
+                            <li class="item">
+                              <span class="checkbox">
+                                <i class="fa-solid fa-check check-icon"></i>
+                              </span>
+                              <span class="item-text" data-value="${item}">${item}</span>
+                            </li>
+                          `
+                        )
+                        .join("")}
+                    </ul>
+                  </div>
+                  <input type="hidden" id="house-type" name="house-type" required>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-card" data-target="section-location">
+            <div class="section-info">
+              <div class="section-icon"><i class="fa-solid fa-location-dot"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
+              </div>
+            </div>
+            <div class="collapse-icon" id="location-status">
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-location">
+            <div class="section-content">
+              <div class="flex-row">
+                <div>
+                  <label for="street-address" class="bold-label">
+                    ${isEnglish ? "Street Address" : "Adresse de rue"}
+                  </label>
+                  <input
+                    type="text"
+                    id="street-address"
+                    placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="city" class="bold-label">
+                    ${isEnglish ? "City" : "Ville"}
+                  </label>
+                  <input
+                    type="text"
+                    id="city"
+                    placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="postal-code" class="bold-label">
+                    ${isEnglish ? "Postal Code" : "Code Postal"}
+                  </label>
+                  <input
+                    type="text"
+                    id="postal-code"
+                    placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Basic Property Details + Amenities -->
+      <div class="flex-row">
+        <div class="section">
+          <div class="section-card" data-target="section-basic-details">
+            <div class="section-info">
+              <div class="section-icon"><i class="fa-solid fa-building-columns"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Basic Property Details" : "Détails de la propriété"}</div>
+              </div>
+            </div>
+            <div class="collapse-icon" id="basic-details-status">
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-basic-details">
+            <div class="section-content">
+              <div class="flex-row">
+                <div>
+                  <label for="rooms-number" class="bold-label">
+                    ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+                  </label>
+                  <input
+                    type="text"
+                    id="rooms-number"
+                    placeholder="${isEnglish ? "Enter number of rooms" : "Entrez le nombre de pièces"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="bedrooms-number" class="bold-label">
+                    ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+                  </label>
+                  <input
+                    type="text"
+                    id="bedrooms-number"
+                    placeholder="${isEnglish ? "Enter number of bedrooms" : "Entrez le nombre de chambres"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="bathrooms-number" class="bold-label">
+                    ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+                  </label>
+                  <input
+                    type="text"
+                    id="bathrooms-number"
+                    placeholder="${isEnglish ? "Enter number of bathrooms" : "Entrez le nombre de salles de bains"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="year-build" class="bold-label">
+                    ${isEnglish ? "Year Built" : "Année de construction"}
+                  </label>
+                  <input
+                    type="text"
+                    id="year-build"
+                    placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}"
+                    required
+                  >
+                </div>
+                <div>
+                  <label for="area" class="bold-label">
+                    ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+                  </label>
+                  <input
+                    type="text"
+                    id="area"
+                    placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-card" data-target="section-amenities">
+            <div class="section-info">
+              <div class="section-icon"><i class="fa-solid fa-sliders"></i></div>
+              <div>
+                <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
+              </div>
+            </div>
+            <div class="collapse-icon" id="amenities-status">
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+          <div class="collapsible-section" id="section-amenities">
+            <div class="section-content">
+              <div class="flex-row">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="garage" class="bold-label">Garage?</label>
+                  <input type="checkbox" id="garage" name="garage" value="Yes">
+                  <input
+                    type="number"
+                    id="garage-cars"
+                    placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}"
+                    style="display: none;"
+                  >
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="outside-parking" class="bold-label">
+                    ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+                  </label>
+                  <input type="checkbox" id="outside-parking" value="Yes">
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <label for="swimming-pool" class="bold-label">
+                    ${isEnglish ? "Swimming Pool" : "Piscine"}?
+                  </label>
+                  <input type="checkbox" id="swimming-pool" value="Yes">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Additional Details -->
+      <div class="section">
+        <div class="section-card" data-target="section-details">
+          <div class="section-info">
+            <div class="section-icon"><i class="fa-solid fa-note-sticky"></i></div>
+            <div>
+              <div class="section-title">${isEnglish ? "Additional Details" : "Détails supplémentaires"}</div>
+            </div>
+          </div>
+          <div class="collapse-icon" id="details-status">
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+        </div>
+        <div class="collapsible-section" id="section-details">
+          <div class="section-content">
+            <div style="flex:1; margin-bottom: 10px;">
+              <label for="details" class="bold-label">
+                ${isEnglish ? "Details" : "Détails"}
+              </label>
+              <textarea id="details" rows="8" required></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit">
+        ${isEnglish ? "Submit" : "Envoyer"}
+      </button>
+    `;
+
+    // Show/hide #garage-cars when "Garage?" is checked
+    formContainer.querySelector("#garage").addEventListener("change", (event) => {
+      const carsField = formContainer.querySelector("#garage-cars");
+      carsField.style.display = event.target.checked ? "inline-block" : "none";
+      if (!event.target.checked) carsField.value = "";
+    });
+
+    // Insert the grouped property-category HTML
+    const categoryListEl = formContainer.querySelector("#property-category-grouped");
+    categoryListEl.innerHTML = buildGroupedCategoryHTML();
+
+    // Insert dynamic seller list
+    const sellerListEl = formContainer.querySelector("#seller-list-items");
+    sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
+
+    /*************************************************************
+     * 6) Single-selection dropdown logic
+     *************************************************************/
+    function setupDropdown(dropdownId, hiddenInputId) {
+      const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+      const selectBtn = dropdownContainer.querySelector(".select-btn");
+      const btnText = selectBtn.querySelector(".btn-text");
+      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+
+      // Gather all .item elements
+      const listItems = dropdownContainer.querySelectorAll(".list-items .item");
+
+      // Open/close on selectBtn click
+      selectBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectBtn.classList.toggle("open");
+      });
+
+      // Single-select
+      listItems.forEach((item) => {
+        item.addEventListener("click", (e) => {
+          e.stopPropagation();
+          listItems.forEach((i) => i.classList.remove("checked"));
+          item.classList.add("checked");
+          const value = item.querySelector(".item-text").getAttribute("data-value");
+          btnText.innerText = value;
+          hiddenInput.value = value;
+          selectBtn.classList.remove("open");
         });
-window.toggleSection = function(sectionId) {
-  const section = document.getElementById(sectionId);
-  const sectionParent = section.closest('.section');
-  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
-  const wasExpanded = section.classList.contains('expanded');
-  
-  // First, close all sections
-  const allSections = document.querySelectorAll('.collapsible-section');
-  const allIcons = document.querySelectorAll('.collapse-icon i');
-  const allSectionParents = document.querySelectorAll('.section');
-  
-  allSections.forEach(section => {
-    section.classList.remove('expanded');
-  });
-  
-  allIcons.forEach(icon => {
-    icon.classList.remove('active');
-  });
-  
-  allSectionParents.forEach(parent => {
-    parent.classList.remove('active');
-  });
-  
-  // Then, only expand the clicked section if it wasn't already expanded
-  if (!wasExpanded) {
-    section.classList.add('expanded');
-    collapseIcon.classList.add('active');
-    sectionParent.classList.add('active');
-  }
-  // If it was expanded, we've already closed it in the steps above
-}
-        // Insert the grouped property-category HTML
-        const categoryListEl = formContainer.querySelector("#property-category-grouped");
-        categoryListEl.innerHTML = buildGroupedCategoryHTML();
+      });
 
-        // Insert dynamic seller list
-        const sellerListEl = formContainer.querySelector("#seller-list-items");
-        sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
-
-        /*************************************************************
-         * 5) Single-selection dropdown logic (used for all dropdowns)
-         *************************************************************/
-        function setupDropdown(dropdownId, hiddenInputId) {
-            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            const btnText = selectBtn.querySelector(".btn-text");
-            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-
-            // Gather all .item elements (can be in multiple groups)
-            const listItems = dropdownContainer.querySelectorAll(".list-items .item");
-
-            // Open/close on selectBtn click
-            selectBtn.addEventListener("click", () => {
-                selectBtn.classList.toggle("open");
-            });
-
-            // Single-select: remove "checked" from all, then add to clicked
-            listItems.forEach((item) => {
-                item.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    // remove "checked" from all items in this dropdown
-                    listItems.forEach((i) => i.classList.remove("checked"));
-                    // mark the clicked item
-                    item.classList.add("checked");
-
-                    // set the text and hidden input
-                    const value = item.querySelector(".item-text").getAttribute("data-value");
-                    btnText.innerText = value;
-                    hiddenInput.value = value;
-
-                    // close the dropdown
-                    selectBtn.classList.remove("open");
-                });
-            });
-
-            // (Optional) close dropdown if user clicks outside
-            document.addEventListener("click", (e) => {
-                if (!dropdownContainer.contains(e.target)) {
-                    selectBtn.classList.remove("open");
-                }
-            });
+      // close if user clicks outside
+      document.addEventListener("click", (e) => {
+        if (!dropdownContainer.contains(e.target)) {
+          selectBtn.classList.remove("open");
         }
-
-        // Setup the 3 dropdowns
-        setupDropdown("dropdown-property-category", "property-category");
-        setupDropdown("dropdown-house-type", "house-type");
-        setupDropdown("dropdown-seller", "seller-name");
-
-        /*************************************************************
-         * 6) Form Submission
-         *************************************************************/
-        formContainer.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  // Disable all standard form elements (inputs, selects, textareas, and buttons)
-  const formElements = formContainer.querySelectorAll("input, select, textarea, button");
-  formElements.forEach((el) => {
-    el.disabled = true;
-  });
-
-  // Additionally, disable custom controls by adding a 'disabled' class
-  const customControls = formContainer.querySelectorAll(".select-btn");
-  customControls.forEach((el) => {
-    el.classList.add("disabled");
-  });
-
-  // Update the submit button text to indicate processing
-  const submitBtn = formContainer.querySelector('button[type="submit"]');
-  submitBtn.textContent = "Processing...";
-
-  // Gather form values
-  const fullName = formContainer.querySelector("#full-name").value.trim();
-  const email = (formContainer.querySelector("#email")?.value || "").trim();
-  const phone = formContainer.querySelector("#phone").value.trim();
-  const formattedPhone = formatPhoneNumber(phone);
-  const sellerName = formContainer.querySelector("#seller-name").value.trim();
-  const propertyCategory = formContainer.querySelector("#property-category").value.trim();
-  const houseType = formContainer.querySelector("#house-type").value.trim();
-  const streetAddress = formContainer.querySelector("#street-address").value.trim();
-  const city = formContainer.querySelector("#city").value.trim();
-  const postalCode = formContainer.querySelector("#postal-code").value.trim();
-  const yearBuild = formContainer.querySelector("#year-build").value.trim();
-  const area = formContainer.querySelector("#area").value.trim();
-
-  // Convert and clamp roomsNumber to a number between 0 and 50
-  let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10);
-  if (isNaN(roomsNumber)) {
-    roomsNumber = 0;
-  }
-  roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
-
-  // Convert bedrooms and bathrooms to numbers (default to 0 if invalid)
-  let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10);
-  if (isNaN(bedroomsNumber)) {
-    bedroomsNumber = 0;
-  }
-  let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10);
-  if (isNaN(bathroomsNumber)) {
-    bathroomsNumber = 0;
-  }
-
-  const garageChecked = formContainer.querySelector("#garage").checked;
-  const insideParking = garageChecked ? "Yes" : "No";
-  let insideParkingCars = 0;
-  if (garageChecked) {
-    insideParkingCars = parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10);
-    if (isNaN(insideParkingCars)) {
-      insideParkingCars = 0;
+      });
     }
-  }
-  const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
-  const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
-  const details = formContainer.querySelector("#details").value.trim();
 
-  // Build a seed payload: if a field is empty, assign a default value
-  const seedPayload = {
-    fullName: fullName || "John Doe",
-    email: email || "johndoe@example.com",
-    phone: formattedPhone || "000-000-0000",
-    sellerName: sellerName || "No Preference",
-    propertyCategory: propertyCategory || "Residential",
-    houseType: houseType || "Detached",
-    streetAddress: streetAddress || "123 Main St",
-    city: city || "Sample City",
-    postalCode: postalCode || "00000",
-    yearBuild: yearBuild || "2020",
-    area: area || "1000",
-    roomsNumber: roomsNumber,
-    bedroomsNumber: bedroomsNumber,
-    bathroomsNumber: bathroomsNumber,
-    insideParking: insideParking,
-    insideParkingCars: insideParkingCars,
-    outsideParking: outsideParking,
-    swimmingPool: swimmingPool,
-    details: details || "No additional details provided."
-  };
+    setupDropdown("dropdown-property-category", "property-category");
+    setupDropdown("dropdown-house-type", "house-type");
+    setupDropdown("dropdown-seller", "seller-name");
 
-  // For testing: display the seed payload in an alert and log it
-  alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
-  console.log("Seed Payload:", seedPayload);
+    /*************************************************************
+     * 7) Attach the form submission
+     *************************************************************/
+    formContainer.addEventListener("submit", (event) => {
+      event.preventDefault();
 
-  // Send the payload to Voiceflow
-  window.voiceflow.chat.interact({
-    type: "complete",
-    payload: seedPayload
-  });
-});
+      // disable everything
+      const formElements = formContainer.querySelectorAll(
+        "input, select, textarea, button"
+      );
+      formElements.forEach((el) => {
+        el.disabled = true;
+      });
 
+      const customControls = formContainer.querySelectorAll(".select-btn");
+      customControls.forEach((el) => {
+        el.classList.add("disabled");
+      });
 
-        // Finally, attach the form to the element
-        element.appendChild(formContainer);
-    },
+      const submitBtn = formContainer.querySelector('button[type="submit"]');
+      submitBtn.textContent = "Processing...";
+
+      // gather form values
+      const fullName = formContainer.querySelector("#full-name").value.trim();
+      const email = (formContainer.querySelector("#email")?.value || "").trim();
+      const phone = formContainer.querySelector("#phone").value.trim();
+      const formattedPhone = formatPhoneNumber(phone);
+      const sellerName =
+        formContainer.querySelector("#seller-name").value.trim();
+      const propertyCategory =
+        formContainer.querySelector("#property-category").value.trim();
+      const houseType =
+        formContainer.querySelector("#house-type").value.trim();
+      const streetAddress =
+        formContainer.querySelector("#street-address").value.trim();
+      const city = formContainer.querySelector("#city").value.trim();
+      const postalCode =
+        formContainer.querySelector("#postal-code").value.trim();
+      const yearBuild =
+        formContainer.querySelector("#year-build").value.trim();
+      const area = formContainer.querySelector("#area").value.trim();
+
+      // parse numbers
+      let roomsNumber = parseInt(
+        formContainer.querySelector("#rooms-number").value.trim(),
+        10
+      );
+      if (isNaN(roomsNumber)) {
+        roomsNumber = 0;
+      }
+      roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
+
+      let bedroomsNumber = parseInt(
+        formContainer.querySelector("#bedrooms-number").value.trim(),
+        10
+      );
+      if (isNaN(bedroomsNumber)) {
+        bedroomsNumber = 0;
+      }
+      let bathroomsNumber = parseInt(
+        formContainer.querySelector("#bathrooms-number").value.trim(),
+        10
+      );
+      if (isNaN(bathroomsNumber)) {
+        bathroomsNumber = 0;
+      }
+
+      const garageChecked = formContainer.querySelector("#garage").checked;
+      const insideParking = garageChecked ? "Yes" : "No";
+      let insideParkingCars = 0;
+      if (garageChecked) {
+        insideParkingCars = parseInt(
+          formContainer.querySelector("#garage-cars").value.trim(),
+          10
+        );
+        if (isNaN(insideParkingCars)) {
+          insideParkingCars = 0;
+        }
+      }
+      const outsideParking = formContainer.querySelector("#outside-parking")
+        .checked
+        ? "Yes"
+        : "No";
+      const swimmingPool = formContainer.querySelector("#swimming-pool").checked
+        ? "Yes"
+        : "No";
+      const details = formContainer.querySelector("#details").value.trim();
+
+      const seedPayload = {
+        fullName: fullName || "John Doe",
+        email: email || "johndoe@example.com",
+        phone: formattedPhone || "000-000-0000",
+        sellerName: sellerName || "No Preference",
+        propertyCategory: propertyCategory || "Residential",
+        houseType: houseType || "Detached",
+        streetAddress: streetAddress || "123 Main St",
+        city: city || "Sample City",
+        postalCode: postalCode || "00000",
+        yearBuild: yearBuild || "2020",
+        area: area || "1000",
+        roomsNumber,
+        bedroomsNumber,
+        bathroomsNumber,
+        insideParking,
+        insideParkingCars,
+        outsideParking,
+        swimmingPool,
+        details: details || "No additional details provided.",
+      };
+
+      alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
+      console.log("Seed Payload:", seedPayload);
+
+      window.voiceflow.chat.interact({
+        type: "complete",
+        payload: seedPayload,
+      });
+    });
+
+    // 8) Attach the form to the extension element
+    element.appendChild(formContainer);
+
+    /*************************************************************
+     * 9) Attach the click event to each .section-card
+     *************************************************************/
+    // This final step ensures the same behavior as PropertySearchExtension
+    const sectionCards = formContainer.querySelectorAll(".section-card");
+    sectionCards.forEach((card) => {
+      const targetId = card.getAttribute("data-target");
+      card.addEventListener("click", (e) => {
+        e.stopPropagation(); // so it won't conflict with group collapse
+        toggleSection(targetId);
+      });
+    });
+  },
 };
 
 /************** EXTENSION #3: ContactExtension **************/
