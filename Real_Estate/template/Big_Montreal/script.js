@@ -416,7 +416,37 @@ const PropertySearchExtension = {
     render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === "en";
-
+window.toggleCollapse = function(element) {
+  // Get all groups (each group should have a .group container)
+  const groups = document.querySelectorAll(".group");
+  
+  groups.forEach(group => {
+    // Find the header and options list for each group
+    const header = group.querySelector(".group-header");
+    const options = group.querySelector(".group-options");
+    // Close any group that is not the clicked one
+    if (header !== element) {
+      header.classList.remove("active");
+      options.style.display = "none";
+    }
+  });
+  
+  // Toggle the clicked group's options
+  const groupOptions = element.nextElementSibling;
+  if (groupOptions.style.display === "block") {
+    groupOptions.style.display = "none";
+    element.classList.remove("active");
+  } else {
+    groupOptions.style.display = "block";
+    element.classList.add("active");
+    
+    // Scroll the first item of the opened group into view
+    const firstItem = groupOptions.firstElementChild;
+    if (firstItem) {
+      firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+};
         // Textes directs et professionnels
         const texts = {
             cityLabel: isEnglish ? "Select City" : "Sélectionnez la ville",
@@ -1240,31 +1270,7 @@ function setupDropdownSingle(dropdownId, hiddenInputId) {
             "propertyTypeValues",
             texts.typeDefault
         );
-        window.toggleSection = function(sectionId) {
-  const section = document.getElementById(sectionId);
-  const sectionParent = section.closest('.section');
-  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
-  const wasExpanded = section.classList.contains('expanded');
-  
-  // First, close all sections
-  const allSections = document.querySelectorAll('.collapsible-section');
-  const allIcons = document.querySelectorAll('.collapse-icon i');
-  const allSectionParents = document.querySelectorAll('.section');
-  
-  allSections.forEach(s => s.classList.remove('expanded'));
-  allIcons.forEach(icon => icon.classList.remove('active'));
-  allSectionParents.forEach(parent => parent.classList.remove('active'));
-  
-  // Then, only expand the clicked section if it wasn't already expanded
-  if (!wasExpanded) {
-    section.classList.add('expanded');
-    collapseIcon.classList.add('active');
-    sectionParent.classList.add('active');
-    // Scroll the section container into view at the top of the viewport
-    sectionParent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-};
-
+        
         
 
         function setupDropdownSingle(dropdownId, hiddenInputId) {
