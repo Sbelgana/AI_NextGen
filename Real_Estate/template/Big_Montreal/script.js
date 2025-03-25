@@ -919,8 +919,8 @@ window.toggleCollapse = function(element) {
                   <div class="price-wrapper">
                     <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
-                      <div class="price-up">▲</div>
-                      <div class="price-down">▼</div>
+                      <div class="price-up" data-input="price-min" data-step="1000">▲</div>
+        <div class="price-down" data-input="price-min" data-step="1000">▼</div>
                     </div>
                   </div>
                 </div>
@@ -929,8 +929,8 @@ window.toggleCollapse = function(element) {
                   <div class="price-wrapper">
                     <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
                     <div class="price-controls">
-                      <div class="price-up">▲</div>
-                      <div class="price-down">▼</div>
+                     <div class="price-up" data-input="price-max" data-step="1000">▲</div>
+        <div class="price-down" data-input="price-max" data-step="1000">▼</div>
                     </div>
                   </div>
                 </div>
