@@ -124,16 +124,6 @@ function getServiceList(language) {
  * 5) Booking URLs
  *************************************************************/
 
-const BookingUrls = {
-  "Emma Thompson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Liam Carter": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Sophia Martinez": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Ethan Brown": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Olivia Davis": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Noah Wilson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Ava Johnson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-};
-
 const BookingData = {
   "Emma Thompson": {
     link: "ainextg-emma-thompsonn",  // Remove the /meeting part
@@ -409,6 +399,996 @@ function generateAirtableFormula(input) {
  *************************************************************/
 
 /************** EXTENSION #1: PropertySearchExtension **************/
+
+const SellingExtension = {
+    name: "Forms",
+    type: "response",
+    match: ({ trace }) =>
+        trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
+    render: ({ trace, element }) => {
+        /*************************************************************
+         * 2) Language Setup
+         *************************************************************/
+        const { language } = trace.payload;
+        const isEnglish = language === "en";
+window.toggleCollapse = function(element) {
+  // Get all groups
+  const groups = document.querySelectorAll(".group");
+  groups.forEach(group => {
+    const header = group.querySelector(".group-header");
+    const options = group.querySelector(".group-options");
+    
+    // Close any group that isn't the one being clicked
+    if (header !== element) {
+      header.classList.remove("active");
+      options.style.display = "none";
+    }
+  });
+
+  // Toggle the clicked group
+  const groupOptions = element.nextElementSibling;
+  if (groupOptions.style.display === "block") {
+    groupOptions.style.display = "none";
+    element.classList.remove("active");
+  } else {
+    groupOptions.style.display = "block";
+    element.classList.add("active");
+    
+    // Scroll the first element of the opened collapse into view
+    const firstItem = groupOptions.firstElementChild;
+    if (firstItem) {
+      firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      groupOptions.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+};
+
+
+
+        // Build categories object, e.g. { Residential: [...], Plex: [...] }
+        const propertyCategories = Object.fromEntries(
+            Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
+                label,
+                SharedPropertyCategories[sharedKey][language],
+            ])
+        );
+
+        // House-type array (e.g. ["Detached","Semi-detached","Multi-level"] in English)
+        const houseTypes = SharedPropertyTypes[language];
+
+        /*************************************************************
+         * 3) Build "grouped" HTML for property category
+         *************************************************************/
+        function buildGroupedCategoryHTML() {
+            const groupLabels = Object.keys(propertyCategories); // e.g. ["Residential","Plex"]
+            return groupLabels
+                .map((groupName) => {
+                    const subItems = propertyCategories[groupName] || [];
+                    const subItemsHTML = subItems
+                        .map(
+                            (subItem) => `
+                    <li class="item">
+                        <span class="checkbox">
+                            <i class="fa-solid fa-check check-icon"></i>
+                        </span>
+                        <span class="item-text" data-value="${subItem}">${subItem}</span>
+                    </li>
+                  `
+                        )
+                        .join("");
+                    return `
+                <li class="group">
+                    <div class="group-header" onclick="toggleCollapse(this)">
+                        ${groupName}
+                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <ul class="group-options">
+                        ${subItemsHTML}
+                    </ul>
+                </li>
+              `;
+                })
+                .join("");
+        }
+
+        /*************************************************************
+         * 4) Build the Form
+         *************************************************************/
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+          <!-- The style section remains unchanged -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+              form {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  width: 100%;
+                  max-width: 800px;
+                  margin: 0 auto;
+                  background: #fff;
+                  padding: 16px;
+                  border-radius: 6px;
+              }
+              .flex-row {
+                  display: flex;
+                  gap: 16px;
+                  flex-wrap: wrap;
+              }
+              .flex-row > div { flex: 1; min-width: 200px; }
+              .bold-label {
+                  font-weight: 700;
+                  color: #000;
+                  font-size: 14px;
+                  margin-bottom: 4px;
+                  display: block;
+              }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+        width: 100%;
+        border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 4px;
+        padding: 8px;
+        background: #fff;
+        font-size: 13px;
+        outline: none;
+        box-sizing: border-box;
+        height: 40px;
+    }
+    /* First, fix the rule for the details textarea */
+#details {
+    width: 100%;
+    resize: vertical;
+    min-height: 120px;  /* Increased from 50px */
+    max-height: 300px;  /* Increased from 200px */
+    padding: 8px;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+    height: auto !important; /* Override the default height */
+}
+
+/* Then, ensure the focus states rule is separate and complete */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+select:focus,
+#details:focus {
+    border: 2px solid #9A0DF2;
+}
+    .submit {
+        color: #9A0DF2;
+        background-color: #F5E7FE;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 8px;
+    }
+    .submit:hover {
+        color: #fff; background-color: #9A0DF2; font-weight: 700;
+    }
+    .dropdown-container {
+        position: relative; max-width: 100%;
+    }
+    .select-btn {
+        display: flex;
+        height: 40px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,0.2);
+    }
+    .select-btn .btn-text {
+       font-size: 13px; font-weight: 400; color: #555;
+    }
+    .select-btn .arrow-dwn {
+        display: flex;
+        height: 24px;
+        width: 24px;
+        color: #9A0DF2;
+        font-size: 13px;
+        border-radius: 50%;
+        background: #F5E7FE;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+    }
+    .select-btn.open .arrow-dwn {
+        transform: rotate(-180deg);
+    }
+    .list-items {
+        position: relative;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 4px;
+        border-radius: 6px;
+        padding: 4px 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+        background-color: #fff;
+    }
+    .select-btn.open + .list-items {
+        display: block;
+    }
+    .select-btn:focus,
+    .select-btn.open {
+        border: 2px solid #9A0DF2;
+        outline: none;
+    }
+    .list-items .item {
+        display: flex;
+        align-items: center;
+        height: 36px;
+        cursor: pointer;
+        padding: 0 12px;
+        border-radius: 4px;
+        transition: 0.3s;
+        margin: 4px;
+    }
+    .list-items .item:hover {
+        background-color: #F5E7FE;
+    }
+    .item .item-text {
+        font-size: 13px;
+        font-weight: 400;
+        color: #333;
+        margin-left: 8px;
+    }
+    /* Circle for single selection */
+    .item .checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        margin-right: 8px;
+        border: 1.5px solid #c0c0c0;
+        transition: all 0.3s ease-in-out;
+    }
+    .item.checked .checkbox {
+        background-color: #9A0DF2;
+        border: 2px solid #9A0DF2;
+    }
+    .checkbox .check-icon {
+        color: #fff;
+        font-size: 12px;
+        transform: scale(0);
+        transition: all 0.2s ease-in-out;
+    }
+    .item.checked .check-icon {
+        transform: scale(1);
+    }
+    .group {
+        border-top: 1px solid #eee;
+        margin-bottom: 10px; 
+        margin-left: 10px;  
+        margin-right: 10px; 
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .group:first-child {
+        border-top: none;
+    }
+    .group-header {
+        font-weight: 500;
+        padding: 8px 12px;
+        background: #f4eafb;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #9A0DF2;
+    }
+    .group-header .collapse-icon {
+        color: #9A0DF2;
+        font-size: 13px;
+        transition: transform 0.3s;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;  
+        height: 24px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    .group-header.active .collapse-icon {
+        transform: rotate(-180deg);
+    }
+    .group-options {
+        display: none;
+        padding-left: 0;
+    }
+    /**********************************************
+     * Change the native checkbox color to #9A0DF2
+     **********************************************/
+    input[type="checkbox"] {
+        accent-color: #9A0DF2; /* Modern browser support */
+    }
+    
+    /* Added styles for the section layout */
+.section {
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    .section-card {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 6px;
+    }
+    .section.active {
+      border: 2px solid #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section:hover {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+    }
+    .section-icon {
+      background-color: #F5E7FE;
+      color: #9A0DF2;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+      
+    }
+    .status-icon {
+      font-size: 18px;
+      color: #aaa;
+    }
+    .collapse-icon {
+      color: #9A0DF2;
+      font-size: 13px;
+      transition: transform 0.3s;
+      background: #f4eafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 0px;
+    }
+    .collapse-icon i {
+      transition: transform 0.3s ease;
+    }
+    .collapse-icon.active i {
+      transform: rotate(180deg);
+    }
+    /* Collapsible content panel */
+    .collapsible-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+      
+    }
+    .collapsible-section.expanded {
+      max-height: 1000px;
+    }
+    .section-content {
+      padding: 20px;
+      background: #fefefe;
+      border-top: 1px solid #eee;
+    }
+    
+    .submit:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* For custom elements that don't support the disabled attribute */
+.disabled {
+  pointer-events: none;
+  opacity: 0.5; /* Visual cue that it's inactive */
+}
+</style>
+
+<!-- Row 1: Personal Information and Seller Information -->
+<!-- Remove the stray <div> tag before Additional Details section -->
+<!-- Add proper flex-row container around Additional Details and a new Remarks section -->
+
+<!-- Row 1: Personal Information and Seller Information (already correct) -->
+<div class="flex-row">
+    <!-- Section 1: Personal Information -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-personalInfo')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-user"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="personal-info-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-personalInfo">
+            <div class="section-content">
+                <div class="flex-row">
+                    <div>
+                        <label for="full-name" class="bold-label">
+                            ${isEnglish ? "Full Name" : "Nom complet"}
+                        </label>
+                        <input
+                            type="text"
+                            id="full-name"
+                            placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="email" class="bold-label">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="phone" class="bold-label">
+                            ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
+                        </label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
+                            required
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 2: Seller Information -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-seller')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="seller-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-seller">
+            <div class="section-content">
+                <div>
+                    <label for="seller-name" class="bold-label">
+                        ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
+                    </label>
+                    <div class="dropdown-container" id="dropdown-seller">
+                        <div class="select-btn" tabindex="0">
+                            <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                            <span class="arrow-dwn">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </span>
+                        </div>
+                        <ul class="list-items" id="seller-list-items">
+                            <!-- We'll fill this from the Sellers array -->
+                        </ul>
+                    </div>
+                    <input type="hidden" id="seller-name" name="seller-name" required>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 2: Property Category and Property Location (already correct) -->
+<div class="flex-row">
+    <!-- Section 3: Property Category -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-propertyType')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-home"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="property-type-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-propertyType">
+            <div class="section-content">
+                <div class="flex-row">
+                    <!-- Grouped property category -->
+                    <div>
+                        <label for="property-category" class="bold-label">
+                            ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
+                        </label>
+                        <div class="dropdown-container" id="dropdown-property-category">
+                            <div class="select-btn" tabindex="0">
+                                <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                                <span class="arrow-dwn">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </span>
+                            </div>
+                            <ul class="list-items" id="property-category-grouped">
+                                <!-- We fill this dynamically -->
+                            </ul>
+                        </div>
+                        <input type="hidden" id="property-category" name="property-category" required>
+                    </div>
+                    
+                    <!-- House Type (simple list) -->
+                    <div>
+                        <label for="house-type" class="bold-label">
+                            ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
+                        </label>
+                        <div class="dropdown-container" id="dropdown-house-type">
+                            <div class="select-btn" tabindex="0">
+                                <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
+                                <span class="arrow-dwn">
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </span>
+                            </div>
+                            <ul class="list-items">
+                                ${houseTypes
+                                    .map(
+                                        (item) => `
+                                <li class="item">
+                                    <span class="checkbox">
+                                        <i class="fa-solid fa-check check-icon"></i>
+                                    </span>
+                                    <span class="item-text" data-value="${item}">${item}</span>
+                                </li>
+                                `
+                                    )
+                                    .join("")}
+                            </ul>
+                        </div>
+                        <input type="hidden" id="house-type" name="house-type" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 4: Property Location -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-location')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="location-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-location">
+            <div class="section-content">
+                <div class="flex-row">
+                    <div>
+                        <label for="street-address" class="bold-label">
+                            ${isEnglish ? "Street Address" : "Adresse de rue"}
+                        </label>
+                        <input
+                            type="text"
+                            id="street-address"
+                            placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="city" class="bold-label">
+                            ${isEnglish ? "City" : "Ville"}
+                        </label>
+                        <input
+                            type="text"
+                            id="city"
+                            placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="postal-code" class="bold-label">
+                            ${isEnglish ? "Postal Code" : "Code Postal"}
+                        </label>
+                        <input
+                            type="text"
+                            id="postal-code"
+                            placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
+                            required
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Basic Property Details and Property Amenities (already correct) -->
+<div class="flex-row">
+    <!-- Section 5: Basic Property Details -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-basic-details')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-building-columns"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Basic Property Details" : "Détails de la propriété"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="basic-details-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-basic-details">
+            <div class="section-content">
+                <div class="flex-row">
+                    <div>
+                        <label for="rooms-number" class="bold-label">
+                            ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
+                        </label>
+                        <input
+                            type="text"
+                            id="rooms-number"
+                            placeholder="${isEnglish ? "Enter number of rooms" : "Entrez le nombre de pièces"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="bedrooms-number" class="bold-label">
+                            ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
+                        </label>
+                        <input
+                            type="text"
+                            id="bedrooms-number"
+                            placeholder="${isEnglish ? "Enter number of bedrooms" : "Entrez le nombre de chambres"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="bathrooms-number" class="bold-label">
+                            ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
+                        </label>
+                        <input
+                            type="text"
+                            id="bathrooms-number"
+                            placeholder="${isEnglish ? "Enter number of bathrooms" : "Entrez le nombre de salles de bains"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="year-build" class="bold-label">
+                            ${isEnglish ? "Year Built" : "Année de construction"}
+                        </label>
+                        <input
+                            type="text"
+                            id="year-build"
+                            placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}"
+                            required
+                        >
+                    </div>
+                    <div>
+                        <label for="area" class="bold-label">
+                            ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
+                        </label>
+                        <input
+                            type="text"
+                            id="area"
+                            placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
+                            required
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section 6: Property Amenities -->
+    <div class="section">
+        <div class="section-card" onclick="toggleSection('section-amenities')">
+            <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-sliders"></i></div>
+                <div>
+                    <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
+                </div>
+            </div>
+            <div class="collapse-icon" id="amenities-status">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+        <div class="collapsible-section" id="section-amenities">
+            <div class="section-content">
+                <div class="flex-row">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <label for="garage" class="bold-label">Garage?</label>
+                        <input type="checkbox" id="garage" name="garage" value="Yes">
+                        <input type="number" id="garage-cars" placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" style="display: none;">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <label for="outside-parking" class="bold-label">
+                            ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
+                        </label>
+                        <input type="checkbox" id="outside-parking" value="Yes">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <label for="swimming-pool" class="bold-label">
+                            ${isEnglish ? "Swimming Pool" : "Piscine"}?
+                        </label>
+                        <input type="checkbox" id="swimming-pool" value="Yes">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 4: Additional Details and Remarks (new arrangement) -->
+<div class="section">
+            <div class="section-card" onclick="toggleSection('section-details')">
+              <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-note-sticky"></i></div>
+                <div>
+                  <div class="section-title">${isEnglish ? "Additional Details" : "Détails supplémentaires"}</div>
+                </div>
+              </div>
+              <div class="collapse-icon" id="details-status">
+                <i class="fa-solid fa-chevron-down"></i>
+              </div>
+            </div>
+            <div class="collapsible-section" id="section-details">
+              <div class="section-content">
+                <div style="flex:1; margin-bottom: 10px;">
+                  <label for="details" class="bold-label">${isEnglish ? "Details" : "Détails"}</label>
+                  <textarea id="details" rows="8" required></textarea>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="submit">${isEnglish ? "Submit" : "Envoyer"}</button>`;
+
+        // Show/hide #garage-cars when "Garage?" is checked
+        formContainer.querySelector("#garage").addEventListener("change", (event) => {
+            const carsField = formContainer.querySelector("#garage-cars");
+            carsField.style.display = event.target.checked ? "inline-block" : "none";
+            if (!event.target.checked) carsField.value = "";
+        });
+window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const sectionParent = section.closest('.section');
+  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
+  const wasExpanded = section.classList.contains('expanded');
+  
+  // Close all sections
+  const allSections = document.querySelectorAll('.collapsible-section');
+  const allIcons = document.querySelectorAll('.collapse-icon i');
+  const allSectionParents = document.querySelectorAll('.section');
+  
+  allSections.forEach(s => s.classList.remove('expanded'));
+  allIcons.forEach(icon => icon.classList.remove('active'));
+  allSectionParents.forEach(parent => parent.classList.remove('active'));
+  
+  // Then, only expand the clicked section if it wasn't already expanded
+  if (!wasExpanded) {
+    section.classList.add('expanded');
+    collapseIcon.classList.add('active');
+    sectionParent.classList.add('active');
+    
+    // Scroll the section container into view at the top of the viewport
+    sectionParent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+        // Insert the grouped property-category HTML
+        const categoryListEl = formContainer.querySelector("#property-category-grouped");
+        categoryListEl.innerHTML = buildGroupedCategoryHTML();
+
+        // Insert dynamic seller list
+        const sellerListEl = formContainer.querySelector("#seller-list-items");
+        sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
+
+        /*************************************************************
+         * 5) Single-selection dropdown logic (used for all dropdowns)
+         *************************************************************/
+        function setupDropdown(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+
+            // Gather all .item elements (can be in multiple groups)
+            const listItems = dropdownContainer.querySelectorAll(".list-items .item");
+
+            // Open/close on selectBtn click
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
+            });
+
+            // Single-select: remove "checked" from all, then add to clicked
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    // remove "checked" from all items in this dropdown
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    // mark the clicked item
+                    item.classList.add("checked");
+
+                    // set the text and hidden input
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = value;
+                    hiddenInput.value = value;
+
+                    // close the dropdown
+                    selectBtn.classList.remove("open");
+                });
+            });
+
+            // (Optional) close dropdown if user clicks outside
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+                }
+            });
+        }
+
+        // Setup the 3 dropdowns
+        setupDropdown("dropdown-property-category", "property-category");
+        setupDropdown("dropdown-house-type", "house-type");
+        setupDropdown("dropdown-seller", "seller-name");
+
+        /*************************************************************
+         * 6) Form Submission
+         *************************************************************/
+        formContainer.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  // Disable all standard form elements (inputs, selects, textareas, and buttons)
+  const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+  formElements.forEach((el) => {
+    el.disabled = true;
+  });
+
+  // Additionally, disable custom controls by adding a 'disabled' class
+  const customControls = formContainer.querySelectorAll(".select-btn");
+  customControls.forEach((el) => {
+    el.classList.add("disabled");
+  });
+
+  // Update the submit button text to indicate processing
+  const submitBtn = formContainer.querySelector('button[type="submit"]');
+  submitBtn.textContent = "Processing...";
+
+  // Gather form values
+  const fullName = formContainer.querySelector("#full-name").value.trim();
+  const email = (formContainer.querySelector("#email")?.value || "").trim();
+  const phone = formContainer.querySelector("#phone").value.trim();
+  const formattedPhone = formatPhoneNumber(phone);
+  const sellerName = formContainer.querySelector("#seller-name").value.trim();
+  const propertyCategory = formContainer.querySelector("#property-category").value.trim();
+  const houseType = formContainer.querySelector("#house-type").value.trim();
+  const streetAddress = formContainer.querySelector("#street-address").value.trim();
+  const city = formContainer.querySelector("#city").value.trim();
+  const postalCode = formContainer.querySelector("#postal-code").value.trim();
+  const yearBuild = formContainer.querySelector("#year-build").value.trim();
+  const area = formContainer.querySelector("#area").value.trim();
+
+  // Convert and clamp roomsNumber to a number between 0 and 50
+  let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10);
+  if (isNaN(roomsNumber)) {
+    roomsNumber = 0;
+  }
+  roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
+
+  // Convert bedrooms and bathrooms to numbers (default to 0 if invalid)
+  let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10);
+  if (isNaN(bedroomsNumber)) {
+    bedroomsNumber = 0;
+  }
+  let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10);
+  if (isNaN(bathroomsNumber)) {
+    bathroomsNumber = 0;
+  }
+
+  const garageChecked = formContainer.querySelector("#garage").checked;
+  const insideParking = garageChecked ? "Yes" : "No";
+  let insideParkingCars = 0;
+  if (garageChecked) {
+    insideParkingCars = parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10);
+    if (isNaN(insideParkingCars)) {
+      insideParkingCars = 0;
+    }
+  }
+  const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
+  const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+  const details = formContainer.querySelector("#details").value.trim();
+
+  // Build a seed payload: if a field is empty, assign a default value
+  const seedPayload = {
+    fullName: fullName || "John Doe",
+    email: email || "johndoe@example.com",
+    phone: formattedPhone || "000-000-0000",
+    sellerName: sellerName || "No Preference",
+    propertyCategory: propertyCategory || "Residential",
+    houseType: houseType || "Detached",
+    streetAddress: streetAddress || "123 Main St",
+    city: city || "Sample City",
+    postalCode: postalCode || "00000",
+    yearBuild: yearBuild || "2020",
+    area: area || "1000",
+    roomsNumber: roomsNumber,
+    bedroomsNumber: bedroomsNumber,
+    bathroomsNumber: bathroomsNumber,
+    insideParking: insideParking,
+    insideParkingCars: insideParkingCars,
+    outsideParking: outsideParking,
+    swimmingPool: swimmingPool,
+    details: details || "No additional details provided."
+  };
+
+  // For testing: display the seed payload in an alert and log it
+  alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
+  console.log("Seed Payload:", seedPayload);
+
+  // Send the payload to Voiceflow
+  window.voiceflow.chat.interact({
+    type: "complete",
+    payload: seedPayload
+  });
+});
+
+
+        // Finally, attach the form to the element
+        element.appendChild(formContainer);
+    },
+};
+
+
 const PropertySearchExtension = {
     name: "PropertySearch",
     type: "response",
@@ -474,99 +1454,80 @@ const PropertySearchExtension = {
         const HouseTypeList = SharedPropertyTypes[language];
 
         function buildGroupedCityHTML(cityData) {
-    return Object.entries(cityData)
-        .map(([areaName, cityList]) => {
-            const itemsHTML = cityList
-                .map(
-                    (city) => `
+            return Object.entries(cityData)
+                .map(([areaName, cityList]) => {
+                    const itemsHTML = cityList
+                        .map(
+                            (city) => `
                 <li class="item">
-                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `
-                )
-                .join("");
-            return `
+                        )
+                        .join("");
+                    return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(event, this)">
+                    <div class="group-header" onclick="toggleCollapse(this)">
                         ${areaName}
-                        <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                            </svg>
-                        </span>
+                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-        })
-        .join("");
-}
+                })
+                .join("");
+        }
+
         function buildGroupedCategoryHTML(categoryData) {
-    return Object.entries(categoryData)
-        .map(([groupName, catList]) => {
-            const itemsHTML = catList
-                .map(
-                    (cat) => `
+            return Object.entries(categoryData)
+                .map(([groupName, catList]) => {
+                    const itemsHTML = catList
+                        .map(
+                            (cat) => `
                 <li class="item">
-                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `
-                )
-                .join("");
-            return `
+                        )
+                        .join("");
+                    return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(event, this)">
+                    <div class="group-header" onclick="toggleCollapse(this)">
                         ${groupName}
-                        <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                            </svg>
-                        </span>
+                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-        })
-        .join("");
-}
+                })
+                .join("");
+        }
 
         function buildPropertyTypeHTML(typeList) {
             return `
             <li class="item select-all">
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
                 .map(
                     (type) => `
               <li class="item">
-                  <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                   <span class="item-text" data-value="${type}">${type}</span>
               </li>
             `
@@ -579,25 +1540,23 @@ const PropertySearchExtension = {
         formContainer.innerHTML = `
           <style>
               @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-       	      @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css') integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer";
-
               form {
                   display: flex;
                   flex-direction: column;
                   gap: 10px;
                   width: 100%;
-                  max-width: 920px;
+                  max-width: 800px;
                   margin: 0 auto;
-                  background: transparent;
+                  background: #fff;
                   padding: 16px;
-                  border-radius: 8px;
+                  border-radius: 6px;
               }
               .flex-row {
                   display: flex;
                   gap: 16px;
                   flex-wrap: wrap;
               }
-              .flex-row > div { flex: 1; min-width: 250px; }
+              .flex-row > div { flex: 1; min-width: 200px; }
               .bold-label {
                   font-weight: 700;
                   color: #000;
@@ -609,7 +1568,7 @@ const PropertySearchExtension = {
               input[type="number"] {
                   width: 100%;
                   border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 8px;
+                  border-radius: 4px;
                   padding: 8px;
                   background: #fff;
                   font-size: 13px;
@@ -618,10 +1577,10 @@ const PropertySearchExtension = {
                   height: 40px;
               }
               input[type="text"]:focus,
-              input[type="number"]:focus { border: 2px solid #9c27b0; }
+              input[type="number"]:focus { border: 2px solid #9A0DF2; }
               .submit {
-                  color: #9c27b0;
-                  background-color: #F8EAFA;
+                  color: #9A0DF2;
+                  background-color: #F5E7FE;
                   border: none;
                   padding: 12px;
                   border-radius: 8px;
@@ -629,7 +1588,7 @@ const PropertySearchExtension = {
                   cursor: pointer;
                   margin-top: 8px;
               }
-              .submit:hover { color: #fff; background-color: #9c27b0; font-weight: 700; }
+              .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
               .dropdown-container { position: relative; max-width: 100%; }
               .select-btn {
                   display: flex;
@@ -637,7 +1596,7 @@ const PropertySearchExtension = {
                   align-items: center;
                   justify-content: space-between;
                   padding: 0 12px;
-                  border-radius: 8px;
+                  border-radius: 6px;
                   cursor: pointer;
                   background-color: #fff;
                   border: 1px solid rgba(0,0,0,0.2);
@@ -647,42 +1606,43 @@ const PropertySearchExtension = {
                   display: flex;
                   height: 24px;
                   width: 24px;
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   font-size: 13px;
                   border-radius: 50%;
-                  background: #F8EAFA;
+                  background: #F5E7FE;
                   align-items: center;
                   justify-content: center;
                   transition: 0.3s;
               }
               .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
-              .select-btn:focus, .select-btn.open { border: 2px solid #9c27b0; }
+              .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
               .list-items {
                   position: relative;
                   top: 100%;
                   left: 0;
                   right: 0;
                   margin-top: 4px;
-                  border-radius: 8px;
+                  border-radius: 6px;
                   padding: 4px 0;
                   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
                   display: none;
                   max-height: 200px;
                   overflow-y: auto;
+                  z-index: 100;
                   background-color: #fff;
               }
-              .select-btn.open ~ .list-items { display: block; }
+              .select-btn.open + .list-items { display: block; }
               .list-items .item {
                   display: flex;
                   align-items: center;
                   height: 36px;
                   cursor: pointer;
                   padding: 0 12px;
-                  border-radius: 8px;
+                  border-radius: 4px;
                   transition: 0.3s;
                   margin: 4px;
               }
-              .list-items .item:hover { background-color: #F8EAFA; }
+              .list-items .item:hover { background-color: #F5E7FE; }
               .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
               .list-items.multi-select .item .checkbox,
               .list-items.single-select .item .checkbox {
@@ -695,20 +1655,17 @@ const PropertySearchExtension = {
                   border: 1.5px solid #c0c0c0;
                   transition: all 0.3s ease-in-out;
               }
-              .list-items.multi-select .item .checkbox { border-radius: 8px; }
+              .list-items.multi-select .item .checkbox { border-radius: 2px; }
               .list-items.single-select .item .checkbox { border-radius: 50%; }
-              .item.checked .checkbox { background-color: #9c27b0; border: 2px solid #9c27b0; }
-              .checkbox .check-icon { 
-	      color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
-       
-       }
+              .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
+              .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
               .item.checked .check-icon { transform: scale(1); }
               .group {
                   border-top: 1px solid #eee;
                   margin-bottom: 10px; 
                   margin-left: 10px;  
                   margin-right: 10px; 
-                  border-radius: 8px;
+                  border-radius: 4px;
                   overflow: hidden;
               }
               .group:first-child { border-top: none; }
@@ -720,10 +1677,10 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
-                  color: #9c27b0;
+                  color: #9A0DF2;
               }
               .group-header .collapse-icon {
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   font-size: 13px;
                   transition: transform 0.3s;
                   background: #fff;
@@ -738,22 +1695,22 @@ const PropertySearchExtension = {
               .group-header.active .collapse-icon { transform: rotate(-180deg); }
               .group-options { display: none; padding-left: 0; }
               .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-              input[type="checkbox"] { accent-color: #9c27b0; width: 18px; height: 18px; cursor: pointer; }
+              input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
               .price-wrapper { position: relative; width: 100%; }
               input[type="number"]::-webkit-inner-spin-button,
               input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
               input[type="number"] { -moz-appearance: textfield; }
               .price-controls {
                   position: absolute;
-                  right: 1px;
+                  right: 0;
                   top: 1px;
                   bottom: 1px;
                   width: 20px;
                   display: flex;
                   flex-direction: column;
-                  background-color: #F8EAFA;
+                  background-color: #F5E7FE;
                   border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 8px 8px 0;
+                  border-radius: 0 4px 4px 0;
                   overflow: hidden;
               }
               .price-up, .price-down {
@@ -761,13 +1718,133 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   cursor: pointer;
                   font-size: 8px;
               }
-              .price-up:hover, .price-down:hover { background-color: #9c27b0; color: #fff; }
-          </style>
+              .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
+              /* Accordion / Section Styles (from SellingExtension) */
+.section {
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    .section-card {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 6px;
+    }
+    .section.active {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section:hover {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-icon {
+      background-color: #F5E7FE;
+      color: #9A0DF2;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+    }
+    .status-icon {
+      font-size: 18px;
+      color: #aaa;
+    }
+    .collapse-icon {
+      color: #9A0DF2;
+      font-size: 13px;
+      transition: transform 0.3s;
+      background: #f4eafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 0px;
+    }
+    .collapse-icon i {
+      transition: transform 0.3s ease;
+    }
+    .collapse-icon.active i {
+      transform: rotate(180deg);
+    }
+    /* Collapsible content panel */
+    .collapsible-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible-section.expanded {
+      max-height: 1000px;
+    }
+    .section-content {
+      padding: 20px;
+      background: #fefefe;
+      border-top: 1px solid #eee;
+    }
+    /* For a standard submit button */
+.submit:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
+}
 
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* For custom elements that don't support the disabled attribute */
+.disabled {
+  pointer-events: none;
+  opacity: 0.5; /* Visual cue that it's inactive */
+}
+
+          </style>
+<!-- Row 1: Location & Category and Budget -->
+          <div class="flex-row">
+            <!-- Location & Category (using same code as provided) -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-location-category')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-map-marker-alt"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="location-category-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-location-category">
+                <div class="section-content">
           <!-- City, Category & Property Type -->
           <div class="flex-row">
               <div>
@@ -775,12 +1852,7 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-city">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.cityDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="cityList"></ul>
                   </div>
@@ -791,12 +1863,7 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-category">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.categoryDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="propertyCategoryList"></ul>
                   </div>
@@ -807,19 +1874,77 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-type">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.typeDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="propertyTypeList"></ul>
                   </div>
               </div>
               <input type="hidden" id="propertyTypeValues" />
+          </div></div>
+              </div>
+            </div>
+            <!-- Budget -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-budget')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Budget" : "Budget"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="budget-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-budget">
+                <div class="section-content">
+                
+                <div class="flex-row">
+              <div>
+                  <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
+                  <div class="price-wrapper">
+                      <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
+                      <div class="price-controls">
+                          <div class="price-up" onclick="incrementValue('price-min', 1000)">▲</div>
+                          <div class="price-down" onclick="decrementValue('price-min', 1000)">▼</div>
+                      </div>
+                  </div>
+              </div>
+              <div>
+                  <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
+                  <div class="price-wrapper">
+                      <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
+                      <div class="price-controls">
+                          <div class="price-up" onclick="incrementValue('price-max', 1000)">▲</div>
+                          <div class="price-down" onclick="decrementValue('price-max', 1000)">▼</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+                
+                </div>
+              </div>
+            </div>
           </div>
 
+
+<div class="flex-row">
+            <!-- Property Specifications -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-specifications')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-list"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Property Specifications" : "Spécifications"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="specifications-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-specifications">
+                <div class="section-content">
+                
           <!-- Rooms, Bedrooms & Bathrooms -->
           <div class="flex-row">
               <div>
@@ -827,20 +1952,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-rooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${RoomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -854,20 +1972,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bedrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${BedroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -881,20 +1992,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bathrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${BathroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -905,29 +2009,25 @@ const PropertySearchExtension = {
               </div>
           </div>
 
-          <!-- Budget -->
-          <div class="flex-row">
-              <div>
-                  <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
-                  <div class="price-wrapper">
-    <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
-        <div class="price-up" data-input="price-min" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-min" data-step="1000">▼</div>
-    </div>
-</div>
-              </div>
-              <div>
-                  <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
-                  <div class="price-wrapper">
-    <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
-        <div class="price-up" data-input="price-max" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-max" data-step="1000">▼</div>
-    </div>
-</div>
-              </div>
+          
           </div>
+              </div>
+            </div>
+            <!-- Additional Amenities -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-amenities')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-sliders-h"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="amenities-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-amenities">
+                <div class="section-content">
           
           <!-- Garage & Piscine -->
           <div class="flex-row" style="align-items: flex-start;">
@@ -941,20 +2041,13 @@ const PropertySearchExtension = {
                       <div class="dropdown-container" id="dropdown-cars-number">
                           <div class="select-btn" tabindex="0">
                               <span class="btn-text">${texts.optionDefault}</span>
-                              <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                              <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                           </div>
                           <ul class="list-items single-select">
                               ${CarOptions.map(
                                   (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -969,11 +2062,49 @@ const PropertySearchExtension = {
                   <input type="checkbox" id="swimming-pool" name="swimming-pool" value="Yes">
               </div>
           </div>
+          </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Submit Button -->
           <button type="submit" class="submit">${texts.submitBtn}</button>
         `;
-
+// Add this function to your JavaScript code
+// Improved toggleSection function that closes all other sections
+// Final toggleSection function that properly closes an open section when clicked
+// Complete toggleSection function that properly applies the active class
+window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const sectionParent = section.closest('.section');
+  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
+  const wasExpanded = section.classList.contains('expanded');
+  
+  // First, close all sections
+  const allSections = document.querySelectorAll('.collapsible-section');
+  const allIcons = document.querySelectorAll('.collapse-icon i');
+  const allSectionParents = document.querySelectorAll('.section');
+  
+  allSections.forEach(section => {
+    section.classList.remove('expanded');
+  });
+  
+  allIcons.forEach(icon => {
+    icon.classList.remove('active');
+  });
+  
+  allSectionParents.forEach(parent => {
+    parent.classList.remove('active');
+  });
+  
+  // Then, only expand the clicked section if it wasn't already expanded
+  if (!wasExpanded) {
+    section.classList.add('expanded');
+    collapseIcon.classList.add('active');
+    sectionParent.classList.add('active');
+  }
+  // If it was expanded, we've already closed it in the steps above
+}
         const cityListEl = formContainer.querySelector("#cityList");
         cityListEl.innerHTML = buildGroupedCityHTML(Cities);
 
@@ -990,31 +2121,35 @@ const PropertySearchExtension = {
             const btnText = selectBtn.querySelector(".btn-text");
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== container) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
-      }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
-    }
-  });
-
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
-
-
-
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
+            });
+function setupDropdownSingle(dropdownId, hiddenInputId) {
+          const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = dropdownContainer.querySelector(".select-btn");
+          const listEl = dropdownContainer.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+          const listItems = listEl.querySelectorAll(".item");
+          selectBtn.addEventListener("click", () => { selectBtn.classList.toggle("open"); });
+          listItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              item.classList.add("checked");
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+              selectBtn.classList.remove("open");
+            });
+          });
+          document.addEventListener("click", (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+              selectBtn.classList.remove("open");
+            }
+          });
+        }
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
                 const selectAllItem = groupEl.querySelector(".item.select-all");
@@ -1068,7 +2203,6 @@ const PropertySearchExtension = {
             document.addEventListener("click", (e) => {
                 if (!container.contains(e.target)) {
                     selectBtn.classList.remove("open");
-			listEl.style.display = "none";
                 }
             });
         }
@@ -1086,60 +2220,64 @@ const PropertySearchExtension = {
             "propertyTypeValues",
             texts.typeDefault
         );
+        window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const sectionParent = section.closest('.section');
+  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
+  const wasExpanded = section.classList.contains('expanded');
+  
+  // First, close all sections
+  const allSections = document.querySelectorAll('.collapsible-section');
+  const allIcons = document.querySelectorAll('.collapse-icon i');
+  const allSectionParents = document.querySelectorAll('.section');
+  
+  allSections.forEach(s => s.classList.remove('expanded'));
+  allIcons.forEach(icon => icon.classList.remove('active'));
+  allSectionParents.forEach(parent => parent.classList.remove('active'));
+  
+  // Then, only expand the clicked section if it wasn't already expanded
+  if (!wasExpanded) {
+    section.classList.add('expanded');
+    collapseIcon.classList.add('active');
+    sectionParent.classList.add('active');
+    // Scroll the section container into view at the top of the viewport
+    sectionParent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
-       function setupDropdownSingle(dropdownId, hiddenInputId) {
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  const listEl = container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-  const listItems = listEl.querySelectorAll(".item");
+        
 
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
+        function setupDropdownSingle(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
-    });
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
+            });
 
-    // Toggle the current dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    item.classList.add("checked");
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+                    selectBtn.classList.remove("open");
+                });
+            });
 
-  // When selecting an item...
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      listItems.forEach((i) => i.classList.remove("checked"));
-      item.classList.add("checked");
-
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = labelText;
-      hiddenInput.value = value;
-
-      // Close after selecting
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
-
-  // Close dropdown if user clicks anywhere else
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
-
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+                }
+            });
+        }
 
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
@@ -1161,1463 +2299,1122 @@ const PropertySearchExtension = {
                 });
             }
         });
-	// Add event listeners for price increment and decrement
-formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
-    button.addEventListener('click', function() {
-        const inputId = this.getAttribute('data-input');
-        const step = parseInt(this.getAttribute('data-step'), 10);
-        
-        // Call the appropriate function based on button class
-        if (this.classList.contains('price-up')) {
-            // Define increment function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue;
-            
-            if (inputId === "price-max") {
-                if (input.value === "") {
-                    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                    currentValue = Math.max(1000, priceMin);
-                } else {
-                    currentValue = parseInt(input.value, 10);
-                }
-            } else {
-                currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            }
-            
-            let newValue = currentValue + step;
-            
-            if (inputId === "price-min") {
-                const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
-                if (priceMax && newValue > priceMax) {
-                    newValue = priceMax;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            } else if (inputId === "price-max") {
-                const minVal = parseInt(input.min, 10) || 0;
-                if (newValue < minVal) {
-                    newValue = minVal;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            }
-        } else {
-            // Define decrement function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            
-            if (inputId === "price-max") {
-                const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                let newValue = currentValue - step;
-                if (newValue < priceMin) {
-                    newValue = priceMin;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            } else if (inputId === "price-min") {
-                let newValue = currentValue - step;
-                if (newValue < 0) {
-                    newValue = 0;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            }
-        }
-    });
+
+formContainer.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  // Disable all standard form elements (inputs, selects, textareas, and buttons)
+  const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+  formElements.forEach((el) => {
+    el.disabled = true;
+  });
+
+  // Additionally disable custom controls by adding a 'disabled' class
+  const customControls = formContainer.querySelectorAll(".select-btn");
+  customControls.forEach((el) => {
+    el.classList.add("disabled");
+  });
+
+  // Optionally, update the submit button text to indicate processing
+  const submitButton = formContainer.querySelector("button[type='submit']");
+  submitButton.textContent = "Processing...";
+
+  // Gather form values
+  const cityValues = formContainer.querySelector("#cityValues").value.trim();
+  const propertyCategoryValues = formContainer.querySelector("#propertyCategoryValues").value.trim();
+  const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
+  
+  // Convert roomsNumber to a number and clamp its value between 0 and 50
+  let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value, 10);
+  if (isNaN(roomsNumber)) {
+    roomsNumber = 0;
+  }
+  roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
+  
+  const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
+  const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+  const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
+  const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+  const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
+  const indoorParkingCars = indoorParking === "Yes"
+    ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+    : 0;
+  const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+
+  // Split comma-separated values into arrays
+  const selectedCities = cityValues ? cityValues.split(",") : [];
+  const selectedPropertyCategories = propertyCategoryValues ? propertyCategoryValues.split(",") : [];
+  const selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
+
+  // Build the payload object (roomsNumber is now a number between 0 and 50)
+  const payload = {
+    cityName: selectedCities,
+    category: selectedPropertyCategories,
+    houseType: selectedHouseTypes,
+    rooms: roomsNumber,
+    bedrooms: bedroomsNumber,
+    bathrooms: bathroomsNumber,
+    priceMin: priceMin,
+    priceMax: priceMax,
+    parkingIndoor: indoorParking,
+    car: indoorParkingCars,
+    swimmingPool: swimmingPool,
+  };
+
+  // For testing purposes: show an alert with the payload and log it to the console
+  alert("Payload data:\n" + JSON.stringify(payload, null, 2));
+  console.log("Payload data:", payload);
+
+  // Generate the Airtable formula and send the data to Voiceflow
+  const airtableFormula = generateAirtableFormula(payload);
+  window.voiceflow.chat.interact({
+    type: "complete",
+    payload: { formula: airtableFormula },
+  });
 });
 
-        formContainer.addEventListener("submit", (event) => {
-    event.preventDefault();
-const submitBtn = formContainer.querySelector('button[type="submit"]');
-submitBtn.disabled = true;
 
-    const cityValues = formContainer.querySelector("#cityValues").value.trim();
-    const propertyCategoryValues = formContainer
-        .querySelector("#propertyCategoryValues")
-        .value.trim();
-    const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
-    const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-    const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
-    const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
-    const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
-    const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
-    
-    // Explicitly set to English "Yes" or "No", regardless of interface language
-    const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-    
-    const indoorParkingCars =
-        indoorParking === "Yes"
-            ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
-            : 0;
-    
-    // Explicitly set to English "Yes" or "No", regardless of interface language
-    const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
-    const selectedCities = cityValues ? cityValues.split(",") : [];
-    
-    // Convert property categories to French
-    let selectedPropertyCategories = propertyCategoryValues
-        ? propertyCategoryValues.split(",")
-        : [];
-        
-    // Translate property categories to French if we're in English mode
-    if (isEnglish) {
-        selectedPropertyCategories = selectedPropertyCategories.map(category => {
-            // Find the French equivalent by looking through the shared categories
-            for (const [group, translations] of Object.entries(SharedPropertyCategories)) {
-                const index = translations.en.indexOf(category);
-                if (index !== -1) {
-                    return translations.fr[index];
-                }
-            }
-            return category; // Return original if no translation found
-        });
-    }
-    
-    // Convert property types to French
-    let selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
-    
-    // Translate house types to French if we're in English mode
-    if (isEnglish) {
-        selectedHouseTypes = selectedHouseTypes.map(type => {
-            const index = SharedPropertyTypes.en.indexOf(type);
-            if (index !== -1) {
-                return SharedPropertyTypes.fr[index];
-            }
-            return type; // Return original if no translation found
-        });
-    }
 
-    console.log("Category values being sent:", selectedPropertyCategories);
-    console.log("House types being sent:", selectedHouseTypes);
-    console.log("Indoor parking value:", indoorParking);
-    console.log("Swimming pool value:", swimmingPool);
-
-    const payload = {
-        cityName: selectedCities,
-        category: selectedPropertyCategories,
-        houseType: selectedHouseTypes,
-        bedrooms: bedroomsNumber,
-        bathrooms: bathroomsNumber,
-        priceMin: priceMin,
-        priceMax: priceMax,
-        parkingIndoor: indoorParking, // Always "Yes" or "No" in English
-        car: indoorParkingCars,
-        swimmingPool: swimmingPool, // Always "Yes" or "No" in English
-    };
-
-    const airtableFormula = generateAirtableFormula(payload);
-    window.voiceflow.chat.interact({
-        type: "complete",
-        payload: { formula: airtableFormula },
-    });
-});
 
         element.appendChild(formContainer);
     },
 };
 
-/************** EXTENSION #2: SellingExtension **************/
-/************** EXTENSION #2: SellingExtension **************/
-const SellingExtension = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === "ext_selling" || trace.payload?.name === "ext_selling",
-    render: ({ trace, element }) => {
-        /*************************************************************
-         * 2) Language Setup
-         *************************************************************/
-        const { language } = trace.payload;
-        const isEnglish = language === "en";
 
-        // Build categories object, e.g. { Residential: [...], Plex: [...] }
-        const propertyCategories = Object.fromEntries(
-            Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
-                label,
-                SharedPropertyCategories[sharedKey][language],
-            ])
-        );
+const ContactExtension = {
+      name: "Forms",
+      type: "response",
+      render: function ({ trace, element }) {
+        const language = trace.payload.language || 'en';
+        const isEnglish = (language === 'en');
 
-        // House-type array (e.g. ["Detached","Semi-detached","Multi-level"] in English)
-        const houseTypes = SharedPropertyTypes[language];
-
-        /*************************************************************
-         * 3) Build "grouped" HTML for property category
-         *************************************************************/
-        function buildGroupedCategoryHTML() {
-            const groupLabels = Object.keys(propertyCategories); // e.g. ["Residential","Plex"]
-            return groupLabels
-                .map((groupName) => {
-                    const subItems = propertyCategories[groupName] || [];
-                    const subItemsHTML = subItems
-                        .map(
-                            (subItem) => `
-                    <li class="item">
-                        <span class="checkbox">
-                             <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg>
-                        </span>
-                        <span class="item-text" data-value="${subItem}">${subItem}</span>
-                    </li>
-                  `
-                        )
-                        .join("");
-                    return `
-                <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(event, this)">
-                        ${groupName}
-                        <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                            </svg>
-                        </span>
-                    </div>
-                    <ul class="group-options">
-                        ${subItemsHTML}
-                    </ul>
-                </li>
-              `;
-                })
-                .join("");
-        }
-
-        /*************************************************************
-         * 4) Build the Form
-         *************************************************************/
+        // Create form container
         const formContainer = document.createElement("form");
         formContainer.innerHTML = `
-          <style>
-              @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-              
-              form {
-                  display: flex;
-                  flex-direction: column;
-                  gap: 10px;
-                  width: 100%;
-                  max-width: 920px;
-                  margin: 0 auto;
-                  background: transparent;
-                  padding: 16px;
-                  border-radius: 8px;
-              }
-              .flex-row {
-                  display: flex;
-                  gap: 16px;
-                  flex-wrap: wrap;
-              }
-              .flex-row > div {flex: 1; min-width: 250px; }
-              .bold-label {
-                  font-weight: 700;
-                  color: #000;
-                  font-size: 14px;
-                  margin-bottom: 4px;
-                  display: block;
-              }
-              input[type="text"],
-              input[type="email"],
-              input[type="tel"],
-              input[type="number"],
-              textarea {
-                  width: 100%;
-                  border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 8px;
-                  padding: 8px;
-                  background: #fff;
-                  font-size: 13px;
-                  outline: none;
-                  box-sizing: border-box;
-                  height: 40px;
-              }
-              #details {
-                  width: 100%;
-                  resize: vertical;
-                  min-height: 50px;
-                  max-height: 200px;
-                  padding: 8px;
-                  border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 8px;
-                  font-size: 13px;
-                  box-sizing: border-box;
-              }
-              /* Focus states */
-              input[type="text"]:focus,
-              input[type="email"]:focus,
-              input[type="tel"]:focus,
-              input[type="number"]:focus,
-              select:focus,
-              #details:focus {
-                 border: 2px solid #9c27b0;
-              }
-              .submit {
-                  color: #9c27b0;
-                  background-color: #F8EAFA;
-                  border: none;
-                  padding: 12px;
-                  border-radius: 8px;
-                  font-size: 16px;
-                  cursor: pointer;
-                  margin-top: 8px;
-              }
-              .submit:hover {
-                  color: #fff; background-color: #9c27b0; font-weight: 700;
-              }
-              .dropdown-container {
-                  position: relative; max-width: 100%;
-              }
-              .select-btn {
-                  display: flex;
-                  height: 40px;
-                  align-items: center;
-                  justify-content: space-between;
-                  padding: 0 12px;
-                  border-radius: 8px;
-                  cursor: pointer;
-                  background-color: #fff;
-                  border: 1px solid rgba(0,0,0,0.2);
-              }
-              .select-btn .btn-text {
-                 font-size: 13px; font-weight: 400; color: #555;
-              }
-              .select-btn .arrow-dwn {
-                  display: flex;
-                  height: 24px;
-                  width: 24px;
-                  color: #9c27b0;
-                  font-size: 13px;
-                  border-radius: 50%;
-                  background: #F8EAFA;
-                  align-items: center;
-                  justify-content: center;
-                  transition: 0.3s;
-              }
-              .select-btn.open .arrow-dwn {
-                  transform: rotate(-180deg);
-              }
-              .list-items {
-                  position: relative;
-                  top: 100%;
-                  left: 0;
-                  right: 0;
-                  margin-top: 4px;
-                  border-radius: 8px;
-                  padding: 4px 0;
-                  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-                  display: none;
-                  max-height: 200px;
-                  overflow-y: auto;
-                  background-color: #fff;
-              }
-              .select-btn.open ~ .list-items {
-                  display: block;
-              }
-              .select-btn:focus,
-              .select-btn.open {
-                  border: 2px solid #9c27b0;
-                  outline: none;
-              }
-              .list-items .item {
-                  display: flex;
-                  align-items: center;
-                  height: 36px;
-                  cursor: pointer;
-                  padding: 0 12px;
-                  border-radius: 8px;
-                  transition: 0.3s;
-                  margin: 4px;
-              }
-              .list-items .item:hover {
-                  background-color: #F8EAFA;
-              }
-              .item .item-text {
-                  font-size: 13px;
-                  font-weight: 400;
-                  color: #333;
-                  margin-left: 8px;
-              }
-              /* Circle for single selection */
-              .item .checkbox {
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  height: 16px;
-                  width: 16px;
-                  border-radius: 50%;
-                  margin-right: 8px;
-                  border: 1.5px solid #c0c0c0;
-                  transition: all 0.3s ease-in-out;
-              }
-              .item.checked .checkbox {
-                  background-color: #9c27b0;
-                  border: 2px solid #9c27b0;
-              }
-              .checkbox .check-icon {
-                  color: #fff;
-                  font-size: 12px;
-                  transform: scale(0);
-                  transition: all 0.2s ease-in-out;
-              }
-              .item.checked .check-icon {
-                  transform: scale(1);
-              }
-              .group {
-                  border-top: 1px solid #eee;
-                  margin-bottom: 10px; 
-                  margin-left: 10px;  
-                  margin-right: 10px; 
-                  border-radius: 8px;
-                  overflow: hidden;
-              }
-              .group:first-child {
-                  border-top: none;
-              }
-              .group-header {
-                  font-weight: 500;
-                  padding: 8px 12px;
-                  background: #f4eafb;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  color: #9c27b0;
-              }
-              .group-header .collapse-icon {
-                  color: #9c27b0;
-                  font-size: 13px;
-                  transition: transform 0.3s;
-                  background: #fff;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  width: 24px;  
-                  height: 24px;
-                  border-radius: 50%;
-                  margin-right: 8px;
-              }
-              .group-header.active .collapse-icon {
-                  transform: rotate(-180deg);
-              }
-              .group-options {
-                  display: none;
-                  padding-left: 0;
-              }
-              /**********************************************
-               * NEW: Change the native checkbox color to #9c27b0
-               **********************************************/
-              input[type="checkbox"] {
-                  accent-color: #9c27b0; /* Modern browser support */
-              }
-              /**********************************************
-               * NEW: Add styles for garage-cars-wrapper and controls
-               **********************************************/
-              .garage-cars-wrapper {
-                  position: relative;
-                  width: 100%;
-              }
-              input[type="number"]::-webkit-inner-spin-button,
-              input[type="number"]::-webkit-outer-spin-button {
-                  -webkit-appearance: none;
-                  margin: 0;
-              }
-              input[type="number"] {
-                  -moz-appearance: textfield;
-              }
-              .garage-cars-controls {
-                  position: absolute;
-                  right: 1px;
-                  top: 1px;
-                  bottom: 1px;
-                  width: 20px;
-                  display: flex;
-                  flex-direction: column;
-                  background-color: #F8EAFA;
-                  border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 8px 8px 0;
-                  overflow: hidden;
-              }
-              .garage-cars-up, .garage-cars-down {
-                  flex: 1;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: #9c27b0;
-                  cursor: pointer;
-                  font-size: 8px;
-              }
-              .garage-cars-up:hover, .garage-cars-down:hover {
-                  background-color: #9c27b0;
-                  color: #fff;
-              }
-              .inline-field {
-                  display: flex;
-                  align-items: center;
-                  gap: 10px;
-                  margin-bottom: 10px;
-              }
-          </style>
+         <style>
+    /* Basic style for demonstration */
 
-          <!-- Row 1: Full Name, Email, Phone Number -->
-          <div class="flex-row">
-              <div>
-                  <label for="full-name" class="bold-label">
-                      ${isEnglish ? "Full Name" : "Nom complet"}
-                  </label>
-                  <input
-                      type="text"
-                      id="full-name"
-                      placeholder="${isEnglish ? "Enter your full name" : "Entrez votre nom complet"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="email" class="bold-label">Email</label>
-                  <input
-                      type="email"
-                      id="email"
-                      placeholder="${isEnglish ? "Enter your email address" : "Entrez votre adresse email"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="phone" class="bold-label">
-                      ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
-                  </label>
-                  <input
-                      type="tel"
-                      id="phone"
-                      placeholder="${isEnglish ? "Enter your phone number" : "Entrez votre numéro de téléphone"}"
-                      required
-                  >
-              </div>
-          </div>
 
-          <!-- Row 2: Property Category (grouped) / House Type (simple) / Seller (dynamic) -->
-          <div class="flex-row">
-              <!-- Grouped property category -->
-              <div>
-                  <label for="property-category" class="bold-label">
-                      ${isEnglish ? "Select Property Category" : "Sélectionnez une Catégorie"}
-                  </label>
-                  <div class="dropdown-container" id="dropdown-property-category">
-                      <div class="select-btn" tabindex="0">
-                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                      </div>
-                      <ul class="list-items" id="property-category-grouped">
-                          <!-- We fill this dynamically -->
-                      </ul>
-                  </div>
-                  <input type="hidden" id="property-category" name="property-category" required>
-              </div>
-
-              <!-- House Type (simple list) -->
-              <div>
-                  <label for="house-type" class="bold-label">
-                      ${isEnglish ? "Select House Type" : "Sélectionnez le type de Maison"}
-                  </label>
-                  <div class="dropdown-container" id="dropdown-house-type">
-                      <div class="select-btn" tabindex="0">
-                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                      </div>
-                      <ul class="list-items">
-                          ${houseTypes
-                              .map(
-                                  (item) => `
-                        <li class="item">
-                            <span class="checkbox">
-                                 <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg>
-                            </span>
-                            <span class="item-text" data-value="${item}">${item}</span>
-                        </li>
-                      `
-                              )
-                              .join("")}
-                      </ul>
-                  </div>
-                  <input type="hidden" id="house-type" name="house-type" required>
-              </div>
-
-              <!-- Seller (dynamic from Sellers array) -->
-              <div>
-                  <label for="seller-name" class="bold-label">
-                      ${isEnglish ? "Select a Seller" : "Sélectionnez un vendeur"}
-                  </label>
-                  <div class="dropdown-container" id="dropdown-seller">
-                      <div class="select-btn" tabindex="0">
-                          <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                      </div>
-                      <ul class="list-items" id="seller-list-items">
-                          <!-- We'll fill this from the Sellers array -->
-                      </ul>
-                  </div>
-                  <input type="hidden" id="seller-name" name="seller-name" required>
-              </div>
-          </div>
-
-          <!-- Row 3: Street Address, City, Postal Code -->
-          <div class="flex-row">
-              <div>
-                  <label for="street-address" class="bold-label">
-                      ${isEnglish ? "Street Address" : "Adresse de rue"}
-                  </label>
-                  <input
-                      type="text"
-                      id="street-address"
-                      placeholder="${isEnglish ? "Enter your street address" : "Entrez votre adresse de rue"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="city" class="bold-label">
-                      ${isEnglish ? "City" : "Ville"}
-                  </label>
-                  <input
-                      type="text"
-                      id="city"
-                      placeholder="${isEnglish ? "Enter your city" : "Entrez votre ville"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="postal-code" class="bold-label">
-                      ${isEnglish ? "Postal Code" : "Code Postal"}
-                  </label>
-                  <input
-                      type="text"
-                      id="postal-code"
-                      placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
-                      required
-                  >
-              </div>
-          </div>
-
-          <!-- Row 4: Number of Rooms, Bedrooms, Bathrooms -->
-          <div class="flex-row">
-              <div>
-                  <label for="rooms-number" class="bold-label">
-                      ${isEnglish ? "Number of Rooms" : "Nombre de pièces"}
-                  </label>
-                  <input
-                      type="text"
-                      id="rooms-number"
-                      placeholder="${isEnglish ? "Enter number of rooms" : "Entrez le nombre de pièces"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="bedrooms-number" class="bold-label">
-                      ${isEnglish ? "Number of Bedrooms" : "Nombre de chambres"}
-                  </label>
-                  <input
-                      type="text"
-                      id="bedrooms-number"
-                      placeholder="${isEnglish ? "Enter number of bedrooms" : "Entrez le nombre de chambres"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="bathrooms-number" class="bold-label">
-                      ${isEnglish ? "Number of Bathrooms" : "Nombre de salles de bains"}
-                  </label>
-                  <input
-                      type="text"
-                      id="bathrooms-number"
-                      placeholder="${isEnglish ? "Enter number of bathrooms" : "Entrez le nombre de salles de bains"}"
-                      required
-                  >
-              </div>
-          </div>
-
-          <!-- Row 5: Year Built, Area (sq ft) -->
-          <div class="flex-row">
-              <div>
-                  <label for="year-build" class="bold-label">
-                      ${isEnglish ? "Year Built" : "Année de construction"}
-                  </label>
-                  <input
-                      type="text"
-                      id="year-build"
-                      placeholder="${isEnglish ? "Enter year built" : "Entrez l'année de construction"}"
-                      required
-                  >
-              </div>
-              <div>
-                  <label for="area" class="bold-label">
-                      ${isEnglish ? "Area (sq ft)" : "Superficie (pieds carrés)"}
-                  </label>
-                  <input
-                      type="text"
-                      id="area"
-                      placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
-                      required
-                  >
-              </div>
-          </div>
-
-          <!-- Row 6: Garage?, Outside Parking?, Swimming Pool? (all in one row) -->
-          <div class="flex-row">
-              <!-- UPDATED: Garage section with increment/decrement controls -->
-              <div style="position: relative;">
-                  <div class="inline-field">
-                      <label for="garage" class="bold-label">Garage?</label>
-                      <input type="checkbox" id="garage" name="garage" value="Yes">
-                  </div>
-                  <div id="cars-container" style="display:none; margin-top: 10px;">
-                      <label class="bold-label" for="garage-cars">
-                          ${isEnglish ? "Number of cars" : "Nombre de voitures"}
-                      </label>
-                      <div class="garage-cars-wrapper">
-                          <input type="number" id="garage-cars" 
-                              placeholder="${isEnglish ? "Number of cars" : "Nombre de voitures"}" 
-                              min="1" value="1" />
-                          <div class="garage-cars-controls">
-                              <div class="garage-cars-up" data-input="garage-cars" data-step="1">▲</div>
-                              <div class="garage-cars-down" data-input="garage-cars" data-step="1">▼</div>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <div class="inline-field" style="align-self: flex-start;">
-                  <label for="outside-parking" class="bold-label">
-                      ${isEnglish ? "Outside Parking?" : "Stationnement extérieur ?"}
-                  </label>
-                  <input type="checkbox" id="outside-parking" value="Yes">
-              </div>
-              <div class="inline-field" style="align-self: flex-start;">
-                  <label for="swimming-pool" class="bold-label">
-                      ${isEnglish ? "Swimming Pool" : "Piscine"}?
-                  </label>
-                  <input type="checkbox" id="swimming-pool" value="Yes">
-              </div>
-          </div>
-
-          <!-- Details Textarea -->
-          <div>
-              <label for="details" class="bold-label">
-                  ${isEnglish ? "Details" : "Détails"}
-              </label>
-              <textarea id="details" placeholder="${isEnglish ? "Enter additional details" : "Entrez des détails supplémentaires"}" required></textarea>
-          </div>
-
-          <!-- Submit Button -->
-          <button type="submit" class="submit">
-              ${isEnglish ? "Submit" : "Envoyer"}
-          </button>
-        `;
-
-        // UPDATED: Show/hide #cars-container when "Garage?" is checked
-        formContainer.querySelector("#garage").addEventListener("change", (event) => {
-            const carsContainer = formContainer.querySelector("#cars-container");
-            carsContainer.style.display = event.target.checked ? "block" : "none";
-            if (!event.target.checked) {
-                formContainer.querySelector("#garage-cars").value = "";
-            } else {
-                // Set default value to 1 when showing
-                formContainer.querySelector("#garage-cars").value = "1";
-            }
-        });
-
-        // ADDED: Handle increment/decrement buttons for garage-cars
-        formContainer.querySelectorAll('.garage-cars-up, .garage-cars-down').forEach(button => {
-            button.addEventListener('click', function() {
-                const inputId = this.getAttribute('data-input');
-                const step = parseInt(this.getAttribute('data-step'), 10);
-                const input = formContainer.querySelector(`#${inputId}`);
-                
-                if (!input) return;
-                
-                let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-                
-                if (this.classList.contains('garage-cars-up')) {
-                    // Increment but ensure at least 1
-                    input.value = Math.max(1, currentValue + step);
-                } else {
-                    // Decrement but not below 1
-                    input.value = Math.max(1, currentValue - step);
-                }
-            });
-        });
-
-        // Insert the grouped property-category HTML
-        const categoryListEl = formContainer.querySelector("#property-category-grouped");
-        categoryListEl.innerHTML = buildGroupedCategoryHTML();
-
-        // Insert dynamic seller list
-        const sellerListEl = formContainer.querySelector("#seller-list-items");
-        sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
-
-        /*************************************************************
-         * 5) Single-selection dropdown logic (used for all dropdowns)
-         *************************************************************/
-       function setupDropdown(dropdownId, hiddenInputId) {
-  // 1) Grab references
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  const listEl = container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-  const listItems = listEl.querySelectorAll(".item");
-
-  // 2) Toggle open/close on click
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
-    });
-
-    // Toggle this dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
-
-  // 3) Single‐select logic
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // Uncheck all items in this dropdown
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // Check the clicked item
-      item.classList.add("checked");
-
-      // Update button text & hidden input from the item's data-value
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = value;
-      hiddenInput.value = value;
-
-      // Close dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
-
-  // 4) Close if user clicks outside
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
+    /* Disabled elements styling */
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    button:disabled {
+      cursor: not-allowed;
     }
-  });
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Section / Accordion Styles */
+.section {
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    .section-card {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 6px;
+    }
+    .section.active {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section:hover {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-icon {
+      background-color: #F5E7FE;
+      color: #9A0DF2;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+    }
+    .status-icon {
+      font-size: 18px;
+      color: #aaa;
+    }
+    .collapse-icon {
+      color: #9A0DF2;
+      font-size: 13px;
+      transition: transform 0.3s;
+      background: #f4eafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 0px;
+    }
+    .collapse-icon i {
+      transition: transform 0.3s ease;
+    }
+    .collapse-icon.active i {
+      transform: rotate(180deg);
+    }
+    /* Collapsible content panel */
+    .collapsible-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible-section.expanded {
+      max-height: 1000px;
+    }
+    .section-content {
+      padding: 20px;
+      background: #fefefe;
+      border-top: 1px solid #eee;
+    }
+    /* For a standard submit button */
+.submit:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
 }
 
-        // Setup the 3 dropdowns
-        setupDropdown("dropdown-property-category", "property-category");
-        setupDropdown("dropdown-house-type", "house-type");
-        setupDropdown("dropdown-seller", "seller-name");
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
 
-        /*************************************************************
-         * 6) Form Submission
-         *************************************************************/
-        formContainer.addEventListener("submit", (event) => {
-            event.preventDefault();
+/* For custom elements that don't support the disabled attribute */
+.disabled {
+  pointer-events: none;
+  opacity: 0.5; /* Visual cue that it's inactive */
+}
 
-            const fullName = formContainer.querySelector("#full-name").value.trim();
-            const email = formContainer.querySelector("#email")?.value.trim() || "";
-            const phone = formContainer.querySelector("#phone").value.trim();
-            const formattedPhone = formatPhoneNumber(phone);
-            const sellerName = formContainer.querySelector("#seller-name").value.trim();
-            const propertyCategory = formContainer.querySelector("#property-category").value.trim();
-            const houseType = formContainer.querySelector("#house-type").value.trim();
-            const streetAddress = formContainer.querySelector("#street-address").value.trim();
-            const city = formContainer.querySelector("#city").value.trim();
-            const postalCode = formContainer.querySelector("#postal-code").value.trim();
-            const yearBuild = formContainer.querySelector("#year-build").value.trim();
-            const area = formContainer.querySelector("#area").value.trim();
-            const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-            const bedroomsNumber = formContainer.querySelector("#bedrooms-number").value.trim();
-            const bathroomsNumber = formContainer.querySelector("#bathrooms-number").value.trim();
+    /* Form layout */
+    form {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  width: 100%;
+                  max-width: 800px;
+                  margin: 0 auto;
+                  background: #fff;
+                  padding: 16px;
+                  border-radius: 6px;
+              }
+    .flex-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .flex-row > div {
+      flex: 1;
+      min-width: 200px;
+    }
+    .bold-label {
+      font-weight: 600;
+      color: #000;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 4px;
+      padding: 8px;
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    #details {
+      resize: vertical;
+      min-height: 100px;
+      max-height: 200px;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    #details:focus {
+      border: 2px solid #9A0DF2;
+    }
+    .submit {
+      color: #9A0DF2;
+      background-color: #F5E7FE;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .submit:hover {
+      color: #fff;
+      background-color: #9A0DF2;
+    }
 
-            const garageChecked = formContainer.querySelector("#garage").checked;
-            const insideParking = garageChecked ? "Yes" : "No";
-            const insideParkingCars = garageChecked
-                ? formContainer.querySelector("#garage-cars").value.trim()
-                : 0;
-            const outsideParking = formContainer.querySelector("#outside-parking").checked ? "Yes" : "No";
-            const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
-            const details = formContainer.querySelector("#details").value.trim();
-
-            // Basic validations
-            if (!fullName) {
-                alert("Full Name is required.");
-                return;
-            }
-            if (email && !isValidEmail(email)) {
-                alert("Please enter a valid email.");
-                return;
-            }
-            if (!isValidCanadianPhoneNumber(phone)) {
-                alert("Please enter a valid Canadian phone number.");
-                return;
-            }
-            if (!propertyCategory) {
-                alert("Please select a property category.");
-                return;
-            }
-            if (!houseType) {
-                alert("Please select a house type.");
-                return;
-            }
-
-            // Disable to prevent multiple submissions
-            const submitBtn = formContainer.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-
-            // Send data to Voiceflow
-            window.voiceflow.chat.interact({
-                type: "complete",
-                payload: {
-                    fullName,
-                    email,
-                    phone: formattedPhone,
-                    sellerName,
-                    propertyCategory,
-                    houseType,
-                    streetAddress,
-                    city,
-                    postalCode,
-                    yearBuild,
-                    area,
-                    roomsNumber,
-                    bedroomsNumber,
-                    bathroomsNumber,
-                    insideParking,
-                    insideParkingCars,
-                    outsideParking,
-                    swimmingPool,
-                    details,
-                },
-            });
-        });
-
-        // Finally, attach the form to the element
-        element.appendChild(formContainer);
-    },
-};
-
-/************** EXTENSION #3: ContactExtension **************/
-const ContactExtension = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
-
-    render: ({ trace, element }) => {
-        const { language } = trace.payload;
-        const isEnglish = language === "en";
-
-        // Create the form container
-        const formContainer = document.createElement("form");
-
-        // Insert the style from the property search extension (adjusted for single-select dropdowns)
-        formContainer.innerHTML = `
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    width: 100%;
-                    max-width: 920px;
-                    margin: 0 auto;
-                    background: transparent;
-                    padding: 16px;
-                    border-radius: 8px;
-                }
-
-                .flex-row {
-                    display: flex;
-                    gap: 16px;
-                    flex-wrap: wrap;
-                }
-                .flex-row > div {
-                    flex: 1;
-                    min-width: 250px;
-                }
-
-                .bold-label {
-                    font-weight: 600;
-                    color: #000;
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                    display: block;
-                }
-
-                input[type="text"],
-                input[type="email"],
-                input[type="tel"],
-                textarea {
-                    width: 100%;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    padding: 8px;
-                    background: #fff;
-                    font-size: 13px;
-                    outline: none;
-                    box-sizing: border-box;
-                }
-
-                #details {
-                    width: 100%;
-                    resize: vertical;
-                    min-height: 100px;
-                    max-height: 200px;
-                    padding: 8px;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    font-size: 13px;
-                    box-sizing: border-box;
-                }
-
-                input[type="text"]:focus,
-                input[type="email"]:focus,
-                input[type="tel"]:focus,
-                #details:focus {
-                    border: 2px solid #9c27b0;
-                }
-
-                .submit {
-                    color: #9c27b0;
-                    background-color: #F8EAFA;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    margin-top: 8px;
-                }
-
-                .submit:hover {
-                    color: #fff;
-                    background-color: #9c27b0;
-		    font-weight: 700;
-                }
-
-                /* Dropdown container & styling (single-select from property search extension) */
-                .dropdown-container {
-                    position: relative;
-                    max-width: 100%;
-                }
-                .select-btn {
-                    display: flex;
-                    height: 40px;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    background-color: #fff;
-                    border: 1px solid rgba(0,0,0,0.2);
-                }
-                .select-btn .btn-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #555;
-                }
-                .select-btn .arrow-dwn {
-                    display: flex;
-                    height: 24px;
-                    width: 24px;
-                    color: #9c27b0;
-                    font-size: 12px;
-                    border-radius: 50%;
-                    background: #F8EAFA;
-                    align-items: center;
-                    justify-content: center;
-                    transition: 0.3s;
-                }
-                .select-btn.open .arrow-dwn {
-                    transform: rotate(-180deg);
-                }
-                .select-btn:focus,
-                .select-btn.open {
-                    border: 2px solid #9c27b0;
-                    outline: none;
-                }
-                .list-items {
-                    position: relative;
-                    top: 100%;
-                    left: 0;
-                    right: 0;
-                    margin-top: 4px;
-                    border-radius: 8px;
-                    padding: 8px 0;
-                    background-color: #fff;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-                    display: none;
-                    max-height: 200px;
-                    overflow-y: auto;
-                }
-                .select-btn.open ~ .list-items {
-                    display: block;
-                }
-                .list-items .item {
-                    display: flex;
-                    align-items: center;
-                    height: 36px;
-                    cursor: pointer;
-                    transition: 0.3s;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                }
-                .list-items .item:hover {
-                    background-color: #F8EAFA;
-                }
-                .item .item-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #333;
-                    margin-left: 8px;
-                }
-
-                /* Circle radio for single-select dropdowns */
-                .list-items.single-select .item .checkbox {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 16px;
-                    width: 16px;
-                    border-radius: 50%;
-                    margin-right: 8px;
-                    border: 1.5px solid #c0c0c0;
-                    transition: all 0.3s ease-in-out;
-                }
-                .item.checked .checkbox {
-                    background-color: #9c27b0;
-                    border: 2px solid #9c27b0;
-                }
-                .checkbox .check-icon {
-                    color: #fff;
-                    font-size: 12px;
-                    transform: scale(0);
-                    transition: all 0.2s ease-in-out;
-                }
-                .item.checked .check-icon {
-                    transform: scale(1);
-                }
-            </style>
-
-            <!-- Contact Form Fields -->
-            <div class="flex-row">
-                <!-- Full Name -->
-                <div>
-                    <label for="full-name" class="bold-label">
+    /* Dropdown Styles */
+    .dropdown-container {
+      position: relative;
+      max-width: 100%;
+    }
+    .select-btn {
+      display: flex;
+      height: 40px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #fff;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .select-btn .btn-text {
+      font-size: 13px;
+      font-weight: 400;
+      color: #555;
+    }
+    .select-btn .arrow-dwn {
+      display: flex;
+      height: 24px;
+      width: 24px;
+      color: #9A0DF2;
+      font-size: 12px;
+      border-radius: 50%;
+      background: #F5E7FE;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+    .select-btn.open .arrow-dwn {
+      transform: rotate(-180deg);
+    }
+    .select-btn:focus,
+    .select-btn.open {
+      border: 2px solid #9A0DF2;
+      outline: none;
+    }
+    .list-items {
+      position: relative;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      border-radius: 6px;
+      padding: 8px 0;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+    }
+    .select-btn.open + .list-items {
+      display: block;
+    }
+    .list-items .item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      cursor: pointer;
+      transition: 0.3s;
+      padding: 0 12px;
+      border-radius: 4px;
+    }
+    .list-items .item:hover {
+      background-color: #F5E7FE;
+    }
+    .item .item-text {
+      font-size: 13px;
+      font-weight: 400;
+      color: #333;
+      margin-left: 8px;
+    }
+    .list-items.single-select .item .checkbox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1.5px solid #c0c0c0;
+      transition: all 0.3s ease-in-out;
+    }
+    .item.checked .checkbox {
+      background-color: #9A0DF2;
+      border: 2px solid #9A0DF2;
+    }
+    .checkbox .check-icon {
+      color: #fff;
+      font-size: 10px;
+      transform: scale(0);
+      transition: all 0.2s ease-in-out;
+    }
+    .item.checked .check-icon {
+      transform: scale(1);
+    }
+  </style>
+          <!-- First Row: Contact Info + Service & Seller -->
+          <div class="flex-row">
+            <!-- Section 1: Contact Information -->
+            <div class="section">
+              <div class="section-card" onclick="toggleSection('section-contactInfo')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-user"></i></div>
+                  <div class="section-title">${isEnglish ? "Contact Information" : "Informations de contact"}</div>
+                </div>
+                <div class="collapse-icon"><i class="fa-solid fa-chevron-down"></i></div>
+              </div>
+              <!-- Collapsible content, closed by default -->
+              <div class="collapsible-section" id="section-contactInfo">
+                <div class="section-content">
+                  <div class="flex-row">
+                    <div>
+                      <label for="full-name" class="bold-label">
                         ${isEnglish ? 'Full Name' : 'Nom complet'}
-                    </label>
-                    <input
-                        type="text"
-                        id="full-name"
-                        name="full-name"
-                        placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
-                        required
-                    />
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="email" class="bold-label">Email</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
-                        required
-                    />
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label for="phone" class="bold-label">
+                      </label>
+                      <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+                    </div>
+                    <div>
+                      <label for="email" class="bold-label">Email</label>
+                      <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+                    </div>
+                    <div>
+                      <label for="phone" class="bold-label">
                         ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
-                    </label>
-                    <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}"
-                        required
-                    />
+                      </label>
+                      <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
 
-            <div class="flex-row">
-                <!-- Service Dropdown (Single-Select) -->
-                <div>
-                    <label for="dropdown-service" class="bold-label">
-                        ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
-                    </label>
-                    <div class="dropdown-container" id="dropdown-service">
-                        <div class="select-btn" tabindex="0">
-                            <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
-                            <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                        </div>
-                        <!-- The single-select list -->
-                        <ul class="list-items single-select" id="serviceList"></ul>
-                    </div>
-                    <!-- Hidden input to store the actual service value -->
-                    <input type="hidden" id="service" name="service" required />
+            <!-- Section 2: Service & Seller -->
+            <div class="section">
+              <div class="section-card" onclick="toggleSection('section-serviceSeller')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-briefcase"></i></div>
+                  <div class="section-title">${isEnglish ? "Service & Seller" : "Service et vendeur"}</div>
                 </div>
-
-                <!-- Seller (Broker) Dropdown (Single-Select) -->
-                <div>
-                    <label for="dropdown-seller" class="bold-label">
-                        ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-                    </label>
-                    <div class="dropdown-container" id="dropdown-seller">
+                <div class="collapse-icon"><i class="fa-solid fa-chevron-down"></i></div>
+              </div>
+              <div class="collapsible-section" id="section-serviceSeller">
+                <div class="section-content">
+                  <div class="flex-row">
+                    <!-- Service Dropdown -->
+                    <div>
+                      <label for="dropdown-service" class="bold-label">
+                        ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
+                      </label>
+                      <div class="dropdown-container" id="dropdown-service">
                         <div class="select-btn" tabindex="0">
-                            <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                            <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <ul class="list-items single-select" id="serviceList"></ul>
+                      </div>
+                      <input type="hidden" id="service" name="service" required />
+                    </div>
+
+                    <!-- Seller Dropdown -->
+                    <div>
+                      <label for="dropdown-seller" class="bold-label">
+                        ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+                      </label>
+                      <div class="dropdown-container" id="dropdown-seller">
+                        <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                         <ul class="list-items single-select" id="sellerList"></ul>
+                      </div>
+                      <input type="hidden" id="seller-name" name="seller-name" required />
                     </div>
-                    <!-- Hidden input to store the actual seller value -->
-                    <input type="hidden" id="seller-name" name="seller-name" required />
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
 
-            <!-- Message -->
-            <div>
+          <!-- Second Row: Message Section -->
+          <div class="section">
+            <div class="section-card" onclick="toggleSection('section-message')">
+              <div class="section-info">
+                <div class="section-icon"><i class="fa-solid fa-message"></i></div>
+                <div class="section-title">${isEnglish ? "Message" : "Message"}</div>
+              </div>
+              <div class="collapse-icon"><i class="fa-solid fa-chevron-down"></i></div>
+            </div>
+            <div class="collapsible-section" id="section-message">
+              <div class="section-content">
                 <label for="details" class="bold-label">
-                    ${isEnglish ? 'Message' : 'Message'}
+                  ${isEnglish ? 'Message' : 'Message'}
                 </label>
-                <textarea
-                    id="details"
-                    name="details"
-                    placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}"
-                    required
-                ></textarea>
+                <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+              </div>
             </div>
-
-            <input
-                type="submit"
-                class="submit"
-                value="${isEnglish ? 'Submit' : 'Envoyer'}"
-            />
+          </div>
+          <button type="submit" class="submit">${isEnglish ? 'Submit' : 'Envoyer'}</button>
         `;
 
-        // Attach to DOM
+        // Append
         element.appendChild(formContainer);
 
         /*************************************************************
-         * 2a) Build Single-Select Items for Service & Seller
+         * 1) Populate Dropdowns
          *************************************************************/
         const serviceListEl = formContainer.querySelector("#serviceList");
         const sellerListEl = formContainer.querySelector("#sellerList");
 
-        // 1) We get an array of { label, value } for services
-        const serviceArray = getServiceList(language); // e.g. [{ label: "Sell", value: "Ventes" }, ...]
-        serviceArray.forEach((item) => {
-            const li = document.createElement("li");
-            li.classList.add("item");
-            li.innerHTML = `
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
-                <span class="item-text" data-value="${item.value}">${item.label}</span>
-            `;
-            serviceListEl.appendChild(li);
+        // Fill service dropdown
+        const services = getServiceList(language);
+        services.forEach(item => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+            <span class="item-text" data-value="${item.value}">${item.label}</span>
+          `;
+          serviceListEl.appendChild(li);
         });
 
-        // 2) We get an array of sellers as strings (removing "No Preference" if we want)
-        const sellerArray = getSellerList(true); // or false if you want to exclude "No Preference"
-        sellerArray.forEach((seller) => {
-            const li = document.createElement("li");
-            li.classList.add("item");
-            li.innerHTML = `
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
-                <span class="item-text" data-value="${seller}">${seller}</span>
-            `;
-            sellerListEl.appendChild(li);
+        // Fill seller dropdown
+        const isEnglish2 = (language === 'en');
+        const sellers = getSellerList(isEnglish2, true);
+        sellers.forEach(seller => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
+            <span class="item-text" data-value="${seller}">${seller}</span>
+          `;
+          sellerListEl.appendChild(li);
         });
 
-        /*************************************************************
-         * 2b) Single-Select Setup
-         *************************************************************/
-       function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
-  // 1) Grab references
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  // If you want to find the list by a specific ID, use it; otherwise fall back to .list-items
-  const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+        // Setup single-select
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = dropdownContainer.querySelector(".select-btn");
+          const listEl = dropdownContainer.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+          const listItems = listEl.querySelectorAll(".item");
 
-  // If you need to set default text on load:
-  if (defaultText) {
-    btnText.innerText = defaultText;
-  }
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
 
-  // 2) Gather the dropdown items
-  const listItems = listEl.querySelectorAll(".item");
+          // Toggle open/close
+          selectBtn.addEventListener("click", () => {
+            selectBtn.classList.toggle("open");
+          });
 
-  // 3) Toggle open/close on click
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
+          // Single item selection
+          listItems.forEach((liItem) => {
+            liItem.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              liItem.classList.add("checked");
 
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
-    });
+              const labelText = liItem.querySelector(".item-text").innerText;
+              const value = liItem.querySelector(".item-text").getAttribute("data-value");
 
-    // Toggle the current dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
 
-  // 4) When selecting an item...
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // Uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // Check the clicked item
-      item.classList.add("checked");
-
-      // Update the button text and hidden input value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = labelText;
-      hiddenInput.value = value;
-
-      // Close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
-
-  // 5) Close dropdown if user clicks anywhere else
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
-
-        // Setup single-select for service
-        setupDropdownSingle(
-            "dropdown-service",
-            "serviceList",
-            "service",
-            isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --"
-        );
-
-        // Setup single-select for seller
-        setupDropdownSingle(
-            "dropdown-seller",
-            "sellerList",
-            "seller-name",
-            isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-        );
-
-        /*************************************************************
-         * 2c) Handle Form Submission
-         *************************************************************/
-        formContainer.addEventListener("submit", (event) => {
-            event.preventDefault();
-
-            const fullName = formContainer.querySelector("#full-name").value.trim();
-            const email = formContainer.querySelector("#email").value.trim();
-            const phone = formContainer.querySelector("#phone").value.trim();
-            const formattedPhone = formatPhoneNumber(phone);
-            const service = formContainer.querySelector("#service").value.trim();
-            const sellerName = formContainer.querySelector("#seller-name").value.trim();
-            const details = formContainer.querySelector("#details").value.trim();
-
-            // Basic validations
-            if (!fullName) {
-                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-                return;
-            }
-            if (!email || !isValidEmail(email)) {
-                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-                return;
-            }
-            if (!phone || !isValidCanadianPhoneNumber(phone)) {
-                alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
-                return;
-            }
-            if (!service) {
-                alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
-                return;
-            }
-            if (!sellerName) {
-                alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-                return;
-            }
-            if (!details) {
-                alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
-                return;
-            }
-
-            // Disable the submit button after successful validation
-            const submitBtn = formContainer.querySelector('input[type="submit"]');
-            submitBtn.disabled = true;
-
-            // Simulate sending the data to Voiceflow
-            window.voiceflow.chat.interact({
-                type: "complete",
-                payload: {
-                    fullName,
-                    email,
-                    phone: formattedPhone,
-                    service,
-                    sellerName,
-                    message: details,
-                },
+              selectBtn.classList.remove("open");
             });
+          });
+
+          // Close if click outside
+          document.addEventListener("click", (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+              selectBtn.classList.remove("open");
+            }
+          });
+        }
+
+        setupDropdownSingle("dropdown-service", "serviceList", "service", isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --");
+        setupDropdownSingle("dropdown-seller", "sellerList", "seller-name", isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --");
+
+        /*************************************************************
+         * 2) Toggle Section Logic
+         *************************************************************/
+        window.toggleSection = function(sectionId) {
+          const section = document.getElementById(sectionId);
+
+          // Close all other sections
+          const allSections = formContainer.querySelectorAll(".collapsible-section");
+          allSections.forEach(sec => {
+            if (sec.id !== sectionId) {
+              sec.classList.remove("expanded");
+              sec.previousElementSibling.classList.remove("active");
+              const otherIcon = sec.previousElementSibling.querySelector(".collapse-icon i");
+              if (otherIcon) {
+                otherIcon.style.transform = "rotate(0deg)";
+              }
+            }
+          });
+
+          // Now toggle the clicked one
+          section.classList.toggle("expanded");
+          const isNowExpanded = section.classList.contains("expanded");
+
+          const sectionCard = section.previousElementSibling;
+          if (isNowExpanded) {
+            sectionCard.classList.add("active");
+          } else {
+            sectionCard.classList.remove("active");
+          }
+
+          // Rotate icon if expanded
+          const icon = sectionCard.querySelector(".collapse-icon i");
+          if (icon) {
+            icon.style.transform = isNowExpanded ? "rotate(-180deg)" : "rotate(0deg)";
+          }
+        };
+
+        /*************************************************************
+         * 3) Form Submission
+         *************************************************************/
+        formContainer.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const service = formContainer.querySelector("#service").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+          const details = formContainer.querySelector("#details").value.trim();
+
+          // Validate
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          if (!isValidCanadianPhoneNumber(phone)) {
+            alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
+            return;
+          }
+          if (!service) {
+            alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
+            return;
+          }
+          if (!sellerName) {
+            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+            return;
+          }
+          if (!details) {
+            alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
+            return;
+          }
+
+          // Disable form
+          const formEls = formContainer.querySelectorAll("input, select, textarea, button");
+          formEls.forEach(el => el.disabled = true);
+          // Also disable custom dropdown controls
+          const customControls = formContainer.querySelectorAll(".select-btn");
+          customControls.forEach(el => el.classList.add("disabled"));
+
+          // Update the submit button text
+          const submitBtn = formContainer.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.textContent = isEnglish ? "Processing..." : "En cours...";
+          }
+
+          // Send data to Voiceflow
+          window.voiceflow.chat.interact({
+            type: "complete",
+            payload: {
+              fullName,
+              email,
+              phone,
+              service,
+              sellerName,
+              message: details,
+            },
+          });
         });
-    },
-};
+      }
+    };
+    
+    
+const BookingExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === 'en';
+
+        // Create the form container
+        const formContainer = document.createElement("form");
+
+        // Insert the style and HTML for the booking form
+        formContainer.innerHTML = `
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              background: transparent;
+              padding: 16px;
+              border-radius: 8px;
+              min-width: 300px;
+            }
+            .bold-label {
+              font-weight: 600;
+              color: #000;
+              font-size: 14px;
+              margin-bottom: 4px;
+              display: block;
+            }
+            input[type="text"],
+            input[type="email"] {
+              width: 100%;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 8px;
+              padding: 8px;
+              background: #fff;
+              font-size: 13px;
+              outline: none;
+              box-sizing: border-box;
+            }
+            input[type="text"]:focus,
+            input[type="email"]:focus {
+              border: 2px solid #9c27b0;
+            }
+            .book-now {
+              color: #9c27b0;
+              background-color: #F8EAFA;
+              border: none;
+              padding: 12px;
+              border-radius: 8px;
+              width: 100%;
+              font-size: 16px;
+              cursor: pointer;
+              margin-top: 8px;
+              transition: background-color 0.3s;
+            }
+            .book-now:hover {
+              background-color: #9c27b0;
+              font-weight: 700;
+              color: #fff;
+            }
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #555;
+            }
+            .select-btn .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9c27b0;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F8EAFA;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9c27b0;
+              outline: none;
+            }
+            .list-items {
+              position: relative;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 8px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+            }
+            .select-btn.open ~ .list-items {
+              display: block;
+            }
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 8px;
+            }
+            .list-items .item:hover {
+              background-color: #F8EAFA;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            .list-items.single-select .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .item.checked .checkbox {
+              background-color: #9c27b0;
+              border: 2px solid #9c27b0;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 12px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+            .book-now:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
+}
+    /* Disabled elements styling */
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    button:disabled {
+      cursor: not-allowed;
+    }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5; /* Visual cue */
+      cursor: not-allowed;
+    }
+          </style>
+
+          <!-- Booking Form Fields -->
+          <div>
+              <label for="full-name" class="bold-label">
+                  ${isEnglish ? 'Full Name' : 'Nom complet'}
+              </label>
+              <input
+                  type="text"
+                  id="full-name"
+                  name="full-name"
+                  placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
+                  required
+              />
+          </div>
+
+          <div>
+              <label for="email" class="bold-label">Email</label>
+              <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
+                  required
+              />
+          </div>
+
+          <!-- Single-Select Dropdown for Seller -->
+          <div>
+              <label for="dropdown-seller" class="bold-label">
+                  ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+              </label>
+              <div class="dropdown-container" id="dropdown-seller">
+                  <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                      <span class="arrow-dwn">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                              <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+                          </svg>
+                      </span>
+                  </div>
+                  <ul class="list-items single-select" id="sellerList"></ul>
+              </div>
+              <!-- Hidden input to store the chosen seller -->
+              <input type="hidden" id="seller-name" name="seller-name" required />
+          </div>
+
+          <button type="button" class="book-now" id="cal-booking-button">
+              ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
+          </button>
+        `;
+
+        // Append the form container to the provided element
+        element.appendChild(formContainer);
+
+        // Cal.com embed code
+        (function (C, A, L) { 
+          let p = function (a, ar) { a.q.push(ar); }; 
+          let d = C.document; 
+          C.Cal = C.Cal || function () { 
+            let cal = C.Cal; 
+            let ar = arguments; 
+            if (!cal.loaded) { 
+              cal.ns = {}; 
+              cal.q = cal.q || []; 
+              d.head.appendChild(d.createElement("script")).src = A; 
+              cal.loaded = true; 
+            } 
+            if (ar[0] === L) { 
+              const api = function () { p(api, arguments); }; 
+              const namespace = ar[1]; 
+              api.q = api.q || []; 
+              if(typeof namespace === "string") {
+                cal.ns[namespace] = cal.ns[namespace] || api;
+                p(cal.ns[namespace], ar);
+                p(cal, ["initNamespace", namespace]);
+              } else p(cal, ar); 
+              return;
+            } 
+            p(cal, ar); 
+          }; 
+        })(window, "https://app.cal.com/embed/embed.js", "init");
+
+        /*************************************************************
+         * 2a) Populate Single-Select for Sellers
+         *************************************************************/
+        const sellerListEl = formContainer.querySelector("#sellerList");
+        const sellers = getSellerList(false);
+        sellers.forEach(seller => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox">
+              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
+                <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+              </svg>
+            </span>
+            <span class="item-text" data-value="${seller}">${seller}</span>
+          `;
+          sellerListEl.appendChild(li);
+        });
+
+        /*************************************************************
+         * 2b) Setup Single-Select Logic for Seller Dropdown
+         *************************************************************/
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
+
+          const listItems = listEl.querySelectorAll(".item");
+
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            // Close other dropdowns if open
+            formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+              if (otherContainer !== container) {
+                const otherSelectBtn = otherContainer.querySelector(".select-btn");
+                const otherListEl = otherContainer.querySelector(".list-items");
+                if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+                if (otherListEl) otherListEl.style.display = "none";
+              }
+            });
+            selectBtn.classList.toggle("open");
+            listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+          });
+
+          listItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach((i) => i.classList.remove("checked"));
+              item.classList.add("checked");
+
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+              
+              // When a seller is selected, initialize Cal for that seller
+              if (BookingData[value]) {
+                const { namespace } = BookingData[value];
+                Cal("init", namespace, {origin:"https://cal.com"});
+                Cal.ns[namespace]("ui", {
+                  "theme": "light",
+                  "cssVarsPerTheme": {
+                    "light": {"cal-brand": "#9c27b0"},
+                    "dark": {"cal-brand": "#9c27b0"}
+                  },
+                  "hideEventTypeDetails": false,
+                  "layout": "month_view"
+                });
+              }
+            });
+          });
+
+          document.addEventListener("click", (e) => {
+            if (!container.contains(e.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // Initialize the single-select dropdown for Seller
+        setupDropdownSingle(
+          "dropdown-seller",
+          "sellerList",
+          "seller-name",
+          isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
+        );
+
+        /*************************************************************
+         * 2c) Booking Logic with Disable Functionality
+         *************************************************************/
+        const bookNowButton = formContainer.querySelector("#cal-booking-button");
+
+        bookNowButton.addEventListener("click", () => {
+          console.log("Book Now button clicked");
+          
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+
+          // Validations
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!email || !isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          if (!sellerName) {
+            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+            return;
+          }
+
+          if (BookingData[sellerName]) {
+            // Disable all form controls to prevent further interaction
+            const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+            formElements.forEach(el => {
+              el.disabled = true;
+            });
+            // Also disable custom controls by adding a 'disabled' class
+            const customControls = formContainer.querySelectorAll(".select-btn");
+            customControls.forEach(el => {
+              el.classList.add("disabled");
+            });
+            // Update the Book Now button text to indicate processing
+            bookNowButton.textContent = "Processing...";
+
+            const { link, namespace } = BookingData[sellerName];
+            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+
+            // Voiceflow integration
+            window.voiceflow.chat.interact({
+              type: "complete",
+              payload: { fullName, email, sellerName, link },
+            });
+
+            // Create a new, hidden button that will trigger Cal.com
+            const calTrigger = document.createElement('button');
+            calTrigger.style.display = 'none';
+              
+            // Add name and email as URL parameters
+            const calLinkWithParams = `${link}/${namespace}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+
+            
+            calTrigger.setAttribute('data-cal-link', calLinkWithParams);
+            calTrigger.setAttribute('data-cal-namespace', namespace);
+            calTrigger.setAttribute('data-cal-config', JSON.stringify({
+              layout: "month_view",
+              theme: "light"
+            }));
+            
+            // Append and click the trigger to launch the booking process
+            document.body.appendChild(calTrigger);
+            calTrigger.click();
+          } else {
+            alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
+          }
+        });
+
+        // Finally, attach the form to the element
+        element.appendChild(formContainer);
+      },
+    };
+
+
 
 const RescheduleExtension = {
   name: "Forms",
@@ -3081,855 +3878,7 @@ const CancellationExtension = {
     };
 
 
-/************** EXTENSION #4: BookingExtension **************/
 
-const BookingExtension = {
-      name: "Forms",
-      type: "response",
-      match: ({ trace }) =>
-        trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
-
-      render: ({ trace, element }) => {
-        const { language } = trace.payload;
-        const isEnglish = language === 'en';
-
-        // Create the form container
-        const formContainer = document.createElement("form");
-
-        // Insert the style and HTML for the booking form
-        formContainer.innerHTML = `
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-            form {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-              background: transparent;
-              padding: 16px;
-              border-radius: 8px;
-              min-width: 300px;
-            }
-            .bold-label {
-              font-weight: 600;
-              color: #000;
-              font-size: 14px;
-              margin-bottom: 4px;
-              display: block;
-            }
-            input[type="text"],
-            input[type="email"] {
-              width: 100%;
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 8px;
-              padding: 8px;
-              background: #fff;
-              font-size: 13px;
-              outline: none;
-              box-sizing: border-box;
-            }
-            input[type="text"]:focus,
-            input[type="email"]:focus {
-              border: 2px solid #9c27b0;
-            }
-            .book-now {
-              color: #9c27b0;
-              background-color: #F8EAFA;
-              border: none;
-              padding: 12px;
-              border-radius: 8px;
-              width: 100%;
-              font-size: 16px;
-              cursor: pointer;
-              margin-top: 8px;
-              transition: background-color 0.3s;
-            }
-            .book-now:hover {
-              background-color: #9c27b0;
-              font-weight: 700;
-	      color : #fff;
-            }
-            /* Dropdown Styles */
-            .dropdown-container {
-              position: relative;
-              max-width: 100%;
-            }
-            .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 8px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-            }
-            .select-btn .btn-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #555;
-            }
-            .select-btn .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #9c27b0;
-              font-size: 12px;
-              border-radius: 50%;
-              background: #F8EAFA;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-            }
-            .select-btn.open .arrow-dwn {
-              transform: rotate(-180deg);
-            }
-            .select-btn:focus,
-            .select-btn.open {
-              border: 2px solid #9c27b0;
-              outline: none;
-            }
-            .list-items {
-              position: relative;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 8px;
-              padding: 8px 0;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-            }
-            .select-btn.open ~ .list-items {
-              display: block;
-            }
-            .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              transition: 0.3s;
-              padding: 0 12px;
-              border-radius: 8px;
-            }
-            .list-items .item:hover {
-              background-color: #F8EAFA;
-            }
-            .item .item-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #333;
-              margin-left: 8px;
-            }
-            .list-items.single-select .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              border-radius: 50%;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-            }
-            .item.checked .checkbox {
-              background-color: #9c27b0;
-              border: 2px solid #9c27b0;
-            }
-            .checkbox .check-icon {
-              color: #fff;
-              font-size: 12px;
-              transform: scale(0);
-              transition: all 0.2s ease-in-out;
-            }
-            .item.checked .check-icon {
-              transform: scale(1);
-            }
-          </style>
-
-          <!-- Booking Form Fields -->
-          <div>
-              <label for="full-name" class="bold-label">
-                  ${isEnglish ? 'Full Name' : 'Nom complet'}
-              </label>
-              <input
-                  type="text"
-                  id="full-name"
-                  name="full-name"
-                  placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
-                  required
-              />
-          </div>
-
-          <div>
-              <label for="email" class="bold-label">Email</label>
-              <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
-                  required
-              />
-          </div>
-
-          <!-- Single-Select Dropdown for Seller -->
-          <div>
-              <label for="dropdown-seller" class="bold-label">
-                  ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-              </label>
-              <div class="dropdown-container" id="dropdown-seller">
-                  <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                      <span class="arrow-dwn">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                              <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                          </svg>
-                      </span>
-                  </div>
-                  <ul class="list-items single-select" id="sellerList"></ul>
-              </div>
-              <!-- Hidden input to store the chosen seller -->
-              <input type="hidden" id="seller-name" name="seller-name" required />
-          </div>
-
-          <button type="button" class="book-now" id="cal-booking-button">
-              ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
-          </button>
-        `;
-
-        // Append the form container to the provided element
-        element.appendChild(formContainer);
-
-	// Cal element-click embed code begins
-(function (C, A, L) { 
-        let p = function (a, ar) { a.q.push(ar); }; 
-        let d = C.document; 
-        C.Cal = C.Cal || function () { 
-            let cal = C.Cal; 
-            let ar = arguments; 
-            if (!cal.loaded) { 
-                cal.ns = {}; 
-                cal.q = cal.q || []; 
-                d.head.appendChild(d.createElement("script")).src = A; 
-                cal.loaded = true; 
-            } 
-            if (ar[0] === L) { 
-                const api = function () { p(api, arguments); }; 
-                const namespace = ar[1]; 
-                api.q = api.q || []; 
-                if(typeof namespace === "string") {
-                    cal.ns[namespace] = cal.ns[namespace] || api;
-                    p(cal.ns[namespace], ar);
-                    p(cal, ["initNamespace", namespace]);
-                } else p(cal, ar); 
-                return;
-            } 
-            p(cal, ar); 
-        }; 
-    })(window, "https://app.cal.com/embed/embed.js", "init");
-
-
-        /*************************************************************
-         * 2a) Populate Single-Select for Sellers
-         *************************************************************/
-        const sellerListEl = formContainer.querySelector("#sellerList");
-        const sellers = getSellerList(false);
-        sellers.forEach(seller => {
-          const li = document.createElement("li");
-          li.classList.add("item");
-          li.innerHTML = `
-            <span class="checkbox">
-              <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-                <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-              </svg>
-            </span>
-            <span class="item-text" data-value="${seller}">${seller}</span>
-          `;
-          sellerListEl.appendChild(li);
-        });
-
-        /*************************************************************
-         * 2b) Setup Single-Select Logic
-         *************************************************************/
-        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
-          const container = formContainer.querySelector(`#${dropdownId}`);
-          const selectBtn = container.querySelector(".select-btn");
-          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
-          const btnText = selectBtn.querySelector(".btn-text");
-          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-
-          if (defaultText) {
-            btnText.innerText = defaultText;
-          }
-
-          const listItems = listEl.querySelectorAll(".item");
-
-          selectBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            // Close other dropdowns if open
-            formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-              if (otherContainer !== container) {
-                const otherSelectBtn = otherContainer.querySelector(".select-btn");
-                const otherListEl = otherContainer.querySelector(".list-items");
-                if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-                if (otherListEl) otherListEl.style.display = "none";
-              }
-            });
-            selectBtn.classList.toggle("open");
-            listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-          });
-
-          listItems.forEach((item) => {
-            item.addEventListener("click", (e) => {
-              e.stopPropagation();
-              listItems.forEach((i) => i.classList.remove("checked"));
-              item.classList.add("checked");
-
-              const labelText = item.querySelector(".item-text").innerText;
-              const value = item.querySelector(".item-text").getAttribute("data-value");
-              btnText.innerText = labelText;
-              hiddenInput.value = value;
-
-              selectBtn.classList.remove("open");
-              listEl.style.display = "none";
-              
-              // When a seller is selected, initialize Cal for that seller
-              if (BookingData[value]) {
-                const { namespace } = BookingData[value];
-                Cal("init", namespace, {origin:"https://cal.com"});
-                Cal.ns[namespace]("ui", {
-                  "theme": "light",
-                  "cssVarsPerTheme": {
-                    "light": {"cal-brand": "#9c27b0"},
-                    "dark": {"cal-brand": "#9c27b0"}
-                  },
-                  "hideEventTypeDetails": false,
-                  "layout": "month_view"
-                });
-              }
-            });
-          });
-
-          document.addEventListener("click", (e) => {
-            if (!container.contains(e.target)) {
-              selectBtn.classList.remove("open");
-              listEl.style.display = "none";
-            }
-          });
-        }
-
-        // Initialize the single-select dropdown for Seller
-        setupDropdownSingle(
-          "dropdown-seller",
-          "sellerList",
-          "seller-name",
-          isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-        );
-
-        /*************************************************************
-         * 2c) Booking Logic
-         *************************************************************/
-        const bookNowButton = formContainer.querySelector("#cal-booking-button");
-
-        bookNowButton.addEventListener("click", () => {
-          console.log("Book Now button clicked");
-          
-          const fullName = formContainer.querySelector("#full-name").value.trim();
-          const email = formContainer.querySelector("#email").value.trim();
-          const sellerName = formContainer.querySelector("#seller-name").value.trim();
-
-          // Validations
-          if (!fullName) {
-            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-            return;
-          }
-          if (!email || !isValidEmail(email)) {
-            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-            return;
-          }
-          if (!sellerName) {
-            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-            return;
-          }
-
-          if (BookingData[sellerName]) {
-              bookNowButton.disabled = true;
-            const { link, namespace } = BookingData[sellerName];
-            
-            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
-
-            // Voiceflow integration
-            window.voiceflow.chat.interact({
-              type: "complete",
-              payload: { fullName, email, sellerName, link },
-            });
-
-            // Create a new button that will trigger Cal
-            const calTrigger = document.createElement('button');
-            calTrigger.style.display = 'none';
-            
-            // Add name and email as URL parameters
-            const calLinkWithParams = `${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
-            
-            calTrigger.setAttribute('data-cal-link', calLinkWithParams);
-            calTrigger.setAttribute('data-cal-namespace', namespace);
-            calTrigger.setAttribute('data-cal-config', JSON.stringify({
-              layout: "month_view",
-              theme: "light"
-            }));
-            
-            // Append and click
-            document.body.appendChild(calTrigger);
-            calTrigger.click();
-          } else {
-            alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
-          }
-        });
-      },
-    };
-
-const BookingExtensionOld = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
-
-    render: ({ trace, element }) => {
-        const { language } = trace.payload;
-        const isEnglish = language === 'en';
-
-        // Create the form container
-        const formContainer = document.createElement("form");
-
-        // Insert the style from the property search extension (adjusted for single-select)
-        formContainer.innerHTML = `
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    background: transparent;
-                    padding: 16px;
-                    border-radius: 8px;
-		    min-width: 300px;
-                }
-
-                .bold-label {
-                    font-weight: 600;
-                    color: #000;
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                    display: block;
-                }
-
-                input[type="text"],
-                input[type="email"] {
-                    width: 100%;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    padding: 8px;
-                    background: #fff;
-                    font-size: 13px;
-                    outline: none;
-                    box-sizing: border-box;
-                }
-
-                input[type="text"]:focus,
-                input[type="email"]:focus {
-                    border: 2px solid #9c27b0;
-                }
-
-                .book-now {
-                    color: #9c27b0;
-                    background-color: #F8EAFA;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 8px;
-                    width: 100%;
-                    font-size: 16px;
-                    cursor: pointer;
-                    margin-top: 8px;
-                }
-                .book-now:hover {
-                    color: #fff;
-                    background-color: #9c27b0;
-                    font-weight: 700;
-                }
-
-                /* Single-Select Dropdown Styles from Property Search Extension */
-                .dropdown-container {
-                    position: relative;
-                    max-width: 100%;
-                }
-                .select-btn {
-                    display: flex;
-                    height: 40px;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    background-color: #fff;
-                    border: 1px solid rgba(0,0,0,0.2);
-                }
-                .select-btn .btn-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #555;
-                }
-                .select-btn .arrow-dwn {
-                    display: flex;
-                    height: 24px;
-                    width: 24px;
-                    color: #9c27b0;
-                    font-size: 12px;
-                    border-radius: 50%;
-                    background: #F8EAFA;
-                    align-items: center;
-                    justify-content: center;
-                    transition: 0.3s;
-                }
-                .select-btn.open .arrow-dwn {
-                    transform: rotate(-180deg);
-                }
-                .select-btn:focus,
-                .select-btn.open {
-                    border: 2px solid #9c27b0;
-                    outline: none;
-                }
-                .list-items {
-                    position: relative;
-                    top: 100%;
-                    left: 0;
-                    right: 0;
-                    margin-top: 4px;
-                    border-radius: 8px;
-                    padding: 8px 0;
-                    background-color: #fff;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-                    display: none;
-                    max-height: 200px;
-                    overflow-y: auto;
-                }
-                .select-btn.open ~ .list-items {
-                    display: block;
-                }
-                .list-items .item {
-                    display: flex;
-                    align-items: center;
-                    height: 36px;
-                    cursor: pointer;
-                    transition: 0.3s;
-                    padding: 0 12px;
-                    border-radius: 8px;
-                }
-                .list-items .item:hover {
-                    background-color: #F8EAFA;
-                }
-                .item .item-text {
-                    font-size: 13px;
-                    font-weight: 400;
-                    color: #333;
-                    margin-left: 8px;
-                }
-                .list-items.single-select .item .checkbox {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 16px;
-                    width: 16px;
-                    border-radius: 50%;
-                    margin-right: 8px;
-                    border: 1.5px solid #c0c0c0;
-                    transition: all 0.3s ease-in-out;
-                }
-                .item.checked .checkbox {
-                    background-color: #9c27b0;
-                    border: 2px solid #9c27b0;
-                }
-                .checkbox .check-icon {
-                    color: #fff;
-                    font-size: 12px;
-                    transform: scale(0);
-                    transition: all 0.2s ease-in-out;
-                }
-                .item.checked .check-icon {
-                    transform: scale(1);
-                }
-            </style>
-
-            <!-- Booking Form Fields -->
-            <div>
-                <label for="full-name" class="bold-label">
-                    ${isEnglish ? 'Full Name' : 'Nom complet'}
-                </label>
-                <input
-                    type="text"
-                    id="full-name"
-                    name="full-name"
-                    placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
-                    required
-                />
-            </div>
-
-            <div>
-                <label for="email" class="bold-label">Email</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
-                    required
-                />
-            </div>
-
-            <!-- Single-Select Dropdown for Seller -->
-            <div>
-                <label for="dropdown-seller" class="bold-label">
-                    ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-                </label>
-                <div class="dropdown-container" id="dropdown-seller">
-                    <div class="select-btn" tabindex="0">
-                        <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                        <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
-                    </div>
-                    <ul class="list-items single-select" id="sellerList"></ul>
-                </div>
-                <!-- Hidden input to store the chosen seller -->
-                <input type="hidden" id="seller-name" name="seller-name" required />
-            </div>
-
-            <button type="button" class="book-now" id="book-now">
-                ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
-            </button>
-        `;
-
-        // Append to DOM
-        element.appendChild(formContainer);
-
-        /*************************************************************
-         * 2a) Populate Single-Select for Sellers
-         *************************************************************/
-        const sellerListEl = formContainer.querySelector("#sellerList");
-        const sellers = getSellerList(false); // array of seller names (no "No Preference")
-        sellers.forEach(seller => {
-            const li = document.createElement("li");
-            li.classList.add("item");
-            li.innerHTML = `
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
-                <span class="item-text" data-value="${seller}">${seller}</span>
-            `;
-            sellerListEl.appendChild(li);
-        });
-
-        /*************************************************************
-         * 2b) Setup Single-Select Logic
-         *************************************************************/
-        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
-  // 1) Grab references
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  // If you want to find the list by a specific ID, use it; otherwise fall back to .list-items
-  const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-
-  // If you need to set default text on load:
-  if (defaultText) {
-    btnText.innerText = defaultText;
-  }
-
-  // 2) Gather the dropdown items
-  const listItems = listEl.querySelectorAll(".item");
-
-  // 3) Toggle open/close on click
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
-    });
-
-    // Toggle the current dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
-
-  // 4) When selecting an item...
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-
-      // Uncheck all items
-      listItems.forEach((i) => i.classList.remove("checked"));
-      // Check the clicked item
-      item.classList.add("checked");
-
-      // Update the button text and hidden input value
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = labelText;
-      hiddenInput.value = value;
-
-      // Close the dropdown
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
-
-  // 5) Close dropdown if user clicks anywhere else
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
-
-
-        // Initialize single-select for Seller
-        setupDropdownSingle(
-            "dropdown-seller",
-            "sellerList",
-            "seller-name",
-            isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-        );
-
-        /*************************************************************
-         * 2c) Booking Logic
-         *************************************************************/
-        const bookNowButton = formContainer.querySelector("#book-now");
-
-        // Book Now button click
-        bookNowButton.addEventListener("click", () => {
-            const fullName = formContainer.querySelector("#full-name").value.trim();
-            const email = formContainer.querySelector("#email").value.trim();
-            const sellerName = formContainer.querySelector("#seller-name").value.trim();
-
-            // Validations
-            if (!fullName) {
-                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-                return;
-            }
-            if (!email || !isValidEmail(email)) {
-                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-                return;
-            }
-            if (!sellerName) {
-                alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-                return;
-            }
-
-            if (BookingUrls[sellerName]) {
-                // Disable the button
-                bookNowButton.disabled = true;
-
-                // Build the booking URL
-                const bookingUrl = BookingUrls[sellerName]
-                    .replace("{Full_Name}", encodeURIComponent(fullName))
-                    .replace("{Email}", encodeURIComponent(email));
-
-                // Interact with Voiceflow (simulated)
-                window.voiceflow.chat.interact({
-                    type: "complete",
-                    payload: { fullName, email, sellerName, bookingUrl },
-                });
-
-                // Insert Calendly widget
-                const modal = document.getElementById("bookingModal");
-                const calendlyContainer = modal.querySelector("#calendlyContainer");
-                calendlyContainer.innerHTML = `<div class="calendly-inline-widget" data-url="${bookingUrl}" style="min-width:320px;height:700px;"></div>`;
-                
-                // Remove any existing script to avoid duplication
-                const existingScript = calendlyContainer.querySelector("script[src='https://assets.calendly.com/assets/external/widget.js']");
-                if (existingScript) {
-                    existingScript.remove();
-                }
-                
-                // Add the script
-                const script = document.createElement("script");
-                script.src = "https://assets.calendly.com/assets/external/widget.js";
-                script.async = true;
-                calendlyContainer.appendChild(script);
-
-                // Display the modal
-                modal.style.display = "block";
-                
-                // ADDED: Setup modal closing functionality
-                setupModalClosing(modal);
-            } else {
-                alert(isEnglish ? "No booking URL available for the selected seller." : "Aucune URL de réservation disponible pour le vendeur sélectionné.");
-            }
-        });
-        
-        /*************************************************************
-         * 2d) Modal Closing Functionality (Added)
-         *************************************************************/
-        function setupModalClosing(modal) {
-            // Function to close modal
-            function closeModal() {
-                console.log('Closing booking modal');
-                modal.style.display = 'none';
-                document.removeEventListener('keydown', handleKeyPress);
-                window.removeEventListener('click', handleOutsideClick);
-            }
-            
-            // Handle key presses (Escape to close)
-            function handleKeyPress(event) {
-                if (event.key === 'Escape') {
-                    closeModal();
-                }
-            }
-            
-            // Handle clicks outside the modal content
-            function handleOutsideClick(event) {
-                if (event.target === modal) {
-                    closeModal();
-                }
-            }
-            
-            // Setup close button if it exists
-            const closeButton = modal.querySelector('.close-button');
-            if (closeButton) {
-                // Clone to remove any existing listeners
-                const newCloseButton = closeButton.cloneNode(true);
-                closeButton.parentNode.replaceChild(newCloseButton, closeButton);
-                newCloseButton.addEventListener('click', e => {
-                    e.stopPropagation();
-                    closeModal();
-                });
-            }
-            
-            // Add keyboard and outside click event listeners
-            document.addEventListener('keydown', handleKeyPress);
-            window.addEventListener('click', handleOutsideClick);
-        }
-    },
-};
 /************** EXTENSION #5: ImageExtension **************/
 const ImageExtension = {
 	name: 'ImageExtension',
