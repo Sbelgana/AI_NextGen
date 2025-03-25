@@ -399,7 +399,7 @@ function generateAirtableFormula(input) {
  *************************************************************/
 
 /************** EXTENSION #1: PropertySearchExtension **************/
-const SVG_DOLLAR = `
+     const SVG_DOLLAR = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-355 -250  1024 1024">
   <path fill="#9a0df2" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
 </svg>
@@ -437,7 +437,7 @@ const SVG_CHECK = `
 `;
 
 const SVG_HOUSE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-220 -140  1024 800">
   <path fill="#9a0df2" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0
     c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32
     14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0
@@ -447,14 +447,14 @@ const SVG_HOUSE = `
 `;
 
 const SVG_USER = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-300 -140  1024 800">
   <path fill="#9a0df2" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7
     13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
 </svg>
 `;
 
 const SVG_USER_TIE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-300 -140  1024 800">
   <path fill="#9a0df2" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2
     -8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0
     0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6
@@ -463,7 +463,7 @@ const SVG_USER_TIE = `
 `;
 
 const SVG_BUILDING_COLUMNS = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-250 -140  1024 800">
   <path fill="#9a0df2" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3
     0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0
     196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1
@@ -473,7 +473,7 @@ const SVG_BUILDING_COLUMNS = `
 `;
 
 const SVG_NOTE_STICK = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-280 -150  1024 800">
   <path fill="#9a0df2" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0
     0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64
     28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
@@ -481,7 +481,7 @@ const SVG_NOTE_STICK = `
 `;
 
 const SVG_BRIEFCASE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-280 -150  1024 800">
   <path fill="#9a0df2" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7
     96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9
     0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3
@@ -490,7 +490,7 @@ const SVG_BRIEFCASE = `
 `;
 
 const SVG_MESSAGE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-280 -150  1024 800">
   <path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8
     14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
 </svg>
@@ -1520,13 +1520,11 @@ const SellingExtension = {
     const isEnglish = language === "en";
 
     /*************************************************************
-     * 2) Helper: Close all other dropdowns
+     * 2) Helper: close all other dropdowns
      *************************************************************/
     function closeAllOtherDropdowns(currentSelectBtn) {
-      // find all .select-btn inside our form
       const allSelectBtns = formContainer.querySelectorAll(".select-btn");
       allSelectBtns.forEach((btn) => {
-        // if not the current button, close it
         if (btn !== currentSelectBtn) {
           btn.classList.remove("open");
         }
@@ -1547,7 +1545,6 @@ const SellingExtension = {
         }
       });
 
-      // Toggle the clicked group
       const groupOptions = element.nextElementSibling;
       if (groupOptions.style.display === "block") {
         groupOptions.style.display = "none";
@@ -1571,7 +1568,6 @@ const SellingExtension = {
       const collapseIcon = sectionParent.querySelector(".collapse-icon");
       const wasExpanded = section.classList.contains("expanded");
 
-      // close all sections in container
       const allSections = container.querySelectorAll(".collapsible-section");
       const allIcons = container.querySelectorAll(".collapse-icon");
       const allSectionParents = container.querySelectorAll(".section");
@@ -1580,7 +1576,6 @@ const SellingExtension = {
       allIcons.forEach((icon) => icon.classList.remove("active"));
       allSectionParents.forEach((parent) => parent.classList.remove("active"));
 
-      // only expand if not already
       if (!wasExpanded) {
         section.classList.add("expanded");
         collapseIcon.classList.add("active");
@@ -1609,7 +1604,8 @@ const SellingExtension = {
               (subItem) => `
                 <li class="item">
                   <span class="checkbox">
-                    <i class="fa-solid fa-check check-icon"></i>
+                    <!-- Using SVG_CHECK for the check icon -->
+                    ${SVG_CHECK}
                   </span>
                   <span class="item-text" data-value="${subItem}">${subItem}</span>
                 </li>
@@ -1620,7 +1616,10 @@ const SellingExtension = {
             <li class="group">
               <div class="group-header">
                 ${groupName}
-                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                <span class="collapse-icon">
+                  <!-- Using SVG_CHEVRON for the chevron arrow -->
+                  ${SVG_CHEVRON}
+                </span>
               </div>
               <ul class="group-options">
                 ${subItemsHTML}
@@ -1972,19 +1971,20 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-personalInfo">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-user"></i></div>
+              <!-- Replace fa-user with your SVG_USER -->
+              <div class="section-icon">${SVG_USER}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Contact" : "Contact"}</div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              <!-- Using SVG_CHEVRON -->
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-personalInfo">
             <div class="section-content">
               <div class="flex-row">
-                <!-- Full Name -->
                 <div>
                   <label for="full-name" class="bold-label">
                     ${isEnglish ? "Full Name" : "Nom complet"}
@@ -1996,7 +1996,6 @@ button:disabled {
                     required
                   >
                 </div>
-                <!-- Email -->
                 <div>
                   <label for="email" class="bold-label">Email</label>
                   <input
@@ -2006,7 +2005,6 @@ button:disabled {
                     required
                   >
                 </div>
-                <!-- Phone -->
                 <div>
                   <label for="phone" class="bold-label">
                     ${isEnglish ? "Phone Number" : "Numéro de téléphone"}
@@ -2027,13 +2025,14 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-seller">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-user-tie"></i></div>
+              <!-- Replace fa-user-tie with your SVG_USER_TIE -->
+              <div class="section-icon">${SVG_USER_TIE}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Seller" : "Vendeur"}</div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-seller">
@@ -2046,12 +2045,10 @@ button:disabled {
                   <div class="select-btn" tabindex="0">
                     <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
                     <span class="arrow-dwn">
-                      <i class="fa-solid fa-chevron-down"></i>
+                      ${SVG_CHEVRON}
                     </span>
                   </div>
-                  <ul class="list-items" id="seller-list-items">
-                    <!-- We'll fill this from the Sellers array -->
-                  </ul>
+                  <ul class="list-items" id="seller-list-items"></ul>
                 </div>
                 <input type="hidden" id="seller-name" name="seller-name" required>
               </div>
@@ -2066,13 +2063,14 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-propertyType">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-home"></i></div>
+              <!-- Replace fa-home with your SVG_HOUSE, or your chosen icon for property category -->
+              <div class="section-icon">${SVG_HOUSE}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Property Category" : "Catégorie de propriété"}</div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-propertyType">
@@ -2085,12 +2083,10 @@ button:disabled {
                   <div class="dropdown-container" id="dropdown-property-category">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                      <span class="arrow-dwn">
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items" id="property-category-grouped">
-                      <!-- We'll fill this dynamically -->
+                      <!-- Filled dynamically -->
                     </ul>
                   </div>
                   <input type="hidden" id="property-category" name="property-category" required>
@@ -2103,9 +2099,7 @@ button:disabled {
                   <div class="dropdown-container" id="dropdown-house-type">
                     <div class="select-btn" tabindex="0">
                       <span class="btn-text">${isEnglish ? "-- Select --" : "-- Sélectionnez --"}</span>
-                      <span class="arrow-dwn">
-                        <i class="fa-solid fa-chevron-down"></i>
-                      </span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items">
                       ${houseTypes
@@ -2113,7 +2107,7 @@ button:disabled {
                           (item) => `
                             <li class="item">
                               <span class="checkbox">
-                                <i class="fa-solid fa-check check-icon"></i>
+                                ${SVG_CHECK}
                               </span>
                               <span class="item-text" data-value="${item}">${item}</span>
                             </li>
@@ -2133,13 +2127,14 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-location">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-location-dot"></i></div>
+              <!-- Replace fa-location-dot with your SVG_ADDRESS -->
+              <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Location" : "Adresse"}</div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-location">
@@ -2174,7 +2169,7 @@ button:disabled {
                   <input
                     type="text"
                     id="postal-code"
-                    placeholder="${isEnglish ? "Enter your postal code" : "Entrez votre code postal"}"
+                    placeholder="${isEnglish ? "Enter your code" : "Entrez votre code postal"}"
                     required
                   >
                 </div>
@@ -2190,13 +2185,16 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-basic-details">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-building-columns"></i></div>
+              <!-- Replace fa-building-columns with your SVG_BUILDING_COLUMNS -->
+              <div class="section-icon">${SVG_BUILDING_COLUMNS}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Basic Property Details" : "Détails de la propriété"}</div>
+                <div class="section-title">
+                  ${isEnglish ? "Basic Property Details" : "Détails de la propriété"}
+                </div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-basic-details">
@@ -2253,7 +2251,7 @@ button:disabled {
                   <input
                     type="text"
                     id="area"
-                    placeholder="${isEnglish ? "Enter area in sq ft" : "Entrez la superficie en pieds carrés"}"
+                    placeholder="${isEnglish ? "Enter area" : "Entrez la superficie"}"
                     required
                   >
                 </div>
@@ -2266,13 +2264,14 @@ button:disabled {
         <div class="section">
           <div class="section-card" data-target="section-amenities">
             <div class="section-info">
-              <div class="section-icon"><i class="fa-solid fa-sliders"></i></div>
+              <!-- Replace fa-sliders with your SVG_SLIDER -->
+              <div class="section-icon">${SVG_SLIDER}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
               </div>
             </div>
             <div class="collapse-icon">
-              <i class="fa-solid fa-chevron-down"></i>
+              ${SVG_CHEVRON}
             </div>
           </div>
           <div class="collapsible-section" id="section-amenities">
@@ -2310,13 +2309,16 @@ button:disabled {
       <div class="section">
         <div class="section-card" data-target="section-details">
           <div class="section-info">
-            <div class="section-icon"><i class="fa-solid fa-note-sticky"></i></div>
+            <!-- Replace fa-note-sticky with your SVG_NOTE_STICK -->
+            <div class="section-icon">${SVG_NOTE_STICK}</div>
             <div>
-              <div class="section-title">${isEnglish ? "Additional Details" : "Détails supplémentaires"}</div>
+              <div class="section-title">
+                ${isEnglish ? "Additional Details" : "Détails supplémentaires"}
+              </div>
             </div>
           </div>
           <div class="collapse-icon">
-            <i class="fa-solid fa-chevron-down"></i>
+            ${SVG_CHEVRON}
           </div>
         </div>
         <div class="collapsible-section" id="section-details">
@@ -2344,7 +2346,7 @@ button:disabled {
       if (!event.target.checked) carsField.value = "";
     });
 
-    // Insert property-category HTML
+    // Insert grouped property-category HTML
     const categoryListEl = formContainer.querySelector("#property-category-grouped");
     categoryListEl.innerHTML = buildGroupedCategoryHTML();
 
@@ -2353,7 +2355,7 @@ button:disabled {
     sellerListEl.innerHTML = buildSellerListItems(Sellers, isEnglish);
 
     /*************************************************************
-     * 7) Single-select dropdown logic (closing others + scroll)
+     * 7) Single-select dropdown logic (scroll + close others)
      *************************************************************/
     function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
@@ -2365,23 +2367,16 @@ button:disabled {
 
       selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-
-        // 1) Close any other open dropdowns
+        // Close other dropdowns
         closeAllOtherDropdowns(selectBtn);
-
-        // 2) Toggle open/close
+        // Toggle open
         selectBtn.classList.toggle("open");
-
-        // 3) If opening, scroll to the first item
-        if (selectBtn.classList.contains("open")) {
-          const firstItem = listEl.firstElementChild;
-          if (firstItem) {
-            firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+        // If opening, scroll to the first item
+        if (selectBtn.classList.contains("open") && listEl.firstElementChild) {
+          listEl.firstElementChild.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       });
 
-      // Single-select
       listItems.forEach((item) => {
         item.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -2394,7 +2389,6 @@ button:disabled {
         });
       });
 
-      // Close if user clicks outside
       document.addEventListener("click", (e) => {
         if (!dropdownContainer.contains(e.target)) {
           selectBtn.classList.remove("open");
@@ -2402,23 +2396,13 @@ button:disabled {
       });
     }
 
-    // Helper to close other dropdowns
-    function closeAllOtherDropdowns(currentSelectBtn) {
-      const allSelectBtns = formContainer.querySelectorAll(".select-btn");
-      allSelectBtns.forEach((btn) => {
-        if (btn !== currentSelectBtn) {
-          btn.classList.remove("open");
-        }
-      });
-    }
-
-    // Setup your single-select dropdowns
+    // Setup single-select for property category, house type, seller
     setupDropdownSingle("dropdown-property-category", "property-category");
     setupDropdownSingle("dropdown-house-type", "house-type");
     setupDropdownSingle("dropdown-seller", "seller-name");
 
     /*************************************************************
-     * 8) Group collapse (click .group-header)
+     * 8) Group collapse
      *************************************************************/
     const groupHeaders = formContainer.querySelectorAll(".group-header");
     groupHeaders.forEach((header) => {
@@ -2429,7 +2413,7 @@ button:disabled {
     });
 
     /*************************************************************
-     * 9) Section toggles (click .section-card)
+     * 9) Section toggles
      *************************************************************/
     const sectionCards = formContainer.querySelectorAll(".section-card");
     sectionCards.forEach((card) => {
@@ -2469,6 +2453,7 @@ button:disabled {
       const postalCode = formContainer.querySelector("#postal-code").value.trim();
       const yearBuild = formContainer.querySelector("#year-build").value.trim();
       const area = formContainer.querySelector("#area").value.trim();
+
       let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10) || 0;
       let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10) || 0;
       let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10) || 0;
@@ -2477,13 +2462,17 @@ button:disabled {
       const insideParking = garageChecked ? "Yes" : "No";
       let insideParkingCars = 0;
       if (garageChecked) {
-        insideParkingCars = parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10) || 0;
+        insideParkingCars =
+          parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10) || 0;
       }
-      const outsideParking = formContainer.querySelector("#outside-parking")?.checked ? "Yes" : "No";
-      const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked ? "Yes" : "No";
+      const outsideParking = formContainer.querySelector("#outside-parking")?.checked
+        ? "Yes"
+        : "No";
+      const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked
+        ? "Yes"
+        : "No";
       const details = formContainer.querySelector("#details").value.trim() || "";
 
-      // build payload
       const seedPayload = {
         fullName: fullName || "John Doe",
         email: email || "johndoe@example.com",
@@ -2516,11 +2505,10 @@ button:disabled {
       });
     });
 
-    // 11) Finally, attach form
+    // 11) Append form
     element.appendChild(formContainer);
   },
 };
-
 
 
 /************** EXTENSION #3: ContactExtension **************/
