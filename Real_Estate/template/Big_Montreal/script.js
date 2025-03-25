@@ -416,7 +416,31 @@ const PropertySearchExtension = {
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
-
+// Toggle collapse for dropdown groups
+window.toggleCollapse = function(element) {
+  const groups = document.querySelectorAll(".group");
+  groups.forEach(group => {
+    const header = group.querySelector(".group-header");
+    const options = group.querySelector(".group-options");
+    if (header !== element) {
+      header.classList.remove("active");
+      options.style.display = "none";
+    }
+  });
+  
+  const groupOptions = element.nextElementSibling;
+  if (groupOptions.style.display === "block") {
+    groupOptions.style.display = "none";
+    element.classList.remove("active");
+  } else {
+    groupOptions.style.display = "block";
+    element.classList.add("active");
+    const firstItem = groupOptions.firstElementChild;
+    if (firstItem) {
+      firstItem.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+};
     // Text labels
     const texts = {
       cityLabel: isEnglish ? "Select City" : "Sélectionnez la ville",
@@ -446,14 +470,12 @@ const PropertySearchExtension = {
         SharedCities[sharedKey],
       ])
     );
-
     const PropertyTypes = Object.fromEntries(
       Object.entries(PropertyTypeMappings[language]).map(([label, sharedKey]) => [
         label,
         SharedPropertyCategories[sharedKey][language],
       ])
     );
-
     const propertyCategories = Object.fromEntries(
       Object.entries(SharedPropertyCategories).map(([group, translations]) => [
         group,
@@ -467,6 +489,7 @@ const PropertySearchExtension = {
     const CarOptions = Options.Car[language];
     const HouseTypeList = SharedPropertyTypes[language];
 
+    // Build city, category, type HTML
     function buildGroupedCityHTML(cityData) {
       return Object.entries(cityData)
         .map(([areaName, cityList]) => {
@@ -547,285 +570,287 @@ const PropertySearchExtension = {
     // Create the form container
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
+      <!-- The entire form HTML (styles + sections) goes here -->
       <style>
-          @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-          form {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-              background: #fff;
-              padding: 16px;
-              border-radius: 6px;
-          }
-          .flex-row {
-              display: flex;
-              gap: 16px;
-              flex-wrap: wrap;
-          }
-          .flex-row > div { flex: 1; min-width: 200px; }
-          .bold-label {
-              font-weight: 700;
-              color: #000;
-              font-size: 14px;
-              margin-bottom: 4px;
-              display: block;
-          }
-          input[type="text"],
-          input[type="number"] {
-              width: 100%;
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 4px;
-              padding: 8px;
-              background: #fff;
-              font-size: 13px;
-              outline: none;
-              box-sizing: border-box;
-              height: 40px;
-          }
-          input[type="text"]:focus,
-          input[type="number"]:focus { border: 2px solid #9A0DF2; }
-          .submit {
-              color: #9A0DF2;
-              background-color: #F5E7FE;
-              border: none;
-              padding: 12px;
-              border-radius: 8px;
-              font-size: 16px;
-              cursor: pointer;
-              margin-top: 8px;
-          }
-          .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
-          .dropdown-container { position: relative; max-width: 100%; }
-          .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 6px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-          }
-          .select-btn .btn-text { font-size: 13px; font-weight: 400; color: #555; }
-          .select-btn .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #9A0DF2;
-              font-size: 13px;
-              border-radius: 50%;
-              background: #F5E7FE;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-          }
-          .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
-          .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
-          .list-items {
-              position: relative;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 6px;
-              padding: 4px 0;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-              z-index: 100;
-              background-color: #fff;
-          }
-          .select-btn.open + .list-items { display: block; }
-          .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              padding: 0 12px;
-              border-radius: 4px;
-              transition: 0.3s;
-              margin: 4px;
-          }
-          .list-items .item:hover { background-color: #F5E7FE; }
-          .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
-          .list-items.multi-select .item .checkbox,
-          .list-items.single-select .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-          }
-          .list-items.multi-select .item .checkbox { border-radius: 2px; }
-          .list-items.single-select .item .checkbox { border-radius: 50%; }
-          .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
-          .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
-          .item.checked .check-icon { transform: scale(1); }
-          .group {
-              border-top: 1px solid #eee;
-              margin-bottom: 10px; 
-              margin-left: 10px;  
-              margin-right: 10px; 
-              border-radius: 4px;
-              overflow: hidden;
-          }
-          .group:first-child { border-top: none; }
-          .group-header {
-              font-weight: 500;
-              padding: 8px 12px;
-              background: #f4eafb;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              color: #9A0DF2;
-          }
-          .group-header .collapse-icon {
-              color: #9A0DF2;
-              font-size: 13px;
-              transition: transform 0.3s;
-              background: #fff;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 24px;  
-              height: 24px;
-              border-radius: 50%;
-              margin-right: 8px;
-          }
-          .group-header.active .collapse-icon { transform: rotate(-180deg); }
-          .group-options { display: none; padding-left: 0; }
-          .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-          input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
-          .price-wrapper { position: relative; width: 100%; }
-          input[type="number"]::-webkit-inner-spin-button,
-          input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-          input[type="number"] { -moz-appearance: textfield; }
-          .price-controls {
-              position: absolute;
-              right: 0;
-              top: 1px;
-              bottom: 1px;
-              width: 20px;
-              display: flex;
-              flex-direction: column;
-              background-color: #F5E7FE;
-              border-left: 1px solid rgba(0,0,0,0.1);
-              border-radius: 0 4px 4px 0;
-              overflow: hidden;
-          }
-          .price-up, .price-down {
-              flex: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #9A0DF2;
-              cursor: pointer;
-              font-size: 8px;
-          }
-          .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
-          /* Accordion / Section Styles */
-          .section {
-              border: 1px solid #eee;
-              border-radius: 6px;
-              margin-bottom: 0;
-              overflow: hidden;
-              background: #fff;
-          }
-          .section-card {
-              padding: 10px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              transition: all 0.2s ease;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-              border-radius: 6px;
-          }
-          .section.active {
-              border-color: #9A0DF2;
-              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-          }
-          .section:hover {
-              border-color: #9A0DF2;
-              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-          }
-          .section-info {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-          }
-          .section-icon {
-              background-color: #F5E7FE;
-              color: #9A0DF2;
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-          }
-          .section-title {
-              font-weight: 700;
-              font-size: 14px;
-              color: #444;
-          }
-          .collapse-icon {
-              color: #9A0DF2;
-              font-size: 13px;
-              transition: transform 0.3s;
-              background: #f4eafb;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              margin-right: 0px;
-          }
-          .collapse-icon i {
-              transition: transform 0.3s ease;
-          }
-          .collapse-icon.active i {
-              transform: rotate(180deg);
-          }
-          .collapsible-section {
-              overflow: hidden;
-              max-height: 0;
-              transition: max-height 0.3s ease-out;
-          }
-          .collapsible-section.expanded {
-              max-height: 1000px;
-          }
-          .section-content {
-              padding: 20px;
-              background: #fefefe;
-              border-top: 1px solid #eee;
-          }
-          .submit:disabled {
-            background-color: #ccc;
-            color: #666;
-            cursor: not-allowed;
+        /* (Same CSS as before) */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 16px;
+            border-radius: 6px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .flex-row > div { flex: 1; min-width: 200px; }
+        .bold-label {
             font-weight: 700;
-          }
-          input:disabled,
-          select:disabled,
-          textarea:disabled,
-          button:disabled {
-            cursor: not-allowed;
-          }
-          .disabled {
-            pointer-events: none;
-            opacity: 0.5;
-          }
+            color: #000;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 8px;
+            background: #fff;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            height: 40px;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus { border: 2px solid #9A0DF2; }
+        .submit {
+            color: #9A0DF2;
+            background-color: #F5E7FE;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
+        .dropdown-container { position: relative; max-width: 100%; }
+        .select-btn {
+            display: flex;
+            height: 40px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+        .select-btn .btn-text { font-size: 13px; font-weight: 400; color: #555; }
+        .select-btn .arrow-dwn {
+            display: flex;
+            height: 24px;
+            width: 24px;
+            color: #9A0DF2;
+            font-size: 13px;
+            border-radius: 50%;
+            background: #F5E7FE;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
+        .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
+        .list-items {
+            position: relative;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            border-radius: 6px;
+            padding: 4px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            background-color: #fff;
+        }
+        .select-btn.open + .list-items { display: block; }
+        .list-items .item {
+            display: flex;
+            align-items: center;
+            height: 36px;
+            cursor: pointer;
+            padding: 0 12px;
+            border-radius: 4px;
+            transition: 0.3s;
+            margin: 4px;
+        }
+        .list-items .item:hover { background-color: #F5E7FE; }
+        .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
+        .list-items.multi-select .item .checkbox,
+        .list-items.single-select .item .checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 16px;
+            width: 16px;
+            margin-right: 8px;
+            border: 1.5px solid #c0c0c0;
+            transition: all 0.3s ease-in-out;
+        }
+        .list-items.multi-select .item .checkbox { border-radius: 2px; }
+        .list-items.single-select .item .checkbox { border-radius: 50%; }
+        .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
+        .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
+        .item.checked .check-icon { transform: scale(1); }
+        .group {
+            border-top: 1px solid #eee;
+            margin-bottom: 10px; 
+            margin-left: 10px;  
+            margin-right: 10px; 
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .group:first-child { border-top: none; }
+        .group-header {
+            font-weight: 500;
+            padding: 8px 12px;
+            background: #f4eafb;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #9A0DF2;
+        }
+        .group-header .collapse-icon {
+            color: #9A0DF2;
+            font-size: 13px;
+            transition: transform 0.3s;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;  
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .group-header.active .collapse-icon { transform: rotate(-180deg); }
+        .group-options { display: none; padding-left: 0; }
+        .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
+        .price-wrapper { position: relative; width: 100%; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+        .price-controls {
+            position: absolute;
+            right: 0;
+            top: 1px;
+            bottom: 1px;
+            width: 20px;
+            display: flex;
+            flex-direction: column;
+            background-color: #F5E7FE;
+            border-left: 1px solid rgba(0,0,0,0.1);
+            border-radius: 0 4px 4px 0;
+            overflow: hidden;
+        }
+        .price-up, .price-down {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9A0DF2;
+            cursor: pointer;
+            font-size: 8px;
+        }
+        .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
+        /* Accordion / Section Styles */
+        .section {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+        .section-card {
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 6px;
+        }
+        .section.active {
+            border-color: #9A0DF2;
+            box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+        }
+        .section:hover {
+            border-color: #9A0DF2;
+            box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+        }
+        .section-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-icon {
+            background-color: #F5E7FE;
+            color: #9A0DF2;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #444;
+        }
+        .collapse-icon {
+            color: #9A0DF2;
+            font-size: 13px;
+            transition: transform 0.3s;
+            background: #f4eafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 0px;
+        }
+        .collapse-icon i {
+            transition: transform 0.3s ease;
+        }
+        .collapse-icon.active i {
+            transform: rotate(180deg);
+        }
+        .collapsible-section {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease-out;
+        }
+        .collapsible-section.expanded {
+            max-height: 1000px;
+        }
+        .section-content {
+            padding: 20px;
+            background: #fefefe;
+            border-top: 1px solid #eee;
+        }
+        .submit:disabled {
+          background-color: #ccc;
+          color: #666;
+          cursor: not-allowed;
+          font-weight: 700;
+        }
+        input:disabled,
+        select:disabled,
+        textarea:disabled,
+        button:disabled {
+          cursor: not-allowed;
+        }
+        .disabled {
+          pointer-events: none;
+          opacity: 0.5;
+        }
       </style>
 
       <!-- Row 1: Location & Category and Budget -->
@@ -951,6 +976,7 @@ const PropertySearchExtension = {
                       <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                     </div>
                     <ul class="list-items single-select">
+                      <!-- Will be populated dynamically -->
                       ${RoomOptions.map(opt => `
                         <li class="item">
                           <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
@@ -1055,7 +1081,22 @@ const PropertySearchExtension = {
       <button type="submit" class="submit">${texts.submitBtn}</button>
     `;
 
-    // Accordion toggle for sections using data-target attribute
+    // -------------------------------
+    //  1) Populate the dropdowns
+    // -------------------------------
+    // Get references to the <ul> elements
+    const cityListEl = formContainer.querySelector("#cityList");
+    const categoryListEl = formContainer.querySelector("#propertyCategoryList");
+    const propertyTypeListEl = formContainer.querySelector("#propertyTypeList");
+
+    // Insert the generated HTML
+    cityListEl.innerHTML = buildGroupedCityHTML(Cities);
+    categoryListEl.innerHTML = buildGroupedCategoryHTML(propertyCategories);
+    propertyTypeListEl.innerHTML = buildPropertyTypeHTML(HouseTypeList);
+
+    // -------------------------------
+    //  2) Accordion toggle function
+    // -------------------------------
     function toggleSection(sectionId) {
       const section = formContainer.querySelector(`#${sectionId}`);
       const parentSection = section.parentElement;
@@ -1083,7 +1124,9 @@ const PropertySearchExtension = {
       });
     });
 
-    // Setup multi-select dropdowns (with stopPropagation on click)
+    // -------------------------------
+    //  3) Multi-select dropdown setup
+    // -------------------------------
     function setupMultiSelect(dropdownId, listSelector, hiddenInputId, defaultText) {
       const container = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = container.querySelector(".select-btn");
@@ -1122,6 +1165,7 @@ const PropertySearchExtension = {
             const groupOptions = item.closest(".group-options") || listEl;
             updateSelectAllState(groupOptions);
           }
+
           const checkedItems = formContainer.querySelectorAll(`${listSelector} .item:not(.select-all).checked`);
           const count = checkedItems.length;
           btnText.innerText = count > 0 ? `${count} ${isEnglish ? "Selected" : "Sélectionné"}` : defaultText;
@@ -1137,11 +1181,14 @@ const PropertySearchExtension = {
       });
     }
 
+    // Setup multi-select for City, Category, and Property Type
     setupMultiSelect("dropdown-city", "#cityList", "cityValues", texts.cityDefault);
     setupMultiSelect("dropdown-property-category", "#propertyCategoryList", "propertyCategoryValues", texts.categoryDefault);
     setupMultiSelect("dropdown-property-type", "#propertyTypeList", "propertyTypeValues", texts.typeDefault);
 
-    // Setup single-select dropdowns (with stopPropagation)
+    // -------------------------------
+    //  4) Single-select dropdown setup
+    // -------------------------------
     function setupDropdownSingle(dropdownId, hiddenInputId) {
       const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
       const selectBtn = dropdownContainer.querySelector(".select-btn");
@@ -1175,6 +1222,7 @@ const PropertySearchExtension = {
       });
     }
 
+    // Setup single-select for rooms, bedrooms, bathrooms, cars
     setupDropdownSingle("dropdown-rooms-number", "rooms-number");
     setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
     setupDropdownSingle("dropdown-bathrooms-number", "bathrooms-number");
@@ -1196,7 +1244,9 @@ const PropertySearchExtension = {
       }
     });
 
-    // Attach event listeners to price controls (remove inline onclick)
+    // -------------------------------
+    //  5) Price controls
+    // -------------------------------
     formContainer.querySelectorAll('.price-wrapper').forEach(wrapper => {
       const input = wrapper.querySelector('input[type="number"]');
       const priceUp = wrapper.querySelector('.price-up');
@@ -1212,7 +1262,9 @@ const PropertySearchExtension = {
       }
     });
 
-    // Form submission
+    // -------------------------------
+    //  6) Form submission
+    // -------------------------------
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
       const formElements = formContainer.querySelectorAll("input, select, textarea, button");
@@ -1266,6 +1318,7 @@ const PropertySearchExtension = {
       });
     });
 
+    // Finally, append the form to the extension element
     element.appendChild(formContainer);
   },
 };
