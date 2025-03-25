@@ -474,99 +474,80 @@ const PropertySearchExtension = {
         const HouseTypeList = SharedPropertyTypes[language];
 
         function buildGroupedCityHTML(cityData) {
-    return Object.entries(cityData)
-        .map(([areaName, cityList]) => {
-            const itemsHTML = cityList
-                .map(
-                    (city) => `
+            return Object.entries(cityData)
+                .map(([areaName, cityList]) => {
+                    const itemsHTML = cityList
+                        .map(
+                            (city) => `
                 <li class="item">
-                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${city}">${city}</span>
                 </li>
               `
-                )
-                .join("");
-            return `
+                        )
+                        .join("");
+                    return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(event, this)">
+                    <div class="group-header" onclick="toggleCollapse(this)">
                         ${areaName}
-                        <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                            </svg>
-                        </span>
+                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-        })
-        .join("");
-}
+                })
+                .join("");
+        }
+
         function buildGroupedCategoryHTML(categoryData) {
-    return Object.entries(categoryData)
-        .map(([groupName, catList]) => {
-            const itemsHTML = catList
-                .map(
-                    (cat) => `
+            return Object.entries(categoryData)
+                .map(([groupName, catList]) => {
+                    const itemsHTML = catList
+                        .map(
+                            (cat) => `
                 <li class="item">
-                    <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                    <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                     <span class="item-text" data-value="${cat}">${cat}</span>
                 </li>
               `
-                )
-                .join("");
-            return `
+                        )
+                        .join("");
+                    return `
                 <li class="group">
-                    <div class="group-header" onclick="toggleCollapse(event, this)">
+                    <div class="group-header" onclick="toggleCollapse(this)">
                         ${groupName}
-                        <span class="collapse-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                                <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-                            </svg>
-                        </span>
+                        <i class="fa-solid fa-chevron-down collapse-icon"></i>
                     </div>
                     <ul class="group-options">
                         <li class="item select-all">
-                            <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                            <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                             <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
                         </li>
                         ${itemsHTML}
                     </ul>
                 </li>
               `;
-        })
-        .join("");
-}
+                })
+                .join("");
+        }
 
         function buildPropertyTypeHTML(typeList) {
             return `
             <li class="item select-all">
-                <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                 <span class="item-text">${isEnglish ? "Select All" : "Tout sélectionner"}</span>
             </li>
             ${typeList
                 .map(
                     (type) => `
               <li class="item">
-                  <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                  <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                   <span class="item-text" data-value="${type}">${type}</span>
               </li>
             `
@@ -579,25 +560,23 @@ const PropertySearchExtension = {
         formContainer.innerHTML = `
           <style>
               @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-       	      @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css') integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer";
-
               form {
                   display: flex;
                   flex-direction: column;
                   gap: 10px;
                   width: 100%;
-                  max-width: 920px;
+                  max-width: 800px;
                   margin: 0 auto;
-                  background: transparent;
+                  background: #fff;
                   padding: 16px;
-                  border-radius: 8px;
+                  border-radius: 6px;
               }
               .flex-row {
                   display: flex;
                   gap: 16px;
                   flex-wrap: wrap;
               }
-              .flex-row > div { flex: 1; min-width: 250px; }
+              .flex-row > div { flex: 1; min-width: 200px; }
               .bold-label {
                   font-weight: 700;
                   color: #000;
@@ -609,7 +588,7 @@ const PropertySearchExtension = {
               input[type="number"] {
                   width: 100%;
                   border: 1px solid rgba(0,0,0,0.2);
-                  border-radius: 8px;
+                  border-radius: 4px;
                   padding: 8px;
                   background: #fff;
                   font-size: 13px;
@@ -618,10 +597,10 @@ const PropertySearchExtension = {
                   height: 40px;
               }
               input[type="text"]:focus,
-              input[type="number"]:focus { border: 2px solid #9c27b0; }
+              input[type="number"]:focus { border: 2px solid #9A0DF2; }
               .submit {
-                  color: #9c27b0;
-                  background-color: #F8EAFA;
+                  color: #9A0DF2;
+                  background-color: #F5E7FE;
                   border: none;
                   padding: 12px;
                   border-radius: 8px;
@@ -629,7 +608,7 @@ const PropertySearchExtension = {
                   cursor: pointer;
                   margin-top: 8px;
               }
-              .submit:hover { color: #fff; background-color: #9c27b0; font-weight: 700; }
+              .submit:hover { color: #fff; background-color: #9A0DF2; font-weight: 700; }
               .dropdown-container { position: relative; max-width: 100%; }
               .select-btn {
                   display: flex;
@@ -637,7 +616,7 @@ const PropertySearchExtension = {
                   align-items: center;
                   justify-content: space-between;
                   padding: 0 12px;
-                  border-radius: 8px;
+                  border-radius: 6px;
                   cursor: pointer;
                   background-color: #fff;
                   border: 1px solid rgba(0,0,0,0.2);
@@ -647,42 +626,43 @@ const PropertySearchExtension = {
                   display: flex;
                   height: 24px;
                   width: 24px;
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   font-size: 13px;
                   border-radius: 50%;
-                  background: #F8EAFA;
+                  background: #F5E7FE;
                   align-items: center;
                   justify-content: center;
                   transition: 0.3s;
               }
               .select-btn.open .arrow-dwn { transform: rotate(-180deg); }
-              .select-btn:focus, .select-btn.open { border: 2px solid #9c27b0; }
+              .select-btn:focus, .select-btn.open { border: 2px solid #9A0DF2; }
               .list-items {
                   position: relative;
                   top: 100%;
                   left: 0;
                   right: 0;
                   margin-top: 4px;
-                  border-radius: 8px;
+                  border-radius: 6px;
                   padding: 4px 0;
                   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
                   display: none;
                   max-height: 200px;
                   overflow-y: auto;
+                  z-index: 100;
                   background-color: #fff;
               }
-              .select-btn.open ~ .list-items { display: block; }
+              .select-btn.open + .list-items { display: block; }
               .list-items .item {
                   display: flex;
                   align-items: center;
                   height: 36px;
                   cursor: pointer;
                   padding: 0 12px;
-                  border-radius: 8px;
+                  border-radius: 4px;
                   transition: 0.3s;
                   margin: 4px;
               }
-              .list-items .item:hover { background-color: #F8EAFA; }
+              .list-items .item:hover { background-color: #F5E7FE; }
               .item .item-text { font-size: 13px; font-weight: 400; color: #333; margin-left: 8px; }
               .list-items.multi-select .item .checkbox,
               .list-items.single-select .item .checkbox {
@@ -695,20 +675,17 @@ const PropertySearchExtension = {
                   border: 1.5px solid #c0c0c0;
                   transition: all 0.3s ease-in-out;
               }
-              .list-items.multi-select .item .checkbox { border-radius: 8px; }
+              .list-items.multi-select .item .checkbox { border-radius: 2px; }
               .list-items.single-select .item .checkbox { border-radius: 50%; }
-              .item.checked .checkbox { background-color: #9c27b0; border: 2px solid #9c27b0; }
-              .checkbox .check-icon { 
-	      color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; 
-       
-       }
+              .item.checked .checkbox { background-color: #9A0DF2; border: 2px solid #9A0DF2; }
+              .checkbox .check-icon { color: #fff; font-size: 12px; transform: scale(0); transition: all 0.2s ease-in-out; }
               .item.checked .check-icon { transform: scale(1); }
               .group {
                   border-top: 1px solid #eee;
                   margin-bottom: 10px; 
                   margin-left: 10px;  
                   margin-right: 10px; 
-                  border-radius: 8px;
+                  border-radius: 4px;
                   overflow: hidden;
               }
               .group:first-child { border-top: none; }
@@ -720,10 +697,10 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: space-between;
-                  color: #9c27b0;
+                  color: #9A0DF2;
               }
               .group-header .collapse-icon {
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   font-size: 13px;
                   transition: transform 0.3s;
                   background: #fff;
@@ -738,22 +715,22 @@ const PropertySearchExtension = {
               .group-header.active .collapse-icon { transform: rotate(-180deg); }
               .group-options { display: none; padding-left: 0; }
               .inline-field { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-              input[type="checkbox"] { accent-color: #9c27b0; width: 18px; height: 18px; cursor: pointer; }
+              input[type="checkbox"] { accent-color: #9A0DF2; width: 18px; height: 18px; cursor: pointer; }
               .price-wrapper { position: relative; width: 100%; }
               input[type="number"]::-webkit-inner-spin-button,
               input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
               input[type="number"] { -moz-appearance: textfield; }
               .price-controls {
                   position: absolute;
-                  right: 1px;
+                  right: 0;
                   top: 1px;
                   bottom: 1px;
                   width: 20px;
                   display: flex;
                   flex-direction: column;
-                  background-color: #F8EAFA;
+                  background-color: #F5E7FE;
                   border-left: 1px solid rgba(0,0,0,0.1);
-                  border-radius: 0 8px 8px 0;
+                  border-radius: 0 4px 4px 0;
                   overflow: hidden;
               }
               .price-up, .price-down {
@@ -761,13 +738,133 @@ const PropertySearchExtension = {
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  color: #9c27b0;
+                  color: #9A0DF2;
                   cursor: pointer;
                   font-size: 8px;
               }
-              .price-up:hover, .price-down:hover { background-color: #9c27b0; color: #fff; }
-          </style>
+              .price-up:hover, .price-down:hover { background-color: #9A0DF2; color: #fff; }
+              /* Accordion / Section Styles (from SellingExtension) */
+.section {
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+    .section-card {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 6px;
+    }
+    .section.active {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section:hover {
+      border-color: #9A0DF2;
+      box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+    }
+    .section-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-icon {
+      background-color: #F5E7FE;
+      color: #9A0DF2;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+    }
+    .status-icon {
+      font-size: 18px;
+      color: #aaa;
+    }
+    .collapse-icon {
+      color: #9A0DF2;
+      font-size: 13px;
+      transition: transform 0.3s;
+      background: #f4eafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 0px;
+    }
+    .collapse-icon i {
+      transition: transform 0.3s ease;
+    }
+    .collapse-icon.active i {
+      transform: rotate(180deg);
+    }
+    /* Collapsible content panel */
+    .collapsible-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible-section.expanded {
+      max-height: 1000px;
+    }
+    .section-content {
+      padding: 20px;
+      background: #fefefe;
+      border-top: 1px solid #eee;
+    }
+    /* For a standard submit button */
+.submit:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
+}
 
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* For custom elements that don't support the disabled attribute */
+.disabled {
+  pointer-events: none;
+  opacity: 0.5; /* Visual cue that it's inactive */
+}
+
+          </style>
+<!-- Row 1: Location & Category and Budget -->
+          <div class="flex-row">
+            <!-- Location & Category (using same code as provided) -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-location-category')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-map-marker-alt"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="location-category-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-location-category">
+                <div class="section-content">
           <!-- City, Category & Property Type -->
           <div class="flex-row">
               <div>
@@ -775,12 +872,7 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-city">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.cityDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="cityList"></ul>
                   </div>
@@ -791,12 +883,7 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-category">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.categoryDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="propertyCategoryList"></ul>
                   </div>
@@ -807,19 +894,77 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-property-type">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.typeDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items multi-select" id="propertyTypeList"></ul>
                   </div>
               </div>
               <input type="hidden" id="propertyTypeValues" />
+          </div></div>
+              </div>
+            </div>
+            <!-- Budget -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-budget')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Budget" : "Budget"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="budget-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-budget">
+                <div class="section-content">
+                
+                <div class="flex-row">
+              <div>
+                  <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
+                  <div class="price-wrapper">
+                      <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
+                      <div class="price-controls">
+                          <div class="price-up" onclick="incrementValue('price-min', 1000)">▲</div>
+                          <div class="price-down" onclick="decrementValue('price-min', 1000)">▼</div>
+                      </div>
+                  </div>
+              </div>
+              <div>
+                  <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
+                  <div class="price-wrapper">
+                      <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
+                      <div class="price-controls">
+                          <div class="price-up" onclick="incrementValue('price-max', 1000)">▲</div>
+                          <div class="price-down" onclick="decrementValue('price-max', 1000)">▼</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+                
+                </div>
+              </div>
+            </div>
           </div>
 
+
+<div class="flex-row">
+            <!-- Property Specifications -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-specifications')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-list"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Property Specifications" : "Spécifications"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="specifications-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-specifications">
+                <div class="section-content">
+                
           <!-- Rooms, Bedrooms & Bathrooms -->
           <div class="flex-row">
               <div>
@@ -827,20 +972,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-rooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${RoomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -854,20 +992,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bedrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${BedroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -881,20 +1012,13 @@ const PropertySearchExtension = {
                   <div class="dropdown-container" id="dropdown-bathrooms-number">
                       <div class="select-btn" tabindex="0">
                           <span class="btn-text">${texts.optionDefault}</span>
-                          <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                          <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                       </div>
                       <ul class="list-items single-select">
                           ${BathroomOptions.map(
                               (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -905,29 +1029,25 @@ const PropertySearchExtension = {
               </div>
           </div>
 
-          <!-- Budget -->
-          <div class="flex-row">
-              <div>
-                  <label class="bold-label" for="price-min">${texts.priceMinLabel}</label>
-                  <div class="price-wrapper">
-    <input type="number" id="price-min" placeholder="${texts.priceMinPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
-        <div class="price-up" data-input="price-min" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-min" data-step="1000">▼</div>
-    </div>
-</div>
-              </div>
-              <div>
-                  <label class="bold-label" for="price-max">${texts.priceMaxLabel}</label>
-                  <div class="price-wrapper">
-    <input type="number" id="price-max" placeholder="${texts.priceMaxPlaceholder}" step="1000" min="0" />
-    <div class="price-controls">
-        <div class="price-up" data-input="price-max" data-step="1000">▲</div>
-        <div class="price-down" data-input="price-max" data-step="1000">▼</div>
-    </div>
-</div>
-              </div>
+          
           </div>
+              </div>
+            </div>
+            <!-- Additional Amenities -->
+            <div class="section" style="flex: 1;">
+              <div class="section-card" onclick="toggleSection('section-amenities')">
+                <div class="section-info">
+                  <div class="section-icon"><i class="fa-solid fa-sliders-h"></i></div>
+                  <div>
+                    <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
+                  </div>
+                </div>
+                <div class="collapse-icon" id="amenities-status">
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-amenities">
+                <div class="section-content">
           
           <!-- Garage & Piscine -->
           <div class="flex-row" style="align-items: flex-start;">
@@ -941,20 +1061,13 @@ const PropertySearchExtension = {
                       <div class="dropdown-container" id="dropdown-cars-number">
                           <div class="select-btn" tabindex="0">
                               <span class="btn-text">${texts.optionDefault}</span>
-                              <span class="arrow-dwn">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-    <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
-  </svg>
-</span>
+                              <span class="arrow-dwn"><i class="fa-solid fa-chevron-down"></i></span>
                           </div>
                           <ul class="list-items single-select">
                               ${CarOptions.map(
                                   (opt) => `
                     <li class="item">
-                        <span class="checkbox"> <svg class="check-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="10" height="10">
-        <path fill="#FFFFFF" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-    </svg></span>
+                        <span class="checkbox"><i class="fa-solid fa-check check-icon"></i></span>
                         <span class="item-text" data-value="${opt.value}">${opt.text}</span>
                     </li>
                   `
@@ -969,11 +1082,49 @@ const PropertySearchExtension = {
                   <input type="checkbox" id="swimming-pool" name="swimming-pool" value="Yes">
               </div>
           </div>
+          </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Submit Button -->
           <button type="submit" class="submit">${texts.submitBtn}</button>
         `;
-
+// Add this function to your JavaScript code
+// Improved toggleSection function that closes all other sections
+// Final toggleSection function that properly closes an open section when clicked
+// Complete toggleSection function that properly applies the active class
+window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const sectionParent = section.closest('.section');
+  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
+  const wasExpanded = section.classList.contains('expanded');
+  
+  // First, close all sections
+  const allSections = document.querySelectorAll('.collapsible-section');
+  const allIcons = document.querySelectorAll('.collapse-icon i');
+  const allSectionParents = document.querySelectorAll('.section');
+  
+  allSections.forEach(section => {
+    section.classList.remove('expanded');
+  });
+  
+  allIcons.forEach(icon => {
+    icon.classList.remove('active');
+  });
+  
+  allSectionParents.forEach(parent => {
+    parent.classList.remove('active');
+  });
+  
+  // Then, only expand the clicked section if it wasn't already expanded
+  if (!wasExpanded) {
+    section.classList.add('expanded');
+    collapseIcon.classList.add('active');
+    sectionParent.classList.add('active');
+  }
+  // If it was expanded, we've already closed it in the steps above
+}
         const cityListEl = formContainer.querySelector("#cityList");
         cityListEl.innerHTML = buildGroupedCityHTML(Cities);
 
@@ -990,31 +1141,35 @@ const PropertySearchExtension = {
             const btnText = selectBtn.querySelector(".btn-text");
             const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
 
-            selectBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  
-  // Close all other dropdowns
-  formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-    // Skip the current container
-    if (otherContainer !== container) {
-      const otherSelectBtn = otherContainer.querySelector('.select-btn');
-      const otherListEl = otherContainer.querySelector('.list-items');
-      if (otherSelectBtn) {
-        otherSelectBtn.classList.remove("open");
-      }
-      if (otherListEl) {
-        otherListEl.style.display = "none";
-      }
-    }
-  });
-
-  // Toggle the current dropdown
-  selectBtn.classList.toggle("open");
-  listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-});
-
-
-
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
+            });
+function setupDropdownSingle(dropdownId, hiddenInputId) {
+          const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = dropdownContainer.querySelector(".select-btn");
+          const listEl = dropdownContainer.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+          const listItems = listEl.querySelectorAll(".item");
+          selectBtn.addEventListener("click", () => { selectBtn.classList.toggle("open"); });
+          listItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              item.classList.add("checked");
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+              selectBtn.classList.remove("open");
+            });
+          });
+          document.addEventListener("click", (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+              selectBtn.classList.remove("open");
+            }
+          });
+        }
             function updateSelectAllState(groupEl) {
                 if (!groupEl) return;
                 const selectAllItem = groupEl.querySelector(".item.select-all");
@@ -1068,7 +1223,6 @@ const PropertySearchExtension = {
             document.addEventListener("click", (e) => {
                 if (!container.contains(e.target)) {
                     selectBtn.classList.remove("open");
-			listEl.style.display = "none";
                 }
             });
         }
@@ -1086,60 +1240,64 @@ const PropertySearchExtension = {
             "propertyTypeValues",
             texts.typeDefault
         );
+        window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const sectionParent = section.closest('.section');
+  const collapseIcon = section.previousElementSibling.querySelector('.collapse-icon i');
+  const wasExpanded = section.classList.contains('expanded');
+  
+  // First, close all sections
+  const allSections = document.querySelectorAll('.collapsible-section');
+  const allIcons = document.querySelectorAll('.collapse-icon i');
+  const allSectionParents = document.querySelectorAll('.section');
+  
+  allSections.forEach(s => s.classList.remove('expanded'));
+  allIcons.forEach(icon => icon.classList.remove('active'));
+  allSectionParents.forEach(parent => parent.classList.remove('active'));
+  
+  // Then, only expand the clicked section if it wasn't already expanded
+  if (!wasExpanded) {
+    section.classList.add('expanded');
+    collapseIcon.classList.add('active');
+    sectionParent.classList.add('active');
+    // Scroll the section container into view at the top of the viewport
+    sectionParent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
-       function setupDropdownSingle(dropdownId, hiddenInputId) {
-  const container = formContainer.querySelector(`#${dropdownId}`);
-  const selectBtn = container.querySelector(".select-btn");
-  const listEl = container.querySelector(".list-items");
-  const btnText = selectBtn.querySelector(".btn-text");
-  const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-  const listItems = listEl.querySelectorAll(".item");
+        
 
-  selectBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
+        function setupDropdownSingle(dropdownId, hiddenInputId) {
+            const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            const listEl = dropdownContainer.querySelector(".list-items");
+            const btnText = selectBtn.querySelector(".btn-text");
+            const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+            const listItems = listEl.querySelectorAll(".item");
 
-    // Close all other dropdowns within this form
-    formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-      if (otherContainer !== container) {
-        const otherSelectBtn = otherContainer.querySelector(".select-btn");
-        const otherListEl = otherContainer.querySelector(".list-items");
-        if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-        if (otherListEl) otherListEl.style.display = "none";
-      }
-    });
+            selectBtn.addEventListener("click", () => {
+                selectBtn.classList.toggle("open");
+            });
 
-    // Toggle the current dropdown
-    selectBtn.classList.toggle("open");
-    listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-  });
+            listItems.forEach((item) => {
+                item.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    listItems.forEach((i) => i.classList.remove("checked"));
+                    item.classList.add("checked");
+                    const labelText = item.querySelector(".item-text").innerText;
+                    const value = item.querySelector(".item-text").getAttribute("data-value");
+                    btnText.innerText = labelText;
+                    hiddenInput.value = value;
+                    selectBtn.classList.remove("open");
+                });
+            });
 
-  // When selecting an item...
-  listItems.forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      listItems.forEach((i) => i.classList.remove("checked"));
-      item.classList.add("checked");
-
-      const labelText = item.querySelector(".item-text").innerText;
-      const value = item.querySelector(".item-text").getAttribute("data-value");
-      btnText.innerText = labelText;
-      hiddenInput.value = value;
-
-      // Close after selecting
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    });
-  });
-
-  // Close dropdown if user clicks anywhere else
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      selectBtn.classList.remove("open");
-      listEl.style.display = "none";
-    }
-  });
-}
-
+            document.addEventListener("click", (e) => {
+                if (!dropdownContainer.contains(e.target)) {
+                    selectBtn.classList.remove("open");
+                }
+            });
+        }
 
         setupDropdownSingle("dropdown-rooms-number", "rooms-number");
         setupDropdownSingle("dropdown-bedrooms-number", "bedrooms-number");
@@ -1161,161 +1319,83 @@ const PropertySearchExtension = {
                 });
             }
         });
-	// Add event listeners for price increment and decrement
-formContainer.querySelectorAll('.price-up, .price-down').forEach(button => {
-    button.addEventListener('click', function() {
-        const inputId = this.getAttribute('data-input');
-        const step = parseInt(this.getAttribute('data-step'), 10);
-        
-        // Call the appropriate function based on button class
-        if (this.classList.contains('price-up')) {
-            // Define increment function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue;
-            
-            if (inputId === "price-max") {
-                if (input.value === "") {
-                    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                    currentValue = Math.max(1000, priceMin);
-                } else {
-                    currentValue = parseInt(input.value, 10);
-                }
-            } else {
-                currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            }
-            
-            let newValue = currentValue + step;
-            
-            if (inputId === "price-min") {
-                const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
-                if (priceMax && newValue > priceMax) {
-                    newValue = priceMax;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            } else if (inputId === "price-max") {
-                const minVal = parseInt(input.min, 10) || 0;
-                if (newValue < minVal) {
-                    newValue = minVal;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            }
-        } else {
-            // Define decrement function locally
-            const input = formContainer.querySelector(`#${inputId}`);
-            if (!input) return;
-            
-            let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-            
-            if (inputId === "price-max") {
-                const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
-                let newValue = currentValue - step;
-                if (newValue < priceMin) {
-                    newValue = priceMin;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-min").max = newValue;
-            } else if (inputId === "price-min") {
-                let newValue = currentValue - step;
-                if (newValue < 0) {
-                    newValue = 0;
-                }
-                input.value = newValue;
-                formContainer.querySelector("#price-max").min = newValue;
-            }
-        }
-    });
+
+formContainer.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  // Disable all standard form elements (inputs, selects, textareas, and buttons)
+  const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+  formElements.forEach((el) => {
+    el.disabled = true;
+  });
+
+  // Additionally disable custom controls by adding a 'disabled' class
+  const customControls = formContainer.querySelectorAll(".select-btn");
+  customControls.forEach((el) => {
+    el.classList.add("disabled");
+  });
+
+  // Optionally, update the submit button text to indicate processing
+  const submitButton = formContainer.querySelector("button[type='submit']");
+  submitButton.textContent = "Processing...";
+
+  // Gather form values
+  const cityValues = formContainer.querySelector("#cityValues").value.trim();
+  const propertyCategoryValues = formContainer.querySelector("#propertyCategoryValues").value.trim();
+  const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
+  
+  // Convert roomsNumber to a number and clamp its value between 0 and 50
+  let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value, 10);
+  if (isNaN(roomsNumber)) {
+    roomsNumber = 0;
+  }
+  roomsNumber = Math.max(0, Math.min(roomsNumber, 50));
+  
+  const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
+  const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
+  const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
+  const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
+  const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
+  const indoorParkingCars = indoorParking === "Yes"
+    ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
+    : 0;
+  const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
+
+  // Split comma-separated values into arrays
+  const selectedCities = cityValues ? cityValues.split(",") : [];
+  const selectedPropertyCategories = propertyCategoryValues ? propertyCategoryValues.split(",") : [];
+  const selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
+
+  // Build the payload object (roomsNumber is now a number between 0 and 50)
+  const payload = {
+    cityName: selectedCities,
+    category: selectedPropertyCategories,
+    houseType: selectedHouseTypes,
+    rooms: roomsNumber,
+    bedrooms: bedroomsNumber,
+    bathrooms: bathroomsNumber,
+    priceMin: priceMin,
+    priceMax: priceMax,
+    parkingIndoor: indoorParking,
+    car: indoorParkingCars,
+    swimmingPool: swimmingPool,
+  };
+
+  // For testing purposes: show an alert with the payload and log it to the console
+  alert("Payload data:\n" + JSON.stringify(payload, null, 2));
+  console.log("Payload data:", payload);
+
+  // Generate the Airtable formula and send the data to Voiceflow
+  const airtableFormula = generateAirtableFormula(payload);
+  window.voiceflow.chat.interact({
+    type: "complete",
+    payload: { formula: airtableFormula },
+  });
 });
 
-        formContainer.addEventListener("submit", (event) => {
-    event.preventDefault();
-const submitBtn = formContainer.querySelector('button[type="submit"]');
-submitBtn.disabled = true;
 
-    const cityValues = formContainer.querySelector("#cityValues").value.trim();
-    const propertyCategoryValues = formContainer
-        .querySelector("#propertyCategoryValues")
-        .value.trim();
-    const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
-    const roomsNumber = formContainer.querySelector("#rooms-number").value.trim();
-    const bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value || 0, 10);
-    const bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value || 0, 10);
-    const priceMin = parseInt(formContainer.querySelector("#price-min").value || 0, 10);
-    const priceMax = parseInt(formContainer.querySelector("#price-max").value || 0, 10);
-    
-    // Explicitly set to English "Yes" or "No", regardless of interface language
-    const indoorParking = formContainer.querySelector("#garage").checked ? "Yes" : "No";
-    
-    const indoorParkingCars =
-        indoorParking === "Yes"
-            ? parseInt(formContainer.querySelector("#cars-number").value || 0, 10)
-            : 0;
-    
-    // Explicitly set to English "Yes" or "No", regardless of interface language
-    const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
-    const selectedCities = cityValues ? cityValues.split(",") : [];
-    
-    // Convert property categories to French
-    let selectedPropertyCategories = propertyCategoryValues
-        ? propertyCategoryValues.split(",")
-        : [];
-        
-    // Translate property categories to French if we're in English mode
-    if (isEnglish) {
-        selectedPropertyCategories = selectedPropertyCategories.map(category => {
-            // Find the French equivalent by looking through the shared categories
-            for (const [group, translations] of Object.entries(SharedPropertyCategories)) {
-                const index = translations.en.indexOf(category);
-                if (index !== -1) {
-                    return translations.fr[index];
-                }
-            }
-            return category; // Return original if no translation found
-        });
-    }
-    
-    // Convert property types to French
-    let selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
-    
-    // Translate house types to French if we're in English mode
-    if (isEnglish) {
-        selectedHouseTypes = selectedHouseTypes.map(type => {
-            const index = SharedPropertyTypes.en.indexOf(type);
-            if (index !== -1) {
-                return SharedPropertyTypes.fr[index];
-            }
-            return type; // Return original if no translation found
-        });
-    }
 
-    console.log("Category values being sent:", selectedPropertyCategories);
-    console.log("House types being sent:", selectedHouseTypes);
-    console.log("Indoor parking value:", indoorParking);
-    console.log("Swimming pool value:", swimmingPool);
-
-    const payload = {
-        cityName: selectedCities,
-        category: selectedPropertyCategories,
-        houseType: selectedHouseTypes,
-        bedrooms: bedroomsNumber,
-        bathrooms: bathroomsNumber,
-        priceMin: priceMin,
-        priceMax: priceMax,
-        parkingIndoor: indoorParking, // Always "Yes" or "No" in English
-        car: indoorParkingCars,
-        swimmingPool: swimmingPool, // Always "Yes" or "No" in English
-    };
-
-    const airtableFormula = generateAirtableFormula(payload);
-    window.voiceflow.chat.interact({
-        type: "complete",
-        payload: { formula: airtableFormula },
-    });
-});
 
         element.appendChild(formContainer);
     },
