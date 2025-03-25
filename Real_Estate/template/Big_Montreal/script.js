@@ -1477,8 +1477,6 @@ const PropertySearchExtension = {
         swimmingPool: swimmingPool,
       };
 
-      alert("Payload data:\n" + JSON.stringify(payload, null, 2));
-      console.log("Payload data:", payload);
 
       const airtableFormula = generateAirtableFormula(payload);
       window.voiceflow.chat.interact({
@@ -1631,7 +1629,6 @@ const SellingExtension = {
                   width: 100%;
                   max-width: 800px;
                   margin: 0 auto;
-                  background: #fff;
                   padding: 16px;
                   border-radius: 6px;
               }
@@ -2482,8 +2479,6 @@ button:disabled {
         details: details || "No additional details provided.",
       };
 
-      alert("Payload data:\n" + JSON.stringify(seedPayload, null, 2));
-      console.log("Seed Payload:", seedPayload);
 
       // Send to Voiceflow
       window.voiceflow.chat.interact({
@@ -2521,7 +2516,6 @@ const ContactExtension = {
           width: 100%;
           max-width: 800px;
           margin: 0 auto;
-          background: #fff;
           padding: 16px;
           border-radius: 6px;
         }
