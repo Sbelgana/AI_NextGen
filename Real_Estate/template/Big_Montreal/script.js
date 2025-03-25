@@ -1000,7 +1000,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-map-marker-alt with SVG_ADDRESS -->
               <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
+                <div class="section-title">${isEnglish ? "Filter by Location & Category" : "Filtrer par Emplacement & Catégorie"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1053,7 +1053,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-dollar-sign with SVG_DOLLAR -->
               <div class="section-icon">${SVG_DOLLAR}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Budget" : "Budget"}</div>
+                <div class="section-title">${isEnglish ? "Define Your Price Range" : "Définissez Votre Plage de Prix"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1096,7 +1096,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-list with SVG_LIST -->
               <div class="section-icon">${SVG_LIST}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Property Specifications" : "Spécifications"}</div>
+                <div class="section-title">${isEnglish ? "Customize Home Specifications" : "Personnalisez les Caractéristiques de la Propriété"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -1171,7 +1171,7 @@ const PropertySearchExtension = {
               <!-- Replacing fa-sliders-h with SVG_SLIDER -->
               <div class="section-icon">${SVG_SLIDER}</div>
               <div>
-                <div class="section-title">${isEnglish ? "Amenities" : "Équipements"}</div>
+                <div class="section-title">${isEnglish ? "Additional Features" : "Caractéristiques Supplémentaires"}</div>
               </div>
             </div>
             <div class="collapse-icon">${SVG_CHEVRON}</div>
