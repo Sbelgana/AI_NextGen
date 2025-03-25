@@ -124,16 +124,6 @@ function getServiceList(language) {
  * 5) Booking URLs
  *************************************************************/
 
-const BookingUrls = {
-  "Emma Thompson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Liam Carter": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Sophia Martinez": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Ethan Brown": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Olivia Davis": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Noah Wilson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-  "Ava Johnson": "https://calendly.com/nextg-ai-test/maplewood-realty-clone?name={Full_Name}&email={Email}",
-};
-
 const BookingData = {
   "Emma Thompson": {
     link: "ainextg-emma-thompsonn",  // Remove the /meeting part
