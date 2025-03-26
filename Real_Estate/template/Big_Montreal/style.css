@@ -205,11 +205,16 @@ form {
     align-items: center;
     justify-content: center;
     position: absolute;
-    top: 50%;
     bottom: 10px;
     right: 10px;
     transform: none;
     z-index: 1000;
   }
+  .modal-carousel--button.left-button {
+    top : 100px;
+    right: 60px; /* e.g. 60px so it's next to the right arrow */
+  }
 }
+
+
 
