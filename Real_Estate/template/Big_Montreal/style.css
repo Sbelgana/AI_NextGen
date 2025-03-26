@@ -1,5 +1,3 @@
-/* Styles pour la modal */
-/* Modal container */
 .modal {
   display: none;
   position: fixed;
@@ -211,10 +209,10 @@ form {
     z-index: 1000;
   }
   .modal-carousel--button.left-button {
-    bottom : 80px;
-    right: 60px; 
+     transform: translateX(270px) translateY(150px);
+  }
+  
+    .modal-carousel--button.right-button {
+     transform: translateY(150px);
   }
 }
-
-
-
