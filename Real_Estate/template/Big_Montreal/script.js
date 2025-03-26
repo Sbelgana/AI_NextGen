@@ -4960,16 +4960,16 @@ const MortgageCalculatorExtension = {
               if (isBorrowing) {
                 switch (targetId) {
                   case 'annual-income':
-                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    newValue = currentValue === 1000 ? 1000 : Math.round((currentValue - 1000) / 1000) * 1000;
                     break;
                   case 'monthly-expenses':
-                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    newValue = currentValue === 1000 ? 1000 : Math.round((currentValue - 250) / 250) * 250;
                     break;
                   case 'down-payment':
-                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    newValue = currentValue === 1000 ? 1000 : Math.round((currentValue - 250) / 250) * 250;
                     break;
                   case 'interest-rate':
-                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    newValue = currentValue === 1 ? 1 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
                     break;
                   default:
                     newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
@@ -4978,13 +4978,13 @@ const MortgageCalculatorExtension = {
               else if (isMortgage) {
                 switch (targetId) {
                   case 'cost':
-                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    newValue = currentValue === 1000 ? 1000 : Math.round((currentValue - 1000) / 1000) * 1000;
                     break;
                   case 'interest-rate':
-                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    newValue = currentValue === 1 ? 1 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
                     break;
                   case 'down-payment':
-                    if (currentValue === 0) {
+                    if (currentValue === costVal * 0.05) {
                       const costInput = parentForm.querySelector('#cost');
                       const costVal = parseFloat(costInput.value) || 0;
                       let dp = costVal * 0.05;
@@ -5382,7 +5382,7 @@ const MortgageCalculatorExtension = {
 			<div class="form-column">
               <label class="bold-label" for="interest-rate">${text.interestRate}</label>
               <div class="input-group number-input-wrapper">
-                <input type="number" id="interest-rate" class="currency-input" step="0.01" min="0" max="100" value="5.50">
+                <input type="number" id="interest-rate" class="currency-input" step="0.05" min="1" max="100" value="5.50">
                 <div class="number-input-controls">
                   <div class="number-input-up" data-target="interest-rate">▲</div>
                   <div class="number-input-down" data-target="interest-rate">▼</div>
@@ -6002,7 +6002,7 @@ const MortgageCalculatorExtension = {
                 <span class="currency-symbol">$</span>
                 <input type="number" id="annual-income" class="currency-input" required
                        placeholder="${isEnglish ? 'Enter your annual income' : 'Entrez votre revenu annuel'}"
-                       min="0" step="1000">
+                       min="1000" step="1000">
                 <div class="number-input-controls">
                   <div class="number-input-up" data-target="annual-income">▲</div>
                   <div class="number-input-down" data-target="annual-income">▼</div>
@@ -6017,7 +6017,7 @@ const MortgageCalculatorExtension = {
                 <span class="currency-symbol">$</span>
                 <input type="number" id="monthly-expenses" class="currency-input" required
                        placeholder="${isEnglish ? 'Enter monthly expenses' : 'Entrez les dépenses mensuelles'}"
-                       min="0" step="100">
+                       min="500" step="250">
                 <div class="number-input-controls">
                   <div class="number-input-up" data-target="monthly-expenses">▲</div>
                   <div class="number-input-down" data-target="monthly-expenses">▼</div>
@@ -6034,7 +6034,7 @@ const MortgageCalculatorExtension = {
                 <span class="currency-symbol">$</span>
                 <input type="number" id="down-payment" class="currency-input" required
                        placeholder="${isEnglish ? 'Enter down payment' : 'Entrez la mise de fonds'}"
-                       min="0" step="1000">
+                       min="250" step="250">
                 <div class="number-input-controls">
                   <div class="number-input-up" data-target="down-payment">▲</div>
                   <div class="number-input-down" data-target="down-payment">▼</div>
@@ -6048,7 +6048,7 @@ const MortgageCalculatorExtension = {
               <div class="input-group number-input-wrapper">
                 <input type="number" id="interest-rate" class="currency-input" required
                        placeholder="${isEnglish ? 'Enter interest rate' : "Entrez le taux d'intérêt"}"
-                       min="0" max="20" step="0.1">
+                       min="1" max="100" step="0.05">
                 <div class="number-input-controls">
                   <div class="number-input-up" data-target="interest-rate">▲</div>
                   <div class="number-input-down" data-target="interest-rate">▼</div>
@@ -6534,6 +6534,7 @@ const MortgageCalculatorExtension = {
         switchCalculator('borrowing');
       },
     };
+
 
 const UserInformationExtension = {
       name: "Forms",
