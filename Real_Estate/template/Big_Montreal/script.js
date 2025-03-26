@@ -4808,516 +4808,1732 @@ const LocalisationExtension = {
 
 /************** EXTENSION #7: MortgageCalculatorExtension **************/
 const MortgageCalculatorExtension = {
-	name: 'MortgageCalculator',
-	type: 'response',
-	match: ({ trace }) => trace.type === 'ext_mortgage_calculator' || trace.payload?.name === 'ext_mortgage_calculator',
-	render: ({ trace }) => {
-		const { propertyCost, language = 'en' } = trace.payload;
-		const calculatorContainer = document.getElementById('calculator-container');
-		const translations = {
-			fr: {
-				title: 'calculatrice de versements hypothécaires',
-				propertyValue: 'Coût de la propriété:',
-				downPayment: 'Mise de fonds:',
-				loanAmount: 'Montant du prêt:',
-				interestRate: "Taux d'intérêt (%):",
-				amortizationPeriod: "Période d'amortissement:",
-				paymentFrequency: 'Fréquence des versements:',
-				paymentResult: 'Paiement estimé',
-				years: 'ans',
-				weekly: 'Hebdomadaire',
-				biweekly: 'Aux 2 semaines',
-				monthly: 'Mensuelle',
-				perWeek: '$ / semaine',
-				perBiweek: '$ / 2 semaines',
-				perMonth: '$ / mois',
-				errorInvalidProperty: 'Veuillez entrer un coût de propriété valide.',
-				errorMinDownPayment: 'La mise de fonds minimale doit être de {amount}$ (5% du coût de la propriété)',
-				errorMaxDownPayment: 'La mise de fonds ne peut pas être supérieure au coût de la propriété',
-				errorInvalidDownPayment: 'Veuillez entrer une mise de fonds valide',
-				paymentNote: 'Ceci est votre montant de paiement estimé selon la fréquence sélectionnée.',
-				loanNote: 'Le montant total de votre prêt basé sur la valeur de la propriété et la mise de fonds.',
-			},
-			en: {
-				title: 'mortgage payment calculator',
-				propertyValue: 'Property Value:',
-				downPayment: 'Down Payment:',
-				loanAmount: 'Loan Amount:',
-				interestRate: 'Interest Rate (%):',
-				amortizationPeriod: 'Amortization Period:',
-				paymentFrequency: 'Payment Frequency:',
-				paymentResult: 'Estimated Payment',
-				years: 'years',
-				weekly: 'Weekly',
-				biweekly: 'Bi-weekly',
-				monthly: 'Monthly',
-				perWeek: '$ / week',
-				perBiweek: '$ / 2 weeks',
-				perMonth: '$ / month',
-				errorInvalidProperty: 'Please enter a valid property value.',
-				errorMinDownPayment: 'Minimum down payment must be {amount}$ (5% of property value)',
-				errorMaxDownPayment: 'Down payment cannot be greater than property value',
-				errorInvalidDownPayment: 'Please enter a valid down payment',
-				paymentNote: 'This is your estimated payment amount based on the selected frequency.',
-				loanNote: 'The total amount of your loan based on the property value and down payment.',
-			},
-		};
+      name: 'MortgageCalculator',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_mortgage_calculator' || trace.payload?.name === 'ext_mortgage_calculator',
+      render: ({ trace }) => {
+        const { propertyCost, language = 'en' } = trace.payload;
+        const calculatorContainer = document.getElementById('calculator-container');
 
-		const text = translations[language] || translations.en;
+        // (1) setupDropdownSingle (Mortgage version)
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = document.getElementById(dropdownId);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = document.getElementById(hiddenInputId);
 
-		function calculateMortgagePayment(P, annualRate, years, paymentsPerYear) {
-			const r = (annualRate / 100) / paymentsPerYear;
-			const n = years * paymentsPerYear;
-			if (r === 0) return P / n;
-			const numerator = P * r * Math.pow(1 + r, n);
-			const denominator = Math.pow(1 + r, n) - 1;
-			return numerator / denominator;
-		}
+          // Default displayed text
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
 
-		const formContainer = document.createElement('form');
-		const minDownPayment = (propertyCost * 0.05).toFixed(2);
+          // Clicking the dropdown button toggles open/close
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = selectBtn.classList.toggle("open");
+            listEl.style.display = isOpen ? "block" : "none";
 
-		formContainer.innerHTML = `
-			<div class="modal-title">${text.title}</div>
-			<div id="calculator-error-msg"></div>
-			<div class="form-row">
-				<div class="form-column">
-					<label class="bold-label" for="cost">
-						${text.propertyValue}
-					</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input type="number" id="cost" class="currency-input" value="${propertyCost}" min="0">
-					</div>
-				</div>
-				<div class="form-column">
-					<label class="bold-label" for="down-payment">
-						${text.downPayment}
-					</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input type="number" id="down-payment" class="currency-input" value="${minDownPayment}" step="1000" onfocus="this.select()">
-						<span class="input-suffix">(5.00 %)</span>
-					</div>
-				</div>
-			</div>
-			<div class="form-row">
-				<div class="form-column">
-					<label class="bold-label" for="interest-rate">${text.interestRate}</label>
-					<input type="number" id="interest-rate" class="currency-input" step="0.01" min="0" max="100" value="5.50">
-				</div>
-				<div class="form-column">
-					<label class="bold-label" for="payment-frequency">${text.paymentFrequency}</label>
-					<select id="payment-frequency">
-						<option value="week">${text.weekly}</option>
-						<option value="2-weeks" selected>${text.biweekly}</option>
-						<option value="month">${text.monthly}</option>
-					</select>
-				</div>
-			</div>
-			<div class="form-row">
-				<div class="form-column">
-					<label class="bold-label" for="amortization-period">${text.amortizationPeriod}</label>
-					<select id="amortization-period">
-						<option value="5">5 ${text.years}</option>
-						<option value="10">10 ${text.years}</option>
-						<option value="15">15 ${text.years}</option>
-						<option value="20">20 ${text.years}</option>
-						<option value="25" selected>25 ${text.years}</option>
-					</select>
-				</div>
-				<div class="form-column">
-					<label class="bold-label" for="loan-amount">${text.loanAmount}</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input disabled id="loan-amount" class="currency-input" type="text" value="${(propertyCost - minDownPayment).toFixed(2)}">
-					</div>
-				</div>
-			</div>
-			<div class="results-row">
-				<div class="result" id="payment-result">
-					<h3>${text.paymentResult}</h3>
-					<div class="amount" id="payment-amount"></div>
-					<div class="hint">${text.paymentNote}</div>
-				</div>
-			</div>
+            if (isOpen) {
+  document.querySelectorAll('.select-btn.open').forEach(openBtn => {
+    if (openBtn !== selectBtn) {
+      openBtn.classList.remove('open');
+      const otherList = openBtn.parentElement.querySelector('.list-items');
+      if (otherList) otherList.style.display = 'none';
+    }
+  });
+}
+          });
+
+          // Each list item updates the selected value
+          const listItems = listEl.querySelectorAll(".item");
+          listItems.forEach((item) => {
+            item.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              listItems.forEach((i) => i.classList.remove("checked"));
+              item.classList.add("checked");
+
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              // DISPATCH 'input' EVENT
+              hiddenInput.dispatchEvent(new Event('input'));
+
+              // Close the dropdown
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            });
+          });
+
+          // If user clicks outside container, close the dropdown
+          document.addEventListener("click", (ev) => {
+            if (!container.contains(ev.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // (2) attachNumericControls
+        function attachNumericControls() {
+          // Handle "Up" (▲) clicks
+          document.querySelectorAll('.number-input-up').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetId = this.getAttribute('data-target');
+              const input = document.getElementById(targetId);
+
+              const parentForm = input.closest('form');
+              const isMortgage = parentForm && parentForm.querySelector('#amortization-period');
+              const isBorrowing = parentForm && parentForm.querySelector('#mortgage-term');
+
+              let currentValue = parseFloat(input.value) || 0;
+              let newValue = currentValue;
+
+              if (isBorrowing) {
+                switch (targetId) {
+                  case 'annual-income':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 1000) / 1000) * 1000;
+                    break;
+                  case 'monthly-expenses':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 250) / 250) * 250;
+                    break;
+                  case 'down-payment':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 250) / 250) * 250;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 1 : Number((Math.round((currentValue + 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  default:
+                    newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else if (isMortgage) {
+                switch (targetId) {
+                  case 'cost':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 1000) / 1000) * 1000;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 1 : Number((Math.round((currentValue + 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  case 'down-payment':
+                    if (currentValue === 0) {
+                      const costInput = parentForm.querySelector('#cost');
+                      const costVal = parseFloat(costInput.value) || 0;
+                      let dp = costVal * 0.05;
+                      dp = Math.round(dp / 500) * 500;
+                      newValue = dp < 0 ? 0 : dp;
+                    } else {
+                      newValue = currentValue + 500;
+                    }
+                    break;
+                  default:
+                    newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else {
+                newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+              }
+
+              input.value = newValue;
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+
+          // Handle "Down" (▼) clicks
+          document.querySelectorAll('.number-input-down').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetId = this.getAttribute('data-target');
+              const input = document.getElementById(targetId);
+
+              const parentForm = input.closest('form');
+              const isMortgage = parentForm && parentForm.querySelector('#amortization-period');
+              const isBorrowing = parentForm && parentForm.querySelector('#mortgage-term');
+
+              let currentValue = parseFloat(input.value) || 0;
+              let newValue = currentValue;
+
+              if (isBorrowing) {
+                switch (targetId) {
+                  case 'annual-income':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    break;
+                  case 'monthly-expenses':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    break;
+                  case 'down-payment':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  default:
+                    newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else if (isMortgage) {
+                switch (targetId) {
+                  case 'cost':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  case 'down-payment':
+                    if (currentValue === 0) {
+                      const costInput = parentForm.querySelector('#cost');
+                      const costVal = parseFloat(costInput.value) || 0;
+                      let dp = costVal * 0.05;
+                      dp = Math.round(dp / 500) * 500;
+                      newValue = dp - 500;
+                    } else {
+                      newValue = currentValue - 500;
+                    }
+                    break;
+                  default:
+                    newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else {
+                newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+              }
+
+              if (newValue < 0) newValue = 0;
+              input.value = newValue;
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+        }
+
+        const translations = {
+          fr: {
+            title: 'Calculatrice de Versements Hypothécaires',
+            propertyValue: 'Coût de la propriété:',
+            downPayment: 'Mise de fonds:',
+            loanAmount: 'Montant du prêt:',
+            interestRate: "Taux d'intérêt (%):",
+            amortizationPeriod: "Période d'amortissement:",
+            paymentFrequency: 'Fréquence des versements:',
+            paymentResult: 'Paiement estimé',
+            years: 'ans',
+            weekly: 'Hebdomadaire',
+            biweekly: 'Aux 2 semaines',
+            monthly: 'Mensuelle',
+            perWeek: '$ / semaine',
+            perBiweek: '$ / 2 weeks',
+            perMonth: '$ / month',
+            errorInvalidProperty: 'Veuillez entrer un coût de propriété valide.',
+            errorMinDownPayment: 'La mise de fonds minimale doit être de {amount}$ (5% du coût de la propriété)',
+            errorMaxDownPayment: 'La mise de fonds ne peut pas être supérieure au coût de la propriété',
+            errorInvalidDownPayment: 'Veuillez entrer une mise de fonds valide',
+            paymentNote: 'Ceci est votre montant de paiement estimé selon la fréquence sélectionnée.',
+            loanNote: 'Le montant total de votre prêt basé sur la valeur de la propriété et la mise de fonds.',
+          },
+          en: {
+            title: 'Mortgage Payment Calculator',
+            propertyValue: 'Property Value:',
+            downPayment: 'Down Payment:',
+            loanAmount: 'Loan Amount:',
+            interestRate: 'Interest Rate (%):',
+            amortizationPeriod: 'Amortization Period:',
+            paymentFrequency: 'Payment Frequency:',
+            paymentResult: 'Estimated Payment',
+            years: 'years',
+            weekly: 'Weekly',
+            biweekly: 'Bi-weekly',
+            monthly: 'Monthly',
+            perWeek: '$ / week',
+            perBiweek: '$ / 2 weeks',
+            perMonth: '$ / month',
+            errorInvalidProperty: 'Please enter a valid property value.',
+            errorMinDownPayment: 'Minimum down payment must be {amount}$ (5% of property value)',
+            errorMaxDownPayment: 'Down payment cannot be greater than property value',
+            errorInvalidDownPayment: 'Please enter a valid down payment',
+            paymentNote: 'This is your estimated payment amount based on the selected frequency.',
+            loanNote: 'The total amount of your loan based on the property value and down payment.',
+          },
+        };
+        const text = translations[language] || translations.en;
+
+        function calculateMortgagePayment(P, annualRate, years, paymentsPerYear) {
+          const r = (annualRate / 100) / paymentsPerYear;
+          const n = years * paymentsPerYear;
+          if (r === 0) return P / n;
+          const numerator = P * r * Math.pow(1 + r, n);
+          const denominator = Math.pow(1 + r, n) - 1;
+          return numerator / denominator;
+        }
+
+        const formContainer = document.createElement('form');
+        const minDownPayment = (propertyCost * 0.05).toFixed(2);
+
+        formContainer.innerHTML = `
+        <style>
+        .calculator-nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .calculator-nav-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      color: #9c27b0;
+      background-color: #F8EAFA;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: 1em;
+    }
+    .calculator-nav-button:hover {
+      color: white;
+      background-color: #9c27b0;
+    }
+    .calculator-nav-button.active {
+      color: white;
+      background-color: #9c27b0;
+    }
+    /* Form Layout */
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+    .currency-input {
+    
+      height: 40px;
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      padding-left: 30px; /* for currency symbol */
+    }
+    .currency-symbol {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+    }
+    .input-suffix {
+      position: absolute;
+      right: 50px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+      font-size: 13px;
+    }
+    /* Results Display */
+    .results-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .result {
+      margin: 0;
+      padding: 20px;
+      background: #F8EAFA;
+      border-radius: 8px;
+      text-align: center;
+      flex: 1;
+      display: none;
+    }
+    .result h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.2em;
+    }
+    .result .amount {
+      font-size: 2em;
+      color: #bb5cf6;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .hint {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+      padding: 0 20px;
+    }
+    .modal-title {
+      text-align: center;
+      color: #333;
+      border-bottom: 2px solid #bb5cf6;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      font-size: 1.5em;
+    }
+    /* ===================== Booking-Style Dropdown ===================== */
+    .dropdown-container {
+      position: relative;
+      max-width: 100%;
+      margin-top: 0px;
+    }
+    .select-btn {
+      display: flex;
+      height: 40px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #fff;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .select-btn .btn-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .select-btn .arrow-dwn {
+      display: flex;
+      height: 24px;
+      width: 24px;
+      color: #9c27b0;
+      font-size: 12px;
+      border-radius: 50%;
+      background: #F8EAFA;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+    .select-btn.open .arrow-dwn {
+      transform: rotate(-180deg);
+    }
+    .select-btn:focus,
+    .select-btn.open {
+      border: 2px solid #9c27b0;
+      outline: none;
+    }
+    .list-items {
+      position: static;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border-radius: 8px;
+      padding: 8px 0;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .select-btn.open ~ .list-items {
+      display: block;
+    }
+    .list-items .item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      cursor: pointer;
+      transition: 0.3s;
+      padding: 0 12px;
+      border-radius: 8px;
+    }
+    .currency-input:focus {
+      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      outline: none;
+    }
+    .list-items .item:hover {
+      background-color: #F8EAFA;
+    }
+    .item .item-text {
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+    .list-items.single-select .item .checkbox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1.5px solid #c0c0c0;
+      transition: all 0.3s ease-in-out;
+    }
+    .item.checked .checkbox {
+      background-color: #9c27b0;
+      border: 2px solid #9c27b0;
+    }
+    .checkbox .check-icon {
+      color: #fff;
+      font-size: 12px;
+      transform: scale(0);
+      transition: all 0.2s ease-in-out;
+    }
+    .item.checked .check-icon {
+      transform: scale(1);
+    }
+    /* ===================== Numeric Input Controls ===================== */
+    .number-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .number-input-controls {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      bottom: 0px;
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      background-color: #F5E7FE;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 0 8px 8px 0;
+      overflow: hidden;
+    }
+    .number-input-up,
+    .number-input-down {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9A0DF2;
+      cursor: pointer;
+      font-size: 8px;
+    }
+    .number-input-up:hover,
+    .number-input-down:hover {
+      background-color: #9A0DF2;
+      color: #fff;
+    }
+        </style>
+          <div class="modal-title">${text.title}</div>
+          <div id="calculator-error-msg"></div>
+          		<div class="form-row">
+            <div class="form-column">
+              <label class="bold-label" for="cost">${text.propertyValue}</label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="cost" class="currency-input" value="${propertyCost}" min="0">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="cost">▲</div>
+                  <div class="number-input-down" data-target="cost">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="down-payment">${text.downPayment}</label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="down-payment" class="currency-input" value="${minDownPayment}" step="1000">
+                <span class="input-suffix">(5.00 %)</span>
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="down-payment">▲</div>
+                  <div class="number-input-down" data-target="down-payment">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-column">
+              <label class="bold-label">${text.amortizationPeriod}</label>
+              <div class="dropdown-container" id="dropdown-amortization-period">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text">25 ${text.years}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                </div>
+                <ul class="list-items single-select" id="amortizationPeriodList">
+                  <li class="item" data-value="5"><span class="item-text">5 ${text.years}</span></li>
+                  <li class="item" data-value="10"><span class="item-text">10 ${text.years}</span></li>
+                  <li class="item" data-value="15"><span class="item-text">15 ${text.years}</span></li>
+                  <li class="item" data-value="20"><span class="item-text">20 ${text.years}</span></li>
+                  <li class="item checked" data-value="25"><span class="item-text">25 ${text.years}</span></li>
+                </ul>
+              </div>
+              <input type="hidden" id="amortization-period" value="25">
+            </div>
+            <div class="form-column">
+              <label class="bold-label">${text.paymentFrequency}</label>
+              <div class="dropdown-container" id="dropdown-payment-frequency">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text">${text.biweekly}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                </div>
+                <ul class="list-items single-select" id="paymentFrequencyList">
+                  <li class="item" data-value="week"><span class="item-text">${text.weekly}</span></li>
+                  <li class="item checked" data-value="2-weeks"><span class="item-text">${text.biweekly}</span></li>
+                  <li class="item" data-value="month"><span class="item-text">${text.monthly}</span></li>
+                </ul>
+              </div>
+              <input type="hidden" id="payment-frequency" value="2-weeks">
+            </div>
+          </div>
+          <div class="form-row">
+			<div class="form-column">
+              <label class="bold-label" for="interest-rate">${text.interestRate}</label>
+              <div class="input-group number-input-wrapper">
+                <input type="number" id="interest-rate" class="currency-input" step="0.01" min="0" max="100" value="5.50">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="interest-rate">▲</div>
+                  <div class="number-input-down" data-target="interest-rate">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="loan-amount">${text.loanAmount}</label>
+              <div class="input-group">
+                <span class="currency-symbol">$</span>
+                <input disabled id="loan-amount" class="currency-input" type="text"
+                       value="${(propertyCost - minDownPayment).toFixed(2)}">
+              </div>
+            </div>
+          </div>
+          <div class="results-row">
+            <div class="result" id="payment-result">
+              <h3>${text.paymentResult}</h3>
+              <div class="amount" id="payment-amount"></div>
+              <div class="hint">${text.paymentNote}</div>
+            </div>
+          </div>
         `;
 
-		function initCalculator() {
-			const costInput = formContainer.querySelector('#cost');
-			const downPaymentInput = formContainer.querySelector('#down-payment');
-			const loanAmountInput = formContainer.querySelector('#loan-amount');
-			const downPercentSpan = formContainer.querySelector('.input-suffix');
-			const errorMsg = formContainer.querySelector('#calculator-error-msg');
-			const paymentOutput = formContainer.querySelector('#payment-amount');
-			const paymentResult = formContainer.querySelector('#payment-result');
-			const interestRateInput = formContainer.querySelector('#interest-rate');
-			const amortizationSelect = formContainer.querySelector('#amortization-period');
-			const frequencySelect = formContainer.querySelector('#payment-frequency');
+        function initCalculator() {
+          const costInput = formContainer.querySelector('#cost');
+          const downPaymentInput = formContainer.querySelector('#down-payment');
+          const loanAmountInput = formContainer.querySelector('#loan-amount');
+          const downPercentSpan = formContainer.querySelector('.input-suffix');
+          const errorMsg = formContainer.querySelector('#calculator-error-msg');
+          const paymentOutput = formContainer.querySelector('#payment-amount');
+          const paymentResult = formContainer.querySelector('#payment-result');
+          const interestRateInput = formContainer.querySelector('#interest-rate');
+          const paymentFrequencyInput = formContainer.querySelector('#payment-frequency');
+          const amortizationInput = formContainer.querySelector('#amortization-period');
 
-			function validateAndUpdate() {
-				const cost = parseFloat(costInput.value);
-				const downPaymentValue = downPaymentInput.value.trim();
-				const downPayment = parseFloat(downPaymentValue);
+          function validateAndUpdate() {
+            const cost = parseFloat(costInput.value);
+            const downPaymentValue = downPaymentInput.value.trim();
+            const downPayment = parseFloat(downPaymentValue);
+            if (isNaN(cost) || cost <= 0) {
+              errorMsg.textContent = text.errorInvalidProperty;
+              paymentResult.style.display = 'none';
+              return false;
+            }
+            const minDown = cost * 0.05;
+            if (downPaymentValue === '') {
+              downPercentSpan.textContent = '(0.00 %)';
+              loanAmountInput.value = cost.toFixed(2);
+              errorMsg.textContent = '';
+              return true;
+            }
+            if (!isNaN(downPayment)) {
+              const downPaymentPercentage = (downPayment / cost) * 100;
+              if (downPaymentPercentage < 5) {
+                errorMsg.innerHTML = `<span style="color: red; font-weight: bold; display: block; text-align: center;margin-bottom: 16px;">
+                  ${text.errorMinDownPayment.replace('{amount}', minDown.toFixed(2))}
+                </span>`;
+                paymentResult.style.display = 'none';
+              } else {
+                errorMsg.textContent = downPayment > cost ? text.errorMaxDownPayment : '';
+              }
+              downPercentSpan.textContent = `(${downPaymentPercentage.toFixed(2)} %)`;
+              loanAmountInput.value = (cost - downPayment).toFixed(2);
+            } else {
+              errorMsg.textContent = text.errorInvalidDownPayment;
+              paymentResult.style.display = 'none';
+              return false;
+            }
+            return true;
+          }
 
-				if (isNaN(cost) || cost <= 0) {
-					errorMsg.textContent = text.errorInvalidProperty;
-					paymentResult.style.display = 'none';
-					return false;
-				}
-				const minDown = cost * 0.05;
+          function handleCalculate() {
+            if (!validateAndUpdate()) return;
+            const cost = parseFloat(costInput.value);
+            const downPayment = parseFloat(downPaymentInput.value) || 0;
+            const loanAmount = parseFloat(loanAmountInput.value) || 0;
+            const interestRate = parseFloat(interestRateInput.value) || 0;
+            const amortization = parseInt(amortizationInput.value);
+            const frequency = paymentFrequencyInput.value;
 
-				if (downPaymentValue === '') {
-					downPercentSpan.textContent = '(0.00 %)';
-					loanAmountInput.value = cost.toFixed(2);
-					errorMsg.textContent = '';
-					return true;
-				}
-				if (!isNaN(downPayment)) {
-					const downPaymentPercentage = (downPayment / cost) * 100;
-					if (downPaymentPercentage < 5) {
-						errorMsg.innerHTML = `
-							<span style = "color: red; font-weight: bold; display: block; text-align: center;margin-bottom: 16px;">
-								${text.errorMinDownPayment.replace('{amount}', minDown.toFixed(2))}
-							</span>
-						`;
-						paymentResult.style.display = 'none';
-					} else {
-						errorMsg.textContent =
-						downPayment > cost ? text.errorMaxDownPayment : '';
-					}
-					downPercentSpan.textContent = `(${downPaymentPercentage.toFixed(2)} %)`;
-					loanAmountInput.value = (cost - downPayment).toFixed(2);
-				} else {
-					errorMsg.textContent = text.errorInvalidDownPayment;
-					paymentResult.style.display = 'none';
-					return false;
-				}
-				return true;
-			}
+            if (downPayment < cost * 0.05) {
+              paymentResult.style.display = 'none';
+              return;
+            }
+            const paymentsPerYear = frequency === 'week' ? 52 : frequency === '2-weeks' ? 26 : 12;
+            const payment = calculateMortgagePayment(loanAmount, interestRate, amortization, paymentsPerYear);
+            const suffix = frequency === 'week'
+              ? text.perWeek
+              : frequency === '2-weeks'
+              ? text.perBiweek
+              : text.perMonth;
+            paymentOutput.textContent = `${payment.toFixed(2)} ${suffix}`;
+            paymentResult.style.display = 'block';
+          }
 
-			function handleCalculate() {
-				if (!validateAndUpdate()) return;
-				const cost = parseFloat(costInput.value);
-				const downPayment = parseFloat(downPaymentInput.value) || 0;
-				const loanAmount = parseFloat(loanAmountInput.value) || 0;
-				const interestRate = parseFloat(interestRateInput.value) || 0;
-				const amortization = parseInt(amortizationSelect.value);
-				const frequency = frequencySelect.value;
+          [costInput, downPaymentInput, interestRateInput].forEach(el =>
+            el.addEventListener('input', handleCalculate)
+          );
 
-				if (downPayment < cost * 0.05) {
-					paymentResult.style.display = 'none';
-					return;
-				}
-				const paymentsPerYear = frequency === 'week' ? 52 : frequency === '2-weeks' ? 26 : 12;
-				const payment = calculateMortgagePayment(
-					loanAmount, interestRate, amortization, paymentsPerYear
-				);
-				const suffix = frequency === 'week' ? text.perWeek : frequency === '2-weeks' ? text.perBiweek : text.perMonth;
-				paymentOutput.textContent = `${payment.toFixed(2)} ${suffix}`;
-				paymentResult.style.display = 'block';
-			}
+          // (3) CHANGED FROM 'change' TO 'input'
+          paymentFrequencyInput.addEventListener('input', handleCalculate);
+          amortizationInput.addEventListener('input', handleCalculate);
 
-			[costInput, downPaymentInput, interestRateInput, amortizationSelect, frequencySelect].forEach(el => el.addEventListener('input', handleCalculate));
-			handleCalculate();
-		}
+          handleCalculate();
+        }
 
-		calculatorContainer.innerHTML = '';
-		calculatorContainer.appendChild(formContainer);
-		initCalculator();
-	},
-};
+        calculatorContainer.innerHTML = '';
+        calculatorContainer.appendChild(formContainer);
+        initCalculator();
+        attachNumericControls();
 
-/************** EXTENSION #8: BorrowingCalculatorExtension **************/
-const BorrowingCalculatorExtension = {
-	name: 'BorrowingCalculator',
-	type: 'response',
-	match: ({ trace }) =>trace.type === 'ext_borrowing' || trace.payload?.name === 'ext_borrowing',
-	render: ({ trace }) => {
-		const { language = 'en' } = trace.payload;
-		const isEnglish = language === 'en';
+        // Show modal
+        const modal = document.getElementById('calculator-modal');
+        modal.style.display = 'flex';
 
-		const modal = document.getElementById('calculator-modal');
-		const calculatorContainer = document.getElementById('calculator-container');
+        // Initialize dropdown logic
+        setupDropdownSingle("dropdown-payment-frequency", "paymentFrequencyList", "payment-frequency", text.biweekly);
+        setupDropdownSingle("dropdown-amortization-period", "amortizationPeriodList", "amortization-period", `25 ${text.years}`);
+      },
+    };
 
-		const formatCurrency = (number) => {
-			return new Intl.NumberFormat(isEnglish ? 'en-CA' : 'fr-CA', {
-				style: 'currency',
-				currency: 'CAD',
-				minimumFractionDigits: 0,
-				maximumFractionDigits: 0,
-			}).format(number);
-		};
+    /**********************************************************************
+     * 4) BorrowingCalculatorExtension
+     **********************************************************************/
+    const BorrowingCalculatorExtension = {
+      name: 'BorrowingCalculator',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_borrowing' || trace.payload?.name === 'ext_borrowing',
+      render: ({ trace }) => {
+        const { language = 'en' } = trace.payload;
+        const isEnglish = language === 'en';
+        const modal = document.getElementById('calculator-modal');
+        const calculatorContainer = document.getElementById('calculator-container');
 
-		const freqMap = {
-			monthly: 12,
-			'bi-weekly': 26,
-			weekly: 52,
-		};
-		const freqLabelMap = {
-			monthly: isEnglish ? '/month' : '/mois',
-			'bi-weekly': isEnglish ? '/2-weeks' : '/2-semaines',
-			weekly: isEnglish ? '/week' : '/semaine',
-		};
+        // (1) setupDropdownSingle (Borrowing version)
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = document.getElementById(dropdownId);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = document.getElementById(hiddenInputId);
 
-		function calculatePaymentAndCapacity(annualIncome, annualExpenses, deposit, interestRate, term, frequency) {
-			const paymentsPerYear = freqMap[frequency];
-			const periodicIncome = annualIncome / paymentsPerYear;
-			const periodicExpenses = annualExpenses / paymentsPerYear;
-			const periodicRate = interestRate / 100 / paymentsPerYear;
-			const numberOfPayments = term * paymentsPerYear;
-			const maxPeriodicPayment = periodicIncome * 0.32;
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
 
-			let presentValue = 0;
-			if (periodicRate > 0) {
-				presentValue = maxPeriodicPayment * ((1 - Math.pow(1 + periodicRate, -numberOfPayments)) / periodicRate);
-			} else {
-				presentValue = maxPeriodicPayment * numberOfPayments;
-			}
-			return { paymentPerPeriod: maxPeriodicPayment, borrowingCapacity: Math.round(presentValue + deposit)};
-		}
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = selectBtn.classList.toggle("open");
+            listEl.style.display = isOpen ? "block" : "none";
 
-		const formContainer = document.createElement('form');
-		formContainer.innerHTML = `
-			<div class="modal-title">
-				${isEnglish ? 'Borrowing Capacity Calculator' : "Calculateur de capacité d'emprunt"}
-			</div>
-			<div class="form-row">
-				<div class="form-column">
-					<label for="annual-income" class="bold-label">
-						${isEnglish ? 'Annual Gross Income' : 'Revenu annuel brut'}
-					</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input type="number" id="annual-income" class="currency-input" required
-						placeholder="${isEnglish ? 'Enter your annual income' : 'Entrez votre revenu annuel'}"
-						min="0" step="1000" />
-					</div>
-				</div>
-				<div class="form-column">
-					<label for="monthly-expenses" class="bold-label">
-						${isEnglish ? 'Monthly Expenses' : 'Dépenses mensuelles'}
-					</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input type="number" id="monthly-expenses" class="currency-input" required
-						placeholder="${isEnglish ? 'Enter monthly expenses' : 'Entrez les dépenses mensuelles'}"
-						min="0" step="100" />
-					</div>
-				</div>
-			</div>
-			<div class="form-row">
-				<div class="form-column">
-					<label for="down-payment" class="bold-label">
-						${isEnglish ? 'Down Payment Available' : 'Mise de fonds disponible'}
-					</label>
-					<div class="input-group">
-						<span class="currency-symbol">$</span>
-						<input type="number" id="down-payment" class="currency-input" required
-						placeholder="${isEnglish ? 'Enter down payment' : 'Entrez la mise de fonds'}"
-						min="0" step="1000" />
-					</div>
-				</div>
-				<div class="form-column">
-					<label for="interest-rate" class="bold-label">
-						${isEnglish ? 'Interest Rate (%)' : "Taux d'intérêt (%)"}
-					</label>
-					<input type="number" id="interest-rate" class="currency-input" required
-					placeholder="${isEnglish ? 'Enter interest rate' : "Entrez le taux d'intérêt"}"
-					min="0" max="20" step="0.1" />
-				</div>
-			</div>
-			<div class="form-row">
-				<div class="form-column">
-					<label for="mortgage-term" class="bold-label">
-						${isEnglish ? 'Mortgage Term (Years)' : 'Durée du prêt (Années)'}
-					</label>
-					<select id="mortgage-term" required>
-						<option value="25">25 ${isEnglish ? 'years' : 'ans'}</option>
-						<option value="20">20 ${isEnglish ? 'years' : 'ans'}</option>
-						<option value="15">15 ${isEnglish ? 'years' : 'ans'}</option>
-						<option value="10">10 ${isEnglish ? 'years' : 'ans'}</option>
-					</select>
-				</div>
-				<div class="form-column">
-					<label for="payment-frequency" class="bold-label">
-						${isEnglish ? 'Payment Frequency' : 'Fréquence de paiement'}
-					</label>
-					<select id="payment-frequency" required>
-						<option value="monthly">${isEnglish ? 'Monthly' : 'Mensuelle'}</option>
-						<option value="bi-weekly">${isEnglish ? 'Bi-weekly' : 'Aux deux semaines'}</option>
-						<option value="weekly">${isEnglish ? 'Weekly' : 'Hebdomadaire'}</option>
-					</select>
-				</div>
-			</div>
-			<div class="results-row">
-				<div class="result" id="payment-preview">
-					<h3>${isEnglish? 'Estimated Payment Amount' : 'Montant estimé du paiement'}</h3>
-					<div class="amount" id="payment-amount"></div>
-					<div class="hint">${isEnglish ? 'This is your estimated payment amount based on the selected frequency.': 'Ceci est votre montant de paiement estimé selon la fréquence sélectionnée.'}
-					</div>
-				</div>
-				<div class="result" id="result">
-					<h3>${isEnglish ? 'Your Estimated Borrowing Capacity' : "Votre capacité d'emprunt estimée"}</h3>
-					<div class="amount" id="capacity-amount"></div>
-					<div class="hint">
-						${isEnglish
-							? 'This is an estimate based on a 32% Gross Debt Service ratio. Your actual borrowing capacity may vary based on other factors.'
-							: 'Cette estimation est basée sur un ratio du service de la dette brute de 32%. Votre capacité emprunt réelle peut varier en fonction d’autres facteurs.'
-						}
-					</div>
-				</div>
-			</div>
+            if (isOpen) {
+  document.querySelectorAll('.select-btn.open').forEach(openBtn => {
+    if (openBtn !== selectBtn) {
+      openBtn.classList.remove('open');
+      const otherList = openBtn.parentElement.querySelector('.list-items');
+      if (otherList) otherList.style.display = 'none';
+    }
+  });
+}
+          });
+
+          const listItems = listEl.querySelectorAll(".item");
+          listItems.forEach((item) => {
+            item.addEventListener("click", (ev) => {
+              ev.stopPropagation();
+              listItems.forEach((i) => i.classList.remove("checked"));
+              item.classList.add("checked");
+
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              // DISPATCH 'input' EVENT
+              hiddenInput.dispatchEvent(new Event('input'));
+
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            });
+          });
+
+          document.addEventListener("click", (ev) => {
+            if (!container.contains(ev.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // (2) attachNumericControls
+        function attachNumericControls() {
+          // (Identical to Mortgage version, omitted for brevity but included in final)
+          document.querySelectorAll('.number-input-up').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetId = this.getAttribute('data-target');
+              const input = document.getElementById(targetId);
+
+              const parentForm = input.closest('form');
+              const isMortgage = parentForm && parentForm.querySelector('#amortization-period');
+              const isBorrowing = parentForm && parentForm.querySelector('#mortgage-term');
+
+              let currentValue = parseFloat(input.value) || 0;
+              let newValue = currentValue;
+
+              if (isBorrowing) {
+                switch (targetId) {
+                  case 'annual-income':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 1000) / 1000) * 1000;
+                    break;
+                  case 'monthly-expenses':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 250) / 250) * 250;
+                    break;
+                  case 'down-payment':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 250) / 250) * 250;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 1 : Number((Math.round((currentValue + 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  default:
+                    newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else if (isMortgage) {
+                switch (targetId) {
+                  case 'cost':
+                    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + 1000) / 1000) * 1000;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 1 : Number((Math.round((currentValue + 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  case 'down-payment':
+                    if (currentValue === 0) {
+                      const costInput = parentForm.querySelector('#cost');
+                      const costVal = parseFloat(costInput.value) || 0;
+                      let dp = costVal * 0.05;
+                      dp = Math.round(dp / 500) * 500;
+                      newValue = dp < 0 ? 0 : dp;
+                    } else {
+                      newValue = currentValue + 500;
+                    }
+                    break;
+                  default:
+                    newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else {
+                newValue = currentValue + parseFloat(input.getAttribute('step') || 1);
+              }
+
+              input.value = newValue;
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+
+          document.querySelectorAll('.number-input-down').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              const targetId = this.getAttribute('data-target');
+              const input = document.getElementById(targetId);
+
+              const parentForm = input.closest('form');
+              const isMortgage = parentForm && parentForm.querySelector('#amortization-period');
+              const isBorrowing = parentForm && parentForm.querySelector('#mortgage-term');
+
+              let currentValue = parseFloat(input.value) || 0;
+              let newValue = currentValue;
+
+              if (isBorrowing) {
+                switch (targetId) {
+                  case 'annual-income':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    break;
+                  case 'monthly-expenses':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    break;
+                  case 'down-payment':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 250) / 250) * 250;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  default:
+                    newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else if (isMortgage) {
+                switch (targetId) {
+                  case 'cost':
+                    newValue = currentValue === 0 ? 0 : Math.round((currentValue - 1000) / 1000) * 1000;
+                    break;
+                  case 'interest-rate':
+                    newValue = currentValue === 0 ? 0 : Number((Math.round((currentValue - 0.05) / 0.05) * 0.05).toFixed(2));
+                    break;
+                  case 'down-payment':
+                    if (currentValue === 0) {
+                      const costInput = parentForm.querySelector('#cost');
+                      const costVal = parseFloat(costInput.value) || 0;
+                      let dp = costVal * 0.05;
+                      dp = Math.round(dp / 500) * 500;
+                      newValue = dp - 500;
+                    } else {
+                      newValue = currentValue - 500;
+                    }
+                    break;
+                  default:
+                    newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+                }
+              }
+              else {
+                newValue = currentValue - parseFloat(input.getAttribute('step') || 1);
+              }
+
+              if (newValue < 0) newValue = 0;
+              input.value = newValue;
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+        }
+
+        const formatCurrency = (number) => {
+          return new Intl.NumberFormat(isEnglish ? 'en-CA' : 'fr-CA', {
+            style: 'currency',
+            currency: 'CAD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }).format(number);
+        };
+
+        const freqMap = {
+          monthly: 12,
+          'bi-weekly': 26,
+          weekly: 52,
+        };
+        const freqLabelMap = {
+          monthly: isEnglish ? '/month' : '/mois',
+          'bi-weekly': isEnglish ? '/2-weeks' : '/2-semaines',
+          weekly: isEnglish ? '/week' : '/semaine',
+        };
+
+        function calculatePaymentAndCapacity(annualIncome, annualExpenses, deposit, interestRate, term, frequency) {
+          const paymentsPerYear = freqMap[frequency];
+          const periodicIncome = annualIncome / paymentsPerYear;
+          const periodicExpenses = annualExpenses / paymentsPerYear;
+          const periodicRate = interestRate / 100 / paymentsPerYear;
+          const numberOfPayments = term * paymentsPerYear;
+          const maxPeriodicPayment = periodicIncome * 0.32;
+
+          let presentValue = 0;
+          if (periodicRate > 0) {
+            presentValue = maxPeriodicPayment *
+              ((1 - Math.pow(1 + periodicRate, -numberOfPayments)) / periodicRate);
+          } else {
+            presentValue = maxPeriodicPayment * numberOfPayments;
+          }
+          return { paymentPerPeriod: maxPeriodicPayment, borrowingCapacity: Math.round(presentValue + deposit) };
+        }
+
+        const formContainer = document.createElement('form');
+        formContainer.innerHTML = `
+            <style>
+        .calculator-nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .calculator-nav-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      color: #9c27b0;
+      background-color: #F8EAFA;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: 1em;
+    }
+    .calculator-nav-button:hover {
+      color: white;
+      background-color: #9c27b0;
+    }
+    .calculator-nav-button.active {
+      color: white;
+      background-color: #9c27b0;
+    }
+    /* Form Layout */
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+    .currency-input {
+      height: 40px;
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      padding-left: 30px; /* for currency symbol */
+    }
+    .currency-symbol {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+    }
+    .input-suffix {
+      position: absolute;
+      right: 50px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+      font-size: 13px;
+    }
+    /* Results Display */
+    .results-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .result {
+      margin: 0;
+      padding: 20px;
+      background: #F8EAFA;
+      border-radius: 8px;
+      text-align: center;
+      flex: 1;
+      display: none;
+    }
+    .result h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.2em;
+    }
+    .result .amount {
+      font-size: 2em;
+      color: #bb5cf6;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .hint {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 0px;
+      line-height: 1.4;
+      padding: 0 20px;
+    }
+    .modal-title {
+      text-align: center;
+      color: #333;
+      border-bottom: 2px solid #bb5cf6;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      font-size: 1.5em;
+    }
+    /* ===================== Booking-Style Dropdown ===================== */
+    .dropdown-container {
+      position: relative;
+      max-width: 100%;
+      margin-top: 4px;
+    }
+    .select-btn {
+      display: flex;
+      height: 40px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #fff;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .select-btn .btn-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .select-btn .arrow-dwn {
+      display: flex;
+      height: 24px;
+      width: 24px;
+      color: #9c27b0;
+      font-size: 12px;
+      border-radius: 50%;
+      background: #F8EAFA;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+    .select-btn.open .arrow-dwn {
+      transform: rotate(-180deg);
+    }
+    .select-btn:focus,
+    .select-btn.open {
+      border: 2px solid #9c27b0;
+      outline: none;
+    }
+    .list-items {
+      position: static;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border-radius: 8px;
+      padding: 8px 0;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .select-btn.open ~ .list-items {
+      display: block;
+    }
+    .list-items .item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      cursor: pointer;
+      transition: 0.3s;
+      padding: 0 12px;
+      border-radius: 8px;
+    }
+    .currency-input:focus {
+      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      outline: none;
+    }
+    .list-items .item:hover {
+      background-color: #F8EAFA;
+    }
+    .item .item-text {
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+    .list-items.single-select .item .checkbox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1.5px solid #c0c0c0;
+      transition: all 0.3s ease-in-out;
+    }
+    .item.checked .checkbox {
+      background-color: #9c27b0;
+      border: 2px solid #9c27b0;
+    }
+    .checkbox .check-icon {
+      color: #fff;
+      font-size: 12px;
+      transform: scale(0);
+      transition: all 0.2s ease-in-out;
+    }
+    .item.checked .check-icon {
+      transform: scale(1);
+    }
+    /* ===================== Numeric Input Controls ===================== */
+    .number-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .number-input-controls {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      bottom: 0px;
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      background-color: #F5E7FE;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 0 8px 8px 0;
+      overflow: hidden;
+    }
+    .number-input-up,
+    .number-input-down {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9A0DF2;
+      cursor: pointer;
+      font-size: 8px;
+    }
+    .number-input-up:hover,
+    .number-input-down:hover {
+      background-color: #9A0DF2;
+      color: #fff;
+    }
+        </style>
+          <div class="modal-title">
+            ${isEnglish ? 'Borrowing Capacity Calculator' : "Calculateur de capacité d'emprunt"}
+          </div>
+          <div class="form-row">
+            <div class="form-column">
+              <label for="annual-income" class="bold-label">
+                ${isEnglish ? 'Annual Gross Income' : 'Revenu annuel brut'}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="annual-income" class="currency-input" required
+                       placeholder="${isEnglish ? 'Enter your annual income' : 'Entrez votre revenu annuel'}"
+                       min="0" step="1000">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="annual-income">▲</div>
+                  <div class="number-input-down" data-target="annual-income">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label for="monthly-expenses" class="bold-label">
+                ${isEnglish ? 'Monthly Expenses' : 'Dépenses mensuelles'}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="monthly-expenses" class="currency-input" required
+                       placeholder="${isEnglish ? 'Enter monthly expenses' : 'Entrez les dépenses mensuelles'}"
+                       min="0" step="100">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="monthly-expenses">▲</div>
+                  <div class="number-input-down" data-target="monthly-expenses">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-column">
+              <label for="down-payment" class="bold-label">
+                ${isEnglish ? 'Down Payment Available' : 'Mise de fonds disponible'}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="number" id="down-payment" class="currency-input" required
+                       placeholder="${isEnglish ? 'Enter down payment' : 'Entrez la mise de fonds'}"
+                       min="0" step="1000">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="down-payment">▲</div>
+                  <div class="number-input-down" data-target="down-payment">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label for="interest-rate" class="bold-label">
+                ${isEnglish ? 'Interest Rate (%)' : "Taux d'intérêt (%)"}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <input type="number" id="interest-rate" class="currency-input" required
+                       placeholder="${isEnglish ? 'Enter interest rate' : "Entrez le taux d'intérêt"}"
+                       min="0" max="20" step="0.1">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="interest-rate">▲</div>
+                  <div class="number-input-down" data-target="interest-rate">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-column">
+              <label class="bold-label" for="mortgage-term">
+                ${isEnglish ? 'Mortgage Term (Years)' : 'Durée du prêt (Années)'}
+              </label>
+              <div class="dropdown-container" id="dropdown-mortgage-term">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text">25 ${isEnglish ? 'years' : 'ans'}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                  </span>
+                </div>
+                <ul class="list-items single-select" id="mortgageTermList">
+                  <li class="item checked" data-value="25"><span class="item-text">25 ${isEnglish ? 'years' : 'ans'}</span></li>
+                  <li class="item" data-value="20"><span class="item-text">20 ${isEnglish ? 'years' : 'ans'}</span></li>
+                  <li class="item" data-value="15"><span class="item-text">15 ${isEnglish ? 'years' : 'ans'}</span></li>
+                  <li class="item" data-value="10"><span class="item-text">10 ${isEnglish ? 'years' : 'ans'}</span></li>
+                </ul>
+              </div>
+              <input type="hidden" id="mortgage-term" value="25">
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="payment-frequency">
+                ${isEnglish ? 'Payment Frequency' : 'Fréquence de paiement'}
+              </label>
+              <div class="dropdown-container" id="dropdown-payment-frequency-b">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text">${isEnglish ? 'Monthly' : 'Mensuelle'}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                  </span>
+                </div>
+                <ul class="list-items single-select" id="paymentFrequencyListB">
+                  <li class="item checked" data-value="monthly"><span class="item-text">${isEnglish ? 'Monthly' : 'Mensuelle'}</span></li>
+                  <li class="item" data-value="bi-weekly"><span class="item-text">${isEnglish ? 'Bi-weekly' : 'Aux deux semaines'}</span></li>
+                  <li class="item" data-value="weekly"><span class="item-text">${isEnglish ? 'Weekly' : 'Hebdomadaire'}</span></li>
+                </ul>
+              </div>
+              <input type="hidden" id="payment-frequency" value="monthly">
+            </div>
+          </div>
+          <div class="results-row">
+            <div class="result" id="payment-preview">
+              <h3>${isEnglish ? 'Estimated Payment Amount' : 'Montant estimé du paiement'}</h3>
+              <div class="amount" id="payment-amount"></div>
+              <div class="hint">${isEnglish
+                ? 'This is your estimated payment amount based on the selected frequency.'
+                : 'Ceci est votre montant de paiement estimé selon la fréquence sélectionnée.'}
+              </div>
+            </div>
+            <div class="result" id="result">
+              <h3>${isEnglish ? 'Your Estimated Borrowing Capacity' : "Votre capacité d'emprunt estimée"}</h3>
+              <div class="amount" id="capacity-amount"></div>
+              <div class="hint">
+                ${isEnglish
+                  ? 'This is an estimate based on a 32% Gross Debt Service ratio. Your actual borrowing capacity may vary based on other factors.'
+                  : 'Cette estimation est basée sur un ratio du service de la dette brute de 32%. Votre capacité emprunt réelle peut varier en fonction d’autres facteurs.'
+                }
+              </div>
+            </div>
+          </div>
         `;
 
-		function updateCalculations(container) {
-			const annualIncome = Number(container.querySelector('#annual-income').value) || 0;
-			const monthlyExpenses = Number(container.querySelector('#monthly-expenses').value) || 0;
-			const downPayment = Number(container.querySelector('#down-payment').value) || 0;
-			const interestRate = Number(container.querySelector('#interest-rate').value) || 0;
-			const mortgageTerm = Number(container.querySelector('#mortgage-term').value) || 25;
-			const frequency = container.querySelector('#payment-frequency').value || 'monthly';
+        function updateCalculations(container) {
+          const annualIncome = Number(container.querySelector('#annual-income').value) || 0;
+          const monthlyExpenses = Number(container.querySelector('#monthly-expenses').value) || 0;
+          const downPayment = Number(container.querySelector('#down-payment').value) || 0;
+          const interestRate = Number(container.querySelector('#interest-rate').value) || 0;
+          const mortgageTerm = Number(container.querySelector('#mortgage-term').value) || 25;
+          const frequency = container.querySelector('#payment-frequency').value || 'monthly';
 
-			const capacityAmount = container.querySelector('#capacity-amount');
-			const paymentAmount = container.querySelector('#payment-amount');
-			const paymentPreview = container.querySelector('#payment-preview');
-			const resultDiv = container.querySelector('#result');
+          const capacityAmount = container.querySelector('#capacity-amount');
+          const paymentAmount = container.querySelector('#payment-amount');
+          const paymentPreview = container.querySelector('#payment-preview');
+          const resultDiv = container.querySelector('#result');
 
-			if (annualIncome > 0 && interestRate > 0) {
-				const { paymentPerPeriod, borrowingCapacity } = 
-					calculatePaymentAndCapacity(annualIncome, monthlyExpenses * 12, downPayment, interestRate, mortgageTerm, frequency);
-				capacityAmount.textContent = formatCurrency(borrowingCapacity);
-				paymentAmount.textContent = formatCurrency(paymentPerPeriod) + freqLabelMap[frequency];
-				paymentPreview.style.display = 'block';
-				resultDiv.style.display = 'block';
-			} else {
-				paymentPreview.style.display = 'none';
-				resultDiv.style.display = 'none';
-			}
-		}
+          if (annualIncome > 0 && interestRate > 0) {
+            const { paymentPerPeriod, borrowingCapacity } =
+              calculatePaymentAndCapacity(
+                annualIncome,
+                monthlyExpenses * 12,
+                downPayment,
+                interestRate,
+                mortgageTerm,
+                frequency
+              );
+            capacityAmount.textContent = formatCurrency(borrowingCapacity);
+            paymentAmount.textContent = formatCurrency(paymentPerPeriod) + freqLabelMap[frequency];
+            paymentPreview.style.display = 'block';
+            resultDiv.style.display = 'block';
+          } else {
+            paymentPreview.style.display = 'none';
+            resultDiv.style.display = 'none';
+          }
+        }
 
-		const fields = ['#annual-income', '#monthly-expenses','#down-payment','#interest-rate','#mortgage-term','#payment-frequency'];
+        const fields = [
+          '#annual-income',
+          '#monthly-expenses',
+          '#down-payment',
+          '#interest-rate',
+          '#mortgage-term',
+          '#payment-frequency'
+        ];
 
-		fields.forEach(selector => {formContainer.querySelector(selector).addEventListener('input', () => updateCalculations(formContainer));});
-		calculatorContainer.innerHTML = '';
-		calculatorContainer.appendChild(formContainer);
-		modal.style.display = 'flex';
-	},
-};
+        fields.forEach(selector => {
+          formContainer.querySelector(selector).addEventListener('input', () => updateCalculations(formContainer));
+        });
 
-/************** EXTENSION #9: CombinedCalculatorsExtension **************/
-const CombinedCalculatorsExtension = {
-	name: 'CombinedCalculators',
-	type: 'response',
-	match: ({ trace }) => trace.type === 'ext_combined_calculators' || trace.payload?.name === 'ext_combined_calculators',
-	render: ({ trace , element}) => {
-		const { language = 'en', propertyCost} = trace.payload;
-		const isEnglish = language === 'en';
+        calculatorContainer.innerHTML = '';
+        calculatorContainer.appendChild(formContainer);
 
-		const modal = document.getElementById('calculator-modal');
-		const closeButton = modal.querySelector('.close-button');
-		const calculatorContainer = document.getElementById('calculator-container');
+        modal.style.display = 'flex';
+        attachNumericControls();
 
-		const navHTML = `
-			<div class="calculator-nav">
-				<button class="calculator-nav-button active" data-calculator="borrowing">
-					${isEnglish ? 'Borrowing Capacity' : "Capacité d'emprunt"}
-				</button>
-				<button class="calculator-nav-button" data-calculator="mortgage">
-					${isEnglish ? 'Mortgage Payment' : 'Paiement hypothécaire'}
-				</button>
-			</div>
+        // Initialize dropdown logic
+        setupDropdownSingle("dropdown-mortgage-term", "mortgageTermList", "mortgage-term", `25 ${isEnglish ? 'years' : 'ans'}`);
+        setupDropdownSingle("dropdown-payment-frequency-b", "paymentFrequencyListB", "payment-frequency", isEnglish ? 'Monthly' : 'Mensuelle');
+
+        // Trigger first calculation
+        updateCalculations(formContainer);
+      },
+    };
+
+    /**********************************************************************
+     * 5) CombinedCalculatorsExtension
+     **********************************************************************/
+    const CombinedCalculatorsExtension = {
+      name: 'CombinedCalculators',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_combined_calculators' || trace.payload?.name === 'ext_combined_calculators',
+      render: ({ trace, element }) => {
+        const { language = 'en', propertyCost } = trace.payload;
+        const isEnglish = language === 'en';
+        const modal = document.getElementById('calculator-modal');
+        const closeButton = modal.querySelector('.close-button');
+        const calculatorContainer = document.getElementById('calculator-container');
+
+        const navHTML = `
+            <style>
+        .calculator-nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .calculator-nav-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      color: #9c27b0;
+      background-color: #F8EAFA;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: 1em;
+    }
+    .calculator-nav-button:hover {
+      color: white;
+      background-color: #9c27b0;
+    }
+    .calculator-nav-button.active {
+      color: white;
+      background-color: #9c27b0;
+    }
+    /* Form Layout */
+    .input-group {
+      position: relative;
+      width: 100%;
+    }
+    .currency-input {
+    height: 40px;
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      padding-left: 30px; /* for currency symbol */
+    }
+    .currency-symbol {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+    }
+    .input-suffix {
+      position: absolute;
+      right: 50px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: black;
+      font-size: 13px;
+    }
+    /* Results Display */
+    .results-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .result {
+      margin: 0;
+      padding: 20px;
+      background: #F8EAFA;
+      border-radius: 8px;
+      text-align: center;
+      flex: 1;
+      display: none;
+    }
+    .result h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 1.2em;
+    }
+    .result .amount {
+      font-size: 2em;
+      color: #bb5cf6;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .hint {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+      padding: 0 20px;
+    }
+    .modal-title {
+      text-align: center;
+      color: #333;
+      border-bottom: 2px solid #bb5cf6;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      font-size: 1.5em;
+    }
+    /* ===================== Booking-Style Dropdown ===================== */
+    .dropdown-container {
+      position: relative;
+      max-width: 100%;
+      margin-top: 4px;
+    }
+    .select-btn {
+      display: flex;
+      height: 40px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #fff;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .select-btn .btn-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .select-btn .arrow-dwn {
+      display: flex;
+      height: 24px;
+      width: 24px;
+      color: #9c27b0;
+      font-size: 12px;
+      border-radius: 50%;
+      background: #F8EAFA;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+    }
+    .select-btn.open .arrow-dwn {
+      transform: rotate(-180deg);
+    }
+    .select-btn:focus,
+    .select-btn.open {
+      border: 2px solid #9c27b0;
+      outline: none;
+    }
+    .list-items {
+      position: static;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      border-radius: 8px;
+      padding: 8px 0;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .select-btn.open ~ .list-items {
+      display: block;
+    }
+    .list-items .item {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      cursor: pointer;
+      transition: 0.3s;
+      padding: 0 12px;
+      border-radius: 8px;
+    }
+    .currency-input:focus {
+      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      outline: none;
+    }
+    .list-items .item:hover {
+      background-color: #F8EAFA;
+    }
+    .item .item-text {
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+    .list-items.single-select .item .checkbox {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      margin-right: 8px;
+      border: 1.5px solid #c0c0c0;
+      transition: all 0.3s ease-in-out;
+    }
+    .item.checked .checkbox {
+      background-color: #9c27b0;
+      border: 2px solid #9c27b0;
+    }
+    .checkbox .check-icon {
+      color: #fff;
+      font-size: 12px;
+      transform: scale(0);
+      transition: all 0.2s ease-in-out;
+    }
+    .item.checked .check-icon {
+      transform: scale(1);
+    }
+    /* ===================== Numeric Input Controls ===================== */
+    .number-input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .number-input-controls {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      bottom: 0px;
+      width: 20px;
+      display: flex;
+      flex-direction: column;
+      background-color: #F5E7FE;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 0 8px 8px 0;
+      overflow: hidden;
+    }
+    .number-input-up,
+    .number-input-down {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9A0DF2;
+      cursor: pointer;
+      font-size: 8px;
+    }
+    .number-input-up:hover,
+    .number-input-down:hover {
+      background-color: #9A0DF2;
+      color: #fff;
+    }
+        </style>
+          <div class="calculator-nav">
+            <button class="calculator-nav-button active" data-calculator="borrowing">
+              ${isEnglish ? 'Borrowing Capacity' : "Capacité d'emprunt"}
+            </button>
+            <button class="calculator-nav-button" data-calculator="mortgage">
+              ${isEnglish ? 'Mortgage Payment' : 'Paiement hypothécaire'}
+            </button>
+          </div>
         `;
 
-		function closeModal() {
-			modal.style.display = 'none';
-			document.removeEventListener('keydown', handleKeyPress);
-			window.removeEventListener('click', handleOutsideClick);
-		}
-		function handleKeyPress(event) {
-			if (modal.style.display === 'flex' && event.key === 'Escape') {
-				closeModal();
-			}
-		}
-		function handleOutsideClick(event) {
-			if (event.target === modal) {
-				closeModal();
-			}
-		}
+        function closeModal() {
+          modal.style.display = 'none';
+          document.removeEventListener('keydown', handleKeyPress);
+          window.removeEventListener('click', handleOutsideClick);
+        }
 
-		function switchCalculator(type) {
-			const buttons = modal.querySelectorAll('.calculator-nav-button');
-			buttons.forEach(btn => {btn.classList.toggle('active', btn.dataset.calculator === type);});
-			calculatorContainer.innerHTML = '';
-			if (type === 'borrowing') {
-				BorrowingCalculatorExtension.render({trace: {payload: {language}}});
-			} else {
-				const mortgageContainer = document.createElement('div');
-				mortgageContainer.id = 'mortgage-calculator-modal-content';
-				calculatorContainer.appendChild(mortgageContainer);
-				MortgageCalculatorExtension.render({
-					trace: { payload: { language, propertyCost} },
-					element: mortgageContainer
-				});
-			}
-		}	
+        function handleKeyPress(event) {
+          if (modal.style.display === 'flex' && event.key === 'Escape') {
+            closeModal();
+          }
+        }
 
-		// Construction de l’élément image + bouton « thumbs-up »
-		const modalContainer = document.createElement('div');
-		modalContainer.innerHTML = `
-			<style>
-				.thumbs-up {
-					font-size: 1.2em;
-					cursor: pointer;
-					display: inline-block;
-					transition: transform 0.2s ease-in-out;
-				}
-			</style>
-			<div class="thumbs-up">👍</div>
-		`;
+        function handleOutsideClick(event) {
+          if (event.target === modal) {
+            closeModal();
+          }
+        }
 
-		// Bouton Thumbs-up => envoie l’info à Voiceflow
-		const thumbsUp = modalContainer.querySelector('.thumbs-up');
-		if (thumbsUp) {
-			thumbsUp.addEventListener('click', () => {
-				if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
-					window.voiceflow.chat.interact({ type: 'complete', payload: {} });
-				} else {
-					console.warn('window.voiceflow.chat.interact is not available');
-				}
-			});
-		}
+        function switchCalculator(type) {
+          const buttons = modal.querySelectorAll('.calculator-nav-button');
+          buttons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.calculator === type);
+          });
+          calculatorContainer.innerHTML = '';
+          if (type === 'borrowing') {
+            BorrowingCalculatorExtension.render({ trace: { payload: { language } } });
+          } else {
+            const mortgageContainer = document.createElement('div');
+            mortgageContainer.id = 'mortgage-calculator-modal-content';
+            calculatorContainer.appendChild(mortgageContainer);
+            MortgageCalculatorExtension.render({
+              trace: { payload: { language, propertyCost } },
+              element: mortgageContainer
+            });
+          }
+        }
 
-		// Ajout dans l’élément parent (fourni par Voiceflow)
-		element.appendChild(modalContainer);
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = `
+          <style>
+            .thumbs-up {
+              font-size: 1.2em;
+              cursor: pointer;
+              display: inline-block;
+              transition: transform 0.2s ease-in-out;
+            }
+          </style>
+          <div class="thumbs-up">👍</div>
+        `;
+        const thumbsUp = modalContainer.querySelector('.thumbs-up');
+        if (thumbsUp) {
+          thumbsUp.addEventListener('click', () => {
+            if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+              window.voiceflow.chat.interact({ type: 'complete', payload: {} });
+            } else {
+              console.warn('window.voiceflow.chat.interact is not available');
+            }
+          });
+        }
+        element.appendChild(modalContainer);
 
-		closeButton.addEventListener('click', e => { 
-			e.stopPropagation();
-			closeModal();
-		});
-		
-		document.addEventListener('keydown', handleKeyPress);
-		window.addEventListener('click', handleOutsideClick);
+        closeButton.addEventListener('click', e => {
+          e.stopPropagation();
+          closeModal();
+        });
 
-		// Remove any existing navigation buttons to prevent duplication
-		const existingNav = modal.querySelector('.calculator-nav');
-		if (existingNav) {
-			existingNav.remove();
-		}
+        document.addEventListener('keydown', handleKeyPress);
+        window.addEventListener('click', handleOutsideClick);
 
-		// Insert the new navigation buttons
-		calculatorContainer.insertAdjacentHTML('beforebegin', navHTML);
+        // Remove any existing nav
+        const existingNav = modal.querySelector('.calculator-nav');
+        if (existingNav) {
+          existingNav.remove();
+        }
 
-		// Re-attach event listeners to the new buttons
-		const navButtons = modal.querySelectorAll('.calculator-nav-button');
-		navButtons.forEach(button => {
-			button.addEventListener('click', () => switchCalculator(button.dataset.calculator));
-		});
+        calculatorContainer.insertAdjacentHTML('beforebegin', navHTML);
 
-		modal.style.display = 'flex';
-		switchCalculator('borrowing');
-	},
-};
+        const navButtons = modal.querySelectorAll('.calculator-nav-button');
+        navButtons.forEach(button => {
+          button.addEventListener('click', () => switchCalculator(button.dataset.calculator));
+        });
+
+        modal.style.display = 'flex';
+        switchCalculator('borrowing');
+      },
+    };
 
 const UserInformationExtension = {
       name: "Forms",
