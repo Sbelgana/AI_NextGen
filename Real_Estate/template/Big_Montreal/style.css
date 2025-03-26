@@ -205,7 +205,7 @@ form {
     align-items: center;
     justify-content: center;
     position: absolute;
-    /* Remove top: 50% and transform: translateY(-50%) */
+    top: 50%;
     bottom: 10px;
     right: 10px;
     transform: none;
