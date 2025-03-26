@@ -211,8 +211,8 @@ form {
     z-index: 1000;
   }
   .modal-carousel--button.left-button {
-    top : 100px;
-    right: 60px; /* e.g. 60px so it's next to the right arrow */
+    bottom : 80px;
+    right: 60px; 
   }
 }
 
