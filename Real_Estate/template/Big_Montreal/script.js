@@ -1628,42 +1628,21 @@ const SellingExtension = {
     formContainer.innerHTML = `
       <style>
 /* Variables for consistent theming */
-:root {
-  --primary: #9a0df2;
-  --primary-light: #f5e7fe;
-  --border-color: rgba(0, 0, 0, 0.2);
-  --text-dark: #333;
-  --text-medium: #555;
-  --text-light: #777;
-  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-focus: 0 3px 8px rgba(154, 13, 242, 0.1);
-  --border-radius-sm: 4px;
-  --border-radius: 6px;
-  --border-radius-lg: 8px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing: 10px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 20px;
-}
-
 /* Base Form Styles */
 form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing);
+  gap: 10px;
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius);
+  padding: 16px;
+  border-radius: 6px;
 }
 
 .flex-row {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -1676,7 +1655,7 @@ form {
   font-weight: 700;
   color: #000;
   font-size: 14px;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 4px;
   display: block;
 }
 
@@ -1687,9 +1666,9 @@ input[type="tel"],
 input[type="number"],
 textarea {
   width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-sm);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 8px;
   background: #fff;
   font-size: 13px;
   outline: none;
@@ -1703,9 +1682,9 @@ textarea {
   resize: vertical;
   min-height: 120px;
   max-height: 300px;
-  padding: var(--spacing-sm);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
   font-size: 13px;
   box-sizing: border-box;
   height: auto !important; /* Override the default height */
@@ -1717,7 +1696,7 @@ input[type="tel"]:focus,
 input[type="number"]:focus,
 select:focus,
 #details:focus {
-  border: 2px solid var(--primary);
+  border: 2px solid #9a0df2;
 }
 
 /* Remove spinner from number inputs */
@@ -1733,20 +1712,20 @@ input[type="number"] {
 
 /* Submit Button */
 .submit {
-  color: var(--primary);
-  background-color: var(--primary-light);
+  color: #9a0df2;
+  background-color: #f5e7fe;
   border: none;
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
+  padding: 12px;
+  border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  margin-top: var(--spacing-sm);
+  margin-top: 8px;
   transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
 }
 
 .submit:hover {
   color: #fff;
-  background-color: var(--primary);
+  background-color: #9a0df2;
   font-weight: 700;
 }
 
@@ -1768,22 +1747,22 @@ input[type="number"] {
   height: 40px;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-md);
-  border-radius: var(--border-radius);
+  padding: 0 12px;
+  border-radius: 6px;
   cursor: pointer;
   background-color: #fff;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   transition: border 0.2s;
 }
 
 .select-btn .btn-text {
   font-size: 13px;
   font-weight: 400;
-  color: var(--text-medium);
+  color: #555;
 }
 
 .select-btn-holder {
-  color: var(--text-light);
+  color: #777;
   font-size: 13px;
 }
 
@@ -1791,10 +1770,10 @@ input[type="number"] {
   display: flex;
   height: 24px;
   width: 24px;
-  color: var(--primary);
+  color: #9a0df2;
   font-size: 13px;
   border-radius: 50%;
-  background: var(--primary-light);
+  background: #f5e7fe;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s;
@@ -1806,7 +1785,7 @@ input[type="number"] {
 
 .select-btn:focus,
 .select-btn.open {
-  border: 2px solid var(--primary);
+  border: 2px solid #9a0df2;
 }
 
 /* Dropdown List */
@@ -1815,10 +1794,10 @@ input[type="number"] {
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: var(--spacing-xs);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-xs) 0;
-  box-shadow: var(--shadow-medium);
+  margin-top: 4px;
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   display: none;
   max-height: 200px;
   overflow-y: auto;
@@ -1835,21 +1814,21 @@ input[type="number"] {
   align-items: center;
   height: 36px;
   cursor: pointer;
-  padding: 0 var(--spacing-md);
-  border-radius: var(--border-radius-sm);
+  padding: 0 12px;
+  border-radius: 4px;
   transition: background-color 0.3s;
-  margin: var(--spacing-xs);
+  margin: 4px;
 }
 
 .list-items .item:hover {
-  background-color: var(--primary-light);
+  background-color: #f5e7fe;
 }
 
 .item .item-text {
   font-size: 13px;
   font-weight: 400;
-  color: var(--text-dark);
-  margin-left: var(--spacing-sm);
+  color: #333;
+  margin-left: 8px;
 }
 
 /* Checkbox Styles */
@@ -1861,14 +1840,14 @@ input[type="number"] {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  margin-right: var(--spacing-sm);
+  margin-right: 8px;
   border: 1.5px solid #c0c0c0;
   transition: all 0.3s ease-in-out;
 }
 
 .item.checked .checkbox {
-  background-color: var(--primary);
-  border: 2px solid var(--primary);
+  background-color: #9a0df2;
+  border: 2px solid #9a0df2;
 }
 
 .checkbox .check-icon {
@@ -1888,7 +1867,7 @@ input[type="number"] {
 }
 
 .list-items .item:not(.checked):hover .checkbox svg path {
-  fill: var(--primary) !important;
+  fill: #9a0df2 !important;
 }
 
 .list-items .item.checked .checkbox svg path {
@@ -1897,7 +1876,7 @@ input[type="number"] {
 
 /* Standard checkbox */
 input[type="checkbox"] {
-  accent-color: var(--primary);
+  accent-color: #9a0df2;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -1906,10 +1885,10 @@ input[type="checkbox"] {
 /* Group Styles */
 .group {
   border-top: 1px solid #eee;
-  margin-bottom: var(--spacing);
-  margin-left: var(--spacing);
-  margin-right: var(--spacing);
-  border-radius: var(--border-radius-sm);
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -1919,17 +1898,17 @@ input[type="checkbox"] {
 
 .group-header {
   font-weight: 500;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 8px 12px;
   background: #f4eafb;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--primary);
+  color: #9a0df2;
 }
 
 .group-header .collapse-icon {
-  color: var(--primary);
+  color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
   background: #fff;
@@ -1939,7 +1918,7 @@ input[type="checkbox"] {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  margin-right: var(--spacing-sm);
+  margin-right: 8px;
 }
 
 .group-header.active .collapse-icon {
@@ -1965,9 +1944,9 @@ input[type="checkbox"] {
   width: 20px;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-light);
+  background-color: #f5e7fe;
   border-left: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+  border-radius: 0 4px 4px 0;
   overflow: hidden;
 }
 
@@ -1977,7 +1956,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
+  color: #9a0df2;
   cursor: pointer;
   font-size: 8px;
   transition: background-color 0.2s, color 0.2s;
@@ -1985,15 +1964,15 @@ input[type="checkbox"] {
 
 .price-up:hover,
 .price-down:hover {
-  background-color: var(--primary);
+  background-color: #9a0df2;
   color: #fff;
 }
 
 /* Section Cards */
 /* Added styles for the section layout */
 .section {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
   margin-bottom: 0;
   overflow: hidden;
   background: #fff;
@@ -2001,35 +1980,35 @@ input[type="checkbox"] {
 }
 
 .section-card {
-  padding: var(--spacing);
+  padding: 10px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-light);
-  border-radius: var(--border-radius);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
 }
 
 .section.active {
-  border: 2px solid var(--primary);
-  box-shadow: var(--shadow-focus);
+  border: 2px solid #9a0df2;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section:hover:not(.disabled) {
-  border-color: var(--primary);
-  box-shadow: var(--shadow-focus);
+  border-color: #9a0df2;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 12px;
 }
 
 .section-icon {
-  background-color: var(--primary-light);
-  color: var(--primary);
+  background-color: #f5e7fe;
+  color: #9a0df2;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -2051,7 +2030,7 @@ input[type="checkbox"] {
 
 /* Collapse Icon */
 .collapse-icon {
-  color: var(--primary);
+  color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
   background: #f4eafb;
@@ -2084,7 +2063,7 @@ input[type="checkbox"] {
 }
 
 .section-content {
-  padding: var(--spacing-xl);
+  padding: 20px;
   background: #fefefe;
   border-top: 1px solid #eee;
 }
@@ -2093,8 +2072,8 @@ input[type="checkbox"] {
 .inline-field {
   display: flex;
   align-items: center;
-  gap: var(--spacing);
-  margin-bottom: var(--spacing);
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 /* Disabled States */
@@ -2113,7 +2092,6 @@ button:disabled,
 .section.disabled * {
   pointer-events: auto;
 }
-
       </style>
 
       <!-- Row 1: Personal Info + Seller -->
