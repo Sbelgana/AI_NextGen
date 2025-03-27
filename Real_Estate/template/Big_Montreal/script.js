@@ -3787,11 +3787,11 @@ const RescheduleExtension = {
     // Create the container
     const container = document.createElement("div");
 
-    // Insert the style and HTML for the booking button
+    // Insert the style and HTML for the reschedule button
     container.innerHTML = `
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-        .booking-container {
+        .reschedule-container {
           display: flex;
           flex-direction: column;
           gap: 10px;
@@ -3804,7 +3804,7 @@ const RescheduleExtension = {
           min-width: 300px;
           align-items: center;
         }
-        .book-now {
+        .reschedule {
           color: #9c27b0;
           background-color: #F8EAFA;
           border: none;
@@ -3818,17 +3818,17 @@ const RescheduleExtension = {
           box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .book-now:active {
+        .reschedule:active {
           transform: translateY(0);
           box-shadow: 0 2px 3px rgba(0,0,0,0.1);
         }
         
-        .book-now:hover:not(:disabled) {
+        .reschedule:hover:not(:disabled) {
       background-color: #9c27b0;
       font-weight: 700;
       color: #fff;
     }
-    .book-now:disabled {
+    .reschedule:disabled {
       background-color: #ccc;
       color: #666;
       cursor: not-allowed;
@@ -3842,8 +3842,8 @@ const RescheduleExtension = {
         }
       </style>
 
-      <div class="booking-container">
-        <button type="button" class="book-now" id="cal-booking-button">
+      <div class="reschedule-container">
+        <button type="button" class="reschedule" id="cal-reschedule-button">
             ${isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous'}
         </button>
         <div class="debug-info" id="debug-info"></div>
@@ -3885,16 +3885,19 @@ const RescheduleExtension = {
       };
     })(window, "https://app.cal.com/embed/embed.js", "init");
 
-    // ====== Booking Logic ======
-    const bookNowButton = container.querySelector("#cal-booking-button");
+    // ====== reschedule Logic ======
+    const rescheduleButton = container.querySelector("#cal-reschedule-button");
     const debugInfo = container.querySelector("#debug-info");
     
-    bookNowButton.addEventListener("click", () => {
+    rescheduleButton.addEventListener("click", () => {
+	rescheduleButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+  rescheduleButton.style.backgroundColor = "#4CAF50";
+  rescheduleButton.style.color = "white";
 
-      // Notify Voiceflow that we're proceeding with booking
+      // Notify Voiceflow that we're proceeding with reschedule
       if (window.voiceflow && window.voiceflow.chat) {
         window.voiceflow.chat.interact({
-          type: "booking_started",
+          type: "reschedule_started",
           payload: { 
             email,
             Uid,
@@ -3904,7 +3907,8 @@ const RescheduleExtension = {
       }
       
       // Disable button to prevent multiple clicks
-      bookNowButton.disabled = true;
+      rescheduleButton.disabled = true;
+	  
 
       
       try {
@@ -3941,13 +3945,13 @@ const RescheduleExtension = {
           theme: "light"
         }));
         
-        // Setup event listener for successful booking
+        // Setup event listener for successful reschedule
         Cal.ns[namespace]("on", {
-          action: "booking_successful",
+          action: "reschedule_successful",
           callback: (event) => {
-            console.log("Booking successful", event);
+            console.log("reschedule successful", event);
             
-            // Notify Voiceflow that booking is complete
+            // Notify Voiceflow that reschedule is complete
             if (window.voiceflow && window.voiceflow.chat) {
               window.voiceflow.chat.interact({
                 type: "complete",
@@ -3972,17 +3976,19 @@ const RescheduleExtension = {
         console.error("Error initializing Cal:", error);
         debugInfo.textContent = `Error: ${error.message}`;
         debugInfo.style.display = 'block';
-        bookNowButton.disabled = false;
-        bookNowButton.textContent = isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous';
+        rescheduleButton.disabled = false;
+        rescheduleButton.textContent = isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous';
       }
     });
 
     // Return a cleanup function
     return function cleanup() {
-      bookNowButton.render({ trace, element: container });
+      rescheduleButton.render({ trace, element: container });
     };
   },
 };
+
+
 
 const CancellationExtension = {
       name: "Forms",
@@ -4007,8 +4013,7 @@ const CancellationExtension = {
         // Insert the style and HTML for the cancellation button
         container.innerHTML = `
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-            .booking-container {
+            .cancel-container {
               display: flex;
               flex-direction: column;
               gap: 10px;
@@ -4021,7 +4026,7 @@ const CancellationExtension = {
               min-width: 300px;
               align-items: center;
             }
-            .book-now {
+            .cancel {
               color: #d32f2f;
               background-color: #ffebee;
               border: none;
@@ -4035,17 +4040,17 @@ const CancellationExtension = {
               box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             }
 
-            .book-now:active {
+            .cancel:active {
               transform: translateY(0);
               box-shadow: 0 2px 3px rgba(0,0,0,0.1);
             }
             
-            .book-now:hover:not(:disabled) {
+            .cancel:hover:not(:disabled) {
               background-color: #d32f2f;
               font-weight: 700;
               color: #fff;
             }
-            .book-now:disabled {
+            .cancel:disabled {
               background-color: #ccc;
               color: #666;
               cursor: not-allowed;
@@ -4059,8 +4064,8 @@ const CancellationExtension = {
             }
           </style>
 
-          <div class="booking-container">
-            <button type="button" class="book-now" id="cal-booking-button">
+          <div class="cancel-container">
+            <button type="button" class="cancel" id="cal-cancel-button">
                 ${isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous'}
             </button>
             <div class="debug-info" id="debug-info"></div>
@@ -4102,11 +4107,11 @@ const CancellationExtension = {
           };
         })(window, "https://app.cal.com/embed/embed.js", "init");
 
-        // ====== Booking Logic ======
-        const bookNowButton = container.querySelector("#cal-booking-button");
+        // ====== cancel Logic ======
+        const cancelButton = container.querySelector("#cal-cancel-button");
         const debugInfo = container.querySelector("#debug-info");
         
-        bookNowButton.addEventListener("click", () => {
+        cancelButton.addEventListener("click", () => {
 
           
           // Notify Voiceflow that we're proceeding with cancellation
@@ -4121,7 +4126,10 @@ const CancellationExtension = {
           }
           
           // Disable button to prevent multiple clicks
-          bookNowButton.disabled = true;
+          cancelButton.disabled = true;
+		  cancelButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+  cancelButton.style.backgroundColor = "#4CAF50";
+  cancelButton.style.color = "white";
 
           try {
             // Initialize Cal for the namespace
@@ -4146,7 +4154,7 @@ const CancellationExtension = {
             
             // Build the cancellation link with the data attributes to open Cal.com inline
             // The key difference: we need to use the data attributes to make it open in same page
-            const cancellationLink = `booking/${Uid}?cancel=true&allRemainingBookings=false&cancelledBy=${email}`;
+            const cancellationLink = `cancel/${Uid}?cancel=true&allRemainingcancels=false&cancelledBy=${email}`;
             
             // Set data attributes to match the Cal.com SDK expected format
             calTrigger.setAttribute('data-cal-link', cancellationLink);
@@ -4158,16 +4166,16 @@ const CancellationExtension = {
               // This is the key to making it cancel instead of reschedule:
               actionType: "cancel",
               cancelParams: {
-                allRemainingBookings: false,
+                allRemainingcancels: false,
                 cancelledBy: decodeURIComponent(email)
               }
             }));
             
             // Setup event listener for successful cancellation
             Cal.ns[namespace]("on", {
-              action: "booking_cancelled",
+              action: "cancel_cancelled",
               callback: (event) => {
-                console.log("Booking cancelled", event);
+                console.log("cancel cancelled", event);
                 
                 // Notify Voiceflow that cancellation is complete
                 if (window.voiceflow && window.voiceflow.chat) {
@@ -4181,8 +4189,8 @@ const CancellationExtension = {
                 }
                 
                 // Re-enable button 
-                bookNowButton.disabled = false;
-                bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+                cancelButton.disabled = false;
+                cancelButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
               }
             });
             
@@ -4195,8 +4203,8 @@ const CancellationExtension = {
                 debugInfo.style.display = 'block';
                 
                 // Re-enable button
-                bookNowButton.disabled = false;
-                bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+                cancelButton.disabled = false;
+                cancelButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
               }
             });
             
@@ -4211,22 +4219,21 @@ const CancellationExtension = {
             console.error("Error initializing Cal:", error);
             debugInfo.textContent = `Error: ${error.message}`;
             debugInfo.style.display = 'block';
-            bookNowButton.disabled = false;
-            bookNowButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
+            cancelButton.disabled = false;
+            cancelButton.textContent = isEnglish ? 'Cancel Appointment' : 'Annuler le rendez-vous';
           }
         });
 
         // Return a cleanup function
         return function cleanup() {
           // This should be fixed to properly remove the event listener
-          const button = container.querySelector("#cal-booking-button");
+          const button = container.querySelector("#cal-cancel-button");
           if (button) {
             button.remove();
           }
         };
       },
     };
-
 
 /************** EXTENSION #4: BookingExtension **************/
 
