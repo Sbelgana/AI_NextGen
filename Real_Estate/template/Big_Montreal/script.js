@@ -401,7 +401,7 @@ function generateAirtableFormula(input) {
 /************** EXTENSION #1: PropertySearchExtension **************/
      
 const SVG_DOLLAR = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="18px" height="18px">
   <g transform="translate(0, 0)">
     <path fill="#9a0df2" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
   </g>
@@ -409,25 +409,25 @@ const SVG_DOLLAR = `
 `;
 
 const SVG_LIST = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
 </svg>
 `;
 
 const SVG_SLIDER = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
 </svg>
 `;
 
 const SVG_ADDRESS = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
 </svg>
 `;
 
 const SVG_CHEVRON = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
   <!-- Added 50px padding on top and bottom -->
   <g transform="translate(75, 75)">
     <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
@@ -436,49 +436,49 @@ const SVG_CHEVRON = `
 `;
 
 const SVG_CHECK = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
   <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
 </svg>
 `;
 
 const SVG_HOUSE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
 </svg>
 `;
 
 const SVG_USER = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
 </svg>
 `;
 
 const SVG_USER_TIE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
 </svg>
 `;
 
 const SVG_BUILDING_COLUMNS = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3 0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0 196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1-28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0 0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
 </svg>
 `;
 
 const SVG_NOTE_STICK = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
 </svg>
 `;
 
 const SVG_BRIEFCASE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7 96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9 0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
 </svg>
 `;
 
 const SVG_MESSAGE = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20px" height="20px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
   <path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
 </svg>
 `;
@@ -570,7 +570,7 @@ const PropertySearchExtension = {
     const CarOptions = Options.Car[language];
     const HouseTypeList = SharedPropertyTypes[language];
 
-    // Build city, category, type HTML (replacing Font Awesome <i> with our SVG constants)
+    // Build city, category, type HTML
     function buildGroupedCityHTML(cityData) {
       return Object.entries(cityData)
         .map(([areaName, cityList]) => {
@@ -651,9 +651,7 @@ const PropertySearchExtension = {
     // Create the form container
     const formContainer = document.createElement("form");
     formContainer.innerHTML = `
-      <!-- The entire form HTML (styles + sections) -->
       <style>
-        /* same CSS as your snippet */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
         form {
             display: flex;
@@ -786,12 +784,8 @@ const PropertySearchExtension = {
             border: 1.5px solid #c0c0c0;
             transition: all 0.3s ease-in-out;
         }
-        .list-items.multi-select .item .checkbox {
-            border-radius: 2px;
-        }
-        .list-items.single-select .item .checkbox {
-            border-radius: 50%;
-        }
+        .list-items.multi-select .item .checkbox { border-radius: 2px; }
+        .list-items.single-select .item .checkbox { border-radius: 50%; }
         .item.checked .checkbox {
             background-color: #9A0DF2;
             border: 2px solid #9A0DF2;
@@ -802,9 +796,7 @@ const PropertySearchExtension = {
             transform: scale(0);
             transition: all 0.2s ease-in-out;
         }
-        .item.checked .check-icon {
-            transform: scale(1);
-        }
+        .item.checked .check-icon { transform: scale(1); }
         .group {
             border-top: 1px solid #eee;
             margin-bottom: 10px;
@@ -813,9 +805,7 @@ const PropertySearchExtension = {
             border-radius: 4px;
             overflow: hidden;
         }
-        .group:first-child {
-            border-top: none;
-        }
+        .group:first-child { border-top: none; }
         .group-header {
             font-weight: 500;
             padding: 8px 12px;
@@ -839,13 +829,8 @@ const PropertySearchExtension = {
             border-radius: 50%;
             margin-right: 8px;
         }
-        .group-header.active .collapse-icon {
-            transform: rotate(-180deg);
-        }
-        .group-options {
-            display: none;
-            padding-left: 0;
-        }
+        .group-header.active .collapse-icon { transform: rotate(-180deg); }
+        .group-options { display: none; padding-left: 0; }
         .inline-field {
             display: flex;
             align-items: center;
@@ -858,18 +843,10 @@ const PropertySearchExtension = {
             height: 18px;
             cursor: pointer;
         }
-        .price-wrapper {
-            position: relative;
-            width: 100%;
-        }
+        .price-wrapper { position: relative; width: 100%; }
         input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
         .price-controls {
             position: absolute;
             right: 0;
@@ -917,10 +894,10 @@ const PropertySearchExtension = {
             border-color: #9A0DF2;
             box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
         }
-        .section:hover {
-            border-color: #9A0DF2;
-            box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-        }
+        .section:hover:not(.disabled) {
+              border-color: #9A0DF2;
+              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+            }
         .section-info {
             display: flex;
             align-items: center;
@@ -965,30 +942,41 @@ const PropertySearchExtension = {
             max-height: 0;
             transition: max-height 0.3s ease-out;
         }
-        .collapsible-section.expanded {
-            max-height: 1000px;
-        }
+        .collapsible-section.expanded { max-height: 1000px; }
         .section-content {
             padding: 20px;
             background: #fefefe;
             border-top: 1px solid #eee;
         }
         .submit:disabled {
-          background-color: #ccc;
-          color: #666;
-          cursor: not-allowed;
-          font-weight: 700;
-        }
-        input:disabled,
-        select:disabled,
-        textarea:disabled,
-        button:disabled {
-          cursor: not-allowed;
-        }
-        .disabled {
-          pointer-events: none;
-          opacity: 0.5;
-        }
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+              font-weight: 700;
+            }
+            
+        .submit:disabled {
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+              font-weight: 700;
+            }
+        
+        input:disabled, 
+            select:disabled, 
+            textarea:disabled, 
+            button:disabled,
+            .select-btn.disabled,
+            .disabled .select-btn,
+            .section.disabled,
+            .section.disabled * {
+              cursor: not-allowed;
+            }
+            
+            .section.disabled,
+            .section.disabled * {
+              pointer-events: auto;
+            }
       </style>
 
       <!-- Row 1: Location & Category and Budget -->
@@ -997,7 +985,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-location-category">
             <div class="section-info">
-              <!-- Replacing fa-map-marker-alt with SVG_ADDRESS -->
               <div class="section-icon">${SVG_ADDRESS}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Location & Category" : "Emplacement & Catégorie"}</div>
@@ -1050,7 +1037,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-budget">
             <div class="section-info">
-              <!-- Replacing fa-dollar-sign with SVG_DOLLAR -->
               <div class="section-icon">${SVG_DOLLAR}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Price Range" : "Plage de Prix"}</div>
@@ -1093,7 +1079,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-specifications">
             <div class="section-info">
-              <!-- Replacing fa-list with SVG_LIST -->
               <div class="section-icon">${SVG_LIST}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Property Specifications" : "Caractéristiques de la Propriété"}</div>
@@ -1112,7 +1097,6 @@ const PropertySearchExtension = {
                       <span class="arrow-dwn">${SVG_CHEVRON}</span>
                     </div>
                     <ul class="list-items single-select">
-                      <!-- Inserted via build functions -->
                       ${RoomOptions.map(opt => `
                         <li class="item">
                           <span class="checkbox">${SVG_CHECK}</span>
@@ -1168,7 +1152,6 @@ const PropertySearchExtension = {
         <div class="section" style="flex: 1;">
           <div class="section-card" data-target="section-amenities">
             <div class="section-info">
-              <!-- Replacing fa-sliders-h with SVG_SLIDER -->
               <div class="section-icon">${SVG_SLIDER}</div>
               <div>
                 <div class="section-title">${isEnglish ? "Additional Features" : "Caractéristiques Supplémentaires"}</div>
@@ -1432,13 +1415,40 @@ const PropertySearchExtension = {
     // 6) Form submission
     formContainer.addEventListener("submit", (event) => {
       event.preventDefault();
-      const formElements = formContainer.querySelectorAll("input, select, textarea, button");
-      formElements.forEach(el => { el.disabled = true; });
-      const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach(el => { el.classList.add("disabled"); });
-      const submitButton = formContainer.querySelector("button[type='submit']");
-      submitButton.textContent = "Processing...";
+      
+      // Collapse all sections
+      const allSections = formContainer.querySelectorAll(".collapsible-section");
+      allSections.forEach(section => {
+        section.classList.remove("expanded");
+        const sectionCard = section.previousElementSibling;
+        if (sectionCard) {
+          sectionCard.classList.remove("active");
+          const collapseIcon = sectionCard.querySelector(".collapse-icon");
+          if (collapseIcon) collapseIcon.classList.remove("active");
+        }
+      });
+      
+      const formEls = formContainer.querySelectorAll("input, textarea, button, .select-btn");
+          formEls.forEach(el => {
+            el.disabled = true;
+            el.classList.add("disabled");
+          });
+          
+          // Disable all sections
+          const allSectionCards = formContainer.querySelectorAll(".section");
+          allSectionCards.forEach(section => {
+            section.classList.add("disabled");
+          });
+      
+      // Update submit button text
+      const submitBtn = formContainer.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.textContent = isEnglish ? "Processing..." : "Traitement...";
+            submitBtn.style.backgroundColor = "#4CAF50";
+            submitBtn.style.color = "white";
+          }
 
+      
       const cityValues = formContainer.querySelector("#cityValues").value.trim();
       const propertyCategoryValues = formContainer.querySelector("#propertyCategoryValues").value.trim();
       const propertyTypeValues = formContainer.querySelector("#propertyTypeValues").value.trim();
@@ -1458,9 +1468,7 @@ const PropertySearchExtension = {
       const swimmingPool = formContainer.querySelector("#swimming-pool").checked ? "Yes" : "No";
 
       const selectedCities = cityValues ? cityValues.split(",") : [];
-      const selectedPropertyCategories = propertyCategoryValues
-        ? propertyCategoryValues.split(",")
-        : [];
+      const selectedPropertyCategories = propertyCategoryValues ? propertyCategoryValues.split(",") : [];
       const selectedHouseTypes = propertyTypeValues ? propertyTypeValues.split(",") : [];
 
       const payload = {
@@ -1477,18 +1485,16 @@ const PropertySearchExtension = {
         swimmingPool: swimmingPool,
       };
 
-
       const airtableFormula = generateAirtableFormula(payload);
       window.voiceflow.chat.interact({
         type: "complete",
         payload: { formula: airtableFormula },
       });
-    });
+    }); 
 
     element.appendChild(formContainer);
   },
 };
-
 
 /************** EXTENSION #2: SellingExtension **************/
 /************** EXTENSION #2: SellingExtension **************/
@@ -1935,18 +1941,27 @@ select:focus,
   font-weight: 700;
 }
 
-input:disabled,
-select:disabled,
-textarea:disabled,
-button:disabled {
-  cursor: not-allowed;
-}
+
 
 /* For custom elements that don't support the disabled attribute */
-.disabled {
-  pointer-events: none;
-  opacity: 0.5; /* Visual cue that it's inactive */
-}
+
+
+input:disabled, 
+            select:disabled, 
+            textarea:disabled, 
+            button:disabled,
+            .select-btn.disabled,
+            .disabled .select-btn,
+            .section.disabled,
+            .section.disabled * {
+              cursor: not-allowed;
+            }
+
+.section.disabled,
+            .section.disabled * {
+              pointer-events: auto;
+            }
+            
       </style>
 
       <!-- Row 1: Personal Info + Seller -->
@@ -2420,741 +2435,769 @@ button:disabled {
      * 10) Form Submission
      *************************************************************/
     formContainer.addEventListener("submit", (event) => {
-      event.preventDefault();
+  event.preventDefault();
 
-      // disable everything
-      const formElements = formContainer.querySelectorAll("input, select, textarea, button");
-      formElements.forEach((el) => (el.disabled = true));
+  // Collapse all sections
+  const allSections = formContainer.querySelectorAll(".collapsible-section");
+  allSections.forEach((section) => {
+    section.classList.remove("expanded");
+    const sectionCard = section.previousElementSibling;
+    if (sectionCard) {
+      sectionCard.classList.remove("active");
+      const collapseIcon = sectionCard.querySelector(".collapse-icon");
+      if (collapseIcon) collapseIcon.classList.remove("active");
+    }
+  });
 
-      const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach((el) => el.classList.add("disabled"));
+  // Disable all form elements including inputs, textareas, buttons, and custom dropdown controls
+  // Disable all form elements
+          const formEls = formContainer.querySelectorAll("input, textarea, button, .select-btn");
+          formEls.forEach(el => {
+            el.disabled = true;
+            el.classList.add("disabled");
+          });
 
-      const submitBtn = formContainer.querySelector('button[type="submit"]');
-      submitBtn.textContent = "Processing...";
+  // Disable all sections (to prevent further clicks)
+  const allSectionCards = formContainer.querySelectorAll(".section");
+          allSectionCards.forEach(section => {
+            section.classList.add("disabled");
+          });
 
-      // Gather values
-      const fullName = formContainer.querySelector("#full-name").value.trim();
-      const email = (formContainer.querySelector("#email")?.value || "").trim();
-      const phone = formContainer.querySelector("#phone").value.trim();
-      const formattedPhone = formatPhoneNumber(phone);
-      const sellerName = formContainer.querySelector("#seller-name").value.trim();
-      const propertyCategory = formContainer.querySelector("#property-category").value.trim();
-      const houseType = formContainer.querySelector("#house-type").value.trim();
-      const streetAddress = formContainer.querySelector("#street-address").value.trim();
-      const city = formContainer.querySelector("#city").value.trim();
-      const postalCode = formContainer.querySelector("#postal-code").value.trim();
-      const yearBuild = formContainer.querySelector("#year-build").value.trim();
-      const area = formContainer.querySelector("#area").value.trim();
+  // Close any open dropdowns
+  formContainer.querySelectorAll(".list-items").forEach((dropdown) => {
+    dropdown.style.display = "none";
+  });
 
-      let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10) || 0;
-      let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10) || 0;
-      let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10) || 0;
+  // Update the submit button text and style
+  const submitBtn = formContainer.querySelector('button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.textContent = isEnglish ? "Submitted ✓" : "Envoyé ✓";
+    submitBtn.style.backgroundColor = "#4CAF50";
+    submitBtn.style.color = "white";
+  }
 
-      const garageChecked = formContainer.querySelector("#garage").checked;
-      const insideParking = garageChecked ? "Yes" : "No";
-      let insideParkingCars = 0;
-      if (garageChecked) {
-        insideParkingCars =
-          parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10) || 0;
-      }
-      const outsideParking = formContainer.querySelector("#outside-parking")?.checked
-        ? "Yes"
-        : "No";
-      const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked
-        ? "Yes"
-        : "No";
-      const details = formContainer.querySelector("#details").value.trim() || "";
+  // Gather form values as before
+  const fullName = formContainer.querySelector("#full-name").value.trim();
+  const email = (formContainer.querySelector("#email")?.value || "").trim();
+  const phone = formContainer.querySelector("#phone").value.trim();
+  const formattedPhone = formatPhoneNumber(phone);
+  const sellerName = formContainer.querySelector("#seller-name").value.trim();
+  const propertyCategory = formContainer.querySelector("#property-category").value.trim();
+  const houseType = formContainer.querySelector("#house-type").value.trim();
+  const streetAddress = formContainer.querySelector("#street-address").value.trim();
+  const city = formContainer.querySelector("#city").value.trim();
+  const postalCode = formContainer.querySelector("#postal-code").value.trim();
+  const yearBuild = formContainer.querySelector("#year-build").value.trim();
+  const area = formContainer.querySelector("#area").value.trim();
 
-      const seedPayload = {
-        fullName: fullName || "John Doe",
-        email: email || "johndoe@example.com",
-        phone: formattedPhone || "000-000-0000",
-        sellerName: sellerName || "No Preference",
-        propertyCategory: propertyCategory || "Residential",
-        houseType: houseType || "Detached",
-        streetAddress: streetAddress || "123 Main St",
-        city: city || "Sample City",
-        postalCode: postalCode || "00000",
-        yearBuild: yearBuild || "2020",
-        area: area || "1000",
-        roomsNumber,
-        bedroomsNumber,
-        bathroomsNumber,
-        insideParking,
-        insideParkingCars,
-        outsideParking,
-        swimmingPool,
-        details: details || "No additional details provided.",
-      };
+  let roomsNumber = parseInt(formContainer.querySelector("#rooms-number").value.trim(), 10) || 0;
+  let bedroomsNumber = parseInt(formContainer.querySelector("#bedrooms-number").value.trim(), 10) || 0;
+  let bathroomsNumber = parseInt(formContainer.querySelector("#bathrooms-number").value.trim(), 10) || 0;
 
+  const garageChecked = formContainer.querySelector("#garage").checked;
+  const insideParking = garageChecked ? "Yes" : "No";
+  let insideParkingCars = 0;
+  if (garageChecked) {
+    insideParkingCars = parseInt(formContainer.querySelector("#garage-cars").value.trim(), 10) || 0;
+  }
+  const outsideParking = formContainer.querySelector("#outside-parking")?.checked ? "Yes" : "No";
+  const swimmingPool = formContainer.querySelector("#swimming-pool")?.checked ? "Yes" : "No";
+  const details = formContainer.querySelector("#details").value.trim() || "";
 
-      // Send to Voiceflow
-      window.voiceflow.chat.interact({
-        type: "complete",
-        payload: seedPayload,
-      });
-    });
+  const seedPayload = {
+    fullName: fullName || "John Doe",
+    email: email || "johndoe@example.com",
+    phone: formattedPhone || "000-000-0000",
+    sellerName: sellerName || "No Preference",
+    propertyCategory: propertyCategory || "Residential",
+    houseType: houseType || "Detached",
+    streetAddress: streetAddress || "123 Main St",
+    city: city || "Sample City",
+    postalCode: postalCode || "00000",
+    yearBuild: yearBuild || "2020",
+    area: area || "1000",
+    roomsNumber,
+    bedroomsNumber,
+    bathroomsNumber,
+    insideParking,
+    insideParkingCars,
+    outsideParking,
+    swimmingPool,
+    details: details || "No additional details provided.",
+  };
+
+  // Send to Voiceflow
+  window.voiceflow.chat.interact({
+    type: "complete",
+    payload: seedPayload,
+  });
+});
+
 
     // 11) Append form
     element.appendChild(formContainer);
   },
 };
 
-
 /************** EXTENSION #3: ContactExtension **************/
 const ContactExtension = {
-    name: "Forms",
-    type: "response",
-    match: ({ trace }) =>
-        trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+          trace.type === `ext_contact` || trace.payload?.name === `ext_contact`,
 
-    render: ({ trace, element }) => {
+      render: ({ trace, element }) => {
         const { language } = trace.payload;
         const isEnglish = language === "en";
 
-    // 1) Create the form container
-    const formContainer = document.createElement("form");
-    formContainer.innerHTML = `
-      <style>
-        /* Basic styling */
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 16px;
-          border-radius: 6px;
-        }
-        .flex-row {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .flex-row > div {
-          flex: 1;
-          min-width: 200px;
-        }
-        .bold-label {
-          font-weight: 600;
-          color: #000;
-          font-size: 14px;
-          margin-bottom: 4px;
-          display: block;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        textarea {
-          width: 100%;
-          border: 1px solid rgba(0,0,0,0.2);
-          border-radius: 4px;
-          padding: 8px;
-          background: #fff;
-          font-size: 14px;
-          outline: none;
-          box-sizing: border-box;
-        }
-        #details {
-          resize: vertical;
-          min-height: 100px;
-          max-height: 200px;
-        }
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="tel"]:focus,
-        #details:focus {
-          border: 2px solid #9A0DF2;
-        }
-        .submit {
-          color: #9A0DF2;
-          background-color: #F5E7FE;
-          border: none;
-          padding: 12px;
-          border-radius: 8px;
-          font-size: 16px;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .submit:hover {
-          color: #fff;
-          background-color: #9A0DF2;
-        }
-        .submit:disabled {
-          background-color: #ccc;
-          color: #666;
-          cursor: not-allowed;
-          font-weight: 700;
-        }
-        input:disabled,
-        select:disabled,
-        textarea:disabled,
-        button:disabled {
-          cursor: not-allowed;
-        }
-        .disabled {
-          pointer-events: none;
-          opacity: 0.5;
-        }
+        // 1) Create the form container
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+          <style>
+            /* Basic styling */
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 16px;
+              border-radius: 6px;
+            }
+            .flex-row {
+              display: flex;
+              gap: 16px;
+              flex-wrap: wrap;
+            }
+            .flex-row > div {
+              flex: 1;
+              min-width: 200px;
+            }
+            .bold-label {
+              font-weight: 600;
+              color: #000;
+              font-size: 14px;
+              margin-bottom: 4px;
+              display: block;
+            }
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            textarea {
+              width: 100%;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 4px;
+              padding: 8px;
+              background: #fff;
+              font-size: 14px;
+              outline: none;
+              box-sizing: border-box;
+            }
+            #details {
+              resize: vertical;
+              min-height: 100px;
+              max-height: 200px;
+            }
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="tel"]:focus,
+            #details:focus {
+              border: 2px solid #9A0DF2;
+            }
+            .submit {
+              color: #9A0DF2;
+              background-color: #F5E7FE;
+              border: none;
+              padding: 12px;
+              border-radius: 8px;
+              font-size: 16px;
+              cursor: pointer;
+              margin-top: 8px;
+            }
+            .submit:hover {
+              color: #fff;
+              background-color: #9A0DF2;
+            }
+            .submit:disabled {
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+              font-weight: 700;
+            }
+            /* Ensure native disabled elements show not-allowed cursor */
+            input:disabled,
+            select:disabled,
+            textarea:disabled,
+            button:disabled {
+              cursor: not-allowed;
+            }
+            /* Custom disabled elements should show not-allowed cursor.
+               Note: We removed pointer-events: none so that hover events fire. */
+            .select-btn.disabled,
+            .section.disabled,
+            .section.disabled * {
+              cursor: not-allowed;
+            }
+            /* Instead of disabling pointer events, we simply reduce opacity */
+            
 
-        /* Section / Accordion Styles */
-        .section {
-          border: 1px solid #eee;
-          border-radius: 6px;
-          margin-bottom: 0;
-          overflow: hidden;
-          background: #fff;
-        }
-        .section-card {
-          padding: 10px;
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-          border-radius: 6px;
-        }
-        .section.active {
-          border-color: #9A0DF2;
-          box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-        }
-        .section:hover {
-          border-color: #9A0DF2;
-          box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-        }
-        .section-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .section-icon {
-          background-color: #F5E7FE;
-          color: #9A0DF2;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .section-title {
-          font-weight: 700;
-          font-size: 14px;
-          color: #444;
-        }
-        .collapse-icon {
-          color: #9A0DF2;
-          font-size: 13px;
-          transition: transform 0.3s;
-          background: #f4eafb;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          margin-right: 0px;
-        }
-        .collapse-icon.active {
-          transform: rotate(-180deg);
-        }
-        .collapsible-section {
-          overflow: hidden;
-          max-height: 0;
-          transition: max-height 0.3s ease-out;
-        }
-        .collapsible-section.expanded {
-          max-height: 1000px;
-        }
-        .section-content {
-          padding: 20px;
-          background: #fefefe;
-          border-top: 1px solid #eee;
-        }
+            /* Section / Accordion Styles */
+            .section {
+              border: 1px solid #eee;
+              border-radius: 6px;
+              margin-bottom: 0;
+              overflow: hidden;
+              background: #fff;
+            }
+            .section-card {
+              padding: 10px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              transition: all 0.2s ease;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+              border-radius: 6px;
+            }
+            .section.active {
+              border-color: #9A0DF2;
+              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+            }
+            .section:hover {
+              border-color: #9A0DF2;
+              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+            }
+            .section-info {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+            .section-icon {
+              background-color: #F5E7FE;
+              color: #9A0DF2;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .section-title {
+              font-weight: 700;
+              font-size: 14px;
+              color: #444;
+            }
+            .collapse-icon {
+              color: #9A0DF2;
+              font-size: 13px;
+              transition: transform 0.3s;
+              background: #f4eafb;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              margin-right: 0px;
+            }
+            .collapse-icon.active {
+              transform: rotate(-180deg);
+            }
+            .collapsible-section {
+              overflow: hidden;
+              max-height: 0;
+              transition: max-height 0.3s ease-out;
+            }
+            .collapsible-section.expanded {
+              max-height: 1000px;
+            }
+            .section-content {
+              padding: 20px;
+              background: #fefefe;
+              border-top: 1px solid #eee;
+            }
 
-        /* Dropdown Styles */
-        .dropdown-container {
-          position: relative;
-          max-width: 100%;
-        }
-        .select-btn {
-          display: flex;
-          height: 40px;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 12px;
-          border-radius: 6px;
-          cursor: pointer;
-          background-color: #fff;
-          border: 1px solid rgba(0,0,0,0.2);
-        }
-        .select-btn .btn-text {
-          font-size: 13px;
-          font-weight: 400;
-          color: #555;
-        }
-        .select-btn .arrow-dwn {
-          display: flex;
-          height: 24px;
-          width: 24px;
-          color: #9A0DF2;
-          font-size: 12px;
-          border-radius: 50%;
-          background: #F5E7FE;
-          align-items: center;
-          justify-content: center;
-          transition: 0.3s;
-        }
-        .select-btn.open .arrow-dwn {
-          transform: rotate(-180deg);
-        }
-        .select-btn:focus,
-        .select-btn.open {
-          border: 2px solid #9A0DF2;
-          outline: none;
-        }
-        .list-items {
-          position: relative;
-          top: 100%;
-          left: 0;
-          right: 0;
-          margin-top: 4px;
-          border-radius: 6px;
-          padding: 8px 0;
-          background-color: #fff;
-          box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-          display: none;
-          max-height: 200px;
-          overflow-y: auto;
-          z-index: 100;
-        }
-        .select-btn.open + .list-items {
-          display: block;
-        }
-        .list-items.single-select .item .checkbox {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          margin-right: 8px;
-          border: 1.5px solid #c0c0c0;
-          transition: all 0.3s ease-in-out;
-        }
-        .list-items .item {
-          display: flex;
-          align-items: center;
-          height: 36px;
-          cursor: pointer;
-          transition: 0.3s;
-          padding: 0 12px;
-          border-radius: 4px;
-        }
-        .list-items .item:hover {
-          background-color: #F5E7FE;
-        }
-        .item .item-text {
-          font-size: 13px;
-          font-weight: 400;
-          color: #333;
-          margin-left: 8px;
-        }
-        .item.checked .checkbox {
-          background-color: #9A0DF2;
-          border: 2px solid #9A0DF2;
-        }
-        .checkbox .check-icon {
-          color: #fff;
-          font-size: 10px;
-          transform: scale(0);
-          transition: all 0.2s ease-in-out;
-        }
-        .item.checked .check-icon {
-          transform: scale(1);
-        }
-      </style>
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 6px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #555;
+            }
+            .select-btn .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9A0DF2;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F5E7FE;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9A0DF2;
+              outline: none;
+            }
+            .list-items {
+              position: relative;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 6px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+              z-index: 100;
+            }
+            .select-btn.open + .list-items {
+              display: block;
+            }
+            .list-items.single-select .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 4px;
+            }
+            .list-items .item:hover {
+              background-color: #F5E7FE;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            .item.checked .checkbox {
+              background-color: #9A0DF2;
+              border: 2px solid #9A0DF2;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 10px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+          </style>
 
-      <!-- First Row: Contact Info + Service & Seller -->
-      <div class="flex-row">
-        <!-- Section 1: Contact Information -->
-        <div class="section">
-          <div class="section-card" data-target="section-contactInfo">
-            <div class="section-info">
-              <!-- Replacing fa-user with your SVG_USER -->
-              <div class="section-icon">
-                ${SVG_USER}
-              </div>
-              <div class="section-title">
-  ${isEnglish ? "Your Contact Details" : "Vos coordonnées"}
-</div>
-            </div>
-            <div class="collapse-icon">
-              <!-- Replacing fa-chevron-down with SVG_CHEVRON -->
-              ${SVG_CHEVRON}
-            </div>
-          </div>
-          <div class="collapsible-section" id="section-contactInfo">
-            <div class="section-content">
-              <div class="flex-row">
-                <div>
-                  <label for="full-name" class="bold-label">
-                    ${isEnglish ? 'Full Name' : 'Nom complet'}
-                  </label>
-                  <input
-                    type="text"
-                    id="full-name"
-                    name="full-name"
-                    placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}"
-                    required
-                  />
-                </div>
-                <div>
-                  <label for="email" class="bold-label">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}"
-                    required
-                  />
-                </div>
-                <div>
-                  <label for="phone" class="bold-label">
-                    ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Service & Seller -->
-        <div class="section">
-          <div class="section-card" data-target="section-serviceSeller">
-            <div class="section-info">
-              <!-- Replacing fa-briefcase with your SVG_BRIEFCASE -->
-              <div class="section-icon">
-                ${SVG_BRIEFCASE}
-              </div>
-              <div class="section-title">${isEnglish ? "Service & Seller" : "Service et vendeur"}</div>
-            </div>
-            <div class="collapse-icon">
-              ${SVG_CHEVRON}
-            </div>
-          </div>
-          <div class="collapsible-section" id="section-serviceSeller">
-            <div class="section-content">
-              <div class="flex-row">
-                <!-- Service Dropdown -->
-                <div>
-                  <label for="dropdown-service" class="bold-label">
-                    ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
-                  </label>
-                  <div class="dropdown-container" id="dropdown-service">
-                    <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
-                      <span class="arrow-dwn">
-                        ${SVG_CHEVRON}
-                      </span>
-                    </div>
-                    <ul class="list-items single-select" id="serviceList"></ul>
+          <!-- First Row: Contact Info + Service & Seller -->
+          <div class="flex-row">
+            <!-- Section 1: Contact Information -->
+            <div class="section">
+              <div class="section-card" data-target="section-contactInfo">
+                <div class="section-info">
+                  <div class="section-icon">
+                    ${SVG_USER}
                   </div>
-                  <input type="hidden" id="service" name="service" required />
-                </div>
-
-                <!-- Seller Dropdown -->
-                <div>
-                  <label for="dropdown-seller" class="bold-label">
-                    ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-                  </label>
-                  <div class="dropdown-container" id="dropdown-seller">
-                    <div class="select-btn" tabindex="0">
-                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                      <span class="arrow-dwn">
-                        ${SVG_CHEVRON}
-                      </span>
-                    </div>
-                    <ul class="list-items single-select" id="sellerList"></ul>
+                  <div class="section-title">
+                    ${isEnglish ? "Your Contact Details" : "Vos coordonnées"}
                   </div>
-                  <input type="hidden" id="seller-name" name="seller-name" required />
+                </div>
+                <div class="collapse-icon">
+                  ${SVG_CHEVRON}
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-contactInfo">
+                <div class="section-content">
+                  <div class="flex-row">
+                    <div>
+                      <label for="full-name" class="bold-label">
+                        ${isEnglish ? 'Full Name' : 'Nom complet'}
+                      </label>
+                      <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+                    </div>
+                    <div>
+                      <label for="email" class="bold-label">Email</label>
+                      <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+                    </div>
+                    <div>
+                      <label for="phone" class="bold-label">
+                        ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
+                      </label>
+                      <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Service & Seller -->
+            <div class="section">
+              <div class="section-card" data-target="section-serviceSeller">
+                <div class="section-info">
+                  <div class="section-icon">
+                    ${SVG_BRIEFCASE}
+                  </div>
+                  <div class="section-title">
+                    ${isEnglish ? "Service & Seller" : "Service et vendeur"}
+                  </div>
+                </div>
+                <div class="collapse-icon">
+                  ${SVG_CHEVRON}
+                </div>
+              </div>
+              <div class="collapsible-section" id="section-serviceSeller">
+                <div class="section-content">
+                  <div class="flex-row">
+                    <!-- Service Dropdown -->
+                    <div>
+                      <label for="dropdown-service" class="bold-label">
+                        ${isEnglish ? 'Select a Service' : 'Sélectionnez un Service'}
+                      </label>
+                      <div class="dropdown-container" id="dropdown-service">
+                        <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un Service --'}</span>
+                          <span class="arrow-dwn">
+                            ${SVG_CHEVRON}
+                          </span>
+                        </div>
+                        <ul class="list-items single-select" id="serviceList"></ul>
+                      </div>
+                      <input type="hidden" id="service" name="service" required />
+                    </div>
+
+                    <!-- Seller Dropdown -->
+                    <div>
+                      <label for="dropdown-seller" class="bold-label">
+                        ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+                      </label>
+                      <div class="dropdown-container" id="dropdown-seller">
+                        <div class="select-btn" tabindex="0">
+                          <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                          <span class="arrow-dwn">
+                            ${SVG_CHEVRON}
+                          </span>
+                        </div>
+                        <ul class="list-items single-select" id="sellerList"></ul>
+                      </div>
+                      <input type="hidden" id="seller-name" name="seller-name" required />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Second Row: Message Section -->
-      <div class="section">
-        <div class="section-card" data-target="section-message">
-          <div class="section-info">
-            <!-- Replacing fa-message with your SVG_MESSAGE -->
-            <div class="section-icon">
-              ${SVG_MESSAGE}
+          <!-- Second Row: Message Section -->
+          <div class="section">
+            <div class="section-card" data-target="section-message">
+              <div class="section-info">
+                <div class="section-icon">
+                  ${SVG_MESSAGE}
+                </div>
+                <div class="section-title">
+                  ${isEnglish ? "Message" : "Message"}
+                </div>
+              </div>
+              <div class="collapse-icon">
+                ${SVG_CHEVRON}
+              </div>
             </div>
-            <div class="section-title">${isEnglish ? "Message" : "Message"}</div>
+            <div class="collapsible-section" id="section-message">
+              <div class="section-content">
+                <label for="details" class="bold-label">
+                  ${isEnglish ? 'Message' : 'Message'}
+                </label>
+                <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+              </div>
+            </div>
           </div>
-          <div class="collapse-icon">
-            ${SVG_CHEVRON}
-          </div>
-        </div>
-        <div class="collapsible-section" id="section-message">
-          <div class="section-content">
-            <label for="details" class="bold-label">
-              ${isEnglish ? 'Message' : 'Message'}
-            </label>
-            <textarea
-              id="details"
-              name="details"
-              placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}"
-              required
-            ></textarea>
-          </div>
-        </div>
-      </div>
 
-      <button type="submit" class="submit">${isEnglish ? 'Submit' : 'Envoyer'}</button>
-    `;
+          <button type="submit" class="submit">${isEnglish ? 'Submit' : 'Envoyer'}</button>
+        `;
 
-    // 2) Append the form to the element
-    element.appendChild(formContainer);
+        // 2) Append the form to the element
+        element.appendChild(formContainer);
 
-    /*************************************************************
-     * 3) Data population for dropdowns
-     *************************************************************/
-    const serviceListEl = formContainer.querySelector("#serviceList");
-    const sellerListEl = formContainer.querySelector("#sellerList");
+        /*************************************************************
+         * 3) Data population for dropdowns
+         *************************************************************/
+        const serviceListEl = formContainer.querySelector("#serviceList");
+        const sellerListEl = formContainer.querySelector("#sellerList");
 
-    // Assume getServiceList(language) returns an array of { value, label }
-    const services = getServiceList(language);
-    services.forEach(item => {
-      const li = document.createElement("li");
-      li.classList.add("item");
-      li.innerHTML = `
-        <span class="checkbox">
-          <!-- Replacing fa-check with SVG_CHECK -->
-          ${SVG_CHECK}
-        </span>
-        <span class="item-text" data-value="${item.value}">${item.label}</span>
-      `;
-      serviceListEl.appendChild(li);
-    });
-
-    // Assume getSellerList(isEnglish2, true) returns an array of seller strings
-    const isEnglish2 = (language === 'en');
-    const sellers = getSellerList(isEnglish2, true);
-    sellers.forEach(seller => {
-      const li = document.createElement("li");
-      li.classList.add("item");
-      li.innerHTML = `
-        <span class="checkbox">
-          ${SVG_CHECK}
-        </span>
-        <span class="item-text" data-value="${seller}">${seller}</span>
-      `;
-      sellerListEl.appendChild(li);
-    });
-
-    /*************************************************************
-     * 4) Single-select dropdown logic
-     *    - close other dropdowns
-     *    - scroll to first item on open
-     *************************************************************/
-    function closeAllOtherDropdowns(currentBtn) {
-      const allSelectBtns = formContainer.querySelectorAll(".select-btn");
-      allSelectBtns.forEach(btn => {
-        if (btn !== currentBtn) {
-          btn.classList.remove("open");
-        }
-      });
-    }
-
-    function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
-      const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
-      const selectBtn = dropdownContainer.querySelector(".select-btn");
-      const listEl = dropdownContainer.querySelector(".list-items");
-      const btnText = selectBtn.querySelector(".btn-text");
-      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-      const listItems = listEl.querySelectorAll(".item");
-
-      if (defaultText) btnText.innerText = defaultText;
-
-      selectBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        // close other dropdowns
-        closeAllOtherDropdowns(selectBtn);
-        // toggle
-        selectBtn.classList.toggle("open");
-        // scroll to first item if opening
-        if (selectBtn.classList.contains("open") && listEl.firstElementChild) {
-          listEl.firstElementChild.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
-
-      listItems.forEach(liItem => {
-        liItem.addEventListener("click", (e) => {
-          e.stopPropagation();
-          listItems.forEach(i => i.classList.remove("checked"));
-          liItem.classList.add("checked");
-
-          const labelText = liItem.querySelector(".item-text").innerText;
-          const value = liItem.querySelector(".item-text").getAttribute("data-value");
-
-          btnText.innerText = labelText;
-          hiddenInput.value = value;
-
-          selectBtn.classList.remove("open");
+        // Populate Service Dropdown
+        const services = getServiceList(language);
+        services.forEach(item => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox">
+              ${SVG_CHECK}
+            </span>
+            <span class="item-text" data-value="${item.value}">${item.label}</span>
+          `;
+          serviceListEl.appendChild(li);
         });
-      });
 
-      // close if user clicks outside
-      document.addEventListener("click", (e) => {
-        if (!dropdownContainer.contains(e.target)) {
-          selectBtn.classList.remove("open");
+        // Populate Seller Dropdown
+        const isEnglish2 = (language === 'en');
+        const sellers = getSellerList(isEnglish2, true);
+        sellers.forEach(seller => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox">
+              ${SVG_CHECK}
+            </span>
+            <span class="item-text" data-value="${seller}">${seller}</span>
+          `;
+          sellerListEl.appendChild(li);
+        });
+
+        /*************************************************************
+         * 4) Single-select dropdown logic
+         *    - close other dropdowns
+         *    - scroll to first item on open
+         *************************************************************/
+        function closeAllOtherDropdowns(currentBtn) {
+          const allSelectBtns = formContainer.querySelectorAll(".select-btn");
+          allSelectBtns.forEach(btn => {
+            if (btn !== currentBtn) {
+              btn.classList.remove("open");
+            }
+          });
         }
-      });
-    }
 
-    setupDropdownSingle(
-      "dropdown-service",
-      "serviceList",
-      "service",
-      isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --"
-    );
-    setupDropdownSingle(
-      "dropdown-seller",
-      "sellerList",
-      "seller-name",
-      isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-    );
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = dropdownContainer.querySelector(".select-btn");
+          const listEl = dropdownContainer.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+          const listItems = listEl.querySelectorAll(".item");
 
-    /*************************************************************
-     * 5) Accordion/Section logic (like SellingExtension)
-     *************************************************************/
-    function closeAllOtherSections(currentId) {
-      const allSections = formContainer.querySelectorAll(".collapsible-section");
-      allSections.forEach(sec => {
-        if (sec.id !== currentId) {
-          sec.classList.remove("expanded");
-          const card = sec.previousElementSibling;
-          card.classList.remove("active");
-          const icon = card.querySelector(".collapse-icon");
-          if (icon) icon.classList.remove("active");
+          if (defaultText) btnText.innerText = defaultText;
+
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            // close other dropdowns
+            closeAllOtherDropdowns(selectBtn);
+            // toggle
+            selectBtn.classList.toggle("open");
+            // scroll to first item if opening
+            if (selectBtn.classList.contains("open") && listEl.firstElementChild) {
+              listEl.firstElementChild.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+
+          listItems.forEach(liItem => {
+            liItem.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              liItem.classList.add("checked");
+
+              const labelText = liItem.querySelector(".item-text").innerText;
+              const value = liItem.querySelector(".item-text").getAttribute("data-value");
+
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              selectBtn.classList.remove("open");
+            });
+          });
+
+          // close if user clicks outside
+          document.addEventListener("click", (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+              selectBtn.classList.remove("open");
+            }
+          });
         }
-      });
-    }
 
-    function toggleSection(sectionId) {
-      const section = formContainer.querySelector(`#${sectionId}`);
-      if (!section) return;
+        setupDropdownSingle(
+          "dropdown-service",
+          "serviceList",
+          "service",
+          isEnglish ? "-- Select a Service --" : "-- Sélectionnez un Service --"
+        );
+        setupDropdownSingle(
+          "dropdown-seller",
+          "sellerList",
+          "seller-name",
+          isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
+        );
 
-      const parentSection = section.previousElementSibling;
-      const icon = parentSection.querySelector(".collapse-icon");
+        /*************************************************************
+         * 5) Accordion/Section logic
+         *************************************************************/
+        function closeAllOtherSections(currentId) {
+          const allSections = formContainer.querySelectorAll(".collapsible-section");
+          allSections.forEach(sec => {
+            if (sec.id !== currentId) {
+              sec.classList.remove("expanded");
+              const card = sec.previousElementSibling;
+              card.classList.remove("active");
+              const icon = card.querySelector(".collapse-icon");
+              if (icon) icon.classList.remove("active");
+            }
+          });
+        }
 
-      const wasExpanded = section.classList.contains("expanded");
-      // close others
-      closeAllOtherSections(sectionId);
+        function toggleSection(sectionId) {
+          const section = formContainer.querySelector(`#${sectionId}`);
+          if (!section) return;
 
-      if (!wasExpanded) {
-        section.classList.add("expanded");
-        parentSection.classList.add("active");
-        if (icon) icon.classList.add("active");
-      } else {
-        // if already expanded, just close it
-        section.classList.remove("expanded");
-        parentSection.classList.remove("active");
-        if (icon) icon.classList.remove("active");
-      }
-    }
+          const parentSection = section.previousElementSibling;
+          const icon = parentSection.querySelector(".collapse-icon");
 
-    // Attach a click to each .section-card
-    const sectionCards = formContainer.querySelectorAll(".section-card");
-    sectionCards.forEach(card => {
-      const targetId = card.getAttribute("data-target");
-      card.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleSection(targetId);
-      });
-    });
+          const wasExpanded = section.classList.contains("expanded");
+          // close others
+          closeAllOtherSections(sectionId);
 
-    /*************************************************************
-     * 6) Form Submission
-     *************************************************************/
-    formContainer.addEventListener("submit", (e) => {
-      e.preventDefault();
+          if (!wasExpanded) {
+            section.classList.add("expanded");
+            parentSection.classList.add("active");
+            if (icon) icon.classList.add("active");
+          } else {
+            section.classList.remove("expanded");
+            parentSection.classList.remove("active");
+            if (icon) icon.classList.remove("active");
+          }
+        }
 
-      const fullName = formContainer.querySelector("#full-name").value.trim();
-      const email = formContainer.querySelector("#email").value.trim();
-      const phone = formContainer.querySelector("#phone").value.trim();
-      const service = formContainer.querySelector("#service").value.trim();
-      const sellerName = formContainer.querySelector("#seller-name").value.trim();
-      const details = formContainer.querySelector("#details").value.trim();
+        // Attach click events to each section-card
+        const sectionCards = formContainer.querySelectorAll(".section-card");
+        sectionCards.forEach(card => {
+          const targetId = card.getAttribute("data-target");
+          card.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleSection(targetId);
+          });
+        });
 
-      // Minimal validation example
-      if (!fullName) {
-        alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-        return;
-      }
-      if (!isValidEmail(email)) {
-        alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-        return;
-      }
-      if (!isValidCanadianPhoneNumber(phone)) {
-        alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
-        return;
-      }
-      if (!service) {
-        alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
-        return;
-      }
-      if (!sellerName) {
-        alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-        return;
-      }
-      if (!details) {
-        alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
-        return;
-      }
+        /*************************************************************
+         * 6) Form Submission
+         *************************************************************/
+        formContainer.addEventListener("submit", (e) => {
+          e.preventDefault();
 
-      // Disable entire form
-      const formEls = formContainer.querySelectorAll("input, select, textarea, button");
-      formEls.forEach(el => (el.disabled = true));
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const service = formContainer.querySelector("#service").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+          const details = formContainer.querySelector("#details").value.trim();
 
-      // Also disable custom dropdown controls
-      const customControls = formContainer.querySelectorAll(".select-btn");
-      customControls.forEach(el => el.classList.add("disabled"));
+          // Minimal validation example
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          if (!isValidCanadianPhoneNumber(phone)) {
+            alert(isEnglish ? "Please enter a valid Canadian phone number." : "Veuillez entrer un numéro de téléphone canadien valide.");
+            return;
+          }
+          if (!service) {
+            alert(isEnglish ? "Please select a service." : "Veuillez sélectionner un service.");
+            return;
+          }
+          if (!sellerName) {
+            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+            return;
+          }
+          if (!details) {
+            alert(isEnglish ? "Message is required." : "Le message est obligatoire.");
+            return;
+          }
 
-      // Update the submit button text
-      const submitBtn = formContainer.querySelector('button[type="submit"]');
-      if (submitBtn) {
-        submitBtn.textContent = isEnglish ? "Processing..." : "En cours...";
-      }
+          // --- Added from GymCourseExtension ---
+          // Collapse all expanded sections before disabling form elements
+          const allCollapsibleSections = formContainer.querySelectorAll(".collapsible-section.expanded");
+          allCollapsibleSections.forEach(section => {
+            section.classList.remove("expanded");
+            const sectionCard = section.previousElementSibling;
+            if (sectionCard) {
+              sectionCard.classList.remove("active");
+              const collapseIcon = sectionCard.querySelector(".collapse-icon");
+              if (collapseIcon) collapseIcon.classList.remove("active");
+            }
+          });
+          // --- End Added section ---
 
-      // Send data to Voiceflow (or your backend)
-      window.voiceflow.chat.interact({
-        type: "complete",
-        payload: {
-          fullName,
-          email,
-          phone,
-          service,
-          sellerName,
-          message: details,
-        },
-      });
-    });
-  },
-};
+          // Disable all form elements including custom dropdown controls
+          const formEls = formContainer.querySelectorAll("input, textarea, button, .select-btn");
+          formEls.forEach(el => {
+            el.disabled = true;
+            el.classList.add("disabled");
+          });
+
+          // Disable all sections (so they show the not-allowed cursor on hover)
+          const allSections = formContainer.querySelectorAll(".section");
+          allSections.forEach(section => section.classList.add("disabled"));
+
+          // Close any open dropdowns
+          formContainer.querySelectorAll(".list-items").forEach(dropdown => {
+            dropdown.style.display = "none";
+          });
+
+          // Update the submit button text and style
+          const submitBtn = formContainer.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.textContent = isEnglish ? "Submitted ✓" : "Envoyé ✓";
+            submitBtn.style.backgroundColor = "#4CAF50";
+            submitBtn.style.color = "white";
+          }
+
+          // Send data to Voiceflow (or your backend)
+          window.voiceflow.chat.interact({
+            type: "complete",
+            payload: {
+              fullName,
+              email,
+              phone,
+              service,
+              sellerName,
+              message: details,
+            },
+          });
+        });
+      },
+    };
 
 
 const RescheduleExtension = {
