@@ -2921,270 +2921,462 @@ const ContactExtension = {
         formContainer.innerHTML = `
           <style>
             /* Basic styling */
-            form {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 16px;
-              border-radius: 6px;
-            }
-            .flex-row {
-              display: flex;
-              gap: 16px;
-              flex-wrap: wrap;
-            }
-            .flex-row > div {
-              flex: 1;
-              min-width: 200px;
-            }
-            .bold-label {
-              font-weight: 600;
-              color: #000;
-              font-size: 14px;
-              margin-bottom: 4px;
-              display: block;
-            }
-            input[type="text"],
-            input[type="email"],
-            input[type="tel"],
-            textarea {
-              width: 100%;
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 4px;
-              padding: 8px;
-              background: #fff;
-              font-size: 14px;
-              outline: none;
-              box-sizing: border-box;
-            }
-            #details {
-              resize: vertical;
-              min-height: 100px;
-              max-height: 200px;
-            }
-            input[type="text"]:focus,
-            input[type="email"]:focus,
-            input[type="tel"]:focus,
-            #details:focus {
-              border: 2px solid #9A0DF2;
-            }
-            .submit {
-              color: #9A0DF2;
-              background-color: #F5E7FE;
-              border: none;
-              padding: 12px;
-              border-radius: 8px;
-              font-size: 16px;
-              cursor: pointer;
-              margin-top: 8px;
-            }
-            .submit:hover {
-              color: #fff;
-              background-color: #9A0DF2;
-            }
-            .submit:disabled {
-              background-color: #ccc;
-              color: #666;
-              cursor: not-allowed;
-              font-weight: 700;
-            }
-            /* Ensure native disabled elements show not-allowed cursor */
-            input:disabled,
-            select:disabled,
-            textarea:disabled,
-            button:disabled {
-              cursor: not-allowed;
-            }
-            /* Custom disabled elements should show not-allowed cursor.
-               Note: We removed pointer-events: none so that hover events fire. */
-            .select-btn.disabled,
-            .section.disabled,
-            .section.disabled * {
-              cursor: not-allowed;
-            }
-            /* Instead of disabling pointer events, we simply reduce opacity */
-            
+/* Variables for consistent theming */
 
-            /* Section / Accordion Styles */
-            .section {
-              border: 1px solid #eee;
-              border-radius: 6px;
-              margin-bottom: 0;
-              overflow: hidden;
-              background: #fff;
-            }
-            .section-card {
-              padding: 10px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              transition: all 0.2s ease;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-              border-radius: 6px;
-            }
-            .section.active {
-              border-color: #9A0DF2;
-              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-            }
-            .section:hover {
-              border-color: #9A0DF2;
-              box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
-            }
-            .section-info {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-            .section-icon {
-              background-color: #F5E7FE;
-              color: #9A0DF2;
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .section-title {
-              font-weight: 700;
-              font-size: 14px;
-              color: #444;
-            }
-            .collapse-icon {
-              color: #9A0DF2;
-              font-size: 13px;
-              transition: transform 0.3s;
-              background: #f4eafb;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              margin-right: 0px;
-            }
-            .collapse-icon.active {
-              transform: rotate(-180deg);
-            }
-            .collapsible-section {
-              overflow: hidden;
-              max-height: 0;
-              transition: max-height 0.3s ease-out;
-            }
-            .collapsible-section.expanded {
-              max-height: 1000px;
-            }
-            .section-content {
-              padding: 20px;
-              background: #fefefe;
-              border-top: 1px solid #eee;
-            }
+/* Base Form Styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 6px;
+}
 
-            /* Dropdown Styles */
-            .dropdown-container {
-              position: relative;
-              max-width: 100%;
-            }
-            .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 6px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-            }
-            .select-btn .btn-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #555;
-            }
-            .select-btn .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #9A0DF2;
-              font-size: 12px;
-              border-radius: 50%;
-              background: #F5E7FE;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-            }
-            .select-btn.open .arrow-dwn {
-              transform: rotate(-180deg);
-            }
-            .select-btn:focus,
-            .select-btn.open {
-              border: 2px solid #9A0DF2;
-              outline: none;
-            }
-            .list-items {
-              position: relative;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 6px;
-              padding: 8px 0;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-              z-index: 100;
-            }
-            .select-btn.open + .list-items {
-              display: block;
-            }
-            .list-items.single-select .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              border-radius: 50%;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-            }
-            .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              transition: 0.3s;
-              padding: 0 12px;
-              border-radius: 4px;
-            }
-            .list-items .item:hover {
-              background-color: #F5E7FE;
-            }
-            .item .item-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #333;
-              margin-left: 8px;
-            }
-            .item.checked .checkbox {
-              background-color: #9A0DF2;
-              border: 2px solid #9A0DF2;
-            }
-            .checkbox .check-icon {
-              color: #fff;
-              font-size: 10px;
-              transform: scale(0);
-              transition: all 0.2s ease-in-out;
-            }
-            .item.checked .check-icon {
-              transform: scale(1);
-            }
+.flex-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.flex-row > div {
+  flex: 1;
+  min-width: 200px;
+}
+
+.bold-label {
+  font-weight: 600;
+  color: #000;
+  font-size: 14px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Input Styles */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+textarea {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 8px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Specific styling for details textarea */
+#details {
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+#details:focus {
+  border: 2px solid #9a0df2;
+}
+
+/* Remove spinner from number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Submit Button */
+.submit {
+  color: #9a0df2;
+  background-color: #f5e7fe;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+}
+
+.submit:hover {
+  color: #fff;
+  background-color: #9a0df2;
+}
+
+.submit:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  font-weight: 700;
+}
+
+/* Custom Dropdown */
+.dropdown-container {
+  position: relative;
+  max-width: 100%;
+}
+
+.select-btn {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  transition: border 0.2s;
+}
+
+.select-btn .btn-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #555;
+}
+
+.select-btn-holder {
+  color: #777;
+  font-size: 13px;
+}
+
+.select-btn .arrow-dwn {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  color: #9a0df2;
+  font-size: 12px;
+  border-radius: 50%;
+  background: #f5e7fe;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+.select-btn.open .arrow-dwn {
+  transform: rotate(-180deg);
+}
+
+.select-btn:focus,
+.select-btn.open {
+  border: 2px solid #9a0df2;
+}
+
+/* Dropdown Styles */
+.list-items {
+  position: relative;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  border-radius: 6px;
+  padding: 8px 0;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.select-btn.open + .list-items {
+  display: block;
+}
+
+.list-items .item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  cursor: pointer;
+  padding: 0 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+  margin: 4px;
+}
+
+.list-items .item:hover {
+  background-color: #f5e7fe;
+}
+
+.item .item-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #333;
+  margin-left: 8px;
+}
+
+/* Checkbox Styles */
+/* Circle for single selection */
+.item .checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1.5px solid #c0c0c0;
+  transition: all 0.3s ease-in-out;
+}
+
+.item.checked .checkbox {
+  background-color: #9a0df2;
+  border: 2px solid #9a0df2;
+}
+
+.checkbox .check-icon {
+  color: #fff;
+  font-size: 10px;
+  transform: scale(0);
+  transition: all 0.2s ease-in-out;
+}
+
+.item.checked .check-icon {
+  transform: scale(1);
+}
+
+/* Checkbox SVG fill states */
+.list-items .item:not(.checked) .checkbox svg path {
+  fill: transparent !important;
+}
+
+.list-items .item:not(.checked):hover .checkbox svg path {
+  fill: #9a0df2 !important;
+}
+
+.list-items .item.checked .checkbox svg path {
+  fill: #ffffff !important;
+}
+
+/* Standard checkbox */
+input[type="checkbox"] {
+  accent-color: #9a0df2;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Group Styles */
+.group {
+  border-top: 1px solid #eee;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.group:first-child {
+  border-top: none;
+}
+
+.group-header {
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #f4eafb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #9a0df2;
+}
+
+.group-header .collapse-icon {
+  color: #9a0df2;
+  font-size: 13px;
+  transition: transform 0.3s;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.group-header.active .collapse-icon {
+  transform: rotate(-180deg);
+}
+
+.group-options {
+  display: none;
+  padding-left: 0;
+}
+
+/* Price Input */
+.price-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.price-controls {
+  position: absolute;
+  right: 0;
+  top: 1px;
+  bottom: 1px;
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5e7fe;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+}
+
+.price-up,
+.price-down {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a0df2;
+  cursor: pointer;
+  font-size: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.price-up:hover,
+.price-down:hover {
+  background-color: #9a0df2;
+  color: #fff;
+}
+
+/* Section Cards */
+/* Added styles for the section layout */
+.section {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.section-card {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+}
+
+.section.active {
+  border: 2px solid #9a0df2;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+}
+
+.section:hover:not(.disabled) {
+  border-color: #9a0df2;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+}
+
+.section-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  background-color: #f5e7fe;
+  color: #9a0df2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #444;
+}
+
+.status-icon {
+  font-size: 18px;
+  color: #aaa;
+}
+
+/* Collapse Icon */
+.collapse-icon {
+  color: #9a0df2;
+  font-size: 13px;
+  transition: transform 0.3s;
+  background: #f4eafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 0;
+}
+
+.collapse-icon i {
+  transition: transform 0.3s ease;
+}
+
+.collapse-icon.active {
+  transform: rotate(-180deg);
+}
+
+/* Collapsible Section */
+.collapsible-section {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.expanded {
+  max-height: 1000px;
+}
+
+.section-content {
+  padding: 20px;
+  background: #fefefe;
+  border-top: 1px solid #eee;
+}
+
+/* Inline Fields */
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Disabled States */
+/* Ensure native disabled elements show not-allowed cursor */
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Custom disabled elements should show not-allowed cursor.
+   Note: We removed pointer-events: none so that hover events fire. */
+.select-btn.disabled,
+.section.disabled,
+.section.disabled * {
+  cursor: not-allowed;
+}
+/* Instead of disabling pointer events, we simply reduce opacity */
           </style>
 
           <!-- First Row: Contact Info + Service & Seller -->
@@ -3364,6 +3556,7 @@ const ContactExtension = {
             }
           });
         }
+		
 
         function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
           const dropdownContainer = formContainer.querySelector(`#${dropdownId}`);
@@ -3463,14 +3656,20 @@ const ContactExtension = {
         }
 
         // Attach click events to each section-card
-        const sectionCards = formContainer.querySelectorAll(".section-card");
-        sectionCards.forEach(card => {
-          const targetId = card.getAttribute("data-target");
-          card.addEventListener("click", (e) => {
-            e.stopPropagation();
-            toggleSection(targetId);
-          });
-        });
+        // Attach click events to each section-card
+// Attach click events to each section-card
+const sectionCards = formContainer.querySelectorAll(".section-card");
+sectionCards.forEach(card => {
+  const targetId = card.getAttribute("data-target");
+  card.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Prevent toggling if the section is disabled
+    if (card.closest(".section").classList.contains("disabled")) return;
+    toggleSection(targetId);
+  });
+});
+
+
 
         /*************************************************************
          * 6) Form Submission
@@ -3564,6 +3763,7 @@ const ContactExtension = {
         });
       },
     };
+
 
 
 const RescheduleExtension = {
