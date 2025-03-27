@@ -1666,8 +1666,6 @@ const PropertySearchExtension = {
       });
     });
 
-    // Default open the first section
-    utilityFunctions.toggleSection("section-location-category", formContainer);
   },
 };
 
