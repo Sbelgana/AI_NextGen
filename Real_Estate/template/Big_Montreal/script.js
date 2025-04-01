@@ -5803,10 +5803,10 @@ const ImageExtension = {
               box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             }
             .gallery-image {
-              width: 100%;
+              width: 800px;
               display: block;
               height: auto;
-              max-height: 300px;
+              max-height: 400px;
               object-fit: cover;
             }
             .image-counter {
@@ -5822,7 +5822,7 @@ const ImageExtension = {
           </style>
 
           <div class="gallery-header">
-            <div class="gallery-title">Image Gallery</div>
+            <div class="gallery-title"> </div>
             <div class="gallery-nav">
               <button class="nav-btn prev-btn">&#10094;</button>
               <button class="nav-btn next-btn">&#10095;</button>
