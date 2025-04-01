@@ -5709,6 +5709,172 @@ const BookingExtensionOld = {
 };
 /************** EXTENSION #5: ImageExtension **************/
 const ImageExtension = {
+      name: 'ImageExtension',
+      type: 'response',
+      match: ({ trace }) => trace.type === 'ext_image_extension' || trace.payload?.name === 'ext_image_extension',
+      render: ({ trace, element }) => {
+        console.log('ImageExtension render called');
+
+        // Get images from payload
+        const { images } = trace.payload;
+        const errorContainer = document.getElementById('error-container');
+
+        // Error check for images
+        if (!images) {
+          console.error('No images provided in trace payload');
+          if (errorContainer) {
+            errorContainer.textContent = 'Error: No images provided';
+          }
+          return;
+        }
+
+        // Parse image list
+        let imageList = [];
+        try {
+          imageList = images.split(',').map(url => url.trim()).filter(Boolean);
+          if (imageList.length === 0) {
+            console.error('No valid images found in payload');
+            if (errorContainer) {
+              errorContainer.textContent = 'Error: No valid images found';
+            }
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing image list:', error);
+          if (errorContainer) {
+            errorContainer.textContent = 'Error parsing image list';
+          }
+          return;
+        }
+
+        // Clear any previous errors
+        if (errorContainer) {
+          errorContainer.textContent = '';
+        }
+
+        // Create image gallery container
+        const galleryContainer = document.createElement('div');
+        galleryContainer.className = 'image-gallery';
+        galleryContainer.innerHTML = `
+          <style>
+            .image-gallery {
+              width: 100%;
+              margin-bottom: 15px;
+            }
+            .gallery-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+            }
+            .gallery-title {
+              font-weight: bold;
+              color: #333;
+              font-size: 16px;
+            }
+            .gallery-nav {
+              display: flex;
+              gap: 10px;
+            }
+            .nav-btn {
+              background-color: #F8EAFA;
+              color: #9c27b0;
+              border: none;
+              border-radius: 50%;
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 16px;
+              transition: background-color 0.3s;
+            }
+            .nav-btn:hover {
+              background-color: #9c27b0;
+              color: white;
+            }
+            .gallery-image-container {
+              width: 100%;
+              position: relative;
+              margin-bottom: 10px;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            }
+            .gallery-image {
+              width: 100%;
+              display: block;
+              height: auto;
+              max-height: 300px;
+              object-fit: cover;
+            }
+            .image-counter {
+              position: absolute;
+              bottom: 10px;
+              right: 10px;
+              background-color: rgba(0,0,0,0.5);
+              color: white;
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 12px;
+            }
+          </style>
+
+          <div class="gallery-header">
+            <div class="gallery-title">Image Gallery</div>
+            <div class="gallery-nav">
+              <button class="nav-btn prev-btn">&#10094;</button>
+              <button class="nav-btn next-btn">&#10095;</button>
+            </div>
+          </div>
+          
+          <div class="gallery-image-container">
+            <img class="gallery-image" src="${imageList[0]}" alt="Gallery image">
+            <div class="image-counter">1/${imageList.length}</div>
+          </div>
+        `;
+
+        // Add image navigation functionality
+        let currentIndex = 0;
+        const prevBtn = galleryContainer.querySelector('.prev-btn');
+        const nextBtn = galleryContainer.querySelector('.next-btn');
+        const galleryImage = galleryContainer.querySelector('.gallery-image');
+        const imageCounter = galleryContainer.querySelector('.image-counter');
+
+        // Navigation functions
+        function updateImage() {
+          galleryImage.src = imageList[currentIndex];
+          imageCounter.textContent = `${currentIndex + 1}/${imageList.length}`;
+        }
+
+        prevBtn.addEventListener('click', () => {
+          currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+          updateImage();
+        });
+
+        nextBtn.addEventListener('click', () => {
+          currentIndex = (currentIndex + 1) % imageList.length;
+          updateImage();
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'ArrowLeft') {
+            currentIndex = (currentIndex - 1 + imageList.length) % imageList.length;
+            updateImage();
+          } else if (event.key === 'ArrowRight') {
+            currentIndex = (currentIndex + 1) % imageList.length;
+            updateImage();
+          }
+        });
+
+        // Append to the element
+        element.appendChild(galleryContainer);
+      }
+    };
+
+const ImageExtensionOld = {
 	name: 'ImageExtension',
 	type: 'response',
 	match: ({ trace }) => trace.type === 'ext_image_extension' || trace.payload?.name === 'ext_image_extension',
