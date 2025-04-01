@@ -4974,293 +4974,302 @@ bookNowButton.addEventListener("click", () => {
     };
 
 const BookingExtension_2 = {
-          name: "Forms",
-          type: "response",
-          match: ({ trace }) =>
-            trace.type === 'ext_booking_2' || trace.payload?.name === 'ext_booking_2',
-          render: ({ trace, element }) => {
-            const { language, seller } = trace.payload || {};
-            const isEnglish = language === 'en';
-            const formContainer = document.createElement("form");
+  name: "Forms",
+  type: "response",
+  match: ({ trace }) =>
+    trace.type === 'ext_booking_2' || trace.payload?.name === 'ext_booking_2',
+  render: ({ trace, element }) => {
+    const { language, seller } = trace.payload || {};
+    const isEnglish = language === 'en';
+    
+   
 
-            formContainer.innerHTML = `
-              <style>
-                form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    width: 100%;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background: transparent;
-                    padding: 16px;
-                    border-radius: 8px;
-                    min-width: 300px;
-                }
-                .bold-label {
-                    font-weight: 600;
-                    color: #000;
-                    font-size: 14px;
-                    margin-bottom: 4px;
-                    display: block;
-                }
-                input[type="text"],
-                input[type="email"],
-                input[type="tel"],
-                select.form-select {
-                    width: 100%;
-                    border: 1px solid rgba(0,0,0,0.2);
-                    border-radius: 8px;
-                    padding: 8px;
-                    background: #fff;
-                    font-size: 13px;
-                    outline: none;
-                    box-sizing: border-box;
-                }
-                input[type="text"]:focus,
-                input[type="email"]:focus,
-                input[type="tel"]:focus,
-                select.form-select:focus {
-                    border: 2px solid #9c27b0;
-                }
-                .book-now {
-                    color: #9c27b0;
-                    background-color: #F8EAFA;
-                    border: none;
-                    padding: 12px;
-                    border-radius: 8px;
-                    width: 100%;
-                    font-size: 16px;
-                    cursor: pointer;
-                    margin-top: 8px;
-                    transition: background-color 0.3s;
-                }
-                .book-now:hover {
-                    background-color: #9c27b0;
-                    font-weight: 700;
-                    color: #fff;
-                }
-                .book-now:disabled {
-                    background-color: #ccc;
-                    color: #666;
-                    cursor: not-allowed;
-                }
-                .flex-row {
-                    display: flex;
-                    gap: 16px;
-                    flex-wrap: wrap;
-                }
-                .flex-row > div {
-                    flex: 1;
-                    min-width: 200px;
-                }
-                .info-row {
-                    background-color: #f8f9fa;
-                    padding: 10px;
-                    border-radius: 8px;
-                    margin-bottom: 10px;
-                    border: 1px solid #e0e0e0;
-                }
-                .info-label {
-                    font-weight: 500;
-                    margin-right: 5px;
-                    color: #555;
-                }
-                .info-value {
-                    font-weight: 600;
-                    color: #9c27b0;
-                }
-              </style>
-             
+    const formContainer = document.createElement("form");
+
+    formContainer.innerHTML = `
+      <style>
+        /* Variables for consistent theming */
+        form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 600px;
+          margin: 0 auto;
+          background: transparent;
+          padding: 16px;
+          border-radius: 8px;
+          min-width: 300px;
+        }
+        .bold-label {
+          font-weight: 600;
+          color: #000;
+          font-size: 14px;
+          margin-bottom: 4px;
+          display: block;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select.form-select {
+          width: 100%;
+          border: 1px solid rgba(0,0,0,0.2);
+          border-radius: 8px;
+          padding: 8px;
+          background: #fff;
+          font-size: 13px;
+          outline: none;
+          box-sizing: border-box;
+        }
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        select.form-select:focus {
+          border: 2px solid #9c27b0;
+        }
+        .book-now {
+          color: #9c27b0;
+          background-color: #F8EAFA;
+          border: none;
+          padding: 12px;
+          border-radius: 8px;
+          width: 100%;
+          font-size: 16px;
+          cursor: pointer;
+          margin-top: 8px;
+          transition: background-color 0.3s;
+        }
+        .book-now:hover {
+          background-color: #9c27b0;
+          font-weight: 700;
+          color: #fff;
+        }
+        .book-now:disabled {
+          background-color: #4CAF50;
+          color: white;
+          cursor: not-allowed;
+          font-weight: 700;
+        }
+        .flex-row {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+        .flex-row > div {
+          flex: 1;
+          min-width: 200px;
+        }
+        .info-row {
+          background-color: #f8f9fa;
+          padding: 10px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          border: 1px solid #e0e0e0;
+        }
+        .info-label {
+          font-weight: 500;
+          margin-right: 5px;
+          color: #555;
+        }
+        .info-value {
+          font-weight: 600;
+          color: #9c27b0;
+        }
+        
+        /* Disabled States */
+        input:disabled,
+        select:disabled,
+        textarea:disabled,
+        button:disabled {
+          cursor: not-allowed;
+        }
+        .disabled {
+          cursor: not-allowed;
+        }
+      </style>
+     
+      <div>
+        <label for="full-name" class="bold-label">
+            ${isEnglish ? 'Full Name' : 'Nom complet'}
+        </label>
+        <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
+      </div>
+      <div>
+        <label for="email" class="bold-label">Email</label>
+        <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
+      </div>
+      
+
+      <button type="button" class="book-now" id="book-now">
+        ${isEnglish ? 'Schedule Appointment' : 'Planifier un rendez-vous'}
+      </button>
+    `;
+
+    element.appendChild(formContainer);
+
+    // Cal.com script - properly formatted
+    (function (C, A, L) { 
+      let p = function (a, ar) { a.q.push(ar); }; 
+      let d = C.document; 
+      C.Cal = C.Cal || function () { 
+        let cal = C.Cal; 
+        let ar = arguments; 
+        if (!cal.loaded) { 
+          cal.ns = {}; 
+          cal.q = cal.q || []; 
+          d.head.appendChild(d.createElement("script")).src = A; 
+          cal.loaded = true; 
+        } 
+        if (ar[0] === L) { 
+          const api = function () { p(api, arguments); }; 
+          const namespace = ar[1]; 
+          api.q = api.q || []; 
+          if(typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar); 
+          return;
+        } 
+        p(cal, ar); 
+      }; 
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+
+    // If a seller is provided, pre-initialize Cal
+    if (seller && BookingData[seller]) {
+      const { namespace } = BookingData[seller];
+      Cal("init", namespace, {origin:"https://cal.com"});
+      Cal.ns[namespace]("ui", {
+        "theme": "light",
+        "cssVarsPerTheme": {
+          "light": {"cal-brand": "#9c27b0"},
+          "dark": {"cal-brand": "#9c27b0"}
+        },
+        "hideEventTypeDetails": false,
+        "layout": "month_view"
+      });
+    }
+
+    // Event listener for "Book Now" click
+    const bookNowButton = formContainer.querySelector("#book-now");
+    bookNowButton.addEventListener("click", () => {
+      const fullName = formContainer.querySelector("#full-name").value.trim();
+      const email = formContainer.querySelector("#email").value.trim();
+      const sellerName = seller; // Use the seller from the payload
+
+      // Validation
+      if (!fullName) {
+        alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+        return;
+      }
+      
+      if (!email || !isValidEmail(email)) {
+        alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+        return;
+      }
+      
+      if (!sellerName) {
+        alert(isEnglish ? "No seller specified. Please contact support." : "Aucun vendeur spécifié. Veuillez contacter le support.");
+        return;
+      }
+      
+      if (!BookingData[sellerName]) {
+        alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
+        return;
+      }
+      
+      // Disable all form controls to prevent further interaction
+      const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+      formElements.forEach(el => {
+        el.disabled = true;
+      });
+      
+      // Update the Book Now button text to indicate processing
+      bookNowButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+      
+      // Send data to Voiceflow
+      if (window.voiceflow && window.voiceflow.chat) {
+        window.voiceflow.chat.interact({
+          type: "complete",
+          payload: { 
+            fullName, 
+            email, 
+            sellerName
+          }
+        });
+      }
+        
+      // Cal.com integration
+      try {
+        // Get booking data for this agent
+        const agentBookingInfo = BookingData[sellerName];
+        const { link, namespace } = agentBookingInfo;
+        
+        console.log(`Using Cal.com data: link=${link}, namespace=${namespace}`);
+        
+        // Create a hidden button to trigger Cal
+        const calTrigger = document.createElement('button');
+        calTrigger.style.display = 'none';
+        
+        // Add URL parameters for name and email
+        const calLinkWithParams = `${link}/${namespace}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+        
+        // Set attributes for Cal
+        calTrigger.setAttribute('data-cal-link', calLinkWithParams);
+        calTrigger.setAttribute('data-cal-namespace', namespace);
+        calTrigger.setAttribute('data-cal-config', JSON.stringify({
+          layout: "month_view",
+          theme: "light"
+        }));
+        
+        // Listen for booking events
+        Cal.ns[namespace]("on", {
+          action: "booking_successful",
+          callback: (event) => {
+            console.log(`Booking successful with namespace: ${namespace}`, event);
+            bookNowButton.textContent = isEnglish ? "Appointment Confirmed" : "Rendez-vous confirmé";
+            bookNowButton.style.backgroundColor = "#4CAF50";
+            bookNowButton.style.color = "white";
+          }
+        });
+        
+        Cal.ns[namespace]("on", {
+          action: "modal_closed",
+          callback: () => {
+            console.log(`Booking modal closed for namespace: ${namespace}`);
+            if (bookNowButton.textContent === (isEnglish ? "Processing..." : "Traitement...")) {
+              bookNowButton.textContent = isEnglish ? "Schedule Appointment" : "Planifier un rendez-vous";
+              bookNowButton.disabled = false;
               
-              <div>
-                <label for="full-name" class="bold-label">
-                    ${isEnglish ? 'Full Name' : 'Nom complet'}
-                </label>
-                <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required>
-              </div>
-              <div>
-                <label for="email" class="bold-label">Email</label>
-                <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required>
-              </div>
-              <div>
-                <label for="phone" class="bold-label">
-                    ${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}
-                </label>
-                <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required>
-              </div>
+              // Re-enable form elements if the modal is closed without booking
+              formElements.forEach(el => {
+                el.disabled = false;
+              });
+            }
+          }
+        });
+        
+        // Append and click to trigger Cal
+        document.body.appendChild(calTrigger);
+        calTrigger.click();
+        
+      } catch (error) {
+        console.error("Error initializing Cal:", error);
+        bookNowButton.textContent = isEnglish ? "Error - Please Try Again" : "Erreur - Veuillez réessayer";
+        setTimeout(() => {
+          bookNowButton.textContent = isEnglish ? "Schedule Appointment" : "Planifier un rendez-vous";
+          bookNowButton.disabled = false;
+          
+          // Re-enable form elements on error
+          formElements.forEach(el => {
+            el.disabled = false;
+          });
+        }, 3000);
+      }
+    });
+  },
+};
 
-              <button type="button" class="book-now" id="book-now">
-                ${isEnglish ? 'Schedule Appointment' : 'Planifier un rendez-vous'}
-              </button>
-            `;
-
-            element.appendChild(formContainer);
-
-            // Cal.com script
-            (function (C, A, L) { 
-              let p = function (a, ar) { a.q.push(ar); }; 
-              let d = C.document; 
-              C.Cal = C.Cal || function () { 
-                let cal = C.Cal; 
-                let ar = arguments; 
-                if (!cal.loaded) { 
-                  cal.ns = {}; 
-                  cal.q = cal.q || []; 
-                  d.head.appendChild(d.createElement("script")).src = A; 
-                  cal.loaded = true; 
-                } 
-                if (ar[0] === L) { 
-                  const api = function () { p(api, arguments); }; 
-                  const namespace = ar[1]; 
-                  api.q = api.q || []; 
-                  if(typeof namespace === "string") {
-                    cal.ns[namespace] = cal.ns[namespace] || api;
-                    p(cal.ns[namespace], ar);
-                    p(cal, ["initNamespace", namespace]);
-                  } else p(cal, ar); 
-                  return;
-                } 
-                p(cal, ar); 
-              }; 
-            })(window, "https://app.cal.com/embed/embed.js", "init");
-
-            // Event listener for "Book Now" click
-            const bookNowButton = formContainer.querySelector("#book-now");
-            bookNowButton.addEventListener("click", () => {
-              const fullName = formContainer.querySelector("#full-name").value.trim();
-              const email = formContainer.querySelector("#email").value.trim();
-              const phone = formContainer.querySelector("#phone").value.trim();
-
-              
-              // Validation
-              if (!fullName) {
-                alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-                return;
-              }
-              if (!email || !isValidEmail(email)) {
-                alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-                return;
-              }
-              if (!phone || !isValidPhoneNumber(phone)) {
-                alert(isEnglish ? "Please enter a valid phone number." : "Veuillez entrer un numéro de téléphone valide.");
-                return;
-              }
-
-              
-              // Disable the button to prevent multiple clicks
-              bookNowButton.disabled = true;
-              bookNowButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-              
-              // Send data to Voiceflow
-              if (window.voiceflow && window.voiceflow.chat) {
-                window.voiceflow.chat.interact({
-                  type: "complete",
-                  payload: { 
-                    fullName, 
-                    email, 
-                    phone: formatPhoneNumber(phone),
-
-                    seller
-                  }
-                });
-              }
-              
-              // Cal.com integration - only if agent is provided
-              if (seller && BookingData[seller]) {
-                try {
-                  // Get booking data for this agent
-                  const agentBookingInfo = BookingData[seller];
-                  if (!agentBookingInfo) {
-                    throw new Error(`Agent '${seller}' not found in booking data`);
-                  }
-                  
-                  const { link, namespace } = agentBookingInfo;
-                  
-                  console.log(`Using Cal.com data: link=${link}, namespace=${namespace}`);
-                  
-                  // Initialize Cal with the namespace
-                  Cal("init", namespace, {
-                    origin: "https://cal.com"
-                  });
-                  
-                  // Wait a moment to ensure namespace is initialized
-                  setTimeout(() => {
-                    // Set UI preferences
-                    Cal.ns[namespace]("ui", {
-                      theme: "light",
-                      layout: "month_view"
-                    });
-                    
-                    // Create a hidden button to trigger Cal
-                    const calTrigger = document.createElement('button');
-                    calTrigger.style.display = 'none';
-                    
-                    // Build notes with phone
-                    const notes = `Phone: ${formatPhoneNumber(phone)}`;
-                    
-                    // Set attributes for Cal
-                    calTrigger.setAttribute('data-cal-link', `${link}/${namespace}`);
-                    calTrigger.setAttribute('data-cal-namespace', namespace);
-                    calTrigger.setAttribute('data-cal-config', JSON.stringify({
-                      layout: "month_view",
-                      theme: "light"
-                    }));
-                    
-                    // Add URL parameters for name and email
-                    const urlParams = new URLSearchParams({
-                      name: fullName,
-                      email: email,
-                      notes: notes
-                    });
-                    calTrigger.setAttribute('data-cal-query', urlParams.toString());
-                    
-                    // Listen for booking events
-                    Cal.ns[namespace]("on", {
-                      action: "booking_successful",
-                      callback: (event) => {
-                        console.log(`Booking successful with namespace: ${namespace}`, event);
-                        bookNowButton.textContent = isEnglish ? "Appointment Confirmed" : "Rendez-vous confirmé";
-                        bookNowButton.style.backgroundColor = "#4CAF50";
-                        bookNowButton.style.color = "white";
-                      }
-                    });
-                    
-                    Cal.ns[namespace]("on", {
-                      action: "modal_closed",
-                      callback: () => {
-                        console.log(`Booking modal closed for namespace: ${namespace}`);
-                        if (bookNowButton.textContent === (isEnglish ? "Processing..." : "Traitement...")) {
-                          bookNowButton.textContent = isEnglish ? "Schedule Appointment" : "Planifier un rendez-vous";
-                          bookNowButton.disabled = false;
-                        }
-                      }
-                    });
-                    
-                    // Append and click to trigger Cal
-                    document.body.appendChild(calTrigger);
-                    calTrigger.click();
-                    
-                  }, 500);
-                } catch (error) {
-                  console.error("Error initializing Cal:", error);
-                  bookNowButton.textContent = isEnglish ? "Error - Please Try Again" : "Erreur - Veuillez réessayer";
-                  setTimeout(() => {
-                    bookNowButton.textContent = isEnglish ? "Schedule Appointment" : "Planifier un rendez-vous";
-                    bookNowButton.disabled = false;
-                  }, 3000);
-                }
-              } else {
-                // If no agent info, just update button state
-                setTimeout(() => {
-                  bookNowButton.textContent = isEnglish ? "Submitted" : "Soumis";
-                  bookNowButton.style.backgroundColor = "#4CAF50";
-                  bookNowButton.style.color = "white";
-                }, 1500);
-              }
-            });
-          },
-        };
 
 const BookingExtensionOld = {
     name: "Forms",
