@@ -5803,7 +5803,7 @@ const ImageExtension = {
               box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             }
             .gallery-image {
-              width: 800px;
+              max-width: 800px;
               display: block;
               height: auto;
               max-height: 400px;
