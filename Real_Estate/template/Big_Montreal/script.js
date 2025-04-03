@@ -17,6 +17,25 @@ function formatPhoneNumber(phoneNumber) {
   return phoneNumber;
 }
 
+function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+    // Global parser: removes spaces (and commas) so that the result can be parsed as a float.
+    function parseNumber(value) {
+      return parseFloat((value || '').toString().replace(/\s/g, '').replace(',', '.')) || 0;
+    }
+    
+       // Format a number as currency (using CAD)
+    function formatCurrency(number) {
+      const formatted = new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: 'CAD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(number);
+      return formatted.replace(/,/g, ' ').replace(/\u00A0/g, ' ');
+    }
+
 // IMPORTANT: Define toggleCollapse only once as a global function
 
 
@@ -6084,8 +6103,8 @@ const LocalisationExtension = {
               appearance: {
                 theme: "day",
                 variables: {
-                  "--ll-color-primary": "#A10159",
-                  "--ll-color-primary-variant1": "#010159",
+                  "--ll-color-primary": "#9C27B0",
+                  "--ll-color-primary-variant1": "#9C27B0",
                   "--ll-border-radius-small": "8px",
                   "--ll-border-radius-medium": "16px",
                   "--ll-font-family": "Avenir, sans-serif"
@@ -6289,26 +6308,6 @@ const LocalisationExtension_old = {
 
 
 
-
-// Global number formatter: converts a number to a string with a space as the thousand separator.
-    function formatNumber(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    }
-    // Global parser: removes spaces (and commas) so that the result can be parsed as a float.
-    function parseNumber(value) {
-      return parseFloat((value || '').toString().replace(/\s/g, '').replace(',', '.')) || 0;
-    }
-    
-       // Format a number as currency (using CAD)
-    function formatCurrency(number) {
-      const formatted = new Intl.NumberFormat('en-CA', {
-        style: 'currency',
-        currency: 'CAD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(number);
-      return formatted.replace(/,/g, ' ').replace(/\u00A0/g, ' ');
-    }
 
     // --- MortgageCalculatorExtension ---
     const MortgageCalculatorExtension = {
