@@ -6041,11 +6041,15 @@ const LocalisationExtension = {
       render: ({ trace, element }) => {
         const { language, key, LAT, LNG } = trace.payload;
 
-        // This container will stay INSIDE the chat bubble
+        // Create the container element
         const container = document.createElement("div");
+
+        // Determine container width based on device screen width
+        const containerWidth = window.innerWidth <= 768 ? "400px" : "800px";
+
         container.style.cssText = `
-          width: 100%;              /* 100% of the bubble's width */
-          height: 350px;            /* fixed height */
+          width: ${containerWidth};
+          height: 350px;
           border: 1px solid #888;
           border-radius: 8px;
           overflow: hidden;
