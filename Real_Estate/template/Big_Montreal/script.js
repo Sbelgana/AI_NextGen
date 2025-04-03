@@ -6203,8 +6203,1589 @@ const LocalisationExtension = {
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
+// Global number formatter: converts a number to a string with a space as the thousand separator.
+    function formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+    // Global parser: removes spaces (and commas) so that the result can be parsed as a float.
+    function parseNumber(value) {
+      return parseFloat((value || '').toString().replace(/\s/g, '').replace(',', '.')) || 0;
+    }
+    
+       // Format a number as currency (using CAD)
+    function formatCurrency(number) {
+      const formatted = new Intl.NumberFormat('en-CA', {
+        style: 'currency',
+        currency: 'CAD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(number);
+      return formatted.replace(/,/g, ' ').replace(/\u00A0/g, ' ');
+    }
+
+    // --- MortgageCalculatorExtension ---
+    const MortgageCalculatorExtension = {
+      name: "MortgageCalculator",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "mortgage_calculator" || trace.payload?.name === "mortgage_calculator",
+      render: ({ trace, element }) => {
+        const { propertyCost = 500000, language = "en" } = trace.payload || {};
+        
+        const translations = {
+  fr: {
+    title: "Calculatrice de Versements Hypothécaires",
+    propertyValue: "Coût de la propriété :",
+    downPayment: "Mise de fonds :",
+    loanAmount: "Montant du prêt :",
+    interestRate: "Taux d'intérêt (%) :",
+    amortizationPeriod: "Période d'amortissement :",
+    paymentFrequency: "Fréquence des versements :",
+    paymentResult: "Paiement estimé",
+    years: "ans",
+    weekly: "Hebdomadaire",
+    biweekly: "Aux 2 semaines",
+    monthly: "Mensuelle",
+    perWeek: "/semaine",
+    perBiweek: "/2 semaines",
+    perMonth: "/mois",
+    selectFrequency: "Sélectionnez la fréquence des versements",
+    calculate: "Calculer",
+    language: "Langue",
+    errorInvalidProperty: "Veuillez entrer une valeur de propriété valide.",
+    errorMaxDownPayment: "La mise de fonds ne peut pas dépasser la valeur de la propriété.",
+    errorMinDownPayment: "La mise de fonds minimale est de {amount} $ (5 %) de la valeur de la propriété.",
+    errorInvalidDownPayment: "Veuillez entrer une mise de fonds valide.",
+    downPaymentAvailable: "Mise de fonds disponible",
+    estimatedPayment: "Montant estimé du paiement",
+    borrowingCapacity: "Votre capacité d'emprunt estimée"
+  },
+  en: {
+    title: "Mortgage Payment Calculator",
+    propertyValue: "Property Value:",
+    downPayment: "Down Payment:",
+    loanAmount: "Loan Amount:",
+    interestRate: "Interest Rate (%):",
+    amortizationPeriod: "Amortization Period:",
+    paymentFrequency: "Payment Frequency:",
+    paymentResult: "Estimated Payment",
+    years: "years",
+    weekly: "Weekly",
+    biweekly: "Bi-weekly",
+    monthly: "Monthly",
+    perWeek: "/week",
+    perBiweek: "/2 weeks",
+    perMonth: "/month",
+    selectFrequency: "Select payment frequency",
+    calculate: "Calculate",
+    language: "Language",
+    errorInvalidProperty: "Please enter a valid property value.",
+    errorMaxDownPayment: "Down payment cannot exceed property value.",
+    errorMinDownPayment: "Minimum down payment is ${amount} (5%) of Property Value.",
+    errorInvalidDownPayment: "Please enter a valid down payment.",
+    downPaymentAvailable: "Down Payment Available",
+    estimatedPayment: "Estimated Payment Amount",
+    borrowingCapacity: "Your Estimated Borrowing Capacity"
+  },
+};
+
+        
+        let currentLanguage = language;
+        const text = () => translations[currentLanguage] || translations.en;
+        const minDownPayment = (propertyCost * 0.05).toFixed(2);
+
+        // Define allowed amortization years list.
+        const allowedAmortizations = [5, 10, 15, 20, 25, 30];
+
+        // Create the form container (all element queries will be scoped to formContainer)
+        const formContainer = document.createElement("div");
+        formContainer.innerHTML = `
+          <style>
+            /* Form Styling */
+            form {
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .form-row {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-bottom: 15px;
+            }
+            .form-column {
+              flex: 1;
+              min-width: 200px;
+            }
+            .bold-label {
+              font-weight: 600;
+              display: block;
+              margin-bottom: 5px;
+              color: #000;
+              font-size: 14px;
+            }
+            .input-group {
+              position: relative;
+              width: 100%;
+            }
+            .currency-input {
+              height: 40px;
+              width: 100%;
+              border: 1px solid rgba(0, 0, 0, 0.2);
+              border-radius: 8px;
+              padding: 12px;
+              background: #fff;
+              font-size: 13px;
+              outline: none;
+              box-sizing: border-box;
+              padding-left: 30px;
+            }
+            .currency-symbol {
+              position: absolute;
+              left: 10px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: black;
+            }
+            .number-input-wrapper {
+              position: relative;
+              width: 100%;
+            }
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+            input[type="number"] {
+              -moz-appearance: textfield;
+            }
+            .number-input-controls {
+              position: absolute;
+              right: 0px;
+              top: 0px;
+              bottom: 0px;
+              width: 20px;
+              display: flex;
+              flex-direction: column;
+              background-color: #F8EAFA;
+              border: 1px solid rgba(0,0,0,0.1);
+              border-radius: 0 8px 8px 0;
+              overflow: hidden;
+            }
+            .number-input-up,
+            .number-input-down {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #9C27B0;
+              cursor: pointer;
+              font-size: 8px;
+            }
+            .number-input-up:hover,
+            .number-input-down:hover {
+              background-color: #9C27B0;
+              color: #fff;
+            }
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+              margin-top: 4px;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+              color: #555;
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: black;
+            }
+            .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9C27B0;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F8EAFA;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9C27B0;
+            }
+            .list-items {
+              position: static;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 8px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+              z-index: 100;
+            }
+            /* Dropdown style with checkboxes */
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 8px;
+            }
+            .list-items .item:hover {
+              background-color: #F8EAFA;
+            }
+            .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .item.checked .checkbox {
+              background-color: #9C27B0;
+              border: 2px solid #9C27B0;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 12px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+            .list-items .item:not(.checked) .checkbox svg path {
+              fill: transparent !important;
+            }
+            .list-items .item:not(.checked):hover .checkbox svg path {
+              fill: #9C27B0 !important;
+            }
+            .list-items .item.checked .checkbox svg path {
+              fill: #ffffff !important;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            /* Results Styles */
+            .results-container {
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #F8EAFA;
+              border-radius: 8px;
+              text-align: center;
+            }
+            .results-title {
+              margin: 0 0 10px 0;
+              color: #333;
+              font-size: 16px;
+              font-weight: 600;
+            }
+            .results-amount {
+              font-size: 2em;
+              color: #9C27B0;
+              font-weight: bold;
+              margin: 15px 0;
+            }
+            input[readonly] {
+              background-color: #f9f9f9;
+              cursor: not-allowed;
+            }
+            .result h3 {
+              font-size: 16px;
+              font-weight: 600;
+              margin-bottom: 10px;
+              color: #333;
+            }
+            .result .amount {
+              font-size: 24px;
+              font-weight: bold;
+              color: #9C27B0;
+              margin: 15px 0;
+            }
+            .result .hint {
+              font-size: 12px;
+              color: #666;
+              margin-bottom: 15px;
+            }
+            #min-down-payment-message {
+              color: red;
+              font-size: 16px;
+              margin-top: 5px;
+              margin-bottom: 10px;
+              text-align: center;
+              padding: 10px;
+              border-radius: 4px;
+              font-weight: bold;
+            }
+            #error-message {
+              color: red;
+              font-size: 12px;
+              margin-top: 5px;
+            }
+            #loan-amount {
+  background-color: #9C27B0 !important; /* Purple background */
+  color: white !important;
+  border-color: #9C27B0 !important;
+}
+
+#loan-amount + .currency-symbol,
+.input-group:has(#loan-amount) .currency-symbol {
+  color: white !important;
+
+}
+          </style>
+
+          <!-- Minimum Down Payment Message -->
+          <div id="min-down-payment-message" style="display: none;"></div>
+          
+          <!-- Input Fields -->
+          <div class="form-row">
+            <div class="form-column">
+              <label for="property-cost" class="bold-label">
+                ${text().propertyValue}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="property-cost" class="currency-input" required
+                       placeholder="Enter property value"
+                       value="${formatNumber(propertyCost)}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="property-cost" data-step="500">▲</div>
+                  <div class="number-input-down" data-target="property-cost" data-step="500">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label for="down-payment" class="bold-label">
+                ${text().downPayment}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="down-payment" class="currency-input" required
+                       placeholder="Enter down payment"
+                       value="${formatNumber(propertyCost * 0.05)}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="down-payment" data-step="250">▲</div>
+                  <div class="number-input-down" data-target="down-payment" data-step="250">▼</div>
+                </div>
+              </div>
+              <div id="error-message" style="display: none;"></div>
+            </div>
+          </div>
+    
+          <div class="form-row">
+            <div class="form-column">
+              <label for="interest-rate" class="bold-label">
+                ${text().interestRate}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <input type="number" id="interest-rate" class="currency-input" required
+                       placeholder="Enter interest rate"
+                       min="1" max="100" step="0.05" value="5.9">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="interest-rate" data-step="0.05">▲</div>
+                  <div class="number-input-down" data-target="interest-rate" data-step="0.05">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="amortization" id="amortization-label">
+                ${text().amortizationPeriod}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <input type="text" id="amortization" class="currency-input" value="25 ${text().years}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="amortization" data-step="1">▲</div>
+                  <div class="number-input-down" data-target="amortization" data-step="1">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+    
+          <!-- Payment Frequency -->
+          <div class="form-row">
+            <div class="form-column">
+              <label class="bold-label" for="frequency" id="frequency-label">
+                ${text().paymentFrequency}
+              </label>
+              <div class="dropdown-container" id="dropdown-payment-frequency">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text" id="frequency-text">${text().biweekly}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                </div>
+                <ul class="list-items single-select" id="paymentFrequencyList">
+                  <li class="item">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="monthly">${text().monthly}</span>
+                  </li>
+                  <li class="item checked">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="biweekly">${text().biweekly}</span>
+                  </li>
+                  <li class="item">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="weekly">${text().weekly}</span>
+                  </li>
+                </ul>
+              </div>
+              <input type="hidden" id="frequency" value="biweekly">
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="loan-amount">
+                ${text().loanAmount}
+              </label>
+              <div class="input-group">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="loan-amount" class="currency-input" readonly>
+              </div>
+            </div>
+          </div>
+    
+          <!-- Results Section -->
+          <div class="results-container">
+            <div class="result" id="payment-preview">
+              <h3>${text().estimatedPayment}</h3>
+              <div class="amount" id="payment-amount">$0</div>
+              <div class="hint">
+                This is your estimated payment amount based on the property value, down payment, and selected terms.
+              </div>
+            </div>
+          </div>
+        `;
+    
+        // Append formContainer to the provided element.
+        element.appendChild(formContainer);
+    
+        /********** Numeric Up/Down Controls **********/
+        function attachNumericControls() {
+          formContainer.querySelectorAll('.number-input-up').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.preventDefault();
+              const targetId = btn.getAttribute('data-target');
+              const step = parseFloat(btn.getAttribute('data-step'));
+              const input = formContainer.querySelector("#" + targetId);
+              if (!input) return;
+              let currentValue = parseNumber(input.value);
+              let newValue = currentValue;
+              if (targetId === 'property-cost') {
+                newValue = currentValue === 0 ? 5000 : Math.round((currentValue + step) / step) * step;
+              } else if (targetId === 'down-payment') {
+                newValue = currentValue === 0 ? 5000 : Math.round((currentValue + step) / step) * step;
+              } else if (targetId === 'interest-rate') {
+                newValue = (currentValue + step).toFixed(2);
+                input.value = newValue;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else if (targetId === 'amortization') {
+                // For amortization, use the allowed list
+                const allowed = allowedAmortizations;
+                const currentNum = parseNumber(input.value);
+                let idx = allowed.indexOf(currentNum);
+                if (idx === -1) { idx = allowed.indexOf(25); }
+                if (idx < allowed.length - 1) {
+                  newValue = allowed[idx + 1];
+                } else {
+                  newValue = allowed[idx];
+                }
+                input.value = newValue + " " + text().years;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else {
+                newValue = currentValue + step;
+              }
+              if (["property-cost","down-payment","amortization"].includes(targetId)) {
+                input.value = formatNumber(newValue);
+              } else {
+                input.value = newValue;
+              }
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+          formContainer.querySelectorAll('.number-input-down').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.preventDefault();
+              const targetId = btn.getAttribute('data-target');
+              const step = parseFloat(btn.getAttribute('data-step'));
+              const input = formContainer.querySelector("#" + targetId);
+              if (!input) return;
+              let currentValue = parseNumber(input.value);
+              let newValue = currentValue;
+              if (targetId === 'property-cost') {
+                newValue = currentValue === 0 ? 0 : Math.round((currentValue - step) / step) * step;
+              } else if (targetId === 'down-payment') {
+                newValue = currentValue === 0 ? 0 : Math.round((currentValue - step) / step) * step;
+              } else if (targetId === 'interest-rate') {
+                newValue = Math.max(0, (currentValue - step).toFixed(2));
+              } else if (targetId === 'amortization') {
+                const allowed = allowedAmortizations;
+                const currentNum = parseNumber(input.value);
+                let idx = allowed.indexOf(currentNum);
+                if (idx === -1) { idx = allowed.indexOf(25); }
+                if (idx > 0) {
+                  newValue = allowed[idx - 1];
+                } else {
+                  newValue = allowed[idx];
+                }
+                input.value = newValue + " " + text().years;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else {
+                newValue = currentValue - step;
+              }
+              if (newValue < 0) newValue = 0;
+              if (["property-cost","down-payment","amortization"].includes(targetId)) {
+                input.value = formatNumber(newValue);
+              } else {
+                input.value = newValue;
+              }
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+        }
+    
+        /********** Dropdown Setup **********/
+        function setupDropdownSingleModal(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = formContainer.querySelector("#" + dropdownId);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector("#" + listId) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector("#" + hiddenInputId);
+          if (defaultText) { btnText.innerText = defaultText; }
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = selectBtn.classList.toggle("open");
+            listEl.style.display = isOpen ? "block" : "none";
+            if (isOpen) {
+              formContainer.querySelectorAll('.select-btn.open').forEach(openBtn => {
+                if (openBtn !== selectBtn) {
+                  openBtn.classList.remove('open');
+                  const otherList = openBtn.parentElement.querySelector('.list-items');
+                  if (otherList) { otherList.style.display = 'none'; }
+                }
+              });
+            }
+          });
+          const listItems = listEl.querySelectorAll(".item");
+          listItems.forEach(item => {
+            item.addEventListener("click", ev => {
+              ev.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              item.classList.add("checked");
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+              hiddenInput.dispatchEvent(new Event('input'));
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            });
+          });
+          formContainer.addEventListener("click", (ev) => {
+            if (!container.contains(ev.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+    
+        /********** Attach Input Event Listeners **********/
+        const fields = [
+          '#property-cost',
+          '#down-payment',
+          '#interest-rate',
+          '#amortization',
+          '#frequency'
+        ];
+        fields.forEach(selector => {
+          const element = formContainer.querySelector(selector);
+          if (element) {
+            element.addEventListener('input', () => updateCalculation());
+          }
+        });
+    
+        // Calculation for mortgage: loanAmount = cost - downPayment; then monthly payment computed.
+        function calculatePaymentAndCapacity(cost, downPayment, interestRate, term, frequency) {
+          const loanAmount = Math.round(cost - downPayment);
+          let monthlyRate = interestRate / 100 / 12;
+          let months = term * 12;
+          let monthlyPayment = 0;
+          if (monthlyRate > 0) {
+            monthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+          } else {
+            monthlyPayment = loanAmount / months;
+          }
+          let payment, suffix;
+          if (frequency === "weekly") {
+            payment = (monthlyPayment * 12) / 52;
+            suffix = text().perWeek;
+          } else if (frequency === "biweekly") {
+            payment = (monthlyPayment * 12) / 26;
+            suffix = text().perBiweek;
+          } else {
+            payment = monthlyPayment;
+            suffix = text().perMonth;
+          }
+          return { loanAmount, payment, suffix };
+        }
+    
+        function updateCalculation() {
+          const cost = parseNumber(formContainer.querySelector("#property-cost").value);
+          const downPayment = parseNumber(formContainer.querySelector("#down-payment").value);
+          const errorMsg = formContainer.querySelector("#error-message");
+          const loanAmountInput = formContainer.querySelector("#loan-amount");
+          const paymentResult = formContainer.querySelector("#payment-amount");
+    
+          if (cost <= 0 || isNaN(cost)) {
+            errorMsg.textContent = text().errorInvalidProperty;
+            paymentResult.textContent = '$0';
+            loanAmountInput.value = '0';
+            return;
+          }
+    
+          const minDown = cost * 0.05;
+          const downPaymentPercentage = (downPayment / cost) * 100;
+          const minDownMsg = formContainer.querySelector("#min-down-payment-message");
+          
+          if (!isNaN(downPayment)) {
+            if (downPayment > cost) {
+              errorMsg.textContent = text().errorMaxDownPayment;
+              errorMsg.style.display = 'block';
+              minDownMsg.style.display = 'none';
+              paymentResult.textContent = '$0';
+              loanAmountInput.value = '0';
+              return;
+            } else if (downPaymentPercentage < 5) {
+              minDownMsg.innerHTML = text().errorMinDownPayment.replace('{amount}', formatNumber(minDown));
+              minDownMsg.style.display = 'block';
+              errorMsg.style.display = 'none';
+            } else {
+              minDownMsg.style.display = 'none';
+              errorMsg.style.display = 'none';
+            }
+          } else {
+            errorMsg.textContent = text().errorInvalidDownPayment;
+            errorMsg.style.display = 'block';
+            minDownMsg.style.display = 'none';
+            paymentResult.textContent = '$0';
+            loanAmountInput.value = '0';
+            return;
+          }
+    
+          const result = calculatePaymentAndCapacity(
+            cost,
+            downPayment,
+            parseFloat(formContainer.querySelector("#interest-rate").value) || 5.5,
+            parseInt(parseNumber(formContainer.querySelector("#amortization").value)) || 25,
+            formContainer.querySelector("#frequency").value || "biweekly"
+          );
+    
+          loanAmountInput.value = formatNumber(result.loanAmount);
+          paymentResult.textContent = `$${formatNumber(Math.round(result.payment))} ${result.suffix || ''}`;
+        }
+    
+        // Initialize dropdown for Payment Frequency.
+        setupDropdownSingleModal("dropdown-payment-frequency", "paymentFrequencyList", "frequency", text().biweekly);
+    
+        // Attach numeric controls and update initial calculations.
+        attachNumericControls();
+        updateCalculation();
+      }
+    };
+       
+    // --- BorrowingCalculatorExtension ---
+
+    const BorrowingCalculatorExtension = {
+      name: 'BorrowingCalculator',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_borrowing' || trace.payload?.name === 'ext_borrowing',
+      render: ({ trace, element }) => {
+        const { language = 'en' } = trace.payload || {};
+        
+        const translations = {
+          fr: {
+            annualIncome: "Revenu annuel brut :",
+            monthlyExpenses: "Dépenses mensuelles :",
+            downPayment: "Mise de fonds disponible :",
+            interestRate: "Taux d'intérêt (%) :",
+            mortgageTerm: "Durée du prêt (Années) :",
+            paymentFrequency: "Fréquence de paiement :",
+            years: "ans",
+            weekly: "Hebdomadaire",
+            biweekly: "Aux 2 semaines",
+            monthly: "Mensuelle",
+            perWeek: "/semaine",
+            perBiweek: "/2 semaines",
+            perMonth: "/mois",
+            estimatedPayment: "Montant estimé du paiement",
+            borrowingCapacity: "Votre capacité d'emprunt estimée",
+            paymentHint: "Ceci est votre montant de paiement maximum estimé basé sur 32% de votre revenu disponible (revenu annuel moins dépenses annuelles) et la fréquence sélectionnée.",
+            capacityHint: "Cette estimation est basée sur un ratio de 32% appliqué à votre revenu disponible."
+          },
+          en: {
+            annualIncome: "Annual Gross Income:",
+            monthlyExpenses: "Monthly Expenses:",
+            downPayment: "Down Payment Available:",
+            interestRate: "Interest Rate (%):",
+            mortgageTerm: "Mortgage Term (Years):",
+            paymentFrequency: "Payment Frequency:",
+            years: "years",
+            weekly: "Weekly",
+            biweekly: "Bi-weekly",
+            monthly: "Monthly",
+            perWeek: "/week",
+            perBiweek: "/2 weeks",
+            perMonth: "/month",
+            estimatedPayment: "Estimated Payment Amount",
+            borrowingCapacity: "Your Estimated Borrowing Capacity",
+            paymentHint: "This is your estimated maximum payment amount based on 32% of your disposable income (annual income minus annualized expenses) and the selected frequency.",
+            capacityHint: "This is an estimate based on a 32% Gross Debt Service ratio applied to your disposable income."
+          }
+        };
+        
+        const currentLanguage = language;
+        const text = () => translations[currentLanguage] || translations.en;
+        
+        // Define allowed mortgage term values
+        const allowedTerms = [5, 10, 15, 20, 25, 30];
+
+        // Frequency maps used in calculation
+        const freqMap = { monthly: 12, 'biweekly': 26, weekly: 52 };
+        const freqLabelMap = {
+          monthly: text().perMonth,
+          'biweekly': text().perBiweek,
+          weekly: text().perWeek,
+        };
+
+        // Calculation: disposable income = max(annualIncome - monthlyExpenses×12, 0)
+        function calculatePaymentAndCapacity(annualIncome, monthlyExpenses, deposit, interestRate, term, frequency) {
+          const paymentsPerYear = freqMap[frequency];
+          const annualExp = monthlyExpenses * 12;
+          const disposableAnnualIncome = Math.max(annualIncome - annualExp, 0);
+          const periodicIncome = disposableAnnualIncome / paymentsPerYear;
+          const maxPeriodicPayment = periodicIncome * 0.32;
+          const periodicRate = interestRate / 100 / paymentsPerYear;
+          const numberOfPayments = term * paymentsPerYear;
+          let presentValue = 0;
+          if (periodicRate > 0) {
+            presentValue = maxPeriodicPayment *
+              ((1 - Math.pow(1 + periodicRate, -numberOfPayments)) / periodicRate);
+          } else {
+            presentValue = maxPeriodicPayment * numberOfPayments;
+          }
+          return {
+            paymentPerPeriod: maxPeriodicPayment,
+            borrowingCapacity: Math.round(presentValue + deposit)
+          };
+        }
+
+        // Create the container form
+        const formContainer = document.createElement('div');
+        formContainer.innerHTML = `
+          <style>
+            /* Form Styling */
+            form {
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            .form-row {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-bottom: 15px;
+            }
+            .form-column {
+              flex: 1;
+              min-width: 200px;
+            }
+            .bold-label {
+              font-weight: 600;
+              display: block;
+              margin-bottom: 5px;
+              color: #000;
+              font-size: 14px;
+            }
+            .input-group {
+              position: relative;
+              width: 100%;
+            }
+            .currency-input {
+              height: 40px;
+              width: 100%;
+              border: 1px solid rgba(0, 0, 0, 0.2);
+              border-radius: 8px;
+              padding: 12px;
+              background: #fff;
+              font-size: 13px;
+              outline: none;
+              box-sizing: border-box;
+              padding-left: 30px;
+            }
+            .currency-symbol {
+              position: absolute;
+              left: 10px;
+              top: 50%;
+              transform: translateY(-50%);
+              color: black;
+            }
+            .number-input-wrapper {
+              position: relative;
+              width: 100%;
+            }
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+            input[type="number"] {
+              -moz-appearance: textfield;
+            }
+            .number-input-controls {
+              position: absolute;
+              right: 0px;
+              top: 0px;
+              bottom: 0px;
+              width: 20px;
+              display: flex;
+              flex-direction: column;
+              background-color: #F8EAFA;
+              border: 1px solid rgba(0,0,0,0.1);
+              border-radius: 0 8px 8px 0;
+              overflow: hidden;
+            }
+            .number-input-up,
+            .number-input-down {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #9C27B0;
+              cursor: pointer;
+              font-size: 8px;
+            }
+            .number-input-up:hover,
+            .number-input-down:hover {
+              background-color: #9C27B0;
+              color: #fff;
+            }
+            /* Dropdown Styles */
+            .dropdown-container {
+              position: relative;
+              max-width: 100%;
+              margin-top: 4px;
+            }
+            .select-btn {
+              display: flex;
+              height: 40px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              background-color: #fff;
+              border: 1px solid rgba(0,0,0,0.2);
+              color: #555;
+            }
+            .select-btn .btn-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: black;
+            }
+            .arrow-dwn {
+              display: flex;
+              height: 24px;
+              width: 24px;
+              color: #9C27B0;
+              font-size: 12px;
+              border-radius: 50%;
+              background: #F8EAFA;
+              align-items: center;
+              justify-content: center;
+              transition: 0.3s;
+            }
+            .select-btn.open .arrow-dwn {
+              transform: rotate(-180deg);
+            }
+            .select-btn:focus,
+            .select-btn.open {
+              border: 2px solid #9C27B0;
+            }
+            .list-items {
+              position: static;
+              top: 100%;
+              left: 0;
+              right: 0;
+              margin-top: 4px;
+              border-radius: 8px;
+              padding: 8px 0;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+              display: none;
+              max-height: 200px;
+              overflow-y: auto;
+              z-index: 100;
+            }
+            /* Dropdown style with checkboxes */
+            .list-items .item {
+              display: flex;
+              align-items: center;
+              height: 36px;
+              cursor: pointer;
+              transition: 0.3s;
+              padding: 0 12px;
+              border-radius: 8px;
+            }
+            .list-items .item:hover {
+              background-color: #F8EAFA;
+            }
+            .item .checkbox {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              height: 16px;
+              width: 16px;
+              border-radius: 50%;
+              margin-right: 8px;
+              border: 1.5px solid #c0c0c0;
+              transition: all 0.3s ease-in-out;
+            }
+            .item.checked .checkbox {
+              background-color: #9C27B0;
+              border: 2px solid #9C27B0;
+            }
+            .checkbox .check-icon {
+              color: #fff;
+              font-size: 12px;
+              transform: scale(0);
+              transition: all 0.2s ease-in-out;
+            }
+            .item.checked .check-icon {
+              transform: scale(1);
+            }
+            .list-items .item:not(.checked) .checkbox svg path {
+              fill: transparent !important;
+            }
+            .list-items .item:not(.checked):hover .checkbox svg path {
+              fill: #9C27B0 !important;
+            }
+            .list-items .item.checked .checkbox svg path {
+              fill: #ffffff !important;
+            }
+            .item .item-text {
+              font-size: 13px;
+              font-weight: 400;
+              color: #333;
+              margin-left: 8px;
+            }
+            /* Results Styles */
+            .results-container {
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #F8EAFA;
+              border-radius: 8px;
+              text-align: center;
+            }
+            .results-title {
+              margin: 0 0 10px 0;
+              color: #333;
+              font-size: 16px;
+              font-weight: 600;
+            }
+            .results-amount {
+              font-size: 2em;
+              color: #9C27B0;
+              font-weight: bold;
+              margin: 15px 0;
+            }
+            input[readonly] {
+              background-color: #f9f9f9;
+              cursor: not-allowed;
+            }
+            .result h3 {
+              font-size: 16px;
+              font-weight: 600;
+              margin-bottom: 10px;
+              color: #333;
+            }
+            .result .amount {
+              font-size: 24px;
+              font-weight: bold;
+              color: #9C27B0;
+              margin: 15px 0;
+            }
+            .result .hint {
+              font-size: 12px;
+              color: #666;
+              margin-bottom: 15px;
+            }
+            .results-row {
+              display: flex;
+              gap: 15px;
+              margin-top: 20px;
+            }
+            .results-row .result {
+              flex: 1;
+              background-color: #F8EAFA;
+              padding: 20px;
+              border-radius: 8px;
+              text-align: center;
+              display: block;
+            }
+          </style>
+
+          <div class="form-row">
+            <div class="form-column">
+              <label for="annual-income" class="bold-label">
+                ${text().annualIncome}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="annual-income" class="currency-input" required
+                       placeholder="Enter your annual income"
+                       value="${formatNumber(75000)}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="annual-income" data-step="1000">▲</div>
+                  <div class="number-input-down" data-target="annual-income" data-step="1000">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label for="monthly-expenses" class="bold-label">
+                ${text().monthlyExpenses}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="monthly-expenses" class="currency-input" required
+                       placeholder="Enter monthly expenses"
+                       value="${formatNumber(3000)}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="monthly-expenses" data-step="250">▲</div>
+                  <div class="number-input-down" data-target="monthly-expenses" data-step="250">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-column">
+              <label for="down-payment" class="bold-label">
+                ${text().downPayment}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input type="text" id="down-payment" class="currency-input" required
+                       placeholder="Enter down payment"
+                       value="${formatNumber(25000)}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="down-payment" data-step="1000">▲</div>
+                  <div class="number-input-down" data-target="down-payment" data-step="1000">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label for="interest-rate" class="bold-label">
+                ${text().interestRate}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <input type="number" id="interest-rate" class="currency-input" required
+                       placeholder="Enter interest rate"
+                       min="1" max="100" step="0.05" value="5.9">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="interest-rate" data-step="0.05">▲</div>
+                  <div class="number-input-down" data-target="interest-rate" data-step="0.05">▼</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mortgage Term & Payment Frequency -->
+          <div class="form-row">
+            <div class="form-column">
+              <label class="bold-label" for="mortgage-term">
+                ${text().mortgageTerm}
+              </label>
+              <div class="input-group number-input-wrapper">
+                <input type="text" id="mortgage-term" class="currency-input" value="25 ${text().years}">
+                <div class="number-input-controls">
+                  <div class="number-input-up" data-target="mortgage-term" data-step="1">▲</div>
+                  <div class="number-input-down" data-target="mortgage-term" data-step="1">▼</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-column">
+              <label class="bold-label" for="payment-frequency">
+                ${text().paymentFrequency}
+              </label>
+              <div class="dropdown-container" id="dropdown-payment-frequency">
+                <div class="select-btn" tabindex="0">
+                  <span class="btn-text" id="frequency-text">${text().weekly}</span>
+                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                </div>
+                <ul class="list-items single-select" id="paymentFrequencyList">
+                  <li class="item">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="monthly">${text().monthly}</span>
+                  </li>
+                  <li class="item">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="biweekly">${text().biweekly}</span>
+                  </li>
+                  <li class="item checked">
+                    <span class="checkbox">${SVG_CHECK}</span>
+                    <span class="item-text" data-value="weekly">${text().weekly}</span>
+                  </li>
+                </ul>
+              </div>
+              <input type="hidden" id="payment-frequency" value="weekly">
+            </div>
+          </div>
+
+          <!-- Results Section -->
+          <div class="results-row">
+            <div class="result" id="payment-preview">
+              <h3>${text().estimatedPayment}</h3>
+              <div class="amount" id="payment-amount">$0</div>
+              <div class="hint">
+                ${text().paymentHint}
+              </div>
+            </div>
+            <div class="result" id="capacity-preview">
+              <h3>${text().borrowingCapacity}</h3>
+              <div class="amount" id="capacity-amount">$0</div>
+              <div class="hint">
+                ${text().capacityHint}
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Append the form container to the provided element
+        element.appendChild(formContainer);
+
+        /********** Numeric Up/Down Controls **********/
+        function attachNumericControls() {
+          formContainer.querySelectorAll('.number-input-up').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.preventDefault();
+              const targetId = btn.getAttribute('data-target');
+              const step = parseFloat(btn.getAttribute('data-step'));
+              const input = formContainer.querySelector("#" + targetId);
+              if (!input) return;
+
+              let currentValue = parseNumber(input.value);
+              let newValue = currentValue;
+
+              if (targetId === 'annual-income') {
+                newValue = currentValue === 0 ? 1000 : Math.round((currentValue + step) / step) * step;
+              } else if (targetId === 'monthly-expenses') {
+                newValue = currentValue === 0 ? 250 : Math.round((currentValue + step) / step) * step;
+              } else if (targetId === 'down-payment') {
+                newValue = currentValue === 0 ? 1000 : Math.round((currentValue + step) / step) * step;
+              } else if (targetId === 'interest-rate') {
+                newValue = (currentValue + step).toFixed(2);
+                // Set the value and manually dispatch "input" to recalc
+                input.value = newValue;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else if (targetId === 'mortgage-term') {
+                // For mortgage term, use the allowed list
+                const allowed = allowedTerms;
+                const currentNum = parseNumber(input.value);
+                let idx = allowed.indexOf(currentNum);
+                if (idx === -1) { idx = allowed.indexOf(25); }
+                if (idx < allowed.length - 1) {
+                  newValue = allowed[idx + 1];
+                } else {
+                  newValue = allowed[idx];
+                }
+                input.value = newValue + " " + text().years;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else {
+                newValue = currentValue + step;
+              }
+
+              if (["annual-income","monthly-expenses","down-payment"].includes(targetId)) {
+                input.value = formatNumber(newValue);
+              } else {
+                input.value = newValue;
+              }
+              // Trigger the "input" event so we recalc
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+          formContainer.querySelectorAll('.number-input-down').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.preventDefault();
+              const targetId = btn.getAttribute('data-target');
+              const step = parseFloat(btn.getAttribute('data-step'));
+              const input = formContainer.querySelector("#" + targetId);
+              if (!input) return;
+
+              let currentValue = parseNumber(input.value);
+              let newValue = currentValue;
+
+              if (targetId === 'annual-income') {
+                newValue = currentValue === 0 ? 0 : Math.round((currentValue - step) / step) * step;
+              } else if (targetId === 'monthly-expenses') {
+                newValue = currentValue === 0 ? 0 : Math.round((currentValue - step) / step) * step;
+              } else if (targetId === 'down-payment') {
+                newValue = currentValue === 0 ? 0 : Math.round((currentValue - step) / step) * step;
+              } else if (targetId === 'interest-rate') {
+                newValue = Math.max(0, (currentValue - step).toFixed(2));
+                input.value = newValue;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else if (targetId === 'mortgage-term') {
+                // For mortgage term, use the allowed list
+                const allowed = allowedTerms;
+                const currentNum = parseNumber(input.value);
+                let idx = allowed.indexOf(currentNum);
+                if (idx === -1) { idx = allowed.indexOf(25); }
+                if (idx > 0) {
+                  newValue = allowed[idx - 1];
+                } else {
+                  newValue = allowed[idx];
+                }
+                input.value = newValue + " " + text().years;
+                input.dispatchEvent(new Event('input'));
+                return;
+              } else {
+                newValue = currentValue - step;
+              }
+
+              if (newValue < 0) newValue = 0;
+              if (["annual-income","monthly-expenses","down-payment"].includes(targetId)) {
+                input.value = formatNumber(newValue);
+              } else {
+                input.value = newValue;
+              }
+              input.dispatchEvent(new Event('input'));
+            });
+          });
+        }
+
+        /********** Dropdown Setup **********/
+        function setupDropdownSingleModal(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = formContainer.querySelector("#" + dropdownId);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector("#" + listId) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector("#" + hiddenInputId);
+
+          // If you want a default text, set it here
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = selectBtn.classList.toggle("open");
+            listEl.style.display = isOpen ? "block" : "none";
+            if (isOpen) {
+              formContainer.querySelectorAll('.select-btn.open').forEach(openBtn => {
+                if (openBtn !== selectBtn) {
+                  openBtn.classList.remove('open');
+                  const otherList = openBtn.parentElement.querySelector('.list-items');
+                  if (otherList) otherList.style.display = 'none';
+                }
+              });
+            }
+          });
+
+          const listItems = listEl.querySelectorAll(".item");
+          listItems.forEach(item => {
+            item.addEventListener("click", ev => {
+              ev.stopPropagation();
+              listItems.forEach(i => i.classList.remove("checked"));
+              item.classList.add("checked");
+
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+
+              // Dispatch 'input' to recalc
+              hiddenInput.dispatchEvent(new Event('input'));
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            });
+          });
+
+          // Close if clicking outside
+          formContainer.addEventListener("click", (ev) => {
+            if (!container.contains(ev.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // Listen for changes in fields to recalc
+        function updateCalculations() {
+          const annualIncome = parseNumber(formContainer.querySelector('#annual-income').value) || 0;
+          const monthlyExpenses = parseNumber(formContainer.querySelector('#monthly-expenses').value) || 0;
+          const downPayment = parseNumber(formContainer.querySelector('#down-payment').value) || 0;
+          const interestRate = parseFloat(formContainer.querySelector('#interest-rate').value) || 0;
+          const mortgageTerm = parseNumber(formContainer.querySelector('#mortgage-term').value) || 25;
+          const frequency = formContainer.querySelector('#payment-frequency').value || 'weekly';
+
+          const paymentPreview = formContainer.querySelector('#payment-preview');
+          const capacityPreview = formContainer.querySelector('#capacity-preview');
+          const paymentAmount = formContainer.querySelector('#payment-amount');
+          const capacityAmount = formContainer.querySelector('#capacity-amount');
+
+          if (annualIncome > 0 && interestRate > 0) {
+            const { paymentPerPeriod, borrowingCapacity } =
+              calculatePaymentAndCapacity(annualIncome, monthlyExpenses, downPayment, interestRate, mortgageTerm, frequency);
+
+            paymentAmount.textContent = `${formatCurrency(Math.round(paymentPerPeriod))}${freqLabelMap[frequency].replace(' ', '')}`;
+            capacityAmount.textContent = `${formatCurrency(borrowingCapacity)}`;
+
+            paymentPreview.style.display = 'block';
+            capacityPreview.style.display = 'block';
+          } else {
+            paymentPreview.style.display = 'block';
+            capacityPreview.style.display = 'block';
+            paymentAmount.textContent = '$0';
+            capacityAmount.textContent = '$0';
+          }
+        }
+
+        // Initialize the numeric controls
+        attachNumericControls();
+
+        // Setup Payment Frequency
+        setupDropdownSingleModal(
+          "dropdown-payment-frequency",
+          "paymentFrequencyList",
+          "payment-frequency",
+          text().weekly
+        );
+
+        // Recalc on input changes
+        const fields = [
+          '#annual-income',
+          '#monthly-expenses',
+          '#down-payment',
+          '#interest-rate',
+          '#mortgage-term',
+          '#payment-frequency'
+        ];
+        fields.forEach(selector => {
+          const element = formContainer.querySelector(selector);
+          if (element) {
+            element.addEventListener('input', () => updateCalculations());
+          }
+        });
+
+        // Initial calc
+        updateCalculations();
+      }
+    };
+
+    // --- CombinedCalculatorsExtension ---
+    const CombinedCalculatorsExtension = {
+      name: "CombinedCalculators",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "ext_combined_calculators" || trace.payload?.name === "ext_combined_calculators",
+      render: ({ trace, element }) => {
+        const { language, propertyCost } = trace.payload;
+        const isEnglish = language === "en";
+        console.log("CombinedCalculatorsExtension rendering with:", { language, propertyCost });
+        
+        // Use the provided element or get the wrapper
+        const calculatorsWrapper = element || document.getElementById("calculators-wrapper");
+        if (!calculatorsWrapper) {
+          console.error("Calculators wrapper element not found!");
+          return;
+        }
+        
+        // Create the navigation HTML
+        // Add this style to the navHTML in CombinedCalculatorsExtension:
+
+const navHTML = `
+  <style>
+    /* Main container styling */
+    #calculators-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    
+    .calculator-nav {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .calculator-nav-button {
+      padding: 12px 16px;
+      cursor: pointer;
+      border: none;
+      background: #F8EAFA;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: background 0.2s;
+      color: #9C27B0;
+      font-size: 16px;
+    }
+    .calculator-nav-button.active {
+      background: #9C27B0;
+      color: #fff;
+    }
+    #calculator-container {
+      border-top: 2px solid #9C27B0;
+      padding: 15px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    /* Ensure child forms don't exceed container width */
+    #calculator-container form,
+    #calculator-container > div {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 840px) {
+      #calculators-wrapper {
+        padding: 10px;
+      }
+    }
+  </style>
+  <div class="calculator-nav">
+    <button class="calculator-nav-button active" data-calculator="borrowing">
+      ${isEnglish ? "Borrowing Capacity" : "Capacité d'emprunt"}
+    </button>
+    <button class="calculator-nav-button" data-calculator="mortgage">
+      ${isEnglish ? "Mortgage Payment" : "Paiement hypothécaire"}
+    </button>
+  </div>
+  <div id="calculator-container"></div>
+`;
+        
+        // Set the HTML inside the wrapper
+        calculatorsWrapper.innerHTML = navHTML;
+        
+        // Use querySelector on calculatorsWrapper to get the calculator container
+        const calculatorContainer = calculatorsWrapper.querySelector("#calculator-container");
+        if (!calculatorContainer) {
+          console.error("Calculator container element not found after creation!");
+          return;
+        }
+        
+        // Function to switch calculators
+        function switchCalculator(type) {
+          console.log(`Switching to calculator: ${type}`);
+          // Get the nav buttons scoped to calculatorsWrapper
+          const buttons = calculatorsWrapper.querySelectorAll(".calculator-nav-button");
+          buttons.forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.calculator === type);
+          });
+          // Clear the calculator container
+          calculatorContainer.innerHTML = "";
+          if (type === "borrowing") {
+            BorrowingCalculatorExtension.render({
+              trace: { payload: { language: language, name: "ext_borrowing" } },
+              element: calculatorContainer
+            });
+          } else if (type === "mortgage") {
+            MortgageCalculatorExtension.render({
+              trace: { payload: { language: language, propertyCost: propertyCost, name: "mortgage_calculator" } },
+              element: calculatorContainer
+            });
+          }
+        }
+         
+        // Attach click event listeners for the navigation buttons
+        const navButtons = calculatorsWrapper.querySelectorAll(".calculator-nav-button");
+        navButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            switchCalculator(button.dataset.calculator);
+          });
+        });
+        
+        // Default to the borrowing calculator
+        switchCalculator("borrowing");
+      }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /************** EXTENSION #7: MortgageCalculatorExtension **************/
-const MortgageCalculatorExtension = {
+const MortgageCalculatorExtension_old = {
       name: 'MortgageCalculator',
       type: 'response',
       match: ({ trace }) =>
@@ -6905,7 +8486,7 @@ const MortgageCalculatorExtension = {
     /**********************************************************************
      * 4) BorrowingCalculatorExtension
      **********************************************************************/
-    const BorrowingCalculatorExtension = {
+    const BorrowingCalculatorExtension_old = {
       name: 'BorrowingCalculator',
       type: 'response',
       match: ({ trace }) =>
@@ -7578,7 +9159,7 @@ const MortgageCalculatorExtension = {
     /**********************************************************************
      * 5) CombinedCalculatorsExtension
      **********************************************************************/
-    const CombinedCalculatorsExtension = {
+    const CombinedCalculatorsExtension_old = {
       name: 'CombinedCalculators',
       type: 'response',
       match: ({ trace }) =>
