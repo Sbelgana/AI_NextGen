@@ -5402,6 +5402,17 @@ const ImageExtension = {
               border-radius: 12px;
               font-size: 12px;
             }
+	    /* Media query for phone screens */
+            @media (max-width: 768px) {
+              .image-gallery {
+                width: 300px;
+              }
+              .gallery-image {
+                max-width: 300px;
+                height: auto;
+                max-height: none;
+              }
+            }
           </style>
 
           <div class="gallery-header">
