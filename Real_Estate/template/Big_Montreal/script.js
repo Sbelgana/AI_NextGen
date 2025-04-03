@@ -904,7 +904,7 @@ const PropertySearchExtension = {
         /* Submit Button */
         .submit {
           color: #9a0df2;
-          background-color: #f5e7fe;
+          background-color: #F8EAFA;
           border: none;
           padding: 12px;
           border-radius: 8px;
@@ -964,7 +964,7 @@ const PropertySearchExtension = {
           color: #9a0df2;
           font-size: 13px;
           border-radius: 50%;
-          background: #f5e7fe;
+          background: #F8EAFA;
           align-items: center;
           justify-content: center;
           transition: transform 0.3s;
@@ -1012,7 +1012,7 @@ const PropertySearchExtension = {
         }
 
         .list-items .item:hover {
-          background-color: #f5e7fe;
+          background-color: #F8EAFA;
         }
 
         .item .item-text {
@@ -1097,7 +1097,7 @@ const PropertySearchExtension = {
         .group-header {
           font-weight: 500;
           padding: 8px 12px;
-          background: #f4eafb;
+          background: #F8EAFA;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -1142,7 +1142,7 @@ const PropertySearchExtension = {
           width: 20px;
           display: flex;
           flex-direction: column;
-          background-color: #f5e7fe;
+          background-color: #F8EAFA;
           border-left: 1px solid rgba(0, 0, 0, 0.1);
           border-radius: 0 4px 4px 0;
           overflow: hidden;
@@ -1204,7 +1204,7 @@ const PropertySearchExtension = {
         }
 
         .section-icon {
-          background-color: #f5e7fe;
+          background-color: #F8EAFA;
           color: #9a0df2;
           width: 32px;
           height: 32px;
@@ -1225,7 +1225,7 @@ const PropertySearchExtension = {
           color: #9a0df2;
           font-size: 13px;
           transition: transform 0.3s;
-          background: #f4eafb;
+          background: #F8EAFA;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1918,7 +1918,7 @@ input[type="number"] {
 /* Submit Button */
 .submit {
   color: #9a0df2;
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   border: none;
   padding: 12px;
   border-radius: 8px;
@@ -1978,7 +1978,7 @@ input[type="number"] {
   color: #9a0df2;
   font-size: 13px;
   border-radius: 50%;
-  background: #f5e7fe;
+  background: #F8EAFA;
   align-items: center;
   justify-content: center;
   transition: transform 0.3s;
@@ -2026,7 +2026,7 @@ input[type="number"] {
 }
 
 .list-items .item:hover {
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
 }
 
 .item .item-text {
@@ -2104,7 +2104,7 @@ input[type="checkbox"] {
 .group-header {
   font-weight: 500;
   padding: 8px 12px;
-  background: #f4eafb;
+  background: #F8EAFA;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2149,7 +2149,7 @@ input[type="checkbox"] {
   width: 20px;
   display: flex;
   flex-direction: column;
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   border-left: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 0 4px 4px 0;
   overflow: hidden;
@@ -2212,7 +2212,7 @@ input[type="checkbox"] {
 }
 
 .section-icon {
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   color: #9a0df2;
   width: 32px;
   height: 32px;
@@ -2238,7 +2238,7 @@ input[type="checkbox"] {
   color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
-  background: #f4eafb;
+  background: #F8EAFA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2998,7 +2998,7 @@ input[type="number"] {
 /* Submit Button */
 .submit {
   color: #9a0df2;
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   border: none;
   padding: 12px;
   border-radius: 8px;
@@ -3057,7 +3057,7 @@ input[type="number"] {
   color: #9a0df2;
   font-size: 12px;
   border-radius: 50%;
-  background: #f5e7fe;
+  background: #F8EAFA;
   align-items: center;
   justify-content: center;
   transition: 0.3s;
@@ -3105,7 +3105,7 @@ input[type="number"] {
 }
 
 .list-items .item:hover {
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
 }
 
 .item .item-text {
@@ -3183,7 +3183,7 @@ input[type="checkbox"] {
 .group-header {
   font-weight: 500;
   padding: 8px 12px;
-  background: #f4eafb;
+  background: #F8EAFA;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -3228,7 +3228,7 @@ input[type="checkbox"] {
   width: 20px;
   display: flex;
   flex-direction: column;
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   border-left: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 0 4px 4px 0;
   overflow: hidden;
@@ -3291,7 +3291,7 @@ input[type="checkbox"] {
 }
 
 .section-icon {
-  background-color: #f5e7fe;
+  background-color: #F8EAFA;
   color: #9a0df2;
   width: 32px;
   height: 32px;
@@ -3317,7 +3317,7 @@ input[type="checkbox"] {
   color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
-  background: #f4eafb;
+  background: #F8EAFA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3805,7 +3805,7 @@ const RescheduleExtension = {
           align-items: center;
         }
         .reschedule {
-          color: #9c27b0;
+          color: #9a0df2;
           background-color: #F8EAFA;
           border: none;
           padding: 12px 24px;
@@ -3824,7 +3824,7 @@ const RescheduleExtension = {
         }
         
         .reschedule:hover:not(:disabled) {
-      background-color: #9c27b0;
+      background-color: #9a0df2;
       font-weight: 700;
       color: #fff;
     }
@@ -3921,8 +3921,8 @@ const RescheduleExtension = {
         Cal.ns[namespace]("ui", {
           "theme": "light",
           "cssVarsPerTheme": {
-            "light": {"cal-brand": "#9c27b0"},
-            "dark": {"cal-brand": "#9c27b0"}
+            "light": {"cal-brand": "#9a0df2"},
+            "dark": {"cal-brand": "#9a0df2"}
           },
           "hideEventTypeDetails": false,
           "layout": "week_view"
@@ -4298,7 +4298,7 @@ input[type="email"] {
 
 input[type="text"]:focus,
 input[type="email"]:focus {
-  border: 2px solid #9c27b0;
+  border: 2px solid #9a0df2;
 }
 
 /* Remove spinner from number inputs */
@@ -4314,7 +4314,7 @@ input[type="number"] {
 
 /* Submit Button */
 .book-now {
-  color: #9c27b0;
+  color: #9a0df2;
   background-color: #F8EAFA;
   border: none;
   padding: 12px;
@@ -4327,7 +4327,7 @@ input[type="number"] {
 }
 
 .book-now:hover {
-  background-color: #9c27b0;
+  background-color: #9a0df2;
   font-weight: 700;
   color: #fff;
 }
@@ -4383,7 +4383,7 @@ input[type="number"] {
   display: flex;
   height: 24px;
   width: 24px;
-  color: #9c27b0;
+  color: #9a0df2;
   font-size: 12px;
   border-radius: 50%;
   background: #F8EAFA;
@@ -4398,7 +4398,7 @@ input[type="number"] {
 
 .select-btn:focus,
 .select-btn.open {
-  border: 2px solid #9c27b0;
+  border: 2px solid #9a0df2;
 }
 
 /* Dropdown Styles */
@@ -4457,8 +4457,8 @@ input[type="number"] {
 }
 
 .item.checked .checkbox {
-  background-color: #9c27b0;
-  border: 2px solid #9c27b0;
+  background-color: #9a0df2;
+  border: 2px solid #9a0df2;
 }
 
 .checkbox .check-icon {
@@ -4478,7 +4478,7 @@ input[type="number"] {
 }
 
 .list-items .item:not(.checked):hover .checkbox svg path {
-  fill: #9c27b0 !important;
+  fill: #9a0df2 !important;
 }
 
 .list-items .item.checked .checkbox svg path {
@@ -4487,7 +4487,7 @@ input[type="number"] {
 
 /* Standard checkbox */
 input[type="checkbox"] {
-  accent-color: #9c27b0;
+  accent-color: #9a0df2;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -4510,16 +4510,16 @@ input[type="checkbox"] {
 .group-header {
   font-weight: 500;
   padding: 8px 12px;
-  background: #f4eafb;
+  background: #F8EAFA;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #9c27b0;
+  color: #9a0df2;
 }
 
 .group-header .collapse-icon {
-  color: #9c27b0;
+  color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
   background: #fff;
@@ -4567,7 +4567,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9c27b0;
+  color: #9a0df2;
   cursor: pointer;
   font-size: 8px;
   transition: background-color 0.2s, color 0.2s;
@@ -4575,7 +4575,7 @@ input[type="checkbox"] {
 
 .price-up:hover,
 .price-down:hover {
-  background-color: #9c27b0;
+  background-color: #9a0df2;
   color: #fff;
 }
 
@@ -4605,12 +4605,12 @@ input[type="checkbox"] {
 }
 
 .section.active {
-  border: 2px solid #9c27b0;
+  border: 2px solid #9a0df2;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section:hover:not(.disabled) {
-  border-color: #9c27b0;
+  border-color: #9a0df2;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
@@ -4622,7 +4622,7 @@ input[type="checkbox"] {
 
 .section-icon {
   background-color: #F8EAFA;
-  color: #9c27b0;
+  color: #9a0df2;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -4644,10 +4644,10 @@ input[type="checkbox"] {
 
 /* Collapse Icon */
 .collapse-icon {
-  color: #9c27b0;
+  color: #9a0df2;
   font-size: 13px;
   transition: transform 0.3s;
-  background: #f4eafb;
+  background: #F8EAFA;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4857,8 +4857,8 @@ button:disabled {
                 Cal.ns[namespace]("ui", {
                   "theme": "light",
                   "cssVarsPerTheme": {
-                    "light": {"cal-brand": "#9c27b0"},
-                    "dark": {"cal-brand": "#9c27b0"}
+                    "light": {"cal-brand": "#9a0df2"},
+                    "dark": {"cal-brand": "#9a0df2"}
                   },
                   "hideEventTypeDetails": false,
                   "layout": "month_view"
@@ -5025,10 +5025,10 @@ const BookingExtension_2 = {
         input[type="email"]:focus,
         input[type="tel"]:focus,
         select.form-select:focus {
-          border: 2px solid #9c27b0;
+          border: 2px solid #9a0df2;
         }
         .book-now {
-          color: #9c27b0;
+          color: #9a0df2;
           background-color: #F8EAFA;
           border: none;
           padding: 12px;
@@ -5040,7 +5040,7 @@ const BookingExtension_2 = {
           transition: background-color 0.3s;
         }
         .book-now:hover {
-          background-color: #9c27b0;
+          background-color: #9a0df2;
           font-weight: 700;
           color: #fff;
         }
@@ -5073,7 +5073,7 @@ const BookingExtension_2 = {
         }
         .info-value {
           font-weight: 600;
-          color: #9c27b0;
+          color: #9a0df2;
         }
         
         /* Disabled States */
@@ -5142,8 +5142,8 @@ const BookingExtension_2 = {
       Cal.ns[namespace]("ui", {
         "theme": "light",
         "cssVarsPerTheme": {
-          "light": {"cal-brand": "#9c27b0"},
-          "dark": {"cal-brand": "#9c27b0"}
+          "light": {"cal-brand": "#9a0df2"},
+          "dark": {"cal-brand": "#9a0df2"}
         },
         "hideEventTypeDetails": false,
         "layout": "month_view"
@@ -5324,11 +5324,11 @@ const BookingExtensionOld = {
 
                 input[type="text"]:focus,
                 input[type="email"]:focus {
-                    border: 2px solid #9c27b0;
+                    border: 2px solid #9a0df2;
                 }
 
                 .book-now {
-                    color: #9c27b0;
+                    color: #9a0df2;
                     background-color: #F8EAFA;
                     border: none;
                     padding: 12px;
@@ -5340,7 +5340,7 @@ const BookingExtensionOld = {
                 }
                 .book-now:hover {
                     color: #fff;
-                    background-color: #9c27b0;
+                    background-color: #9a0df2;
                     font-weight: 700;
                 }
 
@@ -5369,7 +5369,7 @@ const BookingExtensionOld = {
                     display: flex;
                     height: 24px;
                     width: 24px;
-                    color: #9c27b0;
+                    color: #9a0df2;
                     font-size: 12px;
                     border-radius: 50%;
                     background: #F8EAFA;
@@ -5382,7 +5382,7 @@ const BookingExtensionOld = {
                 }
                 .select-btn:focus,
                 .select-btn.open {
-                    border: 2px solid #9c27b0;
+                    border: 2px solid #9a0df2;
                     outline: none;
                 }
                 .list-items {
@@ -5432,8 +5432,8 @@ const BookingExtensionOld = {
                     transition: all 0.3s ease-in-out;
                 }
                 .item.checked .checkbox {
-                    background-color: #9c27b0;
-                    border: 2px solid #9c27b0;
+                    background-color: #9a0df2;
+                    border: 2px solid #9a0df2;
                 }
                 .checkbox .check-icon {
                     color: #fff;
@@ -5482,7 +5482,7 @@ const BookingExtensionOld = {
                         <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9c27b0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9a0df2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                     </div>
@@ -5778,7 +5778,7 @@ const ImageExtension = {
             }
             .nav-btn {
               background-color: #F8EAFA;
-              color: #9c27b0;
+              color: #9a0df2;
               border: none;
               border-radius: 50%;
               width: 32px;
@@ -5791,7 +5791,7 @@ const ImageExtension = {
               transition: background-color 0.3s;
             }
             .nav-btn:hover {
-              background-color: #9c27b0;
+              background-color: #9a0df2;
               color: white;
             }
             .gallery-image-container {
@@ -6403,13 +6403,13 @@ const LocalisationExtension = {
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9C27B0;
+              color: #9a0df2;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9C27B0;
+              background-color: #9a0df2;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -6439,7 +6439,7 @@ const LocalisationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9C27B0;
+              color: #9a0df2;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -6452,7 +6452,7 @@ const LocalisationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9C27B0;
+              border: 2px solid #9a0df2;
             }
             .list-items {
               position: static;
@@ -6494,8 +6494,8 @@ const LocalisationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9C27B0;
-              border: 2px solid #9C27B0;
+              background-color: #9a0df2;
+              border: 2px solid #9a0df2;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -6510,7 +6510,7 @@ const LocalisationExtension = {
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9C27B0 !important;
+              fill: #9a0df2 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -6537,7 +6537,7 @@ const LocalisationExtension = {
             }
             .results-amount {
               font-size: 2em;
-              color: #9C27B0;
+              color: #9a0df2;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -6554,7 +6554,7 @@ const LocalisationExtension = {
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9C27B0;
+              color: #9a0df2;
               margin: 15px 0;
             }
             .result .hint {
@@ -6578,9 +6578,9 @@ const LocalisationExtension = {
               margin-top: 5px;
             }
             #loan-amount {
-  background-color: #9C27B0 !important; /* Purple background */
+  background-color: #9a0df2 !important; /* Purple background */
   color: white !important;
-  border-color: #9C27B0 !important;
+  border-color: #9a0df2 !important;
 }
 
 #loan-amount + .currency-symbol,
@@ -7129,13 +7129,13 @@ const LocalisationExtension = {
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9C27B0;
+              color: #9a0df2;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9C27B0;
+              background-color: #9a0df2;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -7165,7 +7165,7 @@ const LocalisationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9C27B0;
+              color: #9a0df2;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -7178,7 +7178,7 @@ const LocalisationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9C27B0;
+              border: 2px solid #9a0df2;
             }
             .list-items {
               position: static;
@@ -7220,8 +7220,8 @@ const LocalisationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9C27B0;
-              border: 2px solid #9C27B0;
+              background-color: #9a0df2;
+              border: 2px solid #9a0df2;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -7236,7 +7236,7 @@ const LocalisationExtension = {
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9C27B0 !important;
+              fill: #9a0df2 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -7263,7 +7263,7 @@ const LocalisationExtension = {
             }
             .results-amount {
               font-size: 2em;
-              color: #9C27B0;
+              color: #9a0df2;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -7280,7 +7280,7 @@ const LocalisationExtension = {
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9C27B0;
+              color: #9a0df2;
               margin: 15px 0;
             }
             .result .hint {
@@ -7699,15 +7699,15 @@ const navHTML = `
       border-radius: 4px;
       font-weight: bold;
       transition: background 0.2s;
-      color: #9C27B0;
+      color: #9a0df2;
       font-size: 16px;
     }
     .calculator-nav-button.active {
-      background: #9C27B0;
+      background: #9a0df2;
       color: #fff;
     }
     #calculator-container {
-      border-top: 2px solid #9C27B0;
+      border-top: 2px solid #9a0df2;
       padding: 15px;
       width: 100%;
       max-width: 800px;
@@ -8086,7 +8086,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9c27b0;
+      color: #9a0df2;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -8095,11 +8095,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     /* Form Layout */
     .input-group {
@@ -8200,7 +8200,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9c27b0;
+      color: #9a0df2;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -8213,7 +8213,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9c27b0;
+      border: 2px solid #9a0df2;
       outline: none;
     }
     .list-items {
@@ -8242,7 +8242,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      border: 2px solid #9a0df2; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -8265,8 +8265,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9c27b0;
-      border: 2px solid #9c27b0;
+      background-color: #9a0df2;
+      border: 2px solid #9a0df2;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -8298,7 +8298,7 @@ const MortgageCalculatorExtension_old = {
       width: 20px;
       display: flex;
       flex-direction: column;
-      background-color: #F5E7FE;
+      background-color: #F8EAFA;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: 0 8px 8px 0;
       overflow: hidden;
@@ -8760,7 +8760,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9c27b0;
+      color: #9a0df2;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -8769,11 +8769,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     /* Form Layout */
     .input-group {
@@ -8873,7 +8873,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9c27b0;
+      color: #9a0df2;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -8886,7 +8886,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9c27b0;
+      border: 2px solid #9a0df2;
       outline: none;
     }
     .list-items {
@@ -8915,7 +8915,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      border: 2px solid #9a0df2; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -8938,8 +8938,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9c27b0;
-      border: 2px solid #9c27b0;
+      background-color: #9a0df2;
+      border: 2px solid #9a0df2;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -8971,7 +8971,7 @@ const MortgageCalculatorExtension_old = {
       width: 20px;
       display: flex;
       flex-direction: column;
-      background-color: #F5E7FE;
+      background-color: #F8EAFA;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: 0 8px 8px 0;
       overflow: hidden;
@@ -9208,7 +9208,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9c27b0;
+      color: #9a0df2;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -9217,11 +9217,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9c27b0;
+      background-color: #9a0df2;
     }
     /* Form Layout */
     .input-group {
@@ -9321,7 +9321,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9c27b0;
+      color: #9a0df2;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -9334,7 +9334,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9c27b0;
+      border: 2px solid #9a0df2;
       outline: none;
     }
     .list-items {
@@ -9363,7 +9363,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9c27b0; /* match collapsible dropdown border */
+      border: 2px solid #9a0df2; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -9386,8 +9386,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9c27b0;
-      border: 2px solid #9c27b0;
+      background-color: #9a0df2;
+      border: 2px solid #9a0df2;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -9419,7 +9419,7 @@ const MortgageCalculatorExtension_old = {
       width: 20px;
       display: flex;
       flex-direction: column;
-      background-color: #F5E7FE;
+      background-color: #F8EAFA;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: 0 8px 8px 0;
       overflow: hidden;
@@ -9583,10 +9583,10 @@ const UserInformationExtension = {
             }
             input[type="text"]:focus,
             input[type="email"]:focus {
-              border: 2px solid #9c27b0;
+              border: 2px solid #9a0df2;
             }
             .book-now {
-              color: #9c27b0;
+              color: #9a0df2;
               background-color: #F8EAFA;
               border: none;
               padding: 12px;
@@ -9598,7 +9598,7 @@ const UserInformationExtension = {
               transition: background-color 0.3s;
             }
             .book-now:hover {
-              background-color: #9c27b0;
+              background-color: #9a0df2;
               font-weight: 700;
 	      color : #fff;
             }
@@ -9627,7 +9627,7 @@ const UserInformationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9c27b0;
+              color: #9a0df2;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -9640,7 +9640,7 @@ const UserInformationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9c27b0;
+              border: 2px solid #9a0df2;
               outline: none;
             }
             .list-items {
@@ -9690,8 +9690,8 @@ const UserInformationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9c27b0;
-              border: 2px solid #9c27b0;
+              background-color: #9a0df2;
+              border: 2px solid #9a0df2;
             }
             .checkbox .check-icon {
               color: #fff;
