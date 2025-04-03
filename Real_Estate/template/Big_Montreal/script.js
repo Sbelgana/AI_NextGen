@@ -7098,6 +7098,18 @@ const LocalisationExtension = {
             input[type="number"] {
               -moz-appearance: textfield;
             }
+	    input[type="text"], input[type="number"] {
+      width: 100%;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 8px 8px 8px 20px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      height: 40px;
+      left: 10px !important;
+    }
             .number-input-controls {
               position: absolute;
               right: 0px;
