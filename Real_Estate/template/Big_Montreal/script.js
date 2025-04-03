@@ -6041,24 +6041,17 @@ const LocalisationExtension = {
       render: ({ trace, element }) => {
         const { language, key, LAT, LNG } = trace.payload;
 
-        // Create a container that spans the full screen width and has a fixed height of 350px.
+        // This container will stay INSIDE the chat bubble
         const container = document.createElement("div");
-        container.id = `localisation-extension-${Date.now()}`;
         container.style.cssText = `
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100vw;       /* Full screen width */
-          height: 350px;      /* Fixed height */
-          border: 1px solid rgb(136, 136, 136);
+          width: 100%;              /* 100% of the bubble's width */
+          height: 350px;            /* fixed height */
+          border: 1px solid #888;
+          border-radius: 8px;
           overflow: hidden;
-          z-index: 9999;
-          background: #fff;
         `;
-        // Append to the body so it spans the full viewport.
-        document.body.appendChild(container);
+        element.appendChild(container);
 
-        // Function to load the LocalLogic SDK script if not already loaded.
         function loadSDKScript() {
           return new Promise((resolve, reject) => {
             if (document.querySelector('script[src="https://sdk.locallogic.co/sdks-js/1.13.2/index.umd.js"]')) {
@@ -6096,7 +6089,7 @@ const LocalisationExtension = {
               }
             });
 
-            // Render the local content directly into the container.
+            // Render the local content inside our container
             ll.create("local-content", container, {
               lat: parseFloat(LAT),
               lng: parseFloat(LNG),
@@ -6111,6 +6104,7 @@ const LocalisationExtension = {
           });
       }
     };
+
 
 const LocalisationExtension_old = {
 	name: 'Localisation',
