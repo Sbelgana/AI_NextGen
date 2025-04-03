@@ -6608,18 +6608,21 @@ const LocalisationExtension = {
               margin-bottom: 15px;
             }
             .results-row {
-              display: flex;
-              gap: 15px;
-              margin-top: 20px;
-            }
-            .results-row .result {
-              flex: 1;
-              background-color: #F8EAFA;
-              padding: 20px;
-              border-radius: 8px;
-              text-align: center;
-              display: block;
-            }
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap; /* Add this line */
+}
+
+.results-row .result {
+  flex: 1;
+  background-color: #F8EAFA;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  display: block;
+  min-width: 200px; /* Add this line */
+}
           </style>
 
           <div class="form-row">
