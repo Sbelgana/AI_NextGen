@@ -5471,11 +5471,12 @@ const LocalisationExtension = {
         const container = document.createElement("div");
 
         // Determine container width based on device screen width
-        const containerWidth = window.innerWidth <= 768 ? "400px" : "800px";
+        const containerWidth = window.innerWidth <= 768 ? "300px" : "800px";
+	const containerHeight = window.innerWidth <= 768 ? "500px" : "400px";
 
         container.style.cssText = `
           width: ${containerWidth};
-          height: 400px;
+          height: ${containerHeight};
           border: 1px solid #888;
           border-radius: 8px;
           overflow: hidden;
