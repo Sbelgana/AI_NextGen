@@ -6033,8 +6033,82 @@ const ImageExtensionOld = {
 };
 
 /************** EXTENSION #6: LocalisationExtension **************/
-/************** EXTENSION #6: LocalisationExtension **************/
 const LocalisationExtension = {
+      name: 'Localisation',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_localisation' || trace.payload?.name === 'ext_localisation',
+      render: ({ trace, element }) => {
+        const { language, key, LAT, LNG } = trace.payload;
+
+        // Create a container element to hold the local content (no modal)
+        const container = document.createElement("div");
+        container.id = `localisation-extension-${Date.now()}`;
+        container.style.cssText = `
+          width: 100%;
+          height: 100%;
+          border: 1px solid rgb(136, 136, 136);
+          border-radius: 8px;
+          overflow: hidden;
+          position: relative;
+        `;
+        element.appendChild(container);
+
+        // Function to load the LocalLogic SDK script if it isn’t already loaded
+        function loadSDKScript() {
+          return new Promise((resolve, reject) => {
+            if (document.querySelector('script[src="https://sdk.locallogic.co/sdks-js/1.13.2/index.umd.js"]')) {
+              resolve();
+              return;
+            }
+            const sdkScript = document.createElement('script');
+            sdkScript.src = "https://sdk.locallogic.co/sdks-js/1.13.2/index.umd.js";
+            sdkScript.async = true;
+            sdkScript.onload = () => resolve();
+            sdkScript.onerror = () =>
+              reject(new Error('Failed to load LocalLogic SDK script.'));
+            document.body.appendChild(sdkScript);
+          });
+        }
+
+        loadSDKScript()
+          .then(() => {
+            if (typeof LLSDKsJS === 'undefined') {
+              container.innerHTML = "LocalLogic SDK not available.";
+              return;
+            }
+
+            const ll = LLSDKsJS(key, {
+              locale: language,
+              appearance: {
+                theme: "day",
+                variables: {
+                  "--ll-color-primary": "#9C27B0",
+                  "--ll-color-primary-variant1": "#9C27B0",
+                  "--ll-border-radius-small": "8px",
+                  "--ll-border-radius-medium": "16px",
+                  "--ll-font-family": "Avenir, sans-serif"
+                }
+              }
+            });
+
+            // Render the local content directly into the container
+            ll.create("local-content", container, {
+              lat: parseFloat(LAT),
+              lng: parseFloat(LNG),
+              cooperativeGestures: false,
+              marker: { lat: parseFloat(LAT), lng: parseFloat(LNG) },
+              zoom: 20
+            });
+          })
+          .catch(error => {
+            container.innerHTML = "Error loading local content.";
+            console.error(error);
+          });
+      }
+    };
+
+const LocalisationExtension_old = {
 	name: 'Localisation',
 	type: 'response',
 	match: ({ trace }) => trace.type === 'ext_localisation' || trace.payload?.name === 'ext_localisation',
