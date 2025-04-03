@@ -5475,7 +5475,7 @@ const LocalisationExtension = {
 
         container.style.cssText = `
           width: ${containerWidth};
-          height: 350px;
+          height: 400px;
           border: 1px solid #888;
           border-radius: 8px;
           overflow: hidden;
