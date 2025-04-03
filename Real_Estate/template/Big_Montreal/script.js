@@ -6041,20 +6041,24 @@ const LocalisationExtension = {
       render: ({ trace, element }) => {
         const { language, key, LAT, LNG } = trace.payload;
 
-        // Create a container element to hold the local content (no modal)
+        // Create a container that spans the full screen width and has a fixed height of 350px.
         const container = document.createElement("div");
         container.id = `localisation-extension-${Date.now()}`;
         container.style.cssText = `
-          width: 100%;
-          height: 100%;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100vw;       /* Full screen width */
+          height: 350px;      /* Fixed height */
           border: 1px solid rgb(136, 136, 136);
-          border-radius: 8px;
           overflow: hidden;
-          position: relative;
+          z-index: 9999;
+          background: #fff;
         `;
-        element.appendChild(container);
+        // Append to the body so it spans the full viewport.
+        document.body.appendChild(container);
 
-        // Function to load the LocalLogic SDK script if it isn’t already loaded
+        // Function to load the LocalLogic SDK script if not already loaded.
         function loadSDKScript() {
           return new Promise((resolve, reject) => {
             if (document.querySelector('script[src="https://sdk.locallogic.co/sdks-js/1.13.2/index.umd.js"]')) {
@@ -6083,8 +6087,8 @@ const LocalisationExtension = {
               appearance: {
                 theme: "day",
                 variables: {
-                  "--ll-color-primary": "#9C27B0",
-                  "--ll-color-primary-variant1": "#9C27B0",
+                  "--ll-color-primary": "#A10159",
+                  "--ll-color-primary-variant1": "#010159",
                   "--ll-border-radius-small": "8px",
                   "--ll-border-radius-medium": "16px",
                   "--ll-font-family": "Avenir, sans-serif"
@@ -6092,7 +6096,7 @@ const LocalisationExtension = {
               }
             });
 
-            // Render the local content directly into the container
+            // Render the local content directly into the container.
             ll.create("local-content", container, {
               lat: parseFloat(LAT),
               lng: parseFloat(LNG),
