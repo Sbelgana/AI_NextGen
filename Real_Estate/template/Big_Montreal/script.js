@@ -401,26 +401,26 @@ function generateAirtableFormula(input) {
 const SVG_DOLLAR = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="18px" height="18px">
   <g transform="translate(0, 0)">
-    <path fill="#9a0df2" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
+    <path fill="#9C27B0" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
   </g>
 </svg>
 `;
 
 const SVG_LIST = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
+  <path fill="#9C27B0" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
 </svg>
 `;
 
 const SVG_SLIDER = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
+  <path fill="#9C27B0" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
 </svg>
 `;
 
 const SVG_ADDRESS = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+  <path fill="#9C27B0" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
 </svg>
 `;
 
@@ -428,7 +428,7 @@ const SVG_CHEVRON = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
   <!-- Added 50px padding on top and bottom -->
   <g transform="translate(75, 75)">
-    <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+    <path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
   </g>
 </svg>
 `;
@@ -441,43 +441,43 @@ const SVG_CHECK = `
 
 const SVG_HOUSE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
+  <path fill="#9C27B0" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
 </svg>
 `;
 
 const SVG_USER = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+  <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
 </svg>
 `;
 
 const SVG_USER_TIE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
+  <path fill="#9C27B0" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
 </svg>
 `;
 
 const SVG_BUILDING_COLUMNS = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3 0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0 196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1-28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0 0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+  <path fill="#9C27B0" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3 0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0 196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1-28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0 0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
 </svg>
 `;
 
 const SVG_NOTE_STICK = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
+  <path fill="#9C27B0" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
 </svg>
 `;
 
 const SVG_BRIEFCASE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7 96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9 0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
+  <path fill="#9C27B0" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7 96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9 0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
 </svg>
 `;
 
 const SVG_MESSAGE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
+  <path fill="#9C27B0" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
 </svg>
 `;
 
@@ -887,7 +887,7 @@ const PropertySearchExtension = {
 
         input[type="text"]:focus,
         input[type="number"]:focus {
-          border: 2px solid #9a0df2;
+          border: 2px solid #9C27B0;
         }
 
         /* Remove spinner from number inputs */
@@ -903,7 +903,7 @@ const PropertySearchExtension = {
 
         /* Submit Button */
         .submit {
-          color: #9a0df2;
+          color: #9C27B0;
           background-color: #F8EAFA;
           border: none;
           padding: 12px;
@@ -916,7 +916,7 @@ const PropertySearchExtension = {
 
         .submit:hover {
           color: #fff;
-          background-color: #9a0df2;
+          background-color: #9C27B0;
           font-weight: 700;
         }
 
@@ -961,7 +961,7 @@ const PropertySearchExtension = {
           display: flex;
           height: 24px;
           width: 24px;
-          color: #9a0df2;
+          color: #9C27B0;
           font-size: 13px;
           border-radius: 50%;
           background: #F8EAFA;
@@ -976,7 +976,7 @@ const PropertySearchExtension = {
 
         .select-btn:focus,
         .select-btn.open {
-          border: 2px solid #9a0df2;
+          border: 2px solid #9C27B0;
         }
 
         /* Dropdown List */
@@ -1044,8 +1044,8 @@ const PropertySearchExtension = {
         }
 
         .item.checked .checkbox {
-          background-color: #9a0df2;
-          border: 2px solid #9a0df2;
+          background-color: #9C27B0;
+          border: 2px solid #9C27B0;
         }
 
         .checkbox .check-icon {
@@ -1065,7 +1065,7 @@ const PropertySearchExtension = {
         }
 
         .list-items .item:not(.checked):hover .checkbox svg path {
-          fill: #9a0df2 !important;
+          fill: #9C27B0 !important;
         }
 
         .list-items .item.checked .checkbox svg path {
@@ -1074,7 +1074,7 @@ const PropertySearchExtension = {
 
         /* Standard checkbox */
         input[type="checkbox"] {
-          accent-color: #9a0df2;
+          accent-color: #9C27B0;
           width: 18px;
           height: 18px;
           cursor: pointer;
@@ -1102,11 +1102,11 @@ const PropertySearchExtension = {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          color: #9a0df2;
+          color: #9C27B0;
         }
 
         .group-header .collapse-icon {
-          color: #9a0df2;
+          color: #9C27B0;
           font-size: 13px;
           transition: transform 0.3s;
           background: #fff;
@@ -1154,7 +1154,7 @@ const PropertySearchExtension = {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #9a0df2;
+          color: #9C27B0;
           cursor: pointer;
           font-size: 8px;
           transition: background-color 0.2s, color 0.2s;
@@ -1162,7 +1162,7 @@ const PropertySearchExtension = {
 
         .price-up:hover,
         .price-down:hover {
-          background-color: #9a0df2;
+          background-color: #9C27B0;
           color: #fff;
         }
 
@@ -1188,12 +1188,12 @@ const PropertySearchExtension = {
         }
 
         .section.active {
-          border-color: #9a0df2;
+          border-color: #9C27B0;
           box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
         }
 
         .section:hover:not(.disabled) {
-          border-color: #9a0df2;
+          border-color: #9C27B0;
           box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
         }
 
@@ -1205,7 +1205,7 @@ const PropertySearchExtension = {
 
         .section-icon {
           background-color: #F8EAFA;
-          color: #9a0df2;
+          color: #9C27B0;
           width: 32px;
           height: 32px;
           border-radius: 50%;
@@ -1222,7 +1222,7 @@ const PropertySearchExtension = {
 
         /* Collapse Icon */
         .collapse-icon {
-          color: #9a0df2;
+          color: #9C27B0;
           font-size: 13px;
           transition: transform 0.3s;
           background: #F8EAFA;
@@ -1901,7 +1901,7 @@ input[type="tel"]:focus,
 input[type="number"]:focus,
 select:focus,
 #details:focus {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Remove spinner from number inputs */
@@ -1917,7 +1917,7 @@ input[type="number"] {
 
 /* Submit Button */
 .submit {
-  color: #9a0df2;
+  color: #9C27B0;
   background-color: #F8EAFA;
   border: none;
   padding: 12px;
@@ -1930,7 +1930,7 @@ input[type="number"] {
 
 .submit:hover {
   color: #fff;
-  background-color: #9a0df2;
+  background-color: #9C27B0;
   font-weight: 700;
 }
 
@@ -1975,7 +1975,7 @@ input[type="number"] {
   display: flex;
   height: 24px;
   width: 24px;
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   border-radius: 50%;
   background: #F8EAFA;
@@ -1990,7 +1990,7 @@ input[type="number"] {
 
 .select-btn:focus,
 .select-btn.open {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Dropdown List */
@@ -2051,8 +2051,8 @@ input[type="number"] {
 }
 
 .item.checked .checkbox {
-  background-color: #9a0df2;
-  border: 2px solid #9a0df2;
+  background-color: #9C27B0;
+  border: 2px solid #9C27B0;
 }
 
 .checkbox .check-icon {
@@ -2072,7 +2072,7 @@ input[type="number"] {
 }
 
 .list-items .item:not(.checked):hover .checkbox svg path {
-  fill: #9a0df2 !important;
+  fill: #9C27B0 !important;
 }
 
 .list-items .item.checked .checkbox svg path {
@@ -2081,7 +2081,7 @@ input[type="number"] {
 
 /* Standard checkbox */
 input[type="checkbox"] {
-  accent-color: #9a0df2;
+  accent-color: #9C27B0;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -2109,11 +2109,11 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #9a0df2;
+  color: #9C27B0;
 }
 
 .group-header .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #fff;
@@ -2161,7 +2161,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9a0df2;
+  color: #9C27B0;
   cursor: pointer;
   font-size: 8px;
   transition: background-color 0.2s, color 0.2s;
@@ -2169,7 +2169,7 @@ input[type="checkbox"] {
 
 .price-up:hover,
 .price-down:hover {
-  background-color: #9a0df2;
+  background-color: #9C27B0;
   color: #fff;
 }
 
@@ -2196,12 +2196,12 @@ input[type="checkbox"] {
 }
 
 .section.active {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section:hover:not(.disabled) {
-  border-color: #9a0df2;
+  border-color: #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
@@ -2213,7 +2213,7 @@ input[type="checkbox"] {
 
 .section-icon {
   background-color: #F8EAFA;
-  color: #9a0df2;
+  color: #9C27B0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -2235,7 +2235,7 @@ input[type="checkbox"] {
 
 /* Collapse Icon */
 .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #F8EAFA;
@@ -2981,7 +2981,7 @@ input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
 #details:focus {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Remove spinner from number inputs */
@@ -2997,7 +2997,7 @@ input[type="number"] {
 
 /* Submit Button */
 .submit {
-  color: #9a0df2;
+  color: #9C27B0;
   background-color: #F8EAFA;
   border: none;
   padding: 12px;
@@ -3010,7 +3010,7 @@ input[type="number"] {
 
 .submit:hover {
   color: #fff;
-  background-color: #9a0df2;
+  background-color: #9C27B0;
 }
 
 .submit:disabled {
@@ -3054,7 +3054,7 @@ input[type="number"] {
   display: flex;
   height: 24px;
   width: 24px;
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 12px;
   border-radius: 50%;
   background: #F8EAFA;
@@ -3069,7 +3069,7 @@ input[type="number"] {
 
 .select-btn:focus,
 .select-btn.open {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Dropdown Styles */
@@ -3130,8 +3130,8 @@ input[type="number"] {
 }
 
 .item.checked .checkbox {
-  background-color: #9a0df2;
-  border: 2px solid #9a0df2;
+  background-color: #9C27B0;
+  border: 2px solid #9C27B0;
 }
 
 .checkbox .check-icon {
@@ -3151,7 +3151,7 @@ input[type="number"] {
 }
 
 .list-items .item:not(.checked):hover .checkbox svg path {
-  fill: #9a0df2 !important;
+  fill: #9C27B0 !important;
 }
 
 .list-items .item.checked .checkbox svg path {
@@ -3160,7 +3160,7 @@ input[type="number"] {
 
 /* Standard checkbox */
 input[type="checkbox"] {
-  accent-color: #9a0df2;
+  accent-color: #9C27B0;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -3188,11 +3188,11 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #9a0df2;
+  color: #9C27B0;
 }
 
 .group-header .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #fff;
@@ -3240,7 +3240,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9a0df2;
+  color: #9C27B0;
   cursor: pointer;
   font-size: 8px;
   transition: background-color 0.2s, color 0.2s;
@@ -3248,7 +3248,7 @@ input[type="checkbox"] {
 
 .price-up:hover,
 .price-down:hover {
-  background-color: #9a0df2;
+  background-color: #9C27B0;
   color: #fff;
 }
 
@@ -3275,12 +3275,12 @@ input[type="checkbox"] {
 }
 
 .section.active {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section:hover:not(.disabled) {
-  border-color: #9a0df2;
+  border-color: #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
@@ -3292,7 +3292,7 @@ input[type="checkbox"] {
 
 .section-icon {
   background-color: #F8EAFA;
-  color: #9a0df2;
+  color: #9C27B0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -3314,7 +3314,7 @@ input[type="checkbox"] {
 
 /* Collapse Icon */
 .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #F8EAFA;
@@ -3805,7 +3805,7 @@ const RescheduleExtension = {
           align-items: center;
         }
         .reschedule {
-          color: #9a0df2;
+          color: #9C27B0;
           background-color: #F8EAFA;
           border: none;
           padding: 12px 24px;
@@ -3824,7 +3824,7 @@ const RescheduleExtension = {
         }
         
         .reschedule:hover:not(:disabled) {
-      background-color: #9a0df2;
+      background-color: #9C27B0;
       font-weight: 700;
       color: #fff;
     }
@@ -3921,8 +3921,8 @@ const RescheduleExtension = {
         Cal.ns[namespace]("ui", {
           "theme": "light",
           "cssVarsPerTheme": {
-            "light": {"cal-brand": "#9a0df2"},
-            "dark": {"cal-brand": "#9a0df2"}
+            "light": {"cal-brand": "#9C27B0"},
+            "dark": {"cal-brand": "#9C27B0"}
           },
           "hideEventTypeDetails": false,
           "layout": "week_view"
@@ -4298,7 +4298,7 @@ input[type="email"] {
 
 input[type="text"]:focus,
 input[type="email"]:focus {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Remove spinner from number inputs */
@@ -4314,7 +4314,7 @@ input[type="number"] {
 
 /* Submit Button */
 .book-now {
-  color: #9a0df2;
+  color: #9C27B0;
   background-color: #F8EAFA;
   border: none;
   padding: 12px;
@@ -4327,7 +4327,7 @@ input[type="number"] {
 }
 
 .book-now:hover {
-  background-color: #9a0df2;
+  background-color: #9C27B0;
   font-weight: 700;
   color: #fff;
 }
@@ -4383,7 +4383,7 @@ input[type="number"] {
   display: flex;
   height: 24px;
   width: 24px;
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 12px;
   border-radius: 50%;
   background: #F8EAFA;
@@ -4398,7 +4398,7 @@ input[type="number"] {
 
 .select-btn:focus,
 .select-btn.open {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
 }
 
 /* Dropdown Styles */
@@ -4457,8 +4457,8 @@ input[type="number"] {
 }
 
 .item.checked .checkbox {
-  background-color: #9a0df2;
-  border: 2px solid #9a0df2;
+  background-color: #9C27B0;
+  border: 2px solid #9C27B0;
 }
 
 .checkbox .check-icon {
@@ -4478,7 +4478,7 @@ input[type="number"] {
 }
 
 .list-items .item:not(.checked):hover .checkbox svg path {
-  fill: #9a0df2 !important;
+  fill: #9C27B0 !important;
 }
 
 .list-items .item.checked .checkbox svg path {
@@ -4487,7 +4487,7 @@ input[type="number"] {
 
 /* Standard checkbox */
 input[type="checkbox"] {
-  accent-color: #9a0df2;
+  accent-color: #9C27B0;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -4515,11 +4515,11 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #9a0df2;
+  color: #9C27B0;
 }
 
 .group-header .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #fff;
@@ -4567,7 +4567,7 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9a0df2;
+  color: #9C27B0;
   cursor: pointer;
   font-size: 8px;
   transition: background-color 0.2s, color 0.2s;
@@ -4575,7 +4575,7 @@ input[type="checkbox"] {
 
 .price-up:hover,
 .price-down:hover {
-  background-color: #9a0df2;
+  background-color: #9C27B0;
   color: #fff;
 }
 
@@ -4605,12 +4605,12 @@ input[type="checkbox"] {
 }
 
 .section.active {
-  border: 2px solid #9a0df2;
+  border: 2px solid #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
 .section:hover:not(.disabled) {
-  border-color: #9a0df2;
+  border-color: #9C27B0;
   box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
 }
 
@@ -4622,7 +4622,7 @@ input[type="checkbox"] {
 
 .section-icon {
   background-color: #F8EAFA;
-  color: #9a0df2;
+  color: #9C27B0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -4644,7 +4644,7 @@ input[type="checkbox"] {
 
 /* Collapse Icon */
 .collapse-icon {
-  color: #9a0df2;
+  color: #9C27B0;
   font-size: 13px;
   transition: transform 0.3s;
   background: #F8EAFA;
@@ -4857,8 +4857,8 @@ button:disabled {
                 Cal.ns[namespace]("ui", {
                   "theme": "light",
                   "cssVarsPerTheme": {
-                    "light": {"cal-brand": "#9a0df2"},
-                    "dark": {"cal-brand": "#9a0df2"}
+                    "light": {"cal-brand": "#9C27B0"},
+                    "dark": {"cal-brand": "#9C27B0"}
                   },
                   "hideEventTypeDetails": false,
                   "layout": "month_view"
@@ -5025,10 +5025,10 @@ const BookingExtension_2 = {
         input[type="email"]:focus,
         input[type="tel"]:focus,
         select.form-select:focus {
-          border: 2px solid #9a0df2;
+          border: 2px solid #9C27B0;
         }
         .book-now {
-          color: #9a0df2;
+          color: #9C27B0;
           background-color: #F8EAFA;
           border: none;
           padding: 12px;
@@ -5040,7 +5040,7 @@ const BookingExtension_2 = {
           transition: background-color 0.3s;
         }
         .book-now:hover {
-          background-color: #9a0df2;
+          background-color: #9C27B0;
           font-weight: 700;
           color: #fff;
         }
@@ -5073,7 +5073,7 @@ const BookingExtension_2 = {
         }
         .info-value {
           font-weight: 600;
-          color: #9a0df2;
+          color: #9C27B0;
         }
         
         /* Disabled States */
@@ -5142,8 +5142,8 @@ const BookingExtension_2 = {
       Cal.ns[namespace]("ui", {
         "theme": "light",
         "cssVarsPerTheme": {
-          "light": {"cal-brand": "#9a0df2"},
-          "dark": {"cal-brand": "#9a0df2"}
+          "light": {"cal-brand": "#9C27B0"},
+          "dark": {"cal-brand": "#9C27B0"}
         },
         "hideEventTypeDetails": false,
         "layout": "month_view"
@@ -5324,11 +5324,11 @@ const BookingExtensionOld = {
 
                 input[type="text"]:focus,
                 input[type="email"]:focus {
-                    border: 2px solid #9a0df2;
+                    border: 2px solid #9C27B0;
                 }
 
                 .book-now {
-                    color: #9a0df2;
+                    color: #9C27B0;
                     background-color: #F8EAFA;
                     border: none;
                     padding: 12px;
@@ -5340,7 +5340,7 @@ const BookingExtensionOld = {
                 }
                 .book-now:hover {
                     color: #fff;
-                    background-color: #9a0df2;
+                    background-color: #9C27B0;
                     font-weight: 700;
                 }
 
@@ -5369,7 +5369,7 @@ const BookingExtensionOld = {
                     display: flex;
                     height: 24px;
                     width: 24px;
-                    color: #9a0df2;
+                    color: #9C27B0;
                     font-size: 12px;
                     border-radius: 50%;
                     background: #F8EAFA;
@@ -5382,7 +5382,7 @@ const BookingExtensionOld = {
                 }
                 .select-btn:focus,
                 .select-btn.open {
-                    border: 2px solid #9a0df2;
+                    border: 2px solid #9C27B0;
                     outline: none;
                 }
                 .list-items {
@@ -5432,8 +5432,8 @@ const BookingExtensionOld = {
                     transition: all 0.3s ease-in-out;
                 }
                 .item.checked .checkbox {
-                    background-color: #9a0df2;
-                    border: 2px solid #9a0df2;
+                    background-color: #9C27B0;
+                    border: 2px solid #9C27B0;
                 }
                 .checkbox .check-icon {
                     color: #fff;
@@ -5482,7 +5482,7 @@ const BookingExtensionOld = {
                         <span class="arrow-dwn">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
     <!-- Font Awesome Chevron Down icon SVG path -->
-    <path fill="#9a0df2" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
+    <path fill="#9C27B0" d="M224 416c-8.188 0-16.38-3.125-22.62-9.375l-192-192c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L224 338.8l169.4-169.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-192 192C240.4 412.9 232.2 416 224 416z"/>
   </svg>
 </span>
                     </div>
@@ -5778,7 +5778,7 @@ const ImageExtension = {
             }
             .nav-btn {
               background-color: #F8EAFA;
-              color: #9a0df2;
+              color: #9C27B0;
               border: none;
               border-radius: 50%;
               width: 32px;
@@ -5791,7 +5791,7 @@ const ImageExtension = {
               transition: background-color 0.3s;
             }
             .nav-btn:hover {
-              background-color: #9a0df2;
+              background-color: #9C27B0;
               color: white;
             }
             .gallery-image-container {
@@ -6403,13 +6403,13 @@ const LocalisationExtension = {
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9a0df2;
+              color: #9C27B0;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9a0df2;
+              background-color: #9C27B0;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -6439,7 +6439,7 @@ const LocalisationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9a0df2;
+              color: #9C27B0;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -6452,7 +6452,7 @@ const LocalisationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9a0df2;
+              border: 2px solid #9C27B0;
             }
             .list-items {
               position: static;
@@ -6494,8 +6494,8 @@ const LocalisationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9a0df2;
-              border: 2px solid #9a0df2;
+              background-color: #9C27B0;
+              border: 2px solid #9C27B0;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -6510,7 +6510,7 @@ const LocalisationExtension = {
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9a0df2 !important;
+              fill: #9C27B0 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -6537,7 +6537,7 @@ const LocalisationExtension = {
             }
             .results-amount {
               font-size: 2em;
-              color: #9a0df2;
+              color: #9C27B0;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -6554,7 +6554,7 @@ const LocalisationExtension = {
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9a0df2;
+              color: #9C27B0;
               margin: 15px 0;
             }
             .result .hint {
@@ -6578,9 +6578,9 @@ const LocalisationExtension = {
               margin-top: 5px;
             }
             #loan-amount {
-  background-color: #9a0df2 !important; /* Purple background */
+  background-color: #9C27B0 !important; /* Purple background */
   color: white !important;
-  border-color: #9a0df2 !important;
+  border-color: #9C27B0 !important;
 }
 
 #loan-amount + .currency-symbol,
@@ -7129,13 +7129,13 @@ const LocalisationExtension = {
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9a0df2;
+              color: #9C27B0;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9a0df2;
+              background-color: #9C27B0;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -7165,7 +7165,7 @@ const LocalisationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9a0df2;
+              color: #9C27B0;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -7178,7 +7178,7 @@ const LocalisationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9a0df2;
+              border: 2px solid #9C27B0;
             }
             .list-items {
               position: static;
@@ -7220,8 +7220,8 @@ const LocalisationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9a0df2;
-              border: 2px solid #9a0df2;
+              background-color: #9C27B0;
+              border: 2px solid #9C27B0;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -7236,7 +7236,7 @@ const LocalisationExtension = {
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9a0df2 !important;
+              fill: #9C27B0 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -7263,7 +7263,7 @@ const LocalisationExtension = {
             }
             .results-amount {
               font-size: 2em;
-              color: #9a0df2;
+              color: #9C27B0;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -7280,7 +7280,7 @@ const LocalisationExtension = {
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9a0df2;
+              color: #9C27B0;
               margin: 15px 0;
             }
             .result .hint {
@@ -7699,15 +7699,15 @@ const navHTML = `
       border-radius: 4px;
       font-weight: bold;
       transition: background 0.2s;
-      color: #9a0df2;
+      color: #9C27B0;
       font-size: 16px;
     }
     .calculator-nav-button.active {
-      background: #9a0df2;
+      background: #9C27B0;
       color: #fff;
     }
     #calculator-container {
-      border-top: 2px solid #9a0df2;
+      border-top: 2px solid #9C27B0;
       padding: 15px;
       width: 100%;
       max-width: 800px;
@@ -8086,7 +8086,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9a0df2;
+      color: #9C27B0;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -8095,11 +8095,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     /* Form Layout */
     .input-group {
@@ -8200,7 +8200,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9a0df2;
+      color: #9C27B0;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -8213,7 +8213,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9C27B0;
       outline: none;
     }
     .list-items {
@@ -8242,7 +8242,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9a0df2; /* match collapsible dropdown border */
+      border: 2px solid #9C27B0; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -8265,8 +8265,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9a0df2;
-      border: 2px solid #9a0df2;
+      background-color: #9C27B0;
+      border: 2px solid #9C27B0;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -8309,13 +8309,13 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #9A0DF2;
+      color: #9C27B0;
       cursor: pointer;
       font-size: 8px;
     }
     .number-input-up:hover,
     .number-input-down:hover {
-      background-color: #9A0DF2;
+      background-color: #9C27B0;
       color: #fff;
     }
         </style>
@@ -8760,7 +8760,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9a0df2;
+      color: #9C27B0;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -8769,11 +8769,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     /* Form Layout */
     .input-group {
@@ -8873,7 +8873,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9a0df2;
+      color: #9C27B0;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -8886,7 +8886,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9C27B0;
       outline: none;
     }
     .list-items {
@@ -8915,7 +8915,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9a0df2; /* match collapsible dropdown border */
+      border: 2px solid #9C27B0; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -8938,8 +8938,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9a0df2;
-      border: 2px solid #9a0df2;
+      background-color: #9C27B0;
+      border: 2px solid #9C27B0;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -8982,13 +8982,13 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #9A0DF2;
+      color: #9C27B0;
       cursor: pointer;
       font-size: 8px;
     }
     .number-input-up:hover,
     .number-input-down:hover {
-      background-color: #9A0DF2;
+      background-color: #9C27B0;
       color: #fff;
     }
         </style>
@@ -9208,7 +9208,7 @@ const MortgageCalculatorExtension_old = {
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      color: #9a0df2;
+      color: #9C27B0;
       background-color: #F8EAFA;
       cursor: pointer;
       font-weight: bold;
@@ -9217,11 +9217,11 @@ const MortgageCalculatorExtension_old = {
     }
     .calculator-nav-button:hover {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     .calculator-nav-button.active {
       color: white;
-      background-color: #9a0df2;
+      background-color: #9C27B0;
     }
     /* Form Layout */
     .input-group {
@@ -9321,7 +9321,7 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       height: 24px;
       width: 24px;
-      color: #9a0df2;
+      color: #9C27B0;
       font-size: 12px;
       border-radius: 50%;
       background: #F8EAFA;
@@ -9334,7 +9334,7 @@ const MortgageCalculatorExtension_old = {
     }
     .select-btn:focus,
     .select-btn.open {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9C27B0;
       outline: none;
     }
     .list-items {
@@ -9363,7 +9363,7 @@ const MortgageCalculatorExtension_old = {
       border-radius: 8px;
     }
     .currency-input:focus {
-      border: 2px solid #9a0df2; /* match collapsible dropdown border */
+      border: 2px solid #9C27B0; /* match collapsible dropdown border */
       outline: none;
     }
     .list-items .item:hover {
@@ -9386,8 +9386,8 @@ const MortgageCalculatorExtension_old = {
       transition: all 0.3s ease-in-out;
     }
     .item.checked .checkbox {
-      background-color: #9a0df2;
-      border: 2px solid #9a0df2;
+      background-color: #9C27B0;
+      border: 2px solid #9C27B0;
     }
     .checkbox .check-icon {
       color: #fff;
@@ -9430,13 +9430,13 @@ const MortgageCalculatorExtension_old = {
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #9A0DF2;
+      color: #9C27B0;
       cursor: pointer;
       font-size: 8px;
     }
     .number-input-up:hover,
     .number-input-down:hover {
-      background-color: #9A0DF2;
+      background-color: #9C27B0;
       color: #fff;
     }
         </style>
@@ -9583,10 +9583,10 @@ const UserInformationExtension = {
             }
             input[type="text"]:focus,
             input[type="email"]:focus {
-              border: 2px solid #9a0df2;
+              border: 2px solid #9C27B0;
             }
             .book-now {
-              color: #9a0df2;
+              color: #9C27B0;
               background-color: #F8EAFA;
               border: none;
               padding: 12px;
@@ -9598,7 +9598,7 @@ const UserInformationExtension = {
               transition: background-color 0.3s;
             }
             .book-now:hover {
-              background-color: #9a0df2;
+              background-color: #9C27B0;
               font-weight: 700;
 	      color : #fff;
             }
@@ -9627,7 +9627,7 @@ const UserInformationExtension = {
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9a0df2;
+              color: #9C27B0;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -9640,7 +9640,7 @@ const UserInformationExtension = {
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9a0df2;
+              border: 2px solid #9C27B0;
               outline: none;
             }
             .list-items {
@@ -9690,8 +9690,8 @@ const UserInformationExtension = {
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9a0df2;
-              border: 2px solid #9a0df2;
+              background-color: #9C27B0;
+              border: 2px solid #9C27B0;
             }
             .checkbox .check-icon {
               color: #fff;
