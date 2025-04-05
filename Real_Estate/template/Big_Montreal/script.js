@@ -3804,209 +3804,153 @@ const BookingExtension = {
     
     const isEnglish = language === 'en';
 
-    // Create the container
-    const container = document.createElement("div");
-
-    // Insert the style and HTML for the reschedule button
-    container.innerHTML = `
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
-        .reschedule-container {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          background: transparent;
-          padding: 16px;
-          border-radius: 8px;
-          min-width: 300px;
-          align-items: center;
-        }
-        .reschedule {
-          color: #9c27b0;
-          background-color: #F8EAFA;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          margin-top: 8px;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .reschedule:active {
-          transform: translateY(0);
-          box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-        }
-        
-        .reschedule:hover:not(:disabled) {
-      background-color: #9c27b0;
-      font-weight: 700;
-      color: #fff;
-    }
-    .reschedule:disabled {
-      background-color: #ccc;
-      color: #666;
-      cursor: not-allowed;
-    }
-    
-        .debug-info {
-          font-size: 12px;
-          color: #666;
-          margin-top: 10px;
-          display: none;
-        }
-      </style>
-
-      <div class="reschedule-container">
-        <button type="button" class="reschedule" id="cal-reschedule-button">
-            ${isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous'}
-        </button>
-        <div class="debug-info" id="debug-info"></div>
-      </div>
-    `;
-
-    // Append the container to the provided element
-    element.appendChild(container);
-
-    // ====== Cal.com Initialization ======
-    (function(C, A, L) {
-      let p = function(a, ar) {
-        a.q.push(ar);
-      };
-      let d = C.document;
-      C.Cal = C.Cal || function() {
-        let cal = C.Cal;
-        let ar = arguments;
-        if (!cal.loaded) {
-          cal.ns = {};
-          cal.q = cal.q || [];
-          d.head.appendChild(d.createElement("script")).src = A;
-          cal.loaded = true;
-        }
-        if (ar[0] === L) {
-          const api = function() {
-            p(api, arguments);
-          };
-          const namespace = ar[1];
-          api.q = api.q || [];
-          if (typeof namespace === "string") {
-            cal.ns[namespace] = cal.ns[namespace] || api;
-            p(cal.ns[namespace], ar);
-            p(cal, ["initNamespace", namespace]);
-          } else p(cal, ar);
-          return;
-        }
-        p(cal, ar);
-      };
-    })(window, "https://app.cal.com/embed/embed.js", "init");
-
-    // ====== reschedule Logic ======
-    const rescheduleButton = container.querySelector("#cal-reschedule-button");
-    const debugInfo = container.querySelector("#debug-info");
-    
-    rescheduleButton.addEventListener("click", () => {
-	rescheduleButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-  rescheduleButton.style.backgroundColor = "#4CAF50";
-  rescheduleButton.style.color = "white";
-
-      // Notify Voiceflow that we're proceeding with reschedule
-      if (window.voiceflow && window.voiceflow.chat) {
-        window.voiceflow.chat.interact({
-          type: "reschedule_started",
-          payload: { 
-            email,
-            Uid,
-            link
-          },
-        });
-      }
-      
-      // Disable button to prevent multiple clicks
-      rescheduleButton.disabled = true;
-	  
-
-      
-      try {
-        // Initialize Cal for the namespace
-        Cal("init", namespace, {
-          origin: "https://cal.com"
-        });
-        
-        // Set UI preferences
-        Cal.ns[namespace]("ui", {
-          "theme": "light",
-          "cssVarsPerTheme": {
-            "light": {"cal-brand": "#9c27b0"},
-            "dark": {"cal-brand": "#9c27b0"}
-          },
-          "hideEventTypeDetails": false,
-          "layout": "week_view"
-        });
-        
-        // Create a button with data-cal-link attribute that will trigger Cal.com directly
-        const calTrigger = document.createElement('button');
-        calTrigger.style.display = 'none';
-        
-        // Build the link with reschedule parameters - this is the key part that needs fixing
-        const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
-        
-       
-        
-        // Set up the data-cal-link attributes
-        calTrigger.setAttribute('data-cal-link', calLinkWithParams);
-        calTrigger.setAttribute('data-cal-namespace', namespace);
-        calTrigger.setAttribute('data-cal-config', JSON.stringify({
-          layout: "week_view",
-          theme: "light"
-        }));
-        
-        // Setup event listener for successful reschedule
-        Cal.ns[namespace]("on", {
-          action: "reschedule_successful",
-          callback: (event) => {
-            console.log("reschedule successful", event);
-            
-            // Notify Voiceflow that reschedule is complete
-            if (window.voiceflow && window.voiceflow.chat) {
-              window.voiceflow.chat.interact({
-                type: "complete",
-                payload: { 
-                  email,
-                  link,
-                  Uid
-                },
-              });
+        // Create container with an inline embed target and debug info.
+        const container = document.createElement("div");
+        container.innerHTML = `
+          <style>
+            .reschedule-container {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              background: transparent;
+              padding: 16px;
+              border-radius: 8px;
+              min-width: 300px;
+              align-items: center;
             }
-          }
-        });
-        
-        // Append the trigger to the body and click it
-        document.body.appendChild(calTrigger);
-        
-        // Small timeout to ensure Cal.js has initialized
-        setTimeout(() => {
-          calTrigger.click();
-        }, 300);
-      } catch (error) {
-        console.error("Error initializing Cal:", error);
-        debugInfo.textContent = `Error: ${error.message}`;
-        debugInfo.style.display = 'block';
-        rescheduleButton.disabled = false;
-        rescheduleButton.textContent = isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous';
-      }
-    });
+            /* Inline embed container for reschedule view */
+            #my-cal-reschedule-inline {
+              width: 100%;
+              height: 100%;
+              overflow: auto;
+              margin-top: 20px;
+              display: none;
+            }
+            .debug-info {
+              font-size: 12px;
+              color: #666;
+              margin-top: 10px;
+            }
+          </style>
+          <div class="reschedule-container">
+            <div id="my-cal-reschedule-inline"></div>
+            <div class="debug-info" id="debug-info"></div>
+          </div>
+        `;
+        element.appendChild(container);
 
-    // Return a cleanup function
-    return function cleanup() {
-      rescheduleButton.render({ trace, element: container });
+        // ====== Cal.com Library Initialization ======
+        (function(C, A, L) {
+          let p = function(a, ar) { a.q.push(ar); };
+          let d = C.document;
+          C.Cal = C.Cal || function() {
+            let cal = C.Cal;
+            let ar = arguments;
+            if (!cal.loaded) {
+              cal.ns = {};
+              cal.q = cal.q || [];
+              d.head.appendChild(d.createElement("script")).src = A;
+              cal.loaded = true;
+            }
+            if (ar[0] === L) {
+              const api = function() { p(api, arguments); };
+              const namespace = ar[1];
+              api.q = api.q || [];
+              if (typeof namespace === "string") {
+                cal.ns[namespace] = cal.ns[namespace] || api;
+                p(cal.ns[namespace], ar);
+                p(cal, ["initNamespace", namespace]);
+              } else {
+                p(cal, ar);
+              }
+              return;
+            }
+            p(cal, ar);
+          };
+        })(window, "https://app.cal.com/embed/embed.js", "init");
+
+        // ====== Automatic Reschedule Logic ======
+        function triggerReschedule() {
+          // Notify Voiceflow that reschedule is starting.
+          if (window.voiceflow && window.voiceflow.chat) {
+            window.voiceflow.chat.interact({
+              type: "reschedule_started",
+              payload: { email, Uid, link }
+            });
+          }
+          
+          const debugInfo = container.querySelector("#debug-info");
+
+          try {
+            // Build the dynamic reschedule link with parameters.
+            const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
+
+            // Initialize Cal.com for the provided namespace.
+            Cal("init", namespace, { origin: "https://cal.com" });
+            
+            // Set UI preferences for inline reschedule view (light theme, week view).
+            Cal.ns[namespace]("ui", {
+              theme: "light",
+              cssVarsPerTheme: {
+                light: { "cal-brand": "#9c27b0" },
+                dark: { "cal-brand": "#9c27b0" }
+              },
+              hideEventTypeDetails: false,
+              layout: "month_view"
+            });
+            
+            // Initialize the inline embed for rescheduling.
+            Cal.ns[namespace]("inline", {
+              elementOrSelector: "#my-cal-reschedule-inline",
+              config: { layout: "month_view", theme: "light" },
+              calLink: calLinkWithParams,
+            });
+            
+            // Unhide the inline reschedule container.
+            document.getElementById("my-cal-reschedule-inline").style.display = "block";
+            
+            // Listen for successful reschedule events.
+            Cal.ns[namespace]("on", {
+              action: "reschedule_successful",
+              callback: (event) => {
+                console.log("Reschedule successful", event);
+                if (window.voiceflow && window.voiceflow.chat) {
+                  window.voiceflow.chat.interact({
+                    type: "complete",
+                    payload: { email, link, Uid }
+                  });
+                }
+                debugInfo.textContent = isEnglish ? "Reschedule completed" : "Reprogrammation terminée";
+              }
+            });
+            
+            // Listen for errors.
+            Cal.ns[namespace]("on", {
+              action: "error",
+              callback: (error) => {
+                console.error("Cal error:", error);
+                debugInfo.textContent = `Cal error: ${JSON.stringify(error)}`;
+              }
+            });
+          } catch (error) {
+            console.error("Error initializing Cal:", error);
+            debugInfo.textContent = `Error: ${error.message}`;
+          }
+        }
+
+        // Automatically trigger the inline reschedule process upon rendering.
+        triggerReschedule();
+
+        // Return a cleanup function if needed.
+        return function cleanup() {
+          // Cleanup logic can be added here if necessary.
+        };
+      },
     };
-  },
-};
+
 
 const BookingExtension_old = {
       name: "Forms",
