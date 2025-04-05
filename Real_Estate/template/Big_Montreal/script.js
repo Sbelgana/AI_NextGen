@@ -3786,7 +3786,9 @@ sectionCards.forEach(card => {
 
 
 /************** EXTENSION #4: BookingExtension **************/
- const BookingExtension = {
+ 
+// BookingExtension implementation with redirect approach
+const BookingExtension = {
   name: "Forms",
   type: "response",
   match: ({ trace }) =>
@@ -3795,36 +3797,19 @@ sectionCards.forEach(card => {
     const { language } = trace.payload || { language: 'en' };
     const isEnglish = language === 'en';
 
-    // --- Cal.com Initialization Function inside the extension ---
-    (function (C, A, L) {
-      let p = function (a, ar) { a.q.push(ar); };
-      let d = C.document;
-      C.Cal = C.Cal || function () {
-        let cal = C.Cal;
-        let ar = arguments;
-        if (!cal.loaded) {
-          cal.ns = {};
-          cal.q = cal.q || [];
-          d.head.appendChild(d.createElement("script")).src = A;
-          cal.loaded = true;
-        }
-        if (ar[0] === L) {
-          const api = function () { p(api, arguments); };
-          const namespace = ar[1];
-          api.q = api.q || [];
-          if (typeof namespace === "string") {
-            cal.ns[namespace] = cal.ns[namespace] || api;
-            p(cal.ns[namespace], ar);
-            p(cal, ["initNamespace", namespace]);
-          } else {
-            p(cal, ar);
-          }
-          return;
-        }
-        p(cal, ar);
-      };
-    })(window, "https://app.cal.com/embed/embed.js", "init");
-
+    // SVG Icons
+    const SVG_CHEVRON = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+        <g transform="translate(75, 75)">
+          <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+        </g>
+      </svg>
+    `;
+    const SVG_CHECK = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
+        <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+      </svg>
+    `;
 
     // Create the form container
     const formContainer = document.createElement("form");
@@ -4005,25 +3990,37 @@ sectionCards.forEach(card => {
           height: 18px;
           cursor: pointer;
         }
-        .cal-container {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          background: transparent;
-          padding: 16px;
-          border-radius: 8px;
-          min-width: 300px;
-          align-items: center;
-        }
-        #my-cal-inline {
-          width: 100%;
-          height: 100%;
-          overflow: auto;
+        .success-message {
           margin-top: 20px;
+          padding: 15px;
+          background-color: #e8f5e9;
+          border-left: 4px solid #4CAF50;
+          border-radius: 4px;
           display: none;
+        }
+        .success-message h3 {
+          margin-top: 0;
+          color: #2e7d32;
+          font-size: 16px;
+        }
+        .success-message p {
+          margin-bottom: 10px;
+          color: #333;
+          font-size: 14px;
+        }
+        .cal-link {
+          display: inline-block;
+          margin-top: 10px;
+          padding: 8px 16px;
+          background-color: #9c27b0;
+          color: white;
+          text-decoration: none;
+          border-radius: 4px;
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .cal-link:hover {
+          background-color: #7B1FA2;
         }
       </style>
 
@@ -4055,15 +4052,50 @@ sectionCards.forEach(card => {
       <button type="button" class="book-now" id="cal-booking-button">
           ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
       </button>
-      <!-- Cal.com inline container -->
-      <div class="cal-container">
-        <div id="my-cal-inline" style="display: none; width:100%; height:100%; overflow: auto; margin-top: 20px;"></div>
+
+      <!-- Success Message (initially hidden) -->
+      <div class="success-message" id="success-message">
+        <h3>${isEnglish ? 'Booking Request Submitted!' : 'Demande de réservation soumise !'}</h3>
+        <p>${isEnglish ? 'Click the link below to schedule your appointment with' : 'Cliquez sur le lien ci-dessous pour planifier votre rendez-vous avec'} <span id="selected-seller"></span>:</p>
+        <a href="#" class="cal-link" id="cal-link" target="_blank">
+          ${isEnglish ? 'Schedule Appointment' : 'Planifier un rendez-vous'}
+        </a>
       </div>
     `;
     element.appendChild(formContainer);
 
+    // Seller data
+    const Sellers = [
+      "Emma Thompson",
+      "Liam Carter",
+      "Sophia Martinez",
+      "Ethan Brown",
+      "Olivia Davis",
+      "Noah Wilson",
+      "Ava Johnson"
+    ];
+
+    // Booking data
+    const BookingData = {
+      "Emma Thompson": { link: "ainextg-emma-thompsonn", namespace: "meeting" },
+      "Liam Carter": { link: "ainextg-liam-carter", namespace: "meeting" },
+      "Sophia Martinez": { link: "ainextg-sophia-martinez", namespace: "meeting" },
+      "Ethan Brown": { link: "ainextg-ethan-brownn", namespace: "meeting" },
+      "Olivia Davis": { link: "ainextg-olivia-daviss", namespace: "meeting" },
+      "Noah Wilson": { link: "ainextg-noah-wilsonn", namespace: "meeting" },
+      "Ava Johnson": { link: "ainextg-ava-johnson", namespace: "meeting" }
+    };
+
+    function getSellerList(includeNoPreference = true) {
+      return [...Sellers];
+    }
+
+    function isValidEmail(email) {
+      const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+      return emailPattern.test(email);
+    }
     
-    // Get references from the formContainer instead of document
+    // Get references from the formContainer
     const sellerListEl = formContainer.querySelector("#sellerList");
     const sellers = getSellerList(false);
     
@@ -4131,27 +4163,6 @@ sectionCards.forEach(card => {
           
           selectBtn.classList.remove("open");
           listEl.style.display = "none";
-          
-          // When a seller is selected, initialize Cal for that seller
-          if (BookingData[value]) {
-            const { namespace } = BookingData[value];
-            
-            try {
-              Cal("init", namespace, { origin: "https://cal.com" });
-              Cal.ns[namespace]("ui", {
-                theme: "light",
-                cssVarsPerTheme: {
-                  light: { "cal-brand": "#9c27b0" },
-                  dark: { "cal-brand": "#9c27b0" }
-                },
-                hideEventTypeDetails: false,
-                layout: "month_view"
-              });
-              console.log(`Cal initialized for ${value} with namespace ${namespace}`);
-            } catch (error) {
-              console.error(`Error initializing Cal for ${value}:`, error);
-            }
-          }
         });
       });
       
@@ -4166,7 +4177,7 @@ sectionCards.forEach(card => {
 
     // Wait for DOM to be ready before initializing the dropdown
     setTimeout(() => {
-      // Initialize the seller dropdown - using formContainer context
+      // Initialize the seller dropdown
       setupDropdownSingle(
         "dropdown-seller",
         "seller-name",
@@ -4174,9 +4185,13 @@ sectionCards.forEach(card => {
       );
       
       /*************************************************************
-       * 3) Booking Process Integration
+       * 3) Booking Process Integration with Direct Link Approach
        *************************************************************/
       const bookNowButton = formContainer.querySelector("#cal-booking-button");
+      const successMessage = formContainer.querySelector("#success-message");
+      const selectedSellerSpan = formContainer.querySelector("#selected-seller");
+      const calLink = formContainer.querySelector("#cal-link");
+      
       if (bookNowButton) {
         bookNowButton.addEventListener("click", () => {
           console.log("Book Now button clicked");
@@ -4210,8 +4225,6 @@ sectionCards.forEach(card => {
             const selectBtn = dropdownContainer.querySelector(".select-btn");
             selectBtn.classList.add("disabled");
             dropdownContainer.classList.add("disabled");
-            const newSelectBtn = selectBtn.cloneNode(true);
-            selectBtn.parentNode.replaceChild(newSelectBtn, selectBtn);
             
             // Hide dropdown list
             formContainer.querySelector(".list-items").style.display = "none";
@@ -4223,52 +4236,34 @@ sectionCards.forEach(card => {
             bookNowButton.style.color = "white";
 
             const { link, namespace } = BookingData[sellerName];
-            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+            console.log(`Preparing Cal link for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+            
+            // Build the Cal direct link with name & email parameters
+            const calLinkWithParams = `https://app.cal.com/${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+            
+            // Update the success message with seller name
+            selectedSellerSpan.textContent = sellerName;
+            
+            // Update the cal link href
+            calLink.href = calLinkWithParams;
+            
+            // Show success message
+            successMessage.style.display = "block";
             
             // Send data to Voiceflow
             if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
               window.voiceflow.chat.interact({
                 type: "complete",
-                payload: { fullName, email, sellerName, link }
+                payload: { 
+                  fullName, 
+                  email, 
+                  sellerName, 
+                  link,
+                  calendarUrl: calLinkWithParams
+                }
               });
             } else {
               console.error("Voiceflow chat interact method is not available");
-            }
-
-            // Build the Cal link with name & email parameters
-            const calLinkWithParams = `${link}/${namespace}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
-
-            try {
-              Cal("init", namespace, { origin: "https://cal.com" });
-              Cal.ns[namespace]("ui", {
-                theme: "light",
-                cssVarsPerTheme: {
-                  light: { "cal-brand": "#9c27b0" },
-                  dark: { "cal-brand": "#9c27b0" }
-                },
-                hideEventTypeDetails: false,
-                layout: "month_view"
-              });
-              
-              // Delay inline embed initialization to allow Cal to load
-              setTimeout(() => {
-                // Find the Cal inline container inside the form
-                const calInline = formContainer.querySelector("#my-cal-inline");
-                if (calInline) {
-                  Cal.ns[namespace]("inline", {
-                    elementOrSelector: "#my-cal-inline",
-                    config: { layout: "month_view", theme: "light" },
-                    calLink: calLinkWithParams
-                  });
-                  // Unhide the inline container
-                  calInline.style.display = "block";
-                } else {
-                  console.error("Cal inline container not found");
-                }
-              }, 300);
-            } catch (error) {
-              console.error(`Error initializing Cal inline embed with namespace ${namespace}:`, error);
-              bookNowButton.textContent = isEnglish ? "Error - Please Refresh" : "Erreur - Veuillez actualiser";
             }
           } else {
             alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
