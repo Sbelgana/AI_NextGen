@@ -3853,21 +3853,76 @@ const BookingExtension = {
     
     const debugInfoElement = container.querySelector(`#debug-info-${uniqueId}`);
     
-    // Load Cal.com script directly
-    const script = document.createElement('script');
-    script.src = 'https://app.cal.com/embed/embed.js';
-    script.async = true;
-    script.onload = function() {
-      console.log("Cal.com script loaded successfully");
+    // Check if Cal already exists globally
+    if (typeof window.Cal !== 'undefined') {
+      console.log("Cal.com already loaded, using existing instance");
       initializeCalendar();
-    };
-    script.onerror = function() {
-      console.error("Failed to load Cal.com script");
+      return;
+    }
+    
+    // Load Cal.com script directly with retry mechanism
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    function loadCalScript() {
       if (debugInfoElement) {
-        debugInfoElement.textContent = "Error: Failed to load calendar script";
+        debugInfoElement.textContent = retryCount > 0 
+          ? `Loading calendar script (attempt ${retryCount+1}/${maxRetries+1})...` 
+          : "Loading calendar script...";
       }
-    };
-    document.head.appendChild(script);
+      
+      // Remove any existing script tags that might be causing conflicts
+      const existingScripts = document.querySelectorAll('script[src*="cal.com/embed"]');
+      existingScripts.forEach(s => s.remove());
+      
+      // Create a fresh script tag
+      const script = document.createElement('script');
+      script.src = 'https://app.cal.com/embed/embed.js';
+      script.async = true;
+      
+      // Use both onload and readystatechange for cross-browser compatibility
+      script.onload = script.onreadystatechange = function() {
+        if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {
+          // Clear event handlers to avoid memory leaks
+          script.onload = script.onreadystatechange = null;
+          
+          // Check if Cal object is actually available
+          if (typeof window.Cal !== 'undefined') {
+            console.log("Cal.com script loaded successfully");
+            setTimeout(initializeCalendar, 100); // Small delay to ensure full initialization
+          } else {
+            handleScriptLoadError(new Error("Cal.com script loaded but Cal object not available"));
+          }
+        }
+      };
+      
+      script.onerror = function(err) {
+        handleScriptLoadError(err || new Error("Script load error"));
+      };
+      
+      // Append to document
+      document.head.appendChild(script);
+    }
+    
+    function handleScriptLoadError(err) {
+      console.error("Failed to load Cal.com script:", err);
+      
+      if (retryCount < maxRetries) {
+        retryCount++;
+        if (debugInfoElement) {
+          debugInfoElement.textContent = `Calendar load failed. Retrying (${retryCount}/${maxRetries})...`;
+        }
+        // Exponential backoff for retries
+        setTimeout(loadCalScript, 500 * Math.pow(2, retryCount));
+      } else {
+        if (debugInfoElement) {
+          debugInfoElement.textContent = "Error: Could not load calendar after multiple attempts. Please refresh and try again.";
+        }
+      }
+    }
+    
+    // Start the loading process
+    loadCalScript();
 
     function initializeCalendar() {
       // Notify Voiceflow that reschedule is starting
@@ -3887,58 +3942,106 @@ const BookingExtension = {
         const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
         console.log("Calendar link:", calLinkWithParams);
         
+        // Double-check Cal object availability
         if (typeof window.Cal === 'undefined') {
+          console.error("Cal.com library not available when initializing calendar");
           throw new Error("Cal.com library not loaded properly");
         }
         
-        // Initialize Cal.com
-        window.Cal("init", namespace, { origin: "https://cal.com" });
-        
-        window.Cal(
-          "inline", 
-          {
-            elementOrSelector: `#${uniqueId}`,
-            calLink: calLinkWithParams,
-            config: {
-              layout: "month_view",
-              hideEventTypeDetails: false,
-              theme: "light"
+        try {
+          console.log("Initializing Cal with namespace:", namespace);
+          // Initialize Cal.com - using a try/catch for each step
+          window.Cal("init", namespace, { origin: "https://cal.com" });
+          
+          console.log("Setting up inline calendar with link:", calLinkWithParams);
+          // Direct inline setup without namespace
+          window.Cal(
+            "inline", 
+            {
+              elementOrSelector: `#${uniqueId}`,
+              calLink: calLinkWithParams,
+              config: {
+                layout: "month_view",
+                hideEventTypeDetails: false,
+                theme: "light"
+              }
             }
+          );
+          
+          // Alternative initialization method as fallback
+          if (window.Cal.ns && window.Cal.ns[namespace]) {
+            console.log("Using namespace-specific initialization as backup");
+            window.Cal.ns[namespace]("inline", {
+              elementOrSelector: `#${uniqueId}`,
+              calLink: calLinkWithParams,
+              config: {
+                layout: "month_view",
+                hideEventTypeDetails: false,
+                theme: "light"
+              }
+            });
           }
-        );
+        } catch (initError) {
+          console.error("Error during Cal initialization:", initError);
+          throw initError;
+        }
         
         if (debugInfoElement) {
           debugInfoElement.textContent = "Calendar loaded. Please select a time to reschedule.";
         }
         
-        // Event listeners
-        window.Cal("on", {
-          action: "reschedule_successful",
-          callback: (event) => {
-            console.log("Reschedule successful:", event);
-            if (window.voiceflow && window.voiceflow.chat) {
-              window.voiceflow.chat.interact({
-                type: "complete",
-                payload: { email, link, Uid }
-              });
-            }
-            if (debugInfoElement) {
-              debugInfoElement.textContent = isEnglish 
-                ? "✅ Appointment rescheduled successfully!" 
-                : "✅ Rendez-vous reprogrammé avec succès!";
-            }
-          }
-        });
-        
-        window.Cal("on", {
-          action: "error",
-          callback: (error) => {
-            console.error("Calendar error:", error);
-            if (debugInfoElement) {
-              debugInfoElement.textContent = `Error: ${error.errorCode || JSON.stringify(error)}`;
+        // Add a check to verify the calendar appears
+        setTimeout(() => {
+          const calElement = document.getElementById(uniqueId);
+          if (calElement) {
+            const hasCalendarContent = calElement.innerHTML.trim().length > 0;
+            if (!hasCalendarContent) {
+              console.warn("Calendar container is empty after initialization");
+              if (debugInfoElement) {
+                debugInfoElement.innerHTML = `
+                  Calendar not displaying properly. Try these solutions:<br>
+                  1. <button onclick="window.location.reload()">Refresh Page</button><br>
+                  2. <a href="${calLinkWithParams}" target="_blank">Open Calendar in New Window</a>
+                `;
+              }
+            } else {
+              console.log("Calendar content detected");
             }
           }
-        });
+        }, 3000);
+
+        // Event listeners with try/catch
+        try {
+          window.Cal("on", {
+            action: "reschedule_successful",
+            callback: (event) => {
+              console.log("Reschedule successful:", event);
+              if (window.voiceflow && window.voiceflow.chat) {
+                window.voiceflow.chat.interact({
+                  type: "complete",
+                  payload: { email, link, Uid }
+                });
+              }
+              if (debugInfoElement) {
+                debugInfoElement.textContent = isEnglish 
+                  ? "✅ Appointment rescheduled successfully!" 
+                  : "✅ Rendez-vous reprogrammé avec succès!";
+              }
+            }
+          });
+          
+          window.Cal("on", {
+            action: "error",
+            callback: (error) => {
+              console.error("Calendar error:", error);
+              if (debugInfoElement) {
+                debugInfoElement.textContent = `Error: ${error.errorCode || JSON.stringify(error)}`;
+              }
+            }
+          });
+        } catch (eventError) {
+          console.warn("Could not attach event handlers:", eventError);
+        }
         
       } catch (error) {
         console.error("Error setting up calendar:", error);
@@ -3958,6 +4061,7 @@ const BookingExtension = {
     };
   },
 };
+
 
 const BookingExtension_old = {
       name: "Forms",
