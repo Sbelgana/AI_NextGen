@@ -3788,49 +3788,157 @@ sectionCards.forEach(card => {
 /************** EXTENSION #4: BookingExtension **************/
  
 const BookingExtension = {
-  name: "Forms",
-  type: "response",
+  name: 'Forms',
+  type: 'response',
   match: ({ trace }) =>
-    trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
+    trace.type === 'ext_booking' || trace.payload?.name === 'ext_booking',
   render: ({ trace, element }) => {
-    // Create a container element
+    // Extract payload data (with defaults)
+    const { 
+      language = 'en',
+      Uid = '',
+      email = '',
+      link = 'ainextg-noah-wilsonn/meeting',
+      namespace = 'meeting'
+    } = trace.payload || {};
+
+    // Create the container element with responsive width
     const container = document.createElement("div");
-    
-    // Create the div for the calendar
-    const calendarDiv = document.createElement("div");
-    calendarDiv.id = "my-cal-inline";
-    calendarDiv.style.width = "100%";
-    calendarDiv.style.height = "100%";
-    calendarDiv.style.overflow = "scroll";
-    
-    // Append the calendar div to the container
-    container.appendChild(calendarDiv);
-    
-    // Append the container to the element
-    element.appendChild(container);
-    
-    // Create and add the script as a separate DOM element
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.textContent = `
-      (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
-      Cal("init", "meeting", {origin:"https://cal.com"});
-      Cal.ns.meeting("inline", {
-        elementOrSelector:"#my-cal-inline",
-        config: {"layout":"month_view"},
-        calLink: "ainextg-noah-wilsonn/meeting",
-      });
-      Cal.ns.meeting("ui", {"hideEventTypeDetails":false,"layout":"month_view"});
+    const containerWidth = window.innerWidth <= 768 ? "400px" : "800px";
+    container.style.cssText = `
+      width: ${containerWidth};
+      height: 600px;
+      border: 1px solid #888;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     `;
     
-    // Add the script to the document
-    document.head.appendChild(script);
+    // Create the calendar container
+    const calendarDiv = document.createElement("div");
+    calendarDiv.id = "my-cal-inline";
+    calendarDiv.style.cssText = `
+      width: 100%;
+      height: 100%;
+      overflow: scroll;
+    `;
     
-    // Return a cleanup function if needed
+    // Create debug info area
+    const debugDiv = document.createElement("div");
+    debugDiv.style.cssText = `
+      padding: 8px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    `;
+    debugDiv.textContent = "Loading calendar...";
+    
+    // Add elements to the container
+    container.appendChild(calendarDiv);
+    container.appendChild(debugDiv);
+    
+    // Add container to the provided element
+    element.appendChild(container);
+    
+    // Load Cal.com script following the same pattern as your LocalLogic example
+    function loadCalScript() {
+      return new Promise((resolve, reject) => {
+        // Check if script is already loaded
+        if (document.querySelector('script[src="https://app.cal.com/embed/embed.js"]')) {
+          resolve();
+          return;
+        }
+        
+        // Create script element
+        const calScript = document.createElement('script');
+        calScript.src = "https://app.cal.com/embed/embed.js";
+        calScript.async = true;
+        calScript.onload = () => resolve();
+        calScript.onerror = () => 
+          reject(new Error('Failed to load Cal.com script.'));
+        
+        // Add script to document body (same as in your working example)
+        document.body.appendChild(calScript);
+      });
+    }
+    
+    // Initialize Cal after script loads (using IIFE like in your original code)
+    function initializeCal() {
+      // First define the Cal.com initialization function
+      (function (C, A, L) { 
+        let p = function (a, ar) { a.q.push(ar); }; 
+        let d = C.document; 
+        C.Cal = C.Cal || function () { 
+          let cal = C.Cal; 
+          let ar = arguments; 
+          if (!cal.loaded) { 
+            cal.ns = {}; 
+            cal.q = cal.q || []; 
+            d.head.appendChild(d.createElement("script")).src = A; 
+            cal.loaded = true; 
+          } 
+          if (ar[0] === L) { 
+            const api = function () { p(api, arguments); }; 
+            const namespace = ar[1]; 
+            api.q = api.q || []; 
+            if(typeof namespace === "string"){
+              cal.ns[namespace] = cal.ns[namespace] || api;
+              p(cal.ns[namespace], ar);
+              p(cal, ["initNamespace", namespace]);
+            } else p(cal, ar); 
+            return;
+          } 
+          p(cal, ar); 
+        }; 
+      })(window, "https://app.cal.com/embed/embed.js", "init");
+      
+      try {
+        // Initialize Cal with fixed namespace
+        window.Cal("init", "meeting", {origin:"https://cal.com"});
+        
+        // Build link with parameters if needed
+        let calLink = "ainextg-noah-wilsonn/meeting";
+        if (Uid && email) {
+          calLink = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
+        }
+        
+        // Set up inline calendar
+        window.Cal.ns.meeting("inline", {
+          elementOrSelector: "#my-cal-inline",
+          config: {"layout": "month_view"},
+          calLink: calLink,
+        });
+        
+        // Set UI preferences
+        window.Cal.ns.meeting("ui", {
+          "hideEventTypeDetails": false,
+          "layout": "month_view"
+        });
+        
+        debugDiv.textContent = "Calendar loaded";
+      } catch (error) {
+        debugDiv.textContent = "Error initializing calendar";
+        console.error("Cal initialization error:", error);
+      }
+    }
+    
+    // Execute the loading sequence
+    loadCalScript()
+      .then(() => {
+        // Initialize Cal with a small delay to ensure script is fully processed
+        setTimeout(initializeCal, 100);
+      })
+      .catch(error => {
+        debugDiv.textContent = "Error loading calendar script";
+        console.error(error);
+      });
+    
+    // Return a function for cleanup
     return function cleanup() {
-      // Optional cleanup code here
+      // Cleanup if needed
     };
-  },
+  }
 };
 
 const BookingExtension_old = {
