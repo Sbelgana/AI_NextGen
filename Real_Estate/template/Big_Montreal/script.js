@@ -3786,8 +3786,746 @@ sectionCards.forEach(card => {
 
 
 /************** EXTENSION #4: BookingExtension **************/
+    // BookingExtension implementation
+    const BookingExtension = {
+      name: "Forms",
+      type: "response",
+      match: ({ trace }) =>
+        trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
+      render: ({ trace, element }) => {
+        const { language } = trace.payload;
+        const isEnglish = language === 'en';
+(function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal;
+        let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else {
+            p(cal, ar);
+          }
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+        // Create the form container
+        const formContainer = document.createElement("form");
+        formContainer.innerHTML = `
+          <style>
+            /* Base Form Styles */
+        form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 8px;
+}
 
-const BookingExtension = {
+.flex-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.flex-row > div {
+  flex: 1;
+  min-width: 200px;
+}
+
+.bold-label {
+  font-weight: 600;
+  color: #000;
+  font-size: 14px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Input Styles */
+input[type="text"],
+input[type="email"] {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus {
+  border: 2px solid #9c27b0;
+}
+
+/* Remove spinner from number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Submit Button */
+.book-now {
+  color: #9c27b0;
+  background-color: #F8EAFA;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  width: 100%;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.3s;
+}
+
+.book-now:hover {
+  background-color: #9c27b0;
+  font-weight: 700;
+  color: #fff;
+}
+
+.book-now:disabled {
+  background-color: #4CAF50;
+  color: white;
+  cursor: not-allowed;
+  font-weight: 700;
+}
+
+/* Custom Dropdown */
+.dropdown-container {
+  position: relative;
+  max-width: 100%;
+}
+
+.select-btn {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #555;
+  font-size: 13px;
+}
+
+.select-btn-holder {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #555;
+  font-size: 13px;
+}
+
+.select-btn .btn-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: black;
+}
+
+.select-btn .arrow-dwn {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  color: #9c27b0;
+  font-size: 12px;
+  border-radius: 50%;
+  background: #F8EAFA;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+.select-btn.open .arrow-dwn {
+  transform: rotate(-180deg);
+}
+
+.select-btn:focus,
+.select-btn.open {
+  border: 2px solid #9c27b0;
+}
+
+/* Dropdown Styles */
+.list-items {
+  position: relative;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  border-radius: 8px;
+  padding: 8px 0;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.select-btn.open ~ .list-items {
+  display: block;
+}
+
+.list-items .item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+
+.list-items .item:hover {
+  background-color: #F8EAFA;
+}
+
+.item .item-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #333;
+  margin-left: 8px;
+}
+
+/* Checkbox Styles */
+/* Circle for single selection */
+.item .checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1.5px solid #c0c0c0;
+  transition: all 0.3s ease-in-out;
+}
+
+.item.checked .checkbox {
+  background-color: #9c27b0;
+  border: 2px solid #9c27b0;
+}
+
+.checkbox .check-icon {
+  color: #fff;
+  font-size: 12px;
+  transform: scale(0);
+  transition: all 0.2s ease-in-out;
+}
+
+.item.checked .check-icon {
+  transform: scale(1);
+}
+
+/* Checkbox SVG fill states */
+.list-items .item:not(.checked) .checkbox svg path {
+  fill: transparent !important;
+}
+
+.list-items .item:not(.checked):hover .checkbox svg path {
+  fill: #9c27b0 !important;
+}
+
+.list-items .item.checked .checkbox svg path {
+  fill: #ffffff !important;
+}
+
+/* Standard checkbox */
+input[type="checkbox"] {
+  accent-color: #9c27b0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Group Styles */
+.group {
+  border-top: 1px solid #eee;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.group:first-child {
+  border-top: none;
+}
+
+.group-header {
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #f4eafb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #9c27b0;
+}
+
+.group-header .collapse-icon {
+  color: #9c27b0;
+  font-size: 13px;
+  transition: transform 0.3s;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.group-header.active .collapse-icon {
+  transform: rotate(-180deg);
+}
+
+.group-options {
+  display: none;
+  padding-left: 0;
+}
+
+/* Price Input */
+.price-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.price-controls {
+  position: absolute;
+  right: 0;
+  top: 1px;
+  bottom: 1px;
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: #F8EAFA;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0 8px 8px 0;
+  overflow: hidden;
+}
+
+.price-up,
+.price-down {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9c27b0;
+  cursor: pointer;
+  font-size: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.price-up:hover,
+.price-down:hover {
+  background-color: #9c27b0;
+  color: #fff;
+}
+
+/* Section Cards */
+/* Added styles for the section layout */
+.section {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.section-card {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.section:not(.disabled) .section-card {
+  cursor: pointer;
+}
+
+.section.active {
+  border: 2px solid #9c27b0;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+}
+
+.section:hover:not(.disabled) {
+  border-color: #9c27b0;
+  box-shadow: 0 3px 8px rgba(154, 13, 242, 0.1);
+}
+
+.section-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  background-color: #F8EAFA;
+  color: #9c27b0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #444;
+}
+
+.status-icon {
+  font-size: 18px;
+  color: #aaa;
+}
+
+/* Collapse Icon */
+.collapse-icon {
+  color: #9c27b0;
+  font-size: 13px;
+  transition: transform 0.3s;
+  background: #f4eafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.collapse-icon i {
+  transition: transform 0.3s ease;
+}
+
+.collapse-icon.active {
+  transform: rotate(-180deg);
+}
+
+/* Collapsible Section */
+.collapsible-section {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.expanded {
+  max-height: 1000px;
+}
+
+.section-content {
+  padding: 20px;
+  background: #fefefe;
+  border-top: 1px solid #eee;
+}
+
+/* Inline Fields */
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Disabled States */
+/* Disabled States */
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+}
+
+.disabled {
+  cursor: not-allowed;
+}
+.dropdown-container.disabled {
+  cursor: not-allowed;
+}
+.dropdown-container.disabled .select-btn {
+  cursor: not-allowed;
+}
+			.cal-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: transparent;
+      padding: 16px;
+      border-radius: 8px;
+      min-width: 300px;
+      align-items: center;
+    }
+    #my-cal-inline {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      margin-top: 20px;
+      display: none;
+    }
+          </style>
+
+          <!-- Booking Form Fields -->
+          <div>
+              <label for="full-name" class="bold-label">
+                  ${isEnglish ? 'Full Name' : 'Nom complet'}
+              </label>
+              <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+          </div>
+
+          <div> 
+              <label for="email" class="bold-label">Email</label>
+              <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+          </div>
+
+          <!-- Single-Select Dropdown for Seller -->
+          <div>
+              <label for="dropdown-seller" class="bold-label">
+                  ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
+              </label>
+              <div class="dropdown-container" id="dropdown-seller">
+                  <div class="select-btn" tabindex="0">
+                      <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
+                      <span class="arrow-dwn">${SVG_CHEVRON}</span>
+                  </div>
+                  <ul class="list-items single-select" id="sellerList"></ul>
+              </div>
+              <input type="hidden" id="seller-name" name="seller-name" required />
+          </div>
+
+          <button type="button" class="book-now" id="cal-booking-button">
+              ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
+          </button>
+        `;
+
+        // Append the form container to the provided element
+        element.appendChild(formContainer);
+
+        /*************************************************************
+         * Place the Inline Cal.com Embed Container (using reschedule style)
+         *************************************************************/
+        const inlineContainerWrapper = document.createElement("div");
+        inlineContainerWrapper.className = "cal-container";
+        inlineContainerWrapper.innerHTML = `
+          <div id="my-cal-inline" style="display: none; width:100%; height:100%; overflow: auto; margin-top: 20px;"></div>
+        `;
+        element.appendChild(inlineContainerWrapper);
+
+        /*************************************************************
+         * 2) Populate and Setup Seller Dropdown
+         *************************************************************/
+        const sellerListEl = formContainer.querySelector("#sellerList");
+        const sellers = getSellerList(false);
+        sellers.forEach(seller => {
+          const li = document.createElement("li");
+          li.classList.add("item");
+          li.innerHTML = `
+            <span class="checkbox">
+              ${SVG_CHECK}
+            </span>
+            <span class="item-text" data-value="${seller}">${seller}</span>
+          `;
+          sellerListEl.appendChild(li);
+        });
+
+        function setupDropdownSingle(dropdownId, listId, hiddenInputId, defaultText) {
+          const container = formContainer.querySelector(`#${dropdownId}`);
+          const selectBtn = container.querySelector(".select-btn");
+          const listEl = container.querySelector(`#${listId}`) || container.querySelector(".list-items");
+          const btnText = selectBtn.querySelector(".btn-text");
+          const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
+          if (defaultText) {
+            btnText.innerText = defaultText;
+          }
+          const listItems = listEl.querySelectorAll(".item");
+          selectBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            // Close other dropdowns
+            formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
+              if (otherContainer !== container) {
+                const otherSelectBtn = otherContainer.querySelector(".select-btn");
+                const otherListEl = otherContainer.querySelector(".list-items");
+                if (otherSelectBtn) otherSelectBtn.classList.remove("open");
+                if (otherListEl) otherListEl.style.display = "none";
+              }
+            });
+            selectBtn.classList.toggle("open");
+            listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
+          });
+          listItems.forEach((item) => {
+            item.addEventListener("click", (e) => {
+              e.stopPropagation();
+              listItems.forEach((i) => i.classList.remove("checked"));
+              item.classList.add("checked");
+              const labelText = item.querySelector(".item-text").innerText;
+              const value = item.querySelector(".item-text").getAttribute("data-value");
+              btnText.innerText = labelText;
+              hiddenInput.value = value;
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+              
+              // When a seller is selected, initialize Cal for that seller
+              if (BookingData[value]) {
+                const { namespace } = BookingData[value];
+                Cal("init", namespace, { origin: "https://cal.com" });
+                Cal.ns[namespace]("ui", {
+                  theme: "light",
+                  cssVarsPerTheme: {
+                    light: { "cal-brand": "#9c27b0" },
+                    dark: { "cal-brand": "#9c27b0" }
+                  },
+                  hideEventTypeDetails: false,
+                  layout: "month_view"
+                });
+              }
+            });
+          });
+          document.addEventListener("click", (e) => {
+            if (!container.contains(e.target)) {
+              selectBtn.classList.remove("open");
+              listEl.style.display = "none";
+            }
+          });
+        }
+
+        // Initialize the seller dropdown
+        setupDropdownSingle(
+          "dropdown-seller",
+          "sellerList",
+          "seller-name",
+          isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
+        );
+
+        /*************************************************************
+         * 3) Booking Process Integration
+         *************************************************************/
+        const bookNowButton = formContainer.querySelector("#cal-booking-button");
+        bookNowButton.addEventListener("click", () => {
+          console.log("Book Now button clicked");
+          
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const sellerName = formContainer.querySelector("#seller-name").value.trim();
+
+          // Validations
+          if (!fullName) {
+            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
+            return;
+          }
+          if (!email || !isValidEmail(email)) {
+            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
+            return;
+          }
+          if (!sellerName) {
+            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
+            return;
+          }
+
+          if (BookingData[sellerName]) {
+            // Disable all form elements to prevent further interaction
+            const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+            formElements.forEach(el => { el.disabled = true; });
+            
+            // Disable the seller dropdown by cloning & replacing its select button
+            const dropdownContainer = formContainer.querySelector("#dropdown-seller");
+            const selectBtn = dropdownContainer.querySelector(".select-btn");
+            selectBtn.classList.add("disabled");
+            dropdownContainer.classList.add("disabled");
+            const newSelectBtn = selectBtn.cloneNode(true);
+            selectBtn.parentNode.replaceChild(newSelectBtn, selectBtn);
+            formContainer.querySelector(".list-items").style.display = "none";
+            
+            bookNowButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+            bookNowButton.style.cursor = "not-allowed";
+            bookNowButton.style.backgroundColor = "#4CAF50";
+            bookNowButton.style.color = "white";
+
+            const { link, namespace } = BookingData[sellerName];
+            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+
+            // Notify Voiceflow
+            window.voiceflow.chat.interact({
+              type: "complete",
+              payload: { fullName, email, sellerName, link }
+            });
+
+            // Build the Cal link with name & email parameters
+            const calLinkWithParams = `${link}/${namespace}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
+
+            try {
+              Cal("init", namespace, { origin: "https://cal.com" });
+              Cal.ns[namespace]("ui", {
+                theme: "light",
+                cssVarsPerTheme: {
+                  light: { "cal-brand": "#9c27b0" },
+                  dark: { "cal-brand": "#9c27b0" }
+                },
+                hideEventTypeDetails: false,
+                layout: "month_view"
+              });
+              
+              // Initialize the inline booking embed into the container with id "my-cal-inline"
+              Cal.ns[namespace]("inline", {
+                elementOrSelector: "#my-cal-inline",
+                config: { layout: "month_view", theme: "light" },
+                calLink: calLinkWithParams
+              });
+              
+              // Unhide the inline container.
+              document.getElementById("my-cal-inline").style.display = "block";
+            } catch (error) {
+              console.error(`Error initializing Cal inline embed with namespace ${namespace}:`, error);
+              bookNowButton.textContent = isEnglish ? "Error - Please Refresh" : "Erreur - Veuillez actualiser";
+            }
+          } else {
+            alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
+          }
+        });
+
+        // Append the form container to the element (already done above)
+      },
+    };
+
+const BookingExtension_old = {
       name: "Forms",
       type: "response",
       match: ({ trace }) =>
