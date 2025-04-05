@@ -3795,10 +3795,13 @@ const BookingExtension = {
   render: ({ trace, element }) => {
     console.log("Booking extension rendering with payload:", trace.payload);
     
+    // Determine width based on screen size
+    const containerWidth = window.innerWidth >= 1000 ? "825px" : "400px";
+    
     // Create a simple container
     const container = document.createElement("div");
     container.style.cssText = `
-      width: 100%;
+      width: ${containerWidth};
       height: 600px;
       margin: 0 auto;
       border: 1px solid #ddd;
@@ -3815,11 +3818,11 @@ const BookingExtension = {
       text-align: center;
       border-top: 1px solid #ddd;
     `;
-    debugDiv.textContent = "Redirecting to calendar...";
+    debugDiv.textContent = "Loading calendar...";
     
     // Create a redirect button (as fallback)
     const redirectButton = document.createElement("a");
-    redirectButton.href = "https://cal.com/ainextg-noah-wilsonn/meeting";
+    redirectButton.href = "https://cal.com/ainextg-noah-wilsonn/meeting?theme=light&layout=column_view";
     redirectButton.target = "_blank";
     redirectButton.style.cssText = `
       display: inline-block;
@@ -3833,9 +3836,9 @@ const BookingExtension = {
     `;
     redirectButton.textContent = "Open Calendar";
     
-    // Simply embed Cal.com using a direct iframe (most compatible)
+    // Simply embed Cal.com using a direct iframe with light theme
     const iframe = document.createElement("iframe");
-    iframe.src = "https://cal.com/ainextg-noah-wilsonn/meeting";
+    iframe.src = "https://cal.com/ainextg-noah-wilsonn/meeting?theme=light&layout=column_view";
     iframe.style.cssText = `
       width: 100%;
       height: 550px;
@@ -3851,6 +3854,14 @@ const BookingExtension = {
     // Add container to element
     element.appendChild(container);
     
+    // Add window resize handler for responsive width
+    const updateContainerWidth = () => {
+      const newWidth = window.innerWidth >= 1000 ? "825px" : "400px";
+      container.style.width = newWidth;
+    };
+    
+    window.addEventListener('resize', updateContainerWidth);
+    
     // Optional: Notify Voiceflow that booking was started
     if (window.voiceflow && window.voiceflow.chat) {
       window.voiceflow.chat.interact({
@@ -3861,11 +3872,11 @@ const BookingExtension = {
     
     // Return a cleanup function
     return function cleanup() {
-      // No specific cleanup needed
+      window.removeEventListener('resize', updateContainerWidth);
     };
   }
 };
-
+   
 const BookingExtension_old = {
       name: "Forms",
       type: "response",
