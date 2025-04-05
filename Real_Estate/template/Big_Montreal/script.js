@@ -3793,14 +3793,93 @@ const BookingExtension = {
   match: ({ trace }) =>
     trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
   render: ({ trace, element }) => {
-    const { language } = trace.payload || { language: 'en' };
+    // Handle various payload formats for backward compatibility
+    const { 
+      language = trace.payload.language || "en", 
+      Uid = trace.payload.rescheduleUid || "2KXEcfxLx7kF1MQuAaxHqc", 
+      email = trace.payload.email || "belganasaad%40gmail.com", 
+      link = trace.payload.link || "ainextg/emma-thompson",
+	  namespace = trace.payload.namespace || "emma-thompson"
+    } = trace.payload;
+    
     const isEnglish = language === 'en';
 
-    // --- Cal.com Initialization Function inside the extension ---
-    (function (C, A, L) {
-      let p = function (a, ar) { a.q.push(ar); };
+    // Create the container
+    const container = document.createElement("div");
+
+    // Insert the style and HTML for the reschedule button
+    container.innerHTML = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        .reschedule-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+          background: transparent;
+          padding: 16px;
+          border-radius: 8px;
+          min-width: 300px;
+          align-items: center;
+        }
+        .reschedule {
+          color: #9c27b0;
+          background-color: #F8EAFA;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .reschedule:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        
+        .reschedule:hover:not(:disabled) {
+      background-color: #9c27b0;
+      font-weight: 700;
+      color: #fff;
+    }
+    .reschedule:disabled {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    
+        .debug-info {
+          font-size: 12px;
+          color: #666;
+          margin-top: 10px;
+          display: none;
+        }
+      </style>
+
+      <div class="reschedule-container">
+        <button type="button" class="reschedule" id="cal-reschedule-button">
+            ${isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous'}
+        </button>
+        <div class="debug-info" id="debug-info"></div>
+      </div>
+    `;
+
+    // Append the container to the provided element
+    element.appendChild(container);
+
+    // ====== Cal.com Initialization ======
+    (function(C, A, L) {
+      let p = function(a, ar) {
+        a.q.push(ar);
+      };
       let d = C.document;
-      C.Cal = C.Cal || function () {
+      C.Cal = C.Cal || function() {
         let cal = C.Cal;
         let ar = arguments;
         if (!cal.loaded) {
@@ -3810,578 +3889,122 @@ const BookingExtension = {
           cal.loaded = true;
         }
         if (ar[0] === L) {
-          const api = function () { p(api, arguments); };
+          const api = function() {
+            p(api, arguments);
+          };
           const namespace = ar[1];
           api.q = api.q || [];
           if (typeof namespace === "string") {
             cal.ns[namespace] = cal.ns[namespace] || api;
             p(cal.ns[namespace], ar);
             p(cal, ["initNamespace", namespace]);
-          } else {
-            p(cal, ar);
-          }
+          } else p(cal, ar);
           return;
         }
         p(cal, ar);
       };
     })(window, "https://app.cal.com/embed/embed.js", "init");
-    // --- End Cal.com Function ---
 
-    // SVG Icons
-    const SVG_CHEVRON = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
-        <g transform="translate(75, 75)">
-          <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-        </g>
-      </svg>
-    `;
-    const SVG_CHECK = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
-        <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-      </svg>
-    `;
-
-    // Create the form container
-    const formContainer = document.createElement("form");
-    formContainer.className = "booking-form";
-    formContainer.id = "booking-form";
-    formContainer.innerHTML = `
-      <style>
-        /* Base Form Styles */
-        .booking-form {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 16px;
-          border-radius: 8px;
-          background: #fff;
-        }
-        .flex-row {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .flex-row > div {
-          flex: 1;
-          min-width: 200px;
-        }
-        .bold-label {
-          font-weight: 600;
-          color: #000;
-          font-size: 14px;
-          margin-bottom: 4px;
-          display: block;
-        }
-        input[type="text"],
-        input[type="email"] {
-          width: 100%;
-          border: 1px solid rgba(0, 0, 0, 0.2);
-          border-radius: 8px;
-          padding: 8px;
-          background: #fff;
-          font-size: 13px;
-          outline: none;
-          box-sizing: border-box;
-        }
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-          border: 2px solid #9a0df2;
-        }
-        .book-now {
-          color: #9c27b0;
-          background-color: #F8EAFA;
-          border: none;
-          padding: 12px;
-          border-radius: 8px;
-          width: 100%;
-          font-size: 16px;
-          cursor: pointer;
-          margin-top: 8px;
-          transition: background-color 0.3s;
-        }
-        .book-now:hover {
-          background-color: #9c27b0;
-          font-weight: 700;
-          color: #fff;
-        }
-        .book-now:disabled {
-          background-color: #4CAF50;
-          color: white;
-          cursor: not-allowed;
-          font-weight: 700;
-        }
-        /* Custom Dropdown */
-        .dropdown-container {
-          position: relative;
-          max-width: 100%;
-        }
-        .select-btn {
-          display: flex;
-          height: 40px;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 12px;
-          border-radius: 8px;
-          cursor: pointer;
-          background-color: #fff;
-          border: 1px solid rgba(0, 0, 0, 0.2);
-          color: #555;
-          font-size: 13px;
-        }
-        .select-btn .btn-text {
-          font-size: 13px;
-          font-weight: 400;
-          color: black;
-        }
-        .select-btn .arrow-dwn {
-          display: flex;
-          height: 24px;
-          width: 24px;
-          color: #9c27b0;
-          font-size: 12px;
-          border-radius: 50%;
-          background: #F8EAFA;
-          align-items: center;
-          justify-content: center;
-          transition: 0.3s;
-        }
-        .select-btn.open .arrow-dwn {
-          transform: rotate(-180deg);
-        }
-        .select-btn:focus,
-        .select-btn.open {
-          border: 2px solid #9c27b0;
-        }
-        .list-items {
-          position: relative;
-          top: 100%;
-          left: 0;
-          right: 0;
-          margin-top: 4px;
-          border-radius: 8px;
-          padding: 8px 0;
-          background-color: #fff;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-          display: none;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-        .select-btn.open ~ .list-items {
-          display: block;
-        }
-        .list-items .item {
-          display: flex;
-          align-items: center;
-          height: 36px;
-          cursor: pointer;
-          padding: 0 12px;
-          border-radius: 8px;
-          transition: 0.3s;
-        }
-        .list-items .item:hover {
-          background-color: #F8EAFA;
-        }
-        .item .item-text {
-          font-size: 13px;
-          font-weight: 400;
-          color: #333;
-          margin-left: 8px;
-        }
-        .item .checkbox {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          margin-right: 8px;
-          border: 1.5px solid #c0c0c0;
-          transition: all 0.3s ease-in-out;
-        }
-        .item.checked .checkbox {
-          background-color: #9c27b0;
-          border: 2px solid #9c27b0;
-        }
-        .checkbox .check-icon {
-          color: #fff;
-          font-size: 12px;
-          transform: scale(0);
-          transition: all 0.2s ease-in-out;
-        }
-        .item.checked .check-icon {
-          transform: scale(1);
-        }
-        input[type="checkbox"] {
-          accent-color: #9c27b0;
-          width: 18px;
-          height: 18px;
-          cursor: pointer;
-        }
-        .cal-container {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          width: 100%;
-          max-width: 800px;
-          margin: 0 auto;
-          background: transparent;
-          padding-top: 20px;
-          border-radius: 8px;
-          min-width: 300px;
-          align-items: center;
-          min-height: 500px; /* Important for visibility */
-        }
-        #my-cal-inline {
-          width: 100%;
-          height: 500px;
-          overflow: auto;
-          margin-top: 20px;
-          display: none;
-          border: 1px solid #E5E7EB;
-          border-radius: 8px;
-        }
-        .spinner {
-          border: 4px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top: 4px solid #9c27b0;
-          width: 30px;
-          height: 30px;
-          animation: spin 1s linear infinite;
-          margin: 20px auto;
-          display: none;
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
-
-      <!-- Booking Form Fields -->
-      <div>
-          <label for="full-name" class="bold-label">
-              ${isEnglish ? 'Full Name' : 'Nom complet'}
-          </label>
-          <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
-      </div>
-      <div> 
-          <label for="email" class="bold-label">Email</label>
-          <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
-      </div>
-      <!-- Single-Select Dropdown for Seller -->
-      <div>
-          <label for="dropdown-seller" class="bold-label">
-              ${isEnglish ? 'Select a Seller' : 'Sélectionnez un vendeur'}
-          </label>
-          <div class="dropdown-container" id="dropdown-seller">
-              <div class="select-btn" tabindex="0">
-                  <span class="btn-text">${isEnglish ? '-- Select a Seller --' : '-- Sélectionnez un vendeur --'}</span>
-                  <span class="arrow-dwn">${SVG_CHEVRON}</span>
-              </div>
-              <ul class="list-items single-select" id="sellerList"></ul>
-          </div>
-          <input type="hidden" id="seller-name" name="seller-name" required />
-      </div>
-      <button type="button" class="book-now" id="cal-booking-button">
-          ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
-      </button>
-
-      <!-- Cal.com inline container (inside the form) -->
-      <div class="cal-container">
-        <div class="spinner" id="cal-loading-spinner"></div>
-        <div id="my-cal-inline" style="display: none;"></div>
-        <!-- Fallback message - will show if iframe embedding fails -->
-        <div id="cal-fallback" style="display:none; margin-top: 20px; text-align: center;">
-          <p>${isEnglish ? 'Calendar loading failed. Please use this link:' : 'Le chargement du calendrier a échoué. Veuillez utiliser ce lien:'}</p>
-          <a href="#" class="book-now" id="cal-fallback-link" style="display: inline-block; width: auto; padding: 8px 16px; margin-top: 10px;" target="_blank">
-            ${isEnglish ? 'Open Booking Calendar' : 'Ouvrir le calendrier de réservation'}
-          </a>
-        </div>
-      </div>
-    `;
-    element.appendChild(formContainer);
-
-    // Seller data
-    const Sellers = [
-      "Emma Thompson",
-      "Liam Carter",
-      "Sophia Martinez",
-      "Ethan Brown",
-      "Olivia Davis",
-      "Noah Wilson",
-      "Ava Johnson"
-    ];
-
-    // Booking data
-    const BookingData = {
-      "Emma Thompson": { link: "ainextg-emma-thompsonn", namespace: "meeting" },
-      "Liam Carter": { link: "ainextg-liam-carter", namespace: "meeting" },
-      "Sophia Martinez": { link: "ainextg-sophia-martinez", namespace: "meeting" },
-      "Ethan Brown": { link: "ainextg-ethan-brownn", namespace: "meeting" },
-      "Olivia Davis": { link: "ainextg-olivia-daviss", namespace: "meeting" },
-      "Noah Wilson": { link: "ainextg-noah-wilsonn", namespace: "meeting" },
-      "Ava Johnson": { link: "ainextg-ava-johnson", namespace: "meeting" }
-    };
-
-    function getSellerList(includeNoPreference = true) {
-      return [...Sellers];
-    }
-
-    function isValidEmail(email) {
-      const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-      return emailPattern.test(email);
-    }
+    // ====== reschedule Logic ======
+    const rescheduleButton = container.querySelector("#cal-reschedule-button");
+    const debugInfo = container.querySelector("#debug-info");
     
-    // Get references from the formContainer
-    const sellerListEl = formContainer.querySelector("#sellerList");
-    const sellers = getSellerList(false);
-    
-    // Clear existing list items first
-    sellerListEl.innerHTML = '';
-    
-    sellers.forEach(seller => {
-      const li = document.createElement("li");
-      li.classList.add("item");
-      li.innerHTML = `
-        <span class="checkbox">
-          ${SVG_CHECK}
-        </span>
-        <span class="item-text" data-value="${seller}">${seller}</span>
-      `;
-      sellerListEl.appendChild(li);
-    });
+    rescheduleButton.addEventListener("click", () => {
+	rescheduleButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+  rescheduleButton.style.backgroundColor = "#4CAF50";
+  rescheduleButton.style.color = "white";
 
-    function setupDropdownSingle(dropdownId, hiddenInputId, defaultText) {
-      // Use formContainer context to find elements
-      const container = formContainer.querySelector(`#${dropdownId}`);
-      const selectBtn = container.querySelector(".select-btn");
-      const listEl = container.querySelector(".list-items");
-      const btnText = selectBtn.querySelector(".btn-text");
-      const hiddenInput = formContainer.querySelector(`#${hiddenInputId}`);
-      
-      if (defaultText) {
-        btnText.innerText = defaultText;
+      // Notify Voiceflow that we're proceeding with reschedule
+      if (window.voiceflow && window.voiceflow.chat) {
+        window.voiceflow.chat.interact({
+          type: "reschedule_started",
+          payload: { 
+            email,
+            Uid,
+            link
+          },
+        });
       }
       
-      const listItems = listEl.querySelectorAll(".item");
+      // Disable button to prevent multiple clicks
+      rescheduleButton.disabled = true;
+	  
+
       
-      selectBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        
-        // Close other dropdowns within the form container
-        formContainer.querySelectorAll(".dropdown-container").forEach((otherContainer) => {
-          if (otherContainer !== container) {
-            const otherSelectBtn = otherContainer.querySelector(".select-btn");
-            const otherListEl = otherContainer.querySelector(".list-items");
-            if (otherSelectBtn) otherSelectBtn.classList.remove("open");
-            if (otherListEl) otherListEl.style.display = "none";
-          }
+      try {
+        // Initialize Cal for the namespace
+        Cal("init", namespace, {
+          origin: "https://cal.com"
         });
         
-        selectBtn.classList.toggle("open");
-        listEl.style.display = selectBtn.classList.contains("open") ? "block" : "none";
-      });
-      
-      listItems.forEach((item) => {
-        item.addEventListener("click", (e) => {
-          e.stopPropagation();
-          
-          // Uncheck all items
-          listItems.forEach((i) => i.classList.remove("checked"));
-          
-          // Check selected item
-          item.classList.add("checked");
-          
-          const labelText = item.querySelector(".item-text").innerText;
-          const value = item.querySelector(".item-text").getAttribute("data-value");
-          
-          btnText.innerText = labelText;
-          hiddenInput.value = value;
-          
-          selectBtn.classList.remove("open");
-          listEl.style.display = "none";
+        // Set UI preferences
+        Cal.ns[namespace]("ui", {
+          "theme": "light",
+          "cssVarsPerTheme": {
+            "light": {"cal-brand": "#9c27b0"},
+            "dark": {"cal-brand": "#9c27b0"}
+          },
+          "hideEventTypeDetails": false,
+          "layout": "week_view"
         });
-      });
-      
-      // Close dropdown when clicking outside
-      document.addEventListener("click", (e) => {
-        if (!container.contains(e.target)) {
-          selectBtn.classList.remove("open");
-          listEl.style.display = "none";
-        }
-      });
-    }
-
-    // Wait for DOM to be ready before initializing the dropdown
-    setTimeout(() => {
-      // Initialize the seller dropdown
-      setupDropdownSingle(
-        "dropdown-seller",
-        "seller-name",
-        isEnglish ? "-- Select a Seller --" : "-- Sélectionnez un vendeur --"
-      );
-      
-      /*************************************************************
-       * 3) Booking Process Integration
-       *************************************************************/
-      const bookNowButton = formContainer.querySelector("#cal-booking-button");
-      const calInlineContainer = formContainer.querySelector("#my-cal-inline");
-      const calLoadingSpinner = formContainer.querySelector("#cal-loading-spinner");
-      const calFallback = formContainer.querySelector("#cal-fallback");
-      const calFallbackLink = formContainer.querySelector("#cal-fallback-link");
-      
-      if (bookNowButton) {
-        bookNowButton.addEventListener("click", () => {
-          console.log("Book Now button clicked");
-          
-          // Use formContainer context to find form elements
-          const fullName = formContainer.querySelector("#full-name").value.trim();
-          const email = formContainer.querySelector("#email").value.trim();
-          const sellerName = formContainer.querySelector("#seller-name").value.trim();
-
-          // Validations
-          if (!fullName) {
-            alert(isEnglish ? "Full Name is required." : "Le nom complet est obligatoire.");
-            return;
-          }
-          if (!email || !isValidEmail(email)) {
-            alert(isEnglish ? "Please enter a valid email address." : "Veuillez entrer une adresse email valide.");
-            return;
-          }
-          if (!sellerName) {
-            alert(isEnglish ? "Please select a seller." : "Veuillez sélectionner un vendeur.");
-            return;
-          }
-
-          if (BookingData[sellerName]) {
-            // Disable all form elements to prevent further interaction
-            const formElements = formContainer.querySelectorAll("input, select, textarea");
-            formElements.forEach(el => { el.disabled = true; });
+        
+        // Create a button with data-cal-link attribute that will trigger Cal.com directly
+        const calTrigger = document.createElement('button');
+        calTrigger.style.display = 'none';
+        
+        // Build the link with reschedule parameters - this is the key part that needs fixing
+        const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
+        
+       
+        
+        // Set up the data-cal-link attributes
+        calTrigger.setAttribute('data-cal-link', calLinkWithParams);
+        calTrigger.setAttribute('data-cal-namespace', namespace);
+        calTrigger.setAttribute('data-cal-config', JSON.stringify({
+          layout: "week_view",
+          theme: "light"
+        }));
+        
+        // Setup event listener for successful reschedule
+        Cal.ns[namespace]("on", {
+          action: "reschedule_successful",
+          callback: (event) => {
+            console.log("reschedule successful", event);
             
-            // Disable the seller dropdown
-            const dropdownContainer = formContainer.querySelector("#dropdown-seller");
-            const selectBtn = dropdownContainer.querySelector(".select-btn");
-            selectBtn.classList.add("disabled");
-            dropdownContainer.classList.add("disabled");
-            
-            // Hide dropdown list
-            formContainer.querySelector(".list-items").style.display = "none";
-            
-            // Update button state
-            bookNowButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-            bookNowButton.style.cursor = "not-allowed";
-            bookNowButton.style.backgroundColor = "#4CAF50";
-            bookNowButton.style.color = "white";
-            bookNowButton.disabled = true;
-
-            const { link, namespace } = BookingData[sellerName];
-            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
-            
-            // Show loading spinner
-            calLoadingSpinner.style.display = "block";
-            
-            // Build the Cal direct link with name & email parameters (for fallback)
-            const calLinkWithParams = `https://app.cal.com/${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
-            calFallbackLink.href = calLinkWithParams;
-            
-            // Send data to Voiceflow
-            if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            // Notify Voiceflow that reschedule is complete
+            if (window.voiceflow && window.voiceflow.chat) {
               window.voiceflow.chat.interact({
                 type: "complete",
                 payload: { 
-                  fullName, 
-                  email, 
-                  sellerName, 
+                  email,
                   link,
-                  calendarUrl: calLinkWithParams
-                }
+                  Uid
+                },
               });
             }
-
-            // Set a timeout to check if Cal.com loads
-            let calInitialized = false;
-            
-            try {
-              // Initialize Cal.com with multiple approaches
-              // Approach 1: Using the Cal.com embed API
-              if (typeof Cal !== 'undefined') {
-                Cal("init", namespace, { origin: "https://cal.com" });
-                
-                Cal.ns[namespace]("ui", {
-                  theme: "light",
-                  cssVarsPerTheme: {
-                    light: { "cal-brand": "#9c27b0" },
-                    dark: { "cal-brand": "#9c27b0" }
-                  },
-                  hideEventTypeDetails: false,
-                  layout: "month_view"
-                });
-                
-                // Show the calendar container
-                calInlineContainer.style.display = "block";
-                
-                // Initialize the inline embed
-                Cal.ns[namespace]("inline", {
-                  elementOrSelector: "#my-cal-inline",
-                  config: { 
-                    layout: "month_view", 
-                    theme: "light",
-                    hideEventTypeDetails: false
-                  },
-                  calLink: link,
-                  prefill: {
-                    name: fullName,
-                    email: email
-                  }
-                });
-                
-                calInitialized = true;
-                console.log("Cal.com initialized successfully");
-              }
-              
-              // Approach 2: Direct iframe embed if Cal API doesn't work
-              if (!calInitialized) {
-                console.log("Falling back to direct iframe embed");
-                const iframe = document.createElement('iframe');
-                iframe.src = calLinkWithParams;
-                iframe.style.width = '100%';
-                iframe.style.height = '500px';
-                iframe.style.border = 'none';
-                iframe.allow = "camera; microphone; fullscreen; display-capture; autoplay";
-                
-                calInlineContainer.innerHTML = '';
-                calInlineContainer.appendChild(iframe);
-                calInlineContainer.style.display = "block";
-                
-                // Set timeout to check if iframe loaded
-                iframe.onload = function() {
-                  calLoadingSpinner.style.display = "none";
-                  calInitialized = true;
-                };
-              }
-            } catch (error) {
-              console.error("Error initializing Cal:", error);
-            }
-            
-            // Show fallback link if Cal doesn't initialize within 5 seconds
-            setTimeout(() => {
-              if (!calInitialized) {
-                console.log("Cal.com initialization timed out, showing fallback");
-                calLoadingSpinner.style.display = "none";
-                calFallback.style.display = "block";
-              } else {
-                calLoadingSpinner.style.display = "none";
-              }
-            }, 5000);
-          } else {
-            alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
           }
         });
+        
+        // Append the trigger to the body and click it
+        document.body.appendChild(calTrigger);
+        
+        // Small timeout to ensure Cal.js has initialized
+        setTimeout(() => {
+          calTrigger.click();
+        }, 300);
+      } catch (error) {
+        console.error("Error initializing Cal:", error);
+        debugInfo.textContent = `Error: ${error.message}`;
+        debugInfo.style.display = 'block';
+        rescheduleButton.disabled = false;
+        rescheduleButton.textContent = isEnglish ? 'Reschedule Appointment' : 'Reprogrammer le rendez-vous';
       }
-    }, 100); // Short delay to ensure DOM elements are available
+    });
+
+    // Return a cleanup function
+    return function cleanup() {
+      rescheduleButton.render({ trace, element: container });
+    };
   },
 };
 
