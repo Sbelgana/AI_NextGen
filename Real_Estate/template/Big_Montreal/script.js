@@ -3824,21 +3824,7 @@ sectionCards.forEach(card => {
         p(cal, ar);
       };
     })(window, "https://app.cal.com/embed/embed.js", "init");
-    // --- End Cal.com Function ---
 
-    // SVG Icons for use in the template
-    const SVG_CHEVRON = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
-        <g transform="translate(75, 75)">
-          <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-        </g>
-      </svg>
-    `;
-    const SVG_CHECK = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
-        <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-      </svg>
-    `;
 
     // Create the form container
     const formContainer = document.createElement("form");
@@ -4069,20 +4055,13 @@ sectionCards.forEach(card => {
       <button type="button" class="book-now" id="cal-booking-button">
           ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
       </button>
+      <!-- Cal.com inline container -->
+      <div class="cal-container">
+        <div id="my-cal-inline" style="display: none; width:100%; height:100%; overflow: auto; margin-top: 20px;"></div>
+      </div>
     `;
     element.appendChild(formContainer);
 
-    // Create the Cal.com inline container
-    const inlineContainerWrapper = document.createElement("div");
-    inlineContainerWrapper.className = "cal-container";
-    inlineContainerWrapper.innerHTML = `
-      <div id="my-cal-inline" style="display: none; width:100%; height:100%; overflow: auto; margin-top: 20px;"></div>
-    `;
-    element.appendChild(inlineContainerWrapper);
-
-    /*************************************************************
-     * 2) Populate and Setup Seller Dropdown
-     *************************************************************/
     
     // Get references from the formContainer instead of document
     const sellerListEl = formContainer.querySelector("#sellerList");
@@ -4273,9 +4252,8 @@ sectionCards.forEach(card => {
               
               // Delay inline embed initialization to allow Cal to load
               setTimeout(() => {
-                // Find the Cal inline container in the DOM, not in formContainer
-                // because we appended it to the element directly, not to formContainer
-                const calInline = element.querySelector("#my-cal-inline");
+                // Find the Cal inline container inside the form
+                const calInline = formContainer.querySelector("#my-cal-inline");
                 if (calInline) {
                   Cal.ns[namespace]("inline", {
                     elementOrSelector: "#my-cal-inline",
