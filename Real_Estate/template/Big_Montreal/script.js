@@ -3793,16 +3793,22 @@ const BookingExtension = {
   match: ({ trace }) =>
     trace.type === "ext_booking" || trace.payload?.name === "ext_booking",
   render: ({ trace, element }) => {
+    console.log("Booking extension rendering with payload:", trace.payload);
+    
+    // Create a unique ID for this specific instance
+    const uniqueId = "cal-reschedule-" + Math.random().toString(36).substring(2, 10);
+    
     // Handle various payload formats for backward compatibility
     const { 
-      language = trace.payload.language || "en", 
-      Uid = trace.payload.rescheduleUid || "2KXEcfxLx7kF1MQuAaxHqc", 
-      email = trace.payload.email || "belganasaad%40gmail.com", 
-      link = trace.payload.link || "ainextg/emma-thompson",
-      namespace = trace.payload.namespace || "emma-thompson"
-    } = trace.payload;
+      language = trace.payload?.language || "en", 
+      Uid = trace.payload?.rescheduleUid || "2KXEcfxLx7kF1MQuAaxHqc", 
+      email = trace.payload?.email || "belganasaad%40gmail.com", 
+      link = trace.payload?.link || "ainextg/emma-thompson",
+      namespace = trace.payload?.namespace || "emma-thompson"
+    } = trace.payload || {};
     
     const isEnglish = language === 'en';
+    console.log("Using parameters:", { language, Uid, email, link, namespace });
 
     // Create container with an inline embed target and debug info.
     const container = document.createElement("div");
@@ -3821,60 +3827,50 @@ const BookingExtension = {
           min-width: 300px;
           align-items: center;
         }
-        /* Inline embed container for reschedule view */
-        #my-cal-reschedule-inline {
+        #${uniqueId} {
           width: 100%;
-          height: 100%;
-          overflow: auto;
+          min-height: 600px; /* Ensure there's space for the calendar to render */
+          border: 1px solid #eaeaea;
+          border-radius: 8px;
           margin-top: 20px;
-          display: none;
         }
         .debug-info {
           font-size: 12px;
           color: #666;
           margin-top: 10px;
+          padding: 10px;
+          background: #f5f5f5;
+          border-radius: 4px;
+          width: 100%;
         }
       </style>
       <div class="reschedule-container">
-        <div id="my-cal-reschedule-inline"></div>
-        <div class="debug-info" id="debug-info"></div>
+        <div id="${uniqueId}"></div>
+        <div class="debug-info" id="debug-info-${uniqueId}">Initializing calendar...</div>
       </div>
     `;
     element.appendChild(container);
+    
+    const debugInfoElement = container.querySelector(`#debug-info-${uniqueId}`);
+    
+    // Load Cal.com script directly
+    const script = document.createElement('script');
+    script.src = 'https://app.cal.com/embed/embed.js';
+    script.async = true;
+    script.onload = function() {
+      console.log("Cal.com script loaded successfully");
+      initializeCalendar();
+    };
+    script.onerror = function() {
+      console.error("Failed to load Cal.com script");
+      if (debugInfoElement) {
+        debugInfoElement.textContent = "Error: Failed to load calendar script";
+      }
+    };
+    document.head.appendChild(script);
 
-    // ====== Cal.com Library Initialization ======
-    (function(C, A, L) {
-      let p = function(a, ar) { a.q.push(ar); };
-      let d = C.document;
-      C.Cal = C.Cal || function() {
-        let cal = C.Cal;
-        let ar = arguments;
-        if (!cal.loaded) {
-          cal.ns = {};
-          cal.q = cal.q || [];
-          d.head.appendChild(d.createElement("script")).src = A;
-          cal.loaded = true;
-        }
-        if (ar[0] === L) {
-          const api = function() { p(api, arguments); };
-          const namespace = ar[1];
-          api.q = api.q || [];
-          if (typeof namespace === "string") {
-            cal.ns[namespace] = cal.ns[namespace] || api;
-            p(cal.ns[namespace], ar);
-            p(cal, ["initNamespace", namespace]);
-          } else {
-            p(cal, ar);
-          }
-          return;
-        }
-        p(cal, ar);
-      };
-    })(window, "https://app.cal.com/embed/embed.js", "init");
-
-    // ====== Automatic Reschedule Logic ======
-    function triggerReschedule() {
-      // Notify Voiceflow that reschedule is starting.
+    function initializeCalendar() {
+      // Notify Voiceflow that reschedule is starting
       if (window.voiceflow && window.voiceflow.chat) {
         window.voiceflow.chat.interact({
           type: "reschedule_started",
@@ -3882,94 +3878,86 @@ const BookingExtension = {
         });
       }
       
-      const debugInfo = container.querySelector("#debug-info");
-
+      if (debugInfoElement) {
+        debugInfoElement.textContent = "Setting up calendar...";
+      }
+      
       try {
-        // Build the dynamic reschedule link with parameters.
+        // Build the dynamic reschedule link with parameters
         const calLinkWithParams = `${link}?rescheduleUid=${Uid}&rescheduledBy=${email}`;
-
-        // Initialize Cal.com for the provided namespace.
-        Cal("init", namespace, { origin: "https://cal.com" });
+        console.log("Calendar link:", calLinkWithParams);
         
-        // Set UI preferences for inline reschedule view (light theme, week view).
-        Cal.ns[namespace]("ui", {
-          theme: "light",
-          cssVarsPerTheme: {
-            light: { "cal-brand": "#9c27b0" },
-            dark: { "cal-brand": "#9c27b0" }
-          },
-          hideEventTypeDetails: false,
-          layout: "month_view"
-        });
+        if (typeof window.Cal === 'undefined') {
+          throw new Error("Cal.com library not loaded properly");
+        }
         
-        // Wait for the Cal.com script to load before initializing the inline embed
-        setTimeout(() => {
-          // Find the element within the container that was just created
-          const calElement = container.querySelector("#my-cal-reschedule-inline");
-          
-          if (calElement) {
-            // Set display property before initializing Cal
-            calElement.style.display = "block";
-            
-            // Initialize the inline embed for rescheduling.
-            Cal.ns[namespace]("inline", {
-              elementOrSelector: "#my-cal-reschedule-inline",
-              config: { layout: "month_view", theme: "light" },
-              calLink: calLinkWithParams,
-            });
-          } else {
-            console.error("Booking calendar element not found");
-            if (debugInfo) {
-              debugInfo.textContent = "Error: Calendar element not found";
+        // Initialize Cal.com
+        window.Cal("init", namespace, { origin: "https://cal.com" });
+        
+        window.Cal(
+          "inline", 
+          {
+            elementOrSelector: `#${uniqueId}`,
+            calLink: calLinkWithParams,
+            config: {
+              layout: "month_view",
+              hideEventTypeDetails: false,
+              theme: "light"
             }
           }
-        }, 500); // Give some time for the Cal script to load
+        );
         
-        // Listen for successful reschedule events.
-        Cal.ns[namespace]("on", {
+        if (debugInfoElement) {
+          debugInfoElement.textContent = "Calendar loaded. Please select a time to reschedule.";
+        }
+        
+        // Event listeners
+        window.Cal("on", {
           action: "reschedule_successful",
           callback: (event) => {
-            console.log("Reschedule successful", event);
+            console.log("Reschedule successful:", event);
             if (window.voiceflow && window.voiceflow.chat) {
               window.voiceflow.chat.interact({
                 type: "complete",
                 payload: { email, link, Uid }
               });
             }
-            if (debugInfo) {
-              debugInfo.textContent = isEnglish ? "Reschedule completed" : "Reprogrammation terminée";
+            if (debugInfoElement) {
+              debugInfoElement.textContent = isEnglish 
+                ? "✅ Appointment rescheduled successfully!" 
+                : "✅ Rendez-vous reprogrammé avec succès!";
             }
           }
         });
         
-        // Listen for errors.
-        Cal.ns[namespace]("on", {
+        window.Cal("on", {
           action: "error",
           callback: (error) => {
-            console.error("Cal error:", error);
-            if (debugInfo) {
-              debugInfo.textContent = `Cal error: ${JSON.stringify(error)}`;
+            console.error("Calendar error:", error);
+            if (debugInfoElement) {
+              debugInfoElement.textContent = `Error: ${error.errorCode || JSON.stringify(error)}`;
             }
           }
         });
+        
       } catch (error) {
-        console.error("Error initializing Cal:", error);
-        if (debugInfo) {
-          debugInfo.textContent = `Error: ${error.message}`;
+        console.error("Error setting up calendar:", error);
+        if (debugInfoElement) {
+          debugInfoElement.textContent = `Error: ${error.message}`;
         }
       }
     }
 
-    // Delay the trigger to ensure DOM is ready
-    setTimeout(triggerReschedule, 100);
-
-    // Return a cleanup function if needed.
+    // Return a cleanup function
     return function cleanup() {
-      // Cleanup logic can be added here if necessary.
+      // Remove the script tag we added
+      const calScript = document.querySelector('script[src="https://app.cal.com/embed/embed.js"]');
+      if (calScript) {
+        calScript.remove();
+      }
     };
   },
 };
-
 
 const BookingExtension_old = {
       name: "Forms",
