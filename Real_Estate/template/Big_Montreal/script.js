@@ -3787,7 +3787,6 @@ sectionCards.forEach(card => {
 
 /************** EXTENSION #4: BookingExtension **************/
  
-// BookingExtension implementation with redirect approach
 const BookingExtension = {
   name: "Forms",
   type: "response",
@@ -3796,6 +3795,37 @@ const BookingExtension = {
   render: ({ trace, element }) => {
     const { language } = trace.payload || { language: 'en' };
     const isEnglish = language === 'en';
+
+    // --- Cal.com Initialization Function inside the extension ---
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal;
+        let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else {
+            p(cal, ar);
+          }
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+    // --- End Cal.com Function ---
 
     // SVG Icons
     const SVG_CHEVRON = `
@@ -3990,37 +4020,43 @@ const BookingExtension = {
           height: 18px;
           cursor: pointer;
         }
-        .success-message {
+        .cal-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+          background: transparent;
+          padding-top: 20px;
+          border-radius: 8px;
+          min-width: 300px;
+          align-items: center;
+          min-height: 500px; /* Important for visibility */
+        }
+        #my-cal-inline {
+          width: 100%;
+          height: 500px;
+          overflow: auto;
           margin-top: 20px;
-          padding: 15px;
-          background-color: #e8f5e9;
-          border-left: 4px solid #4CAF50;
-          border-radius: 4px;
+          display: none;
+          border: 1px solid #E5E7EB;
+          border-radius: 8px;
+        }
+        .spinner {
+          border: 4px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top: 4px solid #9c27b0;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          margin: 20px auto;
           display: none;
         }
-        .success-message h3 {
-          margin-top: 0;
-          color: #2e7d32;
-          font-size: 16px;
-        }
-        .success-message p {
-          margin-bottom: 10px;
-          color: #333;
-          font-size: 14px;
-        }
-        .cal-link {
-          display: inline-block;
-          margin-top: 10px;
-          padding: 8px 16px;
-          background-color: #9c27b0;
-          color: white;
-          text-decoration: none;
-          border-radius: 4px;
-          font-weight: 500;
-          font-size: 14px;
-        }
-        .cal-link:hover {
-          background-color: #7B1FA2;
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       </style>
 
@@ -4053,13 +4089,17 @@ const BookingExtension = {
           ${isEnglish ? 'Book Now' : 'Réserver maintenant'}
       </button>
 
-      <!-- Success Message (initially hidden) -->
-      <div class="success-message" id="success-message">
-        <h3>${isEnglish ? 'Booking Request Submitted!' : 'Demande de réservation soumise !'}</h3>
-        <p>${isEnglish ? 'Click the link below to schedule your appointment with' : 'Cliquez sur le lien ci-dessous pour planifier votre rendez-vous avec'} <span id="selected-seller"></span>:</p>
-        <a href="#" class="cal-link" id="cal-link" target="_blank">
-          ${isEnglish ? 'Schedule Appointment' : 'Planifier un rendez-vous'}
-        </a>
+      <!-- Cal.com inline container (inside the form) -->
+      <div class="cal-container">
+        <div class="spinner" id="cal-loading-spinner"></div>
+        <div id="my-cal-inline" style="display: none;"></div>
+        <!-- Fallback message - will show if iframe embedding fails -->
+        <div id="cal-fallback" style="display:none; margin-top: 20px; text-align: center;">
+          <p>${isEnglish ? 'Calendar loading failed. Please use this link:' : 'Le chargement du calendrier a échoué. Veuillez utiliser ce lien:'}</p>
+          <a href="#" class="book-now" id="cal-fallback-link" style="display: inline-block; width: auto; padding: 8px 16px; margin-top: 10px;" target="_blank">
+            ${isEnglish ? 'Open Booking Calendar' : 'Ouvrir le calendrier de réservation'}
+          </a>
+        </div>
       </div>
     `;
     element.appendChild(formContainer);
@@ -4185,12 +4225,13 @@ const BookingExtension = {
       );
       
       /*************************************************************
-       * 3) Booking Process Integration with Direct Link Approach
+       * 3) Booking Process Integration
        *************************************************************/
       const bookNowButton = formContainer.querySelector("#cal-booking-button");
-      const successMessage = formContainer.querySelector("#success-message");
-      const selectedSellerSpan = formContainer.querySelector("#selected-seller");
-      const calLink = formContainer.querySelector("#cal-link");
+      const calInlineContainer = formContainer.querySelector("#my-cal-inline");
+      const calLoadingSpinner = formContainer.querySelector("#cal-loading-spinner");
+      const calFallback = formContainer.querySelector("#cal-fallback");
+      const calFallbackLink = formContainer.querySelector("#cal-fallback-link");
       
       if (bookNowButton) {
         bookNowButton.addEventListener("click", () => {
@@ -4217,7 +4258,7 @@ const BookingExtension = {
 
           if (BookingData[sellerName]) {
             // Disable all form elements to prevent further interaction
-            const formElements = formContainer.querySelectorAll("input, select, textarea, button");
+            const formElements = formContainer.querySelectorAll("input, select, textarea");
             formElements.forEach(el => { el.disabled = true; });
             
             // Disable the seller dropdown
@@ -4234,21 +4275,17 @@ const BookingExtension = {
             bookNowButton.style.cursor = "not-allowed";
             bookNowButton.style.backgroundColor = "#4CAF50";
             bookNowButton.style.color = "white";
+            bookNowButton.disabled = true;
 
             const { link, namespace } = BookingData[sellerName];
-            console.log(`Preparing Cal link for ${sellerName} (namespace: ${namespace}, link: ${link})`);
+            console.log(`Opening Cal for ${sellerName} (namespace: ${namespace}, link: ${link})`);
             
-            // Build the Cal direct link with name & email parameters
+            // Show loading spinner
+            calLoadingSpinner.style.display = "block";
+            
+            // Build the Cal direct link with name & email parameters (for fallback)
             const calLinkWithParams = `https://app.cal.com/${link}?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
-            
-            // Update the success message with seller name
-            selectedSellerSpan.textContent = sellerName;
-            
-            // Update the cal link href
-            calLink.href = calLinkWithParams;
-            
-            // Show success message
-            successMessage.style.display = "block";
+            calFallbackLink.href = calLinkWithParams;
             
             // Send data to Voiceflow
             if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
@@ -4262,15 +4299,87 @@ const BookingExtension = {
                   calendarUrl: calLinkWithParams
                 }
               });
-            } else {
-              console.error("Voiceflow chat interact method is not available");
             }
+
+            // Set a timeout to check if Cal.com loads
+            let calInitialized = false;
+            
+            try {
+              // Initialize Cal.com with multiple approaches
+              // Approach 1: Using the Cal.com embed API
+              if (typeof Cal !== 'undefined') {
+                Cal("init", namespace, { origin: "https://cal.com" });
+                
+                Cal.ns[namespace]("ui", {
+                  theme: "light",
+                  cssVarsPerTheme: {
+                    light: { "cal-brand": "#9c27b0" },
+                    dark: { "cal-brand": "#9c27b0" }
+                  },
+                  hideEventTypeDetails: false,
+                  layout: "month_view"
+                });
+                
+                // Show the calendar container
+                calInlineContainer.style.display = "block";
+                
+                // Initialize the inline embed
+                Cal.ns[namespace]("inline", {
+                  elementOrSelector: "#my-cal-inline",
+                  config: { 
+                    layout: "month_view", 
+                    theme: "light",
+                    hideEventTypeDetails: false
+                  },
+                  calLink: link,
+                  prefill: {
+                    name: fullName,
+                    email: email
+                  }
+                });
+                
+                calInitialized = true;
+                console.log("Cal.com initialized successfully");
+              }
+              
+              // Approach 2: Direct iframe embed if Cal API doesn't work
+              if (!calInitialized) {
+                console.log("Falling back to direct iframe embed");
+                const iframe = document.createElement('iframe');
+                iframe.src = calLinkWithParams;
+                iframe.style.width = '100%';
+                iframe.style.height = '500px';
+                iframe.style.border = 'none';
+                iframe.allow = "camera; microphone; fullscreen; display-capture; autoplay";
+                
+                calInlineContainer.innerHTML = '';
+                calInlineContainer.appendChild(iframe);
+                calInlineContainer.style.display = "block";
+                
+                // Set timeout to check if iframe loaded
+                iframe.onload = function() {
+                  calLoadingSpinner.style.display = "none";
+                  calInitialized = true;
+                };
+              }
+            } catch (error) {
+              console.error("Error initializing Cal:", error);
+            }
+            
+            // Show fallback link if Cal doesn't initialize within 5 seconds
+            setTimeout(() => {
+              if (!calInitialized) {
+                console.log("Cal.com initialization timed out, showing fallback");
+                calLoadingSpinner.style.display = "none";
+                calFallback.style.display = "block";
+              } else {
+                calLoadingSpinner.style.display = "none";
+              }
+            }, 5000);
           } else {
             alert(isEnglish ? "No booking information available for the selected seller." : "Aucune information de réservation disponible pour le vendeur sélectionné.");
           }
         });
-      } else {
-        console.error("Book Now button not found");
       }
     }, 100); // Short delay to ensure DOM elements are available
   },
