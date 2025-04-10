@@ -1255,11 +1255,11 @@ const BookingFormExtension = {
   }
 };
 
-    const BookingExtension = {
-      name: 'Booking',
+    const BookingCalendarExtension = {
+      name: 'BookingCalendar',
       type: 'response',
       match: ({ trace }) =>
-        trace.type === 'ext_booking' || trace.payload?.name === 'ext_booking',
+        trace.type === 'ext_booking_calendar' || trace.payload?.name === 'ext_booking_calendar',
       render: async ({ trace, element }) => {
         // --- Extract required payload values with fallbacks ---
         const {
@@ -2690,6 +2690,2670 @@ const BookingInformationExtension = {
     };
 
 
+    const RescheduleCalendarExtension = {
+      name: 'RescheduleCalendar',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
+      render: async ({ trace, element }) => {
+        // --- Extract required payload values with fallbacks ---
+        const {
+          email = "john@example.com",
+          apiKey = "",
+          scheduleId = "",
+          eventTypeId = "1",
+          eventTypeSlug = "default-event",
+          slots = {},
+          selectedDate = '', 
+          selectedTime = '',
+          language = 'en',
+          timezone = 'America/Toronto',
+          uid = ""                // UID for rescheduling
+        } = trace.payload || {};
+
+        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+        const highlightColor = '#9C27B0';
+
+        // Create a container and attach a shadow DOM for encapsulated styling.
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+        container.style.maxWidth = "800px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({ mode: 'open' });
+
+        // Build CSS with direct values (no CSS variables)
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+          }
+          @keyframes shimmer {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+          }
+          .calendar-container {
+            box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
+            border-radius: 16px;
+            overflow: hidden;
+            background: #ffffff;
+            color: #333;
+            animation: fadeIn 0.3s ease-out forwards;
+            border: 1px solid #eaeaea;
+            transition: all 0.3s ease;
+          }
+          .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            background-color: #faf7fc;
+            border-bottom: 1px solid #eaeaea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            position: relative;
+          }
+          .calendar-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: #9C27B0;
+            opacity: 0.5;
+          }
+          .calendar-title {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #9C27B0;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.2px;
+          }
+          .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          }
+          .nav-btn {
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: #9C27B0;
+          }
+          .nav-btn:hover {
+            background-color: #F8EAFA;
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
+          }
+          .nav-btn:active { transform: scale(0.95); }
+          .current-date { font-weight: 600; font-size: 17px; }
+          .calendar-body {
+            display: flex;
+            height: 400px;
+            background: linear-gradient(to bottom, #ffffff, #fefeff);
+          }
+          .days-container {
+            width: 47%;
+            padding: 15px 10px;
+            position: relative;
+            background-image: 
+              linear-gradient(rgba(156, 39, 176, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
+            background-position: -1px -1px;
+          }
+          .calendar-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #9C27B0, transparent);
+            border-radius: 3px;
+            opacity: 0.7;
+          }
+          .days-container::after {
+            content: '';
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 80px;
+            height: 80px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(156, 39, 176, 0.03)'/%3E%3C/svg%3E");
+            opacity: 0.6;
+          }
+          .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 15px 0 10px;
+            color: #666;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+          }
+          .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            padding: 5px;
+          }
+          .day {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 45px;
+            width: 45px;
+            cursor: pointer;
+            position: relative;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            margin: 0 auto;
+            border: 1px solid transparent;
+            border-radius: 50%;
+            z-index: 1;
+          }
+          .day:not(.inactive)::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background-color: transparent;
+            transform: scale(0.9);
+            transition: all 0.25s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            z-index: -1;
+          }
+          .day:hover:not(.inactive)::before {
+            background-color: #F8EAFA;
+            transform: scale(1);
+          }
+          .day:hover:not(.inactive) {
+            color: #9C27B0;
+            border: 2px solid #9C27B0;
+            transform: translateY(-2px);
+            font-weight: 500;
+          }
+          .day.available { position: relative; }
+          .day.available::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #9C27B0;
+            opacity: 0.7;
+            transform: translateY(3px);
+            animation: fadeIn 0.3s ease forwards;
+          }
+          .day.today {
+            border: 1.5px solid #9C27B0;
+            position: relative;
+            box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
+          }
+          .day.today::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #9C27B0;
+          }
+          .day.active {
+            background-color: #9C27B0;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+          }
+          .day.active::after { display: none; }
+          .day.inactive { color: #ccc; cursor: default; opacity: 0.7; }
+          .times-container {
+            width: 53%;
+            border-left: 1px solid #eaeaea;
+            padding: 20px 10px;
+            overflow-y: auto;
+            background-color: #fefeff;
+            position: relative;
+          }
+          .times-container::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            height: 100%;
+            background: linear-gradient(to bottom, #9C27B0, transparent);
+            opacity: 0.1;
+          }
+          .time-header {
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+            color: #9C27B0;
+            padding: 0 5px;
+            line-height: 1.4;
+            position: relative;
+          }
+          .time-header::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background-color: #9C27B0;
+            opacity: 0.5;
+            border-radius: 3px;
+          }
+          .time-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 5px;
+          }
+          .time-slots-columns {
+            display: flex;
+            gap: 20px;
+          }
+          .time-slots-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+          }
+          .times-container::-webkit-scrollbar { width: 6px; }
+          .times-container::-webkit-scrollbar-track {
+            background: rgba(156, 39, 176, 0.05);
+            border-radius: 10px;
+          }
+          .times-container::-webkit-scrollbar-thumb {
+            background: rgba(156, 39, 176, 0.2);
+            border-radius: 10px;
+          }
+          .times-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 39, 176, 0.3);
+          }
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+          }
+          .time-slot {
+            padding: 14px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+            background-color: white;
+            color: #444;
+            position: relative;
+            overflow: hidden;
+            transform-origin: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          }
+          .time-slot::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(120deg, transparent, #F8EAFA, transparent);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.3s;
+          }
+          .time-slot.available { background-color: white; }
+          .time-slot.unavailable {
+            background-color: #f4f4f5;
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+          }
+          .time-slot.selected {
+            background-color: #9C27B0;
+            color: white;
+            border-color: #9C27B0;
+            border-radius: 10px;
+            font-weight: bold;
+            transform: scale(1.03);
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+            z-index: 5;
+          }
+          .time-slot.selected::after {
+            content: '';
+            position: absolute;
+            right: 16px;
+            font-size: 14px;
+            opacity: 0.9;
+          }
+          .time-slot.available:hover:not(.selected) {
+            background-color: #F8EAFA;
+            color: #9C27B0;
+            border: 2px solid #9C27B0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+          }
+          .time-slot.available:hover:not(.selected)::before {
+            opacity: 0.6;
+            animation: shimmer 1.5s infinite;
+          }
+          .reschedule-reason {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-top: 1px solid #eaeaea;
+            background-color: #fafafa;
+          }
+          .reschedule-reason label {
+            font-size: 14px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+          }
+          .reschedule-reason textarea {
+            resize: vertical;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            min-height: 60px;
+          }
+          .reschedule-reason textarea:focus {
+            border: 2px solid ${highlightColor};
+            outline: none;
+          }
+          .error-message {
+            color: ${highlightColor};
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+          }
+          .calendar-container.confirmed .day,
+          .calendar-container.confirmed .time-slot { pointer-events: none; cursor: default; }
+          .calendar-container.confirmed .nav-btn { pointer-events: none; opacity: 0.5; cursor: default; }
+          .calendar-footer {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #eaeaea;
+          }
+          .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 14px;
+          }
+          .confirm-btn {
+            background: #F8EAFA;
+            color: #9C27B0;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 12px 24px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+          }
+          .confirm-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+          }
+          .confirm-btn:hover:not(:disabled) {
+            background: #9C27B0;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:hover:not(:disabled)::before {
+            animation: shimmer 1.5s infinite;
+          }
+          .confirm-btn:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:disabled {
+            cursor: not-allowed;
+            box-shadow: none;
+          }
+          .cancel-btn {
+            background-color: white;
+            color: #333;
+            border: 1px solid #eaeaea;
+            margin-right: 10px;
+          }
+          .cancel-btn:hover { background-color: #f5f5f5; }
+          .toggle-view {
+            background-color: white;
+            border: 1px solid #eaeaea;
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+          }
+          .toggle-btn {
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+          }
+          .toggle-btn.active { background-color: #9C27B0; color: white; }
+          @media (max-width: 768px) {
+            .calendar-body { flex-direction: column; height: auto; }
+            .days-container, .times-container { width: 100%; }
+            .times-container {
+              border-left: none;
+              border-top: 1px solid #eaeaea;
+              max-height: 250px;
+            }
+            .calendar-title { font-size: 18px; }
+            .day { height: 40px; width: 40px; font-size: 13px; }
+            .nav-btn { width: 36px; height: 36px; }
+            .time-header { font-size: 15px; }
+            .action-btn { padding: 10px 18px; font-size: 14px; }
+            @keyframes mobileShimmer {
+              0% { background-position: -200% 0; }
+              100% { background-position: 200% 0; }
+            }
+            .confirm-btn:hover:not(:disabled)::before {
+              animation: mobileShimmer 2s infinite;
+            }
+          }
+        `;
+        shadow.appendChild(style);
+
+        // ---------------------
+        // API CALL FUNCTIONS
+        // ---------------------
+        async function fetchWorkingDays() {
+          if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+          try {
+            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-06-11",
+                "Content-Type": "application/json"
+              }
+            });
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            const data = await res.json();
+            console.log("Schedule data:", data);
+            const availability = data.data?.availability || [];
+            const dayNameToNumber = {
+              "Sunday": 0,
+              "Monday": 1,
+              "Tuesday": 2,
+              "Wednesday": 3,
+              "Thursday": 4,
+              "Friday": 5,
+              "Saturday": 6
+            };
+            const workingDaysSet = new Set();
+            availability.forEach(item => {
+              if (Array.isArray(item.days)) {
+                item.days.forEach(dayName => {
+                  const dayNum = dayNameToNumber[dayName];
+                  if (dayNum !== undefined) {
+                    workingDaysSet.add(dayNum);
+                  }
+                });
+              }
+            });
+            return Array.from(workingDaysSet);
+          } catch (err) {
+            console.error("Error fetching schedule:", err);
+            return [1, 2, 3, 4, 5];
+          }
+        }
+
+        async function fetchAvailableSlots(selectedDateISO) {
+          const start = new Date(selectedDateISO);
+          start.setUTCHours(0, 0, 0, 0);
+          const end = new Date(selectedDateISO);
+          end.setUTCHours(23, 59, 59, 999);
+          const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+          try {
+            const res = await fetch(url, {
+              method: 'GET',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              }
+            });
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const responseBody = await res.json();
+            console.log("Available slots API response:", responseBody);
+            if (!responseBody || typeof responseBody !== 'object') {
+              throw new Error("Invalid or missing response body from the API");
+            }
+            if (responseBody.status !== "success") {
+              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            const slotsObj = responseBody.data?.slots || {};
+            const slotsForDate = slotsObj[selectedDateISO] || [];
+            return slotsForDate.map(slot => slot.time);
+          } catch (err) {
+            console.error("Error fetching available slots:", err);
+            return [];
+          }
+        }
+
+        // New function for rescheduling a booking using the UID.
+        async function rescheduleBooking(startTimeISO, reason) {
+          const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
+          const body = {
+            rescheduledBy: email,
+            reschedulingReason: reason,
+            start: startTimeISO
+          };
+          try {
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+            }
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            return responseBody;
+          } catch (err) {
+            console.error("Error rescheduling booking:", err);
+            throw err;
+          }
+        }
+
+        // Function to show error messages to the user.
+        function showErrorMessage(message) {
+          const errorOverlay = document.createElement('div');
+          errorOverlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+          `;
+          
+          const errorMessage = document.createElement('div');
+          errorMessage.style.cssText = `
+            background-color: #fff0f0;
+            border: 1px solid #ffdddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 80%;
+          `;
+          
+          errorMessage.innerHTML = `
+            <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+              </svg>
+            </div>
+            <p style="margin: 0; color: #333;">${message}</p>
+            <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
+          `;
+          
+          errorOverlay.appendChild(errorMessage);
+          calendarContainer.appendChild(errorOverlay);
+          
+          const closeButton = errorMessage.querySelector('button');
+          closeButton.addEventListener('click', () => {
+            calendarContainer.removeChild(errorOverlay);
+            if (state.selectedDate) {
+              const dateKey = formatDate(state.selectedDate);
+              fetchAvailableSlots(dateKey).then(slots => {
+                state.availableSlots[dateKey] = slots;
+                renderCalendar();
+              });
+            }
+          });
+        }
+
+        // ---------------------
+        // EXTENSION INTERNAL STATE
+        // ---------------------
+        const state = {
+          currentDate: new Date(),
+          selectedDate: selectedDate ? new Date(selectedDate) : null,
+          selectedTime: selectedTime || null,
+          availableSlots: {},
+          workingDays: await fetchWorkingDays(),
+          isConfirmed: false,
+          language: language || 'en',
+          reason: "",
+          isLoading: false
+        };
+
+        const translations = {
+          en: {
+            selectDateAndTime: "Select Date & Time",
+            selectDate: "Select a date to view available times",
+            pleaseSelectDate: "Please select a date first",
+            availableTimesFor: "Available times for",
+            noAvailableSlots: "No available time slots for this date",
+            confirmReschedule: "Confirm Reschedule",
+            rescheduleConfirmed: "Reschedule Confirmed",
+            weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            reasonLabel: "Reason for rescheduling",
+            pleaseProvideReason: "Please provide a reason for rescheduling",
+            loading: "Processing..."
+          },
+          fr: {
+            selectDateAndTime: "Sélectionner Date & Heure",
+            selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+            pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+            availableTimesFor: "Horaires disponibles pour",
+            noAvailableSlots: "Aucun horaire disponible pour cette date",
+            confirmReschedule: "Replanifier le rendez-vous",
+            rescheduleConfirmed: "Rendez-vous replanifié",
+            weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+            reasonLabel: "Raison de la replanification",
+            pleaseProvideReason: "Veuillez fournir une raison pour la replanification",
+            loading: "Traitement en cours..."
+          }
+        };
+
+        function getDefaultActiveDay() {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (state.workingDays.includes(today.getDay())) {
+            return today;
+          }
+          const next = new Date(today);
+          while (!state.workingDays.includes(next.getDay())) {
+            next.setDate(next.getDate() + 1);
+          }
+          return next;
+        }
+
+        function getText(key) {
+          const lang = translations[state.language] ? state.language : 'en';
+          return translations[lang][key] || key;
+        }
+
+        function formatDate(date) {
+          const d = new Date(date);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+
+        function isSameDay(date1, date2) {
+          if (!date1 || !date2) return false;
+          return formatDate(date1) === formatDate(date2);
+        }
+
+        function isToday(date) {
+          const now = new Date();
+          return isSameDay(date, now);
+        }
+
+        if (!state.selectedDate) {
+          const defaultDay = getDefaultActiveDay();
+          state.selectedDate = defaultDay;
+          const dayKey = formatDate(defaultDay);
+          const defaultSlots = await fetchAvailableSlots(dayKey);
+          state.availableSlots[dayKey] = defaultSlots;
+        }
+
+        function renderHeader() {
+          const header = document.createElement("div");
+          header.className = "calendar-header";
+          const dateFormatter = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' });
+          const calendarTitle = document.createElement("div");
+          calendarTitle.className = "calendar-title";
+          const calendarIcon = document.createElement("span");
+          calendarIcon.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+              
+          `;
+          const titleText = document.createElement("span");
+          titleText.textContent = getText('selectDateAndTime');
+          calendarTitle.appendChild(calendarIcon);
+          calendarTitle.appendChild(titleText);
+          const calendarNav = document.createElement("div");
+          calendarNav.className = "calendar-nav";
+          const currentDateEl = document.createElement("div");
+          currentDateEl.className = "current-date";
+          currentDateEl.textContent = dateFormatter.format(state.currentDate);
+          currentDateEl.style.cssText = `
+            background: #F8EAFA;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 500;
+            color: #9C27B0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+          `;
+          const prevBtn = document.createElement("button");
+          prevBtn.className = "nav-btn prev-btn";
+          prevBtn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          prevBtn.addEventListener("click", () => {
+            if (!state.isConfirmed) {
+              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+              renderCalendar();
+            }
+          });
+          const nextBtn = document.createElement("button");
+          nextBtn.className = "nav-btn next-btn";
+          nextBtn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          nextBtn.addEventListener("click", () => {
+            if (!state.isConfirmed) {
+              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+              renderCalendar();
+            }
+          });
+          calendarNav.appendChild(currentDateEl);
+          calendarNav.appendChild(prevBtn);
+          calendarNav.appendChild(nextBtn);
+          header.appendChild(calendarTitle);
+          header.appendChild(calendarNav);
+          return header;
+        }
+
+        async function renderCalendarDays() {
+          const daysContainer = document.createElement("div");
+          daysContainer.className = "days-container";
+          const weekdaysDiv = document.createElement("div");
+          weekdaysDiv.className = "weekdays";
+          const weekdays = getText('weekdays');
+          weekdays.forEach(day => {
+            const dayEl = document.createElement("div");
+            dayEl.textContent = day;
+            weekdaysDiv.appendChild(dayEl);
+          });
+          daysContainer.appendChild(weekdaysDiv);
+          const daysDiv = document.createElement("div");
+          daysDiv.className = "days";
+          let daysToShow = [];
+          const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
+          const daysFromPrevMonth = firstDay.getDay();
+          const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
+          const totalDays = lastDay.getDate();
+          for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true });
+          }
+          for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
+            daysToShow.push({ date: day, inactive: false });
+          }
+          const remainingDays = 42 - daysToShow.length;
+          for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true });
+          }
+          const highlightDay = state.selectedDate || getDefaultActiveDay();
+          daysToShow.forEach(({ date, inactive }) => {
+            const dayEl = document.createElement("div");
+            dayEl.className = "day";
+            dayEl.textContent = date.getDate();
+            if (inactive) {
+              dayEl.classList.add("inactive");
+            } else {
+              const dayOfWeek = date.getDay();
+              if (!state.workingDays.includes(dayOfWeek)) {
+                dayEl.classList.add("inactive");
+              } else {
+                const todayMidnight = new Date();
+                todayMidnight.setHours(0, 0, 0, 0);
+                if (date < todayMidnight) {
+                  dayEl.classList.add("inactive");
+                } else {
+                  if (formatDate(date) === formatDate(highlightDay)) {
+                    dayEl.classList.add("today");
+                  }
+                  if (state.selectedDate && isSameDay(date, state.selectedDate)) {
+                    dayEl.classList.add("active");
+                  }
+                  dayEl.classList.add("available");
+                  dayEl.addEventListener("click", async () => {
+                    state.selectedDate = new Date(date);
+                    state.selectedTime = null;
+                    const slots = await fetchAvailableSlots(formatDate(date));
+                    state.availableSlots[formatDate(date)] = slots;
+                    renderCalendar();
+                  });
+                }
+              }
+            }
+            daysDiv.appendChild(dayEl);
+          });
+          daysContainer.appendChild(daysDiv);
+          return daysContainer;
+        }
+
+        async function renderTimeSlots() {
+          const timesContainer = document.createElement("div");
+          timesContainer.className = "times-container";
+          const timeHeader = document.createElement("div");
+          timeHeader.className = "time-header";
+          if (state.selectedDate) {
+            const dateFormatter = new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+            timeHeader.textContent = `${getText('availableTimesFor')} ${dateFormatter.format(state.selectedDate)}`;
+          } else {
+            timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText('selectDate')}</span>`;
+          }
+          timesContainer.appendChild(timeHeader);
+          const timeSlotsDiv = document.createElement("div");
+          timeSlotsDiv.className = "time-slots";
+          if (state.selectedDate) {
+            const dateKey = formatDate(state.selectedDate);
+            const timeSlots = state.availableSlots[dateKey] || [];
+            if (timeSlots.length === 0) {
+              const noSlots = document.createElement("div");
+              noSlots.textContent = getText('noAvailableSlots');
+              noSlots.style.textAlign = "center";
+              noSlots.style.padding = "20px 0";
+              noSlots.style.color = "#666";
+              timeSlotsDiv.appendChild(noSlots);
+            } else {
+              const columnsContainer = document.createElement("div");
+              columnsContainer.className = "time-slots-columns";
+              const amColumn = document.createElement("div");
+              amColumn.className = "time-slots-column";
+              const pmColumn = document.createElement("div");
+              pmColumn.className = "time-slots-column";
+              const amHeader = document.createElement("div");
+              amHeader.textContent = "AM";
+              amHeader.style.fontWeight = "bold";
+              amHeader.style.marginBottom = "5px";
+              amColumn.appendChild(amHeader);
+              const pmHeader = document.createElement("div");
+              pmHeader.textContent = "PM";
+              pmHeader.style.fontWeight = "bold";
+              pmHeader.style.marginBottom = "5px";
+              pmColumn.appendChild(pmHeader);
+              timeSlots.forEach((timeISO, index) => {
+                const dateTime = new Date(timeISO);
+                const hours = dateTime.getHours();
+                const timeSlot = document.createElement("div");
+                timeSlot.className = "time-slot available";
+                timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
+                if (state.selectedTime === timeISO) {
+                  timeSlot.classList.add("selected");
+                }
+                const timeFormatter = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
+                timeSlot.textContent = timeFormatter.format(dateTime);
+                timeSlot.addEventListener("click", () => {
+                  if (!state.isConfirmed) {
+                    state.selectedTime = timeISO;
+                    renderCalendar();
+                  }
+                });
+                if (hours < 12) {
+                  amColumn.appendChild(timeSlot);
+                } else {
+                  pmColumn.appendChild(timeSlot);
+                }
+              });
+              columnsContainer.appendChild(amColumn);
+              columnsContainer.appendChild(pmColumn);
+              timeSlotsDiv.appendChild(columnsContainer);
+            }
+          } else {
+            const noDate = document.createElement("div");
+            noDate.textContent = getText('pleaseSelectDate');
+            noDate.style.textAlign = "center";
+            noDate.style.padding = "20px 0";
+            noDate.style.color = "#666";
+            timeSlotsDiv.appendChild(noDate);
+          }
+          timesContainer.appendChild(timeSlotsDiv);
+          return timesContainer;
+        }
+
+        function renderReasonSection() {
+          const reasonDiv = document.createElement("div");
+          reasonDiv.className = "reschedule-reason";
+          
+          const reasonLabel = document.createElement("label");
+          reasonLabel.textContent = getText('reasonLabel');
+          reasonDiv.appendChild(reasonLabel);
+          
+          const textarea = document.createElement("textarea");
+          textarea.placeholder = (language === 'fr')
+            ? "Pourquoi souhaitez-vous replanifier ce rendez-vous?"
+            : "Why do you want to reschedule this appointment?";
+          if (state.isConfirmed) {
+            textarea.disabled = true;
+          }
+          textarea.addEventListener("input", (e) => { 
+            state.reason = e.target.value; 
+            const errorMessage = shadow.querySelector(".error-message");
+            if (errorMessage) {
+              errorMessage.style.display = "none";
+              textarea.style.borderColor = "#ccc";
+            }
+          });
+          reasonDiv.appendChild(textarea);
+          
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message";
+          errorMessage.textContent = getText('pleaseProvideReason');
+          errorMessage.style.display = "none";
+          reasonDiv.appendChild(errorMessage);
+          
+          return reasonDiv;
+        }
+
+        function renderFooter() {
+          const footer = document.createElement("div");
+          footer.className = "calendar-footer";
+          const confirmBtn = document.createElement("button");
+          confirmBtn.className = "action-btn confirm-btn";
+          
+          if (state.isConfirmed) {
+            const isEnglish = locale === "en-US";
+            confirmBtn.textContent = isEnglish ? "Rescheduled ✓" : "Replanifiée ✓";
+            confirmBtn.style.backgroundImage = "none";
+            confirmBtn.style.backgroundColor = "#4CAF50";
+            confirmBtn.style.color = "white";
+            confirmBtn.disabled = true;
+          } else {
+            confirmBtn.textContent = getText('confirmReschedule');
+            confirmBtn.disabled = !state.selectedDate || !state.selectedTime || state.isLoading;
+            
+            confirmBtn.addEventListener("click", async () => {
+              if (state.isConfirmed) return;
+              
+              const reasonText = state.reason.trim();
+              if (!reasonText) {
+                const textarea = shadow.querySelector(".reschedule-reason textarea");
+                const errorMessage = shadow.querySelector(".error-message");
+                errorMessage.style.display = "block";
+                textarea.style.borderColor = highlightColor;
+                return;
+              }
+              
+              // Show loading state
+              confirmBtn.disabled = true;
+              confirmBtn.textContent = getText('loading');
+              state.isLoading = true;
+              
+              try {
+                // 1. First completes the rescheduling with Cal.com
+                const rescheduleResponse = await rescheduleBooking(state.selectedTime, reasonText);
+                
+                if (rescheduleResponse) {
+                  // 2. Then updates the UI to show confirmation
+                  state.isConfirmed = true;
+                  renderCalendar();
+                  
+                  // 3. Finally shows the success animation
+                  const successOverlay = document.createElement('div');
+                  successOverlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(156, 39, 176, 0.05);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    opacity: 0;
+                    transition: opacity 0.5s;
+                    pointer-events: none;
+                  `;
+                  
+                  const successMessage = document.createElement('div');
+                  successMessage.style.cssText = `
+                    background-color: white;
+                    border-radius: 15px;
+                    padding: 20px 30px;
+                    box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+                    text-align: center;
+                    transform: translateY(20px);
+                    transition: transform 0.5s, opacity 0.5s;
+                    opacity: 0;
+                  `;
+                  
+                  const checkmark = document.createElement('div');
+                  checkmark.innerHTML = `
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
+                      <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  `;
+                  
+                  successMessage.appendChild(checkmark);
+                  const successText = document.createElement('p');
+                  successText.textContent = getText('rescheduleConfirmed') + '!';
+                  successText.style.cssText = `
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-top: 15px;
+                    color: #9C27B0;
+                  `;
+                  successMessage.appendChild(successText);
+                  successOverlay.appendChild(successMessage);
+                  calendarContainer.appendChild(successOverlay);
+                  
+                  // Animation sequence
+                  setTimeout(() => {
+                    successOverlay.style.opacity = '1';
+                    successMessage.style.opacity = '1';
+                    successMessage.style.transform = 'translateY(0)';
+                    
+                    setTimeout(() => {
+                      // Start hiding animation
+                      successOverlay.style.opacity = '0';
+                      successMessage.style.opacity = '0';
+                      successMessage.style.transform = 'translateY(-20px)';
+                      
+                      setTimeout(() => {
+                        // Remove overlay after animation completes
+                        calendarContainer.removeChild(successOverlay);
+                        
+                        // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                        const dateStr = formatDate(state.selectedDate);
+                        const timeFormatter = new Intl.DateTimeFormat(locale, { 
+                          hour: 'numeric', 
+                          minute: '2-digit', 
+                          hour12: true 
+                        });
+                        const formattedTime = timeFormatter.format(new Date(state.selectedTime));
+                        
+                        window.voiceflow.chat.interact({
+                          type: "complete",
+                          payload: { 
+                            email,
+                            date: dateStr,
+                            time: state.selectedTime,
+                            formattedDate: new Intl.DateTimeFormat(locale, { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            }).format(state.selectedDate),
+                            formattedTime: formattedTime,
+                            reschedulingReason: reasonText,
+                            uid: uid
+                          },
+                        });
+                        
+                      }, 500); // End of hide animation
+                    }, 2500); // Show duration before hiding
+                  }, 100); // Start of show animation
+                }
+              } catch (err) {
+                console.error("Rescheduling error:", err);
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = getText("confirmReschedule");
+                state.isLoading = false;
+                showErrorMessage(err.message || "Unable to complete rescheduling. Please try again.");
+              }
+            });
+          }
+          
+          footer.appendChild(confirmBtn);
+          return footer;
+        }
+
+        async function renderCalendar() {
+          calendarContainer.innerHTML = '';
+          if (state.isConfirmed) {
+            calendarContainer.classList.add('confirmed');
+          } else {
+            calendarContainer.classList.remove('confirmed');
+          }
+          calendarContainer.appendChild(renderHeader());
+          const calendarBody = document.createElement("div");
+          calendarBody.className = "calendar-body";
+          calendarBody.appendChild(await renderCalendarDays());
+          calendarBody.appendChild(await renderTimeSlots());
+          calendarContainer.appendChild(calendarBody);
+          calendarContainer.appendChild(renderReasonSection());
+          calendarContainer.appendChild(renderFooter());
+          shadow.innerHTML = "";
+          shadow.appendChild(style);
+          shadow.appendChild(calendarContainer);
+        }
+
+        const calendarContainer = document.createElement("div");
+        calendarContainer.className = "calendar-container";
+
+        renderCalendar();
+        element.appendChild(container);
+        window.addEventListener('resize', () => {
+          const newWidth = window.innerWidth <= 768 ? "100%" : "800px";
+          container.style.width = newWidth;
+        });
+      }
+    };
+
+
+    const CancellationExtension = {
+      name: 'CalendarCancellation',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_calendar_cancellation' || trace.payload?.name === 'ext_calendar_cancellation',
+      render: async ({ trace, element }) => {
+        // --- Extract payload values ---
+        const {
+          apiKey = "",
+          language = 'en',           // 'en' or 'fr'
+          timezone = 'America/Toronto',
+          uid = ""                   // Booking UID
+        } = trace.payload || {};
+
+        // For checking the language and reusing in conditionals
+        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+        const highlightColor = '#9C27B0';
+
+        // Create container with shadow DOM
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+        container.style.maxWidth = "650px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({ mode: 'open' });
+
+        // Unified CSS (adapted for both extensions)
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .extension-container {
+            box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            color: #333;
+            animation: fadeIn 0.3s ease-out forwards;
+            border: 1px solid #eaeaea;
+            transition: all 0.3s ease;
+            position: relative;
+          }
+          .extension-header {
+            padding: 18px 24px;
+            background-color: #faf7fc;
+            border-bottom: 1px solid #eaeaea;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .extension-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: #9C27B0;
+            opacity: 0.5;
+          }
+          .extension-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: #9C27B0;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+          }
+          .extension-body {
+            padding: 20px;
+          }
+          .booking-card {
+            background: #fafafa;
+            border: 1px solid #eaeaea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+          }
+          .booking-card h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: ${highlightColor};
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 6px;
+          }
+          .info-line {
+            display: flex;
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.4;
+          }
+          .info-label {
+            font-weight: 600;
+            width: 180px;
+            min-width: 180px;
+            color: #000;
+          }
+          .info-value {
+            flex: 1;
+            color: #444;
+          }
+          .extension-reason {
+            display: flex;
+            flex-direction: column;
+          }
+          .extension-reason label {
+            font-size: 14px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+          }
+          .extension-reason textarea {
+            resize: vertical;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            min-height: 60px;
+          }
+          .extension-reason textarea:focus {
+            border: 2px solid ${highlightColor};
+            outline: none;
+          }
+          .error-message {
+            color: ${highlightColor};
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+          }
+          .extension-footer {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+          }
+          .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 14px;
+          }
+          /* Button CSS matching the Rescheduling Extension (3-phase behavior) */
+          .confirm-btn {
+            background: #F8EAFA;
+            color: #9C27B0;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 12px 24px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+          }
+          .confirm-btn:hover:not(:disabled) {
+            background: #9C27B0;
+            color: white;
+            box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:active:not(:disabled) {
+            box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:disabled {
+            cursor: not-allowed;
+            box-shadow: none;
+          }
+          .success-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(156, 39, 176, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+          }
+          .success-message {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s, opacity 0.5s;
+            opacity: 0;
+          }
+          .success-message svg {
+            margin-bottom: 10px;
+          }
+        `;
+        shadow.appendChild(style);
+
+        // Internal state
+        const state = {
+          booking: null,
+          reason: "",
+          isConfirmed: false,
+          isLoading: false
+        };
+
+        // API functions
+        async function fetchBooking(uid) {
+          if (!uid || !apiKey) return null;
+          const url = `https://api.cal.com/v2/bookings/${uid}`;
+          const options = {
+            method: 'GET',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              }
+          };
+          try {
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const json = await res.json();
+            console.log("Fetched booking details:", json);
+            return json.data || null;
+          } catch (err) {
+            console.error("Error fetching booking details:", err);
+            return null;
+          }
+        }
+
+        async function cancelBooking(uid, reason) {
+          const url = `https://api.cal.com/v2/bookings/${uid}/cancel`;
+          const body = { cancellationReason: reason };
+          const options = {
+            method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              },
+            body: JSON.stringify(body)
+          };
+          try {
+            const res = await fetch(url, options);
+            if (!res.ok)
+              throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            return responseBody;
+          } catch (err) {
+            console.error("Error cancelling booking:", err);
+            throw err;
+          }
+        }
+
+        // Utility functions
+        function formatDateRange(startDate, endDate) {
+          if (language === 'fr') {
+            const dateFormatter = new Intl.DateTimeFormat('fr-CA', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              timeZone: timezone
+            });
+            const timeFormatter = new Intl.DateTimeFormat('fr-CA', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+              timeZone: timezone
+            });
+            const datePart = dateFormatter.format(startDate);
+            let startTime = timeFormatter.format(startDate).replace(":", "h");
+            let endTime = timeFormatter.format(endDate).replace(":", "h");
+            return `${datePart} de ${startTime} à ${endTime}`;
+          } else {
+            const dateFormatter = new Intl.DateTimeFormat('en-US', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              timeZone: timezone
+            });
+            const timeFormatter = new Intl.DateTimeFormat('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+              timeZone: timezone
+            });
+            const datePart = dateFormatter.format(startDate);
+            const startTime = timeFormatter.format(startDate);
+            const endTime = timeFormatter.format(endDate);
+            return `${datePart} from ${startTime} to ${endTime}`;
+          }
+        }
+
+        // Translation helper with added "cancelled" key
+        function t(key) {
+          const translations = {
+            en: {
+              cancelBooking: "Booking Cancellation",
+              bookingInfo: "Booking Information",
+              bookingNumber: "Booking Number",
+              status: "Status",
+              title: "Title",
+              when: "When",
+              host: "Host",
+              attendee: "Participant Name",
+              email: "Participant Email",
+              reasonLabel: "Reason for cancellation",
+              confirmCancel: "Confirm Cancellation",
+              cancelled: "Cancelled ✓",
+              successMessage: "Your booking has been cancelled successfully!",
+              loading: "Cancelling..."
+            },
+            fr: {
+              cancelBooking: "Annulation de Réservation",
+              bookingInfo: "Informations de Réservation",
+              bookingNumber: "Numéro de Réservation",
+              status: "Statut",
+              title: "Titre",
+              when: "Quand",
+              host: "Hôte",
+              attendee: "Nom Complet Participant",
+              email: "Courriel Participant",
+              reasonLabel: "Raison de l'annulation",
+              confirmCancel: "Confirmer l'Annulation",
+              cancelled: "Annulée ✓",
+              successMessage: "Votre réservation a été annulée avec succès !",
+              loading: "Annulation en cours..."
+            }
+          };
+          const lang = language === 'fr' ? 'fr' : 'en';
+          return translations[lang][key] || key;
+        }
+
+        // UI Component functions
+        function createInfoLine(labelText, valueText) {
+          const line = document.createElement("div");
+          line.className = "info-line";
+          const label = document.createElement("div");
+          label.className = "info-label";
+          label.textContent = labelText + ":";
+          const value = document.createElement("div");
+          value.className = "info-value";
+          value.textContent = valueText;
+          line.appendChild(label);
+          line.appendChild(value);
+          return line;
+        }
+
+        // Updated renderHeader to add the SVG icon before the title
+        function renderHeader() {
+          const header = document.createElement("div");
+          header.className = "extension-header";
+          
+          // Create icon element from provided SVG
+          const icon = document.createElement("span");
+          icon.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+              <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+            </svg>
+          `;
+          
+          const title = document.createElement("h1");
+          title.className = "extension-title";
+          title.textContent = state.isConfirmed ? t('cancelled') : t('cancelBooking');
+          
+          header.appendChild(icon);
+          header.appendChild(title);
+          return header;
+        }
+
+        function renderBody() {
+          const body = document.createElement("div");
+          body.className = "extension-body";
+
+          // Booking Info Card
+          const card = document.createElement("div");
+          card.className = "booking-card";
+          const infoTitle = document.createElement("h3");
+          infoTitle.textContent = t('bookingInfo');
+          card.appendChild(infoTitle);
+
+          if (state.booking) {
+            if (state.booking.id) {
+              card.appendChild(createInfoLine(t('bookingNumber'), state.booking.id));
+            }
+            let displayStatus = state.booking.status || "";
+            if (displayStatus === "cancelled") {
+              displayStatus = (language === 'fr') ? "Confirmé" : "Confirmed";
+            } else if (language === 'fr' && displayStatus === "accepted") {
+              displayStatus = "Actif";
+            }
+            card.appendChild(createInfoLine(t('status'), displayStatus));
+            if (state.booking.title) {
+              const cleanedTitle = state.booking.title.replace(/(\s+between\s+.*)/i, "");
+              card.appendChild(createInfoLine(t('title'), cleanedTitle));
+            }
+            if (state.booking.start && state.booking.end) {
+              const startDate = new Date(state.booking.start);
+              const endDate = new Date(state.booking.end);
+              const formatted = formatDateRange(startDate, endDate);
+              card.appendChild(createInfoLine(t('when'), formatted));
+            }
+            if (state.booking.hosts && state.booking.hosts.length > 0) {
+              card.appendChild(createInfoLine(t('host'), state.booking.hosts[0].name));
+            }
+            if (state.booking.attendees && state.booking.attendees.length > 0) {
+              card.appendChild(createInfoLine(t('attendee'), state.booking.attendees[0].name));
+              card.appendChild(createInfoLine(t('email'), state.booking.attendees[0].email));
+            }
+          } else {
+            const noBooking = document.createElement("p");
+            noBooking.style.color = "#999";
+            noBooking.textContent = (language === 'fr')
+              ? "Impossible de charger les détails de la réservation."
+              : "Unable to load booking details.";
+            card.appendChild(noBooking);
+          }
+          body.appendChild(card);
+
+          // Cancellation Reason
+          const reasonDiv = document.createElement("div");
+          reasonDiv.className = "extension-reason";
+          const reasonLabel = document.createElement("label");
+          reasonLabel.textContent = t('reasonLabel');
+          reasonDiv.appendChild(reasonLabel);
+          
+          const textarea = document.createElement("textarea");
+          textarea.placeholder = (language === 'fr')
+            ? "Raison de l'annulation"
+            : "Why are you cancelling?";
+          if (state.isConfirmed) {
+            textarea.disabled = true;
+          }
+          textarea.addEventListener("input", (e) => { 
+            state.reason = e.target.value; 
+            errorMessage.style.display = "none";
+            textarea.style.borderColor = "#ccc";
+          });
+          reasonDiv.appendChild(textarea);
+          
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message";
+          errorMessage.textContent = (language === 'fr')
+            ? "Veuillez fournir une raison pour l'annulation."
+            : "Please provide a reason for cancellation.";
+          reasonDiv.appendChild(errorMessage);
+          
+          body.appendChild(reasonDiv);
+          return body;
+        }
+
+        function renderFooter() {
+  const footer = document.createElement("div");
+  footer.className = "extension-footer";
+  
+  const confirmBtn = document.createElement("button");
+  confirmBtn.className = "action-btn confirm-btn";
+
+  if (state.isConfirmed) {
+    confirmBtn.textContent = t('cancelled');
+    confirmBtn.style.backgroundImage = 'none';
+    confirmBtn.style.backgroundColor = '#4CAF50';
+    confirmBtn.style.color = 'white';
+    confirmBtn.disabled = true;
+  } else {
+    confirmBtn.textContent = t('confirmCancel');
+    confirmBtn.disabled = state.isLoading || !uid;
+    
+    confirmBtn.addEventListener("click", async () => {
+      if (state.isConfirmed) return;
+      
+      const reasonText = state.reason.trim();
+      if (!reasonText) {
+        const textarea = shadow.querySelector(".extension-reason textarea");
+        const errorMessage = shadow.querySelector(".error-message");
+        errorMessage.style.display = "block";
+        textarea.style.borderColor = highlightColor;
+        return;
+      }
+      
+      // Show loading state
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = t('loading');
+      state.isLoading = true;
+      
+      try {
+        // 1. First complete the cancellation with Cal.com
+        const cancellationResponse = await cancelBooking(uid, reasonText);
+        
+        if (cancellationResponse) {
+          // 2. Update UI to show confirmation
+          state.isConfirmed = true;
+          renderCancellation();
+          
+          // 3. Show success animation
+          const successOverlay = document.createElement('div');
+          successOverlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(156, 39, 176, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+          `;
+          
+          const successMessage = document.createElement('div');
+          successMessage.style.cssText = `
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s, opacity 0.5s;
+            opacity: 0;
+          `;
+          
+          const checkmark = document.createElement('div');
+          checkmark.innerHTML = `
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
+              <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          successMessage.appendChild(checkmark);
+          
+          const successText = document.createElement('p');
+          successText.textContent = t('successMessage');
+          successText.style.cssText = `
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+            color: #9C27B0;
+          `;
+          successMessage.appendChild(successText);
+          successOverlay.appendChild(successMessage);
+          cancellationContainer.appendChild(successOverlay);
+          
+          // Animation sequence
+          setTimeout(() => {
+            successOverlay.style.opacity = '1';
+            successMessage.style.opacity = '1';
+            successMessage.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+              // Start hiding animation
+              successOverlay.style.opacity = '0';
+              successMessage.style.opacity = '0';
+              successMessage.style.transform = 'translateY(-20px)';
+              
+              setTimeout(() => {
+                // Remove overlay after animation completes
+                cancellationContainer.removeChild(successOverlay);
+                
+                // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                window.voiceflow.chat.interact({
+                  type: "complete",
+                  payload: { 
+                    uid: uid,
+                    reason: reasonText,
+                    bookingDetails: {
+                      id: state.booking?.id,
+                      title: state.booking?.title,
+                      originalDate: state.booking?.start,
+                      formattedDate: state.booking?.start ? 
+                        new Intl.DateTimeFormat(locale, { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }).format(new Date(state.booking.start)) : ''
+                    }
+                  },
+                });
+                
+              }, 500); // End of hide animation
+            }, 2500); // Show duration before hiding
+          }, 100); // Start of show animation
+        }
+      } catch (err) {
+        console.error("Cancellation error:", err);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = t('confirmCancel');
+        state.isLoading = false;
+        
+        // Show error message
+        const errorOverlay = document.createElement("div");
+        errorOverlay.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        `;
+        const errorMessage = document.createElement("div");
+        errorMessage.style.cssText = `
+          background-color: #fff0f0;
+          border: 1px solid #ffdddd;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          text-align: center;
+          max-width: 80%;
+        `;
+        errorMessage.innerHTML = `
+          <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <p style="margin: 0; color: #333;">${
+            err.message || 
+            (language === 'fr' 
+              ? "Impossible d'annuler la réservation. Veuillez réessayer." 
+              : "Unable to cancel booking. Please try again.")
+          }</p>
+          <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+            ${language === 'fr' ? "OK" : "OK"}
+          </button>
+        `;
+        errorOverlay.appendChild(errorMessage);
+        cancellationContainer.appendChild(errorOverlay);
+        
+        const closeButton = errorMessage.querySelector("button");
+        closeButton.addEventListener("click", () => {
+          cancellationContainer.removeChild(errorOverlay);
+        });
+      }
+    });
+  }
+  
+  footer.appendChild(confirmBtn);
+  return footer;
+}
+
+        function renderSuccessOverlay() {
+          const overlay = document.createElement("div");
+          overlay.className = "success-overlay";
+          
+          const msg = document.createElement("div");
+          msg.className = "success-message";
+          
+          const icon = document.createElement("div");
+          icon.innerHTML = `
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="30" fill='#F8EAFA'/>
+              <path d="M20 30L27 37L40 23" stroke='${highlightColor}' stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          msg.appendChild(icon);
+          
+          const textEl = document.createElement("p");
+          textEl.style.fontSize = "16px";
+          textEl.style.fontWeight = "600";
+          textEl.style.color = highlightColor;
+          textEl.textContent = t('successMessage');
+          msg.appendChild(textEl);
+          
+          overlay.appendChild(msg);
+          return overlay;
+        }
+
+        function showSuccessOverlay() {
+          const overlay = shadow.querySelector(".success-overlay");
+          const msg = shadow.querySelector(".success-message");
+          if (overlay && msg) {
+            overlay.style.opacity = '1';
+            msg.style.opacity = '1';
+            msg.style.transform = 'translateY(0)';
+            setTimeout(() => {
+              overlay.style.opacity = '0';
+              msg.style.opacity = '0';
+              msg.style.transform = 'translateY(-20px)';
+              setTimeout(() => { overlay.remove(); }, 500);
+            }, 2500);
+          }
+        }
+
+        async function renderCancellation() {
+          cancellationContainer.innerHTML = "";
+          cancellationContainer.appendChild(renderHeader());
+          cancellationContainer.appendChild(renderBody());
+          cancellationContainer.appendChild(renderFooter());
+          if (state.isConfirmed) {
+            cancellationContainer.classList.add("confirmed");
+          } else {
+            cancellationContainer.classList.remove("confirmed");
+          }
+          const overlay = renderSuccessOverlay();
+          cancellationContainer.appendChild(overlay);
+        }
+
+        const cancellationContainer = document.createElement("div");
+        cancellationContainer.className = "extension-container";
+
+        let bookingData = null;
+        if (uid && apiKey) {
+          bookingData = await fetchBooking(uid);
+        }
+        state.booking = bookingData;
+
+        await renderCancellation();
+
+        shadow.appendChild(cancellationContainer);
+        element.appendChild(container);
+
+        window.addEventListener('resize', () => {
+          container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+        });
+      }
+    };
+
+
+    const CancellationCalendarExtension = {
+      name: 'CancellationCalendar',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_cancellation_calendar' || trace.payload?.name === 'ext_cancellation_calendar',
+      render: async ({ trace, element }) => {
+        // --- Extract payload values ---
+        const {
+          apiKey = "",
+          language = 'en',           // 'en' or 'fr'
+          timezone = 'America/Toronto',
+          uid = ""                   // Booking UID
+        } = trace.payload || {};
+
+        // For checking the language and reusing in conditionals
+        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+        const highlightColor = '#9C27B0';
+
+        // Create container with shadow DOM
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+        container.style.maxWidth = "650px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({ mode: 'open' });
+
+        // Unified CSS (adapted for both extensions)
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .extension-container {
+            box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            color: #333;
+            animation: fadeIn 0.3s ease-out forwards;
+            border: 1px solid #eaeaea;
+            transition: all 0.3s ease;
+            position: relative;
+          }
+          .extension-header {
+            padding: 18px 24px;
+            background-color: #faf7fc;
+            border-bottom: 1px solid #eaeaea;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .extension-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: #9C27B0;
+            opacity: 0.5;
+          }
+          .extension-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: #9C27B0;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+          }
+          .extension-body {
+            padding: 20px;
+          }
+          .booking-card {
+            background: #fafafa;
+            border: 1px solid #eaeaea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+          }
+          .booking-card h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: ${highlightColor};
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 6px;
+          }
+          .info-line {
+            display: flex;
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.4;
+          }
+          .info-label {
+            font-weight: 600;
+            width: 180px;
+            min-width: 180px;
+            color: #000;
+          }
+          .info-value {
+            flex: 1;
+            color: #444;
+          }
+          .extension-reason {
+            display: flex;
+            flex-direction: column;
+          }
+          .extension-reason label {
+            font-size: 14px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+          }
+          .extension-reason textarea {
+            resize: vertical;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+            min-height: 60px;
+          }
+          .extension-reason textarea:focus {
+            border: 2px solid ${highlightColor};
+            outline: none;
+          }
+          .error-message {
+            color: ${highlightColor};
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+          }
+          .extension-footer {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+          }
+          .action-btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 14px;
+          }
+          /* Button CSS matching the Rescheduling Extension (3-phase behavior) */
+          .confirm-btn {
+            background: #F8EAFA;
+            color: #9C27B0;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 12px 24px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+          }
+          .confirm-btn:hover:not(:disabled) {
+            background: #9C27B0;
+            color: white;
+            box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:active:not(:disabled) {
+            box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+          }
+          .confirm-btn:disabled {
+            cursor: not-allowed;
+            box-shadow: none;
+          }
+          .success-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(156, 39, 176, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+          }
+          .success-message {
+            background-color: #fff;
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s, opacity 0.5s;
+            opacity: 0;
+          }
+          .success-message svg {
+            margin-bottom: 10px;
+          }
+        `;
+        shadow.appendChild(style);
+
+        // Internal state
+        const state = {
+          booking: null,
+          reason: "",
+          isConfirmed: false,
+          isLoading: false
+        };
+
+        // API functions
+        async function fetchBooking(uid) {
+          if (!uid || !apiKey) return null;
+          const url = `https://api.cal.com/v2/bookings/${uid}`;
+          const options = {
+            method: 'GET',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              }
+          };
+          try {
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const json = await res.json();
+            console.log("Fetched booking details:", json);
+            return json.data || null;
+          } catch (err) {
+            console.error("Error fetching booking details:", err);
+            return null;
+          }
+        }
+
+        async function cancelBooking(uid, reason) {
+          const url = `https://api.cal.com/v2/bookings/${uid}/cancel`;
+          const body = { cancellationReason: reason };
+          const options = {
+            method: 'POST',
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "cal-api-version": "2024-08-13",
+                "Content-Type": "application/json"
+              },
+            body: JSON.stringify(body)
+          };
+          try {
+            const res = await fetch(url, options);
+            if (!res.ok)
+              throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            return responseBody;
+          } catch (err) {
+            console.error("Error cancelling booking:", err);
+            throw err;
+          }
+        }
+
+        // Utility functions
+        function formatDateRange(startDate, endDate) {
+          if (language === 'fr') {
+            const dateFormatter = new Intl.DateTimeFormat('fr-CA', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              timeZone: timezone
+            });
+            const timeFormatter = new Intl.DateTimeFormat('fr-CA', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+              timeZone: timezone
+            });
+            const datePart = dateFormatter.format(startDate);
+            let startTime = timeFormatter.format(startDate).replace(":", "h");
+            let endTime = timeFormatter.format(endDate).replace(":", "h");
+            return `${datePart} de ${startTime} à ${endTime}`;
+          } else {
+            const dateFormatter = new Intl.DateTimeFormat('en-US', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              timeZone: timezone
+            });
+            const timeFormatter = new Intl.DateTimeFormat('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+              timeZone: timezone
+            });
+            const datePart = dateFormatter.format(startDate);
+            const startTime = timeFormatter.format(startDate);
+            const endTime = timeFormatter.format(endDate);
+            return `${datePart} from ${startTime} to ${endTime}`;
+          }
+        }
+
+        // Translation helper with added "cancelled" key
+        function t(key) {
+          const translations = {
+            en: {
+              cancelBooking: "Booking Cancellation",
+              bookingInfo: "Booking Information",
+              bookingNumber: "Booking Number",
+              status: "Status",
+              title: "Title",
+              when: "When",
+              host: "Host",
+              attendee: "Participant Name",
+              email: "Participant Email",
+              reasonLabel: "Reason for cancellation",
+              confirmCancel: "Confirm Cancellation",
+              cancelled: "Cancelled ✓",
+              successMessage: "Your booking has been cancelled successfully!",
+              loading: "Cancelling..."
+            },
+            fr: {
+              cancelBooking: "Annulation de Réservation",
+              bookingInfo: "Informations de Réservation",
+              bookingNumber: "Numéro de Réservation",
+              status: "Statut",
+              title: "Titre",
+              when: "Quand",
+              host: "Hôte",
+              attendee: "Nom Complet Participant",
+              email: "Courriel Participant",
+              reasonLabel: "Raison de l'annulation",
+              confirmCancel: "Confirmer l'Annulation",
+              cancelled: "Annulée ✓",
+              successMessage: "Votre réservation a été annulée avec succès !",
+              loading: "Annulation en cours..."
+            }
+          };
+          const lang = language === 'fr' ? 'fr' : 'en';
+          return translations[lang][key] || key;
+        }
+
+        // UI Component functions
+        function createInfoLine(labelText, valueText) {
+          const line = document.createElement("div");
+          line.className = "info-line";
+          const label = document.createElement("div");
+          label.className = "info-label";
+          label.textContent = labelText + ":";
+          const value = document.createElement("div");
+          value.className = "info-value";
+          value.textContent = valueText;
+          line.appendChild(label);
+          line.appendChild(value);
+          return line;
+        }
+
+        // Updated renderHeader to add the SVG icon before the title
+        function renderHeader() {
+          const header = document.createElement("div");
+          header.className = "extension-header";
+          
+          // Create icon element from provided SVG
+          const icon = document.createElement("span");
+          icon.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+              <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+            </svg>
+          `;
+          
+          const title = document.createElement("h1");
+          title.className = "extension-title";
+          title.textContent = state.isConfirmed ? t('cancelled') : t('cancelBooking');
+          
+          header.appendChild(icon);
+          header.appendChild(title);
+          return header;
+        }
+
+        function renderBody() {
+          const body = document.createElement("div");
+          body.className = "extension-body";
+
+          // Booking Info Card
+          const card = document.createElement("div");
+          card.className = "booking-card";
+          const infoTitle = document.createElement("h3");
+          infoTitle.textContent = t('bookingInfo');
+          card.appendChild(infoTitle);
+
+          if (state.booking) {
+            if (state.booking.id) {
+              card.appendChild(createInfoLine(t('bookingNumber'), state.booking.id));
+            }
+            let displayStatus = state.booking.status || "";
+            if (displayStatus === "cancelled") {
+              displayStatus = (language === 'fr') ? "Confirmé" : "Confirmed";
+            } else if (language === 'fr' && displayStatus === "accepted") {
+              displayStatus = "Actif";
+            }
+            card.appendChild(createInfoLine(t('status'), displayStatus));
+            if (state.booking.title) {
+              const cleanedTitle = state.booking.title.replace(/(\s+between\s+.*)/i, "");
+              card.appendChild(createInfoLine(t('title'), cleanedTitle));
+            }
+            if (state.booking.start && state.booking.end) {
+              const startDate = new Date(state.booking.start);
+              const endDate = new Date(state.booking.end);
+              const formatted = formatDateRange(startDate, endDate);
+              card.appendChild(createInfoLine(t('when'), formatted));
+            }
+            if (state.booking.hosts && state.booking.hosts.length > 0) {
+              card.appendChild(createInfoLine(t('host'), state.booking.hosts[0].name));
+            }
+            if (state.booking.attendees && state.booking.attendees.length > 0) {
+              card.appendChild(createInfoLine(t('attendee'), state.booking.attendees[0].name));
+              card.appendChild(createInfoLine(t('email'), state.booking.attendees[0].email));
+            }
+          } else {
+            const noBooking = document.createElement("p");
+            noBooking.style.color = "#999";
+            noBooking.textContent = (language === 'fr')
+              ? "Impossible de charger les détails de la réservation."
+              : "Unable to load booking details.";
+            card.appendChild(noBooking);
+          }
+          body.appendChild(card);
+
+          // Cancellation Reason
+          const reasonDiv = document.createElement("div");
+          reasonDiv.className = "extension-reason";
+          const reasonLabel = document.createElement("label");
+          reasonLabel.textContent = t('reasonLabel');
+          reasonDiv.appendChild(reasonLabel);
+          
+          const textarea = document.createElement("textarea");
+          textarea.placeholder = (language === 'fr')
+            ? "Raison de l'annulation"
+            : "Why are you cancelling?";
+          if (state.isConfirmed) {
+            textarea.disabled = true;
+          }
+          textarea.addEventListener("input", (e) => { 
+            state.reason = e.target.value; 
+            errorMessage.style.display = "none";
+            textarea.style.borderColor = "#ccc";
+          });
+          reasonDiv.appendChild(textarea);
+          
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message";
+          errorMessage.textContent = (language === 'fr')
+            ? "Veuillez fournir une raison pour l'annulation."
+            : "Please provide a reason for cancellation.";
+          reasonDiv.appendChild(errorMessage);
+          
+          body.appendChild(reasonDiv);
+          return body;
+        }
+
+        function renderFooter() {
+  const footer = document.createElement("div");
+  footer.className = "extension-footer";
+  
+  const confirmBtn = document.createElement("button");
+  confirmBtn.className = "action-btn confirm-btn";
+
+  if (state.isConfirmed) {
+    confirmBtn.textContent = t('cancelled');
+    confirmBtn.style.backgroundImage = 'none';
+    confirmBtn.style.backgroundColor = '#4CAF50';
+    confirmBtn.style.color = 'white';
+    confirmBtn.disabled = true;
+  } else {
+    confirmBtn.textContent = t('confirmCancel');
+    confirmBtn.disabled = state.isLoading || !uid;
+    
+    confirmBtn.addEventListener("click", async () => {
+      if (state.isConfirmed) return;
+      
+      const reasonText = state.reason.trim();
+      if (!reasonText) {
+        const textarea = shadow.querySelector(".extension-reason textarea");
+        const errorMessage = shadow.querySelector(".error-message");
+        errorMessage.style.display = "block";
+        textarea.style.borderColor = highlightColor;
+        return;
+      }
+      
+      // Show loading state
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = t('loading');
+      state.isLoading = true;
+      
+      try {
+        // 1. First complete the cancellation with Cal.com
+        const cancellationResponse = await cancelBooking(uid, reasonText);
+        
+        if (cancellationResponse) {
+          // 2. Update UI to show confirmation
+          state.isConfirmed = true;
+          renderCancellation();
+          
+          // 3. Show success animation
+          const successOverlay = document.createElement('div');
+          successOverlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(156, 39, 176, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+          `;
+          
+          const successMessage = document.createElement('div');
+          successMessage.style.cssText = `
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.5s, opacity 0.5s;
+            opacity: 0;
+          `;
+          
+          const checkmark = document.createElement('div');
+          checkmark.innerHTML = `
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
+              <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          successMessage.appendChild(checkmark);
+          
+          const successText = document.createElement('p');
+          successText.textContent = t('successMessage');
+          successText.style.cssText = `
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+            color: #9C27B0;
+          `;
+          successMessage.appendChild(successText);
+          successOverlay.appendChild(successMessage);
+          cancellationContainer.appendChild(successOverlay);
+          
+          // Animation sequence
+          setTimeout(() => {
+            successOverlay.style.opacity = '1';
+            successMessage.style.opacity = '1';
+            successMessage.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+              // Start hiding animation
+              successOverlay.style.opacity = '0';
+              successMessage.style.opacity = '0';
+              successMessage.style.transform = 'translateY(-20px)';
+              
+              setTimeout(() => {
+                // Remove overlay after animation completes
+                cancellationContainer.removeChild(successOverlay);
+                
+                // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                window.voiceflow.chat.interact({
+                  type: "complete",
+                  payload: { 
+                    uid: uid,
+                    reason: reasonText,
+                    bookingDetails: {
+                      id: state.booking?.id,
+                      title: state.booking?.title,
+                      originalDate: state.booking?.start,
+                      formattedDate: state.booking?.start ? 
+                        new Intl.DateTimeFormat(locale, { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }).format(new Date(state.booking.start)) : ''
+                    }
+                  },
+                });
+                
+              }, 500); // End of hide animation
+            }, 2500); // Show duration before hiding
+          }, 100); // Start of show animation
+        }
+      } catch (err) {
+        console.error("Cancellation error:", err);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = t('confirmCancel');
+        state.isLoading = false;
+        
+        // Show error message
+        const errorOverlay = document.createElement("div");
+        errorOverlay.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(255, 255, 255, 0.9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        `;
+        const errorMessage = document.createElement("div");
+        errorMessage.style.cssText = `
+          background-color: #fff0f0;
+          border: 1px solid #ffdddd;
+          border-radius: 8px;
+          padding: 20px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          text-align: center;
+          max-width: 80%;
+        `;
+        errorMessage.innerHTML = `
+          <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+            </svg>
+          </div>
+          <p style="margin: 0; color: #333;">${
+            err.message || 
+            (language === 'fr' 
+              ? "Impossible d'annuler la réservation. Veuillez réessayer." 
+              : "Unable to cancel booking. Please try again.")
+          }</p>
+          <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+            ${language === 'fr' ? "OK" : "OK"}
+          </button>
+        `;
+        errorOverlay.appendChild(errorMessage);
+        cancellationContainer.appendChild(errorOverlay);
+        
+        const closeButton = errorMessage.querySelector("button");
+        closeButton.addEventListener("click", () => {
+          cancellationContainer.removeChild(errorOverlay);
+        });
+      }
+    });
+  }
+  
+  footer.appendChild(confirmBtn);
+  return footer;
+}
+
+        function renderSuccessOverlay() {
+          const overlay = document.createElement("div");
+          overlay.className = "success-overlay";
+          
+          const msg = document.createElement("div");
+          msg.className = "success-message";
+          
+          const icon = document.createElement("div");
+          icon.innerHTML = `
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="30" fill='#F8EAFA'/>
+              <path d="M20 30L27 37L40 23" stroke='${highlightColor}' stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          msg.appendChild(icon);
+          
+          const textEl = document.createElement("p");
+          textEl.style.fontSize = "16px";
+          textEl.style.fontWeight = "600";
+          textEl.style.color = highlightColor;
+          textEl.textContent = t('successMessage');
+          msg.appendChild(textEl);
+          
+          overlay.appendChild(msg);
+          return overlay;
+        }
+
+        function showSuccessOverlay() {
+          const overlay = shadow.querySelector(".success-overlay");
+          const msg = shadow.querySelector(".success-message");
+          if (overlay && msg) {
+            overlay.style.opacity = '1';
+            msg.style.opacity = '1';
+            msg.style.transform = 'translateY(0)';
+            setTimeout(() => {
+              overlay.style.opacity = '0';
+              msg.style.opacity = '0';
+              msg.style.transform = 'translateY(-20px)';
+              setTimeout(() => { overlay.remove(); }, 500);
+            }, 2500);
+          }
+        }
+
+        async function renderCancellation() {
+          cancellationContainer.innerHTML = "";
+          cancellationContainer.appendChild(renderHeader());
+          cancellationContainer.appendChild(renderBody());
+          cancellationContainer.appendChild(renderFooter());
+          if (state.isConfirmed) {
+            cancellationContainer.classList.add("confirmed");
+          } else {
+            cancellationContainer.classList.remove("confirmed");
+          }
+          const overlay = renderSuccessOverlay();
+          cancellationContainer.appendChild(overlay);
+        }
+
+        const cancellationContainer = document.createElement("div");
+        cancellationContainer.className = "extension-container";
+
+        let bookingData = null;
+        if (uid && apiKey) {
+          bookingData = await fetchBooking(uid);
+        }
+        state.booking = bookingData;
+
+        await renderCancellation();
+
+        shadow.appendChild(cancellationContainer);
+        element.appendChild(container);
+
+        window.addEventListener('resize', () => {
+          container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+        });
+      }
+    };
+
 
   /*************************************************************
      * 3) ContactFormExtension - MAIN EXTENSION OBJECT (Mode 1 Only)
@@ -3513,6 +6177,8 @@ initializeCustomDropdown("serviceDropdownPractitioner", isEnglish ? '-- Select a
     
 
 window.BookingFormExtension = BookingFormExtension;
-window.BookingExtension = BookingExtension;
-window.ContactFormExtension = ContactFormExtension;
+window.BookingCalendarExtension = BookingCalendarExtension;
     window.BookingInformationExtension = BookingInformationExtension;
+    window.RescheduleCalendarExtension = RescheduleCalendarExtension;
+    window.CancellationCalendarExtension = CancellationCalendarExtension;
+window.ContactFormExtension = ContactFormExtension;
