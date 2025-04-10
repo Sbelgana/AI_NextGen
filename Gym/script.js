@@ -182,8 +182,8 @@ function isValidEmail(email) {
       height: 50px;
     }
     .dropdown-icon {
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       transition: transform 0.3s ease;
       display: flex;
       align-items: center;
@@ -238,8 +238,8 @@ function isValidEmail(email) {
     }
     /* Option Checkbox – consolidated duplicate rules */
     .option-checkbox {
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       border: 2px solid #ccc;
       border-radius: 50%;
       margin-right: 12px;
