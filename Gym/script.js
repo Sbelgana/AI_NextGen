@@ -362,7 +362,8 @@ const BookingFormExtension = {
       flex-direction: column;
       gap: 10px;
       width: 100%;
-      max-width: 800px;
+      max-width: 800px;      
+      min-width: 400px;
       margin: 0 auto;
       padding: 16px;
       border-radius: 6px;
@@ -2490,7 +2491,8 @@ const BookingInformationExtension = {
       flex-direction: column;
       gap: 15px;
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;      
+      min-width: 400px;
       margin: 0 auto;
       padding: 20px;
       border-radius: 6px;
@@ -2867,7 +2869,8 @@ const BookingInformationExtension = {
       flex-direction: column;
       gap: 10px;
       width: 100%;
-      max-width: 800px;
+      max-width: 800px;      
+      min-width: 400px;
       margin: 0 auto;
       padding: 16px;
       border-radius: 6px;
