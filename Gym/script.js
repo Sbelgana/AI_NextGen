@@ -22,18 +22,18 @@ const SVG_CHECK = `
 `;
 const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
   <g transform="translate(75, 75)">
-    <path fill="#9a0df2" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+    <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
   </g>
 </svg>`;
 const SVG_USER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+  <path fill="#9c27b0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
 </svg>`;
 const SVG_DENTIST = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9a0df2" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
+  <path fill="#9c27b0" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
 </svg>`;
 
 
-const SVG_MESSAGE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px"><path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/></svg>`;
+const SVG_MESSAGE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px"><path fill="#9c27b0" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/></svg>`;
 
 
 // *** Added Non Allowed Cursor SVG Constant and Data URL ***
@@ -202,7 +202,7 @@ const BookingFormExtension = {
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #f5e7fe;
+      background-color: #F8EAFA;
       border-radius: 50%;
     }
     .dropdown-icon.rotate {
@@ -240,12 +240,12 @@ const BookingFormExtension = {
       position: relative;
     }
     .custom-option:hover {
-      background-color: #f5e7fe;
-      color:#9a0df2;
+      background-color: #F8EAFA;
+      color:#9c27b0;
     }
     .custom-option.selected {
-      background-color: #f5e7fe;
-      color:#9a0df2;
+      background-color: #F8EAFA;
+      color:#9c27b0;
       
       font-weight: bold;
     }
@@ -264,13 +264,13 @@ const BookingFormExtension = {
     }
     .option-checkbox::after {
       content: "";
-      color: #9a0df2;
+      color: #9c27b0;
       font-size: 12px;
       display: none;
     }
     .custom-option.selected .option-checkbox {
-      border-color: #9a0df2;
-      background-color: #9a0df2;
+      border-color: #9c27b0;
+      background-color: #9c27b0;
     }
     .custom-option.selected .option-checkbox::after {
       display: block;
@@ -278,9 +278,9 @@ const BookingFormExtension = {
     }
     .custom-option:not(.selected):hover .option-checkbox,
     .custom-option:not(.selected):hover .option-checkbox::after {
-      border-color: #9a0df2;
+      border-color: #9c27b0;
       display: block;
-      color: #9a0df2;
+      color: #9c27b0;
     }
     .custom-option.selected .option-checkbox svg path {
       fill: #fff !important;
@@ -305,7 +305,7 @@ const BookingFormExtension = {
     }
     .sub-options {
       margin-left: 25px;
-      border-left: 2px solid #9a0df2;
+      border-left: 2px solid #9c27b0;
     }
     select {
       display: none;
@@ -314,7 +314,7 @@ const BookingFormExtension = {
       margin-left: auto;
       display: flex;
       align-items: center;
-      background-color: #f5e7fe;
+      background-color: #F8EAFA;
       padding: 5px;
       border-radius: 50%;
       transition: background-color 0.3s;
@@ -410,7 +410,7 @@ const BookingFormExtension = {
     input[type="email"]:focus,
     input[type="tel"]:focus,
     #details:focus {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9c27b0;
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -424,8 +424,8 @@ const BookingFormExtension = {
     /* ========== Buttons ========== */
     .appointment-btn,
     .submit {
-      color: #9a0df2;
-      background-color: #f5e7fe;
+      color: #9c27b0;
+      background-color: #F8EAFA;
       border: none;
       padding: 12px;
       border-radius: 6px;
@@ -438,7 +438,7 @@ const BookingFormExtension = {
     .appointment-btn:hover,
     .submit:hover {
       color: #fff;
-      background-color: #9a0df2;
+      background-color: #9c27b0;
       font-weight: 600;
     }
     .appointment-btn:disabled,
@@ -469,11 +469,11 @@ const BookingFormExtension = {
       border-radius: 6px;
     }
     .section.active {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9c27b0;
       box-shadow: 0 3px 8px rgba(154,13,242,0.1);
     }
     .section:hover:not(.disabled) {
-      border-color: #9a0df2;
+      border-color: #9c27b0;
       box-shadow: 0 3px 8px rgba(154,13,242,0.1);
     }
     .section-info {
@@ -482,8 +482,8 @@ const BookingFormExtension = {
       gap: 12px;
     }
     .section-icon {
-      background-color: #f5e7fe;
-      color: #9a0df2;
+      background-color: #F8EAFA;
+      color: #9c27b0;
       width: 32px;
       height: 32px;
       border-radius: 50%;
@@ -498,7 +498,7 @@ const BookingFormExtension = {
     }
     .collapse-icon {
       transition: transform 0.3s;
-      background: #f5e7fe;
+      background: #F8EAFA;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -543,12 +543,12 @@ const BookingFormExtension = {
       border: none;
     }
     .tab.active {
-      background-color: #9a0df2;
+      background-color: #9c27b0;
       color: #fff;
     }
     .tab:hover:not(.active) {
-      background-color: #f5e7fe;
-      color: #9a0df2;
+      background-color: #F8EAFA;
+      color: #9c27b0;
     }
     .tab-content {
       display: none;
@@ -574,12 +574,12 @@ const BookingFormExtension = {
     
     /* Miscellaneous adjustments */
     .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9a0df2;
+      fill: #9c27b0;
     }
 
     .custom-option:not(.selected):hover .option-checkbox {
   position: relative;
-  border-color: #9a0df2;
+  border-color: #9c27b0;
 }
 
 .custom-option:not(.selected):hover .option-checkbox svg {
@@ -2524,13 +2524,13 @@ const BookingInformationExtension = {
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="tel"]:focus {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9c27b0;
     }
     
     /* ========== Buttons ========== */
     .submit-btn {
-      color: #9a0df2;
-      background-color: #f5e7fe;
+      color: #9c27b0;
+      background-color: #F8EAFA;
       border: none;
       padding: 15px;
       border-radius: 6px;
@@ -2543,7 +2543,7 @@ const BookingInformationExtension = {
     }
     .submit-btn:hover {
       color: #fff;
-      background-color: #9a0df2;
+      background-color: #9c27b0;
     }
     .submit-btn:disabled {
       background-color: #4CAF50;
@@ -2744,7 +2744,7 @@ const BookingInformationExtension = {
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #f5e7fe;
+      background-color: #F8EAFA;
       border-radius: 50%;
     }
     .dropdown-icon.rotate {
@@ -2780,12 +2780,12 @@ const BookingInformationExtension = {
       position: relative;
     }
     .custom-option:hover {
-      background-color: #f5e7fe;
-      color:#9a0df2;
+      background-color: #F8EAFA;
+      color:#9c27b0;
     }
     .custom-option.selected {
-      background-color: #f5e7fe;
-      color:#9a0df2;
+      background-color: #F8EAFA;
+      color:#9c27b0;
       font-weight: bold;
     }
     /* Option Checkbox – consolidated duplicate rules */
@@ -2803,13 +2803,13 @@ const BookingInformationExtension = {
     }
     .option-checkbox::after {
       content: "";
-      color: #9a0df2;
+      color: #9c27b0;
       font-size: 12px;
       display: none;
     }
     .custom-option.selected .option-checkbox {
-      border-color: #9a0df2;
-      background-color: #9a0df2;
+      border-color: #9c27b0;
+      background-color: #9c27b0;
     }
     .custom-option.selected .option-checkbox::after {
       display: block;
@@ -2817,9 +2817,9 @@ const BookingInformationExtension = {
     }
     .custom-option:not(.selected):hover .option-checkbox,
     .custom-option:not(.selected):hover .option-checkbox::after {
-      border-color: #9a0df2;
+      border-color: #9c27b0;
       display: block;
-      color: #9a0df2;
+      color: #9c27b0;
     }
     .custom-option.selected .option-checkbox svg path {
       fill: #fff !important;
@@ -2920,7 +2920,7 @@ const BookingInformationExtension = {
     input[type="email"]:focus,
     input[type="tel"]:focus,
     #details:focus {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9c27b0;
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -2934,8 +2934,8 @@ const BookingInformationExtension = {
     /* ========== Buttons ========== */
     .appointment-btn,
     .submit {
-      color: #9a0df2;
-      background-color: #f5e7fe;
+      color: #9c27b0;
+      background-color: #F8EAFA;
       border: none;
       padding: 12px;
       border-radius: 6px;
@@ -2948,7 +2948,7 @@ const BookingInformationExtension = {
     .appointment-btn:hover,
     .submit:hover {
       color: #fff;
-      background-color: #9a0df2;
+      background-color: #9c27b0;
       font-weight: 600;
     }
     .appointment-btn:disabled,
@@ -2979,11 +2979,11 @@ const BookingInformationExtension = {
       border-radius: 6px;
     }
     .section.active {
-      border: 2px solid #9a0df2;
+      border: 2px solid #9c27b0;
       box-shadow: 0 3px 8px rgba(154,13,242,0.1);
     }
     .section:hover:not(.disabled) {
-      border-color: #9a0df2;
+      border-color: #9c27b0;
       box-shadow: 0 3px 8px rgba(154,13,242,0.1);
     }
     .section-info {
@@ -2992,8 +2992,8 @@ const BookingInformationExtension = {
       gap: 12px;
     }
     .section-icon {
-      background-color: #f5e7fe;
-      color: #9a0df2;
+      background-color: #F8EAFA;
+      color: #9c27b0;
       width: 32px;
       height: 32px;
       border-radius: 50%;
@@ -3008,7 +3008,7 @@ const BookingInformationExtension = {
     }
     .collapse-icon {
       transition: transform 0.3s;
-      background: #f5e7fe;
+      background: #F8EAFA;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3050,12 +3050,12 @@ const BookingInformationExtension = {
     
     /* Miscellaneous adjustments */
     .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9a0df2;
+      fill: #9c27b0;
     }
 
     .custom-option:not(.selected):hover .option-checkbox {
   position: relative;
-  border-color: #9a0df2;
+  border-color: #9c27b0;
 }
 
 .custom-option:not(.selected):hover .option-checkbox svg {
@@ -3079,7 +3079,7 @@ const BookingInformationExtension = {
       margin-left: auto;
       display: flex;
       align-items: center;
-      background-color: #f5e7fe;
+      background-color: #F8EAFA;
       padding: 5px;
       border-radius: 50%;
       transition: background-color 0.3s;
