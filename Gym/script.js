@@ -2443,7 +2443,7 @@ const BookingFormExtension = {
 const BookingInformationExtension = {
       name: "BookingInformation",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
+      match: ({ trace }) => trace.type === `ext_booking_inf` || trace.payload?.name === `ext_booking_inf`,
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
