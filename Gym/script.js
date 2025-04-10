@@ -136,14 +136,14 @@ function isValidEmail(email) {
     }
     
     /*************************************************************
-     * 3) DentalFormExtension - MAIN EXTENSION OBJECT
+     * 3) BookingFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
-    const DentalFormExtension = {
-      name: "DentalBookingForms",
+    const BookingFormExtension = {
+      name: "BookingForms",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_booking` || trace.payload?.name === `ext_booking`,
+      match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
       render: ({ trace, element }) => {
-        const { language } = trace.payload || { language: 'FR' };
+        const { language } = trace.payload || { language };
         const isEnglish = language === 'en';
         const dentalData = createDentalData(language);
         const { services, servicesByCategory } = createServiceMapping(dentalData);
@@ -1228,4 +1228,4 @@ dentistDropdownIcon.classList.add("rotate");
       }
     };
     
-    window.DentalFormExtension = DentalFormExtension;
+    window.BookingFormExtension = BookingFormExtension;
