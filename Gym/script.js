@@ -2439,6 +2439,255 @@ const BookingFormExtension = {
     };
 
 
+const BookingInformationExtension = {
+      name: "BookingInformation",
+      type: "response",
+      match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
+      render: ({ trace, element }) => {
+        const { language } = trace.payload || { language: 'FR' };
+        const isEnglish = language === 'en';
+        
+        
+        // Create the form
+        const formContainer = document.createElement("form");
+        formContainer.setAttribute("novalidate", "true");
+        formContainer.innerHTML = `
+		<style>
+    /* ========== Error Components ========== */
+    .error-container {
+      width: 100%;
+      margin: 2px 0;
+      box-sizing: border-box;
+    }
+    .error-message {
+      display: none;
+      padding: 5px;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 14px;
+      align-items: center;
+    }
+    .error-icon {
+      background-color: red;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    /* ========== Form Inputs & Layout ========== */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .bold-label {
+      font-weight: 600;
+      color: #000;
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      min-width: 200px;
+      max-width: 600px;
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 12px 15px;
+      background: #fff;
+      font-size: 16px;
+      outline: none;
+      box-sizing: border-box;
+      height: 50px;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus {
+      border: 2px solid #9a0df2;
+    }
+    
+    /* ========== Buttons ========== */
+    .submit-btn {
+      color: #9a0df2;
+      background-color: #f5e7fe;
+      border: none;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s, color 0.2s;
+      width: 100%;
+      font-weight: 600;
+    }
+    .submit-btn:hover {
+      color: #fff;
+      background-color: #9a0df2;
+    }
+    .submit-btn:disabled {
+      background-color: #4CAF50;
+      color: white;
+      cursor: not-allowed;
+    }
+    
+    /* Disabled state - preserve pointer-events to allow cursor display */
+    .form-disabled input {
+      background-color: #f8f8f8;
+      opacity: 0.8;
+      cursor: not-allowed;
+    }
+    
+    /* Add not-allowed cursor to all disabled elements */
+    input:disabled, 
+    button:disabled {
+      cursor: not-allowed;
+    }
+  </style>
+          <div>
+            <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+            <div class="error-container">
+              <div class="error-message" id="errorFullName">
+                <div class="error-icon">!</div>
+                <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label for="email" class="bold-label">Email</label>
+            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+            <div class="error-container">
+              <div class="error-message" id="errorEmail">
+                <div class="error-icon">!</div>
+                <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+            <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+            <div class="error-container">
+              <div class="error-message" id="errorPhone">
+                <div class="error-icon">!</div>
+                <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+              </div>
+            </div>
+          </div>
+          
+          <button type="button" class="submit-btn" id="submit-button">
+            ${isEnglish ? 'Submit' : 'Soumettre'}
+          </button>
+        `;
+
+        element.appendChild(formContainer);
+
+        // Input validation
+        formContainer.querySelector("#full-name").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
+        });
+        
+        formContainer.querySelector("#email").addEventListener("input", function() {
+          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+        });
+        
+        formContainer.querySelector("#phone").addEventListener("input", function() {
+          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+        });
+        
+        // Form submission
+        formContainer.querySelector("#submit-button").addEventListener("click", () => {
+          // Hide all error messages first
+          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          // Validate inputs
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          let isValid = true;
+          
+          if (!fullName) {
+            formContainer.querySelector("#errorFullName").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!email || !isValidEmail(email)) {
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!phone || !isValidPhoneNumber(phone)) {
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!isValid) {
+            return;
+          }
+          
+          // Apply disabled styling but don't prevent pointer events
+          formContainer.classList.add('form-disabled');
+          
+          // Explicitly disable all input elements and buttons
+          // This sets the disabled attribute but still allows cursor effects
+          const inputs = formContainer.querySelectorAll('input');
+          inputs.forEach(input => {
+            input.disabled = true;
+            input.style.cursor = svgDataUrl;
+          });
+          
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.style.cursor = svgDataUrl;
+          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+          
+          // Prepare form data
+          const formData = {
+            fullName,
+            email,
+            phone: formatPhoneNumber(phone)
+          };
+          
+          // If Voiceflow integration is needed
+          if (window.voiceflow && window.voiceflow.chat) {
+            window.voiceflow.chat.interact({
+              type: "complete",
+              payload: {
+            fullName,
+            email,
+            phone: formatPhoneNumber(phone)
+          };
+            });
+          } else {
+            console.log("Form submitted:", formData);
+          }
+        });
+      }
+    };
+
+
+
   /*************************************************************
      * 3) ContactFormExtension - MAIN EXTENSION OBJECT (Mode 1 Only)
      *************************************************************/
@@ -3262,3 +3511,4 @@ initializeCustomDropdown("serviceDropdownPractitioner", isEnglish ? '-- Select a
 window.BookingFormExtension = BookingFormExtension;
 window.BookingExtension = BookingExtension;
 window.ContactFormExtension = ContactFormExtension;
+    window.BookingInformationExtension = BookingInformationExtension;
