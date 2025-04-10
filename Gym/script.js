@@ -1381,7 +1381,7 @@ const BookingFormExtension = {
   color: #9c27b0;
 }
 .nav-btn:hover {
-  background-color: #f4eafb;
+  background-color: #F8EAFA;
   box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
 }
 .current-date {
@@ -1472,7 +1472,7 @@ const BookingFormExtension = {
   z-index: -1;
 }
 .day:hover:not(.inactive)::before {
-  background-color: #f4eafb;
+  background-color: #F8EAFA;
 }
 .day:hover:not(.inactive) {
   color: #9c27b0;
@@ -1624,7 +1624,7 @@ const BookingFormExtension = {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, transparent, #f4eafb, transparent);
+  background: linear-gradient(120deg, transparent, #F8EAFA, transparent);
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity 0.3s;
@@ -1655,7 +1655,7 @@ const BookingFormExtension = {
   opacity: 0.9;
 }
 .time-slot.available:hover:not(.selected) {
-  background-color: #f4eafb;
+  background-color: #F8EAFA;
   color: #9c27b0;
   border: 2px solid #9c27b0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
@@ -1690,7 +1690,7 @@ const BookingFormExtension = {
   font-size: 14px;
 }
 .confirm-btn {
-  background: #f4eafb;
+  background: #F8EAFA;
   color: #9c27b0;
   font-weight: 600;
   border-radius: 10px;
@@ -2078,7 +2078,7 @@ const BookingFormExtension = {
           const currentDateEl = document.createElement("div");
           currentDateEl.className = "current-date";
           currentDateEl.textContent = dateFormatter.format(state.currentDate);
-          currentDateEl.style.cssText = "background: #f4eafb; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9c27b0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+          currentDateEl.style.cssText = "background: #F8EAFA; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9c27b0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
           const prevBtn = document.createElement("button");
           prevBtn.className = "nav-btn prev-btn";
           prevBtn.innerHTML = `
@@ -2334,7 +2334,7 @@ const BookingFormExtension = {
             const checkmark = document.createElement('div');
             checkmark.innerHTML = `
               <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="30" r="30" fill="#f4eafb"/>
+                <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
                 <path d="M20 30L27 37L40 23" stroke="#9c27b0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             `;
