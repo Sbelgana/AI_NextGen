@@ -189,7 +189,6 @@ function isValidEmail(email) {
       align-items: center;
       justify-content: center;
       background-color: #f5e7fe;
-      padding: 5px;
       border-radius: 50%;
     }
     .dropdown-icon.rotate {
@@ -559,6 +558,30 @@ function isValidEmail(email) {
     .custom-option:not(.selected):hover .option-checkbox svg path {
       fill: #9a0df2;
     }
+
+    .custom-option:not(.selected):hover .option-checkbox {
+  position: relative;
+  border-color: #9a0df2;
+}
+
+.custom-option:not(.selected):hover .option-checkbox svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+}
+
+/* Make sure the SVG is properly centered in all states */
+.option-checkbox svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+}
   </style>
           <!-- Tabs -->
           <div class="tabs-container">
