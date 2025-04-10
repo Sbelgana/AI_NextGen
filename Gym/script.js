@@ -576,9 +576,6 @@ function isValidEmail(email) {
 /* Make sure the SVG is properly centered in all states */
 .option-checkbox svg {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: 18px;
   height: 18px;
 }
