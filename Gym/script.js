@@ -44,6 +44,7 @@ const svgDataUrl = `url('data:image/svg+xml;utf8,${SVG_NOT_ALLOWED}') 12 12, not
 
 
 
+
 /*************************************************************
  * 2) Data Creation Functions
  *************************************************************/
@@ -2677,7 +2678,7 @@ const BookingInformationExtension = {
             fullName,
             email,
             phone: formatPhoneNumber(phone)
-          };
+          }
             });
           } else {
             console.log("Form submitted:", formData);
