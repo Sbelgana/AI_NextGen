@@ -2486,14 +2486,13 @@ const BookingFormExtension = {
       height: 50px;
     }
     .dropdown-icon {
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       transition: transform 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       background-color: #f5e7fe;
-      padding: 5px;
       border-radius: 50%;
     }
     .dropdown-icon.rotate {
@@ -2539,8 +2538,8 @@ const BookingFormExtension = {
     }
     /* Option Checkbox – consolidated duplicate rules */
     .option-checkbox {
-      width: 18px;
-      height: 18px;
+      width: 24px;
+      height: 24px;
       border: 2px solid #ccc;
       border-radius: 50%;
       margin-right: 12px;
@@ -2800,6 +2799,45 @@ const BookingFormExtension = {
     .custom-option:not(.selected):hover .option-checkbox svg path {
       fill: #9a0df2;
     }
+
+    .custom-option:not(.selected):hover .option-checkbox {
+  position: relative;
+  border-color: #9a0df2;
+}
+
+.custom-option:not(.selected):hover .option-checkbox svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+}
+
+/* Make sure the SVG is properly centered in all states */
+.option-checkbox svg {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  
+ }
+
+    .main-arrow {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      background-color: #f5e7fe;
+      padding: 5px;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+    }
+    .arrow-icon {
+      transition: transform 0.3s ease;
+    }
+    .arrow-icon.rotate {
+      transform: rotate(180deg);
+    }
+    
   </style>
           <!-- Section 1: Contact Information -->
           <div class="flex-row">
