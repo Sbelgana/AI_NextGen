@@ -32,6 +32,10 @@ const SVG_DENTIST = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 51
   <path fill="#9a0df2" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
 </svg>`;
 
+
+const SVG_MESSAGE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px"><path fill="#9a0df2" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/></svg>`;
+
+
 // *** Added Non Allowed Cursor SVG Constant and Data URL ***
 const SVG_NOT_ALLOWED = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24px" height="24px">
   <path fill="%23af2828" d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/>
@@ -2435,5 +2439,788 @@ const BookingFormExtension = {
     };
 
 
+  /*************************************************************
+     * 3) ContactFormExtension - MAIN EXTENSION OBJECT (Mode 1 Only)
+     *************************************************************/
+    const ContactFormExtension = {
+      name: "ContactForm",
+      type: "response",
+      match: ({ trace }) => trace.type === `ext_contact_form` || trace.payload?.name === `ext_contact_form`,
+      render: ({ trace, element }) => {
+        const { language } = trace.payload || { language: 'FR' };
+        const isEnglish = language === 'en';
+        const dentalData = createDentalData(language);
+    
+        /*************************************************************
+         * HTML Generation & Initial Setup
+         *************************************************************/
+        // Removed tabs since only one mode remains.
+        const formContainer = document.createElement("form");
+        formContainer.setAttribute("novalidate", "true");
+        formContainer.innerHTML = `
+		 <style>
+    /* ========== Dropdown Components ========== */
+    .main-container {
+      display: block;
+      transition: height 0.3s ease;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    .select-wrapper {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background-color: #fff;
+      position: relative;
+      min-width: 300px;
+      max-width: 600px;
+      width: 100%;
+      min-height: 50px;
+    }
+    .select-display {
+      padding: 0 15px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 50px;
+    }
+    .dropdown-icon {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5e7fe;
+      padding: 5px;
+      border-radius: 50%;
+    }
+    .dropdown-icon.rotate {
+      transform: rotate(180deg);
+    }
+    
+    /* Custom Options */
+    .custom-options {
+      display: none;
+      border-top: 1px solid #ddd;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 100;
+      border-radius: 0 0 6px 6px;
+    }
+    /* Hide scrollbar for Chrome, Safari, Opera */
+    .custom-options::-webkit-scrollbar {
+      display: none; 
+    }
+    /* Hide scrollbar for IE, Edge, and Firefox */
+    .custom-options {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;     /* Firefox */
+    }
+    .custom-option {
+      padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .custom-option:hover {
+      background-color: #f5e7fe;
+      color:#9a0df2;
+    }
+    .custom-option.selected {
+      background-color: #f5e7fe;
+      color:#9a0df2;
+      font-weight: bold;
+    }
+    /* Option Checkbox – consolidated duplicate rules */
+    .option-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #fff;
+      transition: all 0.2s;
+    }
+    .option-checkbox::after {
+      content: "";
+      color: #9a0df2;
+      font-size: 12px;
+      display: none;
+    }
+    .custom-option.selected .option-checkbox {
+      border-color: #9a0df2;
+      background-color: #9a0df2;
+    }
+    .custom-option.selected .option-checkbox::after {
+      display: block;
+      color: #fff;
+    }
+    .custom-option:not(.selected):hover .option-checkbox,
+    .custom-option:not(.selected):hover .option-checkbox::after {
+      border-color: #9a0df2;
+      display: block;
+      color: #9a0df2;
+    }
+    .custom-option.selected .option-checkbox svg path {
+      fill: #fff !important;
+    }
+    .show-options {
+      display: block;
+    }
+    
+    .custom-option.selected .main-arrow,
+    .custom-option:hover .main-arrow {
+      background-color: #fff;
+    }
+    
+    /* ========== Error Components ========== */
+    .error-container {
+      width: 100%;
+      margin: 2px 0;
+      box-sizing: border-box;
+    }
+    .error-message {
+      display: none;
+      padding: 5px;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 14px;
+      align-items: center;
+    }
+    .error-icon {
+      background-color: red;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    /* ========== Form Inputs & Layout ========== */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .flex-row {
+      display: flex;
+      gap: 10px 16px;
+      flex-wrap: wrap;
+    } 
+    .flex-row > div {
+      flex: 1;
+      min-width: 300px;
+    }
+    .bold-label {
+      font-weight: 600;
+      color: #000;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      min-width: 200px;
+      max-width: 600px;
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fff;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      height: 50px;
+    }
+    #details {
+      resize: vertical;
+      min-height: 100px;
+      max-height: 200px;
+      width: 100%;
+      min-width: 200px;
+      max-width: 100%;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus,
+    #details:focus {
+      border: 2px solid #9a0df2;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    
+    /* ========== Buttons ========== */
+    .appointment-btn,
+    .submit {
+      color: #9a0df2;
+      background-color: #f5e7fe;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+      width: 100%;
+    }
+    .appointment-btn:hover,
+    .submit:hover {
+      color: #fff;
+      background-color: #9a0df2;
+      font-weight: 600;
+    }
+    .appointment-btn:disabled,
+    .submit:disabled {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+      font-weight: 700;
+    }
+    
+    /* ========== Sections & Tabs ========== */
+    .section {
+      border: 1px solid rgba(0,0,0,0.2);
+      border-radius: 6px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .section-card {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-radius: 6px;
+    }
+    .section.active {
+      border: 2px solid #9a0df2;
+      box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+    }
+    .section:hover:not(.disabled) {
+      border-color: #9a0df2;
+      box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+    }
+    .section-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-icon {
+      background-color: #f5e7fe;
+      color: #9a0df2;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #444;
+    }
+    .collapse-icon {
+      transition: transform 0.3s;
+      background: #f5e7fe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+    .collapse-icon.active {
+      transform: rotate(-180deg);
+    }
+    .collapsible-section {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+    }
+    .collapsible-section.expanded {
+      max-height: 1000px;
+    }
+    .section-content {
+      padding: 20px;
+      background: #fefefe;
+      border-top: 1px solid #eee;
+    }
+    .select-label {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #444;
+    }
+    
+    /* ========== Disabled State ========== */
+     .disabled {
+      cursor: not-allowed !important;
+    }
+    
+    .disabled * {
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+    
+    /* Miscellaneous adjustments */
+    .custom-option:not(.selected):hover .option-checkbox svg path {
+      fill: #9a0df2;
+    }
+  </style>
+          <!-- Section 1: Contact Information -->
+          <div class="flex-row">
+          <div class="section">
+            <div class="section-card" data-target="section-contactInfo">
+              <div class="section-info">
+                <div class="section-icon">${SVG_USER}</div>
+                <div class="section-title">${isEnglish ? "Your Contact Details" : "Vos coordonnées"}</div>
+              </div>
+              <div class="collapse-icon">${SVG_CHEVRON}</div>
+            </div>
+            <div class="collapsible-section" id="section-contactInfo">
+              <div class="section-content">
+                <div class="flex-row">
+                  <div>
+                    <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+                    <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+                    <div class="error-container">
+                      <div class="error-message" id="errorFullName">
+                        <div class="error-icon">!</div>
+                        <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="email" class="bold-label">Email</label>
+                    <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+                    <div class="error-container">
+                      <div class="error-message" id="errorEmail">
+                        <div class="error-icon">!</div>
+                        <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+                    <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+                    <div class="error-container">
+                      <div class="error-message" id="errorPhone">
+                        <div class="error-icon">!</div>
+                        <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Section 2: Dentist and Service (Mode 1) -->
+          <div class="section">
+            <div class="section-card" data-target="section-dentist-service">
+              <div class="section-info">
+                <div class="section-icon">${SVG_DENTIST}</div>
+                <div class="section-title">${isEnglish ? "Dentist & Service" : "Dentiste et Service"}</div>
+              </div>
+              <div class="collapse-icon">${SVG_CHEVRON}</div>
+            </div>
+            <div class="collapsible-section" id="section-dentist-service">
+              <div class="section-content">
+                <!-- Custom Practitioner Dropdown -->
+                <div class="main-container" id="practitionerDropdown">
+                  <label class="bold-label">${isEnglish ? 'Select a Dentist' : 'Sélectionnez un dentiste'}</label>
+                  <select id="dentistSelect" name="dentistSelect" required style="display:none;"></select>
+                  <div class="select-wrapper">
+                    <div class="select-display" id="selectDisplayPractitioner">
+                      <span>${isEnglish ? '-- Select a Dentist --' : '-- Sélectionnez un dentiste --'}</span>
+                      <div class="dropdown-icon" id="dropdownIconPractitioner">${SVG_CHEVRON}</div>
+                    </div>
+                    <div class="custom-options" id="customOptionsPractitioner"></div>
+                  </div>
+                  <div class="error-container">
+                    <div class="error-message" id="errorDentist">
+                      <div class="error-icon">!</div>
+                      <span>${isEnglish ? 'You must select a dentist.' : 'Vous devez sélectionner un dentiste.'}</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Custom Service Dropdown (dependent on selected Dentist) -->
+                <div id="practitionerServiceContainer" style="display:none;">
+                  <label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
+                  <div class="main-container" id="serviceDropdownPractitioner">
+                    <select id="dentistServiceSelect" name="dentistServiceSelect" required style="display:none;"></select>
+                    <div class="select-wrapper">
+                      <div class="select-display" id="selectDisplayPractitionerService">
+                        <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
+                        <div class="dropdown-icon" id="dropdownIconPractitionerService">${SVG_CHEVRON}</div>
+                      </div>
+                      <div class="custom-options" id="customOptionsPractitionerService"></div>
+                    </div>
+                    <div class="error-container">
+                      <div class="error-message" id="errorDentistService">
+                        <div class="error-icon">!</div>
+                        <span>${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+                    <!-- Message Section -->
+           <div class="section">
+        <div class="section-card" data-target="section-message">
+          <div class="section-info">
+            <div class="section-icon">
+              ${SVG_MESSAGE}
+            </div>
+            <div class="section-title">
+              ${isEnglish ? "Message" : "Message"}
+            </div>
+          </div>
+          <div class="collapse-icon">
+            ${SVG_CHEVRON}
+          </div>
+        </div>
+        <div class="collapsible-section" id="section-message">
+          <div class="section-content">
+            <label for="details" class="bold-label">
+              ${isEnglish ? 'Message' : 'Message'}
+            </label>
+            <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+            
+            <div class="error-container">
+  <div class="error-message" id="errorMessage">
+    <div class="error-icon">!</div>
+    <span>${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
+  </div>
+</div>
+          </div>
+        </div>
+      </div>
+
+
+
+          <!-- Submit button -->
+          <button type="button" class="appointment-btn" id="submit-button">
+            ${isEnglish ? 'Submit' : 'Soumettre'}
+          </button>
+        `;
+        element.appendChild(formContainer);
+    
+        /*************************************************************
+         * UI Helper Functions for Custom Dropdown (Mode 1)
+         *************************************************************/
+        function closeAllUIElements() {
+          // Close all dropdown menus within the form container.
+          formContainer.querySelectorAll('.custom-options').forEach(opt => opt.classList.remove('show-options'));
+          formContainer.querySelectorAll('.dropdown-icon').forEach(icon => icon.classList.remove('rotate'));
+          // Optionally collapse any expanded sections.
+          formContainer.querySelectorAll('.collapsible-section.expanded').forEach(sec => sec.classList.remove('expanded'));
+          formContainer.querySelectorAll('.section-card.active').forEach(card => card.classList.remove('active'));
+        }
+    
+        function initializeCustomDropdown(dropdownId, placeholderText, optionsData, onSelect) {
+          const container = formContainer.querySelector(`#${dropdownId}`);
+          const selectDisplay = container.querySelector('.select-display');
+          const customOptions = container.querySelector('.custom-options');
+          const dropdownIcon = container.querySelector('.dropdown-icon');
+          const nativeSelect = container.querySelector('select');
+          nativeSelect.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
+          selectDisplay.querySelector('span').textContent = placeholderText;
+          customOptions.innerHTML = "";
+          optionsData.forEach(item => {
+            const optionEl = document.createElement('div');
+            optionEl.className = 'custom-option';
+            optionEl.dataset.value = item.id;
+            optionEl.innerHTML = `<div class="option-checkbox">${SVG_CHECK}</div><span>${item.name}</span>`;
+            customOptions.appendChild(optionEl);
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.name;
+            nativeSelect.appendChild(opt);
+            optionEl.addEventListener('click', function(e) {
+              e.stopPropagation();
+              customOptions.querySelectorAll('.custom-option').forEach(opt => {
+                opt.classList.remove('selected');
+              });
+              this.classList.add('selected');
+              selectDisplay.querySelector('span').textContent = item.name;
+              nativeSelect.value = item.id;
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+              if (onSelect) onSelect(item);
+              const errorEl = container.parentNode.querySelector(".error-message");
+              if (errorEl) errorEl.style.display = "none";
+            });
+          });
+          selectDisplay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isOpen = customOptions.classList.contains('show-options');
+            // Only close dropdowns within form container.
+            formContainer.querySelectorAll('.custom-options').forEach(optList => optList.classList.remove('show-options'));
+            formContainer.querySelectorAll('.dropdown-icon').forEach(icon => icon.classList.remove('rotate'));
+            if (!isOpen) {
+              customOptions.classList.add('show-options');
+              dropdownIcon.classList.add('rotate');
+            } else {
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+            }
+          });
+          formContainer.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+            }
+          });
+        }
+    
+        /*************************************************************
+         * Section and Tab Functionality
+         *************************************************************/
+        function toggleSection(sectionId, forceOpen = false) {
+  const section = formContainer.querySelector(`#${sectionId}`);
+  if (!section) return;
+  const parentSection = section.previousElementSibling;
+  const icon = parentSection.querySelector(".collapse-icon");
+  const wasExpanded = section.classList.contains("expanded");
+  
+  // Close all other sections.
+  formContainer.querySelectorAll(".collapsible-section").forEach(sec => {
+    if (sec.id !== sectionId) {
+      sec.classList.remove("expanded");
+      const card = sec.previousElementSibling;
+      if (card) card.classList.remove("active");
+      const icon = card ? card.querySelector(".collapse-icon") : null;
+      if (icon) icon.classList.remove("active");
+    }
+  });
+  
+  // If forceOpen is true, always open the section
+  // Otherwise, toggle the section based on its current state
+  if (forceOpen || !wasExpanded) {
+    section.classList.add("expanded");
+    parentSection.classList.add("active");
+    if (icon) icon.classList.add("active");
+  } else {
+    section.classList.remove("expanded");
+    parentSection.classList.remove("active");
+    if (icon) icon.classList.remove("active");
+  }
+}
+        formContainer.querySelectorAll('.section-card').forEach(card => {
+          const targetId = card.getAttribute("data-target");
+          card.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleSection(targetId);
+          });
+        });
+    
+        /*************************************************************
+         * Initialize the Custom Dropdown for Practitioner Mode (Mode 1)
+         *************************************************************/
+        const practitionersData = dentalData.allPractitioners.map(practitioner => ({
+          id: practitioner.nom,
+          name: practitioner.nom
+        }));
+        initializeCustomDropdown("practitionerDropdown", isEnglish ? '-- Select a Dentist --' : '-- Sélectionnez un dentiste --', practitionersData, (selectedDentist) => {
+          const dentist = dentalData.allPractitioners.find(d => d.nom === selectedDentist.name);
+          if (dentist) {
+            formContainer.querySelector("#dentistServiceSelect").value = "";
+            formContainer.querySelector("#selectDisplayPractitionerService").querySelector("span").textContent = isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --';
+            const serviceData = dentist.services.map(s => ({ id: s, name: s }));
+            const serviceDropdownEl = formContainer.querySelector("#serviceDropdownPractitioner");
+// Clear the native select and custom options without replacing the whole node.
+const nativeSelect = serviceDropdownEl.querySelector("select");
+const customOptions = serviceDropdownEl.querySelector(".custom-options");
+nativeSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</option>`;
+customOptions.innerHTML = "";
+initializeCustomDropdown("serviceDropdownPractitioner", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', serviceData);
+
+            formContainer.querySelector("#practitionerServiceContainer").style.display = "block";
+            // Optionally: automatically open the service dropdown.
+            const disp = formContainer.querySelector("#selectDisplayPractitionerService");
+            const opts = formContainer.querySelector("#customOptionsPractitionerService");
+            const icon = formContainer.querySelector("#dropdownIconPractitionerService");
+            if(disp && opts && icon){
+              opts.classList.add("show-options");
+              icon.classList.add("rotate");
+            }
+          }
+        });
+    
+        /*************************************************************
+         * Live Validation for Input Fields
+         *************************************************************/
+        formContainer.querySelector("#full-name").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
+        });
+        formContainer.querySelector("#email").addEventListener("input", function() {
+          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+        });
+        formContainer.querySelector("#phone").addEventListener("input", function() {
+          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+        });
+    
+        /*************************************************************
+         * Disable All Form Elements After Submission
+         *************************************************************/
+        function disableAllFormElements() {
+          formContainer.querySelectorAll('.collapsible-section.expanded').forEach(sec => {
+            sec.classList.remove('expanded');
+            let card = sec.previousElementSibling;
+            if (card) {
+              card.classList.remove('active');
+              let icon = card.querySelector('.collapse-icon');
+              if (icon) icon.classList.remove('active');
+            }
+          });
+          formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => opt.classList.remove('show-options'));
+          formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => icon.classList.remove('rotate'));
+          formContainer.classList.add('disabled');
+        }
+    
+        /*************************************************************
+         * Form Submission Process with Sequential Validation
+         *************************************************************/
+        formContainer.querySelector("#submit-button").addEventListener("click", () => {
+          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+    
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          // For Mode 1 only:
+          const selectedDentist = formContainer.querySelector("#dentistSelect").value;
+          const selectedService = formContainer.querySelector("#dentistServiceSelect").value;
+        const details = formContainer.querySelector("#details").value.trim();
+
+    
+          if (!fullName) {
+            toggleSection("section-contactInfo", true);
+            formContainer.querySelector("#errorFullName").style.display = "flex";
+            return;
+          }
+          if (!email || !isValidEmail(email)) {
+            toggleSection("section-contactInfo", true);
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            return;
+          }
+          if (!phone || !isValidPhoneNumber(phone)) {
+            toggleSection("section-contactInfo", true);
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            return;
+          }
+    
+          if (!selectedDentist) {
+            toggleSection("section-dentist-service", true);
+            formContainer.querySelector("#errorDentist").style.display = "flex";
+            return;
+          }
+          if (!selectedService) {
+            toggleSection("section-dentist-service", true);
+            formContainer.querySelector("#errorDentistService").style.display = "flex";
+            return;
+          }
+  if (!details) {
+    toggleSection("section-message", true);  // Force open with true
+    // Note: I see a potential issue here - there's no #errorMessage element defined in your HTML
+    // You might need to add this error element in your HTML
+    const errorMessage = formContainer.querySelector("#errorMessage");
+    if (errorMessage) {
+      errorMessage.style.display = "flex";
+    } else {
+      // Create an error message if it doesn't exist
+      console.error("Error message element for details field not found");
+    }
+    return;
+  }
+
+    
+          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+    
+          const dentistInfo = dentalData.allPractitioners.find(d => d.nom === selectedDentist);
+          if (!dentistInfo) {
+            alert(isEnglish ? "Invalid dentist selected." : "Dentiste sélectionné invalide.");
+            return;
+          }
+    
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+          submitButton.style.cursor = "not-allowed";
+          submitButton.style.backgroundColor = "#4CAF50";
+          submitButton.style.color = "white";
+    
+          if (window.voiceflow && window.voiceflow.chat) {
+                      window.voiceflow.chat.interact({
+            type: "complete",
+            payload: {
+              fullName,
+              email,
+              phone: formatPhoneNumber(phone),
+              practitioner: dentistInfo.nom,
+              service: selectedService,
+              message: details  // New field added here
+            },
+          });
+
+            submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
+          } else {
+            console.log("Form data:", {
+              fullName,
+              email,
+              phone: formatPhoneNumber(phone),
+              practitioner: dentistInfo.nom,
+              service: selectedService
+            });
+            submitButton.textContent = isEnglish ? "Submitted (see console)" : "Soumis (voir console)";
+          }
+          disableAllFormElements();
+        });
+      }
+    };
+    
+    
+
 window.BookingFormExtension = BookingFormExtension;
 window.BookingExtension = BookingExtension;
+window.ContactFormExtension = ContactFormExtension;
