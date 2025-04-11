@@ -1,7 +1,7 @@
-/* Chatbot Background */
+/* Chatbot Background
 .s9t60i0 {
     background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67be5436c2849b37cefb04ee_white-wall-texture-background.jpg);
-}
+}*/
 
 ._1wkq7nf0 {
     z-index: 1000;
@@ -30,7 +30,7 @@
 }
 
 
-/* Background caroussed*/
+/* Background caroussel*/
 ._1lbxmyd0 {
     background-color: #f1f2f2;
     width: 300px;
@@ -38,8 +38,8 @@
 
 /* caroussel div*/
 ._1lbxmyd4 {
-    white-space: pre-line;
-    height: 40px;
+	white-space: pre-line;
+	height: 40px;
 }
 
 /* caroussel button div*/ 
@@ -63,6 +63,8 @@
     border: 2px solid #9c27b0;
     font-weight: bold;
 }
+
+
 
 /* caroussel button hover*/
 ._1q15b0b3:hover {
@@ -93,7 +95,7 @@
 
 /* Chat footer color text*/
 .jsli367{
-    color: black
+	color: black
 }
 
 .s9t60i2 {
@@ -121,9 +123,18 @@
   }
 }
 
+/* Chat footer color text Border
+._1gdvh9t1 {
+    border: 3px solid #9c27b0;
+}*/
+
+
+
 .g3dqfd1 {
     align-items: center;
 }
+
+
 
 ._15emaa42::after {
     content: "";
@@ -137,12 +148,14 @@
     border-radius: 50%;
 }
 
+
 ._15emaa42 {
     display: flex;
     justify-content: flex-end;
     align-items: center;
 }
 
+	
 .g3dqfd6 {
     margin: 0px 0 4px;
 }
@@ -155,10 +168,12 @@
     position: absolute;
     bottom: 100%;
     width: 500px;
-    display: flex;
+    display: flex
+;
     flex-direction: column;
     transition: opacity .15sease;
 }
+
 
 ._6r9xee3 {
     padding: 11px 16px 10px;
@@ -175,6 +190,8 @@
 ._12m8tlu4 {
     color: #9c27b0 !important;
 }
+
+
 
 ._1q15b0b2._1q15b0b4{
     color: #9c27b0;
@@ -222,6 +239,10 @@
     color: #9c27b0;
 }
 
+
+
+
+
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5{ 
     color: #9c27b0;
     background-color: #F8EAFA;
@@ -234,10 +255,13 @@
     border: 2px solid #9c27b0;
 }
 
+
 /* Hide the original image */
 .f6dof8t {
     display: none;
 }
+
+
 
 /* Inject SVG as a background image with default color #9c27b0 */
 .f6dof86::before {
@@ -257,6 +281,8 @@
 ._1q15b0b5:hover .f6dof86::before {
     background-color: white;
 }
+
+
 
 ._6r9xee4 {
     position: fixed;
@@ -279,11 +305,13 @@
     top: -30px; /* Move it above the chat bubble */
     width: 40px;
     height: 40px;
-    background: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c4d25d50923072271fb9484_bot.png) no-repeat center / cover;
+    background: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c4d25d5092307271fb9484_bot.png) no-repeat center / cover;
     background-color: #fff;
     border-radius: 50%;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
+
+
 
 .vfrc-header--title.jyiuei4::before {
   content: "Agence Immobilière";
@@ -319,7 +347,7 @@
 }
 
 ._1lbxmyd2 {
-  height: 100px;
+height: 100px;
 }
 
 ._1lbxmyd1 {
