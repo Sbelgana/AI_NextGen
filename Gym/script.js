@@ -1256,25 +1256,27 @@ const BookingFormExtension = {
 };
 
     const BookingCalendarExtension = {
-      name: 'BookingCalendar',
+      name: 'Booking',
       type: 'response',
       match: ({ trace }) =>
         trace.type === 'ext_booking_calendar' || trace.payload?.name === 'ext_booking_calendar',
       render: async ({ trace, element }) => {
         // --- Extract required payload values with fallbacks ---
         const {
-          fullName = "John Doe",
-          email = "john@example.com",
-          apiKey = "",
-          scheduleId = "",
-          eventTypeId = "1",
-          eventTypeSlug = "default-event",
-          slots = {},
-          selectedDate = "", 
-          selectedTime = "",
-          language = "en",
-          timezone = "America/Toronto"
-        } = trace.payload || {};
+  fullName = "John Doe",
+  email = "john@example.com",
+  apiKey = "",
+  scheduleId = "",
+  eventTypeId = "1", 
+  eventTypeSlug = "default-event",
+  serviceProvider = "Dr. Sophie Martin", // Add this line
+  serviceName = "Nettoyage et Examen Dentaire", // Add this line
+  slots = {},
+  selectedDate = "", 
+  selectedTime = "",
+  language = "en",
+  timezone = "America/Toronto"
+} = trace.payload || {};
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -1288,7 +1290,7 @@ const BookingFormExtension = {
         // Build CSS with direct values (no CSS variables)
         const style = document.createElement("style");
         style.textContent = `
-          @keyframes fadeIn {
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -1345,20 +1347,50 @@ const BookingFormExtension = {
   left: 10%;
   width: 80%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #9c27b0, transparent);
+  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
   opacity: 0.5;
 }
 .calendar-title {
-  font-size: 22px;
-  font-weight: 700;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  font-size: 16px;
+  background: transparent;
+  -webkit-text-fill-color: initial;
+}
+.calendar-title-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.service-provider, .service-name {
+  display: flex;
+  align-items: center; 
+  height: 24px;
+  font-size: 16px;
+  color: #9C27B0;
+  margin: 3px 0;
+  line-height: 24px;
+}
+.service-provider, .service-name  {
+  font-weight: 650;
+}
+
+.provider-icon, .service-icon {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #9c27b0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 0.2px;
+  justify-content: center;
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.provider-icon svg, .service-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: 0;
 }
 .calendar-nav {
   display: flex;
@@ -1378,7 +1410,7 @@ const BookingFormExtension = {
   border-radius: 50%;
   transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  color: #9c27b0;
+  color: #9C27B0;
 }
 .nav-btn:hover {
   background-color: #F8EAFA;
@@ -1387,6 +1419,13 @@ const BookingFormExtension = {
 .current-date {
   font-weight: 600;
   font-size: 17px;
+  background: #F8EAFA;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+  color: #9C27B0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s;
 }
 .calendar-body {
   display: flex;
@@ -1412,7 +1451,7 @@ const BookingFormExtension = {
   left: 10%;
   right: 10%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #9c27b0, transparent);
+  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
   border-radius: 3px;
   opacity: 0.7;
 }
@@ -1475,8 +1514,8 @@ const BookingFormExtension = {
   background-color: #F8EAFA;
 }
 .day:hover:not(.inactive) {
-  color: #9c27b0;
-  border: 2px solid #9c27b0;
+  color: #9C27B0;
+  border: 2px solid #9C27B0;
   font-weight: 500;
 }
 .day.available {
@@ -1489,12 +1528,12 @@ const BookingFormExtension = {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #9c27b0;
+  background-color: #9C27B0;
   opacity: 0.7;
   animation: fadeIn 0.3s ease forwards;
 }
 .day.today {
-  border: 1.5px solid #9c27b0;
+  border: 1.5px solid #9C27B0;
   position: relative;
   box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
 }
@@ -1505,10 +1544,10 @@ const BookingFormExtension = {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #9c27b0;
+  background-color: #9C27B0;
 }
 .day.active {
-  background-color: #9c27b0;
+  background-color: #9C27B0;
   color: white;
   border-radius: 4px;
   font-weight: bold;
@@ -1536,7 +1575,7 @@ const BookingFormExtension = {
   left: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(to bottom, #9c27b0, transparent);
+  background: linear-gradient(to bottom, #9C27B0, transparent);
   opacity: 0.1;
 }
 .time-header {
@@ -1544,7 +1583,7 @@ const BookingFormExtension = {
   margin-bottom: 20px;
   font-size: 16px;
   text-align: center;
-  color: #9c27b0;
+  color: #9C27B0;
   padding: 0 5px;
   line-height: 1.4;
   position: relative;
@@ -1557,7 +1596,7 @@ const BookingFormExtension = {
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
-  background-color: #9c27b0;
+  background-color: #9C27B0;
   opacity: 0.5;
   border-radius: 3px;
 }
@@ -1639,9 +1678,9 @@ const BookingFormExtension = {
   opacity: 0.7;
 }
 .time-slot.selected {
-  background-color: #9c27b0;
+  background-color: #9C27B0;
   color: white;
-  border-color: #9c27b0;
+  border-color: #9C27B0;
   border-radius: 10px;
   font-weight: bold;
   box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
@@ -1656,8 +1695,8 @@ const BookingFormExtension = {
 }
 .time-slot.available:hover:not(.selected) {
   background-color: #F8EAFA;
-  color: #9c27b0;
-  border: 2px solid #9c27b0;
+  color: #9C27B0;
+  border: 2px solid #9C27B0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
 }
 .time-slot.available:hover:not(.selected)::before {
@@ -1691,7 +1730,7 @@ const BookingFormExtension = {
 }
 .confirm-btn {
   background: #F8EAFA;
-  color: #9c27b0;
+  color: #9C27B0;
   font-weight: 600;
   border-radius: 10px;
   padding: 12px 24px;
@@ -1717,7 +1756,7 @@ const BookingFormExtension = {
   transform: translateX(-100%);
 }
 .confirm-btn:hover:not(:disabled) {
-  background: #9c27b0;
+  background: #9C27B0;
   color: white;
   box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
 }
@@ -1756,9 +1795,10 @@ const BookingFormExtension = {
   transition: all 0.2s ease;
 }
 .toggle-btn.active {
-  background-color: #9c27b0;
+  background-color: #9C27B0;
   color: white;
 }
+
 @media (max-width: 768px) {
   .calendar-body {
     flex-direction: column;
@@ -1772,9 +1812,6 @@ const BookingFormExtension = {
     border-left: none;
     border-top: 1px solid #eaeaea;
     max-height: 250px;
-  }
-  .calendar-title {
-    font-size: 18px;
   }
   .day {
     height: 40px;
@@ -1790,6 +1827,10 @@ const BookingFormExtension = {
   }
   .action-btn {
     padding: 10px 18px;
+    font-size: 14px;
+  }
+  .service-provider,
+  .service-name {
     font-size: 14px;
   }
   @keyframes mobileShimmer {
@@ -1960,7 +2001,7 @@ const BookingFormExtension = {
               </svg>
             </div>
             <p style="margin: 0; color: #333;">${message}</p>
-            <button style="margin-top: 15px; background: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
+            <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
           `;
           errorOverlay.appendChild(errorMessage);
           calendarContainer.appendChild(errorOverlay);
@@ -2059,61 +2100,98 @@ const BookingFormExtension = {
         // ---------------------
         // RENDER CALENDAR COMPONENTS
         // ---------------------
-        function renderHeader() {
-          const header = document.createElement("div");
-          header.className = "calendar-header";
-          const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
-          const calendarTitle = document.createElement("div");
-          calendarTitle.className = "calendar-title";
-          const calendarIcon = document.createElement("span");
-          calendarIcon.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9c27b0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
-          `;
-          const titleText = document.createElement("span");
-          titleText.textContent = getText("selectDateAndTime");
-          calendarTitle.appendChild(calendarIcon);
-          calendarTitle.appendChild(titleText);
-          const calendarNav = document.createElement("div");
-          calendarNav.className = "calendar-nav";
-          const currentDateEl = document.createElement("div");
-          currentDateEl.className = "current-date";
-          currentDateEl.textContent = dateFormatter.format(state.currentDate);
-          currentDateEl.style.cssText = "background: #F8EAFA; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9c27b0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
-          const prevBtn = document.createElement("button");
-          prevBtn.className = "nav-btn prev-btn";
-          prevBtn.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          prevBtn.addEventListener("click", () => {
-            if (!state.isConfirmed) {
-              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
-              renderCalendar();
-            }
-          });
-          const nextBtn = document.createElement("button");
-          nextBtn.className = "nav-btn next-btn";
-          nextBtn.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          nextBtn.addEventListener("click", () => {
-            if (!state.isConfirmed) {
-              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
-              renderCalendar();
-            }
-          });
-          calendarNav.appendChild(currentDateEl);
-          calendarNav.appendChild(prevBtn);
-          calendarNav.appendChild(nextBtn);
-          header.appendChild(calendarTitle);
-          header.appendChild(calendarNav);
-          return header;
-        }
-
-        async function renderCalendarDays() {
+function renderHeader() {
+  const header = document.createElement("div");
+  header.className = "calendar-header";
+  const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
+  
+  // Create calendar title with provider and service info
+  const calendarTitle = document.createElement("div");
+  calendarTitle.className = "calendar-title";
+  
+  // Calendar icon
+  const calendarIcon = document.createElement("span");
+  calendarIcon.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+  `;
+  
+  // Provider and service information section
+  const titleContent = document.createElement("div");
+  titleContent.className = "calendar-title-content";
+  
+  const providerDiv = document.createElement("div");
+  providerDiv.className = "service-provider";
+  providerDiv.innerHTML = `
+    <span class="provider-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+      </svg>
+    </span>
+    <span>${serviceProvider}</span>
+  `;
+  
+  const serviceDiv = document.createElement("div");
+  serviceDiv.className = "service-name";
+serviceDiv.innerHTML = `
+  <span class="service-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
+    </svg>
+  </span>
+  <span>${serviceName}</span>
+`;
+  titleContent.appendChild(providerDiv);
+  titleContent.appendChild(serviceDiv);
+  
+  calendarTitle.appendChild(titleContent);
+  
+  // Calendar navigation section (remains unchanged)
+  const calendarNav = document.createElement("div");
+  calendarNav.className = "calendar-nav";
+  const currentDateEl = document.createElement("div");
+  currentDateEl.className = "current-date";
+  currentDateEl.textContent = dateFormatter.format(state.currentDate);
+  currentDateEl.style.cssText = "background: #F8EAFA; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9C27B0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+  
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "nav-btn prev-btn";
+  prevBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+  prevBtn.addEventListener("click", () => {
+    if (!state.isConfirmed) {
+      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+      renderCalendar();
+    }
+  });
+  
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "nav-btn next-btn";
+  nextBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+  nextBtn.addEventListener("click", () => {
+    if (!state.isConfirmed) {
+      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+      renderCalendar();
+    }
+  });
+  
+  calendarNav.appendChild(currentDateEl);
+  calendarNav.appendChild(prevBtn);
+  calendarNav.appendChild(nextBtn);
+  
+  header.appendChild(calendarTitle);
+  header.appendChild(calendarNav);
+  
+  return header;
+}
+       
+	   async function renderCalendarDays() {
           const daysContainer = document.createElement("div");
           daysContainer.className = "days-container";
           const weekdaysDiv = document.createElement("div");
@@ -2335,7 +2413,7 @@ const BookingFormExtension = {
             checkmark.innerHTML = `
               <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-                <path d="M20 30L27 37L40 23" stroke="#9c27b0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             `;
             
@@ -2346,7 +2424,7 @@ const BookingFormExtension = {
               font-size: 18px;
               font-weight: 600;
               margin-top: 15px;
-              color: #9c27b0;
+              color: #9C27B0;
             `;
             successMessage.appendChild(successText);
             successOverlay.appendChild(successMessage);
@@ -2441,6 +2519,7 @@ const BookingFormExtension = {
     };
 
 
+    
 const BookingInformationExtension = {
       name: "BookingInformation",
       type: "response",
@@ -2690,7 +2769,7 @@ const BookingInformationExtension = {
     };
 
 
-    const RescheduleCalendarExtension = {
+       const RescheduleCalendarExtension = {
       name: 'RescheduleCalendar',
       type: 'response',
       match: ({ trace }) =>
@@ -2699,7 +2778,11 @@ const BookingInformationExtension = {
         // --- Extract required payload values with fallbacks ---
         const {
           email = "john@example.com",
+  serviceProvider = "Dr. Sophie Martin", // Add this line
+  serviceName = "Nettoyage et Examen Dentaire", // Add this line
           apiKey = "",
+            startTime = "4/11/2025, 3:00:00 PM", // Add this line for the current appointment
+
           scheduleId = "",
           eventTypeId = "1",
           eventTypeSlug = "default-event",
@@ -2724,345 +2807,562 @@ const BookingInformationExtension = {
         // Build CSS with direct values (no CSS variables)
         const style = document.createElement("style");
         style.textContent = `
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
-          @keyframes shimmer {
-            0% { background-position: -100% 0; }
-            100% { background-position: 100% 0; }
-          }
-          .calendar-container {
-            box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
-            border-radius: 16px;
-            overflow: hidden;
-            background: #ffffff;
-            color: #333;
-            animation: fadeIn 0.3s ease-out forwards;
-            border: 1px solid #eaeaea;
-            transition: all 0.3s ease;
-          }
-          .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 24px;
-            background-color: #faf7fc;
-            border-bottom: 1px solid #eaeaea;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-            position: relative;
-          }
-          .calendar-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            width: 80%;
-            height: 3px;
-            background: #9C27B0;
-            opacity: 0.5;
-          }
-          .calendar-title {
-            font-size: 22px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #9C27B0;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 0.2px;
-          }
-          .calendar-nav {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-          }
-          .nav-btn {
-            background: white;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            color: #9C27B0;
-          }
-          .nav-btn:hover {
-            background-color: #F8EAFA;
-            transform: scale(1.1);
-            box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
-          }
-          .nav-btn:active { transform: scale(0.95); }
-          .current-date { font-weight: 600; font-size: 17px; }
-          .calendar-body {
-            display: flex;
-            height: 400px;
-            background: linear-gradient(to bottom, #ffffff, #fefeff);
-          }
-          .days-container {
-            width: 47%;
-            padding: 15px 10px;
-            position: relative;
-            background-image: 
-              linear-gradient(rgba(156, 39, 176, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
-            background-size: 25px 25px;
-            background-position: -1px -1px;
-          }
-          .calendar-container::before {
-            content: '';
-            position: absolute;
-            top: -3px;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #9C27B0, transparent);
-            border-radius: 3px;
-            opacity: 0.7;
-          }
-          .days-container::after {
-            content: '';
-            position: absolute;
-            right: 20px;
-            bottom: 20px;
-            width: 80px;
-            height: 80px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(156, 39, 176, 0.03)'/%3E%3C/svg%3E");
-            opacity: 0.6;
-          }
-          .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 15px 0 10px;
-            color: #666;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-          }
-          .days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            padding: 5px;
-          }
-          .day {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 45px;
-            width: 45px;
-            cursor: pointer;
-            position: relative;
-            font-size: 14px;
-            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            margin: 0 auto;
-            border: 1px solid transparent;
-            border-radius: 50%;
-            z-index: 1;
-          }
-          .day:not(.inactive)::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 50%;
-            background-color: transparent;
-            transform: scale(0.9);
-            transition: all 0.25s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            z-index: -1;
-          }
-          .day:hover:not(.inactive)::before {
-            background-color: #F8EAFA;
-            transform: scale(1);
-          }
-          .day:hover:not(.inactive) {
-            color: #9C27B0;
-            border: 2px solid #9C27B0;
-            transform: translateY(-2px);
-            font-weight: 500;
-          }
-          .day.available { position: relative; }
-          .day.available::after {
-            content: '';
-            position: absolute;
-            bottom: 3px;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background-color: #9C27B0;
-            opacity: 0.7;
-            transform: translateY(3px);
-            animation: fadeIn 0.3s ease forwards;
-          }
-          .day.today {
-            border: 1.5px solid #9C27B0;
-            position: relative;
-            box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
-          }
-          .day.today::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: #9C27B0;
-          }
-          .day.active {
-            background-color: #9C27B0;
-            color: white;
-            border-radius: 4px;
-            font-weight: bold;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
-          }
-          .day.active::after { display: none; }
-          .day.inactive { color: #ccc; cursor: default; opacity: 0.7; }
-          .times-container {
-            width: 53%;
-            border-left: 1px solid #eaeaea;
-            padding: 20px 10px;
-            overflow-y: auto;
-            background-color: #fefeff;
-            position: relative;
-          }
-          .times-container::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0;
-            height: 100%;
-            background: linear-gradient(to bottom, #9C27B0, transparent);
-            opacity: 0.1;
-          }
-          .time-header {
-            font-weight: 600;
-            margin-bottom: 20px;
-            font-size: 16px;
-            text-align: center;
-            color: #9C27B0;
-            padding: 0 5px;
-            line-height: 1.4;
-            position: relative;
-          }
-          .time-header::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 3px;
-            background-color: #9C27B0;
-            opacity: 0.5;
-            border-radius: 3px;
-          }
-          .time-slots {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 5px;
-          }
-          .time-slots-columns {
-            display: flex;
-            gap: 20px;
-          }
-          .time-slots-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-          }
-          .times-container::-webkit-scrollbar { width: 6px; }
-          .times-container::-webkit-scrollbar-track {
-            background: rgba(156, 39, 176, 0.05);
-            border-radius: 10px;
-          }
-          .times-container::-webkit-scrollbar-thumb {
-            background: rgba(156, 39, 176, 0.2);
-            border-radius: 10px;
-          }
-          .times-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(156, 39, 176, 0.3);
-          }
-          @keyframes slideIn {
-            from { opacity: 0; transform: translateX(10px); }
-            to { opacity: 1; transform: translateX(0); }
-          }
-          .time-slot {
-            padding: 14px;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            border: 1px solid #e0e0e0;
-            font-size: 14px;
-            background-color: white;
-            color: #444;
-            position: relative;
-            overflow: hidden;
-            transform-origin: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-          }
-          .time-slot::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(120deg, transparent, #F8EAFA, transparent);
-            background-size: 200% 100%;
-            opacity: 0;
-            transition: opacity 0.3s;
-          }
-          .time-slot.available { background-color: white; }
-          .time-slot.unavailable {
-            background-color: #f4f4f5;
-            color: #999;
-            cursor: not-allowed;
-            opacity: 0.7;
-          }
-          .time-slot.selected {
-            background-color: #9C27B0;
-            color: white;
-            border-color: #9C27B0;
-            border-radius: 10px;
-            font-weight: bold;
-            transform: scale(1.03);
-            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
-            z-index: 5;
-          }
-          .time-slot.selected::after {
-            content: '';
-            position: absolute;
-            right: 16px;
-            font-size: 14px;
-            opacity: 0.9;
-          }
-          .time-slot.available:hover:not(.selected) {
-            background-color: #F8EAFA;
-            color: #9C27B0;
-            border: 2px solid #9C27B0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
-          }
-          .time-slot.available:hover:not(.selected)::before {
-            opacity: 0.6;
-            animation: shimmer 1.5s infinite;
-          }
+       @keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+.calendar-container {
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #ffffff;
+  color: #333;
+  animation: fadeIn 0.3s ease-out forwards;
+  border: 1px solid #eaeaea;
+  transition: all 0.3s ease;
+}
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background-color: #faf7fc;
+  border-bottom: 1px solid #eaeaea;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+.calendar-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
+  opacity: 0.5;
+}
+.calendar-title {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  font-size: 16px;
+  background: transparent;
+  -webkit-text-fill-color: initial;
+}
+.calendar-title-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.service-provider, .service-name {
+  display: flex;
+  align-items: center; 
+  height: 24px;
+  font-size: 16px;
+  color: #9C27B0;
+  margin: 3px 0;
+  line-height: 24px;
+  font-weight: 650;
+}
+
+
+.provider-icon, .service-icon, .appointment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.provider-icon svg, .service-icon svg,  .appointment-icon svg{
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: 0;
+}
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.nav-btn {
+  background: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #9C27B0;
+}
+.nav-btn:hover {
+  background-color: #F8EAFA;
+  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
+}
+.current-date {
+  font-weight: 600;
+  font-size: 17px;
+  background: #F8EAFA;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 500;
+  color: #9C27B0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+.calendar-body {
+  display: flex;
+  height: 400px;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
+}
+.days-container {
+  width: 47%;
+  padding: 15px 10px;
+  position: relative;
+  background-image: linear-gradient(
+      rgba(156, 39, 176, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
+  background-size: 25px 25px;
+  background-position: -1px -1px;
+}
+.calendar-container::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
+  border-radius: 3px;
+  opacity: 0.7;
+}
+.days-container::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 80px;
+  height: 80px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(156, 39, 176, 0.03)'/%3E%3C/svg%3E");
+  opacity: 0.6;
+}
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 15px 0 10px;
+  color: #666;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  padding: 5px;
+}
+.day {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 45px;
+  width: 45px;
+  cursor: pointer;
+  position: relative;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+  margin: 0 auto;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  z-index: 1;
+}
+.day:not(.inactive)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: all 0.25s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+  z-index: -1;
+}
+.day:hover:not(.inactive)::before {
+  background-color: #F8EAFA;
+}
+.day:hover:not(.inactive) {
+  color: #9C27B0;
+  border: 2px solid #9C27B0;
+  font-weight: 500;
+}
+.day.available {
+  position: relative;
+}
+.day.available::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #9C27B0;
+  opacity: 0.7;
+  animation: fadeIn 0.3s ease forwards;
+}
+.day.today {
+  border: 1.5px solid #9C27B0;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
+}
+.day.today::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #9C27B0;
+}
+.day.active {
+  background-color: #9C27B0;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+}
+.day.active::after {
+  display: none;
+}
+.day.inactive {
+  color: #ccc;
+  cursor: default;
+  opacity: 0.7;
+}
+.times-container {
+  width: 53%;
+  border-left: 1px solid #eaeaea;
+  padding: 20px 10px;
+  overflow-y: auto;
+  background-color: #fefeff;
+  position: relative;
+}
+.times-container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, #9C27B0, transparent);
+  opacity: 0.1;
+}
+.time-header {
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 16px;
+  text-align: center;
+  color: #9C27B0;
+  padding: 0 5px;
+  line-height: 1.4;
+  position: relative;
+}
+.time-header::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background-color: #9C27B0;
+  opacity: 0.5;
+  border-radius: 3px;
+}
+.time-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 5px;
+}
+.time-slots-columns {
+  display: flex;
+  gap: 20px;
+}
+.time-slots-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.times-container::-webkit-scrollbar {
+  width: 6px;
+}
+.times-container::-webkit-scrollbar-track {
+  background: rgba(156, 39, 176, 0.05);
+  border-radius: 10px;
+}
+.times-container::-webkit-scrollbar-thumb {
+  background: rgba(156, 39, 176, 0.2);
+  border-radius: 10px;
+}
+.times-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 39, 176, 0.3);
+}
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.time-slot {
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+  background-color: white;
+  color: #444;
+  position: relative;
+  overflow: hidden;
+  transform-origin: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.time-slot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, #F8EAFA, transparent);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.time-slot.available {
+  background-color: white;
+}
+.time-slot.unavailable {
+  background-color: #f4f4f5;
+  color: #999;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.time-slot.selected {
+  background-color: #9C27B0;
+  color: white;
+  border-color: #9C27B0;
+  border-radius: 10px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+  z-index: 5;
+}
+.time-slot.selected::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.time-slot.available:hover:not(.selected) {
+  background-color: #F8EAFA;
+  color: #9C27B0;
+  border: 2px solid #9C27B0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+}
+.time-slot.available:hover:not(.selected)::before {
+  opacity: 0.6;
+  animation: shimmer 1.5s infinite;
+}
+.calendar-container.confirmed .day,
+.calendar-container.confirmed .time-slot {
+  pointer-events: none;
+  cursor: default;
+}
+.calendar-container.confirmed .nav-btn {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: default;
+}
+.calendar-footer {
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #eaeaea;
+}
+.action-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+.confirm-btn {
+  background: #F8EAFA;
+  color: #9C27B0;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px 24px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.confirm-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: translateX(-100%);
+}
+.confirm-btn:hover:not(:disabled) {
+  background: #9C27B0;
+  color: white;
+  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+}
+.confirm-btn:hover:not(:disabled)::before {
+  animation: shimmer 1.5s infinite;
+}
+.confirm-btn:active:not(:disabled) {
+  box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+}
+.confirm-btn:disabled {
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.cancel-btn {
+  background-color: white;
+  color: #333;
+  border: 1px solid #eaeaea;
+  margin-right: 10px;
+}
+.cancel-btn:hover {
+  background-color: #f5f5f5;
+}
+.toggle-view {
+  background-color: white;
+  border: 1px solid #eaeaea;
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+}
+.toggle-btn {
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.toggle-btn.active {
+  background-color: #9C27B0;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .calendar-body {
+    flex-direction: column;
+    height: auto;
+  }
+  .days-container,
+  .times-container {
+    width: 100%;
+  }
+  .times-container {
+    border-left: none;
+    border-top: 1px solid #eaeaea;
+    max-height: 250px;
+  }
+  .day {
+    height: 40px;
+    width: 40px;
+    font-size: 13px;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .time-header {
+    font-size: 15px;
+  }
+  .action-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+  .service-provider,
+  .service-name {
+    font-size: 14px;
+  }
+  @keyframes mobileShimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  .confirm-btn:hover:not(:disabled)::before {
+    animation: mobileShimmer 2s infinite;
+  }
+}
+          
+          
           .reschedule-reason {
             display: flex;
             flex-direction: column;
@@ -3095,105 +3395,22 @@ const BookingInformationExtension = {
             margin-top: 4px;
             display: none;
           }
-          .calendar-container.confirmed .day,
-          .calendar-container.confirmed .time-slot { pointer-events: none; cursor: default; }
-          .calendar-container.confirmed .nav-btn { pointer-events: none; opacity: 0.5; cursor: default; }
-          .calendar-footer {
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            border-top: 1px solid #eaeaea;
-          }
-          .action-btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            font-size: 14px;
-          }
-          .confirm-btn {
-            background: #F8EAFA;
-            color: #9C27B0;
-            font-weight: 600;
-            border-radius: 10px;
-            padding: 12px 24px;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-          }
-          .confirm-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transform: translateX(-100%);
-          }
-          .confirm-btn:hover:not(:disabled) {
-            background: #9C27B0;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
-          }
-          .confirm-btn:hover:not(:disabled)::before {
-            animation: shimmer 1.5s infinite;
-          }
-          .confirm-btn:active:not(:disabled) {
-            transform: translateY(1px);
-            box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
-          }
-          .confirm-btn:disabled {
-            cursor: not-allowed;
-            box-shadow: none;
-          }
-          .cancel-btn {
-            background-color: white;
-            color: #333;
-            border: 1px solid #eaeaea;
-            margin-right: 10px;
-          }
-          .cancel-btn:hover { background-color: #f5f5f5; }
-          .toggle-view {
-            background-color: white;
-            border: 1px solid #eaeaea;
-            border-radius: 6px;
-            display: flex;
-            overflow: hidden;
-          }
-          .toggle-btn {
-            padding: 8px 12px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s ease;
-          }
-          .toggle-btn.active { background-color: #9C27B0; color: white; }
-          @media (max-width: 768px) {
-            .calendar-body { flex-direction: column; height: auto; }
-            .days-container, .times-container { width: 100%; }
-            .times-container {
-              border-left: none;
-              border-top: 1px solid #eaeaea;
-              max-height: 250px;
-            }
-            .calendar-title { font-size: 18px; }
-            .day { height: 40px; width: 40px; font-size: 13px; }
-            .nav-btn { width: 36px; height: 36px; }
-            .time-header { font-size: 15px; }
-            .action-btn { padding: 10px 18px; font-size: 14px; }
-            @keyframes mobileShimmer {
-              0% { background-position: -200% 0; }
-              100% { background-position: 200% 0; }
-            }
-            .confirm-btn:hover:not(:disabled)::before {
-              animation: mobileShimmer 2s infinite;
-            }
-          }
+          
+
+
+.appointment-date {
+  display: flex;
+  align-items: center; 
+  height: 24px;
+  font-size: 16px;
+  color: #7b7b7b;
+  margin: 3px 0;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+
+
         `;
         shadow.appendChild(style);
 
@@ -3306,6 +3523,35 @@ const BookingInformationExtension = {
             throw err;
           }
         }
+        
+
+// Then add this function to format the date and time
+function formatAppointmentDate(dateTimeString, language) {
+  const date = new Date(dateTimeString);
+  
+  // Format date with weekday, day, month, year
+  const formatOptions = { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  };
+  
+  let locale = language === 'fr' ? 'fr-FR' : 'en-US';
+  const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+  let formattedDate = formatter.format(date);
+  
+  // Replace the comma or add "at"/"à" between date and time
+  if (language === 'fr') {
+    formattedDate = formattedDate.replace(' à ', ' à ');
+  } else {
+    formattedDate = formattedDate.replace(' at ', ' at ');
+  }
+  
+  return formattedDate;
+}
 
         // Function to show error messages to the user.
         function showErrorMessage(message) {
@@ -3448,69 +3694,114 @@ const BookingInformationExtension = {
           state.availableSlots[dayKey] = defaultSlots;
         }
 
-        function renderHeader() {
-          const header = document.createElement("div");
-          header.className = "calendar-header";
-          const dateFormatter = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' });
-          const calendarTitle = document.createElement("div");
-          calendarTitle.className = "calendar-title";
-          const calendarIcon = document.createElement("span");
-          calendarIcon.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
-              
-          `;
-          const titleText = document.createElement("span");
-          titleText.textContent = getText('selectDateAndTime');
-          calendarTitle.appendChild(calendarIcon);
-          calendarTitle.appendChild(titleText);
-          const calendarNav = document.createElement("div");
-          calendarNav.className = "calendar-nav";
-          const currentDateEl = document.createElement("div");
-          currentDateEl.className = "current-date";
-          currentDateEl.textContent = dateFormatter.format(state.currentDate);
-          currentDateEl.style.cssText = `
-            background: #F8EAFA;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 500;
-            color: #9C27B0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s;
-          `;
-          const prevBtn = document.createElement("button");
-          prevBtn.className = "nav-btn prev-btn";
-          prevBtn.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          prevBtn.addEventListener("click", () => {
-            if (!state.isConfirmed) {
-              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
-              renderCalendar();
-            }
-          });
-          const nextBtn = document.createElement("button");
-          nextBtn.className = "nav-btn next-btn";
-          nextBtn.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          `;
-          nextBtn.addEventListener("click", () => {
-            if (!state.isConfirmed) {
-              state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
-              renderCalendar();
-            }
-          });
-          calendarNav.appendChild(currentDateEl);
-          calendarNav.appendChild(prevBtn);
-          calendarNav.appendChild(nextBtn);
-          header.appendChild(calendarTitle);
-          header.appendChild(calendarNav);
-          return header;
-        }
+function renderHeader() {
+  const header = document.createElement("div");
+  header.className = "calendar-header";
+  const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
+  
+  // Create calendar title with provider and service info
+  const calendarTitle = document.createElement("div");
+  calendarTitle.className = "calendar-title";
+  
+  // Provider and service information section
+  const titleContent = document.createElement("div");
+  titleContent.className = "calendar-title-content";
+  
+  const providerDiv = document.createElement("div");
+  providerDiv.className = "service-provider";
+  providerDiv.innerHTML = `
+    <span class="provider-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+      </svg>
+    </span>
+    <span>${serviceProvider}</span>
+  `;
+  
+  const serviceDiv = document.createElement("div");
+  serviceDiv.className = "service-name";
+  serviceDiv.innerHTML = `
+    <span class="service-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+        <path fill="#9C27B0" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
+      </svg>
+    </span>
+    <span>${serviceName}</span>
+  `;
 
+  const appointmentDateDiv = document.createElement("div");
+  appointmentDateDiv.className = "appointment-date";
+  
+  // Add calendar icon - using a different name here to avoid conflict
+  const dateIcon = document.createElement("span");
+  dateIcon.className = "appointment-icon";
+  dateIcon.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+      <path fill="#7b7b7b" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+    </svg>
+  `;
+  
+  // Add the formatted date text
+  const dateTextSpan = document.createElement("span");
+  dateTextSpan.textContent = formatAppointmentDate(startTime, language);
+  
+  // Append both to the appointment div
+  appointmentDateDiv.appendChild(dateIcon);
+  appointmentDateDiv.appendChild(dateTextSpan);
+  
+  // Add to title content
+  titleContent.appendChild(providerDiv);
+  titleContent.appendChild(serviceDiv);
+  titleContent.appendChild(appointmentDateDiv);
+  
+  calendarTitle.appendChild(titleContent);
+  
+  // Calendar navigation section (remains unchanged)
+  const calendarNav = document.createElement("div");
+  calendarNav.className = "calendar-nav";
+  const currentDateEl = document.createElement("div");
+  currentDateEl.className = "current-date";
+  currentDateEl.textContent = dateFormatter.format(state.currentDate);
+  currentDateEl.style.cssText = "background: #F8EAFA; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9C27B0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+  
+  const prevBtn = document.createElement("button");
+  prevBtn.className = "nav-btn prev-btn";
+  prevBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+  prevBtn.addEventListener("click", () => {
+    if (!state.isConfirmed) {
+      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+      renderCalendar();
+    }
+  });
+  
+  const nextBtn = document.createElement("button");
+  nextBtn.className = "nav-btn next-btn";
+  nextBtn.innerHTML = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+  nextBtn.addEventListener("click", () => {
+    if (!state.isConfirmed) {
+      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+      renderCalendar();
+    }
+  });
+  
+  calendarNav.appendChild(currentDateEl);
+  calendarNav.appendChild(prevBtn);
+  calendarNav.appendChild(nextBtn);
+  
+  header.appendChild(calendarTitle);
+  header.appendChild(calendarNav);
+  
+  return header;
+}
+   
         async function renderCalendarDays() {
           const daysContainer = document.createElement("div");
           daysContainer.className = "days-container";
@@ -3885,6 +4176,7 @@ const BookingInformationExtension = {
         });
       }
     };
+
 
 
     const CancellationExtension = {
