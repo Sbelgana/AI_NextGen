@@ -3527,7 +3527,22 @@ const BookingInformationExtension = {
 
 // Then add this function to format the date and time
 function formatAppointmentDate(dateTimeString, language) {
-  const date = new Date(dateTimeString);
+  let date;
+  
+  // Parse the date string based on locale
+  if (language === 'fr') {
+    // For French format (DD/MM/YYYY)
+    const parts = dateTimeString.split(/[/, :]/);
+    if (parts.length >= 6) {
+      // parts[0] = day, parts[1] = month (0-based), parts[2] = year
+      date = new Date(parts[2], parts[1]-1, parts[0], parts[3], parts[4], parts[5]);
+    } else {
+      date = new Date(dateTimeString); // fallback
+    }
+  } else {
+    // For English format
+    date = new Date(dateTimeString);
+  }
   
   // Format date with weekday, day, month, year
   const formatOptions = { 
@@ -3543,7 +3558,7 @@ function formatAppointmentDate(dateTimeString, language) {
   const formatter = new Intl.DateTimeFormat(locale, formatOptions);
   let formattedDate = formatter.format(date);
   
-  // Replace the comma or add "at"/"à" between date and time
+  // Ensure proper connection string between date and time
   if (language === 'fr') {
     formattedDate = formattedDate.replace(' à ', ' à ');
   } else {
