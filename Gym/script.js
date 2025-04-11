@@ -2453,24 +2453,35 @@ serviceDiv.innerHTML = `
                     minute: '2-digit', 
                     hour12: true 
                   });
-                  const formattedTime = timeFormatter.format(new Date(state.selectedTime));
+                                    const formattedDate = new Intl.DateTimeFormat(locale, { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  }).format(state.selectedDate);
+  const formattedTime = new Intl.DateTimeFormat(locale, { 
+    hour: 'numeric', 
+    minute: '2-digit', 
+    hour12: true 
+  }).format(new Date(state.selectedTime));
+  const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+
                   
-                  window.voiceflow.chat.interact({
-                    type: "complete",
-                    payload: { 
-                      fullName,
-                      email,
-                      date: dateStr,
-                      time: state.selectedTime,
-                      formattedDate: new Intl.DateTimeFormat(locale, { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      }).format(state.selectedDate),
-                      formattedTime: formattedTime
-                    },
-                  });
+
+  
+  window.voiceflow.chat.interact({
+    type: "complete",
+    payload: { 
+      fullName,
+      email,
+      date: dateStr,
+      time: state.selectedTime,
+      formattedDate,
+      formattedTime,
+      formattedDateTime
+    }
+  });
+
                   
                 }, 500); // End of hide animation
               }, 2500); // Show duration before hiding
