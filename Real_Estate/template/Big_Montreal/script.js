@@ -3863,7 +3863,7 @@ const navHTML = `
       name: 'SellPropertyForm',
       type: 'response',
       match: ({ trace }) =>
-        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
+        trace.type === 'ext_sell_property_form' || trace.payload?.name === 'ext_sell_property_form',
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
