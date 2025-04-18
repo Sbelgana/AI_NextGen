@@ -5893,7 +5893,7 @@ const navHTML = `
     const BookingFormExtension = {
       name: "BookingForm",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
+      match: ({ trace }) => trace.type === `ext_booking_form_form` || trace.payload?.name === `ext_booking_form`,
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
@@ -5906,64 +5906,55 @@ const navHTML = `
 		<style>
     /* ========== Dropdown Components ========== */
     .main-container {
-      display: block;
-      transition: height 0.3s ease;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-    .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      min-width: 300px;
-      max-width: 600px;
-      width: 100%;
-      min-height: 50px;
-    }
-    .select-display {
-      padding: 0 15px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 50px;
-    }
-    .select-display {
-      padding: 0 15px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 50px;
-    }
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #F8EAFA;
-      border-radius: 50%;
-    }
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
+              display: block;
+              transition: height 0.3s ease;
+              border-radius: 6px;
+              margin-bottom: 15px;
+            }
+            .select-wrapper {
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              background-color: #fff;
+              position: relative;
+              min-width: 300px;
+              max-width: 800px;
+              width: 100%;
+              min-height: 50px;
+            }
+            .select-display {
+              padding: 0 15px;
+              font-size: 16px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              height: 50px;
+            }
+            .dropdown-icon {
+              width: 24px;
+              height: 24px;
+              transition: transform 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #F8EAFA;
+              border-radius: 50%;
+            }
+            .dropdown-icon.rotate {
+              transform: rotate(180deg);
+            }
     
     /* Custom Options */
-    .custom-options {
-      display: none;
-      border-top: 1px solid #ddd;
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-    }
+  .custom-options {
+              display: none;
+              border-top: 1px solid #ddd;
+              max-height: 300px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 100;
+              border-radius: 0 0 6px 6px;
+            }
     /* Hide scrollbar for Chrome, Safari, Opera */
 .custom-options::-webkit-scrollbar {
   display: none; 
@@ -5973,69 +5964,147 @@ const navHTML = `
   scrollbar-width: none;     /* Firefox */
 }
 
-    .custom-option {
-      padding: 12px 15px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
-    .custom-option:hover {
-      background-color: #F8EAFA;
-      color:#9C27B0;
-    }
-    .custom-option.selected {
-      background-color: #F8EAFA;
-      color:#9C27B0;
-      
-      font-weight: bold;
-    }
+    .custom-options {
+              display: none;
+              border-top: 1px solid #ddd;
+              max-height: 300px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 100;
+              border-radius: 0 0 6px 6px;
+            }
+            .custom-options::-webkit-scrollbar {
+              display: none; 
+            }
+            .custom-options {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
     /* Option Checkbox – consolidated duplicate rules */
     .option-checkbox {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      transition: all 0.2s;
-    }
-    .option-checkbox::after {
-      content: "";
-      color: #9C27B0;
-      font-size: 12px;
-      display: none;
-    }
+              width: 24px;
+              height: 24px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              margin-right: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #fff;
+              transition: all 0.2s;
+            }
+            .option-checkbox::after {
+              content: "";
+              color: #9C27B0;
+              font-size: 12px;
+              display: none;
+            }
     .custom-option.selected .option-checkbox {
-      border-color: #9C27B0;
-      background-color: #9C27B0;
-    }
-    .custom-option.selected .option-checkbox::after {
-      display: block;
-      color: #fff;
-    }
-    .custom-option:not(.selected):hover .option-checkbox,
-    .custom-option:not(.selected):hover .option-checkbox::after {
-      border-color: #9C27B0;
-      display: block;
-      color: #9C27B0;
-    }
+              border-color: #9C27B0;
+              background-color: #9C27B0;
+            }
+            .custom-option.selected .option-checkbox::after {
+              display: block;
+              color: #fff;
+            }
+            .custom-option:not(.selected):hover .option-checkbox,
+            .custom-option:not(.selected):hover .option-checkbox::after {
+              border-color: #9C27B0;
+              display: block;
+              color: #9C27B0;
+            }
+    
     .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
-    .show-options {
-      display: block;
-    }
-    
-    .custom-option.selected .main-arrow,
-    .custom-option:hover .main-arrow {
-      background-color: #fff;
-    }
-    
+              fill: #fff !important;
+            }
+            .show-options {
+              display: block;
+            }
+            .custom-option.selected .main-arrow,
+            .custom-option:hover .main-arrow {
+              background-color: #fff;
+            }
+    .custom-option {
+              padding: 12px 15px;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              transition: background 0.2s;
+              position: relative;
+            }
+            .custom-option:hover {
+              background-color: #F8EAFA;
+              color:#9C27B0;
+            }
+            .custom-option.selected {
+              background-color: #F8EAFA;
+              color:#9C27B0;
+              font-weight: bold;
+            }
+            .option-checkbox {
+              width: 24px;
+              height: 24px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              margin-right: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #fff;
+              transition: all 0.2s;
+            }
+            .option-checkbox::after {
+              content: "";
+              color: #9C27B0;
+              font-size: 12px;
+              display: none;
+            }
+            .custom-option.selected .option-checkbox {
+              border-color: #9C27B0;
+              background-color: #9C27B0;
+            }
+            .custom-option.selected .option-checkbox::after {
+              display: block;
+              color: #fff;
+            }
+            .custom-option:not(.selected):hover .option-checkbox,
+            .custom-option:not(.selected):hover .option-checkbox::after {
+              border-color: #9C27B0;
+              display: block;
+              color: #9C27B0;
+            }
+            .custom-option.selected .option-checkbox svg path {
+              fill: #fff !important;
+            }
+            .show-options {
+              display: block;
+            }
+            .custom-option.selected .main-arrow,
+            .custom-option:hover .main-arrow {
+              background-color: #fff;
+            }
+			
+			.custom-option:not(.selected):hover .option-checkbox svg path {
+              fill: #9C27B0;
+            }
+            .custom-option:not(.selected):hover .option-checkbox {
+              position: relative;
+              border-color: #9C27B0;
+            }
+            .custom-option:not(.selected):hover .option-checkbox svg {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 18px;
+              height: 18px;
+            }
+            .option-checkbox svg {
+              position: absolute;
+              width: 18px;
+              height: 18px;
+            }
     /* ========== Error Components ========== */
     .error-container {
       width: 100%;
@@ -6240,7 +6309,7 @@ const navHTML = `
         selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --';
         customOptionsAgent.innerHTML = "";
         
-        Agents.forEach(agent => {
+        agents.forEach(agent => {
           const optionEl = document.createElement('div');
           optionEl.className = 'custom-option';
           optionEl.dataset.value = agent;
