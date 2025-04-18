@@ -5890,7 +5890,7 @@ const navHTML = `
     };
     
 /************** EXTENSION #9: BookingFormExtension **************/
-    const BookingFormExtension = {
+     const BookingFormExtension = {
       name: "BookingForm",
       type: "response",
       match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
@@ -6429,23 +6429,21 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   submitButton.style.backgroundColor = "#4CAF50";
   submitButton.style.color = "white";
   
-  // Prepare form data
-  const formData = {
-    fullName,
+   window.voiceflow.chat.interact({ 
+            type: "complete",
+            payload: { 
+			fullName,
     email,
     phone: formatPhoneNumber(phone),
     agentName: selectedAgent
-  };
+			},
+          });
+  
+  
+  
   
   // If Voiceflow integration is needed
-  if (window.voiceflow && window.voiceflow.chat) {
-    window.voiceflow.chat.interact({
-      type: "complete",
-      payload: formData
-    });
-  } else {
-    console.log("Form submitted:", formData);
-  }
+ 
 });
         
       }
