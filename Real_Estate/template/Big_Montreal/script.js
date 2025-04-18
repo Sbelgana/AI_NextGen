@@ -1154,13 +1154,13 @@ input[type="number"] {
           <label for="price-min" class="bold-label">${isEnglish ? "Minimum Budget" : "Budget minimum"}</label>
           <div class="price-control">
             <div class="input-group">
-              <button type="button" id="decrement-price-min" onclick="decrementValue('price-min', 1000)">
-                ${SVG_Minus}
-              </button>
+              <button type="button" id="decrement-price-min" class="decrement-price">
+  ${SVG_Minus}
+</button>
               <input type="number" id="price-min" name="price-min" placeholder="${isEnglish ? 'Enter minimum budget' : 'Entrez le budget minimum'}">
-              <button type="button" id="increment-price-min" onclick="incrementValue('price-min', 1000)">
-                ${SVG_Plus}
-              </button>
+              <button type="button" id="increment-price-min" class="increment-price">
+  ${SVG_Plus}
+</button>
             </div>
           </div>
         </div>
@@ -1168,13 +1168,13 @@ input[type="number"] {
           <label for="price-max" class="bold-label">${isEnglish ? "Maximum Budget" : "Budget maximum"}</label>
           <div class="price-control">
             <div class="input-group">
-              <button type="button" id="decrement-price-max" onclick="decrementValue('price-max', 1000)">
-                ${SVG_Minus}
-              </button>
+             <button type="button" id="decrement-price-max" class="decrement-price">
+  ${SVG_Minus}
+</button>
               <input type="number" id="price-max" name="price-max" placeholder="${isEnglish ? 'Enter maximum budget' : 'Entrez le budget maximum'}">
-              <button type="button" id="increment-price-max" onclick="incrementValue('price-max', 1000)">
-                ${SVG_Plus}
-              </button>
+              <button type="button" id="increment-price-max" class="increment-price">
+  ${SVG_Plus}
+</button>
             </div>
           </div>
         </div>
@@ -1203,13 +1203,13 @@ input[type="number"] {
   <label class="bold-label">${isEnglish ? "Rooms" : "Nombre de pièces"}</label>
   <div class="price-control">
     <div class="input-group">
-      <button type="button" onclick="decrementGeneric('roomsInput', 1, 1)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-roomsInput" class="decrement-generic">
+  ${SVG_Minus}
+</button>
       <input type="number" id="roomsInput" min="1" max="50" placeholder="${isEnglish ? 'Number of rooms' : 'Nombre de pièces'}">
-      <button type="button" onclick="incrementGeneric('roomsInput', 1, 50)">
-        ${SVG_Plus}
-      </button>
+     <button type="button" id="increment-roomsInput" class="increment-generic">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -1217,27 +1217,27 @@ input[type="number"] {
   <label class="bold-label">${isEnglish ? "Bedrooms" : "Chambres"}</label>
   <div class="price-control">
     <div class="input-group">
-      <button type="button" onclick="decrementGeneric('bedroomsInput', 1, 1)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-bedRoomsInput" class="decrement-generic">
+  ${SVG_Minus}
+</button>
       <input type="number" id="bedroomsInput" min="0" max="50" placeholder="${isEnglish ? 'Number of bedrooms' : 'Nombre de chambres'}">
-      <button type="button" onclick="incrementGeneric('bedroomsInput', 1, 50)">
-        ${SVG_Plus}
-      </button>
-    </div>
-  </div>
+     <button type="button" id="increment-bedRoomsInput" class="increment-generic">
+  ${SVG_Plus}
+</button>
+    </div> 
+  </div> 
 </div>
 <div class="main-container" id="bathroomsDropdown">
   <label class="bold-label">${isEnglish ? "Bathrooms" : "Salles de bain"}</label>
   <div class="price-control">
     <div class="input-group">
-      <button type="button" onclick="decrementGeneric('bathroomsInput', 1, 1)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-bathroomsInput" class="decrement-generic">
+  ${SVG_Minus}
+</button>
       <input type="number" id="bathroomsInput" min="0" max="50" placeholder="${isEnglish ? 'Number of bathrooms' : 'Nombre de salles de bain'}">
-      <button type="button" onclick="incrementGeneric('bathroomsInput', 1, 50)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-bathroomsInput" class="increment-generic">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -1270,13 +1270,13 @@ input[type="number"] {
   <label class="bold-label">${isEnglish ? "Garage Capacity" : "Capacité du garage"}</label>
   <div class="price-control">
     <div class="input-group">
-      <button type="button" onclick="decrementGeneric('garageCapacityInput', 1, 1)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-garageCapacityInput" class="decrement-generic">
+  ${SVG_Minus}
+</button>
       <input type="number" id="garageCapacityInput" min="1" max="10" placeholder="${isEnglish ? 'Number of cars' : 'Nombre de voitures'}">
-      <button type="button" onclick="incrementGeneric('garageCapacityInput', 1, 10)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-garageCapacityInput" class="increment-generic">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -1300,6 +1300,114 @@ input[type="number"] {
           </button>
         `;
         element.appendChild(formContainer);
+		
+
+// Attach event handlers to increment/decrement buttons
+// Define form-scoped increment/decrement functions
+function decrementPriceValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+  if (id === "price-max") {
+    const priceMin = parseInt(formContainer.querySelector("#price-min").value, 10) || 0;
+    let newValue = currentValue - step;
+    if (newValue < priceMin) { newValue = priceMin; }
+    input.value = newValue;
+    formContainer.querySelector("#price-min").max = newValue;
+  } else if (id === "price-min") {
+    let newValue = currentValue - step;
+    if (newValue < 0) { newValue = 0; }
+    input.value = newValue;
+    formContainer.querySelector("#price-max").min = newValue;
+  }
+}
+
+function incrementPriceValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
+  let newValue = currentValue + step;
+  if (id === "price-min") {
+    const priceMax = parseInt(formContainer.querySelector("#price-max").value, 10) || 0;
+    if (priceMax && newValue > priceMax) { newValue = priceMax; }
+    input.value = newValue;
+    formContainer.querySelector("#price-max").min = newValue;
+  } else if (id === "price-max") {
+    const minVal = parseInt(input.min, 10) || 0;
+    if (newValue < minVal) { newValue = minVal; }
+    input.value = newValue;
+    formContainer.querySelector("#price-min").max = newValue;
+  }
+}
+
+function decrementGenericValue(id, step, min) {
+  const input = formContainer.querySelector(`#${id}`);
+  let currentValue = parseInt(input.value, 10) || 0;
+  let newValue = currentValue - step;
+  if (newValue < min) { newValue = min; }
+  input.value = newValue;
+}
+
+function incrementGenericValue(id, step, max) {
+  const input = formContainer.querySelector(`#${id}`);
+  let currentValue = parseInt(input.value, 10) || 0;
+  let newValue = currentValue + step;
+  if (newValue > max) { newValue = max; }
+  input.value = newValue;
+}
+
+// Attach event handlers to increment/decrement buttons
+formContainer.querySelector("#decrement-price-min").addEventListener('click', function() {
+  decrementPriceValue('price-min', 1000);
+});
+
+formContainer.querySelector("#increment-price-min").addEventListener('click', function() {
+  incrementPriceValue('price-min', 1000);
+});
+
+formContainer.querySelector("#decrement-price-max").addEventListener('click', function() {
+  decrementPriceValue('price-max', 1000);
+});
+
+formContainer.querySelector("#increment-price-max").addEventListener('click', function() {
+  incrementPriceValue('price-max', 1000);
+});
+
+// Attach handlers for rooms, bedrooms, bathrooms, garage capacity
+formContainer.querySelector("#decrement-roomsInput").addEventListener('click', function() {
+  decrementGenericValue('roomsInput', 1, 1);
+});
+
+formContainer.querySelector("#increment-roomsInput").addEventListener('click', function() {
+  incrementGenericValue('roomsInput', 1, 50);
+});
+
+// Attach handlers for rooms, bedrooms, bathrooms, garage capacity
+formContainer.querySelector("#decrement-bedRoomsInput").addEventListener('click', function() {
+  decrementGenericValue('bedroomsInput', 1, 1);
+});
+
+formContainer.querySelector("#increment-bedRoomsInput").addEventListener('click', function() {
+  incrementGenericValue('bedroomsInput', 1, 50);
+});
+
+// Attach handlers for rooms, bedrooms, bathrooms, garage capacity
+formContainer.querySelector("#decrement-bathroomsInput").addEventListener('click', function() {
+  decrementGenericValue('bathroomsInput', 1, 1);
+});
+
+formContainer.querySelector("#increment-bathroomsInput").addEventListener('click', function() {
+  incrementGenericValue('bathroomsInput', 1, 50);
+});
+
+// Attach handlers for rooms, bedrooms, bathrooms, garage capacity
+formContainer.querySelector("#decrement-garageCapacityInput").addEventListener('click', function() {
+  decrementGenericValue('garageCapacityInput', 1, 1);
+});
+
+formContainer.querySelector("#increment-garageCapacityInput").addEventListener('click', function() {
+  incrementGenericValue('garageCapacityInput', 1, 50);
+});
+
+// Add similar handlers for bedrooms, bathrooms, garage capacity
         
         /*************************************************************
          * 6) Section Toggle Setup (scoped within formContainer)
@@ -1895,6 +2003,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             cityName: citySelected,
             category: propertyCategorySelected,
             houseType: houseType,
+            rooms: roomsInput ? parseInt(roomsInput.value) || 0 : 0,
             bedrooms: bedroomsInput ? parseInt(bedroomsInput.value) || 0 : 0,
             bathrooms: bathroomsInput ? parseInt(bathroomsInput.value) || 0 : 0,
             priceMin: priceMin ? parseInt(priceMin) : 0,
