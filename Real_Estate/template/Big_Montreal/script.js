@@ -237,177 +237,7 @@ const SharedCities = {
 };
 
 /*************************************************************
- * 7) Custom Input Controls
- *************************************************************/
-
-function incrementValue(id, step) {
-  const input = document.getElementById(id);
-  if (!input) return;
-  let currentValue = parseNumber(input.value);
-  let newValue;
-  
-  // Handle special cases
-  if (id === 'frequency' || id === 'payment-frequency') {
-  const frequencies = ['weekly', 'biweekly', 'monthly'];
-  
-  // Find current index based on data-value
-  let currentIndex = frequencies.indexOf(input.dataset.value);
-  if (currentIndex === -1) currentIndex = 0;
-  
-  // Go to next (or loop back to first)
-  let nextIndex = (currentIndex + 1) % frequencies.length;
-  let nextFreq = frequencies[nextIndex];
-  
-  // Update display and store value in data attribute
-  input.value = input.dataset[nextFreq]; // Get text from data attribute
-  input.dataset.value = nextFreq;
-  input.dispatchEvent(new Event('input'));
-  return;
-}
-  else if (id === 'mortgage-term' || id === 'amortization') {
-    // For terms, use the predefined allowed values
-    const allowed = [5, 10, 15, 20, 25, 30];
-    const currentNum = parseNumber(input.value);
-    let idx = allowed.indexOf(currentNum);
-    if (idx === -1) { idx = allowed.indexOf(25); }
-    if (idx < allowed.length - 1) {
-      newValue = allowed[idx + 1];
-    } else {
-      newValue = allowed[idx];
-    }
-    // Get the appropriate suffix based on the current language
-    const suffix = input.value.replace(/[0-9\s]+/g, '');
-    input.value = newValue + " " + suffix;
-    input.dispatchEvent(new Event('input'));
-    return;
-  } else if (id === 'interest-rate') {
-    newValue = (currentValue + step).toFixed(2);
-  } else if (id.includes('payment') || id === 'annual-income') {
-    newValue = currentValue === 0 ? 1000 : Math.round((currentValue + step) / step) * step;
-  } else {
-    newValue = currentValue + step;
-  }
-  
-  // Format the value appropriately
-  if (id === 'interest-rate') {
-    input.value = newValue;
-  } else {
-    input.value = formatNumber(newValue);
-  }
-  
-  input.dispatchEvent(new Event('input'));
-}
-
-function decrementValue(id, step) {
-  const input = document.getElementById(id);
-  if (!input) return;
-  let currentValue = parseNumber(input.value);
-  let newValue;
-  
-  // Handle special cases
-  if (id === 'frequency' || id === 'payment-frequency') {
-  const frequencies = ['weekly', 'biweekly', 'monthly'];
-  
-  // Find current index based on data-value
-  let currentIndex = frequencies.indexOf(input.dataset.value);
-  if (currentIndex === -1) currentIndex = 0;
-  
-  // Go to previous (or loop back to last)
-  let prevIndex = (currentIndex - 1 + frequencies.length) % frequencies.length;
-  let prevFreq = frequencies[prevIndex];
-  
-  // Update display and store value in data attribute
-  input.value = input.dataset[prevFreq]; // Get text from data attribute
-  input.dataset.value = prevFreq;
-  input.dispatchEvent(new Event('input'));
-  return;
-}
-  else if (id === 'mortgage-term' || id === 'amortization') {
-    // For terms, use the predefined allowed values
-    const allowed = [5, 10, 15, 20, 25, 30];
-    const currentNum = parseNumber(input.value);
-    let idx = allowed.indexOf(currentNum);
-    if (idx === -1) { idx = allowed.indexOf(25); }
-    if (idx > 0) {
-      newValue = allowed[idx - 1];
-    } else {
-      newValue = allowed[idx];
-    }
-    // Get the appropriate suffix based on the current language
-    const suffix = input.value.replace(/[0-9\s]+/g, '');
-     input.value = newValue + " " + suffix;
-    input.dispatchEvent(new Event('input'));
-    return;
-  } else if (id === 'interest-rate') {
-    newValue = Math.max(0, (currentValue - step).toFixed(2));
-  } else {
-    newValue = Math.max(0, currentValue - step);
-  }
-  
-  // Format the value appropriately
-  if (id === 'interest-rate') {
-    input.value = newValue;
-  } else {
-    input.value = formatNumber(newValue);
-  }
-  
-  input.dispatchEvent(new Event('input'));
-}
-    
-    
-
-
-function incrementPrice(id, step) {
-      const input = document.getElementById(id);
-      let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-      let newValue = currentValue + step;
-      if (id === "price-min") {
-        const priceMax = parseInt(document.getElementById("price-max").value, 10) || 0;
-        if (priceMax && newValue > priceMax) { newValue = priceMax; }
-        input.value = newValue;
-        document.getElementById("price-max").min = newValue;
-      } else if (id === "price-max") {
-        const minVal = parseInt(input.min, 10) || 0;
-        if (newValue < minVal) { newValue = minVal; }
-        input.value = newValue;
-        document.getElementById("price-min").max = newValue;
-      }
-    }
-    function decrementPrice(id, step) {
-      const input = document.getElementById(id);
-      let currentValue = input.value === "" ? 0 : parseInt(input.value, 10);
-      if (id === "price-max") {
-        const priceMin = parseInt(document.getElementById("price-min").value, 10) || 0;
-        let newValue = currentValue - step;
-        if (newValue < priceMin) { newValue = priceMin; }
-        input.value = newValue;
-        document.getElementById("price-min").max = newValue;
-      } else if (id === "price-min") {
-        let newValue = currentValue - step;
-        if (newValue < 0) { newValue = 0; }
-        input.value = newValue;
-        document.getElementById("price-max").min = newValue;
-      }
-    }
-    
-    function incrementGeneric(id, step, max) {
-  const input = document.getElementById(id);
-  let currentValue = parseInt(input.value, 10) || 0;
-  let newValue = currentValue + step;
-  if (newValue > max) { newValue = max; }
-  input.value = newValue;
-}
-function decrementGeneric(id, step, min) {
-  const input = document.getElementById(id);
-  let currentValue = parseInt(input.value, 10) || 0;
-  let newValue = currentValue - step;
-  if (newValue < min) { newValue = min; }
-  input.value = newValue;
-}
-
-
-/*************************************************************
- * 8) Airtable Formula Generation
+ * 7) Airtable Formula Generation
  *************************************************************/
 
 // Single definition merging both occurrences
@@ -487,7 +317,7 @@ function generateAirtableFormula(input) {
 
 
 /*************************************************************
- * 9) Define the svg Icone
+ * 8) Define the svg Icone
  *************************************************************/
 
      
@@ -583,7 +413,7 @@ const SVG_Minus =  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400
 
 
 /*************************************************************
- * 10) Define the Extensions
+ * 9) Define the Extensions
  *************************************************************/
 
 /************** EXTENSION #1: SearchPropertyFormExtension **************/
@@ -2716,16 +2546,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().propertyValue}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-property-cost" onclick="decrementValue('property-cost', 500)">
-        ${SVG_Minus}
-      </button>
-      <span class="currency-symbol">$</span>
+      <button type="button" id="decrement-property-cost">
+  ${SVG_Minus}
+</button>
       <input type="text" id="property-cost" class="currency-input" required
              placeholder="Enter property value"
              value="${formatNumber(propertyCost)}">
-      <button type="button" id="increment-property-cost" onclick="incrementValue('property-cost', 500)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-property-cost">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
   <div class="form-column">
@@ -2733,16 +2562,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().downPayment}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-down-payment" onclick="decrementValue('down-payment', 250)">
-        ${SVG_Minus}
-      </button>
-      <span class="currency-symbol">$</span>
+     <button type="button" id="decrement-down-payment">
+  ${SVG_Minus}
+</button>
       <input type="text" id="down-payment" class="currency-input" required
              placeholder="Enter down payment"
              value="${formatNumber(propertyCost * 0.05)}">
-      <button type="button" id="increment-down-payment" onclick="incrementValue('down-payment', 250)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-down-payment">
+  ${SVG_Plus}
+</button>
     </div>
     <div id="error-message" style="display: none;"></div>
   </div>
@@ -2754,15 +2582,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().interestRate}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-interest-rate" onclick="decrementValue('interest-rate', 0.05)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-interest-rate">
+  ${SVG_Minus}
+</button>
       <input type="number" id="interest-rate" class="currency-input" required
              placeholder="Enter interest rate"
-             min="1" max="100" step="0.05" value="5.9">
-      <button type="button" id="increment-interest-rate" onclick="incrementValue('interest-rate', 0.05)">
-        ${SVG_Plus}
-      </button>
+             min="1" max="100" step="0.05" value="7.9">
+     <button type="button" id="increment-interest-rate">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
   <div class="form-column">
@@ -2770,13 +2598,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().amortizationPeriod}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-amortization" onclick="decrementValue('amortization', 1)">
-        ${SVG_Minus}
-      </button>
-      <input type="text" id="amortization" class="currency-input" value="25 ${text().years}">
-      <button type="button" id="increment-amortization" onclick="incrementValue('amortization', 1)">
-        ${SVG_Plus}
-      </button>
+     <button type="button" id="decrement-amortization">
+  ${SVG_Minus}
+</button>
+      <input type="text" id="amortization" class="currency-input" value="25 ${text().years}" readonly>
+      <button type="button" id="increment-amortization">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -2788,18 +2616,19 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
     ${text().paymentFrequency}
   </label>
   <div class="input-group">
-    <button type="button" id="decrement-frequency" onclick="decrementValue('frequency')">
-      ${SVG_Minus}
-    </button>
-    <input type="text" id="frequency" class="currency-input" value="${text().biweekly}" 
-       data-value="biweekly" 
-       data-weekly="${text().weekly}"
-       data-biweekly="${text().biweekly}"
-       data-monthly="${text().monthly}"
-       readonly>
-    <button type="button" id="increment-frequency" onclick="incrementValue('frequency')">
-      ${SVG_Plus}
-    </button>
+    <button type="button" id="decrement-frequency">
+  ${SVG_Minus}
+</button>
+    <input type="text" id="frequency" class="currency-input" value="${text().weekly}" 
+       data-value="weekly" 
+       
+   data-weekly="${text().weekly}"
+   data-biweekly="${text().biweekly}"
+   data-monthly="${text().monthly}"
+       readonly> 
+    <button type="button" id="increment-frequency">
+  ${SVG_Plus}
+</button>
   </div>
 </div>
   <div class="form-column">
@@ -2807,7 +2636,6 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().loanAmount}
     </label>
     <div class="input-group">
-      <span class="currency-symbol">$</span>
       <input type="text" id="loan-amount" class="currency-input" readonly>
     </div>
   </div>
@@ -2830,7 +2658,138 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
     
         /********** Numeric Up/Down Controls **********/
         // This function is called by the increment buttons
+// Add these functions and event listeners after element.appendChild(formContainer);
 
+// Form-scoped increment/decrement functions
+function decrementFormValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  if (!input) return;
+  
+  let currentValue;
+  
+  // Special handling for different input types
+  if (id === 'interest-rate') {
+    currentValue = parseFloat(input.value) || 0;
+    let newValue = Math.max(0, currentValue - step);
+    input.value = newValue.toFixed(2);
+  } else if (id === 'frequency') {
+    const freqs = ['weekly','biweekly','monthly'];
+  const idx   = freqs.indexOf(input.dataset.value);
+  if (idx > 0) {
+    const prev = freqs[idx - 1];
+    input.dataset.value = prev;
+    input.value          = input.dataset[prev];
+    input.dispatchEvent(new Event('input'));
+  }
+  } else if (id === 'amortization') {
+    const allowedYears = [5, 10, 15, 20, 25, 30];
+    // Extract just the numeric part
+    const currentYear = parseInt(input.value) || 25;
+    let idx = allowedYears.indexOf(currentYear);
+    
+    // Decrement: move to previous index or stay at min
+    idx = (idx <= 0) ? 0 : idx - 1;
+    
+    // Keep the years text from the original value
+    const yearsText = input.value.replace(/[0-9\s]+/g, '').trim();
+    input.value = allowedYears[idx] + " " + yearsText;
+  } else {
+    // Standard number inputs (property cost, down payment)
+    currentValue = parseNumber(input.value) || 0;
+    let newValue = Math.max(0, currentValue - step);
+    input.value = formatNumber(newValue);
+  }
+  
+  // Trigger calculation update
+  input.dispatchEvent(new Event('input'));
+}
+
+function incrementFormValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  if (!input) return;
+  
+  let currentValue;
+  
+  // Special handling for different input types
+  if (id === 'interest-rate') {
+    currentValue = parseFloat(input.value) || 0;
+    let newValue = currentValue + step;
+    input.value = newValue.toFixed(2);
+  } else if (id === 'frequency') {
+    const freqs = ['weekly','biweekly','monthly'];
+  const idx   = freqs.indexOf(input.dataset.value);
+  if (idx < freqs.length - 1) {
+    const next = freqs[idx + 1];
+    input.dataset.value = next;
+    input.value          = input.dataset[next];
+    input.dispatchEvent(new Event('input'));
+  }
+  } else if (id === 'amortization') {
+    const allowedYears = [5, 10, 15, 20, 25, 30];
+    // Extract just the numeric part
+    const currentYear = parseInt(input.value) || 25;
+    let idx = allowedYears.indexOf(currentYear);
+    
+    // Increment: move to next index or stay at max
+    idx = (idx >= allowedYears.length - 1) ? allowedYears.length - 1 : idx + 1;
+    
+    // Keep the years text from the original value
+    const yearsText = input.value.replace(/[0-9\s]+/g, '').trim();
+    input.value = allowedYears[idx] + " " + yearsText;
+  } else {
+    // Standard number inputs
+    currentValue = parseNumber(input.value) || 0;
+    let newValue = currentValue + step;
+    input.value = formatNumber(newValue);
+  }
+  
+  // Trigger calculation update
+  input.dispatchEvent(new Event('input'));
+}
+
+// Attach event handlers to all buttons
+// In MortgageCalculatorExtension, replace the event handlers with:
+
+// Attach event handlers to all buttons
+formContainer.querySelector('#decrement-property-cost').addEventListener('click', function() {
+  decrementFormValue('property-cost', 500);
+});
+
+formContainer.querySelector('#increment-property-cost').addEventListener('click', function() {
+  incrementFormValue('property-cost', 500);
+});
+
+formContainer.querySelector('#decrement-down-payment').addEventListener('click', function() {
+  decrementFormValue('down-payment', 250);
+});
+
+formContainer.querySelector('#increment-down-payment').addEventListener('click', function() {
+  incrementFormValue('down-payment', 250);
+});
+
+formContainer.querySelector('#decrement-interest-rate').addEventListener('click', function() {
+  decrementFormValue('interest-rate', 0.05);
+});
+
+formContainer.querySelector('#increment-interest-rate').addEventListener('click', function() {
+  incrementFormValue('interest-rate', 0.05);
+});
+
+formContainer.querySelector('#decrement-amortization').addEventListener('click', function() {
+  decrementFormValue('amortization', 1);
+});
+
+formContainer.querySelector('#increment-amortization').addEventListener('click', function() {
+  incrementFormValue('amortization', 1);
+});
+
+formContainer.querySelector('#decrement-frequency').addEventListener('click', function() {
+  decrementFormValue('frequency', 1);
+});
+
+formContainer.querySelector('#increment-frequency').addEventListener('click', function() {
+  incrementFormValue('frequency', 1);
+});
     
         /********** Dropdown Setup **********/
         function setupDropdownSingleModal(dropdownId, listId, hiddenInputId, defaultText) {
@@ -2970,7 +2929,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
           );
     
           loanAmountInput.value = formatNumber(result.loanAmount);
-          paymentResult.textContent = `$${formatNumber(Math.round(result.payment))} ${result.suffix || ''}`;
+          paymentResult.textContent = `${formatNumber(Math.round(result.payment))} ${result.suffix || ''}`;
         }
     
 
@@ -2979,7 +2938,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
         updateCalculation();
       }
     };
-       
+           
 /************** EXTENSION #5: BorrowingCalculatorExtension **************/
     const BorrowingCalculatorExtension = {
       name: 'BorrowingCalculator',
@@ -3382,16 +3341,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().annualIncome}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-annual-income" onclick="decrementValue('annual-income', 1000)">
-        ${SVG_Minus}
-      </button>
-      <span class="currency-symbol">$</span>
+     <button type="button" id="decrement-annual-income">
+  ${SVG_Minus}
+</button>
       <input type="text" id="annual-income" class="currency-input" required
              placeholder="Enter your annual income"
              value="${formatNumber(75000)}">
-      <button type="button" id="increment-annual-income" onclick="incrementValue('annual-income', 1000)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-annual-income">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
   <div class="form-column">
@@ -3399,16 +3357,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().monthlyExpenses}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-monthly-expenses" onclick="decrementValue('monthly-expenses', 250)">
-        ${SVG_Minus}
-      </button>
-      <span class="currency-symbol">$</span>
+     <button type="button" id="decrement-monthly-expenses">
+  ${SVG_Minus}
+</button>
       <input type="text" id="monthly-expenses" class="currency-input" required
              placeholder="Enter monthly expenses"
              value="${formatNumber(3000)}">
-      <button type="button" id="increment-monthly-expenses" onclick="incrementValue('monthly-expenses', 250)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-monthly-expenses">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -3419,16 +3376,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().downPayment}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-down-payment" onclick="decrementValue('down-payment', 1000)">
-        ${SVG_Minus}
-      </button>
-      <span class="currency-symbol">$</span>
+      <button type="button" id="decrement-down-payment">
+  ${SVG_Minus}
+</button>
       <input type="text" id="down-payment" class="currency-input" required
              placeholder="Enter down payment"
              value="${formatNumber(25000)}">
-      <button type="button" id="increment-down-payment" onclick="incrementValue('down-payment', 1000)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-down-payment">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
   <div class="form-column">
@@ -3436,15 +3392,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().interestRate}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-interest-rate" onclick="decrementValue('interest-rate', 0.05)">
-        ${SVG_Minus}
-      </button>
+      <button type="button" id="decrement-interest-rate">
+  ${SVG_Minus}
+</button>
       <input type="number" id="interest-rate" class="currency-input" required
              placeholder="Enter interest rate"
              min="1" max="100" step="0.05" value="5.9">
-      <button type="button" id="increment-interest-rate" onclick="incrementValue('interest-rate', 0.05)">
-        ${SVG_Plus}
-      </button>
+      <button type="button" id="increment-interest-rate">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
 </div>
@@ -3456,13 +3412,17 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
       ${text().mortgageTerm}
     </label>
     <div class="input-group">
-      <button type="button" id="decrement-mortgage-term" onclick="decrementValue('mortgage-term', 1)">
-        ${SVG_Minus}
-      </button>
-      <input type="text" id="mortgage-term" class="currency-input" value="25 ${text().years}">
-      <button type="button" id="increment-mortgage-term" onclick="incrementValue('mortgage-term', 1)">
-        ${SVG_Plus}
-      </button>
+     <button type="button" id="decrement-mortgage-term">
+  ${SVG_Minus}
+</button>
+      <input type="text" id="mortgage-term" class="currency-input" value="25 years" readonly>
+
+      
+     
+      
+     <button type="button" id="increment-mortgage-term">
+  ${SVG_Plus}
+</button>
     </div>
   </div>
   <div class="form-column">
@@ -3470,18 +3430,18 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
     ${text().paymentFrequency}
   </label>
   <div class="input-group">
-    <button type="button" id="decrement-payment-frequency" onclick="decrementValue('payment-frequency')">
-      ${SVG_Minus}
-    </button>
+    <button type="button" id="decrement-payment-frequency">
+  ${SVG_Minus}
+</button>
     <input type="text" id="payment-frequency" class="currency-input" value="${text().weekly}" 
    data-value="weekly" 
    data-weekly="${text().weekly}"
    data-biweekly="${text().biweekly}"
    data-monthly="${text().monthly}"
    readonly>
-    <button type="button" id="increment-payment-frequency" onclick="incrementValue('payment-frequency')">
-      ${SVG_Plus}
-    </button>
+    <button type="button" id="increment-payment-frequency">
+  ${SVG_Plus}
+</button>
   </div>
 </div>
 </div>
@@ -3511,7 +3471,148 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
         /********** Numeric Up/Down Controls **********/
         // This function is called by the increment buttons
 
+// Add these functions and event listeners after element.appendChild(formContainer);
 
+// Form-scoped increment/decrement functions
+function decrementFormValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  if (!input) return;
+  
+  let currentValue;
+  
+  // Special handling for different input types
+  if (id === 'interest-rate') {
+ currentValue = parseFloat(input.value) || 0;
+    let newValue = Math.max(0, currentValue - step);
+    input.value = newValue.toFixed(2);
+}
+ else if (id === 'payment-frequency') {
+  const freqs = ['weekly','biweekly','monthly'];
+  const idx   = freqs.indexOf(input.dataset.value);
+  if (idx > 0) {
+    const prev = freqs[idx - 1]; 
+    input.dataset.value = prev;
+    input.value          = input.dataset[prev];
+    input.dispatchEvent(new Event('input'));
+  }
+}
+ else if (id === 'mortgage-term') {
+    const allowedYears = [5, 10, 15, 20, 25, 30];
+    // Extract just the numeric part
+    const currentYear = parseInt(input.value) || 25;
+    let idx = allowedYears.indexOf(currentYear);
+    
+    // Decrement: move to previous index or stay at min
+    idx = (idx <= 0) ? 0 : idx - 1;
+    
+    // Keep the years text from the original value
+    const yearsText = input.value.replace(/[0-9\s]+/g, '').trim();
+    input.value = allowedYears[idx] + " " + yearsText;
+  } else {
+    // Standard number inputs (property cost, down payment)
+    currentValue = parseNumber(input.value) || 0;
+    let newValue = Math.max(0, currentValue - step);
+    input.value = formatNumber(newValue);
+  }
+  
+  // Trigger calculation update
+  input.dispatchEvent(new Event('input'));
+}
+
+function incrementFormValue(id, step) {
+  const input = formContainer.querySelector(`#${id}`);
+  if (!input) return;
+  
+  let currentValue;
+  
+  // Special handling for different input types
+  if (id === 'interest-rate') {
+  currentValue = parseFloat(input.value) || 0;
+    let newValue = currentValue + step;
+    input.value = newValue.toFixed(2);
+}
+
+  else if (id === 'payment-frequency') {
+  const freqs = ['weekly','biweekly','monthly'];
+  const idx   = freqs.indexOf(input.dataset.value);
+  if (idx < freqs.length - 1) {
+    const next = freqs[idx + 1];
+    input.dataset.value = next;
+    input.value          = input.dataset[next];
+    input.dispatchEvent(new Event('input'));
+  }
+}
+else if (id === 'mortgage-term') {
+    const allowedYears = [5, 10, 15, 20, 25, 30];
+    // Extract just the numeric part
+    const currentYear = parseInt(input.value) || 25;
+    let idx = allowedYears.indexOf(currentYear);
+    
+    // Increment: move to next index or stay at max
+    idx = (idx >= allowedYears.length - 1) ? allowedYears.length - 1 : idx + 1;
+    
+    // Keep the years text from the original value
+    const yearsText = input.value.replace(/[0-9\s]+/g, '').trim();
+    input.value = allowedYears[idx] + " " + yearsText;
+  } else {
+    // Standard number inputs
+    currentValue = parseNumber(input.value) || 0;
+    let newValue = currentValue + step;
+    input.value = formatNumber(newValue);
+  }
+  
+  // Trigger calculation update
+  input.dispatchEvent(new Event('input'));
+}
+
+// Attach event handlers to all buttons
+formContainer.querySelector('#decrement-annual-income').addEventListener('click', function() {
+  decrementFormValue('annual-income', 1000);
+});
+
+formContainer.querySelector('#increment-annual-income').addEventListener('click', function() {
+  incrementFormValue('annual-income', 1000);
+});
+
+formContainer.querySelector('#decrement-monthly-expenses').addEventListener('click', function() {
+  decrementFormValue('monthly-expenses', 250);
+});
+
+formContainer.querySelector('#increment-monthly-expenses').addEventListener('click', function() {
+  incrementFormValue('monthly-expenses', 250);
+});
+
+formContainer.querySelector('#decrement-down-payment').addEventListener('click', function() {
+  decrementFormValue('down-payment', 1000);
+});
+
+formContainer.querySelector('#increment-down-payment').addEventListener('click', function() {
+  incrementFormValue('down-payment', 1000);
+});
+
+formContainer.querySelector('#decrement-interest-rate').addEventListener('click', function() {
+  decrementFormValue('interest-rate', 0.05);
+});
+
+formContainer.querySelector('#increment-interest-rate').addEventListener('click', function() {
+  incrementFormValue('interest-rate', 0.05);
+});
+
+formContainer.querySelector('#decrement-mortgage-term').addEventListener('click', function() {
+  decrementFormValue('mortgage-term', 1);
+});
+
+formContainer.querySelector('#increment-mortgage-term').addEventListener('click', function() {
+  incrementFormValue('mortgage-term', 1);
+});
+
+formContainer.querySelector('#decrement-payment-frequency').addEventListener('click', function() {
+  decrementFormValue('payment-frequency', 1);
+});
+
+formContainer.querySelector('#increment-payment-frequency').addEventListener('click', function() {
+  incrementFormValue('payment-frequency', 1);
+});
         /********** Dropdown Setup **********/
         function setupDropdownSingleModal(dropdownId, listId, hiddenInputId, defaultText) {
           const container = formContainer.querySelector("#" + dropdownId);
