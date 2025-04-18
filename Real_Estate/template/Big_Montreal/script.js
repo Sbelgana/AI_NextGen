@@ -9824,4 +9824,4 @@ window.BookingFormExtension = BookingFormExtension;
 window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
-window.CancellationCalendarExtension = CancelationExtension;
+window.CancellationCalendarExtension = CancellationCalendarExtension;
