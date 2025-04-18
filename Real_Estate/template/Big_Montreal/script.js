@@ -6240,7 +6240,7 @@ const navHTML = `
         selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --';
         customOptionsAgent.innerHTML = "";
         
-        agents.forEach(agent => {
+        Agents.forEach(agent => {
           const optionEl = document.createElement('div');
           optionEl.className = 'custom-option';
           optionEl.dataset.value = agent;
