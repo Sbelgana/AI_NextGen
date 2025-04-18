@@ -5893,7 +5893,7 @@ const navHTML = `
     const BookingFormExtension = {
       name: "BookingForm",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_booking_form_form` || trace.payload?.name === `ext_booking_form`,
+      match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
