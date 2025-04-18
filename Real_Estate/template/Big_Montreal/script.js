@@ -1154,11 +1154,11 @@ input[type="number"] {
           <label for="price-min" class="bold-label">${isEnglish ? "Minimum Budget" : "Budget minimum"}</label>
           <div class="price-control">
             <div class="input-group">
-              <button type="button" id="decrement-price-min" onclick="decrementPrice('price-min', 1000)">
+              <button type="button" id="decrement-price-min" onclick="decrementValue('price-min', 1000)">
                 ${SVG_Minus}
               </button>
               <input type="number" id="price-min" name="price-min" placeholder="${isEnglish ? 'Enter minimum budget' : 'Entrez le budget minimum'}">
-              <button type="button" id="increment-price-min" onclick="incrementPrice('price-min', 1000)">
+              <button type="button" id="increment-price-min" onclick="incrementValue('price-min', 1000)">
                 ${SVG_Plus}
               </button>
             </div>
@@ -1168,11 +1168,11 @@ input[type="number"] {
           <label for="price-max" class="bold-label">${isEnglish ? "Maximum Budget" : "Budget maximum"}</label>
           <div class="price-control">
             <div class="input-group">
-              <button type="button" id="decrement-price-max" onclick="decrementPrice('price-max', 1000)">
+              <button type="button" id="decrement-price-max" onclick="decrementValue('price-max', 1000)">
                 ${SVG_Minus}
               </button>
               <input type="number" id="price-max" name="price-max" placeholder="${isEnglish ? 'Enter maximum budget' : 'Entrez le budget maximum'}">
-              <button type="button" id="increment-price-max" onclick="incrementPrice('price-max', 1000)">
+              <button type="button" id="increment-price-max" onclick="incrementValue('price-max', 1000)">
                 ${SVG_Plus}
               </button>
             </div>
@@ -1868,87 +1868,81 @@ buildFlatMultiSelectDropdown(
          *************************************************************/
 // Replace the submit button handler with this improved version
 formContainer.querySelector("#submit-button").addEventListener("click", function() {
-  // Get form values
-  const citySelected = Array.from(formContainer.querySelector("#citySubSelect").options)
-                          .filter(opt => opt.selected && opt.value !== "")
-                          .map(opt => opt.text);
-  const propertyCategorySelected = Array.from(formContainer.querySelector("#propertyCategorySubSelect").options)
-                              .filter(opt => opt.selected && opt.value !== "")
-                              .map(opt => opt.text);
-  const houseType = Array.from(formContainer.querySelector("#houseTypeSubSelect").options)
-    .filter(opt => opt.selected && opt.value !== "")
-    .map(opt => opt.text);
-  
-  const roomsInput = formContainer.querySelector("#roomsInput");
-  const bedroomsInput = formContainer.querySelector("#bedroomsInput");
-  const bathroomsInput = formContainer.querySelector("#bathroomsInput");
-  
-  const priceMin = formContainer.querySelector("#price-min").value;
-  const priceMax = formContainer.querySelector("#price-max").value;
-  
-  const garage = formContainer.querySelector("#garage").checked;
-  const garageCapacity = formContainer.querySelector("#garageCapacityInput").value;
-  const swimmingPool = formContainer.querySelector("#swimming-pool").checked;
-  
-  // Format data for the formula generator
-  const formulaInput = {
-    cityName: citySelected,
-    category: propertyCategorySelected,
-    houseType: houseType,
-    bedrooms: bedroomsInput ? parseInt(bedroomsInput.value) || 0 : 0,
-    bathrooms: bathroomsInput ? parseInt(bathroomsInput.value) || 0 : 0,
-    priceMin: priceMin ? parseInt(priceMin) : 0,
-    priceMax: priceMax ? parseInt(priceMax) : 0,
-    parkingIndoor: garage ? "Yes" : "No",
-    car: garage ? (parseInt(garageCapacity) || 0) : 0,
-    swimmingPool: swimmingPool ? "Yes" : "No"
-  };
-  
-  // Generate the Airtable formula
-  const airtableFormula = generateAirtableFormula(formulaInput);
-  
-  // Log to console for debugging
-  console.log("Property search form submitted!");
-  console.log("Form input:", formulaInput);
-  console.log("Generated Airtable Formula:", airtableFormula);
-  
-  
-  
-  
-  // Disable further form interactions
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Search Submitted!" : "Recherche soumise!";
-  submitButton.style.backgroundColor = "#4CAF50";
-  submitButton.style.color = "white";
-  
-  // Collapse all expanded sections before disabling form elements
-  const allCollapsibleSections = formContainer.querySelectorAll(".collapsible-section.expanded");
-  allCollapsibleSections.forEach(section => {
-    section.classList.remove("expanded");
-    const sectionCard = section.previousElementSibling;
-    if (sectionCard) {
-      sectionCard.classList.remove("active");
-      const collapseIcon = sectionCard.querySelector(".collapse-icon");
-      if (collapseIcon) collapseIcon.classList.remove("active");
-    }
-  });
-  
-  // Disable all form elements
-  disableAllFormElements(formContainer);
-});
-
-// For testing purposes (when running locally), add this mock of the Voiceflow object
-// You should remove this in production as the real Voiceflow object will be provided
-
-  window.voiceflow.chat.interact({
-        type: "complete",
-        payload: { formula: airtableFormula },
-      });
-
+          // Get form values
+          const citySelected = Array.from(formContainer.querySelector("#citySubSelect").options)
+                                  .filter(opt => opt.selected && opt.value !== "")
+                                  .map(opt => opt.text);
+          const propertyCategorySelected = Array.from(formContainer.querySelector("#propertyCategorySubSelect").options)
+                                      .filter(opt => opt.selected && opt.value !== "")
+                                      .map(opt => opt.text);
+          const houseType = Array.from(formContainer.querySelector("#houseTypeSubSelect").options)
+            .filter(opt => opt.selected && opt.value !== "")
+            .map(opt => opt.text);
+          
+          const roomsInput = formContainer.querySelector("#roomsInput");
+          const bedroomsInput = formContainer.querySelector("#bedroomsInput");
+          const bathroomsInput = formContainer.querySelector("#bathroomsInput");
+          
+          const priceMin = formContainer.querySelector("#price-min").value;
+          const priceMax = formContainer.querySelector("#price-max").value;
+          
+          const garage = formContainer.querySelector("#garage").checked;
+          const garageCapacity = formContainer.querySelector("#garageCapacityInput").value;
+          const swimmingPool = formContainer.querySelector("#swimming-pool").checked;
+          
+          // Format data for the formula generator
+          const formulaInput = {
+            cityName: citySelected,
+            category: propertyCategorySelected,
+            houseType: houseType,
+            bedrooms: bedroomsInput ? parseInt(bedroomsInput.value) || 0 : 0,
+            bathrooms: bathroomsInput ? parseInt(bathroomsInput.value) || 0 : 0,
+            priceMin: priceMin ? parseInt(priceMin) : 0,
+            priceMax: priceMax ? parseInt(priceMax) : 0,
+            parkingIndoor: garage ? "Yes" : "No",
+            car: garage ? (parseInt(garageCapacity) || 0) : 0,
+            swimmingPool: swimmingPool ? "Yes" : "No"
+          };
+          
+          // Generate the Airtable formula
+          const airtableFormula = generateAirtableFormula(formulaInput);
+          
+          // Log to console for debugging
+          console.log("Property search form submitted!");
+          console.log("Form input:", formulaInput);
+          console.log("Generated Airtable Formula:", airtableFormula);
+          
+          // Disable further form interactions
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Search Submitted!" : "Recherche soumise!";
+          submitButton.style.backgroundColor = "#4CAF50";
+          submitButton.style.color = "white";
+          
+          // Collapse all expanded sections before disabling form elements
+          const allCollapsibleSections = formContainer.querySelectorAll(".collapsible-section.expanded");
+          allCollapsibleSections.forEach(section => {
+            section.classList.remove("expanded");
+            const sectionCard = section.previousElementSibling;
+            if (sectionCard) {
+              sectionCard.classList.remove("active");
+              const collapseIcon = sectionCard.querySelector(".collapse-icon");
+              if (collapseIcon) collapseIcon.classList.remove("active");
+            }
+          });
+          
+          // Disable all form elements
+          disableAllFormElements(formContainer);
+          
+          // Send data to Voiceflow
+          window.voiceflow.chat.interact({
+            type: "complete",
+            payload: { formula: airtableFormula },
+          });
+        });
       }
     };
-    
+   
 /************** EXTENSION #2: ImageExtension **************/
     const ImageExtension = {
       name: 'ImageExtension',
@@ -9824,4 +9818,4 @@ window.BookingFormExtension = BookingFormExtension;
 window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
-window.CancellationCalendarExtension = CancellationCalendarExtension;
+window.CancellationCalendarExtension = CancelationExtension;
