@@ -5154,7 +5154,7 @@ const navHTML = `
               background-color: #fff;
               position: relative;
               min-width: 300px;
-              max-width: 600px;
+              max-width: 800px;
               width: 100%;
               min-height: 50px;
             }
@@ -5320,7 +5320,7 @@ const navHTML = `
             textarea {
               width: 100%;
               min-width: 200px;
-              max-width: 600px;
+              max-width: 800px;
               border: 1px solid rgba(0,0,0,0.2);
               border-radius: 6px;
               padding: 8px;
@@ -5558,37 +5558,37 @@ const navHTML = `
               <div class="collapsible-section" id="section-agent-service">
                 <div class="section-content">
                   <!-- Custom Agent Dropdown -->
-                  <div class="main-container" id="agentDropdown">
+                  <div class="main-container" id="sellerDropdown">
                     <label class="bold-label">${isEnglish ? 'Select a Agent' : 'Sélectionnez un vendeur'}</label>
-                    <select id="agentSelect" name="agentSelect" required style="display:none;"></select>
+                    <select id="sellerSelect" name="sellerSelect" required style="display:none;"></select>
                     <div class="select-wrapper">
-                      <div class="select-display" id="selectDisplayAgent">
+                      <div class="select-display" id="selectDisplaySeller">
                         <span>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</span>
-                        <div class="dropdown-icon" id="dropdownIconAgent">${SVG_CHEVRON}</div>
+                        <div class="dropdown-icon" id="dropdownIconSeller">${SVG_CHEVRON}</div>
                       </div>
-                      <div class="custom-options" id="customOptionsAgent"></div>
+                      <div class="custom-options" id="customOptionsSeller"></div>
                     </div>
                     <div class="error-container">
-                      <div class="error-message" id="errorAgent">
+                      <div class="error-message" id="errorSeller">
                         <div class="error-icon">!</div>
                         <span>${isEnglish ? 'You must select a agent.' : 'Vous devez sélectionner un vendeur.'}</span>
                       </div>
                     </div>
                   </div>
                   <!-- Custom Service Dropdown -->
-                  <div id="agentServiceContainer">
+                  <div id="sellerServiceContainer">
                     <label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
-                    <div class="main-container" id="serviceDropdownAgent">
-                      <select id="agentServiceSelect" name="agentServiceSelect" required style="display:none;"></select>
+                    <div class="main-container" id="serviceDropdownSeller">
+                      <select id="sellerServiceSelect" name="sellerServiceSelect" required style="display:none;"></select>
                       <div class="select-wrapper">
-                        <div class="select-display" id="selectDisplayAgentService">
+                        <div class="select-display" id="selectDisplaySellerService">
                           <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
-                          <div class="dropdown-icon" id="dropdownIconAgentService">${SVG_CHEVRON}</div>
+                          <div class="dropdown-icon" id="dropdownIconSellerService">${SVG_CHEVRON}</div>
                         </div>
-                        <div class="custom-options" id="customOptionsAgentService"></div>
+                        <div class="custom-options" id="customOptionsSellerService"></div>
                       </div>
                       <div class="error-container">
-                        <div class="error-message" id="errorAgentService">
+                        <div class="error-message" id="errorSellerService">
                           <div class="error-icon">!</div>
                           <span>${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
                         </div>
@@ -5742,15 +5742,15 @@ const navHTML = `
          * Initialize Dropdowns for Agent and Service
          *************************************************************/
         // Build agent dropdown data from Agents array.
-        const agentsData = Agents.map(name => ({ id: name, name }));
-        initializeCustomDropdown("agentDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', agentsData);
+        const sellersData = Agents.map(name => ({ id: name, name }));
+        initializeCustomDropdown("sellerDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', sellersData);
     
         // Build service dropdown data from ServiceOptions array.
         const servicesData = ServiceOptions.map(service => ({ 
           id: service.value, 
           name: isEnglish ? service.label.en : service.label.fr 
         }));
-        initializeCustomDropdown("serviceDropdownAgent", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', servicesData);
+        initializeCustomDropdown("serviceDropdownSeller", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', servicesData);
     
         /*************************************************************
          * Live Validation for Input Fields
@@ -5795,8 +5795,8 @@ const navHTML = `
           const email = formContainer.querySelector("#email").value.trim();
           const phone = formContainer.querySelector("#phone").value.trim();
           // Use the agent and service dropdown selections.
-          const selectedAgent = formContainer.querySelector("#agentSelect").value;
-          const selectedService = formContainer.querySelector("#agentServiceSelect").value;
+          const selectedSeller = formContainer.querySelector("#sellerSelect").value;
+          const selectedService = formContainer.querySelector("#sellerServiceSelect").value;
           const details = formContainer.querySelector("#details").value.trim();
     
           if (!fullName) {
@@ -5815,14 +5815,14 @@ const navHTML = `
             return;
           }
     
-          if (!selectedAgent) {
+          if (!selectedSeller) {
             toggleSection("section-agent-service", true);
-            formContainer.querySelector("#errorAgent").style.display = "flex";
+            formContainer.querySelector("#errorSeller").style.display = "flex";
             return;
           }
           if (!selectedService) {
             toggleSection("section-agent-service", true);
-            formContainer.querySelector("#errorAgentService").style.display = "flex";
+            formContainer.querySelector("#errorSellerService").style.display = "flex";
             return;
           }
           if (!details) {
@@ -5846,30 +5846,19 @@ const navHTML = `
           submitButton.style.cursor = "not-allowed";
           submitButton.style.backgroundColor = "#4CAF50";
           submitButton.style.color = "white";
-    
-          if (window.voiceflow && window.voiceflow.chat) {
-            window.voiceflow.chat.interact({
-              type: "complete",
-              payload: {
-                fullName,
+		  
+		  window.voiceflow.chat.interact({ 
+            type: "complete",
+            payload: { 
+			fullName,
                 email,
                 phone: formatPhoneNumber(phone),
-                agent: selectedAgent,
+                agent: selectedSeller,
                 service: selectedService,
                 message: details
-              },
-            });
-            submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
-          } else {
-            console.log("Form data:", {
-              fullName,
-              email,
-              phone: formatPhoneNumber(phone),
-              agent: selectedAgent,
-              service: selectedService
-            });
-            submitButton.textContent = isEnglish ? "Submitted (see console)" : "Soumis (voir console)";
-          }
+			},
+          });
+   
           disableAllFormElements();
         });
       }
