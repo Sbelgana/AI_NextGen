@@ -412,6 +412,10 @@ const SVG_Minus =  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400
     </svg>`;
 
 
+const SVG_AGENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+    </svg>`;
+
 /*************************************************************
  * 9) Define the Extensions
  *************************************************************/
@@ -5546,7 +5550,7 @@ const navHTML = `
             <div class="section">
               <div class="section-card" data-target="section-agent-service">
                 <div class="section-info">
-                  <div class="section-icon">${SVG_SELLER}</div>
+                  <div class="section-icon">${SVG_AGENT}</div>
                   <div class="section-title">${isEnglish ? "Agent & Service" : "Vendeur et Service"}</div>
                 </div>
                 <div class="collapse-icon">${SVG_CHEVRON}</div>
@@ -10028,4 +10032,4 @@ window.BookingFormExtension = BookingFormExtension;
 window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
-window.CancellationCalendarExtension = CancelationExtension;
+window.CancellationCalendarExtension = CancellationCalendarExtension;
