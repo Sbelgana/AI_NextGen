@@ -278,7 +278,7 @@
 }
 
 /* Change SVG color to white on hover */
-._1q15b0b5:hover .f6dof86::before {
+._1q15b0b5:hover .f6dof86::before:hover {
     background-color: white;
 }
 
