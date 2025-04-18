@@ -3864,13 +3864,13 @@ const navHTML = `
 
 /************** EXTENSION #7: SellPropertyFormExtension **************/
     const SellPropertyFormExtension = {
-      name: 'SellPropertyForm',
-      type: 'response',
-      match: ({ trace }) =>
-        trace.type === 'ext_sell_property_form' || trace.payload?.name === 'ext_sell_property_form',
+      name: "ContactForm",
+      type: "response",
+      match: ({ trace }) => trace.type === 'ext_sell_property_form' || trace.payload?.name === 'ext_sell_property_form',
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
+		
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -5117,6 +5117,31 @@ const navHTML = `
             outsideParking,
             swimmingPool,
             details
+          });
+		  
+		  window.voiceflow.chat.interact({ 
+            type: "complete",
+            payload: { 
+			fullName,
+            email,
+            phone: formatPhoneNumber(phone),
+            agent,
+            propertyCategory,
+            houseType,
+            streetAddress,
+            city,
+            postalCode,
+            rooms,
+            bedrooms,
+            bathrooms,
+            yearBuilt,
+            area,
+            garage,
+            numberOfCars: garage ? numberOfCars : null,
+            outsideParking,
+            swimmingPool,
+            details
+			},
           });
           disableAllFormElements(formContainer);
           submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
