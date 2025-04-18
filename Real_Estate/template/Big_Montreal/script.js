@@ -87,7 +87,7 @@ const SharedPropertyTypes = {
 
 const Agents = ["No Preference", "Emma Thompson", "Liam Carter", "Sophia Martinez", "Ethan Brown", "Olivia Davis", "Noah Wilson", "Ava Johnson"];
 
-function getSellerList(includeNoPreference = true) {
+function getAgentList(includeNoPreference = true) {
   let list = [...Agents];
   if (!includeNoPreference) {
     list = list.filter(s => s !== "No Preference");
@@ -95,7 +95,7 @@ function getSellerList(includeNoPreference = true) {
   return list;
 }
 
-function buildSellerListItems(agents, isEnglish) {
+function buildAgentListItems(agents, isEnglish) {
   return agents
     .map((agent) => {
       const displayName = (!isEnglish && agent === "No Preference") ? "Pas de préférence" : agent;
@@ -3656,12 +3656,13 @@ const navHTML = `
 
 /************** EXTENSION #7: SellPropertyFormExtension **************/
     const SellPropertyFormExtension = {
-       type: "response",
-  match: ({ trace }) => trace.type === "ext_sell_property_form" || trace.payload?.name === "ext_sell_property_form",
-  render: ({ trace, element }) => {
-    const { language } = trace.payload;
-    const isEnglish = language === "en";
-        
+      name: 'SellPropertyForm',
+      type: 'response',
+      match: ({ trace }) =>
+        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
+      render: ({ trace, element }) => {
+        const { language } = trace.payload || { language: 'FR' };
+        const isEnglish = language === 'en';
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -4176,18 +4177,18 @@ const navHTML = `
               </div>
               <div class="collapsible-section" id="section-agent-info">
                 <div class="section-content">
-                  <div class="main-container" id="sellerDropdown">
+                  <div class="main-container" id="agentDropdown">
                     <label class="bold-label">${isEnglish ? 'Select a Agent' : 'Sélectionnez un vendeur'}</label>
-                    <select id="sellerSelect" name="sellerSelect" required style="display:none;"></select>
+                    <select id="agentSelect" name="agentSelect" required style="display:none;"></select>
                     <div class="select-wrapper">
-                      <div class="select-display" id="selectDisplaySeller">
+                      <div class="select-display" id="selectDisplayAgent">
                         <span>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</span>
-                        <div class="dropdown-icon" id="dropdownIconSeller">${SVG_CHEVRON}</div>
+                        <div class="dropdown-icon" id="dropdownIconAgent">${SVG_CHEVRON}</div>
                       </div>
-                      <div class="custom-options" id="customOptionsSeller"></div>
+                      <div class="custom-options" id="customOptionsAgent"></div>
                     </div>
                     <div class="error-container">
-                      <div class="error-message" id="errorSeller">
+                      <div class="error-message" id="errorAgent">
                         <div class="error-icon">!</div>
                         <span>${isEnglish ? 'You must select a agent.' : 'Vous devez sélectionner un vendeur.'}</span>
                       </div>
@@ -4600,11 +4601,11 @@ const navHTML = `
          * 8) Initialize Custom Dropdowns for Agent and House Type
          *************************************************************/
         // Agent Dropdown
-        const sellerOptionsData = getSellerList().map(agent => ({
+        const agentOptionsData = getAgentList().map(agent => ({
           id: agent,
           name: agent === "No Preference" ? (isEnglish ? agent : "Pas de préférence") : agent
         }));
-        initializeCustomDropdown("sellerDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', sellerOptionsData, null, formContainer);
+        initializeCustomDropdown("agentDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', agentOptionsData, null, formContainer);
         // House Type Dropdown (single level)
         const houseTypeOptions = (isEnglish ? SharedPropertyTypes.en : SharedPropertyTypes.fr).map(type => ({
           id: type,
@@ -4783,7 +4784,7 @@ const navHTML = `
           const fullName = formContainer.querySelector("#full-name").value.trim();
           const email = formContainer.querySelector("#email").value.trim();
           const phone = formContainer.querySelector("#phone").value.trim();
-          const agent = formContainer.querySelector("#sellerSelect").value;
+          const agent = formContainer.querySelector("#agentSelect").value;
           const propertyCategory = formContainer.querySelector("#propertyCategorySubSelect").value;
           const houseType = formContainer.querySelector("#houseTypeSelect").value;
           const streetAddress = formContainer.querySelector("#street-address").value.trim();
@@ -4818,7 +4819,7 @@ const navHTML = `
           }
           if (!agent) {
             toggleSection(formContainer, "section-agent-info", true);
-            formContainer.querySelector("#errorSeller").style.display = "flex";
+            formContainer.querySelector("#errorAgent").style.display = "flex";
             return;
           }
           if (!propertyCategory) {
@@ -5349,37 +5350,37 @@ const navHTML = `
               <div class="collapsible-section" id="section-agent-service">
                 <div class="section-content">
                   <!-- Custom Agent Dropdown -->
-                  <div class="main-container" id="sellerDropdown">
+                  <div class="main-container" id="agentDropdown">
                     <label class="bold-label">${isEnglish ? 'Select a Agent' : 'Sélectionnez un vendeur'}</label>
-                    <select id="sellerSelect" name="sellerSelect" required style="display:none;"></select>
+                    <select id="agentSelect" name="agentSelect" required style="display:none;"></select>
                     <div class="select-wrapper">
-                      <div class="select-display" id="selectDisplaySeller">
+                      <div class="select-display" id="selectDisplayAgent">
                         <span>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</span>
-                        <div class="dropdown-icon" id="dropdownIconSeller">${SVG_CHEVRON}</div>
+                        <div class="dropdown-icon" id="dropdownIconAgent">${SVG_CHEVRON}</div>
                       </div>
-                      <div class="custom-options" id="customOptionsSeller"></div>
+                      <div class="custom-options" id="customOptionsAgent"></div>
                     </div>
                     <div class="error-container">
-                      <div class="error-message" id="errorSeller">
+                      <div class="error-message" id="errorAgent">
                         <div class="error-icon">!</div>
                         <span>${isEnglish ? 'You must select a agent.' : 'Vous devez sélectionner un vendeur.'}</span>
                       </div>
                     </div>
                   </div>
                   <!-- Custom Service Dropdown -->
-                  <div id="sellerServiceContainer">
+                  <div id="agentServiceContainer">
                     <label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
-                    <div class="main-container" id="serviceDropdownSeller">
-                      <select id="sellerServiceSelect" name="sellerServiceSelect" required style="display:none;"></select>
+                    <div class="main-container" id="serviceDropdownAgent">
+                      <select id="agentServiceSelect" name="agentServiceSelect" required style="display:none;"></select>
                       <div class="select-wrapper">
-                        <div class="select-display" id="selectDisplaySellerService">
+                        <div class="select-display" id="selectDisplayAgentService">
                           <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
-                          <div class="dropdown-icon" id="dropdownIconSellerService">${SVG_CHEVRON}</div>
+                          <div class="dropdown-icon" id="dropdownIconAgentService">${SVG_CHEVRON}</div>
                         </div>
-                        <div class="custom-options" id="customOptionsSellerService"></div>
+                        <div class="custom-options" id="customOptionsAgentService"></div>
                       </div>
                       <div class="error-container">
-                        <div class="error-message" id="errorSellerService">
+                        <div class="error-message" id="errorAgentService">
                           <div class="error-icon">!</div>
                           <span>${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
                         </div>
@@ -5533,15 +5534,15 @@ const navHTML = `
          * Initialize Dropdowns for Agent and Service
          *************************************************************/
         // Build agent dropdown data from Agents array.
-        const sellersData = Agents.map(name => ({ id: name, name }));
-        initializeCustomDropdown("sellerDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', sellersData);
+        const agentsData = Agents.map(name => ({ id: name, name }));
+        initializeCustomDropdown("agentDropdown", isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --', agentsData);
     
         // Build service dropdown data from ServiceOptions array.
         const servicesData = ServiceOptions.map(service => ({ 
           id: service.value, 
           name: isEnglish ? service.label.en : service.label.fr 
         }));
-        initializeCustomDropdown("serviceDropdownSeller", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', servicesData);
+        initializeCustomDropdown("serviceDropdownAgent", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', servicesData);
     
         /*************************************************************
          * Live Validation for Input Fields
@@ -5586,8 +5587,8 @@ const navHTML = `
           const email = formContainer.querySelector("#email").value.trim();
           const phone = formContainer.querySelector("#phone").value.trim();
           // Use the agent and service dropdown selections.
-          const selectedSeller = formContainer.querySelector("#sellerSelect").value;
-          const selectedService = formContainer.querySelector("#sellerServiceSelect").value;
+          const selectedAgent = formContainer.querySelector("#agentSelect").value;
+          const selectedService = formContainer.querySelector("#agentServiceSelect").value;
           const details = formContainer.querySelector("#details").value.trim();
     
           if (!fullName) {
@@ -5606,14 +5607,14 @@ const navHTML = `
             return;
           }
     
-          if (!selectedSeller) {
+          if (!selectedAgent) {
             toggleSection("section-agent-service", true);
-            formContainer.querySelector("#errorSeller").style.display = "flex";
+            formContainer.querySelector("#errorAgent").style.display = "flex";
             return;
           }
           if (!selectedService) {
             toggleSection("section-agent-service", true);
-            formContainer.querySelector("#errorSellerService").style.display = "flex";
+            formContainer.querySelector("#errorAgentService").style.display = "flex";
             return;
           }
           if (!details) {
@@ -5645,7 +5646,7 @@ const navHTML = `
                 fullName,
                 email,
                 phone: formatPhoneNumber(phone),
-                agent: selectedSeller,
+                agent: selectedAgent,
                 service: selectedService,
                 message: details
               },
@@ -5656,7 +5657,7 @@ const navHTML = `
               fullName,
               email,
               phone: formatPhoneNumber(phone),
-              agent: selectedSeller,
+              agent: selectedAgent,
               service: selectedService
             });
             submitButton.textContent = isEnglish ? "Submitted (see console)" : "Soumis (voir console)";
@@ -7686,10 +7687,10 @@ else {
 
 /************** EXTENSION #12: RescheduleCalendarExtension **************/
     const RescheduleCalendarExtension = {
-      fullName: 'RescheduleCalendar',
+      name: 'RescheduleCalendar',
       type: 'response',
       match: ({ trace }) =>
-        trace.type === 'ext_reschedule_calendar' || trace.payload?.fullName === 'ext_reschedule_calendar',
+        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
       render: async ({ trace, element }) => {
         // --- Extract required payload values with fallbacks ---
         const {
@@ -7795,7 +7796,7 @@ else {
   flex-direction: column;
   justify-content: center;
 }
-.service-provider, .service-fullName {
+.service-provider, .service-name {
   display: flex;
   align-items: center; 
   height: 24px;
@@ -8261,7 +8262,7 @@ else {
     font-size: 14px;
   }
   .service-provider,
-  .service-fullName {
+  .service-name {
     font-size: 14px;
   }
   @keyframes mobileShimmer {
@@ -9823,4 +9824,4 @@ window.BookingFormExtension = BookingFormExtension;
 window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
-window.CancellationCalendarExtension = CancellationCalendarExtension;
+window.CancellationCalendarExtension = CancelationExtension;
