@@ -6,7 +6,7 @@ function isValidEmail(email) {
   return emailPattern.test(email);
 }
 
-function isValidCanadianPhoneNumber(phoneNumber) {
+function isValidPhoneNumber(phoneNumber) {
   const phonePattern = /^(\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}$/;
   return phonePattern.test(phoneNumber);
 }
