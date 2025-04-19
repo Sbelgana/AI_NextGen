@@ -6429,23 +6429,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   submitButton.style.backgroundColor = "#4CAF50";
   submitButton.style.color = "white";
   
-   window.voiceflow.chat.interact({ 
+  window.voiceflow.chat.interact({
             type: "complete",
             payload: { 
 			fullName,
     email,
     phone: formatPhoneNumber(phone),
-    agentName: selectedAgent
-			},
+    agentName: selectedAgent },
           });
-  
-  
-  
-  
-  // If Voiceflow integration is needed
- 
-});
-        
+        });
       }
     };
 
@@ -7661,7 +7653,7 @@ function renderHeader() {
       formattedDateTime
                     };
 				  
-				  if (window.voiceflow && window.voiceflow.chat) {
+		
   
   window.voiceflow.chat.interact({
     type: "complete",
@@ -7675,10 +7667,8 @@ function renderHeader() {
       formattedDateTime
     }
   });
-}
-else {
-            console.log("Form submitted:", formData);
-          }
+
+
 		  
                   
                   
@@ -7958,7 +7948,7 @@ else {
           };
           
           // If Voiceflow integration is needed
-          if (window.voiceflow && window.voiceflow.chat) {
+       
             window.voiceflow.chat.interact({
               type: "complete",
               payload: {
@@ -7967,9 +7957,7 @@ else {
             phone: formatPhoneNumber(phone)
           }
             });
-          } else {
-            console.log("Form submitted:", formData);
-          }
+
         });
       }
     };
@@ -9636,15 +9624,14 @@ function renderHeader() {
 
         // Utility functions
         function formatDateRange(startDate, endDate) {
-          if (language === 'fr') {
-            const dateFormatter = new Intl.DateTimeFormat('fr-CA', {
+          const dateFormatter = new Intl.DateTimeFormat(locale, {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
               year: 'numeric',
               timeZone: timezone
             });
-            const timeFormatter = new Intl.DateTimeFormat('fr-CA', {
+            const timeFormatter = new Intl.DateTimeFormat(locale, {
               hour: '2-digit',
               minute: '2-digit',
               hour12: false,
@@ -9654,25 +9641,6 @@ function renderHeader() {
             let startTime = timeFormatter.format(startDate).replace(":", "h");
             let endTime = timeFormatter.format(endDate).replace(":", "h");
             return `${datePart} de ${startTime} à ${endTime}`;
-          } else {
-            const dateFormatter = new Intl.DateTimeFormat('en-US', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-              timeZone: timezone
-            });
-            const timeFormatter = new Intl.DateTimeFormat('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true,
-              timeZone: timezone
-            });
-            const datePart = dateFormatter.format(startDate);
-            const startTime = timeFormatter.format(startDate);
-            const endTime = timeFormatter.format(endDate);
-            return `${datePart} from ${startTime} to ${endTime}`;
-          }
         }
 
         // Translation helper with added "cancelled" key
