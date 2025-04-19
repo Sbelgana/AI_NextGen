@@ -9376,7 +9376,7 @@ function renderHeader() {
         } = trace.payload || {};
 
         // For checking the language and reusing in conditionals
-        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+        const locale = language === "fr" ? "fr-CA" : "en-US";
         const highlightColor = '#9C27B0';
 
         // Create container with shadow DOM
@@ -9628,14 +9628,14 @@ function renderHeader() {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
-              year: 'numeric',
-              timeZone: timezone
+              year: 'numeric'//,
+              //timeZone: timezone
             });
             const timeFormatter = new Intl.DateTimeFormat(locale, {
               hour: '2-digit',
               minute: '2-digit',
-              hour12: false,
-              timeZone: timezone
+              hour12: false//,
+              //timeZone: timezone
             });
             const datePart = dateFormatter.format(startDate);
             let startTime = timeFormatter.format(startDate).replace(":", "h");
