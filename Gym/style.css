@@ -3,56 +3,29 @@
     background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67be5436c2849b37cefb04ee_white-wall-texture-background.jpg);
 } */
 
-/*────────────────────────────────────────────*/
-/* 0) Define your variables                   */
-/*────────────────────────────────────────────*/
-:root {
-  /* Colors */
-  --primary:        #9c27b0;
-  --accent-bg:      #F8EAFA;
-  --accent-border:  var(--primary);
-  --dots-default:   #9C27B0;
-  --dots-hover:     #ffffff;
-  --error:          #FF0B0B;
-  --success:        #008000;
-  --chat-border:    #dde4ea;
-  --chat-text:      #1a1e23;
-  --gray-light:     #f1f2f2;
-  --white:          #ffffff;
-  --black:          #000000;
-
-  /* Sizes */
-  --btn-radius:     8px;
-  --launcher-size:  40px;
-  --dot-size:       24px;
-  --dot-padding:    4px;
-  --btn-height:     40px;
-}
-
-/*────────────────────────────────────────────*/
-/* 1) Chat‑launcher (three‑dots)              */
-/*────────────────────────────────────────────*/
+/*─────────────────────────────*/
+/* 1) Chat‑launcher (three‑dots) */
+/*─────────────────────────────*/
 div.f6dof80 div.f6dof87.f6dof89 > svg,
 div.f6dof80 div.f6dof87.f6dof89 > img {
   display: none !important;
 }
 div.f6dof80 div.f6dof87.f6dof89 {
-  background-color: red !important;         /* static red */
   border-radius: 50% !important;
-  width: var(--launcher-size) !important;
-  height: var(--launcher-size) !important;
+  width: 40px !important;
+  height: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
   overflow: hidden !important;
-  padding: var(--dot-padding) !important;
+  padding: 4px !important;
 }
 div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
-  width: var(--dot-size) !important;
-  height: var(--dot-size) !important;
+  width: 24px !important;
+  height: 24px !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
   position: absolute !important;
@@ -61,20 +34,16 @@ div.f6dof80 div.f6dof87.f6dof89::after {
   transform: translate(-50%, -50%) !important;
   pointer-events: none !important;
   background-image: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23{DOTS}'><g stroke='%23{DOTS}' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'><circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/><circle cx='236.071' cy='164.571' r='19'/><path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/></g></svg>"
-    .replace(/{DOTS}/g, encodeURIComponent(var(--dots-default)))
-  ) !important;
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%239C27B0'><g stroke='%239C27B0' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'><circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/><circle cx='236.071' cy='164.571' r='19'/><path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/></g></svg>") !important;
 }
 div.f6dof80 div.f6dof87.f6dof89:hover::after {
   background-image: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23{HOV}'><g stroke='%23{HOV}' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'><circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/><circle cx='236.071' cy='164.571' r='19'/><path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/></g></svg>"
-    .replace(/{HOV}/g, encodeURIComponent(var(--dots-hover)))
-  ) !important;
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'><g stroke='%23ffffff' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'><circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/><circle cx='236.071' cy='164.571' r='19'/><path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/></g></svg>") !important;
 }
 
-/*────────────────────────────────────────────*/
-/* 2) Layout & utilities                      */
-/*────────────────────────────────────────────*/
+/*─────────────────────────────*/
+/* 2) Layout & utilities        */
+/*─────────────────────────────*/
 ._1wkq7nf0 { z-index: 1000; }
 @media (min-width:1000px) {
   ._1wkq7nf4 {
@@ -84,78 +53,70 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
     left: calc(50% - 500px);
   }
 }
-.g3dqfd1   { align-items: center; }
-._5x612k0   { display: flex; flex-direction: row; font-weight: 600; }
+.g3dqfd1 { align-items: center; }
+._5x612k0 { display: flex; flex-direction: row; font-weight: 600; }
 
-/*────────────────────────────────────────────*/
-/* 3) Header & Footer                         */
-/*────────────────────────────────────────────*/
+/*─────────────────────────────*/
+/* 3) Header & Footer           */
+/*─────────────────────────────*/
 .jyiuei2,
 .vfrc-header--title.jyiuei4::before {
-  background-color: var(--primary);
-  color: var(--white);
+  background-color: #9c27b0;
+  color: #fff;
 }
 .vfrc-header--title.jyiuei4 {
   color: transparent !important;
   display: flex;
 }
 ._1vj16245 { background: transparent; }
-.jsli367    { color: var(--black); }
-.s9t60i2    { display: none; }
+.jsli367 { color: black; }
+.s9t60i2 { display: none; }
 
-/*────────────────────────────────────────────*/
-/* 4) Carousel                                */
-/*────────────────────────────────────────────*/
-._1lbxmyd0 { background-color: var(--gray-light); width: 300px; }
+/*─────────────────────────────*/
+/* 4) Carousel                  */
+/*─────────────────────────────*/
+._1lbxmyd0 { background-color: #f1f2f2; width: 300px; }
 ._1lbxmyd1 { display: inline-block; width:100%; height:300px; }
 ._1lbxmyd2 { height: 100px; }
 ._1lbxmyd4 { white-space: pre-line; height: 40px; }
 ._1lbxmyd3 { display: flex; flex-direction: row; }
 
-/*────────────────────────────────────────────*/
-/* 5) Buttons (base & hover)                  */
-/*────────────────────────────────────────────*/
+/*─────────────────────────────*/
+/* 5) Buttons (base & hover)    */
+/*─────────────────────────────*/
 ._1q15b0b1,
 ._1q15b0b3,
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5 {
-  border-radius: var(--btn-radius);
-  border: 2px solid var(--accent-border);
-  background-color: var(--accent-bg);
-  color: var(--primary);
-  font-weight: bold;
-  transition: background-color .3s ease, color .3s ease;
+  border-radius:     8px;
+  border:            2px solid #9c27b0;
+  background-color:  #F8EAFA;
+  color:             #9c27b0;
+  font-weight:       bold;
+  transition:        background-color .3s ease, color .3s ease;
 }
 ._1q15b0b1:hover,
 ._1q15b0b3:hover,
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover {
-  background-color: var(--primary);
-  color: var(--white);
-  border-color: var(--white);
+  background-color:  #9c27b0;
+  color:             #fff;
+  border-color:      #fff;
 }
-._1q15b0b2._1q15b0b4:hover {
-  background-color: var(--error);
-  border-color:     darken(var(--error), 20%);
-  color:            var(--white);
-}
-._1q15b0b3._1q15b0b4:hover {
-  background-color: var(--success);
-  border-color:     darken(var(--success), 20%);
-  color:            var(--white);
-}
+._1q15b0b2._1q15b0b4:hover { background-color: #FF0B0B; border-color: #850000; color: #fff; }
+._1q15b0b3._1q15b0b4:hover { background-color: #008000; border-color: #003900; color: #fff; }
 
-/*────────────────────────────────────────────*/
-/* 6) Chat‑bubbles & icons                    */
-/*────────────────────────────────────────────*/
+/*─────────────────────────────*/
+/* 6) Chat‑bubbles & icons      */
+/*─────────────────────────────*/
 ._6r9xee4 {
-  position: fixed;
-  background: var(--white);
+  position:  fixed;
+  background: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   padding: 16px;
   display: flex;
   align-items: center;
   max-width: 400px;
-  border: 2px solid var(--chat-border);
+  border: 2px solid #dde4ea;
   animation: heartbeat 1s infinite;
 }
 ._6r9xee4::before {
@@ -163,7 +124,8 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   position: absolute;
   top: -30px;
   width: 40px; height: 40px;
-  background: url(https://.../bot.png) no-repeat center/cover var(--white);
+  background: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c4d25d5092307271fb9484_bot.png) no-repeat center/cover;
+  background-color: #fff;
   border-radius: 50%;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
@@ -173,7 +135,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   font-weight: 500;
   white-space: pre-line;
   box-shadow: none;
-  color: var(--chat-text);
+  color: #1a1e23;
   font-size: 14px;
   font-family: var(--_1bof89na);
   transition: opacity .15s ease;
