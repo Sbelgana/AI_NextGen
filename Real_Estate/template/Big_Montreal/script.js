@@ -678,12 +678,14 @@ form {
     
 .main-arrow {
       margin-left: auto;
-      display: flex;
-      align-items: center;
-      background-color: #F8EAFA;
-      padding: 5px;
-      border-radius: 50%;
-      transition: background-color 0.3s;
+    display: flex
+    align-items: center;
+    background-color: #F8EAFA;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    width: 24px;
+    height: 24px;
+    justify-content: center;
     }
     .arrow-icon {
       transition: transform 0.3s ease;
@@ -4007,12 +4009,14 @@ const navHTML = `
     }
     .main-arrow {
       margin-left: auto;
-      display: flex;
-      align-items: center;
-      background-color: #F8EAFA;
-      padding: 5px;
-      border-radius: 50%;
-      transition: background-color 0.3s;
+    display: flex
+    align-items: center;
+    background-color: #F8EAFA;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    width: 24px;
+    height: 24px;
+    justify-content: center;
     }
     .arrow-icon {
       transition: transform 0.3s ease;
@@ -5493,25 +5497,21 @@ const navHTML = `
             }
             .custom-option:not(.selected):hover .option-checkbox svg {
               position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 18px;
-              height: 18px;
             }
             .option-checkbox svg {
               position: absolute;
-              width: 18px;
-              height: 18px;
+
             }
             .main-arrow {
               margin-left: auto;
-              display: flex;
-              align-items: center;
-              background-color: #F8EAFA;
-              padding: 5px;
-              border-radius: 50%;
-              transition: background-color 0.3s;
+    display: flex
+    align-items: center;
+    background-color: #F8EAFA;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    width: 24px;
+    height: 24px;
+    justify-content: center;
             }
             .arrow-icon {
               transition: transform 0.3s ease;
@@ -6092,16 +6092,9 @@ const navHTML = `
             }
             .custom-option:not(.selected):hover .option-checkbox svg {
               position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 18px;
-              height: 18px;
             }
             .option-checkbox svg {
               position: absolute;
-              width: 18px;
-              height: 18px;
             }
     /* ========== Error Components ========== */
     .error-container {
