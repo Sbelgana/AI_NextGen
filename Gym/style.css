@@ -278,7 +278,7 @@ div.f6dof80 div.f6dof87.f6dof89 {
 }
 
 /* 3) Inject the SVG once as a mask on ::before */
-div.f6dof80 div.f6dof87.f6dof89::before {
+div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
   width: 24px !important;
@@ -295,7 +295,7 @@ div.f6dof80 div.f6dof87.f6dof89::before {
 }
 
 /* 4) On hover, just change the fill-color */
-div.f6dof80 div.f6dof87.f6dof89:hover::before {
+div.f6dof80 div.f6dof87.f6dof89:hover::after {
   background-color: #fff !important;  /* white on hover */
 }
 
