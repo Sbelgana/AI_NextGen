@@ -283,8 +283,8 @@ div.f6dof80 div.f6dof87.f6dof89 {
 div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
-  width: 32px !important;
-  height: 32px !important;
+  width: 24px !important;
+  height: 24px !important;
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%239C27B0'>\
 <g stroke='%239C27B0' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
