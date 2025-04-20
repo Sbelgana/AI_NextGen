@@ -118,6 +118,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   max-width: 400px;
   border: 2px solid #dde4ea;
   animation: heartbeat 1s infinite;
+    margin: 16px 0;
 }
 ._6r9xee4::before {
   content: "";
