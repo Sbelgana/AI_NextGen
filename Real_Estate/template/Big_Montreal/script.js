@@ -5529,6 +5529,12 @@ const navHTML = `
   .custom-option.selected .option-checkbox svg path {
     fill: #fff !important;
   }
+  
+  .custom-option:not(.selected):hover .option-checkbox svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
 </style>
 
           <!-- Section 1: Contact Information -->
