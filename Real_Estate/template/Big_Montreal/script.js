@@ -5492,16 +5492,9 @@ const navHTML = `
               fill: #9C27B0;
             }
             .custom-option:not(.selected):hover .option-checkbox {
-              position: relative;
               border-color: #9C27B0;
             }
-            .custom-option:not(.selected):hover .option-checkbox svg {
-              position: absolute;
-            }
-            .option-checkbox svg {
-              position: absolute;
-
-            }
+            
             .main-arrow {
               margin-left: auto;
     display: flex
@@ -6087,15 +6080,9 @@ const navHTML = `
               fill: #9C27B0;
             }
             .custom-option:not(.selected):hover .option-checkbox {
-              position: relative;
               border-color: #9C27B0;
             }
-            .custom-option:not(.selected):hover .option-checkbox svg {
-              position: absolute;
-            }
-            .option-checkbox svg {
-              position: absolute;
-            }
+
     /* ========== Error Components ========== */
     .error-container {
       width: 100%;
