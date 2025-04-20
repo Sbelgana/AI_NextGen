@@ -257,11 +257,13 @@
 
 
 /* Hide the original image */
-.f6dof80 img {
-  display: none !important; /* Hide original image */
+.f6dof87 img {
+  display: none !important;
 }
 
-.f6dof80 .f6dof87::before {
+
+
+.f6dof87::before {
   content: "";
   display: block;
   width: 32px;
@@ -271,6 +273,7 @@
   background-repeat: no-repeat;
   background-position: center;
 }
+
 
 
 /* Change SVG color to white on hover 
