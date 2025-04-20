@@ -5164,340 +5164,334 @@ const navHTML = `
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
           <style>
-            /* (Your CSS styles remain unchanged.) */
-            /* ========== Dropdown Components ========== */
-            .main-container {
-              display: block;
-              transition: height 0.3s ease;
-              border-radius: 6px;
-              margin-bottom: 15px;
-            }
-            .select-wrapper {
-              border: 1px solid #ddd;
-              border-radius: 6px;
-              background-color: #fff;
-              position: relative;
-              min-width: 300px;
-              max-width: 800px;
-              width: 100%;
-              min-height: 50px;
-            }
-            .select-display {
-              padding: 0 15px;
-              font-size: 14px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              height: 50px;
-				color: #444;
-            }
-            .dropdown-icon {
-              width: 24px;
-              height: 24px;
-              transition: transform 0.3s ease;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background-color: #F8EAFA;
-              border-radius: 50%;
-            }
-            .dropdown-icon.rotate {
-              transform: rotate(180deg);
-            }
-            /* Custom Options */
-            .custom-options {
-              display: none;
-			  font-size: 14px;
-              border-top: 1px solid #ddd;
-              max-height: 300px;
-              overflow-y: auto;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-              z-index: 100;
-              border-radius: 0 0 6px 6px;
-            }
-            .custom-options::-webkit-scrollbar {
-              display: none; 
-            }
-            .custom-options {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-            .custom-option {
-              padding: 12px 15px;
-              display: flex;
-              align-items: center;
-              cursor: pointer;
-              transition: background 0.2s;
-              position: relative;
-            }
-            .custom-option:hover {
-              background-color: #F8EAFA;
-              color:#9C27B0;
-            }
-            .custom-option.selected {
-              background-color: #F8EAFA;
-              color:#9C27B0;
-              font-weight: bold;
-            }
-            .option-checkbox {
-              width: 18px;
-              height: 18px;
-              border: 2px solid #ccc;
-              border-radius: 50%;
-              margin-right: 12px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background-color: #fff;
-              transition: all 0.2s;
-            }
-            .option-checkbox::after {
-              content: "";
-              color: #9C27B0;
-              font-size: 14px;
-              display: none;
-            }
-            .custom-option.selected .option-checkbox {
-              border-color: #9C27B0;
-              background-color: #9C27B0;
-            }
-            .custom-option.selected .option-checkbox::after {
-              display: block;
-              color: #fff;
-            }
-            .custom-option:not(.selected):hover .option-checkbox,
-            .custom-option:not(.selected):hover .option-checkbox::after {
-              border-color: #9C27B0;
-              display: block;
-              color: #9C27B0;
-            }
-            .custom-option.selected .option-checkbox svg path {
-              fill: #fff !important;
-            }
-            .show-options {
-              display: block;
-            }
-            .custom-option.selected .main-arrow,
-            .custom-option:hover .main-arrow {
-              background-color: #fff;
-            }
-            /* ========== Error Components ========== */
-            .error-container {
-              width: 100%;
-              margin: 2px 0;
-              box-sizing: border-box;
-            }
-            .error-message {
-              display: none;
-              padding: 5px;
-              border: 1px solid #e8e8e8;
-              border-radius: 6px;
-              background-color: #fff;
-              box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-              font-size: 14px;
-              align-items: center;
-            }
-            .error-icon {
-              background-color: red;
-              color: #fff;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              margin-right: 15px;
-              flex-shrink: 0;
-            }
-            /* ========== Form Inputs & Layout ========== */
-            form {
-              display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 16px;
-              border-radius: 6px;
-              background: #fff;
-            }
-            .flex-row {
-              display: flex;
-              gap: 10px 16px;
-              flex-wrap: wrap;
-            }
-            .flex-row > div {
-              flex: 1;
-              min-width: 300px;
-            }
-            .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-            }
-            input[type="text"],
-            input[type="email"],
-            input[type="tel"],
-            #details {
-              width: 100%;
-              min-width: 200px;
-              max-width: 800px;
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 6px;
-              padding: 8px;
-              background: #fff;
-              font-size: 14px;
-              outline: none;
-              box-sizing: border-box;
-              height: 50px;
-            }
-            #details {
-              resize: vertical;
-              min-height: 100px;
-              max-height: 200px;
-              width: 100%;
-            }
-            input[type="text"]:focus,
-            input[type="email"]:focus,
-            input[type="tel"]:focus,
-            #details:focus {
-              border: 2px solid #9C27B0;
-            }
-            input[type="number"]::-webkit-inner-spin-button,
-            input[type="number"]::-webkit-outer-spin-button {
-              -webkit-appearance: none;
-              margin: 0;
-            }
-            input[type="number"] {
-              -moz-appearance: textfield;
-            }
-            /* ========== Buttons ========== */
-            .appointment-btn,
-            .submit {
-              color: #9C27B0;
-              background-color: #F8EAFA;
-              border: none;
-              padding: 12px;
-              border-radius: 6px;
-              font-size: 16px;
-              cursor: pointer;
-              margin-top: 8px;
-              transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
-              width: 100%;
-            }
-            .appointment-btn:hover,
-            .submit:hover {
-              color: #fff;
-              background-color: #9C27B0;
-              font-weight: 600;
-            }
-            .appointment-btn:disabled,
-            .submit:disabled {
-              background-color: #ccc;
-              color: #666;
-              cursor: not-allowed;
-              font-weight: 700;
-            }
-            /* ========== Sections & Tabs ========== */
-            .section {
-              border: 1px solid rgba(0,0,0,0.2);
-              border-radius: 6px;
-              margin-bottom: 10px;
-              overflow: hidden;
-              background: #fff;
-              transition: border-color 0.2s, box-shadow 0.2s;
-            }
-            .section-card {
-              padding: 10px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              transition: all 0.2s ease;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-              border-radius: 6px;
-            }
-            .section.active {
-              border: 2px solid #9C27B0;
-              box-shadow: 0 3px 8px rgba(154,13,242,0.1);
-            }
-            .section:hover:not(.disabled) {
-              border-color: #9C27B0;
-              box-shadow: 0 3px 8px rgba(154,13,242,0.1);
-            }
-            .section-info {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-            }
-            .section-icon {
-              background-color: #F8EAFA;
-              color: #9C27B0;
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .section-title {
-              font-weight: 700;
-              font-size: 16px;
-              color: #444;
-            }
-            .collapse-icon {
-              transition: transform 0.3s;
-              background: #F8EAFA;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-            }
-            .collapse-icon.active {
-              transform: rotate(-180deg);
-            }
-            .collapsible-section {
-              overflow: hidden;
-              max-height: 0;
-              transition: max-height 0.3s ease-out;
-            }
-            .collapsible-section.expanded {
-              max-height: 1000px;
-            }
-            .section-content {
-              padding: 20px;
-              background: #fefefe;
-              border-top: 1px solid #eee;
-            }
-            .select-label {
-              margin-bottom: 8px;
-              font-weight: bold;
-              color: #444;
-            }
-            /* ========== Disabled State ========== */
-            .disabled {
-              cursor: not-allowed !important;
-            }
-            .disabled * {
-              cursor: not-allowed !important;
-              pointer-events: none !important;
-            }
-            .custom-option:not(.selected):hover .option-checkbox svg path {
-              fill: #9C27B0;
-            }
-            .custom-option:not(.selected):hover .option-checkbox {
-              border-color: #9C27B0;
-            }
-            
-            .main-arrow {
-              margin-left: auto;
-    display: flex
+  /* ========== Dropdown Components ========== */
+  .main-container {
+    display: block;
+    transition: height 0.3s ease;
+    border-radius: 6px;
+    margin-bottom: 15px;
+  }
+  .select-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    position: relative;
+    min-width: 300px;
+    max-width: 800px;
+    width: 100%;
+    min-height: 50px;
+  }
+  .select-display {
+    padding: 0 15px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    color: #444;
+  }
+  .dropdown-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F8EAFA;
+    border-radius: 50%;
+  }
+  .dropdown-icon.rotate {
+    transform: rotate(180deg);
+  }
+  .custom-options {
+    display: none;
+    font-size: 14px;
+    border-top: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 100;
+    border-radius: 0 0 6px 6px;
+  }
+  .custom-options::-webkit-scrollbar {
+    display: none; 
+  }
+  .custom-options {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .custom-option {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .custom-option:hover {
+    background-color: #F8EAFA;
+    color: #9C27B0;
+  }
+  .custom-option.selected {
+    background-color: #F8EAFA;
+    color: #9C27B0;
+    font-weight: bold;
+  }
+  .option-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    transition: all 0.2s;
+  }
+  .option-checkbox::after {
+    content: "";
+    color: #9C27B0;
+    font-size: 14px;
+    display: none;
+  }
+  .custom-option.selected .option-checkbox {
+    border-color: #9C27B0;
+    background-color: #9C27B0;
+  }
+  .custom-option.selected .option-checkbox::after {
+    display: block;
+    color: #fff;
+  }
+  .custom-option:not(.selected):hover .option-checkbox,
+  .custom-option:not(.selected):hover .option-checkbox::after {
+    border-color: #9C27B0;
+    display: block;
+    color: #9C27B0;
+  }
+  .show-options {
+    display: block;
+  }
+  .custom-option.selected .main-arrow,
+  .custom-option:hover .main-arrow {
+    background-color: #fff;
+  }
+
+  /* ========== Error Components ========== */
+  .error-container {
+    width: 100%;
+    margin: 2px 0;
+    box-sizing: border-box;
+  }
+  .error-message {
+    display: none;
+    padding: 5px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 14px;
+    align-items: center;
+  }
+  .error-icon {
+    background-color: red;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+
+  /* ========== Form Inputs & Layout ========== */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 16px;
+    border-radius: 6px;
+    background: #fff;
+  }
+  .flex-row {
+    display: flex;
+    gap: 10px 16px;
+    flex-wrap: wrap;
+  }
+  .flex-row > div {
+    flex: 1;
+    min-width: 300px;
+  }
+  .bold-label {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  #details {
+    width: 100%;
+    min-width: 200px;
+    max-width: 800px;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    padding: 8px;
+    background: #fff;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    height: 50px;
+  }
+  #details {
+    resize: vertical;
+    min-height: 100px;
+    max-height: 200px;
+    width: 100%;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  #details:focus {
+    border: 2px solid #9C27B0;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* ========== Buttons ========== */
+  .appointment-btn,
+  .submit {
+    color: #9C27B0;
+    background-color: #F8EAFA;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+    width: 100%;
+  }
+  .appointment-btn:hover,
+  .submit:hover {
+    color: #fff;
+    background-color: #9C27B0;
+    font-weight: 600;
+  }
+  .appointment-btn:disabled,
+  .submit:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    font-weight: 700;
+  }
+
+  /* ========== Sections & Tabs ========== */
+  .section {
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .section-card {
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-radius: 6px;
+  }
+  .section.active {
+    border: 2px solid #9C27B0;
+    box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+  }
+  .section:hover:not(.disabled) {
+    border-color: #9C27B0;
+    box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+  }
+  .section-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-icon {
+    background-color: #F8EAFA;
+    color: #9C27B0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #444;
+  }
+  .collapse-icon {
+    transition: transform 0.3s;
+    background: #F8EAFA;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+  .collapse-icon.active {
+    transform: rotate(-180deg);
+  }
+  .collapsible-section {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+  }
+  .collapsible-section.expanded {
+    max-height: 1000px;
+  }
+  .section-content {
+    padding: 20px;
+    background: #fefefe;
+    border-top: 1px solid #eee;
+  }
+  .select-label {
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #444;
+  }
+
+  /* ========== Disabled State ========== */
+  .disabled {
+    cursor: not-allowed !important;
+  }
+  .disabled * {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  .main-arrow {
+    margin-left: auto;
+    display: flex;
     align-items: center;
     background-color: #F8EAFA;
     border-radius: 50%;
@@ -5505,14 +5499,38 @@ const navHTML = `
     width: 24px;
     height: 24px;
     justify-content: center;
-            }
-            .arrow-icon {
-              transition: transform 0.3s ease;
-            }
-            .arrow-icon.rotate {
-              transform: rotate(180deg);
-            }
-          </style>
+  }
+  .arrow-icon {
+    transition: transform 0.3s ease;
+  }
+  .arrow-icon.rotate {
+    transform: rotate(180deg);
+  }
+
+  /* ✅ New styles for checkmark SVG logic */
+  .option-checkbox svg {
+    width: 12px;
+    height: 12px;
+    display: none;
+  }
+
+  .custom-option:hover:not(.selected) .option-checkbox svg {
+    display: block;
+  }
+
+  .custom-option:hover:not(.selected) .option-checkbox svg path {
+    fill: #9C27B0;
+  }
+
+  .custom-option.selected .option-checkbox svg {
+    display: block;
+  }
+
+  .custom-option.selected .option-checkbox svg path {
+    fill: #fff !important;
+  }
+</style>
+
           <!-- Section 1: Contact Information -->
           <div class="flex-row">
             <div class="section">
