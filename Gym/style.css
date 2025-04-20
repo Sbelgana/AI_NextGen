@@ -271,7 +271,7 @@
 }
 
 /* 3. Inject your 3‑dots SVG via a ::before pseudo‑element */
-.f6dof87.f6dof89::before {
+.f6dof87.f6dof89::after {
   content: "";
   display: block;
   width: 32px;
