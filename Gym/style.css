@@ -257,14 +257,14 @@
 
 
 /* Hide the original image */
-.f6dof8t {
+.f6dof8w {
     display: none;
 }
 
 
 
 /* Inject SVG as a background image with default color #9c27b0 */
-.f6dof86::before {
+.f6dof89::before {
     content: "";
     display: block;
     width: 24px; /* Adjust size */
