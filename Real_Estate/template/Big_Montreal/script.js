@@ -5163,7 +5163,7 @@ const navHTML = `
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
-          <style>
+<style>
   /* ========== Dropdown Components ========== */
   .main-container {
     display: block;
@@ -5214,13 +5214,11 @@ const navHTML = `
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     z-index: 100;
     border-radius: 0 0 6px 6px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   .custom-options::-webkit-scrollbar {
     display: none; 
-  }
-  .custom-options {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
   }
   .custom-option {
     padding: 12px 15px;
@@ -5239,6 +5237,7 @@ const navHTML = `
     color: #9C27B0;
     font-weight: bold;
   }
+
   .option-checkbox {
     width: 18px;
     height: 18px;
@@ -5251,26 +5250,36 @@ const navHTML = `
     background-color: #fff;
     transition: all 0.2s;
   }
-  .option-checkbox::after {
-    content: "";
-    color: #9C27B0;
-    font-size: 14px;
+
+  .option-checkbox svg {
+    width: 12px;
+    height: 12px;
     display: none;
   }
+
+  /* Hover state */
+  .custom-option:hover:not(.selected) .option-checkbox {
+    border-color: #9C27B0;
+  }
+  .custom-option:hover:not(.selected) .option-checkbox svg {
+    display: block;
+  }
+  .custom-option:hover:not(.selected) .option-checkbox svg path {
+    fill: #9C27B0;
+  }
+
+  /* Selected state */
   .custom-option.selected .option-checkbox {
     border-color: #9C27B0;
     background-color: #9C27B0;
   }
-  .custom-option.selected .option-checkbox::after {
+  .custom-option.selected .option-checkbox svg {
     display: block;
-    color: #fff;
   }
-  .custom-option:not(.selected):hover .option-checkbox,
-  .custom-option:not(.selected):hover .option-checkbox::after {
-    border-color: #9C27B0;
-    display: block;
-    color: #9C27B0;
+  .custom-option.selected .option-checkbox svg path {
+    fill: #fff !important;
   }
+
   .show-options {
     display: block;
   }
@@ -5488,54 +5497,8 @@ const navHTML = `
     cursor: not-allowed !important;
     pointer-events: none !important;
   }
-
-  .main-arrow {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    background-color: #F8EAFA;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    width: 24px;
-    height: 24px;
-    justify-content: center;
-  }
-  .arrow-icon {
-    transition: transform 0.3s ease;
-  }
-  .arrow-icon.rotate {
-    transform: rotate(180deg);
-  }
-
-  /* ✅ New styles for checkmark SVG logic */
-  .option-checkbox svg {
-    width: 12px;
-    height: 12px;
-    display: none;
-  }
-
-  .custom-option:hover:not(.selected) .option-checkbox svg {
-    display: block;
-  }
-
-  .custom-option:hover:not(.selected) .option-checkbox svg path {
-    fill: #9C27B0;
-  }
-
-  .custom-option.selected .option-checkbox svg {
-    display: block;
-  }
-
-  .custom-option.selected .option-checkbox svg path {
-    fill: #fff !important;
-  }
-  
-  .custom-option:not(.selected):hover .option-checkbox svg {
-  display: block;
-  width: 12px;
-  height: 12px;
-}
 </style>
+
 
           <!-- Section 1: Contact Information -->
           <div class="flex-row">
