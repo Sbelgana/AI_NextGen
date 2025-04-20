@@ -387,7 +387,7 @@ const BookingFormExtension = {
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    textarea {
+    #details {
       width: 100%;
       min-width: 200px;
       max-width: 600px;
@@ -5893,7 +5893,7 @@ function renderHeader() {
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    textarea {
+    #details {
       width: 100%;
       min-width: 200px;
       max-width: 600px;
