@@ -511,7 +511,7 @@ form {
 }
 
 .section-icon {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   color: #003da5;
   width: 32px;
   height: 32px;
@@ -528,7 +528,7 @@ form {
 
 .collapse-icon {
   transition: transform 0.3s;
-  background: #f7f8fc;
+  background: #e2e8ff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -587,7 +587,7 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   border-radius: 50%;
 }
 
@@ -627,12 +627,12 @@ form {
 }
 
 .custom-option:hover {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   color: #003da5;
 }
 
 .custom-option.selected {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   color: #003da5;
   font-weight: bold;
 }
@@ -680,7 +680,7 @@ form {
       margin-left: auto;
     display: flex;
     align-items: center;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border-radius: 50%;
     transition: background-color 0.3s;
     width: 24px;
@@ -786,7 +786,7 @@ input[type="number"] {
 
 .input-group button {
   cursor: pointer;
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
 }
 
 .input-group button:hover {
@@ -864,7 +864,7 @@ input[type="number"] {
 /* ========= BUTTONS ========= */
 .submit {
   color: #003da5;
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   border: none;
   padding: 12px;
   border-radius: 6px;
@@ -1957,7 +1957,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               gap: 10px;
             }
             .nav-btn {
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               color: #003da5;
               border: none;
               border-radius: 50%;
@@ -2287,7 +2287,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               width: 20px;
               display: flex;
               flex-direction: column;
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               border: 1px solid rgba(0,0,0,0.1);
               border-radius: 0 8px 8px 0;
               overflow: hidden;
@@ -2337,7 +2337,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               color: #003da5;
               font-size: 12px;
               border-radius: 50%;
-              background: #f7f8fc;
+              background: #e2e8ff;
               align-items: center;
               justify-content: center;
               transition: 0.3s;
@@ -2375,7 +2375,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               border-radius: 8px;
             }
             .list-items .item:hover {
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
             }
             .item .checkbox {
               display: flex;
@@ -2420,7 +2420,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             .results-container {
               margin-top: 20px;
               padding: 15px;
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               border-radius: 8px;
               text-align: center;
             }
@@ -2518,7 +2518,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
 
 .input-group button {
   cursor: pointer;
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   border: none;
   padding: 0;
   width: 40px;
@@ -3100,7 +3100,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               width: 20px;
               display: flex;
               flex-direction: column;
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               border: 1px solid rgba(0,0,0,0.1);
               border-radius: 0 8px 8px 0;
               overflow: hidden;
@@ -3150,7 +3150,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               color: #003da5;
               font-size: 12px;
               border-radius: 50%;
-              background: #f7f8fc;
+              background: #e2e8ff;
               align-items: center;
               justify-content: center;
               transition: 0.3s;
@@ -3188,7 +3188,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               border-radius: 8px;
             }
             .list-items .item:hover {
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
             }
             .item .checkbox {
               display: flex;
@@ -3233,7 +3233,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             .results-container {
               margin-top: 20px;
               padding: 15px;
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               border-radius: 8px;
               text-align: center;
             }
@@ -3277,7 +3277,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             }
             .results-row .result {
               flex: 1;
-              background-color: #f7f8fc;
+              background-color: #e2e8ff;
               padding: 20px;
               border-radius: 8px;
               text-align: center;
@@ -3319,7 +3319,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
 
 .input-group button {
   cursor: pointer;
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   border: none;
   padding: 0;
   width: 40px;
@@ -3770,7 +3770,7 @@ const navHTML = `
       padding: 12px 16px;
       cursor: pointer;
       border: none;
-      background: #f7f8fc;
+      background: #e2e8ff;
       border-radius: 4px;
       font-weight: bold;
       transition: background 0.2s;
@@ -3909,7 +3909,7 @@ const navHTML = `
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border-radius: 50%;
   }
   .dropdown-icon.rotate {
@@ -3942,11 +3942,11 @@ const navHTML = `
     position: relative;
   }
   .custom-option:hover {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
   }
   .custom-option.selected {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
     font-weight: bold;
   }
@@ -4017,7 +4017,7 @@ const navHTML = `
     margin-left: auto;
     display: flex;
     align-items: center;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border-radius: 50%;
     transition: background-color 0.3s;
     width: 24px;
@@ -4177,7 +4177,7 @@ const navHTML = `
   .appointment-btn,
   .submit {
     color: #003da5;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border: none;
     padding: 12px;
     border-radius: 6px;
@@ -4234,7 +4234,7 @@ const navHTML = `
     gap: 12px;
   }
   .section-icon {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
     width: 32px;
     height: 32px;
@@ -4250,7 +4250,7 @@ const navHTML = `
   }
   .collapse-icon {
     transition: transform 0.3s;
-    background: #f7f8fc;
+    background: #e2e8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4299,7 +4299,7 @@ const navHTML = `
     color: #fff;
   }
   .tab:hover:not(.active) {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
   }
   .tab-content {
@@ -5196,7 +5196,7 @@ const navHTML = `
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border-radius: 50%;
   }
   .dropdown-icon.rotate {
@@ -5227,11 +5227,11 @@ const navHTML = `
     position: relative;
   }
   .custom-option:hover {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
   }
   .custom-option.selected {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
     font-weight: bold;
   }
@@ -5383,7 +5383,7 @@ const navHTML = `
   .appointment-btn,
   .submit {
     color: #003da5;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border: none;
     padding: 12px;
     border-radius: 6px;
@@ -5440,7 +5440,7 @@ const navHTML = `
     gap: 12px;
   }
   .section-icon {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
     width: 32px;
     height: 32px;
@@ -5456,7 +5456,7 @@ const navHTML = `
   }
   .collapse-icon {
     transition: transform 0.3s;
-    background: #f7f8fc;
+    background: #e2e8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5911,7 +5911,7 @@ const navHTML = `
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border-radius: 50%;
   }
   .dropdown-icon.rotate {
@@ -5944,11 +5944,11 @@ const navHTML = `
     position: relative;
   }
   .custom-option:hover {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
   }
   .custom-option.selected {
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     color: #003da5;
     font-weight: bold;
   }
@@ -6075,7 +6075,7 @@ const navHTML = `
   /* ========== Buttons ========== */
   .submit-btn {
     color: #003da5;
-    background-color: #f7f8fc;
+    background-color: #e2e8ff;
     border: none;
     padding: 15px;
     border-radius: 6px;
@@ -6487,13 +6487,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   color: #003da5;
 }
 .nav-btn:hover {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
 }
 .current-date {
   font-weight: 600;
   font-size: 17px;
-  background: #f7f8fc;
+  background: #e2e8ff;
   padding: 6px 14px;
   border-radius: 20px;
   font-weight: 500;
@@ -6585,7 +6585,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   z-index: -1;
 }
 .day:hover:not(.inactive)::before {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
 }
 .day:hover:not(.inactive) {
   color: #003da5;
@@ -6737,7 +6737,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, transparent, #f7f8fc, transparent);
+  background: linear-gradient(120deg, transparent, #e2e8ff, transparent);
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity 0.3s;
@@ -6768,7 +6768,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   opacity: 0.9;
 }
 .time-slot.available:hover:not(.selected) {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   color: #003da5;
   border: 2px solid #003da5;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
@@ -6803,7 +6803,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   font-size: 14px;
 }
 .confirm-btn {
-  background: #f7f8fc;
+  background: #e2e8ff;
   color: #003da5;
   font-weight: 600;
   border-radius: 10px;
@@ -7215,7 +7215,7 @@ function renderHeader() {
   const currentDateEl = document.createElement("div");
   currentDateEl.className = "current-date";
   currentDateEl.textContent = dateFormatter.format(state.currentDate);
-  currentDateEl.style.cssText = "background: #f7f8fc; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+  currentDateEl.style.cssText = "background: #e2e8ff; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
   
   const prevBtn = document.createElement("button");
   prevBtn.className = "nav-btn prev-btn";
@@ -7476,7 +7476,7 @@ function renderHeader() {
             const checkmark = document.createElement('div');
             checkmark.innerHTML = `
               <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="30" r="30" fill="#f7f8fc"/>
+                <circle cx="30" cy="30" r="30" fill="#e2e8ff"/>
                 <path d="M20 30L27 37L40 23" stroke="#003da5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             `;
@@ -7694,7 +7694,7 @@ function renderHeader() {
     /* ========== Buttons ========== */
     .submit-btn {
       color: #003da5;
-      background-color: #f7f8fc;
+      background-color: #e2e8ff;
       border: none;
       padding: 15px;
       border-radius: 6px;
@@ -8009,13 +8009,13 @@ function renderHeader() {
   color: #003da5;
 }
 .nav-btn:hover {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
 }
 .current-date {
   font-weight: 600;
   font-size: 17px;
-  background: #f7f8fc;
+  background: #e2e8ff;
   padding: 6px 14px;
   border-radius: 20px;
   font-weight: 500;
@@ -8107,7 +8107,7 @@ function renderHeader() {
   z-index: -1;
 }
 .day:hover:not(.inactive)::before {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
 }
 .day:hover:not(.inactive) {
   color: #003da5;
@@ -8259,7 +8259,7 @@ function renderHeader() {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(120deg, transparent, #f7f8fc, transparent);
+  background: linear-gradient(120deg, transparent, #e2e8ff, transparent);
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity 0.3s;
@@ -8290,7 +8290,7 @@ function renderHeader() {
   opacity: 0.9;
 }
 .time-slot.available:hover:not(.selected) {
-  background-color: #f7f8fc;
+  background-color: #e2e8ff;
   color: #003da5;
   border: 2px solid #003da5;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
@@ -8325,7 +8325,7 @@ function renderHeader() {
   font-size: 14px;
 }
 .confirm-btn {
-  background: #f7f8fc;
+  background: #e2e8ff;
   color: #003da5;
   font-weight: 600;
   border-radius: 10px;
@@ -8838,7 +8838,7 @@ function renderHeader() {
   const currentDateEl = document.createElement("div");
   currentDateEl.className = "current-date";
   currentDateEl.textContent = dateFormatter.format(state.currentDate);
-  currentDateEl.style.cssText = "background: #f7f8fc; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+  currentDateEl.style.cssText = "background: #e2e8ff; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
   
   const prevBtn = document.createElement("button");
   prevBtn.className = "nav-btn prev-btn";
@@ -9144,7 +9144,7 @@ function renderHeader() {
                   const checkmark = document.createElement('div');
                   checkmark.innerHTML = `
                     <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="30" cy="30" r="30" fill="#f7f8fc"/>
+                      <circle cx="30" cy="30" r="30" fill="#e2e8ff"/>
                       <path d="M20 30L27 37L40 23" stroke="#003da5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   `;
@@ -9411,7 +9411,7 @@ function renderHeader() {
           }
           /* Button CSS matching the Rescheduling Extension (3-phase behavior) */
           .confirm-btn {
-            background: #f7f8fc;
+            background: #e2e8ff;
             color: #003da5;
             font-weight: 600;
             border-radius: 10px;
@@ -9776,7 +9776,7 @@ function renderHeader() {
           const checkmark = document.createElement('div');
           checkmark.innerHTML = `
             <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="30" cy="30" r="30" fill="#f7f8fc"/>
+              <circle cx="30" cy="30" r="30" fill="#e2e8ff"/>
               <path d="M20 30L27 37L40 23" stroke="#003da5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           `;
@@ -9906,7 +9906,7 @@ function renderHeader() {
           const icon = document.createElement("div");
           icon.innerHTML = `
             <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="30" cy="30" r="30" fill='#f7f8fc'/>
+              <circle cx="30" cy="30" r="30" fill='#e2e8ff'/>
               <path d="M20 30L27 37L40 23" stroke='${highlightColor}' stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           `;
