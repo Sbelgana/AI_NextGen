@@ -359,11 +359,11 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* 2) Turn the parent into a styled circular wrapper */
-.vfrc-system-response .vfrc-avatar {
+.vfrc-system-response{
   position: relative;
 }
 
-.vfrc-system-response .vfrc-avatar::before {
+.vfrc-system-response::before {
   content: "" !important;
   display: block !important;
   width: 40px !important;
