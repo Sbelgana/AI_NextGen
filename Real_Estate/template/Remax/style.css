@@ -1,0 +1,396 @@
+/* Chatbot Background
+.s9t60i0 {
+    background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67be5436c2849b37cefb04ee_white-wall-texture-background.jpg);
+}*/
+
+._1wkq7nf0 {
+    z-index: 1000;
+}
+
+/* Header Background*/
+.jyiuei2 {
+    background-color: #9c27b0;
+}
+
+@media (min-width: 1000px) {
+    ._1wkq7nf4 {
+        min-height: 600px;
+        max-height: 100%;
+        width: 1000px;
+        left: calc(50% - 500px);
+    }
+}
+
+.g931q12 {
+    box-shadow: none;
+}
+
+.g931q10 {
+    background-color: transparent;
+}
+
+
+/* Background caroussel*/
+._1lbxmyd0 {
+    background-color: #f1f2f2;
+    width: 300px;
+}
+
+/* caroussel div*/
+._1lbxmyd4 {
+	white-space: pre-line;
+	height: 40px;
+}
+
+/* caroussel button div*/ 
+._1lbxmyd3 {
+    display: flex;
+    flex-direction: row;
+}
+
+/* caroussel button*/
+._1q15b0b3 {
+    border-radius: 8px;
+    color: #9c27b0;
+    background-color: #F8EAFA;
+    line-height: 20px;
+    padding: 7px 12px 6px;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+    height: fit-content;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+    border: 2px solid #9c27b0;
+    font-weight: bold;
+}
+
+
+
+/* caroussel button hover*/
+._1q15b0b3:hover {
+    color: white;
+    background-color: #9c27b0;
+    border: 2px solid #ffffff;
+    font-weight: bold;
+}
+
+._1q15b0b1 {
+    border: 2px solid #9c27b0;
+    color: #9c27b0;
+    background-color: #F8EAFA;
+    font-weight: bold;
+}
+
+._1q15b0b1:hover {
+    color: white;
+    background-color: #9c27b0;
+    border: 2px solid #ffffff;
+    font-weight: bold;
+}
+
+/* Chat footer*/
+._1vj16245 {
+    background: transparent;
+}
+
+/* Chat footer color text*/
+.jsli367{
+	color: black
+}
+
+.s9t60i2 {
+    display: none;
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  80% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Chat footer color text Border
+._1gdvh9t1 {
+    border: 3px solid #9c27b0;
+}*/
+
+
+
+.g3dqfd1 {
+    align-items: center;
+}
+
+
+
+._15emaa42::after {
+    content: "";
+    display: inline-block;
+    width: 32px; /* Adjust size as needed */
+    height: 32px;
+    background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c5e6bb1b1f8c26264a4683_logo_user.svg); /* Replace with the actual image URL */
+    background-size: cover;
+    margin-left: 12px; /* Adds space between the image and the text */
+    vertical-align: middle;
+    border-radius: 50%;
+}
+
+
+._15emaa42 {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+	
+.g3dqfd6 {
+    margin: 0px 0 4px;
+}
+
+.knxm730 {
+    margin: 8px 0;
+}
+
+._6r9xee0 {
+    position: absolute;
+    bottom: 100%;
+    width: 500px;
+    display: flex
+;
+    flex-direction: column;
+    transition: opacity .15sease;
+}
+
+
+._6r9xee3 {
+    padding: 11px 16px 10px;
+    min-width: 250px;
+    font-weight: 500px;
+    white-space: pre-line;
+    box-shadow: none;
+    color: #1a1e23;
+    font-size: 14px;
+    font-family: var(--_1bof89na);
+    transition: opacity .15sease;
+}
+
+._12m8tlu4 {
+    color: #9c27b0 !important;
+}
+
+
+
+._1q15b0b2._1q15b0b4{
+    color: #9c27b0;
+    background-color: #F8EAFA;
+    border: 2px solid #9c27b0;
+    height: 40px;
+    font-weight: bold;
+}
+
+._1q15b0b2._1q15b0b4:hover{
+    color: #fff;
+    background-color: #FF0B0B;
+    border: 2px solid #850000;
+}
+
+._1q15b0b3._1q15b0b4{
+    color: #9c27b0;
+    background-color: #F8EAFA;
+    border: 2px solid #9c27b0;
+    height: 40px;
+    font-weight: bold;
+}
+
+._1q15b0b3._1q15b0b4:hover{
+    color: #fff;
+    background-color: #008000;
+    border: 2px solid #003900;
+}
+
+.jyiuei7{
+    background-color: #9c27b0;
+    border: 2px solid #9c27b0;
+    color: #fff;
+}
+
+._5x612k0 {
+    display: flex;
+    flex-direction: row;
+    font-weight: 600px;
+}
+
+.jyiuei7:hover{
+    background-color: #fff;
+    border: 2px solid #fff;
+    color: #9c27b0;
+}
+
+
+
+
+
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5{ 
+    color: #9c27b0;
+    background-color: #F8EAFA;
+    border: 2px solid #9c27b0;
+}
+
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover{
+    color: #fff ;
+    background-color: #9c27b0;
+    border: 2px solid #9c27b0;
+}
+
+
+/* Hide the original image */
+/* 1. Hide the existing chat‑bubble image */
+/* 1) Hide the existing arrow SVG and chat-bubble image */
+/* 1) Hide the existing arrow SVG and <img> */
+/* 1) Hide the existing arrow SVG and chat-bubble image */
+div.f6dof80 div.f6dof87.f6dof89 > svg,
+div.f6dof80 div.f6dof87.f6dof89 > img {
+  display: none !important;
+}
+
+/* 2) Turn the wrapper into a red circle, center contents */
+div.f6dof80 div.f6dof87.f6dof89 {
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 4px !important;  /* adjust if you need more/less inner space */
+}
+
+/* 3) Inject your three‑dots SVG via ::after */
+div.f6dof80 div.f6dof87.f6dof89::after {
+  content: "" !important;
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%239C27B0'>\
+<g stroke='%239C27B0' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
+<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
+<circle cx='236.071' cy='164.571' r='19'/>\
+<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
+</g></svg>") !important;
+  background-repeat: no-repeat      !important;
+  background-size: contain           !important;
+  position: absolute                 !important;
+  top: 50%                           !important;
+  left: 50%                          !important;
+  transform: translate(-50%, -50%)  !important;
+  pointer-events: none               !important;
+}
+
+
+/* 4) On hover, swap the dots to white */
+div.f6dof80 div.f6dof87.f6dof89:hover::after {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
+<g stroke='%23ffffff' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
+<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
+<circle cx='236.071' cy='164.571' r='19'/>\
+<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
+</g></svg>") !important;
+}
+
+
+
+
+/* Change SVG color to white on hover 
+._1q15b0b5:hover .f6dof86::before:hover {
+    background-color: white;
+}*/
+
+
+
+._6r9xee4 {
+    position: fixed;
+    background-color: #fff;
+    border-radius: 24px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    max-width: 400px;
+    border: 2px solid #dde4ea;
+    position: relative; /* Needed for absolute positioning of icon */
+    margin: 16px 0;
+}
+
+/* Adding the icon using ::before */
+._6r9xee4::before {
+    content: "";
+    position: absolute;
+    top: -30px; /* Move it above the chat bubble */
+    width: 40px;
+    height: 40px;
+    background: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c4d25d5092307271fb9484_bot.png) no-repeat center / cover;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+
+
+.vfrc-header--title.jyiuei4::before {
+  content: "Agence Immobilière";
+  font-weight: bold;
+  display: block;
+  text-align: center;
+  font-size: 16px;
+  color: #fff; /* Adjust color as needed */
+}
+
+/* Hide the original text */
+.vfrc-header--title.jyiuei4 {
+    color: transparent !important;
+    display: flex;
+}
+._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5._12m8tlu1 {
+    border: 2px solid #9c27b0;
+    color: #9c27b0;
+    background-color: #fff;
+}
+
+._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5 {
+    color: white;
+    background-color: #9c27b0;
+}
+
+.vfrc-launcher {
+  animation: heartbeat 1s infinite;
+}
+
+._6r9xee4 {
+  animation: heartbeat 1s infinite;
+}
+
+._1lbxmyd2 {
+height: 100px;
+}
+
+._1lbxmyd1 {
+    display: inline-block;
+    width: 100%;
+    height: 300px;
+}
