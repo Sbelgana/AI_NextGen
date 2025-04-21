@@ -141,16 +141,18 @@
 
 
 ._15emaa42::after {
-    content: "";
-    display: inline-block;
-    width: 32px; /* Adjust size as needed */
-    height: 32px;
-    background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67c5e6bb1b1f8c26264a4683_logo_user.svg); /* Replace with the actual image URL */
-    background-size: cover;
-    margin-left: 12px; /* Adds space between the image and the text */
-    vertical-align: middle;
-    border-radius: 50%;
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  margin-left: 12px;
+  vertical-align: middle;
+  border-radius: 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='500px' height='500px' style='shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd' xmlns:xlink='http://www.w3.org/1999/xlink'><g><path fill='%23fefefe' d='M -0.5,-0.5 C 166.167,-0.5 332.833,-0.5 499.5,-0.5C 499.5,166.167 499.5,332.833 499.5,499.5C 332.833,499.5 166.167,499.5 -0.5,499.5C -0.5,332.833 -0.5,166.167 -0.5,-0.5 Z'/></g><g><path fill='%23dc1c2e' d='M 234.5,14.5 C 272.261,11.2475 304.094,23.2475 330,50.5C 358.822,89.2851 362.156,130.285 340,173.5C 321.394,203.706 294.227,220.539 258.5,224C 208.604,226.14 173.104,204.64 152,159.5C 134.368,106.067 148.201,62.9006 193.5,30C 206.328,22.3391 219.995,17.1724 234.5,14.5 Z'/></g><g><path fill='%23dc1c2e' d='M 151.5,224.5 C 158.821,223.859 165.821,225.025 172.5,228C 179.436,231.94 186.103,236.273 192.5,241C 230.494,261.607 268.494,261.607 306.5,241C 313.495,235.834 320.828,231.167 328.5,227C 338.763,223.399 348.763,224.065 358.5,229C 381.494,246.091 403.661,264.257 425,283.5C 432.373,292.943 437.04,303.61 439,315.5C 439.667,344.833 439.667,374.167 439,403.5C 435.081,431.195 420.248,450.362 394.5,461C 310.886,488.228 226.219,491.894 140.5,472C 123.588,467.919 107.255,462.252 91.5,455C 75.5383,444.581 65.3716,430.081 61,411.5C 59.9017,393.86 59.4017,376.193 59.5,358.5C 59.3712,342.124 59.8712,325.791 61,309.5C 64.4362,296.618 70.9362,285.618 80.5,276.5C 98.3171,261.76 116.317,247.26 134.5,233C 139.719,229.105 145.386,226.271 151.5,224.5 Z'/></g></svg>");
 }
+
 
 
 ._15emaa42 {
