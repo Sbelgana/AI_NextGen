@@ -456,7 +456,7 @@ form {
 
 .flex-row > div {
   flex: 1;
-  min-width: 300px;
+  min-width: 200px;
 }
 
 .main-container {
@@ -467,8 +467,8 @@ form {
 }
 
 .select-container {
-  min-width: 300px;
-  max-width: 600px;
+  min-width: 200px;
+  max-width: 800px;
   width: 100%;
   margin-bottom: 10px;
 }
@@ -563,8 +563,8 @@ form {
   border-radius: 6px;
   background-color: #fff;
   position: relative;
-  min-width: 300px;
-  max-width: 600px;
+  min-width: 200px;
+  max-width: 800px;
   width: 100%;
   min-height: 50px;
 }
@@ -3887,8 +3887,8 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 300px;
-    max-width: 600px;
+    min-width: 200px;
+    max-width: 800px;
     width: 100%;
     min-height: 50px;
   }
@@ -4001,8 +4001,8 @@ const navHTML = `
   }
 
   .select-container {
-    min-width: 300px;
-    max-width: 600px;
+    min-width: 200px;
+    max-width: 800px;
     width: 100%;
     margin-bottom: 10px;
   }
@@ -4129,7 +4129,7 @@ const navHTML = `
   }
   .flex-row > div {
     flex: 1;
-    min-width: 300px;
+    min-width: 200px;
   }
   .bold-label {
     font-weight: 600;
@@ -5174,7 +5174,7 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 300px;
+    min-width: 200px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -5334,7 +5334,7 @@ const navHTML = `
   }
   .flex-row > div {
     flex: 1;
-    min-width: 300px;
+    min-width: 200px;
   }
   .bold-label {
     font-weight: 600;
@@ -5889,7 +5889,7 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 300px;
+    min-width: 200px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -6040,7 +6040,7 @@ const navHTML = `
     flex-direction: column;
     gap: 15px;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 6px;
@@ -6056,7 +6056,7 @@ const navHTML = `
   input[type="tel"] {
     width: 100%;
     min-width: 200px;
-    max-width: 600px;
+    max-width: 800px;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
     padding: 8px;
@@ -7830,7 +7830,7 @@ function renderHeader() {
       flex-direction: column;
       gap: 15px;
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 20px;
       border-radius: 6px;
@@ -7848,7 +7848,7 @@ function renderHeader() {
     input[type="tel"] {
       width: 100%;
       min-width: 200px;
-      max-width: 600px;
+      max-width: 800px;
       border: 1px solid rgba(0,0,0,0.2);
       border-radius: 6px;
       padding: 12px 15px;
