@@ -456,7 +456,7 @@ form {
 
 .flex-row > div {
   flex: 1;
-  min-width: 200px;
+  min-width: 225px;
 }
 
 .main-container {
@@ -467,7 +467,7 @@ form {
 }
 
 .select-container {
-  min-width: 200px;
+  min-width: 225px;
   max-width: 800px;
   width: 100%;
   margin-bottom: 10px;
@@ -563,7 +563,7 @@ form {
   border-radius: 6px;
   background-color: #fff;
   position: relative;
-  min-width: 200px;
+  min-width: 225px;
   max-width: 800px;
   width: 100%;
   min-height: 50px;
@@ -711,7 +711,7 @@ input[type="email"],
 input[type="tel"],
 input[type="number"]{
   width: 100%;
-  min-width: 200px;
+  min-width: 225px;
   max-width: 100%;
   border: 1px solid rgba(0,0,0,0.2);
   border-radius: 6px;
@@ -753,7 +753,7 @@ input[type="number"] {
   align-items: center;
   flex-direction: row;
   border-radius: 15px;
-  min-width: 200px;
+  min-width: 225px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -2236,7 +2236,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             }
             .form-column {
               flex: 1;
-              min-width: 200px;
+              min-width: 225px;
             }
             .bold-label {
       font-weight: 600;
@@ -2491,7 +2491,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 200px;
+  min-width: 225px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -3049,7 +3049,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             }
             .form-column {
               flex: 1;
-              min-width: 200px;
+              min-width: 225px;
             }
             .bold-label {
       font-weight: 600;
@@ -3292,7 +3292,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 200px;
+  min-width: 225px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -3887,7 +3887,7 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -4001,7 +4001,7 @@ const navHTML = `
   }
 
   .select-container {
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     width: 100%;
     margin-bottom: 10px;
@@ -4129,7 +4129,7 @@ const navHTML = `
   }
   .flex-row > div {
     flex: 1;
-    min-width: 200px;
+    min-width: 225px;
   }
   .bold-label {
     font-weight: 600;
@@ -4142,7 +4142,7 @@ const navHTML = `
   input[type="tel"],
   #details {
     width: 100%;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 100%;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
@@ -5174,7 +5174,7 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -5334,7 +5334,7 @@ const navHTML = `
   }
   .flex-row > div {
     flex: 1;
-    min-width: 200px;
+    min-width: 225px;
   }
   .bold-label {
     font-weight: 600;
@@ -5347,7 +5347,7 @@ const navHTML = `
   input[type="tel"],
   #details {
     width: 100%;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
@@ -5889,7 +5889,7 @@ const navHTML = `
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -6055,7 +6055,7 @@ const navHTML = `
   input[type="email"],
   input[type="tel"] {
     width: 100%;
-    min-width: 200px;
+    min-width: 225px;
     max-width: 800px;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
@@ -7847,7 +7847,7 @@ function renderHeader() {
     input[type="email"],
     input[type="tel"] {
       width: 100%;
-      min-width: 200px;
+      min-width: 225px;
       max-width: 800px;
       border: 1px solid rgba(0,0,0,0.2);
       border-radius: 6px;
