@@ -7851,43 +7851,49 @@ function renderHeader() {
 
 /************** EXTENSION #12: RescheduleCalendarExtension **************/
     const RescheduleCalendarExtension = {
-      name: 'RescheduleCalendar',
-      type: 'response',
-      match: ({ trace }) =>
-        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
-      render: async ({ trace, element }) => {
-        // --- Extract required payload values with fallbacks ---
-        const {
-          email = "john@example.com",
-  agentName = "Dr. Sophie Martin", // Add this line
-          apiKey = "",
-            startTime = "4/11/2025, 3:00:00 PM", // Add this line for the current appointment
+  name: 'RescheduleCalendar',
+  type: 'response',
+  match: ({ trace }) =>
+    trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
+  render: async ({ trace, element }) => {
+    // Add SVG chevron constant at the top like in booking extension
+    const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+      <g transform="translate(75, 75)">
+        <path fill="#003da5" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+      </g>
+    </svg>`;
+    
+    // --- Extract required payload values with fallbacks ---
+    const {
+      email = "john@example.com",
+      agentName = "Dr. Sophie Martin",
+      apiKey = "",
+      startTime = "4/11/2025, 3:00:00 PM",
+      scheduleId = "",
+      eventTypeId = "1",
+      eventTypeSlug = "default-event",
+      slots = {},
+      selectedDate = '', 
+      selectedTime = '',
+      language = 'en',
+      timezone = 'America/Toronto',
+      uid = ""
+    } = trace.payload || {};
 
-          scheduleId = "",
-          eventTypeId = "1",
-          eventTypeSlug = "default-event",
-          slots = {},
-          selectedDate = '', 
-          selectedTime = '',
-          language = 'en',
-          timezone = 'America/Toronto',
-          uid = ""                // UID for rescheduling
-        } = trace.payload || {};
+    const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+    const highlightColor = '#003da5';
 
-        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
-        const highlightColor = '#003da5';
+    // Create a container and attach a shadow DOM for encapsulated styling.
+    const container = document.createElement("div");
+    container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+    container.style.maxWidth = "800px";
+    container.style.margin = "0 auto";
+    const shadow = container.attachShadow({ mode: 'open' });
 
-        // Create a container and attach a shadow DOM for encapsulated styling.
-        const container = document.createElement("div");
-        container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
-        container.style.maxWidth = "800px";
-        container.style.margin = "0 auto";
-        const shadow = container.attachShadow({ mode: 'open' });
-
-        // Build CSS with direct values (no CSS variables)
-        const style = document.createElement("style");
-        style.textContent = `
-       @keyframes fadeIn {
+    // Build CSS with direct values (no CSS variables)
+    const style = document.createElement("style");
+    style.textContent = `
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -7918,7 +7924,6 @@ function renderHeader() {
 }
 .calendar-container {
   font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
   border-radius: 16px;
   overflow: hidden;
   background: #ffffff;
@@ -7926,13 +7931,14 @@ function renderHeader() {
   animation: fadeIn 0.3s ease-out forwards;
   border: 1px solid #eaeaea;
   transition: all 0.3s ease;
+  position: relative;
 }
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #faf7fc;
+  background-color: #f1f3f8;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
@@ -7970,7 +7976,6 @@ function renderHeader() {
   line-height: 24px;
   font-weight: 650;
 }
-
 
 .provider-icon, .service-icon, .appointment-icon {
   display: flex;
@@ -8010,7 +8015,7 @@ function renderHeader() {
 }
 .nav-btn:hover {
   background-color: #d7dbeb;
-  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.15);
 }
 .current-date {
   font-weight: 600;
@@ -8030,13 +8035,8 @@ function renderHeader() {
 }
 .days-container {
   width: 47%;
-  padding: 15px 10px;
+  padding: 15px 0px;
   position: relative;
-  background-image: linear-gradient(
-      rgba(156, 39, 176, 0.03) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
   background-size: 25px 25px;
   background-position: -1px -1px;
 }
@@ -8047,7 +8047,6 @@ function renderHeader() {
   left: 10%;
   right: 10%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #003da5, transparent);
   border-radius: 3px;
   opacity: 0.7;
 }
@@ -8131,7 +8130,7 @@ function renderHeader() {
 .day.today {
   border: 1.5px solid #003da5;
   position: relative;
-  box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 61, 165, 0.1);
 }
 .day.today::after {
   content: "";
@@ -8145,9 +8144,9 @@ function renderHeader() {
 .day.active {
   background-color: #003da5;
   color: white;
-  border-radius: 4px;
+  border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.15);
 }
 .day.active::after {
   display: none;
@@ -8160,7 +8159,7 @@ function renderHeader() {
 .times-container {
   width: 53%;
   border-left: 1px solid #eaeaea;
-  padding: 20px 10px;
+  padding: 20px 0px;
   overflow-y: auto;
   background-color: #fefeff;
   position: relative;
@@ -8217,15 +8216,15 @@ function renderHeader() {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: rgba(156, 39, 176, 0.05);
+  background: rgba(0, 61, 165, 0.05);
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: rgba(156, 39, 176, 0.2);
+  background: rgba(0, 61, 165, 0.2);
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 39, 176, 0.3);
+  background: rgba(0, 61, 165, 0.2);
 }
 @keyframes slideIn {
   from {
@@ -8238,7 +8237,7 @@ function renderHeader() {
   }
 }
 .time-slot {
-  padding: 14px;
+  padding: 14px 8px;
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
@@ -8251,6 +8250,7 @@ function renderHeader() {
   overflow: hidden;
   transform-origin: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 60%;
 }
 .time-slot::before {
   content: "";
@@ -8279,7 +8279,7 @@ function renderHeader() {
   border-color: #003da5;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 61, 165, 0.15);
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -8331,7 +8331,6 @@ function renderHeader() {
   border-radius: 10px;
   padding: 12px 24px;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
@@ -8354,13 +8353,13 @@ function renderHeader() {
 .confirm-btn:hover:not(:disabled) {
   background: #003da5;
   color: white;
-  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 61, 165, 0.15);
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 61, 165, 0.15);
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -8395,6 +8394,52 @@ function renderHeader() {
   color: white;
 }
 
+.reschedule-reason {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-top: 1px solid #eaeaea;
+  background-color: #fafafa;
+}
+.reschedule-reason label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+}
+.reschedule-reason textarea {
+  resize: vertical;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 10px 10px 0px 10px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  min-height: 60px;
+  transition: border 0.2s ease;
+}
+.reschedule-reason textarea:focus {
+  border: 2px solid #003da5;
+  outline: none;
+}
+.error-message {
+  color: #003da5;
+  font-size: 13px;
+  margin-top: 4px;
+  display: none;
+}
+
+.appointment-date {
+  display: flex;
+  align-items: center; 
+  height: 24px;
+  font-size: 16px;
+  color: #7b7b7b;
+  margin: 3px 0;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+/* IMPROVED MOBILE RESPONSIVE STYLES */
 @media (max-width: 768px) {
   .calendar-body {
     flex-direction: column;
@@ -8429,6 +8474,19 @@ function renderHeader() {
   .service-name {
     font-size: 14px;
   }
+  
+  .current-date {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+  
+  /* Make calendar grid more compact */
+  .weekdays {
+    font-size: 11px;
+    padding: 10px 0 5px;
+  }
+  
+  /* Adjust animation for mobile */
   @keyframes mobileShimmer {
     0% {
       background-position: -200% 0;
@@ -8437,823 +8495,900 @@ function renderHeader() {
       background-position: 200% 0;
     }
   }
+  
   .confirm-btn:hover:not(:disabled)::before {
     animation: mobileShimmer 2s infinite;
   }
-}
-          
-          
-          .reschedule-reason {
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            border-top: 1px solid #eaeaea;
-            background-color: #fafafa;
-          }
-          .reschedule-reason label {
-            font-size: 14px;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: #555;
-          }
-          .reschedule-reason #details {
-            resize: vertical;
-            padding: 10px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-family: inherit;
-            min-height: 60px;
-          }
-          .reschedule-reason #details:focus {
-            border: 2px solid ${highlightColor};
-            outline: none;
-          }
-          .error-message {
-            color: ${highlightColor};
-            font-size: 13px;
-            margin-top: 4px;
-            display: none;
-          }
-		  
-    #details {
-      resize: vertical;
-      min-height: 100px;
-      max-height: 200px;
-    }
-          
-
-
-.appointment-date {
-  display: flex;
-  align-items: center; 
-  height: 24px;
-  font-size: 16px;
-  color: #7b7b7b;
-  margin: 3px 0;
-  line-height: 24px;
-  font-weight: 500;
-}
-
-
-
-        `;
-        shadow.appendChild(style);
-
-        // ---------------------
-        // API CALL FUNCTIONS
-        // ---------------------
-        async function fetchWorkingDays() {
-          if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
-          try {
-            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
-              method: "GET",
-              headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "cal-api-version": "2024-06-11",
-                "Content-Type": "application/json"
-              }
-            });
-            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-            const data = await res.json();
-            console.log("Schedule data:", data);
-            const availability = data.data?.availability || [];
-            const dayNameToNumber = {
-              "Sunday": 0,
-              "Monday": 1,
-              "Tuesday": 2,
-              "Wednesday": 3,
-              "Thursday": 4,
-              "Friday": 5,
-              "Saturday": 6
-            };
-            const workingDaysSet = new Set();
-            availability.forEach(item => {
-              if (Array.isArray(item.days)) {
-                item.days.forEach(dayName => {
-                  const dayNum = dayNameToNumber[dayName];
-                  if (dayNum !== undefined) {
-                    workingDaysSet.add(dayNum);
-                  }
-                });
-              }
-            });
-            return Array.from(workingDaysSet);
-          } catch (err) {
-            console.error("Error fetching schedule:", err);
-            return [1, 2, 3, 4, 5];
-          }
-        }
-
-        async function fetchAvailableSlots(selectedDateISO) {
-          const start = new Date(selectedDateISO);
-          start.setUTCHours(0, 0, 0, 0);
-          const end = new Date(selectedDateISO);
-          end.setUTCHours(23, 59, 59, 999);
-          const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
-          try {
-            const res = await fetch(url, {
-              method: 'GET',
-              headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "cal-api-version": "2024-08-13",
-                "Content-Type": "application/json"
-              }
-            });
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            const responseBody = await res.json();
-            console.log("Available slots API response:", responseBody);
-            if (!responseBody || typeof responseBody !== 'object') {
-              throw new Error("Invalid or missing response body from the API");
-            }
-            if (responseBody.status !== "success") {
-              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            const slotsObj = responseBody.data?.slots || {};
-            const slotsForDate = slotsObj[selectedDateISO] || [];
-            return slotsForDate.map(slot => slot.time);
-          } catch (err) {
-            console.error("Error fetching available slots:", err);
-            return [];
-          }
-        }
-
-        // New function for rescheduling a booking using the UID.
-        async function rescheduleBooking(startTimeISO, reason) {
-          const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
-          const body = {
-            rescheduledBy: email,
-            reschedulingReason: reason,
-            start: startTimeISO
-          };
-          try {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "cal-api-version": "2024-08-13",
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(body)
-            });
-            if (!res.ok) {
-              throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
-            }
-            const responseBody = await res.json();
-            if (responseBody.status && responseBody.status !== "success") {
-              throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            return responseBody;
-          } catch (err) {
-            console.error("Error rescheduling booking:", err);
-            throw err;
-          }
-        }
-        
-
-// Then add this function to format the date and time
-function formatAppointmentDate(dateTimeString, language) {
-  const date = new Date(dateTimeString);
   
-  // Format date with weekday, day, month, year
-  const formatOptions = { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit'
-  };
-  
-  let locale = language === 'fr' ? 'fr-FR' : 'en-US';
-  const formatter = new Intl.DateTimeFormat(locale, formatOptions);
-  let formattedDate = formatter.format(date);
-  
-  // Replace the comma or add "at"/"à" between date and time
-  if (language === 'fr') {
-    formattedDate = formattedDate.replace(' à ', ' à ');
-  } else {
-    formattedDate = formattedDate.replace(' at ', ' at ');
+  /* Better touch targets for mobile */
+  .time-slot {
+    padding: 12px 8px;
+    min-width: 70px;
+    margin: 0 auto;
+    width: 60%;
   }
   
-  return formattedDate;
+  /* Keep AM/PM columns side by side even on small screens */
+  .time-slots-columns {
+    gap: 10px;
+  }
+  
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
 }
 
-        // Function to show error messages to the user.
-        function showErrorMessage(message) {
-          const errorOverlay = document.createElement('div');
-          errorOverlay.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-          `;
-          
-          const errorMessage = document.createElement('div');
-          errorMessage.style.cssText = `
-            background-color: #fff0f0;
-            border: 1px solid #ffdddd;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 80%;
-          `;
-          
-          errorMessage.innerHTML = `
-            <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
-              </svg>
-            </div>
-            <p style="margin: 0; color: #333;">${message}</p>
-            <button style="margin-top: 15px; background: #003da5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
-          `;
-          
-          errorOverlay.appendChild(errorMessage);
-          calendarContainer.appendChild(errorOverlay);
-          
-          const closeButton = errorMessage.querySelector('button');
-          closeButton.addEventListener('click', () => {
-            calendarContainer.removeChild(errorOverlay);
-            if (state.selectedDate) {
-              const dateKey = formatDate(state.selectedDate);
-              fetchAvailableSlots(dateKey).then(slots => {
-                state.availableSlots[dateKey] = slots;
+/* Additional breakpoint for very small screens */
+@media (max-width: 480px) {
+  .calendar-container {
+    border-radius: 10px;
+  }
+  
+  .calendar-header {
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .day {
+    height: 35px;
+    width: 35px;
+    font-size: 12px;
+  }
+  
+  .provider-icon, .service-icon, .appointment-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .service-provider, .service-name, .appointment-date {
+    font-size: 13px;
+    height: 20px;
+    line-height: 20px;
+  }
+  
+  .time-slot {
+    padding: 10px 4px;
+    font-size: 13px;
+  }
+  
+  /* Keep AM/PM side-by-side but adjust sizes */
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
+  
+  .time-slots-columns {
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  /* Fix footer on small screens */
+  .calendar-footer {
+    padding: 12px 10px;
+  }
+  
+  .confirm-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  /* Reduce the textarea size */
+  .reschedule-reason {
+    padding: 15px 10px;
+  }
+  
+  .reschedule-reason textarea {
+    min-height: 50px;
+  }
+}
+
+/* Tap state for mobile devices */
+@media (hover: none) {
+  .day:active:not(.inactive):not(.active) {
+    background-color: #d7dbeb;
+    color: #003da5;
+    border: 2px solid #003da5;
+  }
+  
+  .time-slot.available:active:not(.selected) {
+    background-color: #d7dbeb;
+    color: #003da5;
+    border: 2px solid #003da5;
+  }
+  
+  .confirm-btn:active:not(:disabled) {
+    background: #003da5;
+    color: white;
+  }
+}
+
+#details {
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+  border-radius: 10px 10px 0px 10px;
+}
+    `;
+    shadow.appendChild(style);
+
+    // ---------------------
+    // API CALL FUNCTIONS
+    // ---------------------
+    async function fetchWorkingDays() {
+      if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+      try {
+        const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "cal-api-version": "2024-06-11",
+            "Content-Type": "application/json"
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+        console.log("Schedule data:", data);
+        const availability = data.data?.availability || [];
+        const dayNameToNumber = {
+          "Sunday": 0,
+          "Monday": 1,
+          "Tuesday": 2,
+          "Wednesday": 3,
+          "Thursday": 4,
+          "Friday": 5,
+          "Saturday": 6
+        };
+        const workingDaysSet = new Set();
+        availability.forEach(item => {
+          if (Array.isArray(item.days)) {
+            item.days.forEach(dayName => {
+              const dayNum = dayNameToNumber[dayName];
+              if (dayNum !== undefined) {
+                workingDaysSet.add(dayNum);
+              }
+            });
+          }
+        });
+        return Array.from(workingDaysSet);
+      } catch (err) {
+        console.error("Error fetching schedule:", err);
+        return [1, 2, 3, 4, 5];
+      }
+    }
+
+    async function fetchAvailableSlots(selectedDateISO) {
+      const start = new Date(selectedDateISO);
+      start.setUTCHours(0, 0, 0, 0);
+      const end = new Date(selectedDateISO);
+      end.setUTCHours(23, 59, 59, 999);
+      const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+      try {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "cal-api-version": "2024-08-13",
+            "Content-Type": "application/json"
+          }
+        });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const responseBody = await res.json();
+        console.log("Available slots API response:", responseBody);
+        if (!responseBody || typeof responseBody !== 'object') {
+          throw new Error("Invalid or missing response body from the API");
+        }
+        if (responseBody.status !== "success") {
+          throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+        }
+        const slotsObj = responseBody.data?.slots || {};
+        const slotsForDate = slotsObj[selectedDateISO] || [];
+        return slotsForDate.map(slot => slot.time);
+      } catch (err) {
+        console.error("Error fetching available slots:", err);
+        return [];
+      }
+    }
+
+    // New function for rescheduling a booking using the UID.
+    async function rescheduleBooking(startTimeISO, reason) {
+      try {
+        const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
+        const body = {
+          rescheduledBy: email,
+          reschedulingReason: reason,
+          start: startTimeISO
+        };
+        
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "cal-api-version": "2024-08-13",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+        }
+        
+        const responseBody = await res.json();
+        if (responseBody.status && responseBody.status !== "success") {
+          throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+        }
+        
+        return responseBody;
+      } catch (err) {
+        console.error("Error rescheduling booking:", err);
+        throw err;
+      }
+    }
+
+    // Then add this function to format the date and time
+    function formatAppointmentDate(dateTimeString, language) {
+      const date = new Date(dateTimeString);
+      
+      // Format date with weekday, day, month, year
+      const formatOptions = { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      };
+      
+      let locale = language === 'fr' ? 'fr-FR' : 'en-US';
+      const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+      let formattedDate = formatter.format(date);
+      
+      // Replace the comma or add "at"/"à" between date and time
+      if (language === 'fr') {
+        formattedDate = formattedDate.replace(' à ', ' à ');
+      } else {
+        formattedDate = formattedDate.replace(' at ', ' at ');
+      }
+      
+      return formattedDate;
+    }
+
+    // Function to show error messages to the user.
+    function showErrorMessage(message) {
+      const errorOverlay = document.createElement('div');
+      errorOverlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      `;
+      
+      const errorMessage = document.createElement('div');
+      errorMessage.style.cssText = `
+        background-color: #fff0f0;
+        border: 1px solid #ffdddd;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 80%;
+      `;
+      
+      errorMessage.innerHTML = `
+        <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+          </svg>
+        </div>
+        <p style="margin: 0; color: #333;">${message}</p>
+                    <button style="margin-top: 15px; background: #003da5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
+      `;
+      
+      errorOverlay.appendChild(errorMessage);
+      calendarContainer.appendChild(errorOverlay);
+      
+      const closeButton = errorMessage.querySelector('button');
+      closeButton.addEventListener('click', () => {
+        calendarContainer.removeChild(errorOverlay);
+        if (state.selectedDate) {
+          const dateKey = formatDate(state.selectedDate);
+          fetchAvailableSlots(dateKey).then(slots => {
+            state.availableSlots[dateKey] = slots;
+            renderCalendar();
+          });
+        }
+      });
+    }
+
+    // ---------------------
+    // EXTENSION INTERNAL STATE
+    // ---------------------
+    const state = {
+      currentDate: new Date(),
+      selectedDate: selectedDate ? new Date(selectedDate) : null,
+      selectedTime: selectedTime || null,
+      availableSlots: {},
+      workingDays: await fetchWorkingDays(),
+      isConfirmed: false,
+      language: language || 'en',
+      reason: "",
+      isLoading: false
+    };
+
+    const translations = {
+      en: {
+        selectDateAndTime: "Select Date & Time",
+        selectDate: "Select a date to view available times",
+        pleaseSelectDate: "Please select a date first",
+        availableTimesFor: "Available times for",
+        noAvailableSlots: "No available time slots for this date",
+        confirmReschedule: "Confirm Reschedule",
+        rescheduleConfirmed: "Reschedule Confirmed",
+        weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        reasonLabel: "Reason for rescheduling",
+        pleaseProvideReason: "Please provide a reason for rescheduling",
+        loading: "Processing..."
+      },
+      fr: {
+        selectDateAndTime: "Sélectionner Date & Heure",
+        selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+        pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+        availableTimesFor: "Horaires disponibles pour",
+        noAvailableSlots: "Aucun horaire disponible pour cette date",
+        confirmReschedule: "Replanifier le rendez-vous",
+        rescheduleConfirmed: "Rendez-vous replanifié",
+        weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+        reasonLabel: "Raison de la replanification",
+        pleaseProvideReason: "Veuillez fournir une raison pour la replanification",
+        loading: "Traitement en cours..."
+      }
+    };
+
+    function getDefaultActiveDay() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (state.workingDays.includes(today.getDay())) {
+        return today;
+      }
+      const next = new Date(today);
+      while (!state.workingDays.includes(next.getDay())) {
+        next.setDate(next.getDate() + 1);
+      }
+      return next;
+    }
+
+    function getText(key) {
+      const lang = translations[state.language] ? state.language : 'en';
+      return translations[lang][key] || key;
+    }
+
+    function formatDate(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function isSameDay(date1, date2) {
+      if (!date1 || !date2) return false;
+      return formatDate(date1) === formatDate(date2);
+    }
+
+    function isToday(date) {
+      const now = new Date();
+      return isSameDay(date, now);
+    }
+
+    if (!state.selectedDate) {
+      const defaultDay = getDefaultActiveDay();
+      state.selectedDate = defaultDay;
+      const dayKey = formatDate(defaultDay);
+      const defaultSlots = await fetchAvailableSlots(dayKey);
+      state.availableSlots[dayKey] = defaultSlots;
+    }
+
+    function renderHeader() {
+      const header = document.createElement("div");
+      header.className = "calendar-header";
+      const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
+      
+      // Create calendar title with provider and service info
+      const calendarTitle = document.createElement("div");
+      calendarTitle.className = "calendar-title";
+      
+      // Provider and service information section
+      const titleContent = document.createElement("div");
+      titleContent.className = "calendar-title-content";
+      
+      const providerDiv = document.createElement("div");
+      providerDiv.className = "service-provider";
+      providerDiv.innerHTML = `
+        <span class="provider-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
+          <path fill="#003da5" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+        </span>
+        <span>${agentName}</span>
+      `;
+      
+      const appointmentDateDiv = document.createElement("div");
+      appointmentDateDiv.className = "appointment-date";
+      
+      // Add calendar icon
+      const dateIcon = document.createElement("span");
+      dateIcon.className = "appointment-icon";
+      dateIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+          <path fill="#7b7b7b" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+        </svg>
+      `;
+      
+      // Add the formatted date text
+      const dateTextSpan = document.createElement("span");
+      dateTextSpan.textContent = formatAppointmentDate(startTime, language);
+      
+      // Append both to the appointment div
+      appointmentDateDiv.appendChild(dateIcon);
+      appointmentDateDiv.appendChild(dateTextSpan);
+      
+      // Add to title content
+      titleContent.appendChild(providerDiv);
+      titleContent.appendChild(appointmentDateDiv);
+      
+      calendarTitle.appendChild(titleContent);
+      
+      // Calendar navigation section
+      const calendarNav = document.createElement("div");
+      calendarNav.className = "calendar-nav";
+      
+      const currentDateEl = document.createElement("div");
+      currentDateEl.className = "current-date";
+      currentDateEl.textContent = dateFormatter.format(state.currentDate);
+      
+      const prevBtn = document.createElement("button");
+      prevBtn.className = "nav-btn prev-btn";
+      prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+      prevBtn.addEventListener("click", () => {
+        if (!state.isConfirmed) {
+          state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+          renderCalendar();
+        }
+      });
+      
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "nav-btn next-btn";
+      nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+      nextBtn.addEventListener("click", () => {
+        if (!state.isConfirmed) {
+          state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+          renderCalendar();
+        }
+      });
+      
+      calendarNav.appendChild(prevBtn);
+      calendarNav.appendChild(currentDateEl);
+      calendarNav.appendChild(nextBtn);
+      
+      header.appendChild(calendarTitle);
+      header.appendChild(calendarNav);
+      
+      return header;
+    }
+    
+    async function renderCalendarDays() {
+      const daysContainer = document.createElement("div");
+      daysContainer.className = "days-container";
+      const weekdaysDiv = document.createElement("div");
+      weekdaysDiv.className = "weekdays";
+      const weekdays = getText('weekdays');
+      weekdays.forEach(day => {
+        const dayEl = document.createElement("div");
+        dayEl.textContent = day;
+        weekdaysDiv.appendChild(dayEl);
+      });
+      daysContainer.appendChild(weekdaysDiv);
+      const daysDiv = document.createElement("div");
+      daysDiv.className = "days";
+      let daysToShow = [];
+      const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
+      const daysFromPrevMonth = firstDay.getDay();
+      const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
+      const totalDays = lastDay.getDate();
+      for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+        const day = new Date(firstDay);
+        day.setDate(day.getDate() - i - 1);
+        daysToShow.push({ date: day, inactive: true });
+      }
+      for (let i = 1; i <= totalDays; i++) {
+        const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
+        daysToShow.push({ date: day, inactive: false });
+      }
+      const remainingDays = 42 - daysToShow.length;
+      for (let i = 1; i <= remainingDays; i++) {
+        const day = new Date(lastDay);
+        day.setDate(day.getDate() + i);
+        daysToShow.push({ date: day, inactive: true });
+      }
+      const highlightDay = state.selectedDate || getDefaultActiveDay();
+      daysToShow.forEach(({ date, inactive }) => {
+        const dayEl = document.createElement("div");
+        dayEl.className = "day";
+        dayEl.textContent = date.getDate();
+        if (inactive) {
+          dayEl.classList.add("inactive");
+        } else {
+          const dayOfWeek = date.getDay();
+          if (!state.workingDays.includes(dayOfWeek)) {
+            dayEl.classList.add("inactive");
+          } else {
+            const todayMidnight = new Date();
+            todayMidnight.setHours(0, 0, 0, 0);
+            if (date < todayMidnight) {
+              dayEl.classList.add("inactive");
+            } else {
+              if (formatDate(date) === formatDate(highlightDay)) {
+                dayEl.classList.add("today");
+              }
+              if (state.selectedDate && isSameDay(date, state.selectedDate)) {
+                dayEl.classList.add("active");
+              }
+              dayEl.classList.add("available");
+              dayEl.addEventListener("click", async () => {
+                state.selectedDate = new Date(date);
+                state.selectedTime = null;
+                const slots = await fetchAvailableSlots(formatDate(date));
+                state.availableSlots[formatDate(date)] = slots;
                 renderCalendar();
               });
             }
-          });
-        }
-
-        // ---------------------
-        // EXTENSION INTERNAL STATE
-        // ---------------------
-        const state = {
-          currentDate: new Date(),
-          selectedDate: selectedDate ? new Date(selectedDate) : null,
-          selectedTime: selectedTime || null,
-          availableSlots: {},
-          workingDays: await fetchWorkingDays(),
-          isConfirmed: false,
-          language: language || 'en',
-          reason: "",
-          isLoading: false
-        };
-
-        const translations = {
-          en: {
-            selectDateAndTime: "Select Date & Time",
-            selectDate: "Select a date to view available times",
-            pleaseSelectDate: "Please select a date first",
-            availableTimesFor: "Available times for",
-            noAvailableSlots: "No available time slots for this date",
-            confirmReschedule: "Confirm Reschedule",
-            rescheduleConfirmed: "Reschedule Confirmed",
-            weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-            reasonLabel: "Reason for rescheduling",
-            pleaseProvideReason: "Please provide a reason for rescheduling",
-            loading: "Processing..."
-          },
-          fr: {
-            selectDateAndTime: "Sélectionner Date & Heure",
-            selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-            pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-            availableTimesFor: "Horaires disponibles pour",
-            noAvailableSlots: "Aucun horaire disponible pour cette date",
-            confirmReschedule: "Replanifier le rendez-vous",
-            rescheduleConfirmed: "Rendez-vous replanifié",
-            weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-            reasonLabel: "Raison de la replanification",
-            pleaseProvideReason: "Veuillez fournir une raison pour la replanification",
-            loading: "Traitement en cours..."
           }
-        };
-
-        function getDefaultActiveDay() {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          if (state.workingDays.includes(today.getDay())) {
-            return today;
-          }
-          const next = new Date(today);
-          while (!state.workingDays.includes(next.getDay())) {
-            next.setDate(next.getDate() + 1);
-          }
-          return next;
         }
-
-        function getText(key) {
-          const lang = translations[state.language] ? state.language : 'en';
-          return translations[lang][key] || key;
-        }
-
-        function formatDate(date) {
-          const d = new Date(date);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-
-        function isSameDay(date1, date2) {
-          if (!date1 || !date2) return false;
-          return formatDate(date1) === formatDate(date2);
-        }
-
-        function isToday(date) {
-          const now = new Date();
-          return isSameDay(date, now);
-        }
-
-        if (!state.selectedDate) {
-          const defaultDay = getDefaultActiveDay();
-          state.selectedDate = defaultDay;
-          const dayKey = formatDate(defaultDay);
-          const defaultSlots = await fetchAvailableSlots(dayKey);
-          state.availableSlots[dayKey] = defaultSlots;
-        }
-
-function renderHeader() {
-  const header = document.createElement("div");
-  header.className = "calendar-header";
-  const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
-  
-  // Create calendar title with provider and service info
-  const calendarTitle = document.createElement("div");
-  calendarTitle.className = "calendar-title";
-  
-  // Provider and service information section
-  const titleContent = document.createElement("div");
-  titleContent.className = "calendar-title-content";
-  
-  const providerDiv = document.createElement("div");
-  providerDiv.className = "service-provider";
-  providerDiv.innerHTML = `
-    <span class="provider-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-      <path fill="#003da5" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
-      </svg>
-    </span>
-    <span>${agentName}</span>
-  `;
-  
-
-
-  const appointmentDateDiv = document.createElement("div");
-  appointmentDateDiv.className = "appointment-date";
-  
-  // Add calendar icon - using a different fullName here to avoid conflict
-  const dateIcon = document.createElement("span");
-  dateIcon.className = "appointment-icon";
-  dateIcon.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-      <path fill="#7b7b7b" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
-    </svg>
-  `;
-  
-  // Add the formatted date text
-  const dateTextSpan = document.createElement("span");
-  dateTextSpan.textContent = formatAppointmentDate(startTime, language);
-  
-  // Append both to the appointment div
-  appointmentDateDiv.appendChild(dateIcon);
-  appointmentDateDiv.appendChild(dateTextSpan);
-  
-  // Add to title content
-  titleContent.appendChild(providerDiv);
-  titleContent.appendChild(appointmentDateDiv);
-  
-  calendarTitle.appendChild(titleContent);
-  
-  // Calendar navigation section (remains unchanged)
-  const calendarNav = document.createElement("div");
-  calendarNav.className = "calendar-nav";
-  const currentDateEl = document.createElement("div");
-  currentDateEl.className = "current-date";
-  currentDateEl.textContent = dateFormatter.format(state.currentDate);
-  currentDateEl.style.cssText = "background: #d7dbeb; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
-  
-  const prevBtn = document.createElement("button");
-  prevBtn.className = "nav-btn prev-btn";
-  prevBtn.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
-  prevBtn.addEventListener("click", () => {
-    if (!state.isConfirmed) {
-      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
-      renderCalendar();
+        daysDiv.appendChild(dayEl);
+      });
+      daysContainer.appendChild(daysDiv);
+      return daysContainer;
     }
-  });
-  
-  const nextBtn = document.createElement("button");
-  nextBtn.className = "nav-btn next-btn";
-  nextBtn.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
-  nextBtn.addEventListener("click", () => {
-    if (!state.isConfirmed) {
-      state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
-      renderCalendar();
-    }
-  });
-  
-  calendarNav.appendChild(currentDateEl);
-  calendarNav.appendChild(prevBtn);
-  calendarNav.appendChild(nextBtn);
-  
-  header.appendChild(calendarTitle);
-  header.appendChild(calendarNav);
-  
-  return header;
-}
-   
-        async function renderCalendarDays() {
-          const daysContainer = document.createElement("div");
-          daysContainer.className = "days-container";
-          const weekdaysDiv = document.createElement("div");
-          weekdaysDiv.className = "weekdays";
-          const weekdays = getText('weekdays');
-          weekdays.forEach(day => {
-            const dayEl = document.createElement("div");
-            dayEl.textContent = day;
-            weekdaysDiv.appendChild(dayEl);
-          });
-          daysContainer.appendChild(weekdaysDiv);
-          const daysDiv = document.createElement("div");
-          daysDiv.className = "days";
-          let daysToShow = [];
-          const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
-          const daysFromPrevMonth = firstDay.getDay();
-          const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
-          const totalDays = lastDay.getDate();
-          for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
-            const day = new Date(firstDay);
-            day.setDate(day.getDate() - i - 1);
-            daysToShow.push({ date: day, inactive: true });
-          }
-          for (let i = 1; i <= totalDays; i++) {
-            const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
-            daysToShow.push({ date: day, inactive: false });
-          }
-          const remainingDays = 42 - daysToShow.length;
-          for (let i = 1; i <= remainingDays; i++) {
-            const day = new Date(lastDay);
-            day.setDate(day.getDate() + i);
-            daysToShow.push({ date: day, inactive: true });
-          }
-          const highlightDay = state.selectedDate || getDefaultActiveDay();
-          daysToShow.forEach(({ date, inactive }) => {
-            const dayEl = document.createElement("div");
-            dayEl.className = "day";
-            dayEl.textContent = date.getDate();
-            if (inactive) {
-              dayEl.classList.add("inactive");
-            } else {
-              const dayOfWeek = date.getDay();
-              if (!state.workingDays.includes(dayOfWeek)) {
-                dayEl.classList.add("inactive");
-              } else {
-                const todayMidnight = new Date();
-                todayMidnight.setHours(0, 0, 0, 0);
-                if (date < todayMidnight) {
-                  dayEl.classList.add("inactive");
-                } else {
-                  if (formatDate(date) === formatDate(highlightDay)) {
-                    dayEl.classList.add("today");
-                  }
-                  if (state.selectedDate && isSameDay(date, state.selectedDate)) {
-                    dayEl.classList.add("active");
-                  }
-                  dayEl.classList.add("available");
-                  dayEl.addEventListener("click", async () => {
-                    state.selectedDate = new Date(date);
-                    state.selectedTime = null;
-                    const slots = await fetchAvailableSlots(formatDate(date));
-                    state.availableSlots[formatDate(date)] = slots;
-                    renderCalendar();
-                  });
-                }
-              }
-            }
-            daysDiv.appendChild(dayEl);
-          });
-          daysContainer.appendChild(daysDiv);
-          return daysContainer;
-        }
 
-        async function renderTimeSlots() {
-          const timesContainer = document.createElement("div");
-          timesContainer.className = "times-container";
-          const timeHeader = document.createElement("div");
-          timeHeader.className = "time-header";
-          if (state.selectedDate) {
-            const dateFormatter = new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' });
-            timeHeader.textContent = `${getText('availableTimesFor')} ${dateFormatter.format(state.selectedDate)}`;
-          } else {
-            timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText('selectDate')}</span>`;
-          }
-          timesContainer.appendChild(timeHeader);
-          const timeSlotsDiv = document.createElement("div");
-          timeSlotsDiv.className = "time-slots";
-          if (state.selectedDate) {
-            const dateKey = formatDate(state.selectedDate);
-            const timeSlots = state.availableSlots[dateKey] || [];
-            if (timeSlots.length === 0) {
-              const noSlots = document.createElement("div");
-              noSlots.textContent = getText('noAvailableSlots');
-              noSlots.style.textAlign = "center";
-              noSlots.style.padding = "20px 0";
-              noSlots.style.color = "#666";
-              timeSlotsDiv.appendChild(noSlots);
-            } else {
-              const columnsContainer = document.createElement("div");
-              columnsContainer.className = "time-slots-columns";
-              const amColumn = document.createElement("div");
-              amColumn.className = "time-slots-column";
-              const pmColumn = document.createElement("div");
-              pmColumn.className = "time-slots-column";
-              const amHeader = document.createElement("div");
-              amHeader.textContent = "AM";
-              amHeader.style.fontWeight = "bold";
-              amHeader.style.marginBottom = "5px";
-              amColumn.appendChild(amHeader);
-              const pmHeader = document.createElement("div");
-              pmHeader.textContent = "PM";
-              pmHeader.style.fontWeight = "bold";
-              pmHeader.style.marginBottom = "5px";
-              pmColumn.appendChild(pmHeader);
-              timeSlots.forEach((timeISO, index) => {
-                const dateTime = new Date(timeISO);
-                const hours = dateTime.getHours();
-                const timeSlot = document.createElement("div");
-                timeSlot.className = "time-slot available";
-                timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
-                if (state.selectedTime === timeISO) {
-                  timeSlot.classList.add("selected");
-                }
-                const timeFormatter = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
-                timeSlot.textContent = timeFormatter.format(dateTime);
-                timeSlot.addEventListener("click", () => {
-                  if (!state.isConfirmed) {
-                    state.selectedTime = timeISO;
-                    renderCalendar();
-                  }
-                });
-                if (hours < 12) {
-                  amColumn.appendChild(timeSlot);
-                } else {
-                  pmColumn.appendChild(timeSlot);
-                }
-              });
-              columnsContainer.appendChild(amColumn);
-              columnsContainer.appendChild(pmColumn);
-              timeSlotsDiv.appendChild(columnsContainer);
+    async function renderTimeSlots() {
+      const timesContainer = document.createElement("div");
+      timesContainer.className = "times-container";
+      const timeHeader = document.createElement("div");
+      timeHeader.className = "time-header";
+      if (state.selectedDate) {
+        const dateFormatter = new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+        timeHeader.textContent = `${getText('availableTimesFor')} ${dateFormatter.format(state.selectedDate)}`;
+      } else {
+        timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText('selectDate')}</span>`;
+      }
+      timesContainer.appendChild(timeHeader);
+      const timeSlotsDiv = document.createElement("div");
+      timeSlotsDiv.className = "time-slots";
+      if (state.selectedDate) {
+        const dateKey = formatDate(state.selectedDate);
+        const timeSlots = state.availableSlots[dateKey] || [];
+        if (timeSlots.length === 0) {
+          const noSlots = document.createElement("div");
+          noSlots.textContent = getText('noAvailableSlots');
+          noSlots.style.textAlign = "center";
+          noSlots.style.padding = "20px 0";
+          noSlots.style.color = "#666";
+          timeSlotsDiv.appendChild(noSlots);
+        } else {
+          const columnsContainer = document.createElement("div");
+          columnsContainer.className = "time-slots-columns";
+          const amColumn = document.createElement("div");
+          amColumn.className = "time-slots-column";
+          const pmColumn = document.createElement("div");
+          pmColumn.className = "time-slots-column";
+          const amHeader = document.createElement("div");
+          amHeader.textContent = "AM";
+          amHeader.style.fontWeight = "bold";
+          amHeader.style.marginBottom = "5px";
+          amColumn.appendChild(amHeader);
+          const pmHeader = document.createElement("div");
+          pmHeader.textContent = "PM";
+          pmHeader.style.fontWeight = "bold";
+          pmHeader.style.marginBottom = "5px";
+          pmColumn.appendChild(pmHeader);
+          timeSlots.forEach((timeISO, index) => {
+            const dateTime = new Date(timeISO);
+            const hours = dateTime.getHours();
+            const timeSlot = document.createElement("div");
+            timeSlot.className = "time-slot available";
+            timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
+            if (state.selectedTime === timeISO) {
+              timeSlot.classList.add("selected");
             }
-          } else {
-            const noDate = document.createElement("div");
-            noDate.textContent = getText('pleaseSelectDate');
-            noDate.style.textAlign = "center";
-            noDate.style.padding = "20px 0";
-            noDate.style.color = "#666";
-            timeSlotsDiv.appendChild(noDate);
-          }
-          timesContainer.appendChild(timeSlotsDiv);
-          return timesContainer;
-        }
-
-        function renderReasonSection() {
-          const reasonDiv = document.createElement("div");
-          reasonDiv.className = "reschedule-reason";
-          
-          const reasonLabel = document.createElement("label");
-          reasonLabel.textContent = getText('reasonLabel');
-          reasonDiv.appendChild(reasonLabel);
-          
-          const textarea = document.createElement("textarea");
-		  
-		  textarea.id = "details";
-          textarea.placeholder = (language === 'fr')
-            ? "Pourquoi souhaitez-vous replanifier ce rendez-vous?"
-            : "Why do you want to reschedule this appointment?";
-          if (state.isConfirmed) {
-            textarea.disabled = true;
-          }
-          textarea.addEventListener("input", (e) => { 
-            state.reason = e.target.value; 
-            const errorMessage = shadow.querySelector(".error-message");
-            if (errorMessage) {
-              errorMessage.style.display = "none";
-              textarea.style.borderColor = "#ccc";
-            }
-          });
-          reasonDiv.appendChild(textarea);
-          
-          const errorMessage = document.createElement("div");
-          errorMessage.className = "error-message";
-          errorMessage.textContent = getText('pleaseProvideReason');
-          errorMessage.style.display = "none";
-          reasonDiv.appendChild(errorMessage);
-          
-          return reasonDiv;
-        }
-
-        function renderFooter() {
-          const footer = document.createElement("div");
-          footer.className = "calendar-footer";
-          const confirmBtn = document.createElement("button");
-          confirmBtn.className = "action-btn confirm-btn";
-          
-          if (state.isConfirmed) {
-            const isEnglish = locale === "en-US";
-            confirmBtn.textContent = isEnglish ? "Rescheduled ✓" : "Replanifiée ✓";
-            confirmBtn.style.backgroundImage = "none";
-            confirmBtn.style.backgroundColor = "#4CAF50";
-            confirmBtn.style.color = "white";
-            confirmBtn.disabled = true;
-          } else {
-            confirmBtn.textContent = getText('confirmReschedule');
-            confirmBtn.disabled = !state.selectedDate || !state.selectedTime || state.isLoading;
-            
-            confirmBtn.addEventListener("click", async () => {
-              if (state.isConfirmed) return;
-              
-              const reasonText = state.reason.trim();
-              if (!reasonText) {
-                const textarea = shadow.querySelector(".reschedule-reason textarea");
-                const errorMessage = shadow.querySelector(".error-message");
-                errorMessage.style.display = "block";
-                textarea.style.borderColor = highlightColor;
-                return;
-              }
-              
-              // Show loading state
-              confirmBtn.disabled = true;
-              confirmBtn.textContent = getText('loading');
-              state.isLoading = true;
-              
-              try {
-                // 1. First completes the rescheduling with Cal.com
-                const rescheduleResponse = await rescheduleBooking(state.selectedTime, reasonText);
-                
-                if (rescheduleResponse) {
-                  // 2. Then updates the UI to show confirmation
-                  state.isConfirmed = true;
-                  renderCalendar();
-                  
-                  // 3. Finally shows the success animation
-                  const successOverlay = document.createElement('div');
-                  successOverlay.style.cssText = `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(156, 39, 176, 0.05);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                    opacity: 0;
-                    transition: opacity 0.5s;
-                    pointer-events: none;
-                  `;
-                  
-                  const successMessage = document.createElement('div');
-                  successMessage.style.cssText = `
-                    background-color: white;
-                    border-radius: 15px;
-                    padding: 20px 30px;
-                    box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
-                    text-align: center;
-                    transform: translateY(20px);
-                    transition: transform 0.5s, opacity 0.5s;
-                    opacity: 0;
-                  `;
-                  
-                  const checkmark = document.createElement('div');
-                  checkmark.innerHTML = `
-                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="30" cy="30" r="30" fill="#d7dbeb"/>
-                      <path d="M20 30L27 37L40 23" stroke="#003da5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  `;
-                  
-                  successMessage.appendChild(checkmark);
-                  const successText = document.createElement('p');
-                  successText.textContent = getText('rescheduleConfirmed') + '!';
-                  successText.style.cssText = `
-                    font-size: 18px;
-                    font-weight: 600;
-                    margin-top: 15px;
-                    color: #003da5;
-                  `;
-                  successMessage.appendChild(successText);
-                  successOverlay.appendChild(successMessage);
-                  calendarContainer.appendChild(successOverlay);
-                  
-                  // Animation sequence
-                  setTimeout(() => {
-                    successOverlay.style.opacity = '1';
-                    successMessage.style.opacity = '1';
-                    successMessage.style.transform = 'translateY(0)';
-                    
-                    setTimeout(() => {
-                      // Start hiding animation
-                      successOverlay.style.opacity = '0';
-                      successMessage.style.opacity = '0';
-                      successMessage.style.transform = 'translateY(-20px)';
-                      
-                      setTimeout(() => {
-                        // Remove overlay after animation completes
-                        calendarContainer.removeChild(successOverlay);
-                        
-                        // 4. FINALLY - Send data to Voiceflow (LAST STEP)
-                        const dateStr = formatDate(state.selectedDate);
-                        const timeFormatter = new Intl.DateTimeFormat(locale, { 
-                          hour: 'numeric', 
-                          minute: '2-digit', 
-                          hour12: true 
-                        });
-                        const formattedTime = timeFormatter.format(new Date(state.selectedTime));
-                        
-                        window.voiceflow.chat.interact({
-                          type: "complete",
-                          payload: { 
-                            email,
-                            date: dateStr,
-                            time: state.selectedTime,
-                            formattedDate: new Intl.DateTimeFormat(locale, { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            }).format(state.selectedDate),
-                            formattedTime: formattedTime,
-                            reschedulingReason: reasonText,
-                            uid: uid
-                          },
-                        });
-                        
-                      }, 500); // End of hide animation
-                    }, 2500); // Show duration before hiding
-                  }, 100); // Start of show animation
-                }
-              } catch (err) {
-                console.error("Rescheduling error:", err);
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = getText("confirmReschedule");
-                state.isLoading = false;
-                showErrorMessage(err.message || "Unable to complete rescheduling. Please try again.");
+            const timeFormatter = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
+            timeSlot.textContent = timeFormatter.format(dateTime);
+            timeSlot.addEventListener("click", () => {
+              if (!state.isConfirmed) {
+                state.selectedTime = timeISO;
+                renderCalendar();
               }
             });
+            if (hours < 12) {
+              amColumn.appendChild(timeSlot);
+            } else {
+              pmColumn.appendChild(timeSlot);
+            }
+          });
+          columnsContainer.appendChild(amColumn);
+          columnsContainer.appendChild(pmColumn);
+          timeSlotsDiv.appendChild(columnsContainer);
+        }
+      } else {
+        const noDate = document.createElement("div");
+        noDate.textContent = getText('pleaseSelectDate');
+        noDate.style.textAlign = "center";
+        noDate.style.padding = "20px 0";
+        noDate.style.color = "#666";
+        timeSlotsDiv.appendChild(noDate);
+      }
+      timesContainer.appendChild(timeSlotsDiv);
+      return timesContainer;
+    }
+
+    function renderReasonSection() {
+      const reasonDiv = document.createElement("div");
+      reasonDiv.className = "reschedule-reason";
+      
+      const reasonLabel = document.createElement("label");
+      reasonLabel.textContent = getText('reasonLabel');
+      reasonDiv.appendChild(reasonLabel);
+      
+      const textarea = document.createElement("textarea");
+      textarea.id = "details";
+      textarea.placeholder = (language === 'fr')
+        ? "Pourquoi souhaitez-vous replanifier ce rendez-vous?"
+        : "Why do you want to reschedule this appointment?";
+      if (state.isConfirmed) {
+        textarea.disabled = true;
+      }
+      textarea.addEventListener("input", (e) => { 
+        state.reason = e.target.value; 
+        const errorMessage = shadow.querySelector(".error-message");
+        if (errorMessage) {
+          errorMessage.style.display = "none";
+          // We won't reset the border color here when typing
+        }
+      });
+      reasonDiv.appendChild(textarea);
+      
+      const errorMessage = document.createElement("div");
+      errorMessage.className = "error-message";
+      errorMessage.textContent = getText('pleaseProvideReason');
+      errorMessage.style.display = "none";
+      reasonDiv.appendChild(errorMessage);
+      
+      return reasonDiv;
+    }
+
+    function renderFooter() {
+      const footer = document.createElement("div");
+      footer.className = "calendar-footer";
+      const confirmBtn = document.createElement("button");
+      confirmBtn.className = "action-btn confirm-btn";
+      
+      if (state.isConfirmed) {
+        const isEnglish = locale === "en-US";
+        confirmBtn.textContent = isEnglish ? "Rescheduled ✓" : "Replanifiée ✓";
+        confirmBtn.style.backgroundImage = "none";
+        confirmBtn.style.backgroundColor = "#4CAF50";
+        confirmBtn.style.color = "white";
+        confirmBtn.disabled = true;
+      } else {
+        confirmBtn.textContent = getText('confirmReschedule');
+        confirmBtn.disabled = !state.selectedDate || !state.selectedTime || state.isLoading;
+        
+        confirmBtn.addEventListener("click", async () => {
+          if (state.isConfirmed) return;
+          
+          const reasonText = state.reason.trim();
+          if (!reasonText) {
+            const textarea = shadow.querySelector(".reschedule-reason textarea");
+            const errorMessage = shadow.querySelector(".error-message");
+            errorMessage.style.display = "block";
+            textarea.style.borderColor = highlightColor;
+            return;
           }
           
-          footer.appendChild(confirmBtn);
-          return footer;
-        }
-
-        async function renderCalendar() {
-          calendarContainer.innerHTML = '';
-          if (state.isConfirmed) {
-            calendarContainer.classList.add('confirmed');
-          } else {
-            calendarContainer.classList.remove('confirmed');
+          // Show loading state
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = getText('loading');
+          state.isLoading = true;
+          
+          try {
+            // 1. First completes the rescheduling with Cal.com
+            const rescheduleResponse = await rescheduleBooking(state.selectedTime, reasonText);
+            
+            if (rescheduleResponse) {
+              // 2. Then updates the UI to show confirmation
+              state.isConfirmed = true;
+              renderCalendar();
+              
+              // 3. Finally shows the success animation
+              const successOverlay = document.createElement('div');
+              successOverlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 61, 165, 0.05);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.5s;
+                pointer-events: none;
+              `;
+              
+              const successMessage = document.createElement('div');
+              successMessage.style.cssText = `
+                background-color: white;
+                border-radius: 15px;
+                padding: 20px 30px;
+                box-shadow: 0 10px 30px rgba(0, 61, 165, 0.15);
+                text-align: center;
+                transform: translateY(20px);
+                transition: transform 0.5s, opacity 0.5s;
+                opacity: 0;
+              `;
+              
+              const checkmark = document.createElement('div');
+              checkmark.innerHTML = `
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="30" cy="30" r="30" fill="#d7dbeb"/>
+                  <path d="M20 30L27 37L40 23" stroke="#003da5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              `;
+              
+              successMessage.appendChild(checkmark);
+              const successText = document.createElement('p');
+              successText.textContent = getText('rescheduleConfirmed') + '!';
+              successText.style.cssText = `
+                font-size: 18px;
+                font-weight: 600;
+                margin-top: 15px;
+                color: #003da5;
+              `;
+              successMessage.appendChild(successText);
+              successOverlay.appendChild(successMessage);
+              calendarContainer.appendChild(successOverlay);
+              
+              // Animation sequence
+              setTimeout(() => {
+                successOverlay.style.opacity = '1';
+                successMessage.style.opacity = '1';
+                successMessage.style.transform = 'translateY(0)';
+                
+                setTimeout(() => {
+                  // Start hiding animation
+                  successOverlay.style.opacity = '0';
+                  successMessage.style.opacity = '0';
+                  successMessage.style.transform = 'translateY(-20px)';
+                  
+                  setTimeout(() => {
+                    // Remove overlay after animation completes
+                    calendarContainer.removeChild(successOverlay);
+                    
+                    // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                    const dateStr = formatDate(state.selectedDate);
+                    const formattedDate = new Intl.DateTimeFormat(locale, { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }).format(state.selectedDate);
+                    const formattedTime = new Intl.DateTimeFormat(locale, { 
+                      hour: 'numeric', 
+                      minute: '2-digit', 
+                      hour12: true 
+                    }).format(new Date(state.selectedTime));
+                    const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+                    
+                    window.voiceflow.chat.interact({
+                      type: "complete",
+                      payload: { 
+                        email,
+                        date: dateStr,
+                        time: state.selectedTime,
+                        formattedDate,
+                        formattedTime,
+                        formattedDateTime,
+                        reschedulingReason: reasonText,
+                        uid: uid
+                      },
+                    });
+                    
+                  }, 500); // End of hide animation
+                }, 2500); // Show duration before hiding
+              }, 100); // Start of show animation
+            }
+          } catch (err) {
+            console.error("Rescheduling error:", err);
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = getText("confirmReschedule");
+            state.isLoading = false;
+            showErrorMessage(err.message || "Unable to complete rescheduling. Please try again.");
           }
-          calendarContainer.appendChild(renderHeader());
-          const calendarBody = document.createElement("div");
-          calendarBody.className = "calendar-body";
-          calendarBody.appendChild(await renderCalendarDays());
-          calendarBody.appendChild(await renderTimeSlots());
-          calendarContainer.appendChild(calendarBody);
-          calendarContainer.appendChild(renderReasonSection());
-          calendarContainer.appendChild(renderFooter());
-          shadow.innerHTML = "";
-          shadow.appendChild(style);
-          shadow.appendChild(calendarContainer);
-        }
-
-        const calendarContainer = document.createElement("div");
-        calendarContainer.className = "calendar-container";
-
-        renderCalendar();
-        element.appendChild(container);
-        window.addEventListener('resize', () => {
-          const newWidth = window.innerWidth <= 768 ? "100%" : "800px";
-          container.style.width = newWidth;
         });
       }
-    };
+      
+      footer.appendChild(confirmBtn);
+      return footer;
+    }
+
+    async function renderCalendar() {
+      calendarContainer.innerHTML = '';
+      if (state.isConfirmed) {
+        calendarContainer.classList.add('confirmed');
+      } else {
+        calendarContainer.classList.remove('confirmed');
+      }
+      calendarContainer.appendChild(renderHeader());
+      const calendarBody = document.createElement("div");
+      calendarBody.className = "calendar-body";
+      calendarBody.appendChild(await renderCalendarDays());
+      calendarBody.appendChild(await renderTimeSlots());
+      calendarContainer.appendChild(calendarBody);
+      calendarContainer.appendChild(renderReasonSection());
+      calendarContainer.appendChild(renderFooter());
+      shadow.innerHTML = "";
+      shadow.appendChild(style);
+      shadow.appendChild(calendarContainer);
+    }
+
+    const calendarContainer = document.createElement("div");
+    calendarContainer.className = "calendar-container";
+
+    renderCalendar();
+    element.appendChild(container);
+    
+    // Improved resize handler with debouncing
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+        renderCalendar();
+      }, 250);
+    });
+    
+    // Check if touch events are supported
+    const isTouchDevice = ('ontouchstart' in window) || 
+                          (navigator.maxTouchPoints > 0) || 
+                          (navigator.msMaxTouchPoints > 0);
+    
+    if (isTouchDevice) {
+      // Add touch-specific class to improve mobile experience
+      calendarContainer.classList.add('touch-device');
+    }
+  }
+};
+
+   
 
 /************** EXTENSION #13: CancellationCalendarExtension **************/
     const CancellationCalendarExtension = {
