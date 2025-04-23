@@ -6330,27 +6330,34 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
     };
 
 /************** EXTENSION #10: BookingCalendarExtension **************/
-    const BookingCalendarExtension = {
+        const BookingCalendarExtension = {
       name: 'Booking',
       type: 'response',
       match: ({ trace }) =>
         trace.type === 'ext_booking_calendar' || trace.payload?.name === 'ext_booking_calendar',
       render: async ({ trace, element }) => {
+        // Add SVG chevron constant at the top
+        const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+          <g transform="translate(75, 75)">
+            <path fill="#003da5" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+          </g>
+        </svg>`;
+        
         // --- Extract required payload values with fallbacks ---
         const {
-  fullName = "John Doe",
-  email = "john@example.com",
-  apiKey = "",
-  scheduleId = "",
-  eventTypeId = "1", 
-  eventTypeSlug = "default-event",
-  agentName, // Add this line
-  slots = {},
-  selectedDate = "", 
-  selectedTime = "",
-  language = "en",
-  timezone = "America/Toronto"
-} = trace.payload || {};
+          fullName = "John Doe",
+          email = "john@example.com",
+          apiKey = "",
+          scheduleId = "",
+          eventTypeId = "1", 
+          eventTypeSlug = "default-event",
+          agentName, // Add this line
+          slots = {},
+          selectedDate = "", 
+          selectedTime = "",
+          language = "en",
+          timezone = "America/Toronto"
+        } = trace.payload || {};
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -6395,7 +6402,6 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .calendar-container {
   font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
   border-radius: 16px;
   overflow: hidden;
   background: #ffffff;
@@ -6403,13 +6409,14 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   animation: fadeIn 0.3s ease-out forwards;
   border: 1px solid #eaeaea;
   transition: all 0.3s ease;
+  position: relative;
 }
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #faf7fc;
+  background-color: #f1f3f8;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
@@ -6445,12 +6452,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   color: #003da5;
   margin: 3px 0;
   line-height: 24px;
-}
-.service-provider, .service-name  {
   font-weight: 650;
 }
 
-.provider-icon, .service-icon {
+
+.provider-icon, .service-icon, .appointment-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6459,7 +6465,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   height: 20px;
   flex-shrink: 0;
 }
-.provider-icon svg, .service-icon svg {
+.provider-icon svg, .service-icon svg,  .appointment-icon svg{
   display: block;
   width: 100%;
   height: 100%;
@@ -6472,7 +6478,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   gap: 15px;
 }
 .nav-btn {
-  background: white;
+ background: white;
   border: none;
   cursor: pointer;
   font-size: 18px;
@@ -6488,7 +6494,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .nav-btn:hover {
   background-color: #d7dbeb;
-  box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.15);
 }
 .current-date {
   font-weight: 600;
@@ -6508,13 +6514,8 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .days-container {
   width: 47%;
-  padding: 15px 10px;
+  padding: 15px 0px;
   position: relative;
-  background-image: linear-gradient(
-      rgba(156, 39, 176, 0.03) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
   background-size: 25px 25px;
   background-position: -1px -1px;
 }
@@ -6525,7 +6526,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   left: 10%;
   right: 10%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #003da5, transparent);
+
   border-radius: 3px;
   opacity: 0.7;
 }
@@ -6536,7 +6537,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   bottom: 20px;
   width: 80px;
   height: 80px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(156, 39, 176, 0.03)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(0, 61, 165, 0.03)'/%3E%3C/svg%3E");
   opacity: 0.6;
 }
 .weekdays {
@@ -6609,7 +6610,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .day.today {
   border: 1.5px solid #003da5;
   position: relative;
-  box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 61, 165, 0.1);
 }
 .day.today::after {
   content: "";
@@ -6623,9 +6624,9 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .day.active {
   background-color: #003da5;
   color: white;
-  border-radius: 4px;
+  border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.15);
 }
 .day.active::after {
   display: none;
@@ -6638,7 +6639,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .times-container {
   width: 53%;
   border-left: 1px solid #eaeaea;
-  padding: 20px 10px;
+  padding: 20px 0px;
   overflow-y: auto;
   background-color: #fefeff;
   position: relative;
@@ -6695,15 +6696,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: rgba(156, 39, 176, 0.05);
+  background: rgba(0, 61, 165, 0.05);
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: rgba(156, 39, 176, 0.2);
+  background: rgba(0, 61, 165, 0.2);
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 39, 176, 0.3);
+  background: rgba(0, 61, 165, 0.2);
 }
 @keyframes slideIn {
   from {
@@ -6716,7 +6717,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   }
 }
 .time-slot {
-  padding: 14px;
+  padding: 14px 8px;
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
@@ -6729,6 +6730,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   overflow: hidden;
   transform-origin: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 60%;
 }
 .time-slot::before {
   content: "";
@@ -6757,7 +6759,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   border-color: #003da5;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 61, 165, 0.15);
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -6809,7 +6811,6 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   border-radius: 10px;
   padding: 12px 24px;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
   position: relative;
   overflow: hidden;
   transition: all 0.3s;
@@ -6832,13 +6833,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .confirm-btn:hover:not(:disabled) {
   background: #003da5;
   color: white;
-  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 61, 165, 0.15);
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 61, 165, 0.15);
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -6873,6 +6874,51 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   color: white;
 }
 
+.reschedule-reason {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-top: 1px solid #eaeaea;
+  background-color: #fafafa;
+}
+.reschedule-reason label {
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+}
+.reschedule-reason textarea {
+  resize: vertical;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 10px 10px 0px 10px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  min-height: 60px;
+}
+.reschedule-reason textarea:focus {
+  border: 2px solid #003da5;
+  outline: none;
+}
+.error-message {
+  color: #003da5;
+  font-size: 13px;
+  margin-top: 4px;
+  display: none;
+}
+
+.appointment-date {
+  display: flex;
+  align-items: center; 
+  height: 24px;
+  font-size: 16px;
+  color: #7b7b7b;
+  margin: 3px 0;
+  line-height: 24px;
+  font-weight: 500;
+}
+
+/* IMPROVED MOBILE RESPONSIVE STYLES */
 @media (max-width: 768px) {
   .calendar-body {
     flex-direction: column;
@@ -6907,6 +6953,24 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   .service-name {
     font-size: 14px;
   }
+  
+  /* Header adjustments for mobile */
+
+  
+
+  
+  .current-date {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+  
+  /* Make calendar grid more compact */
+  .weekdays {
+    font-size: 11px;
+    padding: 10px 0 5px;
+  }
+  
+  /* Adjust animation for mobile */
   @keyframes mobileShimmer {
     0% {
       background-position: -200% 0;
@@ -6915,11 +6979,128 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
       background-position: 200% 0;
     }
   }
+  
   .confirm-btn:hover:not(:disabled)::before {
     animation: mobileShimmer 2s infinite;
   }
+  
+  /* Better touch targets for mobile */
+  .time-slot {
+    padding: 12px 8px;
+    min-width: 70px;
+    margin: 0 auto;
+    width: 60%;
+  }
+  
+  /* Keep AM/PM columns side by side even on small screens */
+  .time-slots-columns {
+    gap: 10px;
+  }
+  
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
 }
 
+/* Additional breakpoint for very small screens */
+@media (max-width: 480px) {
+  .calendar-container {
+    border-radius: 10px;
+  }
+  
+  .calendar-header {
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .calendar-nav {
+    display: flex
+;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+}
+  
+  .day {
+    height: 35px;
+    width: 35px;
+    font-size: 12px;
+  }
+  
+  .provider-icon, .service-icon, .appointment-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+    
+  
+  .service-provider, .service-name, .appointment-date {
+    font-size: 13px;
+    height: 20px;
+    line-height: 20px;
+  }
+  
+  .time-slot {
+    padding: 10px 4px;
+    font-size: 13px;
+  }
+  
+  /* Keep AM/PM side-by-side but adjust sizes */
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
+  
+  .time-slots-columns {
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  /* Fix footer on small screens */
+  .calendar-footer {
+    padding: 12px 10px;
+  }
+  
+  .confirm-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  /* Reduce the textarea size */
+  .reschedule-reason {
+    padding: 15px 10px;
+  }
+  
+  .reschedule-reason textarea {
+    min-height: 50px;
+  }
+}
+
+/* Tap state for mobile devices */
+@media (hover: none) {
+  .day:active:not(.inactive):not(.active) {
+    background-color: #d7dbeb;
+    color: #003da5;
+    border: 2px solid #003da5;
+  }
+  
+  .time-slot.available:active:not(.selected) {
+    background-color: #d7dbeb;
+    color: #003da5;
+    border: 2px solid #003da5;
+  }
+  
+  .confirm-btn:active:not(:disabled) {
+    background: #003da5;
+    color: white;
+  }
+}
         `;
         shadow.appendChild(style);
 
@@ -7201,29 +7382,23 @@ function renderHeader() {
       <path fill="#003da5" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
       </svg>
     </span>
-    <span>${agentName}</span>
+    <span>${agentName || 'Available Appointments'}</span>
   `;
   
-
   titleContent.appendChild(providerDiv);
-  
   calendarTitle.appendChild(titleContent);
   
-  // Calendar navigation section (remains unchanged)
+  // Calendar navigation section with chevron SVGs
   const calendarNav = document.createElement("div");
   calendarNav.className = "calendar-nav";
+  
   const currentDateEl = document.createElement("div");
   currentDateEl.className = "current-date";
   currentDateEl.textContent = dateFormatter.format(state.currentDate);
-  currentDateEl.style.cssText = "background: #d7dbeb; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #003da5; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
   
   const prevBtn = document.createElement("button");
   prevBtn.className = "nav-btn prev-btn";
-  prevBtn.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+  prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
   prevBtn.addEventListener("click", () => {
     if (!state.isConfirmed) {
       state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
@@ -7233,11 +7408,7 @@ function renderHeader() {
   
   const nextBtn = document.createElement("button");
   nextBtn.className = "nav-btn next-btn";
-  nextBtn.innerHTML = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  `;
+  nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
   nextBtn.addEventListener("click", () => {
     if (!state.isConfirmed) {
       state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
@@ -7245,8 +7416,8 @@ function renderHeader() {
     }
   });
   
-  calendarNav.appendChild(currentDateEl);
   calendarNav.appendChild(prevBtn);
+  calendarNav.appendChild(currentDateEl);
   calendarNav.appendChild(nextBtn);
   
   header.appendChild(calendarTitle);
@@ -7451,7 +7622,7 @@ function renderHeader() {
               left: 0;
               width: 100%;
               height: 100%;
-              background-color: rgba(156, 39, 176, 0.05);
+              background-color: rgba(0, 61, 165, 0.05);
               display: flex;
               justify-content: center;
               align-items: center;
@@ -7466,7 +7637,7 @@ function renderHeader() {
               background-color: white;
               border-radius: 15px;
               padding: 20px 30px;
-              box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
+              box-shadow: 0 10px 30px rgba(0, 61, 165, 0.15);
               text-align: center;
               transform: translateY(20px);
               transition: transform 0.5s, opacity 0.5s;
@@ -7518,48 +7689,32 @@ function renderHeader() {
                     hour12: true 
                   });
                   const formattedDate = new Intl.DateTimeFormat(locale, { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  }).format(state.selectedDate);
-  const formattedTime = new Intl.DateTimeFormat(locale, { 
-    hour: 'numeric', 
-    minute: '2-digit', 
-    hour12: true 
-  }).format(new Date(state.selectedTime));
-  const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  }).format(state.selectedDate);
+                  const formattedTime = new Intl.DateTimeFormat(locale, { 
+                    hour: 'numeric', 
+                    minute: '2-digit', 
+                    hour12: true 
+                  }).format(new Date(state.selectedTime));
+                  const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
 
+                  const formData = { 
+                    fullName,
+                    email,
+                    date: dateStr,
+                    time: state.selectedTime,
+                    formattedDate,
+                    formattedTime,
+                    formattedDateTime
+                  };
                   
-				   const formData = { 
-      fullName,
-      email,
-      date: dateStr,
-      time: state.selectedTime,
-      formattedDate,
-      formattedTime,
-      formattedDateTime
-                    };
-				  
-		
-  
-  window.voiceflow.chat.interact({
-    type: "complete",
-    payload: { 
-      fullName,
-      email,
-      date: dateStr,
-      time: state.selectedTime,
-      formattedDate,
-      formattedTime,
-      formattedDateTime
-    }
-  });
-
-
-		  
-                  
-                  
+                  window.voiceflow.chat.interact({
+                    type: "complete",
+                    payload: formData
+                  });
                 }, 500); // End of hide animation
               }, 2500); // Show duration before hiding
             }, 100); // Start of show animation
@@ -7577,6 +7732,7 @@ function renderHeader() {
   footer.appendChild(confirmBtn);
   return footer;
 }
+
         async function renderCalendar() {
           calendarContainer.innerHTML = "";
           if (state.isConfirmed) {
@@ -7600,12 +7756,29 @@ function renderHeader() {
         calendarContainer.className = "calendar-container";
         renderCalendar();
         element.appendChild(container);
-        window.addEventListener("resize", () => {
-          container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+        
+        // Improved resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+            renderCalendar();
+          }, 250);
         });
+        
+        // Check if touch events are supported
+        const isTouchDevice = ('ontouchstart' in window) || 
+                             (navigator.maxTouchPoints > 0) || 
+                             (navigator.msMaxTouchPoints > 0);
+        
+        if (isTouchDevice) {
+          // Add touch-specific class to improve mobile experience
+          calendarContainer.classList.add('touch-device');
+        }
       }
     };
-
+    
 /************** EXTENSION #11: BookingInformationExtension **************/
     const BookingInformationExtension = {
       name: "BookingInformation",
