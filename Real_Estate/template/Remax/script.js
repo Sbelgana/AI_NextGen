@@ -429,7 +429,10 @@ const SearchPropertyFormExtension = {
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
-        
+    let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
+     
         // Create the form container.
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -1134,7 +1137,42 @@ input[type="number"] {
           </button>
         `;
         element.appendChild(formContainer);
-		
+
+/*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  disableAllFormElements(formContainer);
+  
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
 
 // Attach event handlers to increment/decrement buttons
 // Define form-scoped increment/decrement functions
@@ -1874,16 +1912,21 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               if (collapseIcon) collapseIcon.classList.remove("active");
             }
           });
-          
+
+	  isFormSubmitted = true;
+		if (formTimeoutId) {
+		  clearInterval(formTimeoutId);
+		}
           // Disable all form elements
           disableAllFormElements(formContainer);
           
           // Send data to Voiceflow
           window.voiceflow.chat.interact({
-            type: "complete",
+            type: "success",
             payload: { formula: airtableFormula },
           });
         });
+	startFormTimer();
       }
     };
    
@@ -3869,7 +3912,9 @@ const navHTML = `
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-		
+	let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds	
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -4678,7 +4723,41 @@ const navHTML = `
         /*************************************************************
          * 7) Additional Features: Garage Conditional Display
          *************************************************************/
-         
+         /*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  disableAllFormElements(formContainer);
+  
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
          // Modified to accept a parent element (usually the formContainer)
     function initializeCustomDropdown(dropdownId, placeholderText, optionsData, onSelect, parent) {
       const container = parent.querySelector(`#${dropdownId}`);
@@ -5093,6 +5172,11 @@ const navHTML = `
           // Issue 3: Set the background color of submit button to #4CAF50
           submitButton.style.backgroundColor = "#4CAF50";
           submitButton.style.Color = "#fff";
+
+	isFormSubmitted = true;
+if (formTimeoutId) {
+  clearInterval(formTimeoutId);
+}	
           
           console.log("Form Data Submitted:", {
             fullName,
@@ -5117,7 +5201,7 @@ const navHTML = `
           });
 		  
 		  window.voiceflow.chat.interact({ 
-            type: "complete",
+            type: "success",
             payload: { 
 			fullName,
             email,
@@ -5143,6 +5227,7 @@ const navHTML = `
           disableAllFormElements(formContainer);
           submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
         });
+	startFormTimer();
       }
     };
     
@@ -5944,7 +6029,10 @@ const navHTML = `
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-
+// Initialize timeout variables
+let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -6259,6 +6347,52 @@ const navHTML = `
 
         element.appendChild(formContainer);
 
+	/*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  // Apply disabled styling
+  formContainer.classList.add('form-disabled');
+  
+  // Disable all form inputs
+  formContainer.querySelector("#full-name").disabled = true;
+  formContainer.querySelector("#email").disabled = true;
+  formContainer.querySelector("#phone").disabled = true;
+  
+  // Disable the dropdown
+  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+  
+  // Update button state
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
+
         // Initialize the agent dropdown
         const agentDropdown = formContainer.querySelector("#agentDropdown");
         const agentSelect = formContainer.querySelector("#agentSelect");
@@ -6372,7 +6506,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   // Force close any open dropdown
   customOptionsAgent.classList.remove('show-options');
   dropdownIconAgent.classList.remove('rotate');
-  
+
+	  isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
   // Apply disabled styling
   formContainer.classList.add('form-disabled');
   
@@ -6392,7 +6530,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   submitButton.style.color = "white";
   
   window.voiceflow.chat.interact({
-            type: "complete",
+            type: "success",
             payload: { 
 			fullName,
     email,
@@ -6400,6 +6538,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
     agentName: selectedAgent },
           });
         });
+	startFormTimer();      
       }
     };
 
@@ -7786,7 +7925,7 @@ function renderHeader() {
                   };
                   
                   window.voiceflow.chat.interact({
-                    type: "complete",
+                    type: "success",
                     payload: formData
                   });
                 }, 500); // End of hide animation
@@ -7862,7 +8001,9 @@ function renderHeader() {
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-        
+        let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -8014,6 +8155,52 @@ function renderHeader() {
 
         element.appendChild(formContainer);
 
+
+	      /*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  // Apply disabled styling
+  formContainer.classList.add('form-disabled');
+  
+  // Disable all form inputs
+  formContainer.querySelector("#full-name").disabled = true;
+  formContainer.querySelector("#email").disabled = true;
+  formContainer.querySelector("#phone").disabled = true;
+  
+  // Disable the dropdown
+  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+  
+  // Update button state
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
         // Input validation
         formContainer.querySelector("#full-name").addEventListener("input", function() {
           if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
@@ -8058,7 +8245,11 @@ function renderHeader() {
           if (!isValid) {
             return;
           }
-          
+
+	    isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
           // Apply disabled styling but don't prevent pointer events
           formContainer.classList.add('form-disabled');
           
@@ -8083,7 +8274,7 @@ function renderHeader() {
           // If Voiceflow integration is needed
        
             window.voiceflow.chat.interact({
-              type: "complete",
+              type: "success",
               payload: {
             fullName,
             email,
@@ -8092,6 +8283,7 @@ function renderHeader() {
             });
 
         });
+	startFormTimer();      
       }
     };
 
@@ -9556,7 +9748,7 @@ function renderHeader() {
                     const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
                     
                     window.voiceflow.chat.interact({
-                      type: "complete",
+                      type: "success",
                       payload: { 
                         email,
                         date: dateStr,
@@ -10192,7 +10384,7 @@ function renderHeader() {
                 
                 // 4. FINALLY - Send data to Voiceflow (LAST STEP)
                 window.voiceflow.chat.interact({
-                  type: "complete",
+                  type: "success",
                   payload: { 
                     uid: uid,
                     reason: reasonText,
@@ -10360,7 +10552,7 @@ window.CombinedCalculatorsExtension = CombinedCalculatorsExtension;
 window.SellPropertyFormExtension = SellPropertyFormExtension;
 window.ContactFormExtension = ContactFormExtension;
 window.BookingFormExtension = BookingFormExtension;
-window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
+window.BookingCalendarExtension = BookingCalendarExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
 window.CancellationCalendarExtension = CancellationCalendarExtension;
