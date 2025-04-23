@@ -5158,7 +5158,7 @@ const navHTML = `
         // Initialize timeout variables
         let formTimeoutId = null;
         let isFormSubmitted = false;
-        const TIMEOUT_DURATION = 10000; // 900 seconds (15 minutes) in milliseconds
+        const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
     
         /*************************************************************
          * HTML Generation & Initial Setup
