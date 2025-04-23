@@ -6330,7 +6330,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
     };
 
 /************** EXTENSION #10: BookingCalendarExtension **************/
-        const BookingCalendarExtension = {
+       const BookingCalendarExtension = {
       name: 'Booking',
       type: 'response',
       match: ({ trace }) =>
@@ -6494,7 +6494,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .nav-btn:hover {
   background-color: #d7dbeb;
-  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 3px 10px #003da526;
 }
 .current-date {
   font-weight: 600;
@@ -6610,7 +6610,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .day.today {
   border: 1.5px solid #003da5;
   position: relative;
-  box-shadow: 0 0 0 1px rgba(0, 61, 165, 0.1);
+  box-shadow: 0 0 0 1px #003da51a;
 }
 .day.today::after {
   content: "";
@@ -6626,7 +6626,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   color: white;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 4px 12px #003da526;
 }
 .day.active::after {
   display: none;
@@ -6696,15 +6696,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: rgba(0, 61, 165, 0.05);
+  background: #003da50d;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: rgba(0, 61, 165, 0.2);
+  background: #003da533;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 61, 165, 0.2);
+  background: #003da533;
 }
 @keyframes slideIn {
   from {
@@ -6759,7 +6759,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   border-color: #003da5;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 4px 15px #003da526;
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -6833,13 +6833,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 .confirm-btn:hover:not(:disabled) {
   background: #003da5;
   color: white;
-  box-shadow: 0 6px 18px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 6px 18px #003da526;
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 2px 10px #003da526;
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -7622,7 +7622,7 @@ function renderHeader() {
               left: 0;
               width: 100%;
               height: 100%;
-              background-color: rgba(0, 61, 165, 0.05);
+              background-color: #003da50d;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -7637,7 +7637,7 @@ function renderHeader() {
               background-color: white;
               border-radius: 15px;
               padding: 20px 30px;
-              box-shadow: 0 10px 30px rgba(0, 61, 165, 0.15);
+              box-shadow: 0 10px 30px #003da526;
               text-align: center;
               transform: translateY(20px);
               transition: transform 0.5s, opacity 0.5s;
@@ -7778,6 +7778,7 @@ function renderHeader() {
         }
       }
     };
+    
     
 /************** EXTENSION #11: BookingInformationExtension **************/
     const BookingInformationExtension = {
@@ -8188,7 +8189,7 @@ function renderHeader() {
 }
 .nav-btn:hover {
   background-color: #d7dbeb;
-  box-shadow: 0 3px 10px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 3px 10px #003da526;
 }
 .current-date {
   font-weight: 600;
@@ -8303,7 +8304,7 @@ function renderHeader() {
 .day.today {
   border: 1.5px solid #003da5;
   position: relative;
-  box-shadow: 0 0 0 1px rgba(0, 61, 165, 0.1);
+  box-shadow: 0 0 0 1px #003da51a;
 }
 .day.today::after {
   content: "";
@@ -8319,7 +8320,7 @@ function renderHeader() {
   color: white;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 4px 12px #003da526;
 }
 .day.active::after {
   display: none;
@@ -8389,15 +8390,15 @@ function renderHeader() {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: rgba(0, 61, 165, 0.05);
+  background: #003da50d;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: rgba(0, 61, 165, 0.2);
+  background: #003da533;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 61, 165, 0.2);
+  background: #003da533;
 }
 @keyframes slideIn {
   from {
@@ -8452,7 +8453,7 @@ function renderHeader() {
   border-color: #003da5;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 4px 15px #003da526;
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -8526,13 +8527,13 @@ function renderHeader() {
 .confirm-btn:hover:not(:disabled) {
   background: #003da5;
   color: white;
-  box-shadow: 0 6px 18px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 6px 18px #003da526;
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px rgba(0, 61, 165, 0.15);
+  box-shadow: 0 2px 10px #003da526;
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -9407,7 +9408,8 @@ function renderHeader() {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0, 61, 165, 0.05);
+                
+                box-shadow: 0 3px 10px #003da526;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -9422,7 +9424,7 @@ function renderHeader() {
                 background-color: white;
                 border-radius: 15px;
                 padding: 20px 30px;
-                box-shadow: 0 10px 30px rgba(0, 61, 165, 0.15);
+                box-shadow: 0 10px 30px #003da526;
                 text-align: center;
                 transform: translateY(20px);
                 transition: transform 0.5s, opacity 0.5s;
@@ -9560,8 +9562,6 @@ function renderHeader() {
     }
   }
 };
-
-   
 
 /************** EXTENSION #13: CancellationCalendarExtension **************/
     const CancellationCalendarExtension = {
