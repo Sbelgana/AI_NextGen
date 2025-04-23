@@ -5322,7 +5322,6 @@ const navHTML = `
               margin: 0 auto;
               padding: 16px;
               border-radius: 6px;
-              background: #fff;
             }
             .flex-row {
               display: flex;
@@ -7910,8 +7909,6 @@ function renderHeader() {
       margin: 0 auto;
       padding: 20px;
       border-radius: 6px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .bold-label {
       font-weight: 600;
