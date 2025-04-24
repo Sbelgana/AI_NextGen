@@ -166,7 +166,7 @@ const BookingFormExtension = {
 // Initialize timeout variables
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
     /*************************************************************
      * HTML Generation & Initial Setup
@@ -1336,7 +1336,7 @@ function handleFormTimeout() {
 
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -2645,7 +2645,7 @@ const BookingInformationExtension = {
         
 		 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -2962,7 +2962,7 @@ function handleFormTimeout() {
 		
 		let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
         const locale = language === 'fr' ? 'fr-CA' : 'en-US';
         const highlightColor = '#9C27B0';
@@ -4438,7 +4438,7 @@ function handleFormTimeout() {
 		// Initialize timeout variables
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
         // For checking the language and reusing in conditionals
         const locale = language === 'fr' ? 'fr-CA' : 'en-US';
