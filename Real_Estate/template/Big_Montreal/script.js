@@ -6313,7 +6313,7 @@ if (formTimeoutId) {
     input[type="tel"] {
       height: 45px;
       font-size: 13px;
-	  min-width: 225px;
+	  min-width: 400px;
     }
     
     .select-display {
