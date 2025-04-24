@@ -431,7 +431,7 @@ const SearchPropertyFormExtension = {
     const isEnglish = language === "en";
     let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
      
         // Create the form container.
         const formContainer = document.createElement("form");
@@ -3914,7 +3914,7 @@ const navHTML = `
         const isEnglish = language === 'en';
 	let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds	
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds	
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -5243,7 +5243,7 @@ if (formTimeoutId) {
         // Initialize timeout variables
         let formTimeoutId = null;
         let isFormSubmitted = false;
-        const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
+        const TIMEOUT_DURATION = 6000; // 900 seconds (15 minutes) in milliseconds
     
         /*************************************************************
          * HTML Generation & Initial Setup
@@ -6574,7 +6574,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 
 	      let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -8369,7 +8369,7 @@ function handleFormTimeout() {
 
 	  let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
 
     const locale = language === 'fr' ? 'fr-CA' : 'en-US';
     const highlightColor = '#9c27b0';
@@ -9945,7 +9945,7 @@ function handleFormTimeout() {
 	      // Initialize timeout variables
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
         // For checking the language and reusing in conditionals
         const locale = language === "fr" ? "fr-CA" : "en-US";
         const highlightColor = '#9c27b0';
