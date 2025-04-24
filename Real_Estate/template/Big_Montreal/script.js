@@ -325,26 +325,26 @@ function generateAirtableFormula(input) {
 const SVG_DOLLAR = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="18px" height="18px">
   <g transform="translate(0, 0)">
-    <path fill="#9C27B0" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
+    <path fill="#9c27b0" d="M160 0c17.7 0 32 14.3 32 32l0 35.7c1.6 .2 3.1 .4 4.7 .7c.4 .1 .7 .1 1.1 .2l48 8.8c17.4 3.2 28.9 19.9 25.7 37.2s-19.9 28.9-37.2 25.7l-47.5-8.7c-31.3-4.6-58.9-1.5-78.3 6.2s-27.2 18.3-29 28.1c-2 10.7-.5 16.7 1.2 20.4c1.8 3.9 5.5 8.3 12.8 13.2c16.3 10.7 41.3 17.7 73.7 26.3l2.9 .8c28.6 7.6 63.6 16.8 89.6 33.8c14.2 9.3 27.6 21.9 35.9 39.5c8.5 17.9 10.3 37.9 6.4 59.2c-6.9 38-33.1 63.4-65.6 76.7c-13.7 5.6-28.6 9.2-44.4 11l0 33.4c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-34.9c-.4-.1-.9-.1-1.3-.2l-.2 0s0 0 0 0c-24.4-3.8-64.5-14.3-91.5-26.3c-16.1-7.2-23.4-26.1-16.2-42.2s26.1-23.4 42.2-16.2c20.9 9.3 55.3 18.5 75.2 21.6c31.9 4.7 58.2 2 76-5.3c16.9-6.9 24.6-16.9 26.8-28.9c1.9-10.6 .4-16.7-1.3-20.4c-1.9-4-5.6-8.4-13-13.3c-16.4-10.7-41.5-17.7-74-26.3l-2.8-.7s0 0 0 0C119.4 279.3 84.4 270 58.4 253c-14.2-9.3-27.5-22-35.8-39.6c-8.4-17.9-10.1-37.9-6.1-59.2C23.7 116 52.3 91.2 84.8 78.3c13.3-5.3 27.9-8.9 43.2-11L128 32c0-17.7 14.3-32 32-32z"/>
   </g>
 </svg>
 `;
 
 const SVG_LIST = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
+  <path fill="#9c27b0" d="M64 144a48 48 0 1 0 0-96 48 48 0 1 0 0 96zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L192 64zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l288 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-288 0zM64 464a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm48-208a48 48 0 1 0 -96 0 48 48 0 1 0 96 0z"/>
 </svg>
 `;
 
 const SVG_SLIDER = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
+  <path fill="#9c27b0" d="M0 416c0 17.7 14.3 32 32 32l54.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 448c17.7 0 32-14.3 32-32s-14.3-32-32-32l-246.7 0c-12.3-28.3-40.5-48-73.3-48s-61 19.7-73.3 48L32 384c-17.7 0-32 14.3-32 32zm128 0a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zM320 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm32-80c-32.8 0-61 19.7-73.3 48L32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l246.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48l54.7 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-54.7 0c-12.3-28.3-40.5-48-73.3-48zM192 128a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm73.3-64C253 35.7 224.8 16 192 16s-61 19.7-73.3 48L32 64C14.3 64 0 78.3 0 96s14.3 32 32 32l86.7 0c12.3 28.3 40.5 48 73.3 48s61-19.7 73.3-48L480 128c17.7 0 32-14.3 32-32s-14.3-32-32-32L265.3 64z"/>
 </svg>
 `;
 
 const SVG_ADDRESS = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+  <path fill="#9c27b0" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
 </svg>
 `;
 
@@ -352,7 +352,7 @@ const SVG_CHEVRON = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
   <!-- Added 50px padding on top and bottom -->
   <g transform="translate(75, 75)">
-    <path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+    <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
   </g>
 </svg>
 `;
@@ -365,56 +365,56 @@ const SVG_CHECK = `
 
 const SVG_HOUSE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
+  <path fill="#9c27b0" d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
 </svg>
 `;
 
 const SVG_USER = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+  <path fill="#9c27b0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
 </svg>
 `;
 
 const SVG_USER_TIE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
+  <path fill="#9c27b0" d="M96 128a128 128 0 1 0 256 0A128 128 0 1 0 96 128zm94.5 200.2l18.6 31L175.8 483.1l-36-146.9c-2-8.1-9.8-13.4-17.9-11.3C51.9 342.4 0 405.8 0 481.3c0 17 13.8 30.7 30.7 30.7l131.7 0c0 0 0 0 .1 0l5.5 0 112 0 5.5 0c0 0 0 0 .1 0l131.7 0c17 0 30.7-13.8 30.7-30.7c0-75.5-51.9-138.9-121.9-156.4c-8.1-2-15.9 3.3-17.9 11.3l-36 146.9L238.9 359.2l18.6-31c6.4-10.7-1.3-24.2-13.7-24.2L224 304l-19.7 0c-12.4 0-20.1 13.6-13.7 24.2z"/>
 </svg>
 `;
 
 const SVG_BUILDING_COLUMNS = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3 0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0 196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1-28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0 0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+  <path fill="#9c27b0" d="M243.4 2.6l-224 96c-14 6-21.8 21-18.7 35.8S16.8 160 32 160l0 8c0 13.3 10.7 24 24 24l400 0c13.3 0 24-10.7 24-24l0-8c15.2 0 28.3-10.7 31.3-25.6s-4.8-29.9-18.7-35.8l-224-96c-8-3.4-17.2-3.4-25.2 0zM128 224l-64 0 0 196.3c-.6 .3-1.2 .7-1.8 1.1l-48 32c-11.7 7.8-17 22.4-12.9 35.9S17.9 512 32 512l448 0c14.1 0 26.5-9.2 30.6-22.7s-1.1-28.1-12.9-35.9l-48-32c-.6-.4-1.2-.7-1.8-1.1L448 224l-64 0 0 192-40 0 0-192-64 0 0 192-48 0 0-192-64 0 0 192-40 0 0-192zM256 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
 </svg>
 `;
 
 const SVG_NOTE_STICK = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
+  <path fill="#9c27b0" d="M64 80c-8.8 0-16 7.2-16 16l0 320c0 8.8 7.2 16 16 16l224 0 0-80c0-17.7 14.3-32 32-32l80 0 0-224c0-8.8-7.2-16-16-16L64 80zM288 480L64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 224 0 5.5c0 17-6.7 33.3-18.7 45.3l-90.5 90.5c-12 12-28.3 18.7-45.3 18.7l-5.5 0z"/>
 </svg>
 `;
 
 const SVG_BRIEFCASE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7 96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9 0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
+  <path fill="#9c27b0" d="M184 48l144 0c4.4 0 8 3.6 8 8l0 40L176 96l0-40c0-4.4 3.6-8 8-8zm-56 8l0 40L64 96C28.7 96 0 124.7 0 160l0 96 192 0 128 0 192 0 0-96c0-35.3-28.7-64-64-64l-64 0 0-40c0-30.9-25.1-56-56-56L184 0c-30.9 0-56 25.1-56 56zM512 288l-192 0 0 32c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-32L0 288 0 416c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-128z"/>
 </svg>
 `;
 
 const SVG_MESSAGE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-  <path fill="#9C27B0" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
+  <path fill="#9c27b0" d="M64 0C28.7 0 0 28.7 0 64L0 352c0 35.3 28.7 64 64 64l96 0 0 80c0 6.1 3.4 11.6 8.8 14.3s11.9 2.1 16.8-1.5L309.3 416 448 416c35.3 0 64-28.7 64-64l0-288c0-35.3-28.7-64-64-64L64 0z"/>
 </svg>
 `;
 
 const SVG_Plus = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
-      <path fill="#9C27B0" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
+      <path fill="#9c27b0" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
     </svg>`;
 const SVG_Minus =  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
-      <path fill="#9C27B0" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
+      <path fill="#9c27b0" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
     </svg>`;
 
 
 const SVG_AGENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-      <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
+      <path fill="#9c27b0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
     </svg>`;
 
 /*************************************************************
@@ -429,7 +429,10 @@ const SearchPropertyFormExtension = {
   render: ({ trace, element }) => {
     const { language } = trace.payload;
     const isEnglish = language === "en";
-        
+    let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
+     
         // Create the form container.
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -484,12 +487,12 @@ form {
 }
 
 .section:hover:not(.disabled) {
-  border-color: #9C27B0;
+  border-color: #9c27b0;
   box-shadow: 0 3px 8px #F8EAFA80;
 }
 
 .section.active {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   box-shadow: 0 3px 8px #F8EAFA80;
 }
 
@@ -512,7 +515,7 @@ form {
 
 .section-icon {
   background-color: #F8EAFA;
-  color: #9C27B0;
+  color: #9c27b0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -628,12 +631,12 @@ form {
 
 .custom-option:hover {
   background-color: #F8EAFA;
-  color: #9C27B0;
+  color: #9c27b0;
 }
 
 .custom-option.selected {
   background-color: #F8EAFA;
-  color: #9C27B0;
+  color: #9c27b0;
   font-weight: bold;
 }
 
@@ -655,12 +658,12 @@ form {
 }
 
 .custom-option.selected .option-checkbox {
-  border-color: #9C27B0;
-  background-color: #9C27B0;
+  border-color: #9c27b0;
+  background-color: #9c27b0;
 }
 
 .custom-option:not(.selected):hover .option-checkbox {
-  border-color: #9C27B0;
+  border-color: #9c27b0;
 }
 
 .custom-option.selected .option-checkbox svg path {
@@ -668,7 +671,7 @@ form {
 }
 
 .custom-option:not(.selected):hover .option-checkbox svg path {
-  fill: #9C27B0;
+  fill: #9c27b0;
 }
 
 .custom-option.selected .main-arrow,
@@ -698,7 +701,7 @@ form {
 
 .sub-options {
   margin-left: 25px;
-  border-left: 2px solid #9C27B0;
+  border-left: 2px solid #9c27b0;
 }
 
 select {
@@ -727,7 +730,7 @@ input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
 input[type="number"]:focus{
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -762,7 +765,7 @@ input[type="number"] {
 }
 
 .input-group:focus-within {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   outline: none;
 }
 
@@ -790,7 +793,7 @@ input[type="number"] {
 }
 
 .input-group button:hover {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
 }
 
 .input-group button:hover svg path {
@@ -818,7 +821,7 @@ input[type="number"] {
   justify-content: center;
   width: 18px;
   height: 18px;
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   border-radius: 6px;
   background-color: #fff;
   margin-right: 8px;
@@ -830,7 +833,7 @@ input[type="number"] {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   align-items: center;
   justify-content: center;
 }
@@ -863,7 +866,7 @@ input[type="number"] {
 
 /* ========= BUTTONS ========= */
 .submit {
-  color: #9C27B0;
+  color: #9c27b0;
   background-color: #F8EAFA;
   border: none;
   padding: 12px;
@@ -877,7 +880,7 @@ input[type="number"] {
 
 .submit:hover {
   color: #fff;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   font-weight: 600;
 }
 
@@ -1134,7 +1137,42 @@ input[type="number"] {
           </button>
         `;
         element.appendChild(formContainer);
-		
+
+/*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  disableAllFormElements(formContainer);
+  
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
 
 // Attach event handlers to increment/decrement buttons
 // Define form-scoped increment/decrement functions
@@ -1874,16 +1912,21 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               if (collapseIcon) collapseIcon.classList.remove("active");
             }
           });
-          
+
+	  isFormSubmitted = true;
+		if (formTimeoutId) {
+		  clearInterval(formTimeoutId);
+		}
           // Disable all form elements
           disableAllFormElements(formContainer);
           
           // Send data to Voiceflow
           window.voiceflow.chat.interact({
-            type: "complete",
+            type: "success",
             payload: { formula: airtableFormula },
           });
         });
+	startFormTimer();
       }
     };
    
@@ -1958,7 +2001,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             }
             .nav-btn {
               background-color: #F8EAFA;
-              color: #9C27B0;
+              color: #9c27b0;
               border: none;
               border-radius: 50%;
               width: 32px;
@@ -1971,7 +2014,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               transition: background-color 0.3s;
             }
             .nav-btn:hover {
-              background-color: #9C27B0;
+              background-color: #9c27b0;
               color: white;
             }
             .gallery-image-container {
@@ -2117,8 +2160,8 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               appearance: {
                 theme: "day",
                 variables: {
-                  "--ll-color-primary": "#9C27B0",
-                  "--ll-color-primary-variant1": "#9C27B0",
+                  "--ll-color-primary": "#9c27b0",
+                  "--ll-color-primary-variant1": "#9c27b0",
                   "--ll-border-radius-small": "8px",
                   "--ll-border-radius-medium": "16px",
                   "--ll-font-family": "Avenir, sans-serif"
@@ -2298,13 +2341,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9C27B0;
+              color: #9c27b0;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9C27B0;
+              background-color: #9c27b0;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -2334,7 +2377,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9C27B0;
+              color: #9c27b0;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -2347,7 +2390,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9C27B0;
+              border: 2px solid #9c27b0;
             }
             .list-items {
               position: static;
@@ -2389,8 +2432,8 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9C27B0;
-              border: 2px solid #9C27B0;
+              background-color: #9c27b0;
+              border: 2px solid #9c27b0;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -2405,7 +2448,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9C27B0 !important;
+              fill: #9c27b0 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -2432,7 +2475,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             }
             .results-amount {
               font-size: 2em;
-              color: #9C27B0;
+              color: #9c27b0;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -2449,7 +2492,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9C27B0;
+              color: #9c27b0;
               margin: 15px 0;
             }
             .result .hint {
@@ -2473,9 +2516,9 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
               margin-top: 5px;
             }
             #loan-amount {
-  background-color: #9C27B0 !important; /* Purple background */
+  background-color: #9c27b0 !important; /* Purple background */
   color: white !important;
-  border-color: #9C27B0 !important;
+  border-color: #9c27b0 !important;
 }
 
 #loan-amount + .currency-symbol,
@@ -2500,7 +2543,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
 }
 
 .input-group:focus-within {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   outline: none;
 }
 
@@ -2529,7 +2572,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
 }
 
 .input-group button:hover {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
 }
 
 .input-group button:hover svg path {
@@ -3111,13 +3154,13 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               display: flex;
               align-items: center;
               justify-content: center;
-              color: #9C27B0;
+              color: #9c27b0;
               cursor: pointer;
               font-size: 8px;
             }
             .number-input-up:hover,
             .number-input-down:hover {
-              background-color: #9C27B0;
+              background-color: #9c27b0;
               color: #fff;
             }
             /* Dropdown Styles */
@@ -3147,7 +3190,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               display: flex;
               height: 24px;
               width: 24px;
-              color: #9C27B0;
+              color: #9c27b0;
               font-size: 12px;
               border-radius: 50%;
               background: #F8EAFA;
@@ -3160,7 +3203,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             }
             .select-btn:focus,
             .select-btn.open {
-              border: 2px solid #9C27B0;
+              border: 2px solid #9c27b0;
             }
             .list-items {
               position: static;
@@ -3202,8 +3245,8 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               transition: all 0.3s ease-in-out;
             }
             .item.checked .checkbox {
-              background-color: #9C27B0;
-              border: 2px solid #9C27B0;
+              background-color: #9c27b0;
+              border: 2px solid #9c27b0;
             }
             .checkbox .check-icon {
               color: #fff;
@@ -3218,7 +3261,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
               fill: transparent !important;
             }
             .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #9C27B0 !important;
+              fill: #9c27b0 !important;
             }
             .list-items .item.checked .checkbox svg path {
               fill: #ffffff !important;
@@ -3245,7 +3288,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             }
             .results-amount {
               font-size: 2em;
-              color: #9C27B0;
+              color: #9c27b0;
               font-weight: bold;
               margin: 15px 0;
             }
@@ -3262,7 +3305,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             .result .amount {
               font-size: 24px;
               font-weight: bold;
-              color: #9C27B0;
+              color: #9c27b0;
               margin: 15px 0;
             }
             .result .hint {
@@ -3301,7 +3344,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
 }
 
 .input-group:focus-within {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   outline: none;
 }
 
@@ -3330,7 +3373,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
 }
 
 .input-group button:hover {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
 }
 
 .input-group button:hover svg path {
@@ -3774,15 +3817,15 @@ const navHTML = `
       border-radius: 4px;
       font-weight: bold;
       transition: background 0.2s;
-      color: #9C27B0;
+      color: #9c27b0;
       font-size: 16px;
     }
     .calculator-nav-button.active {
-      background: #9C27B0;
+      background: #9c27b0;
       color: #fff;
     }
     #calculator-container {
-      border-top: 2px solid #9C27B0;
+      border-top: 2px solid #9c27b0;
       padding: 15px;
       width: 100%;
       max-width: 800px;
@@ -3869,7 +3912,9 @@ const navHTML = `
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-		
+	let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds	
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -3943,11 +3988,11 @@ const navHTML = `
   }
   .custom-option:hover {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
   }
   .custom-option.selected {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
     font-weight: bold;
   }
 
@@ -3971,18 +4016,18 @@ const navHTML = `
   }
 
   .custom-option:hover:not(.selected) .option-checkbox {
-    border-color: #9C27B0;
+    border-color: #9c27b0;
   }
   .custom-option:hover:not(.selected) .option-checkbox svg {
     display: block;
   }
   .custom-option:hover:not(.selected) .option-checkbox svg path {
-    fill: #9C27B0;
+    fill: #9c27b0;
   }
 
   .custom-option.selected .option-checkbox {
-    border-color: #9C27B0;
-    background-color: #9C27B0;
+    border-color: #9c27b0;
+    background-color: #9c27b0;
   }
   .custom-option.selected .option-checkbox svg {
     display: block;
@@ -4008,7 +4053,7 @@ const navHTML = `
   }
   .sub-options {
     margin-left: 25px;
-    border-left: 2px solid #9C27B0;
+    border-left: 2px solid #9c27b0;
   }
   select {
     display: none;
@@ -4084,7 +4129,7 @@ const navHTML = `
     justify-content: center;
     width: 18px;
     height: 18px;
-    border: 2px solid #9C27B0;
+    border: 2px solid #9c27b0;
     border-radius: 6px;
     background-color: #fff;
     margin-right: 8px;
@@ -4095,7 +4140,7 @@ const navHTML = `
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: #9C27B0;
+    background-color: #9c27b0;
     align-items: center;
     justify-content: center;
   }
@@ -4162,7 +4207,7 @@ const navHTML = `
   input[type="email"]:focus,
   input[type="tel"]:focus,
   #details:focus {
-    border: 2px solid #9C27B0;
+    border: 2px solid #9c27b0;
   }
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
@@ -4176,7 +4221,7 @@ const navHTML = `
   /* ========= Buttons ========= */
   .appointment-btn,
   .submit {
-    color: #9C27B0;
+    color: #9c27b0;
     background-color: #F8EAFA;
     border: none;
     padding: 12px;
@@ -4190,7 +4235,7 @@ const navHTML = `
   .appointment-btn:hover,
   .submit:hover {
     color: #fff;
-    background-color: #9C27B0;
+    background-color: #9c27b0;
     font-weight: 600;
   }
   .appointment-btn:disabled,
@@ -4221,11 +4266,11 @@ const navHTML = `
     border-radius: 6px;
   }
   .section.active {
-    border: 2px solid #9C27B0;
+    border: 2px solid #9c27b0;
     box-shadow: 0 3px 8px #F8EAFA80;
   }
   .section:hover:not(.disabled) {
-    border-color: #9C27B0;
+    border-color: #9c27b0;
     box-shadow: 0 3px 8px #F8EAFA80;
   }
   .section-info {
@@ -4235,7 +4280,7 @@ const navHTML = `
   }
   .section-icon {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -4295,12 +4340,12 @@ const navHTML = `
     border: none;
   }
   .tab.active {
-    background-color: #9C27B0;
+    background-color: #9c27b0;
     color: #fff;
   }
   .tab:hover:not(.active) {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
   }
   .tab-content {
     display: none;
@@ -4678,7 +4723,41 @@ const navHTML = `
         /*************************************************************
          * 7) Additional Features: Garage Conditional Display
          *************************************************************/
-         
+         /*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  disableAllFormElements(formContainer);
+  
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
          // Modified to accept a parent element (usually the formContainer)
     function initializeCustomDropdown(dropdownId, placeholderText, optionsData, onSelect, parent) {
       const container = parent.querySelector(`#${dropdownId}`);
@@ -5093,6 +5172,11 @@ const navHTML = `
           // Issue 3: Set the background color of submit button to #4CAF50
           submitButton.style.backgroundColor = "#4CAF50";
           submitButton.style.Color = "#fff";
+
+	isFormSubmitted = true;
+if (formTimeoutId) {
+  clearInterval(formTimeoutId);
+}	
           
           console.log("Form Data Submitted:", {
             fullName,
@@ -5117,7 +5201,7 @@ const navHTML = `
           });
 		  
 		  window.voiceflow.chat.interact({ 
-            type: "complete",
+            type: "success",
             payload: { 
 			fullName,
             email,
@@ -5143,17 +5227,23 @@ const navHTML = `
           disableAllFormElements(formContainer);
           submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
         });
+	startFormTimer();
       }
     };
     
 /************** EXTENSION #8: ContactFormExtension **************/
-    const ContactFormExtension = {
+     const ContactFormExtension = {
       name: "ContactForm",
       type: "response",
       match: ({ trace }) => trace.type === 'ext_contact_form' || trace.payload?.name === 'ext_contact_form',
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
+        
+        // Initialize timeout variables
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
     
         /*************************************************************
          * HTML Generation & Initial Setup
@@ -5161,342 +5251,364 @@ const navHTML = `
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
-<style>
-  /* ========== Dropdown Components ========== */
-  .main-container {
-    display: block;
-    transition: height 0.3s ease;
-    border-radius: 6px;
-    margin-bottom: 15px;
-  }
-  .select-wrapper {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #fff;
-    position: relative;
-    min-width: 225px;
-    max-width: 800px;
-    width: 100%;
-    min-height: 50px;
-  }
-  .select-display {
-    padding: 0 15px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 50px;
-    color: #444;
-  }
-  .dropdown-icon {
-    width: 24px;
-    height: 24px;
-    transition: transform 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #F8EAFA;
-    border-radius: 50%;
-  }
-  .dropdown-icon.rotate {
-    transform: rotate(180deg);
-  }
-  .custom-options {
-    display: none;
-    font-size: 14px;
-    border-top: 1px solid #ddd;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 100;
-    border-radius: 0 0 6px 6px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .custom-options::-webkit-scrollbar {
-    display: none; 
-  }
-  .custom-option {
-    padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .custom-option:hover {
-    background-color: #F8EAFA;
-    color: #9C27B0;
-  }
-  .custom-option.selected {
-    background-color: #F8EAFA;
-    color: #9C27B0;
-    font-weight: bold;
-  }
-
-  .option-checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #ccc;
-    border-radius: 50%;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
-    transition: all 0.2s;
-  }
-
-  .option-checkbox svg {
-    width: 12px;
-    height: 12px;
-    display: none;
-  }
-
-  /* Hover state */
-  .custom-option:hover:not(.selected) .option-checkbox {
-    border-color: #9C27B0;
-  }
-  .custom-option:hover:not(.selected) .option-checkbox svg {
-    display: block;
-  }
-  .custom-option:hover:not(.selected) .option-checkbox svg path {
-    fill: #9C27B0;
-  }
-
-  /* Selected state */
-  .custom-option.selected .option-checkbox {
-    border-color: #9C27B0;
-    background-color: #9C27B0;
-  }
-  .custom-option.selected .option-checkbox svg {
-    display: block;
-  }
-  .custom-option.selected .option-checkbox svg path {
-    fill: #fff !important;
-  }
-
-  .show-options {
-    display: block;
-  }
-  .custom-option.selected .main-arrow,
-  .custom-option:hover .main-arrow {
-    background-color: #fff;
-  }
-
-  /* ========== Error Components ========== */
-  .error-container {
-    width: 100%;
-    margin: 2px 0;
-    box-sizing: border-box;
-  }
-  .error-message {
-    display: none;
-    padding: 5px;
-    border: 1px solid #e8e8e8;
-    border-radius: 6px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    font-size: 14px;
-    align-items: center;
-  }
-  .error-icon {
-    background-color: red;
-    color: #fff;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 15px;
-    flex-shrink: 0;
-  }
-
-  /* ========== Form Inputs & Layout ========== */
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 16px;
-    border-radius: 6px;
-  }
-  .flex-row {
-    display: flex;
-    gap: 10px 16px;
-    flex-wrap: wrap;
-  }
-  .flex-row > div {
-    flex: 1;
-    min-width: 225px;
-  }
-  .bold-label {
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 8px;
-    display: block;
-  }
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  #details {
-    width: 100%;
-    min-width: 225px;
-    max-width: 800px;
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 6px;
-    padding: 8px;
-    background: #fff;
-    font-size: 14px;
-    outline: none;
-    box-sizing: border-box;
-    height: 50px;
-  }
-  #details {
-    resize: vertical;
-    min-height: 100px;
-    max-height: 200px;
-    width: 100%;
-  }
-  input[type="text"]:focus,
-  input[type="email"]:focus,
-  input[type="tel"]:focus,
-  #details:focus {
-    border: 2px solid #9C27B0;
-  }
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  input[type="number"] {
-    -moz-appearance: textfield;
-  }
-
-  /* ========== Buttons ========== */
-  .appointment-btn,
-  .submit {
-    color: #9C27B0;
-    background-color: #F8EAFA;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
-    width: 100%;
-  }
-  .appointment-btn:hover,
-  .submit:hover {
-    color: #fff;
-    background-color: #9C27B0;
-    font-weight: 600;
-  }
-  .appointment-btn:disabled,
-  .submit:disabled {
-    background-color: #ccc;
-    color: #666;
-    cursor: not-allowed;
-    font-weight: 700;
-  }
-
-  /* ========== Sections & Tabs ========== */
-  .section {
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 6px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    background: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .section-card {
-    padding: 10px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border-radius: 6px;
-  }
-  .section.active {
-    border: 2px solid #9C27B0;
-    box-shadow: 0 3px 8px #F8EAFA80;
-  }
-  .section:hover:not(.disabled) {
-    border-color: #9C27B0;
-    box-shadow: 0 3px 8px #F8EAFA80;
-  }
-  .section-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .section-icon {
-    background-color: #F8EAFA;
-    color: #9C27B0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .section-title {
-    font-weight: 700;
-    font-size: 16px;
-    color: #444;
-  }
-  .collapse-icon {
-    transition: transform 0.3s;
-    background: #F8EAFA;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-  }
-  .collapse-icon.active {
-    transform: rotate(-180deg);
-  }
-  .collapsible-section {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.3s ease-out;
-  }
-  .collapsible-section.expanded {
-    max-height: 1000px;
-  }
-  .section-content {
-    padding: 20px;
-    background: #fefefe;
-    border-top: 1px solid #eee;
-  }
-  .select-label {
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #444;
-  }
-
-  /* ========== Disabled State ========== */
-  .disabled {
-    cursor: not-allowed !important;
-  }
-  .disabled * {
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-  }
-</style>
-
-
+          <style>
+            /* ========== Dropdown Components ========== */
+            .main-container {
+              display: block;
+              transition: height 0.3s ease;
+              border-radius: 6px;
+              margin-bottom: 15px;
+            }
+            .select-wrapper {
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              background-color: #fff;
+              position: relative;
+              min-width: 300px;
+              max-width: 800px;
+              width: 100%;
+              min-height: 50px;
+            }
+            .select-display {
+              padding: 0 15px;
+              font-size: 16px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              height: 50px;
+            }
+            .dropdown-icon {
+              width: 24px;
+              height: 24px;
+              transition: transform 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #F8EAFA;
+              border-radius: 50%;
+            }
+            .dropdown-icon.rotate {
+              transform: rotate(180deg);
+            }
+            /* Custom Options */
+            .custom-options {
+              display: none;
+              border-top: 1px solid #ddd;
+              max-height: 300px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 100;
+              border-radius: 0 0 6px 6px;
+            }
+            .custom-options::-webkit-scrollbar {
+              display: none; 
+            }
+            .custom-options {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            .custom-option {
+              padding: 12px 15px;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              transition: background 0.2s;
+              position: relative;
+            }
+            .custom-option:hover {
+              background-color: #F8EAFA;
+              color:#9c27b0;
+            }
+            .custom-option.selected {
+              background-color: #F8EAFA;
+              color:#9c27b0;
+              font-weight: bold;
+            }
+            .option-checkbox {
+              width: 24px;
+              height: 24px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              margin-right: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #fff;
+              transition: all 0.2s;
+            }
+            .option-checkbox::after {
+              content: "";
+              color: #9c27b0;
+              font-size: 12px;
+              display: none;
+            }
+            .custom-option.selected .option-checkbox {
+              border-color: #9c27b0;
+              background-color: #9c27b0;
+            }
+            .custom-option.selected .option-checkbox::after {
+              display: block;
+              color: #fff;
+            }
+            .custom-option:not(.selected):hover .option-checkbox,
+            .custom-option:not(.selected):hover .option-checkbox::after {
+              border-color: #9c27b0;
+              display: block;
+              color: #9c27b0;
+            }
+            .custom-option.selected .option-checkbox svg path {
+              fill: #fff !important;
+            }
+            .show-options {
+              display: block;
+            }
+            .custom-option.selected .main-arrow,
+            .custom-option:hover .main-arrow {
+              background-color: #fff;
+            }
+            /* ========== Error Components ========== */
+            .error-container {
+              width: 100%;
+              margin: 2px 0;
+              box-sizing: border-box;
+            }
+            .error-message {
+              display: none;
+              padding: 5px;
+              border: 1px solid #e8e8e8;
+              border-radius: 6px;
+              background-color: #fff;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+              font-size: 14px;
+              align-items: center;
+            }
+            .error-icon {
+              background-color: red;
+              color: #fff;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              margin-right: 15px;
+              flex-shrink: 0;
+            }
+            /* ========== Form Inputs & Layout ========== */
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 16px;
+              border-radius: 6px;
+            }
+            .flex-row {
+              display: flex;
+              gap: 10px 16px;
+              flex-wrap: wrap;
+            }
+            .flex-row > div {
+              flex: 1;
+              min-width: 300px;
+            }
+            .bold-label {
+              font-weight: 600;
+              color: #000;
+              font-size: 14px;
+              margin-bottom: 4px;
+              display: block;
+            }
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            #details {
+              width: 100%;
+              min-width: 200px;
+              max-width: 800px;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 6px;
+              padding: 8px;
+              background: #fff;
+              font-size: 14px;
+              outline: none;
+              box-sizing: border-box;
+              height: 50px;
+            }
+            #details {
+              resize: vertical;
+              min-height: 100px;
+              max-height: 200px;
+              width: 100%;
+            }
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="tel"]:focus,
+            #details:focus {
+              border: 2px solid #9c27b0;
+            }
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+            input[type="number"] {
+              -moz-appearance: textfield;
+            }
+            /* ========== Buttons ========== */
+            .appointment-btn,
+            .submit {
+              color: #9c27b0;
+              background-color: #F8EAFA;
+              border: none;
+              padding: 12px;
+              border-radius: 6px;
+              font-size: 16px;
+              cursor: pointer;
+              margin-top: 8px;
+              transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+              width: 100%;
+            }
+            .appointment-btn:hover,
+            .submit:hover {
+              color: #fff;
+              background-color: #9c27b0;
+              font-weight: 600;
+            }
+            .appointment-btn:disabled,
+            .submit:disabled {
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+              font-weight: 700;
+            }
+            /* ========== Sections & Tabs ========== */
+            .section {
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 6px;
+              margin-bottom: 10px;
+              overflow: hidden;
+              background: #fff;
+              transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            .section-card {
+              padding: 10px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              transition: all 0.2s ease;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+              border-radius: 6px;
+            }
+            .section.active {
+              border: 2px solid #9c27b0;
+              box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+            }
+            .section:hover:not(.disabled) {
+              border-color: #9c27b0;
+              box-shadow: 0 3px 8px rgba(154,13,242,0.1);
+            }
+            .section-info {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+            .section-icon {
+              background-color: #F8EAFA;
+              color: #9c27b0;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .section-title {
+              font-weight: 700;
+              font-size: 14px;
+              color: #444;
+            }
+            .collapse-icon {
+              transition: transform 0.3s;
+              background: #F8EAFA;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+            }
+            .collapse-icon.active {
+              transform: rotate(-180deg);
+            }
+            .collapsible-section {
+              overflow: hidden;
+              max-height: 0;
+              transition: max-height 0.3s ease-out;
+            }
+            .collapsible-section.expanded {
+              max-height: 1000px;
+            }
+            .section-content {
+              padding: 20px;
+              background: #fefefe;
+              border-top: 1px solid #eee;
+            }
+            .select-label {
+              margin-bottom: 8px;
+              font-weight: bold;
+              color: #444;
+            }
+            /* ========== Disabled State ========== */
+            .disabled {
+              cursor: not-allowed !important;
+            }
+            .disabled * {
+              cursor: not-allowed !important;
+              pointer-events: none !important;
+            }
+            .custom-option:not(.selected):hover .option-checkbox svg path {
+              fill: #9c27b0;
+            }
+            .custom-option:not(.selected):hover .option-checkbox {
+              position: relative;
+              border-color: #9c27b0;
+            }
+            .custom-option:not(.selected):hover .option-checkbox svg {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 18px;
+              height: 18px;
+            }
+            .option-checkbox svg {
+              position: absolute;
+              width: 18px;
+              height: 18px;
+            }
+            .main-arrow {
+              margin-left: auto;
+              display: flex;
+              align-items: center;
+              background-color: #F8EAFA;
+              padding: 5px;
+              border-radius: 50%;
+              transition: background-color 0.3s;
+            }
+            .arrow-icon {
+              transition: transform 0.3s ease;
+            }
+            .arrow-icon.rotate {
+              transform: rotate(180deg);
+            }
+          </style>
           <!-- Section 1: Contact Information -->
           <div class="flex-row">
             <div class="section">
@@ -5780,6 +5892,42 @@ const navHTML = `
           formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => icon.classList.remove('rotate'));
           formContainer.classList.add('disabled');
         }
+
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
+          let timeLeft = TIMEOUT_DURATION;
+          
+          // Just set the timeout - no display updates needed
+          formTimeoutId = setInterval(() => {
+            timeLeft -= 1000;
+            
+            if (timeLeft <= 0) {
+              clearInterval(formTimeoutId);
+              if (!isFormSubmitted) {
+                handleFormTimeout();
+              }
+            }
+          }, 1000);
+        }
+        
+        function handleFormTimeout() {
+          disableAllFormElements();
+          
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+          submitButton.style.backgroundColor = "#f44336";
+          submitButton.style.color = "white";
+          
+          window.voiceflow.chat.interact({
+            type: "timeEnd",
+            payload: {
+              message: "Time expired"
+            }
+          });
+        }
     
         /*************************************************************
          * Form Submission Process with Sequential Validation
@@ -5844,21 +5992,32 @@ const navHTML = `
           submitButton.style.cursor = "not-allowed";
           submitButton.style.backgroundColor = "#4CAF50";
           submitButton.style.color = "white";
-		  
-		  window.voiceflow.chat.interact({ 
-            type: "complete",
+          
+          // Mark form as submitted and clear the timeout
+          isFormSubmitted = true;
+          if (formTimeoutId) {
+            clearInterval(formTimeoutId);
+          }
+          
+          window.voiceflow.chat.interact({ 
+            type: "success",
             payload: { 
-			fullName,
-                email,
-                phone: formatPhoneNumber(phone),
-                agent: selectedSeller,
-                service: selectedService,
-                message: details
-			},
+              fullName,
+              email,
+              phone: formatPhoneNumber(phone),
+              agent: selectedSeller,
+              service: selectedService,
+              message: details
+            },
           });
    
           disableAllFormElements();
+          
+          submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
         });
+        
+        // Start the timer when the form is loaded
+        startFormTimer();
       }
     };
     
@@ -5870,7 +6029,10 @@ const navHTML = `
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-
+// Initialize timeout variables
+let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -5945,11 +6107,11 @@ const navHTML = `
   }
   .custom-option:hover {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
   }
   .custom-option.selected {
     background-color: #F8EAFA;
-    color: #9C27B0;
+    color: #9c27b0;
     font-weight: bold;
   }
 
@@ -5974,19 +6136,19 @@ const navHTML = `
 
   /* Hover state */
   .custom-option:hover:not(.selected) .option-checkbox {
-    border-color: #9C27B0;
+    border-color: #9c27b0;
   }
   .custom-option:hover:not(.selected) .option-checkbox svg {
     display: block;
   }
   .custom-option:hover:not(.selected) .option-checkbox svg path {
-    fill: #9C27B0;
+    fill: #9c27b0;
   }
 
   /* Selected state */
   .custom-option.selected .option-checkbox {
-    border-color: #9C27B0;
-    background-color: #9C27B0;
+    border-color: #9c27b0;
+    background-color: #9c27b0;
   }
   .custom-option.selected .option-checkbox svg {
     display: block;
@@ -6069,12 +6231,12 @@ const navHTML = `
   input[type="text"]:focus,
   input[type="email"]:focus,
   input[type="tel"]:focus {
-    border: 2px solid #9C27B0;
+    border: 2px solid #9c27b0;
   }
 
   /* ========== Buttons ========== */
   .submit-btn {
-    color: #9C27B0;
+    color: #9c27b0;
     background-color: #F8EAFA;
     border: none;
     padding: 15px;
@@ -6088,7 +6250,7 @@ const navHTML = `
   }
   .submit-btn:hover {
     color: #fff;
-    background-color: #9C27B0;
+    background-color: #9c27b0;
   }
   .submit-btn:disabled {
     background-color: #4CAF50;
@@ -6184,6 +6346,52 @@ const navHTML = `
         `;
 
         element.appendChild(formContainer);
+
+	/*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  // Apply disabled styling
+  formContainer.classList.add('form-disabled');
+  
+  // Disable all form inputs
+  formContainer.querySelector("#full-name").disabled = true;
+  formContainer.querySelector("#email").disabled = true;
+  formContainer.querySelector("#phone").disabled = true;
+  
+  // Disable the dropdown
+  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+  
+  // Update button state
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
 
         // Initialize the agent dropdown
         const agentDropdown = formContainer.querySelector("#agentDropdown");
@@ -6298,7 +6506,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   // Force close any open dropdown
   customOptionsAgent.classList.remove('show-options');
   dropdownIconAgent.classList.remove('rotate');
-  
+
+	  isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
   // Apply disabled styling
   formContainer.classList.add('form-disabled');
   
@@ -6318,7 +6530,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   submitButton.style.color = "white";
   
   window.voiceflow.chat.interact({
-            type: "complete",
+            type: "success",
             payload: { 
 			fullName,
     email,
@@ -6326,6 +6538,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
     agentName: selectedAgent },
           });
         });
+	startFormTimer();      
       }
     };
 
@@ -6339,7 +6552,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
         // Add SVG chevron constant at the top
         const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
           <g transform="translate(75, 75)">
-            <path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+            <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
           </g>
         </svg>`;
         
@@ -6428,7 +6641,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   left: 10%;
   width: 80%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
+  background: linear-gradient(90deg, transparent, #9c27b0, transparent);
   opacity: 0.5;
 }
 .calendar-title {
@@ -6449,7 +6662,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   align-items: center; 
   height: 24px;
   font-size: 16px;
-  color: #9C27B0;
+  color: #9c27b0;
   margin: 3px 0;
   line-height: 24px;
   font-weight: 650;
@@ -6490,11 +6703,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   border-radius: 50%;
   transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  color: #9C27B0;
+  color: #9c27b0;
 }
 .nav-btn:hover {
   background-color: #F8EAFA;
-  box-shadow: 0 3px 10px #9C27B026;
+  box-shadow: 0 3px 10px #9c27b026;
 }
 .current-date {
   font-weight: 600;
@@ -6503,7 +6716,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   padding: 6px 14px;
   border-radius: 20px;
   font-weight: 500;
-  color: #9C27B0;
+  color: #9c27b0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   transition: all 0.3s;
 }
@@ -6537,7 +6750,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   bottom: 20px;
   width: 80px;
   height: 80px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='#9C27B008'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='#9c27b008'/%3E%3C/svg%3E");
   opacity: 0.6;
 }
 .weekdays {
@@ -6589,8 +6802,8 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   background-color: #F8EAFA;
 }
 .day:hover:not(.inactive) {
-  color: #9C27B0;
-  border: 2px solid #9C27B0;
+  color: #9c27b0;
+  border: 2px solid #9c27b0;
   font-weight: 500;
 }
 .day.available {
@@ -6603,14 +6816,14 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   opacity: 0.7;
   animation: fadeIn 0.3s ease forwards;
 }
 .day.today {
-  border: 1.5px solid #9C27B0;
+  border: 1.5px solid #9c27b0;
   position: relative;
-  box-shadow: 0 0 0 1px #9C27B01a;
+  box-shadow: 0 0 0 1px #9c27b01a;
 }
 .day.today::after {
   content: "";
@@ -6619,14 +6832,14 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
 }
 .day.active {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px #9C27B026;
+  box-shadow: 0 4px 12px #9c27b026;
 }
 .day.active::after {
   display: none;
@@ -6650,7 +6863,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   left: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(to bottom, #9C27B0, transparent);
+  background: linear-gradient(to bottom, #9c27b0, transparent);
   opacity: 0.1;
 }
 .time-header {
@@ -6658,7 +6871,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   margin-bottom: 20px;
   font-size: 16px;
   text-align: center;
-  color: #9C27B0;
+  color: #9c27b0;
   padding: 0 5px;
   line-height: 1.4;
   position: relative;
@@ -6671,7 +6884,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   opacity: 0.5;
   border-radius: 3px;
 }
@@ -6696,15 +6909,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: #9C27B00d;
+  background: #9c27b00d;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: #9C27B033;
+  background: #9c27b033;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: #9C27B033;
+  background: #9c27b033;
 }
 @keyframes slideIn {
   from {
@@ -6754,12 +6967,12 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   opacity: 0.7;
 }
 .time-slot.selected {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
-  border-color: #9C27B0;
+  border-color: #9c27b0;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px #9C27B026;
+  box-shadow: 0 4px 15px #9c27b026;
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -6771,8 +6984,8 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .time-slot.available:hover:not(.selected) {
   background-color: #F8EAFA;
-  color: #9C27B0;
-  border: 2px solid #9C27B0;
+  color: #9c27b0;
+  border: 2px solid #9c27b0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
 }
 .time-slot.available:hover:not(.selected)::before {
@@ -6806,7 +7019,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 }
 .confirm-btn {
   background: #F8EAFA;
-  color: #9C27B0;
+  color: #9c27b0;
   font-weight: 600;
   border-radius: 10px;
   padding: 12px 24px;
@@ -6831,15 +7044,15 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   transform: translateX(-100%);
 }
 .confirm-btn:hover:not(:disabled) {
-  background: #9C27B0;
+  background: #9c27b0;
   color: white;
-  box-shadow: 0 6px 18px #9C27B026;
+  box-shadow: 0 6px 18px #9c27b026;
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px #9C27B026;
+  box-shadow: 0 2px 10px #9c27b026;
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -6870,7 +7083,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   transition: all 0.2s ease;
 }
 .toggle-btn.active {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
 }
 
@@ -6897,11 +7110,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   min-height: 60px;
 }
 .reschedule-reason textarea:focus {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   outline: none;
 }
 .error-message {
-  color: #9C27B0;
+  color: #9c27b0;
   font-size: 13px;
   margin-top: 4px;
   display: none;
@@ -7086,18 +7299,18 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
 @media (hover: none) {
   .day:active:not(.inactive):not(.active) {
     background-color: #F8EAFA;
-    color: #9C27B0;
-    border: 2px solid #9C27B0;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
   }
   
   .time-slot.available:active:not(.selected) {
     background-color: #F8EAFA;
-    color: #9C27B0;
-    border: 2px solid #9C27B0;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
   }
   
   .confirm-btn:active:not(:disabled) {
-    background: #9C27B0;
+    background: #9c27b0;
     color: white;
   }
 }
@@ -7256,7 +7469,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
               </svg>
             </div>
             <p style="margin: 0; color: #333;">${message}</p>
-            <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
+            <button style="margin-top: 15px; background: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
           `;
           errorOverlay.appendChild(errorMessage);
           calendarContainer.appendChild(errorOverlay);
@@ -7367,7 +7580,7 @@ function renderHeader() {
   // Calendar icon
   const calendarIcon = document.createElement("span");
   calendarIcon.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9c27b0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
   `;
   
   // Provider and service information section
@@ -7379,7 +7592,7 @@ function renderHeader() {
   providerDiv.innerHTML = `
     <span class="provider-icon">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-      <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+      <path fill="#9c27b0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
       </svg>
     </span>
     <span>${agentName || 'Available Appointments'}</span>
@@ -7622,7 +7835,7 @@ function renderHeader() {
               left: 0;
               width: 100%;
               height: 100%;
-              background-color: #9C27B00d;
+              background-color: #9c27b00d;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -7637,7 +7850,7 @@ function renderHeader() {
               background-color: white;
               border-radius: 15px;
               padding: 20px 30px;
-              box-shadow: 0 10px 30px #9C27B026;
+              box-shadow: 0 10px 30px #9c27b026;
               text-align: center;
               transform: translateY(20px);
               transition: transform 0.5s, opacity 0.5s;
@@ -7648,7 +7861,7 @@ function renderHeader() {
             checkmark.innerHTML = `
               <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-                <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20 30L27 37L40 23" stroke="#9c27b0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             `;
             
@@ -7659,7 +7872,7 @@ function renderHeader() {
               font-size: 18px;
               font-weight: 600;
               margin-top: 15px;
-              color: #9C27B0;
+              color: #9c27b0;
             `;
             successMessage.appendChild(successText);
             successOverlay.appendChild(successMessage);
@@ -7712,7 +7925,7 @@ function renderHeader() {
                   };
                   
                   window.voiceflow.chat.interact({
-                    type: "complete",
+                    type: "success",
                     payload: formData
                   });
                 }, 500); // End of hide animation
@@ -7788,7 +8001,9 @@ function renderHeader() {
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-        
+        let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -7835,8 +8050,6 @@ function renderHeader() {
       margin: 0 auto;
       padding: 20px;
       border-radius: 6px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .bold-label {
       font-weight: 600;
@@ -7862,12 +8075,12 @@ function renderHeader() {
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="tel"]:focus {
-      border: 2px solid #9C27B0;
+      border: 2px solid #9c27b0;
     }
     
     /* ========== Buttons ========== */
     .submit-btn {
-      color: #9C27B0;
+      color: #9c27b0;
       background-color: #F8EAFA;
       border: none;
       padding: 15px;
@@ -7881,7 +8094,7 @@ function renderHeader() {
     }
     .submit-btn:hover {
       color: #fff;
-      background-color: #9C27B0;
+      background-color: #9c27b0;
     }
     .submit-btn:disabled {
       background-color: #4CAF50;
@@ -7942,6 +8155,52 @@ function renderHeader() {
 
         element.appendChild(formContainer);
 
+
+	      /*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  // Just set the timeout - no display updates needed
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  // Apply disabled styling
+  formContainer.classList.add('form-disabled');
+  
+  // Disable all form inputs
+  formContainer.querySelector("#full-name").disabled = true;
+  formContainer.querySelector("#email").disabled = true;
+  formContainer.querySelector("#phone").disabled = true;
+  
+  // Disable the dropdown
+  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+  
+  // Update button state
+  const submitButton = formContainer.querySelector("#submit-button");
+  submitButton.disabled = true;
+  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+  submitButton.style.backgroundColor = "#f44336";
+  submitButton.style.color = "white";
+  
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+}
         // Input validation
         formContainer.querySelector("#full-name").addEventListener("input", function() {
           if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
@@ -7986,7 +8245,11 @@ function renderHeader() {
           if (!isValid) {
             return;
           }
-          
+
+	    isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
           // Apply disabled styling but don't prevent pointer events
           formContainer.classList.add('form-disabled');
           
@@ -8011,7 +8274,7 @@ function renderHeader() {
           // If Voiceflow integration is needed
        
             window.voiceflow.chat.interact({
-              type: "complete",
+              type: "success",
               payload: {
             fullName,
             email,
@@ -8020,6 +8283,7 @@ function renderHeader() {
             });
 
         });
+	startFormTimer();      
       }
     };
 
@@ -8033,7 +8297,7 @@ function renderHeader() {
     // Add SVG chevron constant at the top like in booking extension
     const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
       <g transform="translate(75, 75)">
-        <path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+        <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
       </g>
     </svg>`;
     
@@ -8055,7 +8319,7 @@ function renderHeader() {
     } = trace.payload || {};
 
     const locale = language === 'fr' ? 'fr-CA' : 'en-US';
-    const highlightColor = '#9C27B0';
+    const highlightColor = '#9c27b0';
 
     // Create a container and attach a shadow DOM for encapsulated styling.
     const container = document.createElement("div");
@@ -8124,7 +8388,7 @@ function renderHeader() {
   left: 10%;
   width: 80%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #9C27B0, transparent);
+  background: linear-gradient(90deg, transparent, #9c27b0, transparent);
   opacity: 0.5;
 }
 .calendar-title {
@@ -8145,7 +8409,7 @@ function renderHeader() {
   align-items: center; 
   height: 24px;
   font-size: 16px;
-  color: #9C27B0;
+  color: #9c27b0;
   margin: 3px 0;
   line-height: 24px;
   font-weight: 650;
@@ -8185,11 +8449,11 @@ function renderHeader() {
   border-radius: 50%;
   transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  color: #9C27B0;
+  color: #9c27b0;
 }
 .nav-btn:hover {
   background-color: #F8EAFA;
-  box-shadow: 0 3px 10px #9C27B026;
+  box-shadow: 0 3px 10px #9c27b026;
 }
 .current-date {
   font-weight: 600;
@@ -8198,7 +8462,7 @@ function renderHeader() {
   padding: 6px 14px;
   border-radius: 20px;
   font-weight: 500;
-  color: #9C27B0;
+  color: #9c27b0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   transition: all 0.3s;
 }
@@ -8231,7 +8495,7 @@ function renderHeader() {
   bottom: 20px;
   width: 80px;
   height: 80px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='#9C27B008'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='#9c27b008'/%3E%3C/svg%3E");
   opacity: 0.6;
 }
 .weekdays {
@@ -8283,8 +8547,8 @@ function renderHeader() {
   background-color: #F8EAFA;
 }
 .day:hover:not(.inactive) {
-  color: #9C27B0;
-  border: 2px solid #9C27B0;
+  color: #9c27b0;
+  border: 2px solid #9c27b0;
   font-weight: 500;
 }
 .day.available {
@@ -8297,14 +8561,14 @@ function renderHeader() {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   opacity: 0.7;
   animation: fadeIn 0.3s ease forwards;
 }
 .day.today {
-  border: 1.5px solid #9C27B0;
+  border: 1.5px solid #9c27b0;
   position: relative;
-  box-shadow: 0 0 0 1px #9C27B01a;
+  box-shadow: 0 0 0 1px #9c27b01a;
 }
 .day.today::after {
   content: "";
@@ -8313,14 +8577,14 @@ function renderHeader() {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
 }
 .day.active {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 12px #9C27B026;
+  box-shadow: 0 4px 12px #9c27b026;
 }
 .day.active::after {
   display: none;
@@ -8344,7 +8608,7 @@ function renderHeader() {
   left: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(to bottom, #9C27B0, transparent);
+  background: linear-gradient(to bottom, #9c27b0, transparent);
   opacity: 0.1;
 }
 .time-header {
@@ -8352,7 +8616,7 @@ function renderHeader() {
   margin-bottom: 20px;
   font-size: 16px;
   text-align: center;
-  color: #9C27B0;
+  color: #9c27b0;
   padding: 0 5px;
   line-height: 1.4;
   position: relative;
@@ -8365,7 +8629,7 @@ function renderHeader() {
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   opacity: 0.5;
   border-radius: 3px;
 }
@@ -8390,15 +8654,15 @@ function renderHeader() {
   width: 6px;
 }
 .times-container::-webkit-scrollbar-track {
-  background: #9C27B00d;
+  background: #9c27b00d;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb {
-  background: #9C27B033;
+  background: #9c27b033;
   border-radius: 10px;
 }
 .times-container::-webkit-scrollbar-thumb:hover {
-  background: #9C27B033;
+  background: #9c27b033;
 }
 @keyframes slideIn {
   from {
@@ -8448,12 +8712,12 @@ function renderHeader() {
   opacity: 0.7;
 }
 .time-slot.selected {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
-  border-color: #9C27B0;
+  border-color: #9c27b0;
   border-radius: 10px;
   font-weight: bold;
-  box-shadow: 0 4px 15px #9C27B026;
+  box-shadow: 0 4px 15px #9c27b026;
   z-index: 5;
 }
 .time-slot.selected::after {
@@ -8465,8 +8729,8 @@ function renderHeader() {
 }
 .time-slot.available:hover:not(.selected) {
   background-color: #F8EAFA;
-  color: #9C27B0;
-  border: 2px solid #9C27B0;
+  color: #9c27b0;
+  border: 2px solid #9c27b0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
 }
 .time-slot.available:hover:not(.selected)::before {
@@ -8500,7 +8764,7 @@ function renderHeader() {
 }
 .confirm-btn {
   background: #F8EAFA;
-  color: #9C27B0;
+  color: #9c27b0;
   font-weight: 600;
   border-radius: 10px;
   padding: 12px 24px;
@@ -8525,15 +8789,15 @@ function renderHeader() {
   transform: translateX(-100%);
 }
 .confirm-btn:hover:not(:disabled) {
-  background: #9C27B0;
+  background: #9c27b0;
   color: white;
-  box-shadow: 0 6px 18px #9C27B026;
+  box-shadow: 0 6px 18px #9c27b026;
 }
 .confirm-btn:hover:not(:disabled)::before {
   animation: shimmer 1.5s infinite;
 }
 .confirm-btn:active:not(:disabled) {
-  box-shadow: 0 2px 10px #9C27B026;
+  box-shadow: 0 2px 10px #9c27b026;
 }
 .confirm-btn:disabled {
   cursor: not-allowed;
@@ -8564,7 +8828,7 @@ function renderHeader() {
   transition: all 0.2s ease;
 }
 .toggle-btn.active {
-  background-color: #9C27B0;
+  background-color: #9c27b0;
   color: white;
 }
 
@@ -8592,11 +8856,11 @@ function renderHeader() {
   transition: border 0.2s ease;
 }
 .reschedule-reason textarea:focus {
-  border: 2px solid #9C27B0;
+  border: 2px solid #9c27b0;
   outline: none;
 }
 .error-message {
-  color: #9C27B0;
+  color: #9c27b0;
   font-size: 13px;
   margin-top: 4px;
   display: none;
@@ -8773,18 +9037,18 @@ function renderHeader() {
 @media (hover: none) {
   .day:active:not(.inactive):not(.active) {
     background-color: #F8EAFA;
-    color: #9C27B0;
-    border: 2px solid #9C27B0;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
   }
   
   .time-slot.available:active:not(.selected) {
     background-color: #F8EAFA;
-    color: #9C27B0;
-    border: 2px solid #9C27B0;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
   }
   
   .confirm-btn:active:not(:disabled) {
-    background: #9C27B0;
+    background: #9c27b0;
     color: white;
   }
 }
@@ -8974,7 +9238,7 @@ function renderHeader() {
           </svg>
         </div>
         <p style="margin: 0; color: #333;">${message}</p>
-                    <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
+                    <button style="margin-top: 15px; background: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
       `;
       
       errorOverlay.appendChild(errorMessage);
@@ -9099,7 +9363,7 @@ function renderHeader() {
       providerDiv.innerHTML = `
         <span class="provider-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-          <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+          <path fill="#9c27b0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
         </span>
         <span>${agentName}</span>
       `;
@@ -9409,7 +9673,7 @@ function renderHeader() {
                 width: 100%;
                 height: 100%;
                 
-                box-shadow: 0 3px 10px #9C27B026;
+                box-shadow: 0 3px 10px #9c27b026;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -9424,7 +9688,7 @@ function renderHeader() {
                 background-color: white;
                 border-radius: 15px;
                 padding: 20px 30px;
-                box-shadow: 0 10px 30px #9C27B026;
+                box-shadow: 0 10px 30px #9c27b026;
                 text-align: center;
                 transform: translateY(20px);
                 transition: transform 0.5s, opacity 0.5s;
@@ -9435,7 +9699,7 @@ function renderHeader() {
               checkmark.innerHTML = `
                 <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-                  <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20 30L27 37L40 23" stroke="#9c27b0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               `;
               
@@ -9446,7 +9710,7 @@ function renderHeader() {
                 font-size: 18px;
                 font-weight: 600;
                 margin-top: 15px;
-                color: #9C27B0;
+                color: #9c27b0;
               `;
               successMessage.appendChild(successText);
               successOverlay.appendChild(successMessage);
@@ -9484,7 +9748,7 @@ function renderHeader() {
                     const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
                     
                     window.voiceflow.chat.interact({
-                      type: "complete",
+                      type: "success",
                       payload: { 
                         email,
                         date: dateStr,
@@ -9580,7 +9844,7 @@ function renderHeader() {
 
         // For checking the language and reusing in conditionals
         const locale = language === "fr" ? "fr-CA" : "en-US";
-        const highlightColor = '#9C27B0';
+        const highlightColor = '#9c27b0';
 
         // Create container with shadow DOM
         const container = document.createElement("div");
@@ -9597,7 +9861,7 @@ function renderHeader() {
             to { opacity: 1; transform: translateY(0); }
           }
           .extension-container {
-            box-shadow: 0 10px 25px #9C27B026;
+            box-shadow: 0 10px 25px #9c27b026;
             border-radius: 16px;
             overflow: hidden;
             background: #fff;
@@ -9623,13 +9887,13 @@ function renderHeader() {
             left: 10%;
             width: 80%;
             height: 3px;
-            background: #9C27B0;
+            background: #9c27b0;
             opacity: 0.5;
           }
           .extension-title {
             font-size: 24px;
             font-weight: 700;
-            background: #9C27B0;
+            background: #9c27b0;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -9720,23 +9984,23 @@ function renderHeader() {
           /* Button CSS matching the Rescheduling Extension (3-phase behavior) */
           .confirm-btn {
             background: #F8EAFA;
-            color: #9C27B0;
+            color: #9c27b0;
             font-weight: 600;
             border-radius: 10px;
             padding: 12px 24px;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px #9C27B026;
+            box-shadow: 0 4px 15px #9c27b026;
             position: relative;
             overflow: hidden;
             transition: all 0.3s;
           }
           .confirm-btn:hover:not(:disabled) {
-            background: #9C27B0;
+            background: #9c27b0;
             color: white;
-            box-shadow: 0 6px 18px #9C27B026;
+            box-shadow: 0 6px 18px #9c27b026;
           }
           .confirm-btn:active:not(:disabled) {
-            box-shadow: 0 2px 10px #9C27B026;
+            box-shadow: 0 2px 10px #9c27b026;
           }
           .confirm-btn:disabled {
             cursor: not-allowed;
@@ -9746,7 +10010,7 @@ function renderHeader() {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: #9C27B00d;
+            background-color: #9c27b00d;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -9759,7 +10023,7 @@ function renderHeader() {
             background-color: #fff;
             border-radius: 15px;
             padding: 20px 30px;
-            box-shadow: 0 10px 30px #9C27B026;
+            box-shadow: 0 10px 30px #9c27b026;
             text-align: center;
             transform: translateY(20px);
             transition: transform 0.5s, opacity 0.5s;
@@ -9915,7 +10179,7 @@ function renderHeader() {
           const icon = document.createElement("span");
           icon.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-              <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+              <path fill="#9c27b0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
             </svg>
           `;
           
@@ -10059,7 +10323,7 @@ function renderHeader() {
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #9C27B00d;
+            background-color: #9c27b00d;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -10074,7 +10338,7 @@ function renderHeader() {
             background-color: white;
             border-radius: 15px;
             padding: 20px 30px;
-            box-shadow: 0 10px 30px #9C27B026;
+            box-shadow: 0 10px 30px #9c27b026;
             text-align: center;
             transform: translateY(20px);
             transition: transform 0.5s, opacity 0.5s;
@@ -10085,7 +10349,7 @@ function renderHeader() {
           checkmark.innerHTML = `
             <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-              <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 30L27 37L40 23" stroke="#9c27b0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           `;
           successMessage.appendChild(checkmark);
@@ -10096,7 +10360,7 @@ function renderHeader() {
             font-size: 18px;
             font-weight: 600;
             margin-top: 15px;
-            color: #9C27B0;
+            color: #9c27b0;
           `;
           successMessage.appendChild(successText);
           successOverlay.appendChild(successMessage);
@@ -10120,7 +10384,7 @@ function renderHeader() {
                 
                 // 4. FINALLY - Send data to Voiceflow (LAST STEP)
                 window.voiceflow.chat.interact({
-                  type: "complete",
+                  type: "success",
                   payload: { 
                     uid: uid,
                     reason: reasonText,
@@ -10185,7 +10449,7 @@ function renderHeader() {
               ? "Impossible d'annuler la réservation. Veuillez réessayer." 
               : "Unable to cancel booking. Please try again.")
           }</p>
-          <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+          <button style="margin-top: 15px; background: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
             ${language === 'fr' ? "OK" : "OK"}
           </button>
         `;
@@ -10288,7 +10552,7 @@ window.CombinedCalculatorsExtension = CombinedCalculatorsExtension;
 window.SellPropertyFormExtension = SellPropertyFormExtension;
 window.ContactFormExtension = ContactFormExtension;
 window.BookingFormExtension = BookingFormExtension;
-window.BookingCalendarExtension = BookingCalendarExtension;
 window.BookingInformationExtension = BookingInformationExtension;
+window.BookingCalendarExtension = BookingCalendarExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
 window.CancellationCalendarExtension = CancellationCalendarExtension;
