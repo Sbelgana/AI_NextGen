@@ -431,7 +431,7 @@ const SearchPropertyFormExtension = {
     const isEnglish = language === "en";
     let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
      
         // Create the form container.
         const formContainer = document.createElement("form");
@@ -3914,7 +3914,7 @@ const navHTML = `
         const isEnglish = language === 'en';
 	let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds	
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds	
         // Create the form container
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
@@ -5243,7 +5243,7 @@ if (formTimeoutId) {
         // Initialize timeout variables
         let formTimeoutId = null;
         let isFormSubmitted = false;
-        const TIMEOUT_DURATION = 6000; // 900 seconds (15 minutes) in milliseconds
+        const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
     
         /*************************************************************
          * HTML Generation & Initial Setup
@@ -6032,7 +6032,7 @@ if (formTimeoutId) {
         // Initialize timeout variables
         let formTimeoutId = null;
         let isFormSubmitted = false;
-        const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+        const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -6301,7 +6301,7 @@ if (formTimeoutId) {
   @media screen and (max-width: 768px) {
     form {
       padding: 15px;
-      min-width: 100%;
+      min-width: 225px;
     }
     
     .bold-label {
@@ -6633,7 +6633,7 @@ if (formTimeoutId) {
 
 	      let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -8111,7 +8111,7 @@ const BookingInformationExtension = {
     const isEnglish = language === 'en';
     let formTimeoutId = null;
     let isFormSubmitted = false;
-    const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+    const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     
     // Helper functions
     function isValidEmail(email) {
@@ -8261,7 +8261,8 @@ const BookingInformationExtension = {
       @media screen and (max-width: 768px) {
         form {
           padding: 15px;
-          min-width: 100%;
+          
+      min-width: 225px;
         }
         
         .bold-label {
@@ -8508,7 +8509,7 @@ const BookingInformationExtension = {
 
 	  let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
     const locale = language === 'fr' ? 'fr-CA' : 'en-US';
     const highlightColor = '#9c27b0';
@@ -10084,7 +10085,7 @@ function handleFormTimeout() {
 	      // Initialize timeout variables
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         // For checking the language and reusing in conditionals
         const locale = language === "fr" ? "fr-CA" : "en-US";
         const highlightColor = '#9c27b0';
