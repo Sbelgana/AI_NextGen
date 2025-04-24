@@ -6572,6 +6572,10 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
           timezone = "America/Toronto"
         } = trace.payload || {};
 
+	      let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
+
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
         // Create a container and attach a shadow DOM for encapsulated styling.
@@ -7825,6 +7829,10 @@ function renderHeader() {
           if (bookingResponse) {
             // 2. Then updates the UI to show confirmation
             state.isConfirmed = true;
+		   isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
             renderCalendar();
             
             // 3. Finally shows the success animation
@@ -7945,7 +7953,47 @@ function renderHeader() {
   footer.appendChild(confirmBtn);
   return footer;
 }
+// Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
 
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render the calendar to disable all elements
+  renderCalendar();
+}
+	      
         async function renderCalendar() {
           calendarContainer.innerHTML = "";
           if (state.isConfirmed) {
@@ -7989,6 +8037,7 @@ function renderHeader() {
           // Add touch-specific class to improve mobile experience
           calendarContainer.classList.add('touch-device');
         }
+	 startFormTimer();     
       }
     };
     
@@ -8317,6 +8366,10 @@ function handleFormTimeout() {
       timezone = 'America/Toronto',
       uid = ""
     } = trace.payload || {};
+
+	  let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
 
     const locale = language === 'fr' ? 'fr-CA' : 'en-US';
     const highlightColor = '#9c27b0';
@@ -9662,6 +9715,10 @@ function handleFormTimeout() {
             if (rescheduleResponse) {
               // 2. Then updates the UI to show confirmation
               state.isConfirmed = true;
+		     isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
               renderCalendar();
               
               // 3. Finally shows the success animation
@@ -9779,6 +9836,48 @@ function handleFormTimeout() {
       return footer;
     }
 
+
+// Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render the calendar to disable all elements
+  renderCalendar();
+}	  
+
     async function renderCalendar() {
       calendarContainer.innerHTML = '';
       if (state.isConfirmed) {
@@ -9824,6 +9923,7 @@ function handleFormTimeout() {
       // Add touch-specific class to improve mobile experience
       calendarContainer.classList.add('touch-device');
     }
+	  startFormTimer();
   }
 };
 
@@ -9842,6 +9942,10 @@ function handleFormTimeout() {
           uid = ""                   // Booking UID
         } = trace.payload || {};
 
+	      // Initialize timeout variables
+let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 900000; // 15 minutes in milliseconds
         // For checking the language and reusing in conditionals
         const locale = language === "fr" ? "fr-CA" : "en-US";
         const highlightColor = '#9c27b0';
@@ -10115,6 +10219,47 @@ function handleFormTimeout() {
             return `${datePart} de ${startTime} à ${endTime}`;
         }
 
+	      // Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render to disable all elements
+  renderCancellation();
+}
+
         // Translation helper with added "cancelled" key
         function t(key) {
           const translations = {
@@ -10313,6 +10458,10 @@ function handleFormTimeout() {
         if (cancellationResponse) {
           // 2. Update UI to show confirmation
           state.isConfirmed = true;
+		isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
           renderCancellation();
           
           // 3. Show success animation
@@ -10542,6 +10691,7 @@ function handleFormTimeout() {
         window.addEventListener('resize', () => {
           container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
         });
+	startFormTimer();
       }
     };
 
