@@ -6301,7 +6301,7 @@ if (formTimeoutId) {
   @media screen and (max-width: 768px) {
     form {
       padding: 15px;
-      min-width: 225px;
+      min-width: 100%;
     }
     
     .bold-label {
@@ -6313,6 +6313,7 @@ if (formTimeoutId) {
     input[type="tel"] {
       height: 45px;
       font-size: 13px;
+	  min-width: 225px;
     }
     
     .select-display {
@@ -6330,21 +6331,7 @@ if (formTimeoutId) {
     }
   }
   
-  @media screen and (max-width: 480px) {
-    form {
-      padding: 10px;
-    }
-    
-    .error-message {
-      font-size: 12px;
-    }
-    
-    .error-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 10px;
-    }
-  }
+ 
 </style>
 
           <div class="form-group">
