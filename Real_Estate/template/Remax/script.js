@@ -438,8 +438,13 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
         <style>
-    /* ========= Dropdown Components ========= */
-    /* ========= LAYOUT & STRUCTURE ========= */
+/* ========= LAYOUT & STRUCTURE ========= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -449,6 +454,7 @@ form {
   margin: 0 auto;
   padding: 16px;
   border-radius: 6px;
+  min-width: 350px;
 }
 
 .flex-row {
@@ -459,7 +465,7 @@ form {
 
 .flex-row > div {
   flex: 1;
-  min-width: 225px;
+  min-width: 300px;
 }
 
 .main-container {
@@ -467,10 +473,11 @@ form {
   transition: height 0.3s ease;
   border-radius: 6px;
   margin-bottom: 15px;
+  width: 100%;
 }
 
 .select-container {
-  min-width: 225px;
+  min-width: 300px;
   max-width: 800px;
   width: 100%;
   margin-bottom: 10px;
@@ -484,6 +491,7 @@ form {
   overflow: hidden;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
 }
 
 .section:hover:not(.disabled) {
@@ -566,8 +574,6 @@ form {
   border-radius: 6px;
   background-color: #fff;
   position: relative;
-  min-width: 225px;
-  max-width: 800px;
   width: 100%;
   min-height: 50px;
 }
@@ -580,7 +586,7 @@ form {
   justify-content: space-between;
   align-items: center;
   height: 50px;
-				color: #444;
+  color: #444;
 }
 
 .dropdown-icon {
@@ -610,6 +616,7 @@ form {
   border-radius: 0 0 6px 6px;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  width: 100%;
 }
 
 .custom-options::-webkit-scrollbar {
@@ -675,33 +682,35 @@ form {
 }
 
 .custom-option.selected .main-arrow,
-    .custom-option:hover .main-arrow {
-      background-color: #fff;
-    }
-    
+.custom-option:hover .main-arrow {
+  background-color: #fff;
+}
+
 .main-arrow {
-      margin-left: auto;
-    display: flex;
-    align-items: center;
-    background-color: #d7dbeb;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    width: 24px;
-    height: 24px;
-    justify-content: center;
-    }
-    .arrow-icon {
-      transition: transform 0.3s ease;
-      display: flex
-;
-    }
-    .arrow-icon.rotate {
-      transform: rotate(180deg);
-    }
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  background-color: #d7dbeb;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+  display: flex;
+}
+
+.arrow-icon.rotate {
+  transform: rotate(180deg);
+}
 
 .sub-options {
   margin-left: 25px;
   border-left: 2px solid #003da5;
+  width: calc(100% - 25px);
 }
 
 select {
@@ -714,8 +723,6 @@ input[type="email"],
 input[type="tel"],
 input[type="number"]{
   width: 100%;
-  min-width: 225px;
-  max-width: 100%;
   border: 1px solid rgba(0,0,0,0.2);
   border-radius: 6px;
   padding: 8px;
@@ -748,6 +755,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 5px;
+  width: 100%;
 }
 
 .input-group {
@@ -756,9 +764,7 @@ input[type="number"] {
   align-items: center;
   flex-direction: row;
   border-radius: 15px;
-  min-width: 225px;
   width: 100%;
-  max-width: 100%;
   border: 1px solid #ddd;
   height: 50px;
   overflow: hidden;
@@ -778,18 +784,25 @@ input[type="number"] {
 .input-group input {
   outline: none;
   border: none;
-  padding: 16px;
-  
 }
 
 .input-group input {
   width: 100%;
   text-align: center;
+  padding: 8px;
 }
 
+/* UPDATED BUTTON STYLING TO MATCH MORTGAGE CALCULATOR */
 .input-group button {
   cursor: pointer;
   background-color: #d7dbeb;
+  border: none;
+  padding: 0;
+  min-width: 40px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .input-group button:hover {
@@ -805,6 +818,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   margin: 8px 0;
+  position: relative;
 }
 
 .checkbox-container input[type="checkbox"] {
@@ -813,7 +827,15 @@ input[type="number"] {
   pointer-events: none;
 }
 
-
+.checkbox-container .bold-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  padding: 8px 0;
+  width: 100%;
+  z-index: 2;
+}
 
 .custom-checkbox {
   display: inline-flex;
@@ -826,6 +848,8 @@ input[type="number"] {
   background-color: #fff;
   margin-right: 8px;
   position: relative;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .check-icon {
@@ -836,12 +860,11 @@ input[type="number"] {
   background-color: #003da5;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
-.checkbox-container input[type="checkbox"]:checked 
-  + .bold-label 
-  .custom-checkbox 
-  .check-icon {
+/* Fixed selector for checkbox checked state */
+.checkbox-container input[type="checkbox"]:checked + .bold-label .custom-checkbox .check-icon {
   display: flex;
 }
 
@@ -849,20 +872,18 @@ input[type="number"] {
   font-weight: 600;
   color: #333;
   font-size: 14px;
+  position: relative;
+  z-index: 2;
 }
 
 /* ========= LABELS ========= */
 .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-  
-  display: inline-flex;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: flex;
   align-items: center;
 }
-
-
 
 /* ========= BUTTONS ========= */
 .submit {
@@ -918,6 +939,204 @@ input[type="number"] {
   color: #000;
 }
 
+/* ========= RESPONSIVE STYLES ========= */
+@media screen and (max-width: 768px) {
+  form {
+    padding: 12px;
+    min-width: 100%;
+  }
+  
+  .flex-row > div {
+    flex: 100%;
+    min-width: 100%;
+  }
+  
+  .section-content {
+    padding: 15px 12px;
+  }
+  
+  .select-container,
+  .select-wrapper,
+  .main-container {
+    min-width: 100%;
+  }
+  
+  .select-display {
+    height: 45px;
+    font-size: 13px;
+  }
+  
+  .section-title {
+    font-size: 14px;
+  }
+  
+  .section-icon,
+  .dropdown-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .bold-label,
+  .checkbox-text {
+    font-size: 14px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  .input-group {
+    height: 45px;
+    font-size: 13px;
+  }
+  
+  /* UPDATED BUTTON STYLING FOR TABLETS */
+  .input-group button {
+    min-width: 36px;
+    height: 45px;
+  }
+  
+  .custom-option {
+    padding: 10px 12px;
+  }
+  
+  .submit {
+    padding: 10px;
+    font-size: 15px;
+  }
+  
+  /* Enhanced checkbox touch targets for mobile */
+  .checkbox-container {
+    margin: 12px 0;
+    padding: 4px 0;
+  }
+  
+  .checkbox-container .bold-label {
+    min-height: 44px;
+    padding: 8px 0;
+  }
+  
+  /* Create larger touch area */
+  .checkbox-container .bold-label::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    z-index: 1;
+  }
+  
+  /* Fix layout for additional features section */
+  #section-additional-features .flex-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  #garageCapacityGroup {
+    grid-column: 1 / -1; /* Make garage capacity span full width */
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  form {
+    padding: 10px;
+  }
+  
+  .section-card {
+    padding: 8px;
+  }
+  
+  .section-content {
+    padding: 12px 10px;
+  }
+  
+  .section-title {
+    font-size: 13px;
+  }
+  
+  .section-icon,
+  .dropdown-icon,
+  .collapse-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .section-info {
+    gap: 8px;
+  }
+  
+  .bold-label,
+  .checkbox-text {
+    font-size: 13px;
+  }
+  
+  .custom-option {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .checkbox-container {
+    margin: 15px 0;
+  }
+  
+  .checkbox-container .bold-label {
+    min-height: 48px; /* Even taller for small screens */
+  }
+  
+  .custom-checkbox,
+  .option-checkbox {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .submit {
+    font-size: 14px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  .input-group {
+    height: 42px;
+    font-size: 12px;
+  }
+  
+  /* UPDATED BUTTON STYLING FOR MOBILE PHONES */
+  .input-group button {
+    min-width: 32px;
+    height: 42px;
+  }
+  
+  .main-arrow {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .sub-options {
+    margin-left: 15px;
+  }
+  
+  /* On smaller phones, stack checkboxes */
+  #section-additional-features .flex-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Extra padding and larger hit area for better touch targets */
+  .checkbox-container .bold-label::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
+  }
+}
   </style>
           <!-- SECTION 1: Location & Category -->
           <div class="flex-row">
@@ -2121,11 +2340,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
         const container = document.createElement("div");
 
         // Determine container width based on device screen width
-        const containerWidth = window.innerWidth <= 768 ? "400px" : "800px";
+        const containerWidth = window.innerWidth <= 768 ? "300px" : "800px";
 
         container.style.cssText = `
           width: ${containerWidth};
-          height: 350px;
+          height: 450px;
           border: 1px solid #888;
           border-radius: 8px;
           overflow: hidden;
@@ -2264,268 +2483,36 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
         formContainer.innerHTML = `
           <style>
             /* Form Styling */
-            form {
-              display: flex;
-              flex-direction: column;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            .form-row {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 15px;
-              margin-bottom: 15px;
-            }
-            .form-column {
-              flex: 1;
-              min-width: 225px;
-            }
-            .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-            }
-            .input-group {
-              position: relative;
-              width: 100%;
-            }
-            .currency-input {
-              height: 40px;
-              width: 100%;
-              border: 1px solid rgba(0, 0, 0, 0.2);
-              border-radius: 8px;
-              padding: 12px;
-              background: #fff;
-              font-size: 14px;
-              outline: none;
-              box-sizing: border-box;
-              padding-left: 30px;
-            }
-            .currency-symbol {
-              position: absolute;
-              left: 10px;
-              top: 50%;
-              transform: translateY(-50%);
-              color: black;
-            }
-            .number-input-wrapper {
-              position: relative;
-              width: 100%;
-            }
-            input[type="number"]::-webkit-inner-spin-button,
-            input[type="number"]::-webkit-outer-spin-button {
-              -webkit-appearance: none;
-              margin: 0;
-            }
-            input[type="number"] {
-              -moz-appearance: textfield;
-            }
-            .number-input-controls {
-              position: absolute;
-              right: 0px;
-              top: 0px;
-              bottom: 0px;
-              width: 20px;
-              display: flex;
-              flex-direction: column;
-              background-color: #d7dbeb;
-              border: 1px solid rgba(0,0,0,0.1);
-              border-radius: 0 8px 8px 0;
-              overflow: hidden;
-            }
-            .number-input-up,
-            .number-input-down {
-              flex: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #003da5;
-              cursor: pointer;
-              font-size: 8px;
-            }
-            .number-input-up:hover,
-            .number-input-down:hover {
-              background-color: #003da5;
-              color: #fff;
-            }
-            /* Dropdown Styles */
-            .dropdown-container {
-              position: relative;
-              max-width: 100%;
-              margin-top: 4px;
-            }
-            .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 8px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-              color: #555;
-            }
-            .select-btn .btn-text {
-              font-size: 14px;
-              font-weight: 400;
-              color: black;
-            }
-            .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #003da5;
-              font-size: 12px;
-              border-radius: 50%;
-              background: #d7dbeb;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-            }
-            .select-btn.open .arrow-dwn {
-              transform: rotate(-180deg);
-            }
-            .select-btn:focus,
-            .select-btn.open {
-              border: 2px solid #003da5;
-            }
-            .list-items {
-              position: static;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 8px;
-              padding: 8px 0;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-              z-index: 100;
-            }
-            /* Dropdown style with checkboxes */
-            .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              transition: 0.3s;
-              padding: 0 12px;
-              border-radius: 8px;
-            }
-            .list-items .item:hover {
-              background-color: #d7dbeb;
-            }
-            .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              border-radius: 50%;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-            }
-            .item.checked .checkbox {
-              background-color: #003da5;
-              border: 2px solid #003da5;
-            }
-            .checkbox .check-icon {
-              color: #fff;
-              font-size: 12px;
-              transform: scale(0);
-              transition: all 0.2s ease-in-out;
-            }
-            .item.checked .check-icon {
-              transform: scale(1);
-            }
-            .list-items .item:not(.checked) .checkbox svg path {
-              fill: transparent !important;
-            }
-            .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #003da5 !important;
-            }
-            .list-items .item.checked .checkbox svg path {
-              fill: #ffffff !important;
-            }
-            .item .item-text {
-              font-size: 14px;
-              font-weight: 400;
-              color: #333;
-              margin-left: 8px;
-            }
-            /* Results Styles */
-            .results-container {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #d7dbeb;
-              border-radius: 8px;
-              text-align: center;
-            }
-            .results-title {
-              margin: 0 0 10px 0;
-              color: #333;
-              font-size: 16px;
-              font-weight: 600;
-            }
-            .results-amount {
-              font-size: 2em;
-              color: #003da5;
-              font-weight: bold;
-              margin: 15px 0;
-            }
-            input[readonly] {
-              background-color: #f9f9f9;
-              cursor: not-allowed;
-            }
-            .result h3 {
-              font-size: 16px;
-              font-weight: 600;
-              margin-bottom: 10px;
-              color: #333;
-            }
-            .result .amount {
-              font-size: 24px;
-              font-weight: bold;
-              color: #003da5;
-              margin: 15px 0;
-            }
-            .result .hint {
-              font-size: 12px;
-              color: #666;
-              margin-bottom: 15px;
-            }
-            #min-down-payment-message {
-              color: red;
-              font-size: 16px;
-              margin-top: 5px;
-              margin-bottom: 10px;
-              text-align: center;
-              padding: 10px;
-              border-radius: 4px;
-              font-weight: bold;
-            }
-            #error-message {
-              color: red;
-              font-size: 12px;
-              margin-top: 5px;
-            }
-            #loan-amount {
-  background-color: #003da5 !important; /* Purple background */
-  color: white !important;
-  border-color: #003da5 !important;
+           /* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  min-width: 350px;
+  margin: 0 auto;
 }
 
-#loan-amount + .currency-symbol,
-.input-group:has(#loan-amount) .currency-symbol {
-  color: white !important;
-
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
 }
+
+.form-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.bold-label {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: block;
+}
+
 .input-group {
   position: relative;
   width: 100%;
@@ -2534,9 +2521,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 225px;
   width: 100%;
-  max-width: 100%;
   border: 1px solid #ddd;
   height: 40px;
   overflow: hidden;
@@ -2551,12 +2536,13 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
 .input-group input {
   outline: none;
   border: none;
-  padding: 16px;
+  padding: 12px;
 }
 
 .input-group input {
   width: 100%;
   text-align: center;
+  font-size: 14px;
 }
 
 .input-group button {
@@ -2564,7 +2550,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
   background-color: #d7dbeb;
   border: none;
   padding: 0;
-  width: 40px;
+  min-width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
@@ -2578,8 +2564,417 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
 .input-group button:hover svg path {
   fill: #fff !important;
 }
+
+.currency-input {
+  height: 40px;
+  width: 100%;
+  border: none;
+  padding: 8px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
 .currency-symbol {
   display: none;
+}
+
+/* Dropdown Styles */
+.dropdown-container {
+  position: relative;
+  max-width: 100%;
+  margin-top: 4px;
+}
+
+.select-btn {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.2);
+  color: #555;
+}
+
+.select-btn .btn-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: black;
+}
+
+.arrow-dwn {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  color: #003da5;
+  font-size: 12px;
+  border-radius: 50%;
+  background: #d7dbeb;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+.select-btn.open .arrow-dwn {
+  transform: rotate(-180deg);
+}
+
+.select-btn:focus,
+.select-btn.open {
+  border: 2px solid #003da5;
+}
+
+.list-items {
+  position: static;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  border-radius: 8px;
+  padding: 8px 0;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* Dropdown style with checkboxes */
+.list-items .item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+
+.list-items .item:hover {
+  background-color: #d7dbeb;
+}
+
+.item .checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1.5px solid #c0c0c0;
+  transition: all 0.3s ease-in-out;
+}
+
+.item.checked .checkbox {
+  background-color: #003da5;
+  border: 2px solid #003da5;
+}
+
+.checkbox .check-icon {
+  color: #fff;
+  font-size: 12px;
+  transform: scale(0);
+  transition: all 0.2s ease-in-out;
+}
+
+.item.checked .check-icon {
+  transform: scale(1);
+}
+
+.list-items .item:not(.checked) .checkbox svg path {
+  fill: transparent !important;
+}
+
+.list-items .item:not(.checked):hover .checkbox svg path {
+  fill: #003da5 !important;
+}
+
+.list-items .item.checked .checkbox svg path {
+  fill: #ffffff !important;
+}
+
+.item .item-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+  margin-left: 8px;
+}
+
+/* Results Styles */
+.results-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #d7dbeb;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.results-title {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.results-amount {
+  font-size: 2em;
+  color: #003da5;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+input[readonly] {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
+}
+
+.result h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.result .amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #003da5;
+  margin: 15px 0;
+}
+
+.result .hint {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+#min-down-payment-message {
+  color: red;
+  font-size: 16px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  text-align: center;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+#error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+#loan-amount {
+  background-color: #003da5 !important; /* Purple background */
+  color: white !important;
+  border-color: #003da5 !important;
+}
+
+/* General resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  form {
+    padding: 10px;
+    min-width: 100%;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .form-column {
+    flex: 100%;
+    width: 100%;
+    min-width: 100%;
+  }
+  
+  .bold-label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .input-group {
+    height: 45px;
+  }
+  
+  .input-group input {
+    font-size: 13px;
+    padding: 8px;
+  }
+  
+  .input-group button {
+    min-width: 36px;
+  }
+  
+  .select-btn {
+    height: 45px;
+  }
+  
+  .select-btn .btn-text {
+    font-size: 13px;
+  }
+  
+  .arrow-dwn {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .list-items .item {
+    height: 40px;
+    padding: 0 10px;
+  }
+  
+  .item .item-text {
+    font-size: 13px;
+  }
+  
+  .results-container {
+    padding: 12px;
+  }
+  
+  .results-title {
+    font-size: 15px;
+  }
+  
+  .results-amount {
+    font-size: 1.8em;
+  }
+  
+  .result h3 {
+    font-size: 15px;
+  }
+  
+  .result .amount {
+    font-size: 22px;
+    margin: 12px 0;
+  }
+  
+  .result .hint {
+    font-size: 11px;
+  }
+  
+  #min-down-payment-message {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  form {
+    padding: 8px;
+  }
+  
+  .form-row {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .bold-label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  .input-group {
+    height: 42px;
+  }
+  
+  .input-group input {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  .input-group button {
+    min-width: 32px;
+  }
+  
+  .select-btn {
+    height: 42px;
+    padding: 0 10px;
+  }
+  
+  .select-btn .btn-text {
+    font-size: 12px;
+  }
+  
+  .arrow-dwn {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .list-items .item {
+    height: 36px;
+    padding: 0 8px;
+  }
+  
+  .item .checkbox {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .item .item-text {
+    font-size: 12px;
+  }
+  
+  .results-container {
+    padding: 10px;
+    margin-top: 15px;
+  }
+  
+  .results-title {
+    font-size: 14px;
+  }
+  
+  .results-amount {
+    font-size: 1.6em;
+    margin: 10px 0;
+  }
+  
+  .result h3 {
+    font-size: 14px;
+  }
+  
+  .result .amount {
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  
+  .result .hint {
+    font-size: 10px;
+  }
+  
+  #min-down-payment-message {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  #error-message {
+    font-size: 10px;
+  }
 }
           </style>
 
@@ -3076,258 +3471,37 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
         const formContainer = document.createElement('div');
         formContainer.innerHTML = `
           <style>
-            /* Form Styling */
-            form {
-              display: flex;
-              flex-direction: column;
-              width: 100%;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            .form-row {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 15px;
-              margin-bottom: 15px;
-            }
-            .form-column {
-              flex: 1;
-              min-width: 225px;
-            }
-            .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-            }
-            .input-group {
-              position: relative;
-              width: 100%;
-            }
-            .currency-input {
-              height: 40px;
-              width: 100%;
-              border: 1px solid rgba(0, 0, 0, 0.2);
-              border-radius: 8px;
-              padding: 12px;
-              background: #fff;
-              font-size: 13px;
-              outline: none;
-              box-sizing: border-box;
-              padding-left: 30px;
-            }
-            .currency-symbol {
-              position: absolute;
-              left: 10px;
-              top: 50%;
-              transform: translateY(-50%);
-              color: black;
-            }
-            .number-input-wrapper {
-              position: relative;
-              width: 100%;
-            }
-            input[type="number"]::-webkit-inner-spin-button,
-            input[type="number"]::-webkit-outer-spin-button {
-              -webkit-appearance: none;
-              margin: 0;
-            }
-            input[type="number"] {
-              -moz-appearance: textfield;
-            }
-            .number-input-controls {
-              position: absolute;
-              right: 0px;
-              top: 0px;
-              bottom: 0px;
-              width: 20px;
-              display: flex;
-              flex-direction: column;
-              background-color: #d7dbeb;
-              border: 1px solid rgba(0,0,0,0.1);
-              border-radius: 0 8px 8px 0;
-              overflow: hidden;
-            }
-            .number-input-up,
-            .number-input-down {
-              flex: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #003da5;
-              cursor: pointer;
-              font-size: 8px;
-            }
-            .number-input-up:hover,
-            .number-input-down:hover {
-              background-color: #003da5;
-              color: #fff;
-            }
-            /* Dropdown Styles */
-            .dropdown-container {
-              position: relative;
-              max-width: 100%;
-              margin-top: 4px;
-            }
-            .select-btn {
-              display: flex;
-              height: 40px;
-              align-items: center;
-              justify-content: space-between;
-              padding: 0 12px;
-              border-radius: 8px;
-              cursor: pointer;
-              background-color: #fff;
-              border: 1px solid rgba(0,0,0,0.2);
-              color: #555;
-            }
-            .select-btn .btn-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: black;
-            }
-            .arrow-dwn {
-              display: flex;
-              height: 24px;
-              width: 24px;
-              color: #003da5;
-              font-size: 12px;
-              border-radius: 50%;
-              background: #d7dbeb;
-              align-items: center;
-              justify-content: center;
-              transition: 0.3s;
-            }
-            .select-btn.open .arrow-dwn {
-              transform: rotate(-180deg);
-            }
-            .select-btn:focus,
-            .select-btn.open {
-              border: 2px solid #003da5;
-            }
-            .list-items {
-              position: static;
-              top: 100%;
-              left: 0;
-              right: 0;
-              margin-top: 4px;
-              border-radius: 8px;
-              padding: 8px 0;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-              display: none;
-              max-height: 200px;
-              overflow-y: auto;
-              z-index: 100;
-            }
-            /* Dropdown style with checkboxes */
-            .list-items .item {
-              display: flex;
-              align-items: center;
-              height: 36px;
-              cursor: pointer;
-              transition: 0.3s;
-              padding: 0 12px;
-              border-radius: 8px;
-            }
-            .list-items .item:hover {
-              background-color: #d7dbeb;
-            }
-            .item .checkbox {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 16px;
-              width: 16px;
-              border-radius: 50%;
-              margin-right: 8px;
-              border: 1.5px solid #c0c0c0;
-              transition: all 0.3s ease-in-out;
-            }
-            .item.checked .checkbox {
-              background-color: #003da5;
-              border: 2px solid #003da5;
-            }
-            .checkbox .check-icon {
-              color: #fff;
-              font-size: 12px;
-              transform: scale(0);
-              transition: all 0.2s ease-in-out;
-            }
-            .item.checked .check-icon {
-              transform: scale(1);
-            }
-            .list-items .item:not(.checked) .checkbox svg path {
-              fill: transparent !important;
-            }
-            .list-items .item:not(.checked):hover .checkbox svg path {
-              fill: #003da5 !important;
-            }
-            .list-items .item.checked .checkbox svg path {
-              fill: #ffffff !important;
-            }
-            .item .item-text {
-              font-size: 13px;
-              font-weight: 400;
-              color: #333;
-              margin-left: 8px;
-            }
-            /* Results Styles */
-            .results-container {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #d7dbeb;
-              border-radius: 8px;
-              text-align: center;
-            }
-            .results-title {
-              margin: 0 0 10px 0;
-              color: #333;
-              font-size: 16px;
-              font-weight: 600;
-            }
-            .results-amount {
-              font-size: 2em;
-              color: #003da5;
-              font-weight: bold;
-              margin: 15px 0;
-            }
-            input[readonly] {
-              background-color: #f9f9f9;
-              cursor: not-allowed;
-            }
-            .result h3 {
-              font-size: 16px;
-              font-weight: 600;
-              margin-bottom: 10px;
-              color: #333;
-            }
-            .result .amount {
-              font-size: 24px;
-              font-weight: bold;
-              color: #003da5;
-              margin: 15px 0;
-            }
-            .result .hint {
-              font-size: 12px;
-              color: #666;
-              margin-bottom: 15px;
-            }
-            .results-row {
-              display: flex;
-              gap: 15px;
-              margin-top: 20px;
-            }
-            .results-row .result {
-              flex: 1;
-              background-color: #d7dbeb;
-              padding: 20px;
-              border-radius: 8px;
-              text-align: center;
-              display: block;
-            }
-            
-            .input-group {
+/* Form Styling */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  min-width: 350px;
+  margin: 0 auto;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.form-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.bold-label {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-group {
   position: relative;
   width: 100%;
   display: flex;
@@ -3335,9 +3509,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 225px;
   width: 100%;
-  max-width: 100%;
   border: 1px solid #ddd;
   height: 40px;
   overflow: hidden;
@@ -3352,12 +3524,13 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
 .input-group input {
   outline: none;
   border: none;
-  padding: 16px;
+  padding: 12px;
 }
 
 .input-group input {
   width: 100%;
   text-align: center;
+  font-size: 14px;
 }
 
 .input-group button {
@@ -3365,7 +3538,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
   background-color: #d7dbeb;
   border: none;
   padding: 0;
-  width: 40px;
+  min-width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
@@ -3378,6 +3551,372 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
 
 .input-group button:hover svg path {
   fill: #fff !important;
+}
+
+.currency-input {
+  height: 40px;
+  width: 100%;
+  border: none;
+  padding: 8px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.currency-symbol {
+  display: none;
+}
+
+/* Number input controls */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.number-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.number-input-controls {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: #d7dbeb;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 0 8px 8px 0;
+  overflow: hidden;
+}
+
+.number-input-up,
+.number-input-down {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #003da5;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.number-input-up:hover,
+.number-input-down:hover {
+  background-color: #003da5;
+  color: #fff;
+}
+
+/* Dropdown Styles */
+.dropdown-container {
+  position: relative;
+  max-width: 100%;
+  margin-top: 4px;
+}
+
+.select-btn {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.2);
+  color: #555;
+}
+
+.select-btn .btn-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: black;
+}
+
+.arrow-dwn {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  color: #003da5;
+  font-size: 12px;
+  border-radius: 50%;
+  background: #d7dbeb;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s;
+}
+
+.select-btn.open .arrow-dwn {
+  transform: rotate(-180deg);
+}
+
+.select-btn:focus,
+.select-btn.open {
+  border: 2px solid #003da5;
+}
+
+.list-items {
+  position: static;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  border-radius: 8px;
+  padding: 8px 0;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* Dropdown style with checkboxes */
+.list-items .item {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+
+.list-items .item:hover {
+  background-color: #d7dbeb;
+}
+
+.item .checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1.5px solid #c0c0c0;
+  transition: all 0.3s ease-in-out;
+}
+
+.item.checked .checkbox {
+  background-color: #003da5;
+  border: 2px solid #003da5;
+}
+
+.checkbox .check-icon {
+  color: #fff;
+  font-size: 12px;
+  transform: scale(0);
+  transition: all 0.2s ease-in-out;
+}
+
+.item.checked .check-icon {
+  transform: scale(1);
+}
+
+.list-items .item:not(.checked) .checkbox svg path {
+  fill: transparent !important;
+}
+
+.list-items .item:not(.checked):hover .checkbox svg path {
+  fill: #003da5 !important;
+}
+
+.list-items .item.checked .checkbox svg path {
+  fill: #ffffff !important;
+}
+
+.item .item-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+  margin-left: 8px;
+}
+
+/* Results Styles */
+.results-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #d7dbeb;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.results-title {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.results-amount {
+  font-size: 2em;
+  color: #003da5;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+input[readonly] {
+  background-color: #f9f9f9;
+  cursor: not-allowed;
+}
+
+.result h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.result .amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #003da5;
+  margin: 15px 0;
+}
+
+.result .hint {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.results-row {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.results-row .result {
+  flex: 1;
+  background-color: #d7dbeb;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  display: block;
+}
+
+/* General resets */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  form {
+    padding: 10px;
+    min-width: 100%;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .form-column {
+    flex: 100%;
+    width: 100%;
+    min-width: 100%;
+  }
+  
+  .bold-label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .input-group {
+    height: 45px;
+  }
+  
+  .input-group input {
+    font-size: 13px;
+    padding: 8px;
+  }
+  
+  .input-group button {
+    min-width: 36px;
+  }
+  
+  .results-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .results-row .result {
+    padding: 15px;
+  }
+  
+  .result h3 {
+    font-size: 15px;
+  }
+  
+  .result .amount {
+    font-size: 22px;
+    margin: 12px 0;
+  }
+  
+  .result .hint {
+    font-size: 11px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  form {
+    padding: 8px;
+  }
+  
+  .form-row {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .bold-label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  .input-group {
+    height: 42px;
+  }
+  
+  .input-group input {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  .input-group button {
+    min-width: 32px;
+  }
+  
+  .results-row .result {
+    padding: 12px;
+  }
+  
+  .result h3 {
+    font-size: 14px;
+  }
+  
+  .result .amount {
+    font-size: 20px;
+    margin: 10px 0;
+  }
+  
+  .result .hint {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
 }
           </style>
 
@@ -3920,453 +4459,798 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
           <style>
-  /* ========= Dropdown Components ========= */
-  .main-container {
-    display: block;
-    transition: height 0.3s ease;
-    border-radius: 6px;
-    margin-bottom: 15px;
-  }
-  .select-wrapper {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background-color: #fff;
-    position: relative;
-    min-width: 225px;
-    max-width: 800px;
-    width: 100%;
-    min-height: 50px;
-  }
-  .select-display {
-    padding: 0 15px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 50px;
-    color: #444;
-  }
-  .dropdown-icon {
-    width: 24px;
-    height: 24px;
-    transition: transform 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #d7dbeb;
-    border-radius: 50%;
-  }
-  .dropdown-icon.rotate {
-    transform: rotate(180deg);
-  }
+ /* ========= Base Styles ========= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  .custom-options {
-    display: none;
-    font-size: 14px;
-    border-top: 1px solid #ddd;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    z-index: 100;
-    border-radius: 0 0 6px 6px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .custom-options::-webkit-scrollbar {
-    display: none;
-  }
+/* ========= Form Layout ========= */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  min-width: 350px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 6px;
+}
 
-  .custom-option {
-    padding: 12px 15px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.2s;
-    position: relative;
-  }
-  .custom-option:hover {
-    background-color: #d7dbeb;
-    color: #003da5;
-  }
-  .custom-option.selected {
-    background-color: #d7dbeb;
-    color: #003da5;
-    font-weight: bold;
-  }
+.flex-row {
+  display: flex;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
 
-  .option-checkbox {
-    width: 18px;
-    height: 18px;
-    border: 2px solid #ccc;
-    border-radius: 50%;
-    margin-right: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fff;
-    transition: all 0.2s;
-  }
+.flex-row > div {
+  flex: 1;
+  min-width: 300px;
+}
 
-  .option-checkbox svg {
-    width: 12px;
-    height: 12px;
-    display: none;
-  }
+.bold-label {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: block;
+}
 
-  .custom-option:hover:not(.selected) .option-checkbox {
-    border-color: #003da5;
-  }
-  .custom-option:hover:not(.selected) .option-checkbox svg {
-    display: block;
-  }
-  .custom-option:hover:not(.selected) .option-checkbox svg path {
-    fill: #003da5;
-  }
+/* ========= Input Fields ========= */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+#details {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 8px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  height: 50px;
+}
 
-  .custom-option.selected .option-checkbox {
-    border-color: #003da5;
-    background-color: #003da5;
-  }
-  .custom-option.selected .option-checkbox svg {
-    display: block;
-  }
-  .custom-option.selected .option-checkbox svg path {
-    fill: #fff !important;
-  }
+#details {
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+}
 
-  .show-options {
-    display: block;
-  }
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+#details:focus {
+  border: 2px solid #003da5;
+}
 
-  .custom-option.selected .main-arrow,
-  .custom-option:hover .main-arrow {
-    background-color: #fff;
-  }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
-  .select-container {
-    min-width: 225px;
-    max-width: 800px;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  .sub-options {
-    margin-left: 25px;
-    border-left: 2px solid #003da5;
-  }
-  select {
-    display: none;
-  }
-  .main-arrow {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    background-color: #d7dbeb;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    width: 24px;
-    height: 24px;
-    justify-content: center;
-  }
-  .arrow-icon {
-    transition: transform 0.3s ease;
-  }
-  .arrow-icon.rotate {
-    transform: rotate(180deg);
-  }
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 
-  /* ========= Error Components ========= */
-  .error-container {
-    width: 100%;
-    margin: 2px 0;
-    box-sizing: border-box;
-  }
-  .error-message {
-    display: none;
-    padding: 5px;
-    border: 1px solid #e8e8e8;
-    border-radius: 6px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    font-size: 14px;
-    align-items: center;
-  }
-  .error-icon {
-    background-color: red;
-    color: #fff;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 15px;
-    flex-shrink: 0;
-  }
+/* ========= Dropdown Components ========= */
+.main-container {
+  display: block;
+  transition: height 0.3s ease;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  width: 100%;
+}
 
-  /* ========= Custom Checkbox Styles ========= */
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-    margin: 8px 0;
-  }
-  .checkbox-container input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-  }
-  .custom-checkbox {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    border: 2px solid #003da5;
-    border-radius: 6px;
-    background-color: #fff;
-    margin-right: 8px;
-    position: relative;
-  }
+.select-wrapper {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+}
+
+.select-display {
+  padding: 0 15px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px;
+  color: #444;
+}
+
+.dropdown-icon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #d7dbeb;
+  border-radius: 50%;
+}
+
+.dropdown-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.custom-options {
+  display: none;
+  font-size: 14px;
+  border-top: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+  border-radius: 0 0 6px 6px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  width: 100%;
+}
+
+.custom-options::-webkit-scrollbar {
+  display: none;
+}
+
+.custom-option {
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.custom-option:hover {
+  background-color: #d7dbeb;
+  color: #003da5;
+}
+
+.custom-option.selected {
+  background-color: #d7dbeb;
+  color: #003da5;
+  font-weight: bold;
+}
+
+.option-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  transition: all 0.2s;
+}
+
+.option-checkbox svg {
+  width: 12px;
+  height: 12px;
+  display: none;
+}
+
+.custom-option:hover:not(.selected) .option-checkbox {
+  border-color: #003da5;
+}
+
+.custom-option:hover:not(.selected) .option-checkbox svg {
+  display: block;
+}
+
+.custom-option:hover:not(.selected) .option-checkbox svg path {
+  fill: #003da5;
+}
+
+.custom-option.selected .option-checkbox {
+  border-color: #003da5;
+  background-color: #003da5;
+}
+
+.custom-option.selected .option-checkbox svg {
+  display: block;
+}
+
+.custom-option.selected .option-checkbox svg path {
+  fill: #fff !important;
+}
+
+.show-options {
+  display: block;
+}
+
+.custom-option.selected .main-arrow,
+.custom-option:hover .main-arrow {
+  background-color: #fff;
+}
+
+.select-container {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.sub-options {
+  margin-left: 25px;
+  border-left: 2px solid #003da5;
+  width: calc(100% - 25px);
+}
+
+select {
+  display: none;
+}
+
+.main-arrow {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  background-color: #d7dbeb;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* ========= Custom Checkbox Styles ========= */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  position: relative;
+}
+
+.checkbox-container input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #003da5;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-right: 8px;
+  position: relative;
+}
+
+.check-icon {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #003da5;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox-container input[type="checkbox"]:checked 
+  + .checkbox-label 
+  .custom-checkbox 
   .check-icon {
-    display: none;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: #003da5;
-    align-items: center;
-    justify-content: center;
-  }
-  .checkbox-container input[type="checkbox"]:checked 
-    + .checkbox-label 
-    .custom-checkbox 
-    .check-icon {
-    display: flex;
-  }
-  .checkbox-text {
-    font-weight: 600;
-    color: #000;
-    font-size: 14px;
-  }
+  display: flex;
+}
 
-  /* ========= Form Inputs & Layout ========= */
+.checkbox-text {
+  font-weight: 600;
+  color: #000;
+  font-size: 14px;
+}
+
+/* ========= Error Components ========= */
+.error-container {
+  width: 100%;
+  margin: 2px 0;
+  box-sizing: border-box;
+}
+
+.error-message {
+  display: none;
+  padding: 5px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 14px;
+  align-items: center;
+}
+
+.error-icon {
+  background-color: red;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+/* ========= Buttons ========= */
+.appointment-btn,
+.submit {
+  color: #003da5;
+  background-color: #d7dbeb;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+  width: 100%;
+}
+
+.appointment-btn:hover,
+.submit:hover {
+  color: #fff;
+  background-color: #003da5;
+  font-weight: 600;
+}
+
+.appointment-btn:disabled,
+.submit:disabled {
+  background-color: #4CAF50;
+  color: #fff;
+  cursor: not-allowed;
+  font-weight: 700;
+}
+
+/* ========= Sections & Tabs ========= */
+.section {
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.section-card {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-radius: 6px;
+}
+
+.section.active {
+  border: 2px solid #003da5;
+  box-shadow: 0 3px 8px #d7dbeb80;
+}
+
+.section:hover:not(.disabled) {
+  border-color: #003da5;
+  box-shadow: 0 3px 8px #d7dbeb80;
+}
+
+.section-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-icon {
+  background-color: #d7dbeb;
+  color: #003da5;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #444;
+}
+
+.collapse-icon {
+  transition: transform 0.3s;
+  background: #d7dbeb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.collapse-icon.active {
+  transform: rotate(-180deg);
+}
+
+.collapsible-section {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.expanded {
+  max-height: 1000px;
+}
+
+.section-content {
+  padding: 20px;
+  background: #fefefe;
+  border-top: 1px solid #eee;
+}
+
+.tabs-container {
+  margin-bottom: 15px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  width: 100%;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #f5f5f5;
+  text-align: center;
+  color: #333;
+  border: none;
+}
+
+.tab.active {
+  background-color: #003da5;
+  color: #fff;
+}
+
+.tab:hover:not(.active) {
+  background-color: #d7dbeb;
+  color: #003da5;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.select-label {
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #444;
+}
+
+/* ========= Disabled State ========= */
+.disabled {
+  cursor: not-allowed !important;
+}
+
+.disabled * {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+/* ========= Responsive Media Queries ========= */
+@media screen and (max-width: 768px) {
   form {
-    display: flex;
+    padding: 12px;
+    min-width: 100%;
+  }
+  
+  .flex-row {
     flex-direction: column;
     gap: 10px;
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 16px;
-    border-radius: 6px;
+    margin-bottom: 5px;
   }
-  .flex-row {
-    display: flex;
-    gap: 10px 16px;
-    flex-wrap: wrap;
-  }
+  
   .flex-row > div {
-    flex: 1;
-    min-width: 225px;
+    flex: 100%;
+    min-width: 100%;
+    width: 100%;
   }
-  .bold-label {
-    font-weight: 600;
-    font-size: 15px;
+  
+  .section {
+    width: 100%;
     margin-bottom: 8px;
-    display: block;
   }
+  
+  .section-card {
+    padding: 8px;
+  }
+  
+  .section-content {
+    padding: 15px;
+  }
+  
+  .bold-label {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .section-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .section-title {
+    font-size: 15px;
+  }
+  
+  .collapse-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .select-wrapper,
+  .main-container,
+  .select-container {
+    min-width: 100%;
+    width: 100%;
+  }
+  
+  .select-display {
+    height: 45px;
+    font-size: 13px;
+  }
+  
+  .dropdown-icon,
+  .main-arrow {
+    width: 22px;
+    height: 22px;
+  }
+  
   input[type="text"],
   input[type="email"],
-  input[type="tel"],
-  #details {
-    width: 100%;
-    min-width: 225px;
-    max-width: 100%;
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 6px;
-    padding: 8px;
-    background: #fff;
-    font-size: 14px;
-    outline: none;
-    box-sizing: border-box;
-    height: 50px;
+  input[type="tel"] {
+    height: 45px;
+    font-size: 13px;
   }
-  #details {
-    resize: vertical;
-    min-height: 100px;
-    max-height: 200px;
+  
+  .custom-option {
+    padding: 10px 12px;
+    font-size: 13px;
   }
-  input[type="text"]:focus,
-  input[type="email"]:focus,
-  input[type="tel"]:focus,
-  #details:focus {
-    border: 2px solid #003da5;
+  
+  .checkbox-text {
+    font-size: 13px;
   }
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  
+  .custom-checkbox,
+  .option-checkbox {
+    width: 16px;
+    height: 16px;
   }
-  input[type="number"] {
-    -moz-appearance: textfield;
-  }
-
-  /* ========= Buttons ========= */
+  
   .appointment-btn,
   .submit {
-    color: #003da5;
-    background-color: #d7dbeb;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+    padding: 10px;
+    font-size: 15px;
+  }
+  
+  .error-message {
+    font-size: 13px;
+    padding: 4px;
+  }
+  
+  .error-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+  
+  /* Fix for checkbox touch issues on mobile */
+  .checkbox-container {
+    margin: 12px 0;
+    padding: 8px 0;
+  }
+  
+  .checkbox-label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 0;
+  }
+  
+  /* Create a larger hit area for checkboxes */
+  .custom-checkbox::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    z-index: 1;
+  }
+  
+  /* Fix layout for additional features section */
+  #section-additional-features .flex-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  #number-of-cars-container {
+    grid-column: 1 / -1;
     width: 100%;
   }
-  .appointment-btn:hover,
-  .submit:hover {
-    color: #fff;
-    background-color: #003da5;
-    font-weight: 600;
+  
+  /* Make sure the checkmark is above the hit area */
+  .check-icon {
+    z-index: 2;
   }
-  .appointment-btn:disabled,
-  .submit:disabled {
-    background-color: #4CAF50;
-    color: #fff;
-    cursor: not-allowed;
-    font-weight: 700;
+  
+  /* Make sure the text is above the hit area */
+  .checkbox-text {
+    position: relative;
+    z-index: 2;
   }
+}
 
-  /* ========= Sections & Tabs ========= */
-  .section {
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 6px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    background: #fff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .section-card {
+@media screen and (max-width: 480px) {
+  form {
     padding: 10px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border-radius: 6px;
   }
-  .section.active {
-    border: 2px solid #003da5;
-    box-shadow: 0 3px 8px #d7dbeb80;
+  
+  .flex-row {
+    gap: 8px;
   }
-  .section:hover:not(.disabled) {
-    border-color: #003da5;
-    box-shadow: 0 3px 8px #d7dbeb80;
+  
+  .section-card {
+    padding: 6px;
   }
+  
+  .section-content {
+    padding: 12px 10px;
+  }
+  
   .section-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    gap: 8px;
   }
+  
   .section-icon {
-    background-color: #d7dbeb;
-    color: #003da5;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .section-title {
-    font-weight: 700;
-    font-size: 16px;
-    color: #444;
-  }
-  .collapse-icon {
-    transition: transform 0.3s;
-    background: #d7dbeb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     width: 24px;
     height: 24px;
-    border-radius: 50%;
   }
-  .collapse-icon.active {
-    transform: rotate(-180deg);
+  
+  .section-title {
+    font-size: 14px;
   }
-  .collapsible-section {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.3s ease-out;
+  
+  .collapse-icon {
+    width: 20px;
+    height: 20px;
   }
-  .collapsible-section.expanded {
-    max-height: 1000px;
+  
+  .bold-label {
+    font-size: 13px;
+    margin-bottom: 4px;
   }
-  .section-content {
-    padding: 20px;
-    background: #fefefe;
-    border-top: 1px solid #eee;
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"] {
+    height: 42px;
+    font-size: 12px;
+    padding: 6px;
   }
-  .tabs-container {
-    margin-bottom: 15px;
-    border-radius: 6px;
-    overflow: hidden;
+  
+  .select-display {
+    height: 42px;
+    font-size: 12px;
+    padding: 0 10px;
   }
-  .tabs {
+  
+  .dropdown-icon,
+  .main-arrow {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .custom-option {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .checkbox-text {
+    font-size: 12px;
+  }
+  
+  .custom-checkbox,
+  .option-checkbox {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .appointment-btn,
+  .submit {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .error-message {
+    font-size: 12px;
+    padding: 3px;
+  }
+  
+  .error-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+  }
+  
+  #details {
+    min-height: 80px;
+    font-size: 12px;
+  }
+  
+  .sub-options {
+    margin-left: 15px;
+    width: calc(100% - 15px);
+  }
+  
+  /* On smaller phones, stack checkboxes */
+  #section-additional-features .flex-row {
     display: flex;
-    width: 100%;
+    flex-direction: column;
   }
-  .tab {
-    flex: 1;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    background-color: #f5f5f5;
-    text-align: center;
-    color: #333;
-    border: none;
+  
+  /* Extra padding for better touch targets */
+  .checkbox-container {
+    margin: 15px 0;
   }
-  .tab.active {
-    background-color: #003da5;
-    color: #fff;
+  
+  /* Larger touch area for very small screens */
+  .custom-checkbox::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
   }
-  .tab:hover:not(.active) {
-    background-color: #d7dbeb;
-    color: #003da5;
-  }
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
-  }
-  .select-label {
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #444;
-  }
-
-  /* ========= Disabled State ========= */
-  .disabled {
-    cursor: not-allowed !important;
-  }
-  .disabled * {
-    pointer-events: none !important;
-    cursor: not-allowed !important;
-  }
+}
 </style>
 
           <div class="flex-row">
@@ -6022,37 +6906,43 @@ if (formTimeoutId) {
     };
     
 /************** EXTENSION #9: BookingFormExtension **************/
-     const BookingFormExtension = {
+        const BookingFormExtension = {
       name: "BookingForm",
       type: "response",
       match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-// Initialize timeout variables
-let formTimeoutId = null;
-let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
+        // Initialize timeout variables
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
 		<style>
+  /* ========== Responsive Layout ========== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
   /* ========== Dropdown Components ========== */
   .main-container {
     display: block;
     transition: height 0.3s ease;
     border-radius: 6px;
     margin-bottom: 15px;
+    width: 100%;
   }
   .select-wrapper {
     border: 1px solid #ddd;
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 225px;
-    max-width: 800px;
     width: 100%;
     min-height: 50px;
   }
@@ -6092,6 +6982,7 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
     border-radius: 0 0 6px 6px;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    width: 100%;
   }
   .custom-options::-webkit-scrollbar {
     display: none;
@@ -6202,11 +7093,17 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
     flex-direction: column;
     gap: 15px;
     width: 100%;
-    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 6px;
+    min-width: 350px;
+    max-width: 800px;
   }
+  
+  .form-group {
+    width: 100%;
+  }
+  
   .bold-label {
     font-weight: 600;
     font-size: 15px;
@@ -6217,8 +7114,6 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
   input[type="email"],
   input[type="tel"] {
     width: 100%;
-    min-width: 225px;
-    max-width: 800px;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
     padding: 8px;
@@ -6285,9 +7180,45 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
     pointer-events: none !important;
     cursor: not-allowed !important;
   }
+  
+  /* Responsive Media Queries */
+  @media screen and (max-width: 768px) {
+    form {
+      padding: 15px;
+      min-width: 100%;
+    }
+    
+    .bold-label {
+      font-size: 14px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      height: 45px;
+      font-size: 13px;
+	  min-width: 275px;
+    }
+    
+    .select-display {
+      height: 45px;
+      font-size: 13px;
+    }
+    
+    .custom-option {
+      padding: 10px 12px;
+    }
+    
+    .submit-btn {
+      padding: 12px;
+      font-size: 15px;
+    }
+  }
+  
+ 
 </style>
 
-          <div>
+          <div class="form-group">
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
             <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
             <div class="error-container">
@@ -6298,7 +7229,7 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
             </div>
           </div>
           
-          <div>
+          <div class="form-group">
             <label for="email" class="bold-label">Email</label>
             <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
             <div class="error-container">
@@ -6309,7 +7240,7 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
             </div>
           </div>
           
-          <div>
+          <div class="form-group">
             <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
             <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
             <div class="error-container">
@@ -6321,11 +7252,11 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
           </div>
           
           <div class="main-container" id="agentDropdown">
-            <label class="bold-label">${isEnglish ? 'Select a Agent' : 'Sélectionnez un vendeur'}</label>
+            <label class="bold-label">${isEnglish ? 'Select an Agent' : 'Sélectionnez un vendeur'}</label>
             <select id="agentSelect" name="agentSelect" required style="display:none;"></select>
             <div class="select-wrapper">
               <div class="select-display" id="selectDisplayAgent">
-                <span>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</span>
+                <span>${isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --'}</span>
                 <div class="dropdown-icon" id="dropdownIconAgent">${SVG_CHEVRON}</div>
               </div>
               <div class="custom-options" id="customOptionsAgent"></div>
@@ -6333,7 +7264,7 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
             <div class="error-container">
               <div class="error-message" id="errorAgent">
                 <div class="error-icon">!</div>
-                <span>${isEnglish ? 'You must select a agent.' : 'Vous devez sélectionner un vendeur.'}</span>
+                <span>${isEnglish ? 'You must select an agent.' : 'Vous devez sélectionner un vendeur.'}</span>
               </div>
             </div>
           </div>
@@ -6341,57 +7272,55 @@ const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
           <button type="button" class="submit-btn" id="submit-button">
             ${isEnglish ? 'Submit' : 'Soumettre'}
           </button>
-          
-          
         `;
 
         element.appendChild(formContainer);
 
-	/*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Just set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
-    
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
-      }
-    }
-  }, 1000);
-}
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
+          let timeLeft = TIMEOUT_DURATION;
+          
+          // Just set the timeout - no display updates needed
+          formTimeoutId = setInterval(() => {
+            timeLeft -= 1000;
+            
+            if (timeLeft <= 0) {
+              clearInterval(formTimeoutId);
+              if (!isFormSubmitted) {
+                handleFormTimeout();
+              }
+            }
+          }, 1000);
+        }
 
-function handleFormTimeout() {
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
-  submitButton.style.backgroundColor = "#f44336";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
-    type: "timeEnd",
-    payload: {
-      message: "Time expired"
-    }
-  });
-}
+        function handleFormTimeout() {
+          // Apply disabled styling
+          formContainer.classList.add('form-disabled');
+          
+          // Disable all form inputs
+          formContainer.querySelector("#full-name").disabled = true;
+          formContainer.querySelector("#email").disabled = true;
+          formContainer.querySelector("#phone").disabled = true;
+          
+          // Disable the dropdown
+          formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+          
+          // Update button state
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+          submitButton.style.backgroundColor = "#f44336";
+          submitButton.style.color = "white";
+          
+          window.voiceflow.chat.interact({
+            type: "timeEnd",
+            payload: {
+              message: "Time expired"
+            }
+          });
+        }
 
         // Initialize the agent dropdown
         const agentDropdown = formContainer.querySelector("#agentDropdown");
@@ -6401,8 +7330,8 @@ function handleFormTimeout() {
         const dropdownIconAgent = formContainer.querySelector("#dropdownIconAgent");
         const errorAgent = formContainer.querySelector("#errorAgent");
         
-        agentSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</option>`;
-        selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --';
+        agentSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --'}</option>`;
+        selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --';
         customOptionsAgent.innerHTML = "";
         
         Agents.forEach(agent => {
@@ -6428,7 +7357,7 @@ function handleFormTimeout() {
             customOptionsAgent.classList.remove('show-options');
             dropdownIconAgent.classList.remove('rotate');
             
-            // Hide the error message when a agent is selected
+            // Hide the error message when an agent is selected
             errorAgent.style.display = "none";
           });
         });
@@ -6465,80 +7394,81 @@ function handleFormTimeout() {
         });
         
         // Form submission
-// Form submission
-formContainer.querySelector("#submit-button").addEventListener("click", () => {
-  // Hide all error messages first
-  formContainer.querySelectorAll(".error-message").forEach(errorEl => {
-    errorEl.style.display = "none";
-  });
-  
-  // Validate inputs
-  const fullName = formContainer.querySelector("#full-name").value.trim();
-  const email = formContainer.querySelector("#email").value.trim();
-  const phone = formContainer.querySelector("#phone").value.trim();
-  const selectedAgent = agentSelect.value;
-  let isValid = true;
-  
-  if (!fullName) {
-    formContainer.querySelector("#errorFullName").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!email || !isValidEmail(email)) {
-    formContainer.querySelector("#errorEmail").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!phone || !isValidPhoneNumber(phone)) {
-    formContainer.querySelector("#errorPhone").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!selectedAgent) {
-    errorAgent.style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!isValid) {
-    return;
-  }
-  
-  // Force close any open dropdown
-  customOptionsAgent.classList.remove('show-options');
-  dropdownIconAgent.classList.remove('rotate');
+        formContainer.querySelector("#submit-button").addEventListener("click", () => {
+          // Hide all error messages first
+          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          // Validate inputs
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const selectedAgent = agentSelect.value;
+          let isValid = true;
+          
+          if (!fullName) {
+            formContainer.querySelector("#errorFullName").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!email || !isValidEmail(email)) {
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!phone || !isValidPhoneNumber(phone)) {
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!selectedAgent) {
+            errorAgent.style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!isValid) {
+            return;
+          }
+          
+          // Force close any open dropdown
+          customOptionsAgent.classList.remove('show-options');
+          dropdownIconAgent.classList.remove('rotate');
 
-	  isFormSubmitted = true;
-  if (formTimeoutId) {
-    clearInterval(formTimeoutId);
-  }
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  selectDisplayAgent.classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-  submitButton.style.backgroundColor = "#4CAF50";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
+          isFormSubmitted = true;
+          if (formTimeoutId) {
+            clearInterval(formTimeoutId);
+          }
+          // Apply disabled styling
+          formContainer.classList.add('form-disabled');
+          
+          // Disable all form inputs
+          formContainer.querySelector("#full-name").disabled = true;
+          formContainer.querySelector("#email").disabled = true;
+          formContainer.querySelector("#phone").disabled = true;
+          
+          // Disable the dropdown
+          selectDisplayAgent.classList.add('dropdown-disabled');
+          
+          // Update button state
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+          submitButton.style.backgroundColor = "#4CAF50";
+          submitButton.style.color = "white";
+          
+          window.voiceflow.chat.interact({
             type: "success",
             payload: { 
-			fullName,
-    email,
-    phone: formatPhoneNumber(phone),
-    agentName: selectedAgent },
+              fullName,
+              email,
+              phone: formatPhoneNumber(phone),
+              agentName: selectedAgent 
+            },
           });
         });
-	startFormTimer();      
+        
+        startFormTimer();      
       }
     };
 
@@ -6571,6 +7501,10 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
           language = "en",
           timezone = "America/Toronto"
         } = trace.payload || {};
+
+	      let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
         const locale = language === "fr" ? "fr-CA" : "en-US";
 
@@ -6629,7 +7563,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", () => {
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #f1f3f8;
+  background-color: #003da529;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
@@ -7825,6 +8759,10 @@ function renderHeader() {
           if (bookingResponse) {
             // 2. Then updates the UI to show confirmation
             state.isConfirmed = true;
+		   isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
             renderCalendar();
             
             // 3. Finally shows the success animation
@@ -7945,7 +8883,47 @@ function renderHeader() {
   footer.appendChild(confirmBtn);
   return footer;
 }
+// Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
 
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render the calendar to disable all elements
+  renderCalendar();
+}
+	      
         async function renderCalendar() {
           calendarContainer.innerHTML = "";
           if (state.isConfirmed) {
@@ -7989,303 +8967,359 @@ function renderHeader() {
           // Add touch-specific class to improve mobile experience
           calendarContainer.classList.add('touch-device');
         }
+	 startFormTimer();     
       }
     };
     
     
 /************** EXTENSION #11: BookingInformationExtension **************/
-    const BookingInformationExtension = {
-      name: "BookingInformation",
-      type: "response",
-      match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
-      render: ({ trace, element }) => {
-        const { language } = trace.payload || { language: 'FR' };
-        const isEnglish = language === 'en';
-        let formTimeoutId = null;
-let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
-        
-        // Create the form
-        const formContainer = document.createElement("form");
-        formContainer.setAttribute("novalidate", "true");
-        formContainer.innerHTML = `
-		<style>
-    /* ========== Error Components ========== */
-    .error-container {
-      width: 100%;
-      margin: 2px 0;
-      box-sizing: border-box;
-    }
-    .error-message {
-      display: none;
-      padding: 5px;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 14px;
-      align-items: center;
-    }
-    .error-icon {
-      background-color: red;
-      color: #fff;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 15px;
-      flex-shrink: 0;
-    }
+const BookingInformationExtension = {
+  name: "BookingInformation",
+  type: "response",
+  match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
+  render: ({ trace, element }) => {
+    const { language } = trace.payload || { language: 'FR' };
+    const isEnglish = language === 'en';
+    let formTimeoutId = null;
+    let isFormSubmitted = false;
+    const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     
-    /* ========== Form Inputs & Layout ========== */
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      border-radius: 6px;
+    // Helper functions
+    function isValidEmail(email) {
+      const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+      return emailPattern.test(email);
     }
-    .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"] {
-      width: 100%;
-      min-width: 225px;
-      max-width: 800px;
-      border: 1px solid rgba(0,0,0,0.2);
-      border-radius: 6px;
-      padding: 12px 15px;
-      background: #fff;
-      font-size: 16px;
-      outline: none;
-      box-sizing: border-box;
-      height: 50px;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="tel"]:focus {
-      border: 2px solid #003da5;
-    }
-    
-    /* ========== Buttons ========== */
-    .submit-btn {
-      color: #003da5;
-      background-color: #d7dbeb;
-      border: none;
-      padding: 15px;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.2s, color 0.2s;
-      width: 100%;
-      font-weight: 600;
-    }
-    .submit-btn:hover {
-      color: #fff;
-      background-color: #003da5;
-    }
-    .submit-btn:disabled {
-      background-color: #4CAF50;
-      color: white;
-      cursor: not-allowed;
-    }
-    
-    /* Disabled state - preserve pointer-events to allow cursor display */
-    .form-disabled input {
-      background-color: #f8f8f8;
-      opacity: 0.8;
-      cursor: not-allowed;
-    }
-    
-    /* Add not-allowed cursor to all disabled elements */
-    input:disabled, 
-    button:disabled {
-      cursor: not-allowed;
-    }
-  </style>
-          <div>
-            <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorFullName">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label for="email" class="bold-label">Email</label>
-            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorEmail">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-            <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorPhone">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
-              </div>
-            </div>
-          </div>
-          
-          <button type="button" class="submit-btn" id="submit-button">
-            ${isEnglish ? 'Submit' : 'Soumettre'}
-          </button>
-        `;
 
-        element.appendChild(formContainer);
+    function isValidPhoneNumber(phoneNumber) {
+      const phonePattern = /^(\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}$/;
+      return phonePattern.test(phoneNumber);
+    }
 
-
-	      /*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Just set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
-    
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
+    function formatPhoneNumber(phoneNumber) {
+      const cleaned = phoneNumber.replace(/\D/g, '');
+      if (cleaned.length === 10) {
+        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
       }
+      return phoneNumber;
     }
-  }, 1000);
-}
+    
+    // Create the form
+    const formContainer = document.createElement("form");
+    formContainer.setAttribute("novalidate", "true");
+    formContainer.innerHTML = `
+    <style>
+      /* ========== Base Styles ========== */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-function handleFormTimeout() {
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
-  submitButton.style.backgroundColor = "#f44336";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
-    type: "timeEnd",
-    payload: {
-      message: "Time expired"
+      /* ========== Error Components ========== */
+      .error-container {
+        width: 100%;
+        margin: 2px 0;
+        box-sizing: border-box;
+      }
+      .error-message {
+        display: none;
+        padding: 5px;
+        border: 1px solid #e8e8e8;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 14px;
+        align-items: center;
+      }
+      .error-icon {
+        background-color: red;
+        color: #fff;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+      
+      /* ========== Form Inputs & Layout ========== */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        max-width: 800px;
+        min-width: 350px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 6px;
+      }
+      
+      .form-group {
+        width: 100%;
+      }
+      
+      .bold-label {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"] {
+        width: 100%;
+        border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 6px;
+        padding: 12px 15px;
+        background: #fff;
+        font-size: 16px;
+        outline: none;
+        box-sizing: border-box;
+        height: 50px;
+      }
+      
+      input[type="text"]:focus,
+      input[type="email"]:focus,
+      input[type="tel"]:focus {
+        border: 2px solid #003da5;
+      }
+      
+      /* ========== Buttons ========== */
+      .submit-btn {
+        color: #003da5;
+        background-color: #d7dbeb;
+        border: none;
+        padding: 15px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.2s, color 0.2s;
+        width: 100%;
+        font-weight: 600;
+      }
+      
+      .submit-btn:hover {
+        color: #fff;
+        background-color: #003da5;
+      }
+      
+      .submit-btn:disabled {
+        background-color: #4CAF50;
+        color: white;
+        cursor: not-allowed;
+      }
+      
+      /* Disabled state - preserve pointer-events to allow cursor display */
+      .form-disabled input {
+        background-color: #f8f8f8;
+        opacity: 0.8;
+        cursor: not-allowed;
+      }
+      
+      /* Add not-allowed cursor to all disabled elements */
+      input:disabled, 
+      button:disabled {
+        cursor: not-allowed !important;
+      }
+      
+      /* Responsive Media Queries */
+      @media screen and (max-width: 768px) {
+        form {
+          padding: 15px;
+          min-width: 100%;
+        }
+        
+        .bold-label {
+          font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+          height: 45px;
+          font-size: 14px;
+          padding: 10px 12px;
+          min-width: 275px;
+        }
+        
+        .submit-btn {
+          padding: 12px;
+          font-size: 15px;
+        }
+      }
+      
+     
+    </style>
+    
+    <div class="form-group">
+      <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+      <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorFullName">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="email" class="bold-label">Email</label>
+      <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorEmail">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+      <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorPhone">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+        </div>
+      </div>
+    </div>
+    
+    <button type="button" class="submit-btn" id="submit-button">
+      ${isEnglish ? 'Submit' : 'Soumettre'}
+    </button>
+    `;
+
+    element.appendChild(formContainer);
+
+    /*************************************************************
+     * Timer Functionality
+     *************************************************************/
+    function startFormTimer() {
+      let timeLeft = TIMEOUT_DURATION;
+      
+      // Just set the timeout - no display updates needed
+      formTimeoutId = setInterval(() => {
+        timeLeft -= 1000;
+        
+        if (timeLeft <= 0) {
+          clearInterval(formTimeoutId);
+          if (!isFormSubmitted) {
+            handleFormTimeout();
+          }
+        }
+      }, 1000);
     }
-  });
-}
-        // Input validation
-        formContainer.querySelector("#full-name").addEventListener("input", function() {
-          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
-        });
-        
-        formContainer.querySelector("#email").addEventListener("input", function() {
-          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
-        });
-        
-        formContainer.querySelector("#phone").addEventListener("input", function() {
-          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
-        });
-        
-        // Form submission
-        formContainer.querySelector("#submit-button").addEventListener("click", () => {
-          // Hide all error messages first
-          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
-            errorEl.style.display = "none";
-          });
-          
-          // Validate inputs
-          const fullName = formContainer.querySelector("#full-name").value.trim();
-          const email = formContainer.querySelector("#email").value.trim();
-          const phone = formContainer.querySelector("#phone").value.trim();
-          let isValid = true;
-          
-          if (!fullName) {
-            formContainer.querySelector("#errorFullName").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!email || !isValidEmail(email)) {
-            formContainer.querySelector("#errorEmail").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!phone || !isValidPhoneNumber(phone)) {
-            formContainer.querySelector("#errorPhone").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!isValid) {
-            return;
-          }
 
-	    isFormSubmitted = true;
-  if (formTimeoutId) {
-    clearInterval(formTimeoutId);
+    function handleFormTimeout() {
+      // Apply disabled styling
+      formContainer.classList.add('form-disabled');
+      
+      // Disable all form inputs
+      formContainer.querySelector("#full-name").disabled = true;
+      formContainer.querySelector("#email").disabled = true;
+      formContainer.querySelector("#phone").disabled = true;
+      
+      // Update button state
+      const submitButton = formContainer.querySelector("#submit-button");
+      submitButton.disabled = true;
+      submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+      submitButton.style.backgroundColor = "#f44336";
+      submitButton.style.color = "white";
+      
+      window.voiceflow.chat.interact({
+        type: "timeEnd",
+        payload: {
+          message: "Time expired"
+        }
+      });
+    }
+    
+    // Input validation
+    formContainer.querySelector("#full-name").addEventListener("input", function() {
+      if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
+    });
+    
+    formContainer.querySelector("#email").addEventListener("input", function() {
+      if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+    });
+    
+    formContainer.querySelector("#phone").addEventListener("input", function() {
+      if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+    });
+    
+    // Form submission
+    formContainer.querySelector("#submit-button").addEventListener("click", () => {
+      // Hide all error messages first
+      formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+        errorEl.style.display = "none";
+      });
+      
+      // Validate inputs
+      const fullName = formContainer.querySelector("#full-name").value.trim();
+      const email = formContainer.querySelector("#email").value.trim();
+      const phone = formContainer.querySelector("#phone").value.trim();
+      let isValid = true;
+      
+      if (!fullName) {
+        formContainer.querySelector("#errorFullName").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!email || !isValidEmail(email)) {
+        formContainer.querySelector("#errorEmail").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!phone || !isValidPhoneNumber(phone)) {
+        formContainer.querySelector("#errorPhone").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        return;
+      }
+
+      isFormSubmitted = true;
+      if (formTimeoutId) {
+        clearInterval(formTimeoutId);
+      }
+      
+      // Apply disabled styling
+      formContainer.classList.add('form-disabled');
+      
+      // Disable all input elements and buttons
+      const inputs = formContainer.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.disabled = true;
+      });
+      
+      const submitButton = formContainer.querySelector("#submit-button");
+      submitButton.disabled = true;
+      submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+      submitButton.style.backgroundColor = "#4CAF50";
+      submitButton.style.color = "white";
+      
+      // Submit form data to Voiceflow
+      window.voiceflow.chat.interact({
+        type: "success",
+        payload: {
+          fullName,
+          email,
+          phone: formatPhoneNumber(phone)
+        }
+      });
+    });
+    
+    startFormTimer();      
   }
-          // Apply disabled styling but don't prevent pointer events
-          formContainer.classList.add('form-disabled');
-          
-          // Explicitly disable all input elements and buttons
-          // This sets the disabled attribute but still allows cursor effects
-          const inputs = formContainer.querySelectorAll('input');
-          inputs.forEach(input => {
-            input.disabled = true;
-          });
-          
-          const submitButton = formContainer.querySelector("#submit-button");
-          submitButton.disabled = true;
-          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-          
-          // Prepare form data
-          const formData = {
-            fullName,
-            email,
-            phone: formatPhoneNumber(phone)
-          };
-          
-          // If Voiceflow integration is needed
-       
-            window.voiceflow.chat.interact({
-              type: "success",
-              payload: {
-            fullName,
-            email,
-            phone: formatPhoneNumber(phone)
-          }
-            });
+};
 
-        });
-	startFormTimer();      
-      }
-    };
 
 /************** EXTENSION #12: RescheduleCalendarExtension **************/
     const RescheduleCalendarExtension = {
@@ -8317,6 +9351,10 @@ function handleFormTimeout() {
       timezone = 'America/Toronto',
       uid = ""
     } = trace.payload || {};
+
+	  let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 
     const locale = language === 'fr' ? 'fr-CA' : 'en-US';
     const highlightColor = '#003da5';
@@ -8376,7 +9414,7 @@ function handleFormTimeout() {
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #f1f3f8;
+  background-color: #003da529;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
@@ -9662,6 +10700,10 @@ function handleFormTimeout() {
             if (rescheduleResponse) {
               // 2. Then updates the UI to show confirmation
               state.isConfirmed = true;
+		     isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
               renderCalendar();
               
               // 3. Finally shows the success animation
@@ -9779,6 +10821,48 @@ function handleFormTimeout() {
       return footer;
     }
 
+
+// Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render the calendar to disable all elements
+  renderCalendar();
+}	  
+
     async function renderCalendar() {
       calendarContainer.innerHTML = '';
       if (state.isConfirmed) {
@@ -9824,6 +10908,7 @@ function handleFormTimeout() {
       // Add touch-specific class to improve mobile experience
       calendarContainer.classList.add('touch-device');
     }
+	  startFormTimer();
   }
 };
 
@@ -9842,6 +10927,10 @@ function handleFormTimeout() {
           uid = ""                   // Booking UID
         } = trace.payload || {};
 
+	      // Initialize timeout variables
+let formTimeoutId = null;
+let isFormSubmitted = false;
+const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         // For checking the language and reusing in conditionals
         const locale = language === "fr" ? "fr-CA" : "en-US";
         const highlightColor = '#003da5';
@@ -10115,6 +11204,47 @@ function handleFormTimeout() {
             return `${datePart} de ${startTime} à ${endTime}`;
         }
 
+	      // Timer functions for timeout handling
+function startFormTimer() {
+  let timeLeft = TIMEOUT_DURATION;
+  
+  formTimeoutId = setInterval(() => {
+    timeLeft -= 1000;
+    
+    if (timeLeft <= 0) {
+      clearInterval(formTimeoutId);
+      if (!isFormSubmitted) {
+        handleFormTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleFormTimeout() {
+  state.isLoading = false;
+  state.isConfirmed = true; // To prevent further interaction
+  
+  // Update UI to show timeout
+  const confirmBtn = shadow.querySelector(".confirm-btn");
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+    confirmBtn.style.backgroundColor = "#f44336";
+    confirmBtn.style.color = "white";
+  }
+  
+  // Notify Voiceflow
+  window.voiceflow.chat.interact({
+    type: "timeEnd",
+    payload: {
+      message: "Time expired"
+    }
+  });
+  
+  // Re-render to disable all elements
+  renderCancellation();
+}
+
         // Translation helper with added "cancelled" key
         function t(key) {
           const translations = {
@@ -10313,6 +11443,10 @@ function handleFormTimeout() {
         if (cancellationResponse) {
           // 2. Update UI to show confirmation
           state.isConfirmed = true;
+		isFormSubmitted = true;
+  if (formTimeoutId) {
+    clearInterval(formTimeoutId);
+  }
           renderCancellation();
           
           // 3. Show success animation
@@ -10542,6 +11676,7 @@ function handleFormTimeout() {
         window.addEventListener('resize', () => {
           container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
         });
+	startFormTimer();
       }
     };
 
