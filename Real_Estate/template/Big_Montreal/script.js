@@ -6032,7 +6032,7 @@ if (formTimeoutId) {
 // Initialize timeout variables
 let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
@@ -8052,7 +8052,7 @@ function handleFormTimeout() {
         const isEnglish = language === 'en';
         let formTimeoutId = null;
 let isFormSubmitted = false;
-const TIMEOUT_DURATION = 500000; // 15 minutes in milliseconds
+const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
