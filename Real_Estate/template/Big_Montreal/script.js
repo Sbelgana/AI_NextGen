@@ -8102,298 +8102,378 @@ function handleFormTimeout() {
     
     
 /************** EXTENSION #11: BookingInformationExtension **************/
-    const BookingInformationExtension = {
-      name: "BookingInformation",
-      type: "response",
-      match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
-      render: ({ trace, element }) => {
-        const { language } = trace.payload || { language: 'FR' };
-        const isEnglish = language === 'en';
-        let formTimeoutId = null;
-let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
-        
-        // Create the form
-        const formContainer = document.createElement("form");
-        formContainer.setAttribute("novalidate", "true");
-        formContainer.innerHTML = `
-		<style>
-    /* ========== Error Components ========== */
-    .error-container {
-      width: 100%;
-      margin: 2px 0;
-      box-sizing: border-box;
-    }
-    .error-message {
-      display: none;
-      padding: 5px;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 14px;
-      align-items: center;
-    }
-    .error-icon {
-      background-color: red;
-      color: #fff;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 15px;
-      flex-shrink: 0;
-    }
+const BookingInformationExtension = {
+  name: "BookingInformation",
+  type: "response",
+  match: ({ trace }) => trace.type === `ext_booking_inf_inf` || trace.payload?.name === `ext_booking_inf`,
+  render: ({ trace, element }) => {
+    const { language } = trace.payload || { language: 'FR' };
+    const isEnglish = language === 'en';
+    let formTimeoutId = null;
+    let isFormSubmitted = false;
+    const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
     
-    /* ========== Form Inputs & Layout ========== */
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      border-radius: 6px;
+    // Helper functions
+    function isValidEmail(email) {
+      const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+      return emailPattern.test(email);
     }
-    .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"] {
-      width: 100%;
-      min-width: 225px;
-      max-width: 800px;
-      border: 1px solid rgba(0,0,0,0.2);
-      border-radius: 6px;
-      padding: 12px 15px;
-      background: #fff;
-      font-size: 16px;
-      outline: none;
-      box-sizing: border-box;
-      height: 50px;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="tel"]:focus {
-      border: 2px solid #9c27b0;
-    }
-    
-    /* ========== Buttons ========== */
-    .submit-btn {
-      color: #9c27b0;
-      background-color: #F8EAFA;
-      border: none;
-      padding: 15px;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.2s, color 0.2s;
-      width: 100%;
-      font-weight: 600;
-    }
-    .submit-btn:hover {
-      color: #fff;
-      background-color: #9c27b0;
-    }
-    .submit-btn:disabled {
-      background-color: #4CAF50;
-      color: white;
-      cursor: not-allowed;
-    }
-    
-    /* Disabled state - preserve pointer-events to allow cursor display */
-    .form-disabled input {
-      background-color: #f8f8f8;
-      opacity: 0.8;
-      cursor: not-allowed;
-    }
-    
-    /* Add not-allowed cursor to all disabled elements */
-    input:disabled, 
-    button:disabled {
-      cursor: not-allowed;
-    }
-  </style>
-          <div>
-            <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-            <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorFullName">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label for="email" class="bold-label">Email</label>
-            <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorEmail">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-            <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
-            <div class="error-container">
-              <div class="error-message" id="errorPhone">
-                <div class="error-icon">!</div>
-                <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
-              </div>
-            </div>
-          </div>
-          
-          <button type="button" class="submit-btn" id="submit-button">
-            ${isEnglish ? 'Submit' : 'Soumettre'}
-          </button>
-        `;
 
-        element.appendChild(formContainer);
+    function isValidPhoneNumber(phoneNumber) {
+      const phonePattern = /^(\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}$/;
+      return phonePattern.test(phoneNumber);
+    }
 
-
-	      /*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Just set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
-    
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
+    function formatPhoneNumber(phoneNumber) {
+      const cleaned = phoneNumber.replace(/\D/g, '');
+      if (cleaned.length === 10) {
+        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
       }
+      return phoneNumber;
     }
-  }, 1000);
-}
+    
+    // Create the form
+    const formContainer = document.createElement("form");
+    formContainer.setAttribute("novalidate", "true");
+    formContainer.innerHTML = `
+    <style>
+      /* ========== Base Styles ========== */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-function handleFormTimeout() {
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
-  submitButton.style.backgroundColor = "#f44336";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
-    type: "timeEnd",
-    payload: {
-      message: "Time expired"
+      /* ========== Error Components ========== */
+      .error-container {
+        width: 100%;
+        margin: 2px 0;
+        box-sizing: border-box;
+      }
+      .error-message {
+        display: none;
+        padding: 5px;
+        border: 1px solid #e8e8e8;
+        border-radius: 6px;
+        background-color: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-size: 14px;
+        align-items: center;
+      }
+      .error-icon {
+        background-color: red;
+        color: #fff;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+      }
+      
+      /* ========== Form Inputs & Layout ========== */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        max-width: 800px;
+        min-width: 350px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 6px;
+      }
+      
+      .form-group {
+        width: 100%;
+      }
+      
+      .bold-label {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"] {
+        width: 100%;
+        border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 6px;
+        padding: 12px 15px;
+        background: #fff;
+        font-size: 16px;
+        outline: none;
+        box-sizing: border-box;
+        height: 50px;
+      }
+      
+      input[type="text"]:focus,
+      input[type="email"]:focus,
+      input[type="tel"]:focus {
+        border: 2px solid #9c27b0;
+      }
+      
+      /* ========== Buttons ========== */
+      .submit-btn {
+        color: #9c27b0;
+        background-color: #F8EAFA;
+        border: none;
+        padding: 15px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.2s, color 0.2s;
+        width: 100%;
+        font-weight: 600;
+      }
+      
+      .submit-btn:hover {
+        color: #fff;
+        background-color: #9c27b0;
+      }
+      
+      .submit-btn:disabled {
+        background-color: #4CAF50;
+        color: white;
+        cursor: not-allowed;
+      }
+      
+      /* Disabled state - preserve pointer-events to allow cursor display */
+      .form-disabled input {
+        background-color: #f8f8f8;
+        opacity: 0.8;
+        cursor: not-allowed;
+      }
+      
+      /* Add not-allowed cursor to all disabled elements */
+      input:disabled, 
+      button:disabled {
+        cursor: not-allowed !important;
+      }
+      
+      /* Responsive Media Queries */
+      @media screen and (max-width: 768px) {
+        form {
+          padding: 15px;
+          min-width: 100%;
+        }
+        
+        .bold-label {
+          font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+          height: 45px;
+          font-size: 14px;
+          padding: 10px 12px;
+        }
+        
+        .submit-btn {
+          padding: 12px;
+          font-size: 15px;
+        }
+      }
+      
+      @media screen and (max-width: 480px) {
+        form {
+          padding: 10px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+          font-size: 13px;
+          height: 42px;
+        }
+        
+        .error-message {
+          font-size: 12px;
+        }
+        
+        .error-icon {
+          width: 20px;
+          height: 20px;
+          margin-right: 10px;
+        }
+        
+        .submit-btn {
+          padding: 10px;
+          font-size: 14px;
+        }
+      }
+    </style>
+    
+    <div class="form-group">
+      <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+      <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorFullName">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="email" class="bold-label">Email</label>
+      <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorEmail">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+      <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+      <div class="error-container">
+        <div class="error-message" id="errorPhone">
+          <div class="error-icon">!</div>
+          <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+        </div>
+      </div>
+    </div>
+    
+    <button type="button" class="submit-btn" id="submit-button">
+      ${isEnglish ? 'Submit' : 'Soumettre'}
+    </button>
+    `;
+
+    element.appendChild(formContainer);
+
+    /*************************************************************
+     * Timer Functionality
+     *************************************************************/
+    function startFormTimer() {
+      let timeLeft = TIMEOUT_DURATION;
+      
+      // Just set the timeout - no display updates needed
+      formTimeoutId = setInterval(() => {
+        timeLeft -= 1000;
+        
+        if (timeLeft <= 0) {
+          clearInterval(formTimeoutId);
+          if (!isFormSubmitted) {
+            handleFormTimeout();
+          }
+        }
+      }, 1000);
     }
-  });
-}
-        // Input validation
-        formContainer.querySelector("#full-name").addEventListener("input", function() {
-          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
-        });
-        
-        formContainer.querySelector("#email").addEventListener("input", function() {
-          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
-        });
-        
-        formContainer.querySelector("#phone").addEventListener("input", function() {
-          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
-        });
-        
-        // Form submission
-        formContainer.querySelector("#submit-button").addEventListener("click", () => {
-          // Hide all error messages first
-          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
-            errorEl.style.display = "none";
-          });
-          
-          // Validate inputs
-          const fullName = formContainer.querySelector("#full-name").value.trim();
-          const email = formContainer.querySelector("#email").value.trim();
-          const phone = formContainer.querySelector("#phone").value.trim();
-          let isValid = true;
-          
-          if (!fullName) {
-            formContainer.querySelector("#errorFullName").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!email || !isValidEmail(email)) {
-            formContainer.querySelector("#errorEmail").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!phone || !isValidPhoneNumber(phone)) {
-            formContainer.querySelector("#errorPhone").style.display = "flex";
-            isValid = false;
-          }
-          
-          if (!isValid) {
-            return;
-          }
 
-	    isFormSubmitted = true;
-  if (formTimeoutId) {
-    clearInterval(formTimeoutId);
+    function handleFormTimeout() {
+      // Apply disabled styling
+      formContainer.classList.add('form-disabled');
+      
+      // Disable all form inputs
+      formContainer.querySelector("#full-name").disabled = true;
+      formContainer.querySelector("#email").disabled = true;
+      formContainer.querySelector("#phone").disabled = true;
+      
+      // Update button state
+      const submitButton = formContainer.querySelector("#submit-button");
+      submitButton.disabled = true;
+      submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+      submitButton.style.backgroundColor = "#f44336";
+      submitButton.style.color = "white";
+      
+      window.voiceflow.chat.interact({
+        type: "timeEnd",
+        payload: {
+          message: "Time expired"
+        }
+      });
+    }
+    
+    // Input validation
+    formContainer.querySelector("#full-name").addEventListener("input", function() {
+      if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
+    });
+    
+    formContainer.querySelector("#email").addEventListener("input", function() {
+      if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+    });
+    
+    formContainer.querySelector("#phone").addEventListener("input", function() {
+      if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+    });
+    
+    // Form submission
+    formContainer.querySelector("#submit-button").addEventListener("click", () => {
+      // Hide all error messages first
+      formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+        errorEl.style.display = "none";
+      });
+      
+      // Validate inputs
+      const fullName = formContainer.querySelector("#full-name").value.trim();
+      const email = formContainer.querySelector("#email").value.trim();
+      const phone = formContainer.querySelector("#phone").value.trim();
+      let isValid = true;
+      
+      if (!fullName) {
+        formContainer.querySelector("#errorFullName").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!email || !isValidEmail(email)) {
+        formContainer.querySelector("#errorEmail").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!phone || !isValidPhoneNumber(phone)) {
+        formContainer.querySelector("#errorPhone").style.display = "flex";
+        isValid = false;
+      }
+      
+      if (!isValid) {
+        return;
+      }
+
+      isFormSubmitted = true;
+      if (formTimeoutId) {
+        clearInterval(formTimeoutId);
+      }
+      
+      // Apply disabled styling
+      formContainer.classList.add('form-disabled');
+      
+      // Disable all input elements and buttons
+      const inputs = formContainer.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.disabled = true;
+      });
+      
+      const submitButton = formContainer.querySelector("#submit-button");
+      submitButton.disabled = true;
+      submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+      submitButton.style.backgroundColor = "#4CAF50";
+      submitButton.style.color = "white";
+      
+      // Submit form data to Voiceflow
+      window.voiceflow.chat.interact({
+        type: "success",
+        payload: {
+          fullName,
+          email,
+          phone: formatPhoneNumber(phone)
+        }
+      });
+    });
+    
+    startFormTimer();      
   }
-          // Apply disabled styling but don't prevent pointer events
-          formContainer.classList.add('form-disabled');
-          
-          // Explicitly disable all input elements and buttons
-          // This sets the disabled attribute but still allows cursor effects
-          const inputs = formContainer.querySelectorAll('input');
-          inputs.forEach(input => {
-            input.disabled = true;
-          });
-          
-          const submitButton = formContainer.querySelector("#submit-button");
-          submitButton.disabled = true;
-          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-          
-          // Prepare form data
-          const formData = {
-            fullName,
-            email,
-            phone: formatPhoneNumber(phone)
-          };
-          
-          // If Voiceflow integration is needed
-       
-            window.voiceflow.chat.interact({
-              type: "success",
-              payload: {
-            fullName,
-            email,
-            phone: formatPhoneNumber(phone)
-          }
-            });
+};
 
-        });
-	startFormTimer();      
-      }
-    };
 
 /************** EXTENSION #12: RescheduleCalendarExtension **************/
     const RescheduleCalendarExtension = {
