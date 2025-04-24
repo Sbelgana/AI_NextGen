@@ -459,7 +459,7 @@ form {
 
 .flex-row > div {
   flex: 1;
-  min-width: 225px;
+  min-width: 300px;
 }
 
 .main-container {
@@ -470,7 +470,7 @@ form {
 }
 
 .select-container {
-  min-width: 225px;
+  min-width: 300px;
   max-width: 800px;
   width: 100%;
   margin-bottom: 10px;
@@ -566,7 +566,7 @@ form {
   border-radius: 6px;
   background-color: #fff;
   position: relative;
-  min-width: 225px;
+  min-width: 300px;
   max-width: 800px;
   width: 100%;
   min-height: 50px;
@@ -714,7 +714,7 @@ input[type="email"],
 input[type="tel"],
 input[type="number"]{
   width: 100%;
-  min-width: 225px;
+  min-width: 300px;
   max-width: 100%;
   border: 1px solid rgba(0,0,0,0.2);
   border-radius: 6px;
@@ -756,7 +756,7 @@ input[type="number"] {
   align-items: center;
   flex-direction: row;
   border-radius: 15px;
-  min-width: 225px;
+  min-width: 300px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -2279,7 +2279,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
             }
             .form-column {
               flex: 1;
-              min-width: 225px;
+              min-width: 300px;
             }
             .bold-label {
       font-weight: 600;
@@ -2534,7 +2534,7 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 225px;
+  min-width: 300px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -3092,7 +3092,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
             }
             .form-column {
               flex: 1;
-              min-width: 225px;
+              min-width: 300px;
             }
             .bold-label {
       font-weight: 600;
@@ -3335,7 +3335,7 @@ formContainer.querySelector('#increment-frequency').addEventListener('click', fu
   align-items: center;
   flex-direction: row;
   border-radius: 8px;
-  min-width: 225px;
+  min-width: 300px;
   width: 100%;
   max-width: 100%;
   border: 1px solid #ddd;
@@ -3932,7 +3932,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 225px;
+    min-width: 300px;
     max-width: 800px;
     width: 100%;
     min-height: 50px;
@@ -4046,7 +4046,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   }
 
   .select-container {
-    min-width: 225px;
+    min-width: 300px;
     max-width: 800px;
     width: 100%;
     margin-bottom: 10px;
@@ -4174,7 +4174,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   }
   .flex-row > div {
     flex: 1;
-    min-width: 225px;
+    min-width: 300px;
   }
   .bold-label {
     font-weight: 600;
@@ -4187,7 +4187,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   input[type="tel"],
   #details {
     width: 100%;
-    min-width: 225px;
+    min-width: 300px;
     max-width: 100%;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
@@ -6313,7 +6313,7 @@ if (formTimeoutId) {
     input[type="tel"] {
       height: 45px;
       font-size: 13px;
-	  min-width: 100%;
+	  min-width: 275px;
     }
     
     .select-display {
@@ -8248,8 +8248,7 @@ const BookingInformationExtension = {
       @media screen and (max-width: 768px) {
         form {
           padding: 15px;
-          
-      min-width: 225px;
+          min-width: 100%;
         }
         
         .bold-label {
@@ -8262,6 +8261,7 @@ const BookingInformationExtension = {
           height: 45px;
           font-size: 14px;
           padding: 10px 12px;
+          min-width: 275px;
         }
         
         .submit-btn {
@@ -8270,33 +8270,7 @@ const BookingInformationExtension = {
         }
       }
       
-      @media screen and (max-width: 480px) {
-        form {
-          padding: 10px;
-        }
-        
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"] {
-          font-size: 13px;
-          height: 42px;
-        }
-        
-        .error-message {
-          font-size: 12px;
-        }
-        
-        .error-icon {
-          width: 20px;
-          height: 20px;
-          margin-right: 10px;
-        }
-        
-        .submit-btn {
-          padding: 10px;
-          font-size: 14px;
-        }
-      }
+     
     </style>
     
     <div class="form-group">
