@@ -6022,37 +6022,43 @@ if (formTimeoutId) {
     };
     
 /************** EXTENSION #9: BookingFormExtension **************/
-     const BookingFormExtension = {
+        const BookingFormExtension = {
       name: "BookingForm",
       type: "response",
       match: ({ trace }) => trace.type === `ext_booking_form` || trace.payload?.name === `ext_booking_form`,
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
-// Initialize timeout variables
-let formTimeoutId = null;
-let isFormSubmitted = false;
-const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+        // Initialize timeout variables
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
         
         // Create the form
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
 		<style>
+  /* ========== Responsive Layout ========== */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
   /* ========== Dropdown Components ========== */
   .main-container {
     display: block;
     transition: height 0.3s ease;
     border-radius: 6px;
     margin-bottom: 15px;
+    width: 100%;
   }
   .select-wrapper {
     border: 1px solid #ddd;
     border-radius: 6px;
     background-color: #fff;
     position: relative;
-    min-width: 225px;
-    max-width: 800px;
     width: 100%;
     min-height: 50px;
   }
@@ -6092,6 +6098,7 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
     border-radius: 0 0 6px 6px;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    width: 100%;
   }
   .custom-options::-webkit-scrollbar {
     display: none;
@@ -6202,11 +6209,17 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
     flex-direction: column;
     gap: 15px;
     width: 100%;
-    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 6px;
+    min-width: 350px;
+    max-width: 800px;
   }
+  
+  .form-group {
+    width: 100%;
+  }
+  
   .bold-label {
     font-weight: 600;
     font-size: 15px;
@@ -6217,8 +6230,6 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
   input[type="email"],
   input[type="tel"] {
     width: 100%;
-    min-width: 225px;
-    max-width: 800px;
     border: 1px solid rgba(0,0,0,0.2);
     border-radius: 6px;
     padding: 8px;
@@ -6285,9 +6296,58 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
     pointer-events: none !important;
     cursor: not-allowed !important;
   }
+  
+  /* Responsive Media Queries */
+  @media screen and (max-width: 768px) {
+    form {
+      padding: 15px;
+      min-width: 100%;
+    }
+    
+    .bold-label {
+      font-size: 14px;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      height: 45px;
+      font-size: 13px;
+    }
+    
+    .select-display {
+      height: 45px;
+      font-size: 13px;
+    }
+    
+    .custom-option {
+      padding: 10px 12px;
+    }
+    
+    .submit-btn {
+      padding: 12px;
+      font-size: 15px;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    form {
+      padding: 10px;
+    }
+    
+    .error-message {
+      font-size: 12px;
+    }
+    
+    .error-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+    }
+  }
 </style>
 
-          <div>
+          <div class="form-group">
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
             <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
             <div class="error-container">
@@ -6298,7 +6358,7 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
             </div>
           </div>
           
-          <div>
+          <div class="form-group">
             <label for="email" class="bold-label">Email</label>
             <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
             <div class="error-container">
@@ -6309,7 +6369,7 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
             </div>
           </div>
           
-          <div>
+          <div class="form-group">
             <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
             <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
             <div class="error-container">
@@ -6321,11 +6381,11 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
           </div>
           
           <div class="main-container" id="agentDropdown">
-            <label class="bold-label">${isEnglish ? 'Select a Agent' : 'Sélectionnez un vendeur'}</label>
+            <label class="bold-label">${isEnglish ? 'Select an Agent' : 'Sélectionnez un vendeur'}</label>
             <select id="agentSelect" name="agentSelect" required style="display:none;"></select>
             <div class="select-wrapper">
               <div class="select-display" id="selectDisplayAgent">
-                <span>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</span>
+                <span>${isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --'}</span>
                 <div class="dropdown-icon" id="dropdownIconAgent">${SVG_CHEVRON}</div>
               </div>
               <div class="custom-options" id="customOptionsAgent"></div>
@@ -6333,7 +6393,7 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
             <div class="error-container">
               <div class="error-message" id="errorAgent">
                 <div class="error-icon">!</div>
-                <span>${isEnglish ? 'You must select a agent.' : 'Vous devez sélectionner un vendeur.'}</span>
+                <span>${isEnglish ? 'You must select an agent.' : 'Vous devez sélectionner un vendeur.'}</span>
               </div>
             </div>
           </div>
@@ -6341,57 +6401,55 @@ const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
           <button type="button" class="submit-btn" id="submit-button">
             ${isEnglish ? 'Submit' : 'Soumettre'}
           </button>
-          
-          
         `;
 
         element.appendChild(formContainer);
 
-	/*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Just set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
-    
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
-      }
-    }
-  }, 1000);
-}
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
+          let timeLeft = TIMEOUT_DURATION;
+          
+          // Just set the timeout - no display updates needed
+          formTimeoutId = setInterval(() => {
+            timeLeft -= 1000;
+            
+            if (timeLeft <= 0) {
+              clearInterval(formTimeoutId);
+              if (!isFormSubmitted) {
+                handleFormTimeout();
+              }
+            }
+          }, 1000);
+        }
 
-function handleFormTimeout() {
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
-  submitButton.style.backgroundColor = "#f44336";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
-    type: "timeEnd",
-    payload: {
-      message: "Time expired"
-    }
-  });
-}
+        function handleFormTimeout() {
+          // Apply disabled styling
+          formContainer.classList.add('form-disabled');
+          
+          // Disable all form inputs
+          formContainer.querySelector("#full-name").disabled = true;
+          formContainer.querySelector("#email").disabled = true;
+          formContainer.querySelector("#phone").disabled = true;
+          
+          // Disable the dropdown
+          formContainer.querySelector("#selectDisplayAgent").classList.add('dropdown-disabled');
+          
+          // Update button state
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+          submitButton.style.backgroundColor = "#f44336";
+          submitButton.style.color = "white";
+          
+          window.voiceflow.chat.interact({
+            type: "timeEnd",
+            payload: {
+              message: "Time expired"
+            }
+          });
+        }
 
         // Initialize the agent dropdown
         const agentDropdown = formContainer.querySelector("#agentDropdown");
@@ -6401,8 +6459,8 @@ function handleFormTimeout() {
         const dropdownIconAgent = formContainer.querySelector("#dropdownIconAgent");
         const errorAgent = formContainer.querySelector("#errorAgent");
         
-        agentSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --'}</option>`;
-        selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select a Agent --' : '-- Sélectionnez un vendeur --';
+        agentSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --'}</option>`;
+        selectDisplayAgent.querySelector("span").textContent = isEnglish ? '-- Select an Agent --' : '-- Sélectionnez un vendeur --';
         customOptionsAgent.innerHTML = "";
         
         Agents.forEach(agent => {
@@ -6428,7 +6486,7 @@ function handleFormTimeout() {
             customOptionsAgent.classList.remove('show-options');
             dropdownIconAgent.classList.remove('rotate');
             
-            // Hide the error message when a agent is selected
+            // Hide the error message when an agent is selected
             errorAgent.style.display = "none";
           });
         });
@@ -6465,80 +6523,81 @@ function handleFormTimeout() {
         });
         
         // Form submission
-// Form submission
-formContainer.querySelector("#submit-button").addEventListener("click", () => {
-  // Hide all error messages first
-  formContainer.querySelectorAll(".error-message").forEach(errorEl => {
-    errorEl.style.display = "none";
-  });
-  
-  // Validate inputs
-  const fullName = formContainer.querySelector("#full-name").value.trim();
-  const email = formContainer.querySelector("#email").value.trim();
-  const phone = formContainer.querySelector("#phone").value.trim();
-  const selectedAgent = agentSelect.value;
-  let isValid = true;
-  
-  if (!fullName) {
-    formContainer.querySelector("#errorFullName").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!email || !isValidEmail(email)) {
-    formContainer.querySelector("#errorEmail").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!phone || !isValidPhoneNumber(phone)) {
-    formContainer.querySelector("#errorPhone").style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!selectedAgent) {
-    errorAgent.style.display = "flex";
-    isValid = false;
-  }
-  
-  if (!isValid) {
-    return;
-  }
-  
-  // Force close any open dropdown
-  customOptionsAgent.classList.remove('show-options');
-  dropdownIconAgent.classList.remove('rotate');
+        formContainer.querySelector("#submit-button").addEventListener("click", () => {
+          // Hide all error messages first
+          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          // Validate inputs
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const selectedAgent = agentSelect.value;
+          let isValid = true;
+          
+          if (!fullName) {
+            formContainer.querySelector("#errorFullName").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!email || !isValidEmail(email)) {
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!phone || !isValidPhoneNumber(phone)) {
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!selectedAgent) {
+            errorAgent.style.display = "flex";
+            isValid = false;
+          }
+          
+          if (!isValid) {
+            return;
+          }
+          
+          // Force close any open dropdown
+          customOptionsAgent.classList.remove('show-options');
+          dropdownIconAgent.classList.remove('rotate');
 
-	  isFormSubmitted = true;
-  if (formTimeoutId) {
-    clearInterval(formTimeoutId);
-  }
-  // Apply disabled styling
-  formContainer.classList.add('form-disabled');
-  
-  // Disable all form inputs
-  formContainer.querySelector("#full-name").disabled = true;
-  formContainer.querySelector("#email").disabled = true;
-  formContainer.querySelector("#phone").disabled = true;
-  
-  // Disable the dropdown
-  selectDisplayAgent.classList.add('dropdown-disabled');
-  
-  // Update button state
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
-  submitButton.style.backgroundColor = "#4CAF50";
-  submitButton.style.color = "white";
-  
-  window.voiceflow.chat.interact({
+          isFormSubmitted = true;
+          if (formTimeoutId) {
+            clearInterval(formTimeoutId);
+          }
+          // Apply disabled styling
+          formContainer.classList.add('form-disabled');
+          
+          // Disable all form inputs
+          formContainer.querySelector("#full-name").disabled = true;
+          formContainer.querySelector("#email").disabled = true;
+          formContainer.querySelector("#phone").disabled = true;
+          
+          // Disable the dropdown
+          selectDisplayAgent.classList.add('dropdown-disabled');
+          
+          // Update button state
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+          submitButton.style.backgroundColor = "#4CAF50";
+          submitButton.style.color = "white";
+          
+          window.voiceflow.chat.interact({
             type: "success",
             payload: { 
-			fullName,
-    email,
-    phone: formatPhoneNumber(phone),
-    agentName: selectedAgent },
+              fullName,
+              email,
+              phone: formatPhoneNumber(phone),
+              agentName: selectedAgent 
+            },
           });
         });
-	startFormTimer();      
+        
+        startFormTimer();      
       }
     };
 
