@@ -438,9 +438,13 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
         <style>
-    /* ========= Dropdown Components ========= */
-    /* ========= LAYOUT & STRUCTURE ========= */
 /* ========= LAYOUT & STRUCTURE ========= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -780,18 +784,25 @@ input[type="number"] {
 .input-group input {
   outline: none;
   border: none;
-  padding: 16px;
 }
 
 .input-group input {
   width: 100%;
   text-align: center;
+  padding: 8px;
 }
 
+/* UPDATED BUTTON STYLING TO MATCH MORTGAGE CALCULATOR */
 .input-group button {
   cursor: pointer;
   background-color: #F8EAFA;
+  border: none;
+  padding: 0;
   min-width: 40px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .input-group button:hover {
@@ -807,12 +818,23 @@ input[type="number"] {
   display: flex;
   align-items: center;
   margin: 8px 0;
+  position: relative;
 }
 
 .checkbox-container input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   pointer-events: none;
+}
+
+.checkbox-container .bold-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  padding: 8px 0;
+  width: 100%;
+  z-index: 2;
 }
 
 .custom-checkbox {
@@ -826,6 +848,8 @@ input[type="number"] {
   background-color: #fff;
   margin-right: 8px;
   position: relative;
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .check-icon {
@@ -836,12 +860,11 @@ input[type="number"] {
   background-color: #9c27b0;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
-.checkbox-container input[type="checkbox"]:checked 
-+ .bold-label 
-.custom-checkbox 
-.check-icon {
+/* Fixed selector for checkbox checked state */
+.checkbox-container input[type="checkbox"]:checked + .bold-label .custom-checkbox .check-icon {
   display: flex;
 }
 
@@ -849,6 +872,8 @@ input[type="number"] {
   font-weight: 600;
   color: #333;
   font-size: 14px;
+  position: relative;
+  z-index: 2;
 }
 
 /* ========= LABELS ========= */
@@ -856,8 +881,7 @@ input[type="number"] {
   font-weight: 600;
   font-size: 15px;
   margin-bottom: 8px;
-  display: block;
-  display: inline-flex;
+  display: flex;
   align-items: center;
 }
 
@@ -966,6 +990,12 @@ input[type="number"] {
     font-size: 13px;
   }
   
+  /* UPDATED BUTTON STYLING FOR TABLETS */
+  .input-group button {
+    min-width: 36px;
+    height: 45px;
+  }
+  
   .custom-option {
     padding: 10px 12px;
   }
@@ -975,13 +1005,38 @@ input[type="number"] {
     font-size: 15px;
   }
   
-  .input-group button {
-    padding: 12px;
-    min-width: 35px;
+  /* Enhanced checkbox touch targets for mobile */
+  .checkbox-container {
+    margin: 12px 0;
+    padding: 4px 0;
   }
   
-  .input-group input {
-    padding: 8px;
+  .checkbox-container .bold-label {
+    min-height: 44px;
+    padding: 8px 0;
+  }
+  
+  /* Create larger touch area */
+  .checkbox-container .bold-label::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    z-index: 1;
+  }
+  
+  /* Fix layout for additional features section */
+  #section-additional-features .flex-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  #garageCapacityGroup {
+    grid-column: 1 / -1; /* Make garage capacity span full width */
+    width: 100%;
   }
 }
 
@@ -1024,7 +1079,11 @@ input[type="number"] {
   }
   
   .checkbox-container {
-    margin: 6px 0;
+    margin: 15px 0;
+  }
+  
+  .checkbox-container .bold-label {
+    min-height: 48px; /* Even taller for small screens */
   }
   
   .custom-checkbox,
@@ -1046,9 +1105,10 @@ input[type="number"] {
     font-size: 12px;
   }
   
+  /* UPDATED BUTTON STYLING FOR MOBILE PHONES */
   .input-group button {
-    padding: 8px;
     min-width: 32px;
+    height: 42px;
   }
   
   .main-arrow {
@@ -1059,8 +1119,24 @@ input[type="number"] {
   .sub-options {
     margin-left: 15px;
   }
+  
+  /* On smaller phones, stack checkboxes */
+  #section-additional-features .flex-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Extra padding and larger hit area for better touch targets */
+  .checkbox-container .bold-label::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
+  }
 }
-
   </style>
           <!-- SECTION 1: Location & Category -->
           <div class="flex-row">
@@ -2264,11 +2340,11 @@ formContainer.querySelector("#submit-button").addEventListener("click", function
         const container = document.createElement("div");
 
         // Determine container width based on device screen width
-        const containerWidth = window.innerWidth <= 768 ? "275px" : "800px";
+        const containerWidth = window.innerWidth <= 768 ? "300px" : "800px";
 
         container.style.cssText = `
           width: ${containerWidth};
-          height: 350px;
+          height: 450px;
           border: 1px solid #888;
           border-radius: 8px;
           overflow: hidden;
@@ -4390,6 +4466,77 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   padding: 0;
 }
 
+/* ========= Form Layout ========= */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  min-width: 350px;
+  margin: 0 auto;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.flex-row {
+  display: flex;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.flex-row > div {
+  flex: 1;
+  min-width: 300px;
+}
+
+.bold-label {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ========= Input Fields ========= */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+#details {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 8px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  height: 50px;
+}
+
+#details {
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+#details:focus {
+  border: 2px solid #9c27b0;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* ========= Dropdown Components ========= */
 .main-container {
   display: block;
@@ -4561,43 +4708,12 @@ select {
   transform: rotate(180deg);
 }
 
-/* ========= Error Components ========= */
-.error-container {
-  width: 100%;
-  margin: 2px 0;
-  box-sizing: border-box;
-}
-
-.error-message {
-  display: none;
-  padding: 5px;
-  border: 1px solid #e8e8e8;
-  border-radius: 6px;
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  font-size: 14px;
-  align-items: center;
-}
-
-.error-icon {
-  background-color: red;
-  color: #fff;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 15px;
-  flex-shrink: 0;
-}
-
 /* ========= Custom Checkbox Styles ========= */
 .checkbox-container {
   display: flex;
   align-items: center;
   margin: 8px 0;
+  position: relative;
 }
 
 .checkbox-container input[type="checkbox"] {
@@ -4611,6 +4727,7 @@ select {
   align-items: center;
   cursor: pointer;
   user-select: none;
+  position: relative;
 }
 
 .custom-checkbox {
@@ -4649,74 +4766,36 @@ select {
   font-size: 14px;
 }
 
-/* ========= Form Inputs & Layout ========= */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ========= Error Components ========= */
+.error-container {
   width: 100%;
-  max-width: 800px;
-  min-width: 350px;
-  margin: 0 auto;
-  padding: 16px;
-  border-radius: 6px;
-}
-
-.flex-row {
-  display: flex;
-  gap: 10px 16px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.flex-row > div {
-  flex: 1;
-  min-width: 300px;
-}
-
-.bold-label {
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 8px;
-  display: block;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-#details {
-  width: 100%;
-  border: 1px solid rgba(0,0,0,0.2);
-  border-radius: 6px;
-  padding: 8px;
-  background: #fff;
-  font-size: 14px;
-  outline: none;
+  margin: 2px 0;
   box-sizing: border-box;
-  height: 50px;
 }
 
-#details {
-  resize: vertical;
-  min-height: 100px;
-  max-height: 200px;
+.error-message {
+  display: none;
+  padding: 5px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 14px;
+  align-items: center;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus,
-#details:focus {
-  border: 2px solid #9c27b0;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"] {
-  -moz-appearance: textfield;
+.error-icon {
+  background-color: red;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
 }
 
 /* ========= Buttons ========= */
@@ -4999,6 +5078,54 @@ input[type="number"] {
     height: 20px;
     margin-right: 10px;
   }
+  
+  /* Fix for checkbox touch issues on mobile */
+  .checkbox-container {
+    margin: 12px 0;
+    padding: 8px 0;
+  }
+  
+  .checkbox-label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 0;
+  }
+  
+  /* Create a larger hit area for checkboxes */
+  .custom-checkbox::before {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    z-index: 1;
+  }
+  
+  /* Fix layout for additional features section */
+  #section-additional-features .flex-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  
+  #number-of-cars-container {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  
+  /* Make sure the checkmark is above the hit area */
+  .check-icon {
+    z-index: 2;
+  }
+  
+  /* Make sure the text is above the hit area */
+  .checkbox-text {
+    position: relative;
+    z-index: 2;
+  }
 }
 
 @media screen and (max-width: 480px) {
@@ -5101,6 +5228,27 @@ input[type="number"] {
   .sub-options {
     margin-left: 15px;
     width: calc(100% - 15px);
+  }
+  
+  /* On smaller phones, stack checkboxes */
+  #section-additional-features .flex-row {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Extra padding for better touch targets */
+  .checkbox-container {
+    margin: 15px 0;
+  }
+  
+  /* Larger touch area for very small screens */
+  .custom-checkbox::before {
+    content: '';
+    position: absolute;
+    top: -18px;
+    left: -18px;
+    right: -18px;
+    bottom: -18px;
   }
 }
 </style>
@@ -7415,7 +7563,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #f1f3f8;
+  background-color: #9c27b029;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
@@ -9266,7 +9414,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   justify-content: space-between;
   align-items: center;
   padding: 18px 24px;
-  background-color: #f1f3f8;
+  background-color: #9c27b029;
   border-bottom: 1px solid #eaeaea;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   position: relative;
