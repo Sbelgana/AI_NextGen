@@ -440,6 +440,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         <style>
     /* ========= Dropdown Components ========= */
     /* ========= LAYOUT & STRUCTURE ========= */
+/* ========= LAYOUT & STRUCTURE ========= */
 form {
   display: flex;
   flex-direction: column;
@@ -449,6 +450,7 @@ form {
   margin: 0 auto;
   padding: 16px;
   border-radius: 6px;
+  min-width: 350px;
 }
 
 .flex-row {
@@ -467,6 +469,7 @@ form {
   transition: height 0.3s ease;
   border-radius: 6px;
   margin-bottom: 15px;
+  width: 100%;
 }
 
 .select-container {
@@ -484,6 +487,7 @@ form {
   overflow: hidden;
   background: #fff;
   transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
 }
 
 .section:hover:not(.disabled) {
@@ -566,8 +570,6 @@ form {
   border-radius: 6px;
   background-color: #fff;
   position: relative;
-  min-width: 300px;
-  max-width: 800px;
   width: 100%;
   min-height: 50px;
 }
@@ -580,7 +582,7 @@ form {
   justify-content: space-between;
   align-items: center;
   height: 50px;
-				color: #444;
+  color: #444;
 }
 
 .dropdown-icon {
@@ -610,6 +612,7 @@ form {
   border-radius: 0 0 6px 6px;
   -ms-overflow-style: none;
   scrollbar-width: none;
+  width: 100%;
 }
 
 .custom-options::-webkit-scrollbar {
@@ -675,33 +678,35 @@ form {
 }
 
 .custom-option.selected .main-arrow,
-    .custom-option:hover .main-arrow {
-      background-color: #fff;
-    }
-    
+.custom-option:hover .main-arrow {
+  background-color: #fff;
+}
+
 .main-arrow {
-      margin-left: auto;
-    display: flex;
-    align-items: center;
-    background-color: #F8EAFA;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    width: 24px;
-    height: 24px;
-    justify-content: center;
-    }
-    .arrow-icon {
-      transition: transform 0.3s ease;
-      display: flex
-;
-    }
-    .arrow-icon.rotate {
-      transform: rotate(180deg);
-    }
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  background-color: #F8EAFA;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+  display: flex;
+}
+
+.arrow-icon.rotate {
+  transform: rotate(180deg);
+}
 
 .sub-options {
   margin-left: 25px;
   border-left: 2px solid #9c27b0;
+  width: calc(100% - 25px);
 }
 
 select {
@@ -714,8 +719,6 @@ input[type="email"],
 input[type="tel"],
 input[type="number"]{
   width: 100%;
-  min-width: 300px;
-  max-width: 100%;
   border: 1px solid rgba(0,0,0,0.2);
   border-radius: 6px;
   padding: 8px;
@@ -748,6 +751,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 5px;
+  width: 100%;
 }
 
 .input-group {
@@ -756,9 +760,7 @@ input[type="number"] {
   align-items: center;
   flex-direction: row;
   border-radius: 15px;
-  min-width: 300px;
   width: 100%;
-  max-width: 100%;
   border: 1px solid #ddd;
   height: 50px;
   overflow: hidden;
@@ -779,7 +781,6 @@ input[type="number"] {
   outline: none;
   border: none;
   padding: 16px;
-  
 }
 
 .input-group input {
@@ -790,6 +791,7 @@ input[type="number"] {
 .input-group button {
   cursor: pointer;
   background-color: #F8EAFA;
+  min-width: 40px;
 }
 
 .input-group button:hover {
@@ -812,8 +814,6 @@ input[type="number"] {
   opacity: 0;
   pointer-events: none;
 }
-
-
 
 .custom-checkbox {
   display: inline-flex;
@@ -839,9 +839,9 @@ input[type="number"] {
 }
 
 .checkbox-container input[type="checkbox"]:checked 
-  + .bold-label 
-  .custom-checkbox 
-  .check-icon {
++ .bold-label 
+.custom-checkbox 
+.check-icon {
   display: flex;
 }
 
@@ -853,16 +853,13 @@ input[type="number"] {
 
 /* ========= LABELS ========= */
 .bold-label {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 8px;
-      display: block;
-  
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: block;
   display: inline-flex;
   align-items: center;
 }
-
-
 
 /* ========= BUTTONS ========= */
 .submit {
@@ -916,6 +913,152 @@ input[type="number"] {
 
 .select-display:not(.placeholder) input {
   color: #000;
+}
+
+/* ========= RESPONSIVE STYLES ========= */
+@media screen and (max-width: 768px) {
+  form {
+    padding: 12px;
+    min-width: 100%;
+  }
+  
+  .flex-row > div {
+    flex: 100%;
+    min-width: 100%;
+  }
+  
+  .section-content {
+    padding: 15px 12px;
+  }
+  
+  .select-container,
+  .select-wrapper,
+  .main-container {
+    min-width: 100%;
+  }
+  
+  .select-display {
+    height: 45px;
+    font-size: 13px;
+  }
+  
+  .section-title {
+    font-size: 14px;
+  }
+  
+  .section-icon,
+  .dropdown-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .bold-label,
+  .checkbox-text {
+    font-size: 14px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  .input-group {
+    height: 45px;
+    font-size: 13px;
+  }
+  
+  .custom-option {
+    padding: 10px 12px;
+  }
+  
+  .submit {
+    padding: 10px;
+    font-size: 15px;
+  }
+  
+  .input-group button {
+    padding: 12px;
+    min-width: 35px;
+  }
+  
+  .input-group input {
+    padding: 8px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  form {
+    padding: 10px;
+  }
+  
+  .section-card {
+    padding: 8px;
+  }
+  
+  .section-content {
+    padding: 12px 10px;
+  }
+  
+  .section-title {
+    font-size: 13px;
+  }
+  
+  .section-icon,
+  .dropdown-icon,
+  .collapse-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .section-info {
+    gap: 8px;
+  }
+  
+  .bold-label,
+  .checkbox-text {
+    font-size: 13px;
+  }
+  
+  .custom-option {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .checkbox-container {
+    margin: 6px 0;
+  }
+  
+  .custom-checkbox,
+  .option-checkbox {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .submit {
+    font-size: 14px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  .input-group {
+    height: 42px;
+    font-size: 12px;
+  }
+  
+  .input-group button {
+    padding: 8px;
+    min-width: 32px;
+  }
+  
+  .main-arrow {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .sub-options {
+    margin-left: 15px;
+  }
 }
 
   </style>
