@@ -2717,62 +2717,10 @@ const BookingCalendarSDExtension = {
     container.style.maxWidth = "800px";
     container.style.margin = "0 auto";
     
-    // DEMO DATA - This ensures we always have something to show
-    // Remove this in production if you're sure dentistsInfo is populated
-    const demoServiceTranslations = {
-      "Dental cleanings and exams": "Nettoyages et examens dentaires",
-      "Fluoride treatments": "Traitements au fluorure",
-      "Root canal therapy": "Traitement de canal",
-      "Dental implants": "Implants dentaires"
-    };
 
-    const demoDentistsInfo = {
-      "Dr. John Smith": {
-        "apiKey": "demo-api-key",
-        "scheduleId": "demo-schedule-id",
-        "services": {
-          "Dental cleanings and exams": { 
-            "eventId": "1", 
-            "eventSlug": "cleaning" 
-          },
-          "Fluoride treatments": { 
-            "eventId": "2", 
-            "eventSlug": "fluoride" 
-          }
-        }
-      },
-      "Dr. Emily Johnson": {
-        "apiKey": "demo-api-key",
-        "scheduleId": "demo-schedule-id",
-        "services": {
-          "Dental cleanings and exams": { 
-            "eventId": "1", 
-            "eventSlug": "cleaning" 
-          },
-          "Root canal therapy": { 
-            "eventId": "3", 
-            "eventSlug": "root-canal" 
-          }
-        }
-      },
-      "Dr. Michael Brown": {
-        "apiKey": "demo-api-key",
-        "scheduleId": "demo-schedule-id",
-        "services": {
-          "Dental implants": { 
-            "eventId": "4", 
-            "eventSlug": "implants" 
-          },
-          "Root canal therapy": { 
-            "eventId": "3", 
-            "eventSlug": "root-canal" 
-          }
-        }
-      }
-    };
 
-    // Use demo data if dentistsInfo is empty
-    const effectiveDentistsInfo = Object.keys(dentistsInfo).length > 0 ? dentistsInfo : demoDentistsInfo;
+
+
     
     // Build CSS 
     const style = document.createElement("style");
@@ -3164,7 +3112,7 @@ const BookingCalendarSDExtension = {
       workingDays: [1, 2, 3, 4, 5], // Default to weekdays
       isConfirmed: false,
       language: language || "en",
-      dentistsInfo: effectiveDentistsInfo,
+      dentistsInfo: dentistsInfo,
       selectedDentist: "",
       selectedService: "",
       apiKey: "",
