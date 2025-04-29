@@ -2682,6 +2682,8 @@ function getOriginalServiceName(localizedName, language) {
 }
 
 // Fixed version with both dropdown toggle fix and header update fix
+
+// Fixed version with both dropdown toggle fix and header update fix
 const BookingCalendarSDExtension = {
   name: 'Booking',
   type: 'response',
@@ -3222,18 +3224,18 @@ const BookingCalendarSDExtension = {
 
     // Function to update calendar header
     function updateCalendarHeader() {
-  const serviceInfoElement = bookingContainer.querySelector(".calendar-info .info-line:first-child span:last-child");
-  const dentistInfoElement = bookingContainer.querySelector(".calendar-info .info-line:last-child span:last-child");
-  
-  if (serviceInfoElement) {
-    serviceInfoElement.textContent = state.selectedService ? 
-      getLocalizedServiceName(state.selectedService, state.language) : "---";
-  }
-  
-  if (dentistInfoElement) {
-    dentistInfoElement.textContent = state.selectedDentist || "---"; // This ensures it shows --- when empty
-  }
-}
+      const serviceInfoElement = bookingContainer.querySelector(".calendar-info .info-line:first-child span:last-child");
+      const dentistInfoElement = bookingContainer.querySelector(".calendar-info .info-line:last-child span:last-child");
+      
+      if (serviceInfoElement) {
+        serviceInfoElement.textContent = state.selectedService ? 
+          getLocalizedServiceName(state.selectedService, state.language) : "---";
+      }
+      
+      if (dentistInfoElement) {
+        dentistInfoElement.textContent = state.selectedDentist || "---";
+      }
+    }
     
     // Function to get all available services
     function getAllAvailableServices() {
@@ -3280,61 +3282,54 @@ const BookingCalendarSDExtension = {
     
     // Function to update dentist information
     async function updateDentistInfo(dentistName, serviceName) {
-  try {
-    if (!dentistName || !state.dentistsInfo[dentistName]) {
-      // Clear dentist info if no dentist selected
-      state.selectedDentist = "";
-      state.apiKey = "";
-      state.scheduleId = "";
-      updateCalendarHeader();
-      return;
+      try {
+        if (!dentistName || !state.dentistsInfo[dentistName]) return;
+        
+        const dentistData = state.dentistsInfo[dentistName];
+        state.selectedDentist = dentistName;
+        state.apiKey = dentistData.apiKey || "demo-api-key";
+        state.scheduleId = dentistData.scheduleId || "demo-schedule-id";
+        
+        if (serviceName && dentistData.services && dentistData.services[serviceName]) {
+          const serviceDetails = dentistData.services[serviceName];
+          state.eventTypeId = serviceDetails.eventId || "1";
+          state.eventTypeSlug = serviceDetails.eventSlug || "default";
+          state.selectedService = serviceName;
+        } else {
+          // Default to first service
+          const firstService = dentistData.services ? Object.keys(dentistData.services)[0] : null;
+          if (firstService) {
+            state.selectedService = firstService;
+            state.eventTypeId = dentistData.services[firstService].eventId || "1";
+            state.eventTypeSlug = dentistData.services[firstService].eventSlug || "default";
+          }
+        }
+        
+        // Reset selections
+        state.selectedTime = null;
+        state.availableSlots = {};
+        
+        // Update working days
+        state.workingDays = await fetchWorkingDays();
+        
+        // Set a new default selected date
+        const defaultDay = getDefaultActiveDay();
+        state.selectedDate = defaultDay;
+        
+        // Fetch available slots
+        const dayKey = formatDate(defaultDay);
+        try {
+          const defaultSlots = await fetchAvailableSlots(dayKey);
+          state.availableSlots[dayKey] = defaultSlots;
+        } catch (error) {
+          console.error("Error fetching slots:", error);
+          // Generate demo time slots as fallback
+          state.availableSlots[dayKey] = generateDemoTimeSlots(defaultDay);
+        }
+      } catch (error) {
+        console.error("Error in updateDentistInfo:", error);
+      }
     }
-    
-    const dentistData = state.dentistsInfo[dentistName];
-    state.selectedDentist = dentistName;
-    state.apiKey = dentistData.apiKey || "demo-api-key";
-    state.scheduleId = dentistData.scheduleId || "demo-schedule-id";
-    
-    if (serviceName && dentistData.services && dentistData.services[serviceName]) {
-      const serviceDetails = dentistData.services[serviceName];
-      state.eventTypeId = serviceDetails.eventId || "1";
-      state.eventTypeSlug = serviceDetails.eventSlug || "default";
-      state.selectedService = serviceName;
-    }
-    
-    // Update the header immediately
-    updateCalendarHeader();
-    
-    // Reset selections
-    state.selectedTime = null;
-    state.availableSlots = {};
-    
-    // Update working days
-    state.workingDays = await fetchWorkingDays();
-    
-    // Set a new default selected date
-    const defaultDay = getDefaultActiveDay();
-    state.selectedDate = defaultDay;
-    
-    // Fetch available slots
-    const dayKey = formatDate(defaultDay);
-    try {
-      const defaultSlots = await fetchAvailableSlots(dayKey);
-      state.availableSlots[dayKey] = defaultSlots;
-    } catch (error) {
-      console.error("Error fetching slots:", error);
-      // Generate demo time slots as fallback
-      state.availableSlots[dayKey] = generateDemoTimeSlots(defaultDay);
-    }
-    
-    // Ensure the calendar header is updated again after all changes
-    updateCalendarHeader();
-  } catch (error) {
-    console.error("Error in updateDentistInfo:", error);
-    // Ensure we still update the header even if there's an error
-    updateCalendarHeader();
-  }
-}
     
     // Function to get default active day
     function getDefaultActiveDay() {
@@ -3721,58 +3716,25 @@ function populateDentistOptions(dentistNames) {
     option.appendChild(optionText);
     
     option.addEventListener("click", async function() {
-  // Update state
-  state.selectedService = service;
-  state.selectedDentist = ""; // Reset dentist selection
-  state.selectedDate = null; // Reset date selection
-  state.selectedTime = null; // Reset time selection
-  
-  // Update display
-  serviceDisplay.querySelector("span").textContent = getLocalizedServiceName(service, state.language);
-  
-  // Update selection classes
-  serviceOptions.querySelectorAll(".option-item").forEach(el => {
-    el.classList.remove("selected");
-  });
-  this.classList.add("selected");
-  
-  // Hide dropdown
-  serviceOptions.classList.remove("show");
-  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-  
-  // Get dentists for this service
-  const dentists = getDentistsForService(service);
-  console.log("Dentists for service:", dentists);
-  
-  // Show dentist selector & update options
-  dentistContainer.style.display = "block";
-  populateDentistOptions(dentists);
-
-  // Reset dentist display
-  dentistDisplay.querySelector("span").textContent = getText("selectDentistPlaceholder");
-  
-  // Update the header to show empty dentist
-  updateCalendarHeader();
-  
-  // Auto-select if only one dentist
-  if (dentists.length === 1) {
-    await updateDentistInfo(dentists[0], service);
-    dentistDisplay.querySelector("span").textContent = dentists[0];
-    
-    dentistOptions.querySelectorAll(".option-item").forEach(el => {
-      el.classList.remove("selected");
-      if (el.getAttribute("data-value") === dentists[0]) {
-        el.classList.add("selected");
-      }
+      // Update dentist info
+      await updateDentistInfo(dentistName, state.selectedService);
+      
+      // Update display
+      dentistDisplay.querySelector("span").textContent = dentistName;
+      
+      // Update selection
+      dentistOptions.querySelectorAll(".option-item").forEach(el => {
+        el.classList.remove("selected");
+      });
+      this.classList.add("selected");
+      
+      // Hide dropdown
+      dentistOptions.classList.remove("show");
+      dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+      
+      // Render calendar
+      renderCalendar();
     });
-    
-    // Render calendar after dentist selection
-    renderCalendar();
-  } else {
-    // Render calendar with empty dentist
-    renderCalendar();
-  }
-});
     
     dentistOptions.appendChild(option);
   });
@@ -4358,7 +4320,6 @@ dentistOptions.addEventListener("click", function(e) {
     });
   }
 };
-
 
 
 
