@@ -6358,6 +6358,31 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     button:disabled {
       cursor: not-allowed;
     }
+
+    @media screen and (max-width: 768px) {
+        form {
+          padding: 15px;
+          min-width: 100%;
+        }
+        
+        .bold-label {
+          font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+          height: 45px;
+          font-size: 14px;
+          padding: 10px 12px;
+          min-width: 275px;
+        }
+        
+        .submit-btn {
+          padding: 12px;
+          font-size: 15px;
+        }
+      }
   </style>
           <div>
             <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
