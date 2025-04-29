@@ -2681,7 +2681,7 @@ function getOriginalServiceName(localizedName, language) {
   }
 }
 
-      const BookingCalendarDirectExtension = {
+      const BookingCalendarSDExtension = {
   name: 'BookingCalendar',
   type: 'response',
   match: ({ trace }) =>
