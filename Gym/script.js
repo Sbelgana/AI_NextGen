@@ -2702,7 +2702,7 @@ const BookingCalendarSDExtension = {
       selectedTime = "",
       language = "en",
       timezone = "America/Toronto",
-      dentistsInfo 
+      dentistsInfo = "";
     } = trace.payload || {};
 
     //dentistsInfo = JSON.parse(dentistsInfo);
