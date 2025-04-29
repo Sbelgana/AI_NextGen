@@ -3735,55 +3735,59 @@ const BookingCalendarSDExtension = {
       
      // Replace both dropdown toggle event listeners with these:
 
-// Service dropdown toggle
+// In the createSelectors() function, replace the dropdown toggle code with:
+
+// Service dropdown
 serviceDisplay.addEventListener("click", function(e) {
   e.stopPropagation();
-  
-  // Get current dropdown state
   const isShowing = serviceOptions.classList.contains("show");
-  
-  // Close all dropdowns first
-  document.querySelectorAll(".select-options.show").forEach(dropdown => {
-    dropdown.classList.remove("show");
-  });
-  document.querySelectorAll(".dropdown-icon.rotate").forEach(icon => {
-    icon.classList.remove("rotate");
-  });
-  
-  // Then toggle this one if it wasn't already showing
+  closeAllDropdowns();
   if (!isShowing) {
     serviceOptions.classList.add("show");
     this.querySelector(".dropdown-icon").classList.add("rotate");
   }
 });
 
-// Dentist dropdown toggle
+// Dentist dropdown
 dentistDisplay.addEventListener("click", function(e) {
   e.stopPropagation();
-  
   if (!state.selectedService) {
     showErrorMessage(getText("pleaseSelectService"));
     return;
   }
-  
-  // Get current dropdown state
   const isShowing = dentistOptions.classList.contains("show");
-  
-  // Close all dropdowns first
-  document.querySelectorAll(".select-options.show").forEach(dropdown => {
-    dropdown.classList.remove("show");
-  });
-  document.querySelectorAll(".dropdown-icon.rotate").forEach(icon => {
-    icon.classList.remove("rotate");
-  });
-  
-  // Then toggle this one if it wasn't already showing
+  closeAllDropdowns();
   if (!isShowing) {
     dentistOptions.classList.add("show");
     this.querySelector(".dropdown-icon").classList.add("rotate");
   }
 });
 
+// Add this outside createSelectors(), in the main scope:
+function closeAllDropdowns() {
+  const dropdowns = [
+    { options: serviceOptions, icon: serviceDisplay.querySelector(".dropdown-icon") },
+    { options: dentistOptions, icon: dentistDisplay.querySelector(".dropdown-icon") }
+  ];
+  
+  dropdowns.forEach(dropdown => {
+    if (dropdown.options && dropdown.icon) {
+      dropdown.options.classList.remove("show");
+      dropdown.icon.classList.remove("rotate");
+    }
+  });
+}
+
+// Update document click handler
+document.addEventListener("click", closeAllDropdowns);
+
+// Prevent dropdowns from closing when clicking inside them
+serviceOptions.addEventListener("click", function(e) {
+  e.stopPropagation();
+});
+dentistOptions.addEventListener("click", function(e) {
+  e.stopPropagation();
+});
       
       // Close dropdowns on outside click
       document.addEventListener("click", function() {
