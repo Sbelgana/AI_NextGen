@@ -3747,26 +3747,21 @@ const BookingCalendarSDExtension = {
       
       // FIXED dentist dropdown toggle - properly toggles now
       dentistDisplay.addEventListener("click", function(e) {
-        e.stopPropagation();
-        
-        if (!state.selectedService) {
-          showErrorMessage(getText("pleaseSelectService"));
-          return;
-        }
-        
-        // Close other dropdown
-        serviceOptions.classList.remove("show");
-        serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-        
-        // Toggle this dropdown instead of forcing show
-        if (dentistOptions.classList.contains("show")) {
-          dentistOptions.classList.remove("show");
-          this.querySelector(".dropdown-icon").classList.remove("rotate");
-        } else {
-          dentistOptions.classList.add("show");
-          this.querySelector(".dropdown-icon").classList.add("rotate");
-        }
-      });
+  e.stopPropagation();
+  
+  if (!state.selectedService) {
+    showErrorMessage(getText("pleaseSelectService"));
+    return;
+  }
+  
+  // Close other dropdown
+  serviceOptions.classList.remove("show");
+  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+  
+  // Toggle the dropdown visibility
+  dentistOptions.classList.toggle("show");
+  this.querySelector(".dropdown-icon").classList.toggle("rotate");
+});
       
       // Close dropdowns on outside click
       document.addEventListener("click", function() {
@@ -4285,6 +4280,8 @@ const BookingCalendarSDExtension = {
     });
   }
 };
+
+
 
 const BookingCalendarDExtension = {
   name: 'Booking',
