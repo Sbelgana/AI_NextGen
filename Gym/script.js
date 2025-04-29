@@ -2705,7 +2705,7 @@ const BookingCalendarSDExtension = {
       dentistsInfo = {}
     } = trace.payload || {};
 
-	  dentistsInfo = JSON.parse(dentistsInfo);
+	 // dentistsInfo = JSON.parse(dentistsInfo);
 
     console.log("Rendering booking calendar with language:", language);
     console.log("Dentists info:", dentistsInfo);
