@@ -3733,20 +3733,31 @@ const BookingCalendarSDExtension = {
         });
       }
       
-      // Dropdown toggle events
-      serviceDisplay.addEventListener("click", function(e) {
-        e.stopPropagation();
-        
-        // Close other dropdown
-        dentistOptions.classList.remove("show");
-        dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-        
-        // Toggle this dropdown
-        serviceOptions.classList.toggle("show");
-        this.querySelector(".dropdown-icon").classList.toggle("rotate");
-      });
-      
-      // Replace the existing dentistDisplay click event listener with this:
+     // Replace both dropdown toggle event listeners with these:
+
+// Service dropdown toggle
+serviceDisplay.addEventListener("click", function(e) {
+  e.stopPropagation();
+  
+  // Get current dropdown state
+  const isShowing = serviceOptions.classList.contains("show");
+  
+  // Close all dropdowns first
+  document.querySelectorAll(".select-options.show").forEach(dropdown => {
+    dropdown.classList.remove("show");
+  });
+  document.querySelectorAll(".dropdown-icon.rotate").forEach(icon => {
+    icon.classList.remove("rotate");
+  });
+  
+  // Then toggle this one if it wasn't already showing
+  if (!isShowing) {
+    serviceOptions.classList.add("show");
+    this.querySelector(".dropdown-icon").classList.add("rotate");
+  }
+});
+
+// Dentist dropdown toggle
 dentistDisplay.addEventListener("click", function(e) {
   e.stopPropagation();
   
@@ -3754,10 +3765,6 @@ dentistDisplay.addEventListener("click", function(e) {
     showErrorMessage(getText("pleaseSelectService"));
     return;
   }
-  
-  // Close other dropdown
-  serviceOptions.classList.remove("show");
-  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
   
   // Get current dropdown state
   const isShowing = dentistOptions.classList.contains("show");
@@ -3776,6 +3783,7 @@ dentistDisplay.addEventListener("click", function(e) {
     this.querySelector(".dropdown-icon").classList.add("rotate");
   }
 });
+
       
       // Close dropdowns on outside click
       document.addEventListener("click", function() {
@@ -4294,6 +4302,7 @@ dentistDisplay.addEventListener("click", function(e) {
     });
   }
 };
+
 
 
 
