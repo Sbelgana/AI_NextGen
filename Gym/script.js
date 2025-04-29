@@ -2683,6 +2683,7 @@ function getOriginalServiceName(localizedName, language) {
 
 
 
+
 const BookingCalendarSDExtension = {
   name: 'Booking',
   type: 'response',
@@ -2875,6 +2876,11 @@ const BookingCalendarSDExtension = {
         border-color: #9C27B0;
         background-color: #9C27B0;
       }
+	  
+	  .option-item:not(.selected):hover .option-checkbox svg path {
+      fill: #9C27B0;
+    }
+
       
       /* Calendar header */
       .calendar-header {
@@ -2941,6 +2947,8 @@ const BookingCalendarSDExtension = {
         width: 47%;
         background: linear-gradient(to bottom, #ffffff, #fefeff);
       }
+	  
+	  
       
       .weekdays {
         display: grid;
