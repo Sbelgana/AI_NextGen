@@ -2681,6 +2681,7 @@ function getOriginalServiceName(localizedName, language) {
   }
 }
 
+// Fixed version with both dropdown toggle fix and header update fix
 const BookingCalendarSDExtension = {
   name: 'Booking',
   type: 'response',
@@ -2688,7 +2689,7 @@ const BookingCalendarSDExtension = {
     trace.type === 'ext_booking_calendar_sd' || trace.payload?.name === 'ext_booking_calendar_sd',
   render: async ({ trace, element }) => {
     // Extract required payload values with fallbacks
-    let {
+    const {
       fullName = "John Doe",
       email = "john@example.com",
       apiKey = "",
@@ -2705,7 +2706,6 @@ const BookingCalendarSDExtension = {
       dentistsInfo = ""
     } = trace.payload || {};
 
-    //dentistsInfo = JSON.parse(dentistsInfo);
     console.log("Rendering booking calendar with language:", language);
     console.log("Dentists info type:", typeof dentistsInfo);
     console.log("Dentists info:", dentistsInfo);
@@ -2713,16 +2713,24 @@ const BookingCalendarSDExtension = {
     const locale = language === "fr" ? "fr-CA" : "en-US";
     const isEnglish = language === "en";
 
-    // Create a container and attach a shadow DOM for encapsulated styling.
+    // Create a container
     const container = document.createElement("div");
     container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
     container.style.maxWidth = "800px";
     container.style.margin = "0 auto";
+
+    // SVG constants
+    const SVG_CHECK = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14">
+      <path fill="white" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
+    `;
     
-
-
-
-
+    const SVG_CHEVRON = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14">
+      <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+    </svg>
+    `;
     
     // Build CSS 
     const style = document.createElement("style");
@@ -2736,12 +2744,13 @@ const BookingCalendarSDExtension = {
         color: #333;
         border: 1px solid #eaeaea;
         transition: all 0.3s ease;
+        position: relative;
       }
       
       .select-options.show {
-    display: block !important;
-    z-index: 1000;
-  }
+        display: block !important;
+        z-index: 1000;
+      }
       
       /* Selector styles */
       .selectors-container {
@@ -3114,7 +3123,7 @@ const BookingCalendarSDExtension = {
       workingDays: [1, 2, 3, 4, 5], // Default to weekdays
       isConfirmed: false,
       language: language || "en",
-      dentistsInfo: dentistsInfo,
+      dentistsInfo: dentistsInfo || {},
       selectedDentist: "",
       selectedService: "",
       apiKey: "",
@@ -3207,6 +3216,21 @@ const BookingCalendarSDExtension = {
     function isSameDay(date1, date2) {
       if (!date1 || !date2) return false;
       return formatDate(date1) === formatDate(date2);
+    }
+
+    // Function to update calendar header
+    function updateCalendarHeader() {
+      const serviceInfoElement = bookingContainer.querySelector(".calendar-info .info-line:first-child span:last-child");
+      const dentistInfoElement = bookingContainer.querySelector(".calendar-info .info-line:last-child span:last-child");
+      
+      if (serviceInfoElement) {
+        serviceInfoElement.textContent = state.selectedService ? 
+          getLocalizedServiceName(state.selectedService, state.language) : "---";
+      }
+      
+      if (dentistInfoElement) {
+        dentistInfoElement.textContent = state.selectedDentist || "---";
+      }
     }
     
     // Function to get all available services
@@ -3603,6 +3627,9 @@ const BookingCalendarSDExtension = {
           // Show dentist selector & update options
           dentistContainer.style.display = "block";
           populateDentistOptions(dentists);
+
+          // Update the service name in the header immediately
+          updateCalendarHeader();
           
           // Auto-select if only one dentist
           if (dentists.length === 1) {
@@ -3652,58 +3679,58 @@ const BookingCalendarSDExtension = {
       
       // Function to populate dentist options
       function populateDentistOptions(dentistNames) {
-  // Clear options
-  dentistOptions.innerHTML = "";
-  
-  if (dentistNames.length === 0) {
-    // Add a message in the dropdown if no dentists available
-    const emptyOption = document.createElement("div");
-    emptyOption.className = "option-item";
-    emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
-    dentistOptions.appendChild(emptyOption);
-    return;
-  }
-  
-  // Add options
-  dentistNames.forEach(dentistName => {
-    const option = document.createElement("div");
-    option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
-    option.setAttribute("data-value", dentistName);
-    
-    const checkBox = document.createElement("div");
-    checkBox.className = "option-checkbox";
-    checkBox.innerHTML = SVG_CHECK;
-    
-    const optionText = document.createElement("span");
-    optionText.textContent = dentistName;
-    
-    option.appendChild(checkBox);
-    option.appendChild(optionText);
-    
-    option.addEventListener("click", async function() {
-      // Update dentist info
-      await updateDentistInfo(dentistName, state.selectedService);
-      
-      // Update display
-      dentistDisplay.querySelector("span").textContent = dentistName;
-      
-      // Update selection
-      dentistOptions.querySelectorAll(".option-item").forEach(el => {
-        el.classList.remove("selected");
-      });
-      this.classList.add("selected");
-      
-      // Hide dropdown
-      dentistOptions.classList.remove("show");
-      dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-      
-      // Render calendar
-      renderCalendar();
-    });
-    
-    dentistOptions.appendChild(option);
-  });
-}
+        // Clear options
+        dentistOptions.innerHTML = "";
+        
+        if (dentistNames.length === 0) {
+          // Add a message in the dropdown if no dentists available
+          const emptyOption = document.createElement("div");
+          emptyOption.className = "option-item";
+          emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
+          dentistOptions.appendChild(emptyOption);
+          return;
+        }
+        
+        // Add options
+        dentistNames.forEach(dentistName => {
+          const option = document.createElement("div");
+          option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
+          option.setAttribute("data-value", dentistName);
+          
+          const checkBox = document.createElement("div");
+          checkBox.className = "option-checkbox";
+          checkBox.innerHTML = SVG_CHECK;
+          
+          const optionText = document.createElement("span");
+          optionText.textContent = dentistName;
+          
+          option.appendChild(checkBox);
+          option.appendChild(optionText);
+          
+          option.addEventListener("click", async function() {
+            // Update dentist info
+            await updateDentistInfo(dentistName, state.selectedService);
+            
+            // Update display
+            dentistDisplay.querySelector("span").textContent = dentistName;
+            
+            // Update selection
+            dentistOptions.querySelectorAll(".option-item").forEach(el => {
+              el.classList.remove("selected");
+            });
+            this.classList.add("selected");
+            
+            // Hide dropdown
+            dentistOptions.classList.remove("show");
+            dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+            
+            // Render calendar
+            renderCalendar();
+          });
+          
+          dentistOptions.appendChild(option);
+        });
+      }
       
       // Dropdown toggle events
       serviceDisplay.addEventListener("click", function(e) {
@@ -3718,26 +3745,28 @@ const BookingCalendarSDExtension = {
         this.querySelector(".dropdown-icon").classList.toggle("rotate");
       });
       
+      // FIXED dentist dropdown toggle - properly toggles now
       dentistDisplay.addEventListener("click", function(e) {
-  e.stopPropagation();
-  e.preventDefault(); // Add this line
-  
-  if (!state.selectedService) {
-    showErrorMessage(getText("pleaseSelectService"));
-    return;
-  }
-  
-  // Close other dropdown
-  serviceOptions.classList.remove("show");
-  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-  
-  // Force show instead of toggle
-  dentistOptions.classList.add("show"); // Changed from toggle to add
-  const dropdownIcon = this.querySelector(".dropdown-icon");
-  if (dropdownIcon) {
-    dropdownIcon.classList.add("rotate"); // Changed from toggle to add
-  }
-});
+        e.stopPropagation();
+        
+        if (!state.selectedService) {
+          showErrorMessage(getText("pleaseSelectService"));
+          return;
+        }
+        
+        // Close other dropdown
+        serviceOptions.classList.remove("show");
+        serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+        
+        // Toggle this dropdown instead of forcing show
+        if (dentistOptions.classList.contains("show")) {
+          dentistOptions.classList.remove("show");
+          this.querySelector(".dropdown-icon").classList.remove("rotate");
+        } else {
+          dentistOptions.classList.add("show");
+          this.querySelector(".dropdown-icon").classList.add("rotate");
+        }
+      });
       
       // Close dropdowns on outside click
       document.addEventListener("click", function() {
