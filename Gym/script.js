@@ -2681,9 +2681,7 @@ function getOriginalServiceName(localizedName, language) {
   }
 }
 
-// Fixed version with both dropdown toggle fix and header update fix
 
-// Fixed version with both dropdown toggle fix and header update fix
 const BookingCalendarSDExtension = {
   name: 'Booking',
   type: 'response',
@@ -3716,25 +3714,47 @@ function populateDentistOptions(dentistNames) {
     option.appendChild(optionText);
     
     option.addEventListener("click", async function() {
-      // Update dentist info
-      await updateDentistInfo(dentistName, state.selectedService);
-      
-      // Update display
-      dentistDisplay.querySelector("span").textContent = dentistName;
-      
-      // Update selection
-      dentistOptions.querySelectorAll(".option-item").forEach(el => {
-        el.classList.remove("selected");
-      });
-      this.classList.add("selected");
-      
-      // Hide dropdown
-      dentistOptions.classList.remove("show");
-      dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-      
-      // Render calendar
-      renderCalendar();
-    });
+  // Update state
+  state.selectedService = service;
+  state.selectedDentist = ""; // Reset dentist selection
+  state.selectedDate = null; // Reset date selection
+  state.selectedTime = null; // Reset time selection
+  
+  // Update display
+  serviceDisplay.querySelector("span").textContent = getLocalizedServiceName(service, state.language);
+  
+  // Update selection classes
+  serviceOptions.querySelectorAll(".option-item").forEach(el => {
+    el.classList.remove("selected");
+  });
+  this.classList.add("selected");
+  
+  // Hide dropdown
+  serviceOptions.classList.remove("show");
+  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+  
+  // Get dentists for this service
+  const dentists = getDentistsForService(service);
+  console.log("Dentists for service:", dentists);
+  
+  // Show dentist selector & update options
+  dentistContainer.style.display = "block";
+  populateDentistOptions(dentists);
+
+  // Reset dentist display
+  dentistDisplay.querySelector("span").textContent = getText("selectDentistPlaceholder");
+  
+  // Clear any selected dentist option
+  dentistOptions.querySelectorAll(".option-item").forEach(el => {
+    el.classList.remove("selected");
+  });
+  
+  // Update the calendar header to show empty dentist
+  updateCalendarHeader();
+  
+  // Render calendar with cleared selections
+  renderCalendar();
+});
     
     dentistOptions.appendChild(option);
   });
