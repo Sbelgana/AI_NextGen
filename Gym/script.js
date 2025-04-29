@@ -2788,6 +2788,11 @@ const BookingCalendarSDExtension = {
         transition: all 0.3s ease;
       }
       
+      .select-options.show {
+    display: block !important;
+    z-index: 1000;
+  }
+      
       /* Selector styles */
       .selectors-container {
         display: flex;
@@ -3697,49 +3702,58 @@ const BookingCalendarSDExtension = {
       
       // Function to populate dentist options
       function populateDentistOptions(dentistNames) {
-        // Clear options
-        dentistOptions.innerHTML = "";
-        
-        // Add options
-        dentistNames.forEach(dentistName => {
-          const option = document.createElement("div");
-          option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
-          option.setAttribute("data-value", dentistName);
-          
-          const checkBox = document.createElement("div");
-          checkBox.className = "option-checkbox";
-          checkBox.innerHTML = SVG_CHECK;
-          
-          const optionText = document.createElement("span");
-          optionText.textContent = dentistName;
-          
-          option.appendChild(checkBox);
-          option.appendChild(optionText);
-          
-          option.addEventListener("click", async function() {
-            // Update dentist info
-            await updateDentistInfo(dentistName, state.selectedService);
-            
-            // Update display
-            dentistDisplay.querySelector("span").textContent = dentistName;
-            
-            // Update selection
-            dentistOptions.querySelectorAll(".option-item").forEach(el => {
-              el.classList.remove("selected");
-            });
-            this.classList.add("selected");
-            
-            // Hide dropdown
-            dentistOptions.classList.remove("show");
-            dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-            
-            // Render calendar
-            renderCalendar();
-          });
-          
-          dentistOptions.appendChild(option);
-        });
-      }
+  // Clear options
+  dentistOptions.innerHTML = "";
+  
+  if (dentistNames.length === 0) {
+    // Add a message in the dropdown if no dentists available
+    const emptyOption = document.createElement("div");
+    emptyOption.className = "option-item";
+    emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
+    dentistOptions.appendChild(emptyOption);
+    return;
+  }
+  
+  // Add options
+  dentistNames.forEach(dentistName => {
+    const option = document.createElement("div");
+    option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
+    option.setAttribute("data-value", dentistName);
+    
+    const checkBox = document.createElement("div");
+    checkBox.className = "option-checkbox";
+    checkBox.innerHTML = SVG_CHECK;
+    
+    const optionText = document.createElement("span");
+    optionText.textContent = dentistName;
+    
+    option.appendChild(checkBox);
+    option.appendChild(optionText);
+    
+    option.addEventListener("click", async function() {
+      // Update dentist info
+      await updateDentistInfo(dentistName, state.selectedService);
+      
+      // Update display
+      dentistDisplay.querySelector("span").textContent = dentistName;
+      
+      // Update selection
+      dentistOptions.querySelectorAll(".option-item").forEach(el => {
+        el.classList.remove("selected");
+      });
+      this.classList.add("selected");
+      
+      // Hide dropdown
+      dentistOptions.classList.remove("show");
+      dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+      
+      // Render calendar
+      renderCalendar();
+    });
+    
+    dentistOptions.appendChild(option);
+  });
+}
       
       // Dropdown toggle events
       serviceDisplay.addEventListener("click", function(e) {
@@ -3755,21 +3769,25 @@ const BookingCalendarSDExtension = {
       });
       
       dentistDisplay.addEventListener("click", function(e) {
-        e.stopPropagation();
-        
-        if (!state.selectedService) {
-          showErrorMessage(getText("pleaseSelectService"));
-          return;
-        }
-        
-        // Close other dropdown
-        serviceOptions.classList.remove("show");
-        serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-        
-        // Toggle this dropdown
-        dentistOptions.classList.toggle("show");
-        this.querySelector(".dropdown-icon").classList.toggle("rotate");
-      });
+  e.stopPropagation();
+  e.preventDefault(); // Add this line
+  
+  if (!state.selectedService) {
+    showErrorMessage(getText("pleaseSelectService"));
+    return;
+  }
+  
+  // Close other dropdown
+  serviceOptions.classList.remove("show");
+  serviceDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+  
+  // Force show instead of toggle
+  dentistOptions.classList.add("show"); // Changed from toggle to add
+  const dropdownIcon = this.querySelector(".dropdown-icon");
+  if (dropdownIcon) {
+    dropdownIcon.classList.add("rotate"); // Changed from toggle to add
+  }
+});
       
       // Close dropdowns on outside click
       document.addEventListener("click", function() {
