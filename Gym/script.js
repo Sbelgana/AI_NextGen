@@ -2681,7 +2681,7 @@ function getOriginalServiceName(localizedName, language) {
   }
 }
 
-    const BookingCalendarSDExtension = {
+      const BookingCalendarSDExtension = {
       name: 'Booking',
       type: 'response',
       match: ({ trace }) =>
@@ -3773,253 +3773,224 @@ function renderSelectors() {
   // Container for responsive layout
   const responsiveContainer = document.createElement("div");
   responsiveContainer.className = "selectors-responsive-container";
-  
-  // Add CSS styles for dropdowns and responsive layout
-  const styleElement = document.createElement('style');
-  styleElement.textContent = `
-    /* Responsive Container */
-    .selectors-responsive-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      gap: 15px;
-    }
-    
-    @media (min-width: 768px) {
-      .selectors-responsive-container {
-        flex-direction: row;
-        align-items: flex-start;
-      }
-      
-      .selector-container {
-        flex: 1;
-        margin-bottom: 0;
-      }
-    }
-    
-    /* Dropdown Components */
-    .selector-container {
-      width: 100%;
-      position: relative;
-    }
-    
-    .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      width: 100%;
-      min-height: 50px;
-    }
-    
-    .select-display {
-      padding: 0 15px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 50px;
-    }
-    
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #F8EAFA;
-      border-radius: 50%;
-    }
-    
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
-    
-    /* Custom Options */
-    .custom-options {
-      display: none;
-      border-top: 1px solid #ddd;
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-      width: 100%;
-      position: absolute;
-      top: 100%;
-      left: 0;
-    }
-    
-    .custom-option {
-      padding: 12px 15px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
-    
-    .custom-option:hover {
-      background-color: #F8EAFA;
-      color: #9c27b0;
-    }
-    
-    .custom-option.selected {
-      background-color: #F8EAFA;
-      color: #9c27b0;
-      font-weight: bold;
-    }
-    
-    .option-checkbox {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      transition: all 0.2s;
-      position: relative;
-    }
-    
-    .custom-option.selected .option-checkbox {
-      border-color: #9c27b0;
-      background-color: #9c27b0;
-    }
-    
-    .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox {
-      border-color: #9c27b0;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9c27b0;
-    }
-    
-    /* Fix for SVG display in non-selected state */
-    .custom-option:not(.selected) .option-checkbox svg {
-      display: none;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox svg {
-      display: block;
-    }
-    
-    .show-options {
-      display: block;
-    }
-  `;
-  container.appendChild(styleElement);
+  responsiveContainer.style.display = "flex";
+  responsiveContainer.style.flexDirection = "column";
+  responsiveContainer.style.width = "100%";
+  responsiveContainer.style.gap = "15px";
   
   // 1. Service Selector
   const serviceContainer = document.createElement("div");
   serviceContainer.className = "selector-container";
+  serviceContainer.style.width = "100%";
+  serviceContainer.style.position = "relative";
   
   const serviceLabel = document.createElement("label");
   serviceLabel.className = "selector-label";
   serviceLabel.textContent = getText("selectService");
+  serviceLabel.style.display = "block";
+  serviceLabel.style.marginBottom = "8px";
+  serviceLabel.style.fontWeight = "600";
+  serviceLabel.style.fontSize = "14px";
+  serviceLabel.style.color = "#9C27B0";
   
   // Service dropdown structure
   const serviceDropdown = document.createElement("div");
   serviceDropdown.className = "select-wrapper";
+  serviceDropdown.style.border = "1px solid #ddd";
+  serviceDropdown.style.borderRadius = "6px";
+  serviceDropdown.style.backgroundColor = "#fff";
+  serviceDropdown.style.position = "relative";
+  serviceDropdown.style.width = "100%";
+  serviceDropdown.style.minHeight = "50px";
   
   const serviceSelectDisplay = document.createElement("div");
   serviceSelectDisplay.className = "select-display";
   serviceSelectDisplay.id = "selectDisplayService";
-  serviceSelectDisplay.innerHTML = `
-    <span>${state.selectedService ? getLocalizedServiceName(state.selectedService, state.language) : getText("selectServicePlaceholder")}</span>
-    <div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
-  `;
+  serviceSelectDisplay.style.padding = "0 15px";
+  serviceSelectDisplay.style.fontSize = "16px";
+  serviceSelectDisplay.style.cursor = "pointer";
+  serviceSelectDisplay.style.display = "flex";
+  serviceSelectDisplay.style.justifyContent = "space-between";
+  serviceSelectDisplay.style.alignItems = "center";
+  serviceSelectDisplay.style.height = "50px";
+  
+  const serviceDisplayText = document.createElement("span");
+  serviceDisplayText.textContent = state.selectedService ? 
+      getLocalizedServiceName(state.selectedService, state.language) : 
+      getText("selectServicePlaceholder");
+  
+  const serviceIconContainer = document.createElement("div");
+  serviceIconContainer.className = "dropdown-icon";
+  serviceIconContainer.id = "dropdownIconService";
+  serviceIconContainer.innerHTML = SVG_CHEVRON;
+  serviceIconContainer.style.width = "24px";
+  serviceIconContainer.style.height = "24px";
+  serviceIconContainer.style.transition = "transform 0.3s ease";
+  serviceIconContainer.style.display = "flex";
+  serviceIconContainer.style.alignItems = "center";
+  serviceIconContainer.style.justifyContent = "center";
+  serviceIconContainer.style.backgroundColor = "#F8EAFA";
+  serviceIconContainer.style.borderRadius = "50%";
+  
+  serviceSelectDisplay.appendChild(serviceDisplayText);
+  serviceSelectDisplay.appendChild(serviceIconContainer);
   
   const serviceOptions = document.createElement("div");
   serviceOptions.className = "custom-options";
   serviceOptions.id = "customOptionsService";
+  serviceOptions.style.display = "none";
+  serviceOptions.style.borderTop = "1px solid #ddd";
+  serviceOptions.style.maxHeight = "300px";
+  serviceOptions.style.overflowY = "auto";
+  serviceOptions.style.backgroundColor = "#fff";
+  serviceOptions.style.boxShadow = "0 4px 8px rgba(0,0,0,0.1)";
+  serviceOptions.style.zIndex = "100";
+  serviceOptions.style.borderRadius = "0 0 6px 6px";
+  serviceOptions.style.width = "100%";
+  serviceOptions.style.position = "absolute";
+  serviceOptions.style.top = "50px"; // Positioned directly below the select display
+  serviceOptions.style.left = "0";
   
   // Build service dropdown
   allServices.forEach(service => {
     const option = document.createElement("div");
     option.className = "custom-option";
+    option.style.padding = "12px 15px";
+    option.style.display = "flex";
+    option.style.alignItems = "center";
+    option.style.cursor = "pointer";
+    option.style.transition = "background 0.2s";
+    option.style.position = "relative";
+    
     if (state.selectedService === service) {
       option.classList.add("selected");
+      option.style.backgroundColor = "#F8EAFA";
+      option.style.color = "#9c27b0";
+      option.style.fontWeight = "bold";
     }
     
-    option.innerHTML = `
-      <div class="option-checkbox">
-        ${SVG_CHECK}
-      </div>
-      <span>${getLocalizedServiceName(service, state.language)}</span>
-    `;
+    const checkbox = document.createElement("div");
+    checkbox.className = "option-checkbox";
+    checkbox.style.width = "24px";
+    checkbox.style.height = "24px";
+    checkbox.style.border = state.selectedService === service ? "2px solid #9c27b0" : "2px solid #ccc";
+    checkbox.style.borderRadius = "50%";
+    checkbox.style.marginRight = "12px";
+    checkbox.style.display = "flex";
+    checkbox.style.alignItems = "center";
+    checkbox.style.justifyContent = "center";
+    checkbox.style.backgroundColor = state.selectedService === service ? "#9c27b0" : "#fff";
+    checkbox.style.transition = "all 0.2s";
+    checkbox.style.position = "relative";
+    checkbox.innerHTML = SVG_CHECK;
     
-    option.addEventListener("click", async () => {
+    if (state.selectedService !== service) {
+      checkbox.querySelector("svg").style.display = "none";
+    }
+    
+    const optionText = document.createElement("span");
+    optionText.textContent = getLocalizedServiceName(service, state.language);
+    
+    option.appendChild(checkbox);
+    option.appendChild(optionText);
+    
+    option.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      
       if (state.isConfirmed) return;
       
       // Update service selection
       state.selectedService = service;
       
       // Update display
-      const displayEl = serviceSelectDisplay.querySelector("span");
-      if (displayEl) {
-        displayEl.textContent = getLocalizedServiceName(service, state.language);
-      }
+      serviceDisplayText.textContent = getLocalizedServiceName(service, state.language);
       
       // Update selection styling
       serviceOptions.querySelectorAll(".custom-option").forEach(el => {
         el.classList.remove("selected");
+        el.style.backgroundColor = "";
+        el.style.color = "";
+        el.style.fontWeight = "";
+        const checkboxEl = el.querySelector(".option-checkbox");
+        checkboxEl.style.border = "2px solid #ccc";
+        checkboxEl.style.backgroundColor = "#fff";
+        checkboxEl.querySelector("svg").style.display = "none";
       });
+      
       option.classList.add("selected");
+      option.style.backgroundColor = "#F8EAFA";
+      option.style.color = "#9c27b0";
+      option.style.fontWeight = "bold";
+      
+      const checkboxEl = option.querySelector(".option-checkbox");
+      checkboxEl.style.border = "2px solid #9c27b0";
+      checkboxEl.style.backgroundColor = "#9c27b0";
+      checkboxEl.querySelector("svg").style.display = "block";
       
       // Hide dropdown
-      serviceOptions.classList.remove("show-options");
-      const iconEl = serviceSelectDisplay.querySelector(".dropdown-icon");
-      if (iconEl) {
-        iconEl.classList.remove("rotate");
-      }
+      serviceOptions.style.display = "none";
+      serviceIconContainer.style.transform = "";
       
       // Get dentists that offer this service
       const dentists = getDentistsForService(service);
       
       // Show dentist selector
-      const dentistContainer = shadow.getElementById("dentist-container");
-      if (dentistContainer) {
-        dentistContainer.style.display = "block";
+      dentistContainer.style.display = "block";
+      
+      // Update dentist options
+      populateDentistOptions(dentists);
+      
+      // If only one dentist is available, auto-select it
+      if (dentists.length === 1) {
+        await updateDentistInfo(dentists[0], service);
+        dentistDisplayText.textContent = dentists[0];
         
-        // Update dentist options
-        populateDentistOptions(dentists);
-        
-        // If only one dentist is available, auto-select it
-        if (dentists.length === 1) {
-          await updateDentistInfo(dentists[0], service);
-          const dentistDisplayEl = dentistSelectDisplay.querySelector("span");
-          if (dentistDisplayEl) {
-            dentistDisplayEl.textContent = dentists[0];
+        // Update dentist dropdown styling
+        const dentistOptionElements = dentistOptions.querySelectorAll(".custom-option");
+        dentistOptionElements.forEach(el => {
+          const dentistName = el.querySelector("span").textContent;
+          if (dentistName === dentists[0]) {
+            el.classList.add("selected");
+            el.style.backgroundColor = "#F8EAFA";
+            el.style.color = "#9c27b0";
+            el.style.fontWeight = "bold";
+            
+            const checkboxEl = el.querySelector(".option-checkbox");
+            checkboxEl.style.border = "2px solid #9c27b0";
+            checkboxEl.style.backgroundColor = "#9c27b0";
+            checkboxEl.querySelector("svg").style.display = "block";
           }
-          
-          // Update dentist dropdown selected state
-          dentistOptions.querySelectorAll(".custom-option").forEach(el => {
-            el.classList.remove("selected");
-            if (el.querySelector("span").textContent === dentists[0]) {
-              el.classList.add("selected");
-            }
-          });
-        } else {
-          // Reset dentist selection
-          state.selectedDentist = "";
-          const dentistDisplayEl = dentistSelectDisplay.querySelector("span");
-          if (dentistDisplayEl) {
-            dentistDisplayEl.textContent = getText("selectDentistPlaceholder");
-          }
-        }
+        });
+      } else {
+        // Reset dentist selection
+        state.selectedDentist = "";
+        dentistDisplayText.textContent = getText("selectDentistPlaceholder");
       }
       
       renderCalendar();
+    });
+    
+    // Hover effects
+    option.addEventListener("mouseenter", () => {
+      if (!option.classList.contains("selected")) {
+        option.style.backgroundColor = "#F8EAFA";
+        option.style.color = "#9c27b0";
+        
+        const checkboxEl = option.querySelector(".option-checkbox");
+        checkboxEl.style.borderColor = "#9c27b0";
+        checkboxEl.querySelector("svg").style.display = "block";
+      }
+    });
+    
+    option.addEventListener("mouseleave", () => {
+      if (!option.classList.contains("selected")) {
+        option.style.backgroundColor = "";
+        option.style.color = "";
+        
+        const checkboxEl = option.querySelector(".option-checkbox");
+        checkboxEl.style.borderColor = "#ccc";
+        checkboxEl.querySelector("svg").style.display = "none";
+      }
     });
     
     serviceOptions.appendChild(option);
@@ -4036,26 +4007,73 @@ function renderSelectors() {
   dentistContainer.className = "selector-container";
   dentistContainer.id = "dentist-container";
   dentistContainer.style.display = state.selectedService ? "block" : "none";
+  dentistContainer.style.width = "100%";
+  dentistContainer.style.position = "relative";
   
   const dentistLabel = document.createElement("label");
   dentistLabel.className = "selector-label";
   dentistLabel.textContent = getText("selectDentist");
+  dentistLabel.style.display = "block";
+  dentistLabel.style.marginBottom = "8px";
+  dentistLabel.style.fontWeight = "600";
+  dentistLabel.style.fontSize = "14px";
+  dentistLabel.style.color = "#9C27B0";
   
   // Dentist dropdown structure
   const dentistDropdown = document.createElement("div");
   dentistDropdown.className = "select-wrapper";
+  dentistDropdown.style.border = "1px solid #ddd";
+  dentistDropdown.style.borderRadius = "6px";
+  dentistDropdown.style.backgroundColor = "#fff";
+  dentistDropdown.style.position = "relative";
+  dentistDropdown.style.width = "100%";
+  dentistDropdown.style.minHeight = "50px";
   
   const dentistSelectDisplay = document.createElement("div");
   dentistSelectDisplay.className = "select-display";
   dentistSelectDisplay.id = "selectDisplayDentist";
-  dentistSelectDisplay.innerHTML = `
-    <span>${state.selectedDentist || getText("selectDentistPlaceholder")}</span>
-    <div class="dropdown-icon" id="dropdownIconDentist">${SVG_CHEVRON}</div>
-  `;
+  dentistSelectDisplay.style.padding = "0 15px";
+  dentistSelectDisplay.style.fontSize = "16px";
+  dentistSelectDisplay.style.cursor = "pointer";
+  dentistSelectDisplay.style.display = "flex";
+  dentistSelectDisplay.style.justifyContent = "space-between";
+  dentistSelectDisplay.style.alignItems = "center";
+  dentistSelectDisplay.style.height = "50px";
+  
+  const dentistDisplayText = document.createElement("span");
+  dentistDisplayText.textContent = state.selectedDentist || getText("selectDentistPlaceholder");
+  
+  const dentistIconContainer = document.createElement("div");
+  dentistIconContainer.className = "dropdown-icon";
+  dentistIconContainer.id = "dropdownIconDentist";
+  dentistIconContainer.innerHTML = SVG_CHEVRON;
+  dentistIconContainer.style.width = "24px";
+  dentistIconContainer.style.height = "24px";
+  dentistIconContainer.style.transition = "transform 0.3s ease";
+  dentistIconContainer.style.display = "flex";
+  dentistIconContainer.style.alignItems = "center";
+  dentistIconContainer.style.justifyContent = "center";
+  dentistIconContainer.style.backgroundColor = "#F8EAFA";
+  dentistIconContainer.style.borderRadius = "50%";
+  
+  dentistSelectDisplay.appendChild(dentistDisplayText);
+  dentistSelectDisplay.appendChild(dentistIconContainer);
   
   const dentistOptions = document.createElement("div");
   dentistOptions.className = "custom-options";
   dentistOptions.id = "customOptionsDentist";
+  dentistOptions.style.display = "none";
+  dentistOptions.style.borderTop = "1px solid #ddd";
+  dentistOptions.style.maxHeight = "300px";
+  dentistOptions.style.overflowY = "auto";
+  dentistOptions.style.backgroundColor = "#fff";
+  dentistOptions.style.boxShadow = "0 4px 8px rgba(0,0,0,0.1)";
+  dentistOptions.style.zIndex = "100";
+  dentistOptions.style.borderRadius = "0 0 6px 6px";
+  dentistOptions.style.width = "100%";
+  dentistOptions.style.position = "absolute";
+  dentistOptions.style.top = "50px"; // Position directly below select display
+  dentistOptions.style.left = "0";
   
   // Function to populate dentist options
   function populateDentistOptions(dentistNames) {
@@ -4066,43 +4084,106 @@ function renderSelectors() {
     dentistNames.forEach(dentistName => {
       const option = document.createElement("div");
       option.className = "custom-option";
+      option.style.padding = "12px 15px";
+      option.style.display = "flex";
+      option.style.alignItems = "center";
+      option.style.cursor = "pointer";
+      option.style.transition = "background 0.2s";
+      option.style.position = "relative";
+      
       if (state.selectedDentist === dentistName) {
         option.classList.add("selected");
+        option.style.backgroundColor = "#F8EAFA";
+        option.style.color = "#9c27b0";
+        option.style.fontWeight = "bold";
       }
       
-      option.innerHTML = `
-        <div class="option-checkbox">
-          ${SVG_CHECK}
-        </div>
-        <span>${dentistName}</span>
-      `;
+      const checkbox = document.createElement("div");
+      checkbox.className = "option-checkbox";
+      checkbox.style.width = "24px";
+      checkbox.style.height = "24px";
+      checkbox.style.border = state.selectedDentist === dentistName ? "2px solid #9c27b0" : "2px solid #ccc";
+      checkbox.style.borderRadius = "50%";
+      checkbox.style.marginRight = "12px";
+      checkbox.style.display = "flex";
+      checkbox.style.alignItems = "center";
+      checkbox.style.justifyContent = "center";
+      checkbox.style.backgroundColor = state.selectedDentist === dentistName ? "#9c27b0" : "#fff";
+      checkbox.style.transition = "all 0.2s";
+      checkbox.style.position = "relative";
+      checkbox.innerHTML = SVG_CHECK;
       
-      option.addEventListener("click", async () => {
+      if (state.selectedDentist !== dentistName) {
+        checkbox.querySelector("svg").style.display = "none";
+      }
+      
+      const optionText = document.createElement("span");
+      optionText.textContent = dentistName;
+      
+      option.appendChild(checkbox);
+      option.appendChild(optionText);
+      
+      option.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        
         if (state.isConfirmed) return;
         
         // Update dentist selection
         await updateDentistInfo(dentistName, state.selectedService);
         
         // Update display
-        const displayEl = dentistSelectDisplay.querySelector("span");
-        if (displayEl) {
-          displayEl.textContent = dentistName;
-        }
+        dentistDisplayText.textContent = dentistName;
         
         // Update selection styling
         dentistOptions.querySelectorAll(".custom-option").forEach(el => {
           el.classList.remove("selected");
+          el.style.backgroundColor = "";
+          el.style.color = "";
+          el.style.fontWeight = "";
+          const checkboxEl = el.querySelector(".option-checkbox");
+          checkboxEl.style.border = "2px solid #ccc";
+          checkboxEl.style.backgroundColor = "#fff";
+          checkboxEl.querySelector("svg").style.display = "none";
         });
+        
         option.classList.add("selected");
+        option.style.backgroundColor = "#F8EAFA";
+        option.style.color = "#9c27b0";
+        option.style.fontWeight = "bold";
+        
+        const checkboxEl = option.querySelector(".option-checkbox");
+        checkboxEl.style.border = "2px solid #9c27b0";
+        checkboxEl.style.backgroundColor = "#9c27b0";
+        checkboxEl.querySelector("svg").style.display = "block";
         
         // Hide dropdown
-        dentistOptions.classList.remove("show-options");
-        const iconEl = dentistSelectDisplay.querySelector(".dropdown-icon");
-        if (iconEl) {
-          iconEl.classList.remove("rotate");
-        }
+        dentistOptions.style.display = "none";
+        dentistIconContainer.style.transform = "";
         
         renderCalendar();
+      });
+      
+      // Hover effects
+      option.addEventListener("mouseenter", () => {
+        if (!option.classList.contains("selected")) {
+          option.style.backgroundColor = "#F8EAFA";
+          option.style.color = "#9c27b0";
+          
+          const checkboxEl = option.querySelector(".option-checkbox");
+          checkboxEl.style.borderColor = "#9c27b0";
+          checkboxEl.querySelector("svg").style.display = "block";
+        }
+      });
+      
+      option.addEventListener("mouseleave", () => {
+        if (!option.classList.contains("selected")) {
+          option.style.backgroundColor = "";
+          option.style.color = "";
+          
+          const checkboxEl = option.querySelector(".option-checkbox");
+          checkboxEl.style.borderColor = "#ccc";
+          checkboxEl.querySelector("svg").style.display = "none";
+        }
       });
       
       dentistOptions.appendChild(option);
@@ -4132,21 +4213,18 @@ function renderSelectors() {
   serviceSelectDisplay.addEventListener("click", (e) => {
     e.stopPropagation();
     
-    // Close all other dropdowns
-    shadow.querySelectorAll(".custom-options").forEach(options => {
-      if (options !== serviceOptions) {
-        options.classList.remove("show-options");
-      }
-    });
-    shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
-      if (icon !== serviceSelectDisplay.querySelector(".dropdown-icon")) {
-        icon.classList.remove("rotate");
-      }
-    });
+    // Close dentist dropdown if open
+    dentistOptions.style.display = "none";
+    dentistIconContainer.style.transform = "";
     
     // Toggle this dropdown
-    serviceOptions.classList.toggle("show-options");
-    serviceSelectDisplay.querySelector(".dropdown-icon").classList.toggle("rotate");
+    if (serviceOptions.style.display === "none" || serviceOptions.style.display === "") {
+      serviceOptions.style.display = "block";
+      serviceIconContainer.style.transform = "rotate(180deg)";
+    } else {
+      serviceOptions.style.display = "none";
+      serviceIconContainer.style.transform = "";
+    }
   });
   
   // Toggle dentist dropdown on click - improved event handling
@@ -4159,38 +4237,65 @@ function renderSelectors() {
       return;
     }
     
-    // Close all other dropdowns
-    shadow.querySelectorAll(".custom-options").forEach(options => {
-      if (options !== dentistOptions) {
-        options.classList.remove("show-options");
-      }
-    });
-    shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
-      if (icon !== dentistSelectDisplay.querySelector(".dropdown-icon")) {
-        icon.classList.remove("rotate");
-      }
-    });
+    // Close service dropdown if open
+    serviceOptions.style.display = "none";
+    serviceIconContainer.style.transform = "";
     
     // Toggle this dropdown
-    dentistOptions.classList.toggle("show-options");
-    dentistSelectDisplay.querySelector(".dropdown-icon").classList.toggle("rotate");
-  });
-  
-  // Close dropdowns when clicking outside - improved global event handling
-  shadow.host.addEventListener("click", (e) => {
-    if (!serviceContainer.contains(e.target) && !dentistContainer.contains(e.target)) {
-      shadow.querySelectorAll(".custom-options").forEach(options => {
-        options.classList.remove("show-options");
-      });
-      shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
-        icon.classList.remove("rotate");
-      });
+    if (dentistOptions.style.display === "none" || dentistOptions.style.display === "") {
+      dentistOptions.style.display = "block";
+      dentistIconContainer.style.transform = "rotate(180deg)";
+    } else {
+      dentistOptions.style.display = "none";
+      dentistIconContainer.style.transform = "";
     }
   });
   
+  // Close dropdowns when clicking outside them
+  document.addEventListener("click", () => {
+    serviceOptions.style.display = "none";
+    serviceIconContainer.style.transform = "";
+    dentistOptions.style.display = "none";
+    dentistIconContainer.style.transform = "";
+  });
+  
+  // Stop propagation when clicking on dropdowns to prevent closing
+  serviceOptions.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  
+  dentistOptions.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  
+  // Media query adjustments
+  const mediaQueryList = window.matchMedia("(min-width: 768px)");
+  
+  function handleMediaQueryChange(mql) {
+    if (mql.matches) {
+      // Larger screens - horizontal layout
+      responsiveContainer.style.flexDirection = "row";
+    } else {
+      // Smaller screens - vertical layout
+      responsiveContainer.style.flexDirection = "column";
+    }
+  }
+  
+  // Initial call
+  handleMediaQueryChange(mediaQueryList);
+  
+  // Set up listener for changes
+  if (mediaQueryList.addEventListener) {
+    mediaQueryList.addEventListener("change", handleMediaQueryChange);
+  } else {
+    // Fallback for older browsers
+    mediaQueryList.addListener(handleMediaQueryChange);
+  }
+  
   return container;
 }
-        function renderHeader() {
+		
+		function renderHeader() {
           const header = document.createElement("div");
           header.className = "calendar-header";
           const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
@@ -4649,7 +4754,6 @@ function renderSelectors() {
       }
     };
 
-    
 
 const BookingCalendarDExtension = {
   name: 'Booking',
