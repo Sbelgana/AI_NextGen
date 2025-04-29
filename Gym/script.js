@@ -2681,7 +2681,6 @@ function getOriginalServiceName(localizedName, language) {
   }
 }
 
-
     const BookingCalendarSDExtension = {
       name: 'Booking',
       type: 'response',
@@ -3763,7 +3762,8 @@ function getOriginalServiceName(localizedName, language) {
         // ---------------------
         // RENDER CALENDAR COMPONENTS
         // ---------------------
-        function renderSelectors() {
+ // This function should replace the existing renderSelectors function in BookingCalendarSDExtension
+function renderSelectors() {
   const container = document.createElement("div");
   container.className = "selectors-container";
   
@@ -3773,14 +3773,6 @@ function getOriginalServiceName(localizedName, language) {
   // Container for responsive layout
   const responsiveContainer = document.createElement("div");
   responsiveContainer.className = "selectors-responsive-container";
-  
-  // 1. Service Selector
-  const serviceContainer = document.createElement("div");
-  serviceContainer.className = "selector-container";
-  
-  const serviceLabel = document.createElement("label");
-  serviceLabel.className = "selector-label";
-  serviceLabel.textContent = getText("selectService");
   
   // Add CSS styles for dropdowns and responsive layout
   const styleElement = document.createElement('style');
@@ -3808,6 +3800,7 @@ function getOriginalServiceName(localizedName, language) {
     /* Dropdown Components */
     .selector-container {
       width: 100%;
+      position: relative;
     }
     
     .select-wrapper {
@@ -3855,6 +3848,9 @@ function getOriginalServiceName(localizedName, language) {
       z-index: 100;
       border-radius: 0 0 6px 6px;
       width: 100%;
+      position: absolute;
+      top: 100%;
+      left: 0;
     }
     
     .custom-option {
@@ -3923,6 +3919,14 @@ function getOriginalServiceName(localizedName, language) {
   `;
   container.appendChild(styleElement);
   
+  // 1. Service Selector
+  const serviceContainer = document.createElement("div");
+  serviceContainer.className = "selector-container";
+  
+  const serviceLabel = document.createElement("label");
+  serviceLabel.className = "selector-label";
+  serviceLabel.textContent = getText("selectService");
+  
   // Service dropdown structure
   const serviceDropdown = document.createElement("div");
   serviceDropdown.className = "select-wrapper";
@@ -3931,9 +3935,9 @@ function getOriginalServiceName(localizedName, language) {
   serviceSelectDisplay.className = "select-display";
   serviceSelectDisplay.id = "selectDisplayService";
   serviceSelectDisplay.innerHTML = `
-  <span>${state.selectedService ? getLocalizedServiceName(state.selectedService, state.language) : getText("selectServicePlaceholder")}</span>
-  <div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
-`;
+    <span>${state.selectedService ? getLocalizedServiceName(state.selectedService, state.language) : getText("selectServicePlaceholder")}</span>
+    <div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
+  `;
   
   const serviceOptions = document.createElement("div");
   serviceOptions.className = "custom-options";
@@ -3948,11 +3952,11 @@ function getOriginalServiceName(localizedName, language) {
     }
     
     option.innerHTML = `
-  <div class="option-checkbox">
-    ${SVG_CHECK}
-  </div>
-  <span>${getLocalizedServiceName(service, state.language)}</span>
-`;
+      <div class="option-checkbox">
+        ${SVG_CHECK}
+      </div>
+      <span>${getLocalizedServiceName(service, state.language)}</span>
+    `;
     
     option.addEventListener("click", async () => {
       if (state.isConfirmed) return;
@@ -3962,9 +3966,9 @@ function getOriginalServiceName(localizedName, language) {
       
       // Update display
       const displayEl = serviceSelectDisplay.querySelector("span");
-if (displayEl) {
-  displayEl.textContent = getLocalizedServiceName(service, state.language);
-}
+      if (displayEl) {
+        displayEl.textContent = getLocalizedServiceName(service, state.language);
+      }
       
       // Update selection styling
       serviceOptions.querySelectorAll(".custom-option").forEach(el => {
@@ -3983,7 +3987,7 @@ if (displayEl) {
       const dentists = getDentistsForService(service);
       
       // Show dentist selector
-      const dentistContainer = document.getElementById("dentist-container");
+      const dentistContainer = shadow.getElementById("dentist-container");
       if (dentistContainer) {
         dentistContainer.style.display = "block";
         
@@ -4124,17 +4128,17 @@ if (displayEl) {
   // Add responsive container to main container
   container.appendChild(responsiveContainer);
   
-  // Toggle service dropdown on click
+  // Toggle service dropdown on click - improved event handling
   serviceSelectDisplay.addEventListener("click", (e) => {
     e.stopPropagation();
     
     // Close all other dropdowns
-    container.querySelectorAll(".custom-options").forEach(options => {
+    shadow.querySelectorAll(".custom-options").forEach(options => {
       if (options !== serviceOptions) {
         options.classList.remove("show-options");
       }
     });
-    container.querySelectorAll(".dropdown-icon").forEach(icon => {
+    shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
       if (icon !== serviceSelectDisplay.querySelector(".dropdown-icon")) {
         icon.classList.remove("rotate");
       }
@@ -4145,7 +4149,7 @@ if (displayEl) {
     serviceSelectDisplay.querySelector(".dropdown-icon").classList.toggle("rotate");
   });
   
-  // Toggle dentist dropdown on click
+  // Toggle dentist dropdown on click - improved event handling
   dentistSelectDisplay.addEventListener("click", (e) => {
     e.stopPropagation();
     
@@ -4156,12 +4160,12 @@ if (displayEl) {
     }
     
     // Close all other dropdowns
-    container.querySelectorAll(".custom-options").forEach(options => {
+    shadow.querySelectorAll(".custom-options").forEach(options => {
       if (options !== dentistOptions) {
         options.classList.remove("show-options");
       }
     });
-    container.querySelectorAll(".dropdown-icon").forEach(icon => {
+    shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
       if (icon !== dentistSelectDisplay.querySelector(".dropdown-icon")) {
         icon.classList.remove("rotate");
       }
@@ -4172,19 +4176,20 @@ if (displayEl) {
     dentistSelectDisplay.querySelector(".dropdown-icon").classList.toggle("rotate");
   });
   
-  // Close dropdowns when clicking outside
-  document.addEventListener("click", () => {
-    container.querySelectorAll(".custom-options").forEach(options => {
-      options.classList.remove("show-options");
-    });
-    container.querySelectorAll(".dropdown-icon").forEach(icon => {
-      icon.classList.remove("rotate");
-    });
+  // Close dropdowns when clicking outside - improved global event handling
+  shadow.host.addEventListener("click", (e) => {
+    if (!serviceContainer.contains(e.target) && !dentistContainer.contains(e.target)) {
+      shadow.querySelectorAll(".custom-options").forEach(options => {
+        options.classList.remove("show-options");
+      });
+      shadow.querySelectorAll(".dropdown-icon").forEach(icon => {
+        icon.classList.remove("rotate");
+      });
+    }
   });
   
   return container;
 }
-
         function renderHeader() {
           const header = document.createElement("div");
           header.className = "calendar-header";
@@ -4644,6 +4649,7 @@ if (displayEl) {
       }
     };
 
+    
 
 const BookingCalendarDExtension = {
   name: 'Booking',
