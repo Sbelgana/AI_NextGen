@@ -2682,6 +2682,8 @@ function getOriginalServiceName(localizedName, language) {
 }
 
 // Fixed version with both dropdown toggle fix and header update fix
+
+// Fixed version with both dropdown toggle fix and header update fix
 const BookingCalendarSDExtension = {
   name: 'Booking',
   type: 'response',
@@ -3117,21 +3119,22 @@ const BookingCalendarSDExtension = {
     
     // Internal state management
     const state = {
-      currentDate: new Date(),
-      selectedDate: selectedDate ? new Date(selectedDate) : null,
-      selectedTime: selectedTime || null,
-      availableSlots: {},
-      workingDays: [1, 2, 3, 4, 5], // Default to weekdays
-      isConfirmed: false,
-      language: language || "en",
-      dentistsInfo: dentistsInfo || {},
-      selectedDentist: "",
-      selectedService: "",
-      apiKey: "",
-      scheduleId: "",
-      eventTypeId: "",
-      eventTypeSlug: ""
-    };
+  currentDate: new Date(),
+  selectedDate: selectedDate ? new Date(selectedDate) : null,
+  selectedTime: selectedTime || null,
+  availableSlots: {},
+  workingDays: [1, 2, 3, 4, 5], // Default to weekdays
+  isConfirmed: false,
+  language: language || "en",
+  dentistsInfo: dentistsInfo || {},
+  selectedDentist: "",
+  selectedService: "",
+  apiKey: "",
+  scheduleId: "",
+  eventTypeId: "",
+  eventTypeSlug: "",
+  currentDentists: [] // Add this line
+};
     
     // Helper functions
     function getText(key) {
@@ -3679,60 +3682,63 @@ const BookingCalendarSDExtension = {
       dentistOptions.className = "select-options";
       
       // Function to populate dentist options
-      function populateDentistOptions(dentistNames) {
-        // Clear options
-        dentistOptions.innerHTML = "";
-        
-        if (dentistNames.length === 0) {
-          // Add a message in the dropdown if no dentists available
-          const emptyOption = document.createElement("div");
-          emptyOption.className = "option-item";
-          emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
-          dentistOptions.appendChild(emptyOption);
-          return;
-        }
-        
-        // Add options
-        dentistNames.forEach(dentistName => {
-          const option = document.createElement("div");
-          option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
-          option.setAttribute("data-value", dentistName);
-          
-          const checkBox = document.createElement("div");
-          checkBox.className = "option-checkbox";
-          checkBox.innerHTML = SVG_CHECK;
-          
-          const optionText = document.createElement("span");
-          optionText.textContent = dentistName;
-          
-          option.appendChild(checkBox);
-          option.appendChild(optionText);
-          
-          option.addEventListener("click", async function() {
-            // Update dentist info
-            await updateDentistInfo(dentistName, state.selectedService);
-            
-            // Update display
-            dentistDisplay.querySelector("span").textContent = dentistName;
-            
-            // Update selection
-            dentistOptions.querySelectorAll(".option-item").forEach(el => {
-              el.classList.remove("selected");
-            });
-            this.classList.add("selected");
-            
-            // Hide dropdown
-            dentistOptions.classList.remove("show");
-            dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
-            
-            // Render calendar
-            renderCalendar();
-          });
-          
-          dentistOptions.appendChild(option);
-        });
-      }
+     // Function to populate dentist options
+function populateDentistOptions(dentistNames) {
+  // Clear options but keep a reference to the current dentists
+  dentistOptions.innerHTML = "";
+  
+  // Store the current list of dentists in the state
+  state.currentDentists = dentistNames;
+  
+  if (dentistNames.length === 0) {
+    // Add a message in the dropdown if no dentists available
+    const emptyOption = document.createElement("div");
+    emptyOption.className = "option-item";
+    emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
+    dentistOptions.appendChild(emptyOption);
+    return;
+  }
+  
+  // Add options
+  dentistNames.forEach(dentistName => {
+    const option = document.createElement("div");
+    option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
+    option.setAttribute("data-value", dentistName);
+    
+    const checkBox = document.createElement("div");
+    checkBox.className = "option-checkbox";
+    checkBox.innerHTML = SVG_CHECK;
+    
+    const optionText = document.createElement("span");
+    optionText.textContent = dentistName;
+    
+    option.appendChild(checkBox);
+    option.appendChild(optionText);
+    
+    option.addEventListener("click", async function() {
+      // Update dentist info
+      await updateDentistInfo(dentistName, state.selectedService);
       
+      // Update display
+      dentistDisplay.querySelector("span").textContent = dentistName;
+      
+      // Update selection
+      dentistOptions.querySelectorAll(".option-item").forEach(el => {
+        el.classList.remove("selected");
+      });
+      this.classList.add("selected");
+      
+      // Hide dropdown
+      dentistOptions.classList.remove("show");
+      dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+      
+      // Render calendar
+      renderCalendar();
+    });
+    
+    dentistOptions.appendChild(option);
+  });
+}
      // Replace both dropdown toggle event listeners with these:
 
 // In the createSelectors() function, replace the dropdown toggle code with:
@@ -3749,15 +3755,23 @@ serviceDisplay.addEventListener("click", function(e) {
 });
 
 // Dentist dropdown
+// Dentist dropdown
 dentistDisplay.addEventListener("click", function(e) {
   e.stopPropagation();
   if (!state.selectedService) {
     showErrorMessage(getText("pleaseSelectService"));
     return;
   }
+  
   const isShowing = dentistOptions.classList.contains("show");
   closeAllDropdowns();
+  
   if (!isShowing) {
+    // If options are empty but we have dentists in state, repopulate
+    if (dentistOptions.children.length === 0 && state.currentDentists && state.currentDentists.length > 0) {
+      populateDentistOptions(state.currentDentists);
+    }
+    
     dentistOptions.classList.add("show");
     this.querySelector(".dropdown-icon").classList.add("rotate");
   }
@@ -4306,7 +4320,6 @@ dentistOptions.addEventListener("click", function(e) {
     });
   }
 };
-
 
 
 
