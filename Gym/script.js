@@ -2707,7 +2707,8 @@ const BookingCalendarSDExtension = {
 
     //dentistsInfo = JSON.parse(dentistsInfo);
     console.log("Rendering booking calendar with language:", language);
-    console.log("Dentists info:", typeof dentistsInfo);
+    console.log("Dentists info type:", typeof dentistsInfo);
+    console.log("Dentists info:", dentistsInfo);
 
     const locale = language === "fr" ? "fr-CA" : "en-US";
     const isEnglish = language === "en";
