@@ -2688,7 +2688,7 @@ const BookingCalendarSDExtension = {
     trace.type === 'ext_booking_calendar_sd' || trace.payload?.name === 'ext_booking_calendar_sd',
   render: async ({ trace, element }) => {
     // Extract required payload values with fallbacks
-    const {
+    let {
       fullName = "John Doe",
       email = "john@example.com",
       apiKey = "",
@@ -2704,6 +2704,8 @@ const BookingCalendarSDExtension = {
       timezone = "America/Toronto",
       dentistsInfo = {}
     } = trace.payload || {};
+
+	  dentistsInfo = JSON.parse(dentistsInfo);
 
     console.log("Rendering booking calendar with language:", language);
     console.log("Dentists info:", dentistsInfo);
