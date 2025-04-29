@@ -4504,7 +4504,7 @@ const BookingCalendarDExtension = {
   match: ({ trace }) =>
     trace.type === 'ext_booking_calendar_d' || trace.payload?.name === 'ext_booking_calendar_d',
   render: async ({ trace, element }) => {
-    // --- Extract required payload values with fallbacks ---
+    // Extract required payload values with fallbacks
     const {
       fullName = "John Doe",
       email = "john@example.com",
@@ -4513,729 +4513,474 @@ const BookingCalendarDExtension = {
       eventTypeId = "1", 
       eventTypeSlug = "default-event",
       serviceProvider = "Dr. Sophie Martin",
-      serviceName = "Dental Cleaning", 
+      serviceName = "Soins dentaires d'urgence", // This will be pre-selected
       slots = {},
       selectedDate = "", 
       selectedTime = "",
       language = "en",
       timezone = "America/Toronto",
-      dentistsInfo = {}
+      dentistsInfo = ""
     } = trace.payload || {};
 
+    console.log("Rendering booking calendar with language:", language);
+    console.log("Pre-selected service:", serviceName);
+    console.log("Dentists info type:", typeof dentistsInfo);
+    console.log("Dentists info:", dentistsInfo);
+
     const locale = language === "fr" ? "fr-CA" : "en-US";
+    const isEnglish = language === "en";
 
-    // Service translations mapping
-  
-
-    // Create a container and attach a shadow DOM for encapsulated styling.
+    // Create a container
     const container = document.createElement("div");
     container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
     container.style.maxWidth = "800px";
     container.style.margin = "0 auto";
-    const shadow = container.attachShadow({ mode: "open" });
 
-    // Function to filter dentists by service
-    function filterDentistsByService(dentistsInfo, serviceName, language) {
-      if (!serviceName || !dentistsInfo || Object.keys(dentistsInfo).length === 0) return dentistsInfo;
-      
-      // Try to find matches with both original and localized service names
-      const originalServiceName = getOriginalServiceName(serviceName, language);
-      const localizedServiceName = getLocalizedServiceName(originalServiceName, language);
-      
-      const filteredDentists = {};
-      
-      // Loop through all dentists
-      Object.entries(dentistsInfo).forEach(([dentistName, dentistData]) => {
-        // Check if this dentist provides the service (using either name)
-        if (dentistData.services && Object.keys(dentistData.services).some(service => 
-          service.toLowerCase() === originalServiceName.toLowerCase() || 
-          service.toLowerCase() === localizedServiceName.toLowerCase()
-        )) {
-          filteredDentists[dentistName] = dentistData;
-        }
-      });
-      
-      return Object.keys(filteredDentists).length > 0 ? filteredDentists : dentistsInfo;
-    }
-
-    // Build CSS with direct values (no CSS variables)
+    // SVG constants
+    const SVG_CHECK = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14">
+      <path fill="white" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>
+    `;
+    
+    const SVG_CHEVRON = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14">
+      <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+    </svg>
+    `;
+    
+    // Build CSS 
     const style = document.createElement("style");
     style.textContent = `
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
+      .booking-container {
+        font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
+        border-radius: 16px;
+        overflow: hidden;
+        background: #ffffff;
+        color: #333;
+        border: 1px solid #eaeaea;
+        transition: all 0.3s ease;
+        position: relative;
       }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      
+      .select-options.show {
+        display: block !important;
+        z-index: 1000;
       }
-    }
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
+      
+      /* Selector styles */
+      .selectors-container {
+        display: flex;
+        flex-direction: column;
+        padding: 15px 20px;
+        background-color: #F8EAFA;
+        border-bottom: 1px solid #eaeaea;
+        gap: 15px;
       }
-      50% {
-        transform: scale(1.05);
+      
+      .selectors-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
       }
-      100% {
-        transform: scale(1);
+      
+      @media (min-width: 768px) {
+        .selectors-wrapper {
+          flex-direction: row;
+        }
       }
-    }
-    @keyframes shimmer {
-      0% {
-        background-position: -100% 0;
+      
+      .select-container {
+        flex: 1;
+        position: relative;
       }
-      100% {
-        background-position: 100% 0;
+      
+      .select-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #9C27B0;
       }
-    }
-    .calendar-container {
-      font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 10px 25px rgba(156, 39, 176, 0.15);
-      border-radius: 16px;
-      overflow: hidden;
-      background: #ffffff;
-      color: #333;
-      animation: fadeIn 0.3s ease-out forwards;
-      border: 1px solid #eaeaea;
-      transition: all 0.3s ease;
-    }
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 24px;
-      background-color: #faf7fc;
-      border-bottom: 1px solid #eaeaea;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-      position: relative;
-    }
-    .calendar-header::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 10%;
-      width: 80%;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #9C27B0, transparent);
-      opacity: 0.5;
-    }
-    .calendar-title {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      font-size: 16px;
-      background: transparent;
-      -webkit-text-fill-color: initial;
-    }
-    .calendar-title-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .service-provider, .service-name {
-      display: flex;
-      align-items: center; 
-      height: 24px;
-      font-size: 16px;
-      color: #9C27B0;
-      margin: 3px 0;
-      line-height: 24px;
-    }
-    .service-provider, .service-name  {
-      font-weight: 650;
-    }
+      
+      .select-dropdown {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        position: relative;
+        cursor: pointer;
+      }
+      
+      .select-display {
+        padding: 12px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 50px;
+      }
+      
+      .dropdown-icon {
+        width: 24px;
+        height: 24px;
+        background-color: #F8EAFA;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s;
+      }
+      
+      .dropdown-icon.rotate {
+        transform: rotate(180deg);
+      }
+      
+      .select-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 10;
+        width: 100%;
+        max-height: 250px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: none;
+      }
+      
+      .select-options.show {
+        display: block !important;
+        z-index: 1000;
+      }
+      
+      .option-item {
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        transition: background 0.2s;
+      }
+      
+      .option-item:hover {
+        background-color: #F8EAFA;
+        color: #9C27B0;
+      }
+      
+      .option-item.selected {
+        background-color: #F8EAFA;
+        color: #9C27B0;
+        font-weight: 600;
+      }
+      
+      .option-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ccc;
+        border-radius: 50%;
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        transition: all 0.2s;
+      }
+      
+      .option-item.selected .option-checkbox {
+        border-color: #9C27B0;
+        background-color: #9C27B0;
+      }
+	  
+	    .option-item:not(.selected):hover .option-checkbox svg path {
+        fill: #9C27B0;
+      }
 
-    .provider-icon, .service-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 8px;
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-    .provider-icon svg, .service-icon svg {
-      display: block;
-      width: 100%;
-      height: 100%;
-      position: relative;
-      top: 0;
-    }
-    .calendar-nav {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    .nav-btn {
-      background: white;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      color: #9C27B0;
-    }
-    .nav-btn:hover {
-      background-color: #F8EAFA;
-      box-shadow: 0 3px 10px rgba(156, 39, 176, 0.15);
-    }
-    .current-date {
-      font-weight: 600;
-      font-size: 17px;
-      background: #F8EAFA;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 500;
-      color: #9C27B0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      transition: all 0.3s;
-    }
-    .calendar-body {
-      display: flex;
-      height: 400px;
-      background: linear-gradient(to bottom, #ffffff, #fefeff);
-    }
-    .days-container {
-      width: 47%;
-      position: relative;
-      background-image: linear-gradient(
-          rgba(156, 39, 176, 0.03) 1px,
-          transparent 1px
-        ),
-        linear-gradient(90deg, rgba(156, 39, 176, 0.03) 1px, transparent 1px);
-      background-size: 25px 25px;
-      background-position: -1px -1px;
-    }
-    .calendar-container::before {
-      content: "";
-      position: absolute;
-      top: -3px;
-      left: 10%;
-      right: 10%;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #9C27B0, transparent);
-      border-radius: 3px;
-      opacity: 0.7;
-    }
-    .days-container::after {
-      content: "";
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      width: 80px;
-      height: 80px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='80' height='80'%3E%3Cpath d='M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z' fill='rgba(156, 39, 176, 0.03)'/%3E%3C/svg%3E");
-      opacity: 0.6;
-    }
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-weight: 600;
-      font-size: 13px;
-      padding: 15px 0 10px;
-      color: #666;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-    .days {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      padding: 5px;
-    }
-    .day {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 45px;
-      width: 45px;
-      cursor: pointer;
-      position: relative;
-      font-size: 14px;
-      transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-      margin: 0 auto;
-      border: 1px solid transparent;
-      border-radius: 50%;
-      z-index: 1;
-    }
-    .day:not(.inactive)::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 50%;
-      background-color: transparent;
-      transition: all 0.25s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-      z-index: -1;
-    }
-    .day:hover:not(.inactive)::before {
-      background-color: #F8EAFA;
-    }
-    .day:hover:not(.inactive) {
-      color: #9C27B0;
-      border: 2px solid #9C27B0;
-      font-weight: 500;
-    }
-    .day.available {
-      position: relative;
-    }
-    .day.available::after {
-      content: "";
-      position: absolute;
-      bottom: 3px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background-color: #9C27B0;
-      opacity: 0.7;
-      animation: fadeIn 0.3s ease forwards;
-    }
-    .day.today {
-      border: 1.5px solid #9C27B0;
-      position: relative;
-      box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1);
-    }
-    .day.today::after {
-      content: "";
-      position: absolute;
-      bottom: 4px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background-color: #9C27B0;
-    }
-    .day.active {
-      background-color: #9C27B0;
-      color: white;
-      border-radius: 4px;
-      font-weight: bold;
-      box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
-    }
-    .day.active::after {
-      display: none;
-    }
-    .day.inactive {
-      color: #ccc;
-      cursor: default;
-      opacity: 0.7;
-    }
-    .times-container {
-      width: 53%;
-      border-left: 1px solid #eaeaea;
-      overflow-y: auto;
-      background-color: #fefeff;
-      position: relative;
-    }
-    .times-container::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      background: linear-gradient(to bottom, #9C27B0, transparent);
-      opacity: 0.1;
-    }
-    .time-header {
-      font-weight: 600;
-      margin-bottom: 20px;
-      font-size: 16px;
-      text-align: center;
-      color: #9C27B0;
-      padding: 0 5px;
-      line-height: 1.4;
-      position: relative;
-    }
-    .time-header::after {
-      content: "";
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 3px;
-      background-color: #9C27B0;
-      opacity: 0.5;
-      border-radius: 3px;
-    }
-    .time-slots {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 5px;
-    }
-    .time-slots-columns {
-      display: flex;
-      gap: 20px;
-    }
-    .time-slots-column {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: center;
-    }
-    .times-container::-webkit-scrollbar {
-      width: 6px;
-    }
-    .times-container::-webkit-scrollbar-track {
-      border-radius: 10px;
-    }
-    .times-container::-webkit-scrollbar-thumb {
-      background: rgba(156, 39, 176, 0.2);
-      border-radius: 10px;
-    }
-    .times-container::-webkit-scrollbar-thumb:hover {
-      background: rgba(156, 39, 176, 0.3);
-    }
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(10px);
+      .service-display-container {
+        background-color: #fff;
+        border-radius: 6px;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
       }
-      to {
-        opacity: 1;
-        transform: translateX(0);
+      
+      .service-display-title {
+        font-weight: 500;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 5px;
       }
-    }
-    .time-slot {
-      padding: 14px;
-      border-radius: 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-      border: 1px solid #e0e0e0;
-      font-size: 14px;
-      background-color: white;
-      color: #444;
-      position: relative;
-      overflow: hidden;
-      transform-origin: center;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .time-slot::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent, #F8EAFA, transparent);
-      background-size: 200% 100%;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .time-slot.available {
-      background-color: white;
-    }
-    .time-slot.unavailable {
-      background-color: #f4f4f5;
-      color: #999;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .time-slot.selected {
-      background-color: #9C27B0;
-      color: white;
-      border-color: #9C27B0;
-      border-radius: 10px;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
-      z-index: 5;
-    }
-    .time-slot.selected::after {
-      content: "";
-      position: absolute;
-      right: 16px;
-      font-size: 14px;
-      opacity: 0.9;
-    }
-    .time-slot.available:hover:not(.selected) {
-      background-color: #F8EAFA;
-      color: #9C27B0;
-      border: 2px solid #9C27B0;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
-    }
-    .time-slot.available:hover:not(.selected)::before {
-      opacity: 0.6;
-      animation: shimmer 1.5s infinite;
-    }
-    .calendar-container.confirmed .day,
-    .calendar-container.confirmed .time-slot {
-      pointer-events: none;
-      cursor: default;
-    }
-    .calendar-container.confirmed .nav-btn {
-      pointer-events: none;
-      opacity: 0.5;
-      cursor: default;
-    }
-    .calendar-footer {
-      padding: 15px;
-      display: flex;
-      justify-content: center;
-      border-top: 1px solid #eaeaea;
-    }
-    .action-btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      font-size: 14px;
-    }
-    .confirm-btn {
-      background: #F8EAFA;
-      color: #9C27B0;
-      font-weight: 600;
-      border-radius: 10px;
-      padding: 12px 24px;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 15px rgba(156, 39, 176, 0.15);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s;
-    }
-    .confirm-btn::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-      );
-      transform: translateX(-100%);
-    }
-    .confirm-btn:hover:not(:disabled) {
-      background: #9C27B0;
-      color: white;
-      box-shadow: 0 6px 18px rgba(156, 39, 176, 0.15);
-    }
-    .confirm-btn:hover:not(:disabled)::before {
-      animation: shimmer 1.5s infinite;
-    }
-    .confirm-btn:active:not(:disabled) {
-      box-shadow: 0 2px 10px rgba(156, 39, 176, 0.15);
-    }
-    .confirm-btn:disabled {
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .cancel-btn {
-      background-color: white;
-      color: #333;
-      border: 1px solid #eaeaea;
-      margin-right: 10px;
-    }
-    .cancel-btn:hover {
-      background-color: #f5f5f5;
-    }
-    .toggle-view {
-      background-color: white;
-      border: 1px solid #eaeaea;
-      border-radius: 6px;
-      display: flex;
-      overflow: hidden;
-    }
-    .toggle-btn {
-      padding: 8px 12px;
-      border: none;
-      background: none;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s ease;
-    }
-    .toggle-btn.active {
-      background-color: #9C27B0;
-      color: white;
-    }
-
-    /* Dentist Selector styling */
-    .dentist-selector-container {
-      display: flex;
-      flex-direction: column;
-      padding: 15px 20px;
-      background-color: #F8EAFA;
-      border-bottom: 1px solid #eaeaea;
-    }
-    
-    .dentist-selector-label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      color: #9C27B0;
-    }
-    
-    .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      width: 100%;
-      min-height: 50px;
-    }
-    
-    .select-display {
-      padding: 0 15px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 50px;
-    }
-    
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #F8EAFA;
-      border-radius: 50%;
-    }
-    
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
-    
-    .custom-options {
-      display: none;
-      border-top: 1px solid #ddd;
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-      width: 100%;
-    }
-    
-    .custom-option {
-      padding: 12px 15px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
-    
-    .custom-option:hover {
-      background-color: #F8EAFA;
-      color: #9c27b0;
-    }
-    
-    .custom-option.selected {
-      background-color: #F8EAFA;
-      color: #9c27b0;
-      font-weight: bold;
-    }
-    
-    .option-checkbox {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      transition: all 0.2s;
-      position: relative;
-    }
-    
-    .custom-option.selected .option-checkbox {
-      border-color: #9c27b0;
-      background-color: #9c27b0;
-    }
-    
-    .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox {
-      border-color: #9c27b0;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9c27b0;
-    }
-    
-    /* Fix for SVG display in non-selected state */
-    .custom-option:not(.selected) .option-checkbox svg {
-      display: none;
-    }
-    
-    .custom-option:not(.selected):hover .option-checkbox svg {
-      display: block;
-    }
-    
-    .show-options {
-      display: block;
-    }
-
+      
+      .service-display-value {
+        font-weight: 600;
+        font-size: 16px;
+        color: #9C27B0;
+      }
+      
+      /* Calendar header */
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        background-color: #faf7fc;
+        border-bottom: 1px solid #eaeaea;
+      }
+      
+      .calendar-info {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .info-line {
+        display: flex;
+        align-items: center;
+        color: #9C27B0;
+        font-weight: 600;
+        margin: 3px 0;
+      }
+      
+      .info-icon {
+        margin-right: 8px;
+      }
+      
+      .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      .current-date {
+        background: #F8EAFA;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 500;
+        color: #9C27B0;
+      }
+      
+      .nav-btn {
+        background: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        color: #9C27B0;
+      }
+      
+      /* Calendar body */
+      .calendar-body {
+        display: flex;
+        height: 400px;
+      }
+      
+      .days-container {
+        width: 47%;
+        background: linear-gradient(to bottom, #ffffff, #fefeff);
+      }
+      
+      .weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 15px 0 10px;
+        color: #666;
+      }
+      
+      .days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        padding: 5px;
+      }
+      
+      .day {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 45px;
+        width: 45px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 0 auto;
+        border: 1px solid transparent;
+        border-radius: 50%;
+      }
+      
+      .day.inactive {
+        color: #ccc;
+        cursor: default;
+        opacity: 0.7;
+      }
+      
+      .day.available:hover:not(.inactive):not(.active) {
+        color: #9C27B0;
+        border: 2px solid #9C27B0;
+        font-weight: 500;
+      }
+      
+      .day.active {
+        background-color: #9C27B0;
+        color: white;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      
+      .times-container {
+        width: 53%;
+        border-left: 1px solid #eaeaea;
+        overflow-y: auto;
+        background-color: #fefeff;
+      }
+      
+      .time-header {
+        font-weight: 600;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: center;
+        color: #9C27B0;
+      }
+      
+      .time-slots {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 15px;
+      }
+      
+      .time-columns {
+        display: flex;
+        gap: 20px;
+      }
+      
+      .time-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+      
+      .column-header {
+        font-weight: bold;
+        margin-bottom: 10px;
+        width: 100%;
+        text-align: center;
+      }
+      
+      .time-slot {
+        padding: 14px;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        border: 1px solid #e0e0e0;
+        font-size: 14px;
+        background-color: white;
+        color: #444;
+        width: 100%;
+      }
+      
+      .time-slot:hover {
+        background-color: #F8EAFA;
+        color: #9C27B0;
+        border: 2px solid #9C27B0;
+      }
+      
+      .time-slot.selected {
+        background-color: #9C27B0;
+        color: white;
+        border-color: #9C27B0;
+        font-weight: bold;
+      }
+      
+      .message-block {
+        text-align: center;
+        padding: 40px 20px;
+        color: #666;
+      }
+      
+      /* Footer */
+      .calendar-footer {
+        padding: 15px;
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid #eaeaea;
+      }
+      
+      .confirm-btn {
+        background: #F8EAFA;
+        color: #9C27B0;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 12px 24px;
+        border: none;
+        cursor: pointer;
+      }
+      
+      .confirm-btn:hover:not(:disabled) {
+        background: #9C27B0;
+        color: white;
+      }
+      
+      .confirm-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      
+    /* IMPROVED MOBILE RESPONSIVE STYLES */
     @media (max-width: 768px) {
       .calendar-body {
         flex-direction: column;
         height: auto;
       }
-      
       .days-container,
       .times-container {
         width: 100%;
       }
-      
       .times-container {
         border-left: none;
         border-top: 1px solid #eaeaea;
         max-height: 250px;
       }
-      
       .day {
         height: 40px;
         width: 40px;
         font-size: 13px;
       }
-      
       .nav-btn {
         width: 36px;
         height: 36px;
       }
-      
       .time-header {
         font-size: 15px;
       }
-      
       .action-btn {
         padding: 10px 18px;
         font-size: 14px;
       }
-      
       .service-provider,
       .service-name {
         font-size: 14px;
       }
       
+      .current-date {
+        font-size: 14px;
+        padding: 5px 10px;
+      }
+      
+      /* Make calendar grid more compact */
+      .weekdays {
+        font-size: 11px;
+        padding: 10px 0 5px;
+      }
+      
+      /* Adjust animation for mobile */
       @keyframes mobileShimmer {
         0% {
           background-position: -200% 0;
@@ -5248,16 +4993,436 @@ const BookingCalendarDExtension = {
       .confirm-btn:hover:not(:disabled)::before {
         animation: mobileShimmer 2s infinite;
       }
+      
+      /* Better touch targets for mobile */
+      .time-slot {
+        padding: 12px 8px;
+        min-width: 70px;
+        margin: 0 auto;
+        width: 60%;
+      }
+      
+      /* Keep AM/PM columns side by side even on small screens */
+      .time-slots-columns {
+        gap: 10px;
+      }
+      
+      .time-slots-column {
+        min-width: 0;
+        width: calc(50% - 5px);
+      }
+    }
+
+    /* Additional breakpoint for very small screens */
+    @media (max-width: 480px) {
+      .calendar-container {
+        border-radius: 10px;
+      }
+      
+      .calendar-header {
+        padding: 12px 15px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      
+      .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .day {
+        height: 35px;
+        width: 35px;
+        font-size: 12px;
+      }
+      
+      .provider-icon, .service-icon, .appointment-icon {
+        width: 16px;
+        height: 16px;
+      }
+      
+      .service-provider, .service-name, .appointment-date {
+        font-size: 13px;
+        height: 20px;
+        line-height: 20px;
+      }
+      
+      .time-slot {
+        padding: 10px 4px;
+        font-size: 13px;
+      }
+      
+      /* Keep AM/PM side-by-side but adjust sizes */
+      .time-slots-column {
+        min-width: 0;
+        width: calc(50% - 5px);
+      }
+      
+      .time-slots-columns {
+        gap: 10px;
+        display: flex;
+        flex-direction: row;
+      }
+      
+      /* Fix footer on small screens */
+      .calendar-footer {
+        padding: 12px 10px;
+      }
+      
+      .confirm-btn {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+      
+      /* Reduce the textarea size */
+      .reschedule-reason {
+        padding: 15px 10px;
+      }
+      
+      .reschedule-reason textarea {
+        min-height: 50px;
+      }
+    }
+
+    /* Tap state for mobile devices */
+    @media (hover: none) {
+      .day:active:not(.inactive):not(.active) {
+        background-color: #d7dbeb;
+        color: #003da5;
+        border: 2px solid #003da5;
+      }
+      
+      .time-slot.available:active:not(.selected) {
+        background-color: #d7dbeb;
+        color: #003da5;
+        border: 2px solid #003da5;
+      }
+      
+      .confirm-btn:active:not(:disabled) {
+        background: #003da5;
+        color: white;
+      }
     }
     `;
-    shadow.appendChild(style);
+    
+    // Create main container
+    const bookingContainer = document.createElement("div");
+    bookingContainer.className = "booking-container";
+    
+    // Internal state management
+    const state = {
+      currentDate: new Date(),
+      selectedDate: selectedDate ? new Date(selectedDate) : null,
+      selectedTime: selectedTime || null,
+      availableSlots: {},
+      workingDays: [1, 2, 3, 4, 5], // Default to weekdays
+      isConfirmed: false,
+      language: language || "en",
+      dentistsInfo: dentistsInfo || {},
+      selectedDentist: "",
+      selectedService: serviceName || "", // Pre-select the service from payload
+      apiKey: "",
+      scheduleId: "",
+      eventTypeId: "",
+      eventTypeSlug: "",
+      currentDentists: [],
+      originalServiceName: "" // Will store the English version of the service name
+    };
+    
+    // Initialize the original service name if we have a pre-selected service
+    if (state.selectedService) {
+      state.originalServiceName = getOriginalServiceName(state.selectedService, state.language);
+      console.log("Pre-selected service:", state.selectedService);
+      console.log("Mapped to original service name:", state.originalServiceName);
+    }
+    
+    // Helper functions
+    function getText(key) {
+      const translations = {
+        en: {
+          selectDateAndTime: "Select Date & Time",
+          selectDate: "Select a date to view available times",
+          pleaseSelectDate: "Please select a date first",
+          availableTimesFor: "Available times for",
+          noAvailableSlots: "No available time slots for this date",
+          confirmBooking: "Confirm Booking",
+          bookingConfirmed: "Booking Confirmed",
+          weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          selectDentist: "Select a dentist",
+          selectService: "Selected service",
+          selectServicePlaceholder: "-- Select a service --",
+          selectDentistPlaceholder: "-- Select a dentist --",
+          pleaseSelectDentist: "Please select a dentist first",
+          serviceProvidedBy: "This service is provided by the following dentists:"
+        },
+        fr: {
+          selectDateAndTime: "Sélectionner Date & Heure",
+          selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+          pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+          availableTimesFor: "Horaires disponibles pour",
+          noAvailableSlots: "Aucun horaire disponible pour cette date",
+          confirmBooking: "Confirmer la Réservation",
+          bookingConfirmed: "Réservation Confirmée",
+          weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+          selectDentist: "Sélectionner un dentiste",
+          selectService: "Service sélectionné",
+          selectServicePlaceholder: "-- Sélectionner un service --",
+          selectDentistPlaceholder: "-- Sélectionner un dentiste --",
+          pleaseSelectDentist: "Veuillez d'abord sélectionner un dentiste",
+          serviceProvidedBy: "Ce service est fourni par les dentistes suivants:"
+        }
+      };
+      
+      const lang = translations[state.language] ? state.language : "en";
+      return translations[lang][key];
+    }
+    
+    function getLocalizedServiceName(serviceName, language) {
+      const serviceTranslations = {
+        "Dental cleanings and exams": "Nettoyages et examens dentaires",
+        "Fluoride treatments": "Traitements au fluorure",
+        "Sealants": "Scellants",
+        "Composite fillings": "Obturations composites",
+        "Tooth colored fillings": "Obturations de la couleur des dents",
+        "Tooth extractions": "Extractions dentaires",
+        "Wisdom teeth removal": "Extraction des dents de sagesse",
+        "Root canal therapy": "Traitement de canal",
+        "Dental crowns and bridges": "Couronnes et ponts dentaires",
+        "Emergency dental care": "Soins dentaires d'urgence",
+        "Traditional braces": "Appareils orthodontiques traditionnels",
+        "Invisalign clear aligners": "Aligneurs transparents Invisalign",
+        "Retainers and follow-up care": "Contentions et suivi",
+        "Dental implants": "Implants dentaires",
+        "Dentures": "Prothèses dentaires",
+        "Full-mouth reconstruction": "Reconstruction buccale complète",
+        "Dental bonding": "Collage dentaire",
+        "Porcelain veneers": "Facettes en porcelaine",
+        "Smile makeovers": "Transformations du sourire",
+        "Teeth whitening": "Blanchiment des dents"
+      };
+      
+      const isEnglish = language === "en";
+      if (isEnglish) {
+        return serviceName;
+      } else {
+        return serviceTranslations[serviceName] || serviceName;
+      }
+    }
+    
+    // Helper function to get original service name from localized name
+    function getOriginalServiceName(localizedName, language) {
+      const isEnglish = language === "en";
+      if (isEnglish) {
+        return localizedName;
+      } else {
+        // Check if the given name is already an English service name
+        const serviceTranslations = {
+          "Dental cleanings and exams": "Nettoyages et examens dentaires",
+          "Fluoride treatments": "Traitements au fluorure",
+          "Sealants": "Scellants",
+          "Composite fillings": "Obturations composites",
+          "Tooth colored fillings": "Obturations de la couleur des dents",
+          "Tooth extractions": "Extractions dentaires",
+          "Wisdom teeth removal": "Extraction des dents de sagesse",
+          "Root canal therapy": "Traitement de canal",
+          "Dental crowns and bridges": "Couronnes et ponts dentaires",
+          "Emergency dental care": "Soins dentaires d'urgence",
+          "Traditional braces": "Appareils orthodontiques traditionnels",
+          "Invisalign clear aligners": "Aligneurs transparents Invisalign",
+          "Retainers and follow-up care": "Contentions et suivi",
+          "Dental implants": "Implants dentaires",
+          "Dentures": "Prothèses dentaires",
+          "Full-mouth reconstruction": "Reconstruction buccale complète",
+          "Dental bonding": "Collage dentaire",
+          "Porcelain veneers": "Facettes en porcelaine",
+          "Smile makeovers": "Transformations du sourire",
+          "Teeth whitening": "Blanchiment des dents"
+        };
+        
+        for (const [englishName, frenchName] of Object.entries(serviceTranslations)) {
+          // If the input matches a standard French translation or contains similar keywords
+          if (frenchName === localizedName || 
+              (localizedName.toLowerCase().includes("nettoyage") && englishName === "Dental cleanings and exams") ||
+              (localizedName.toLowerCase().includes("examen") && englishName === "Dental cleanings and exams")) {
+            return englishName;
+          }
+        }
+        
+        // Special case for "Nettoyage et Examen Dentaire"
+        if (localizedName === "Nettoyage et Examen Dentaire") {
+          return "Dental cleanings and exams";
+        }
+        
+        return localizedName;
+      }
+    }
+    
+    function formatDate(date) {
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+    
+    function isSameDay(date1, date2) {
+      if (!date1 || !date2) return false;
+      return formatDate(date1) === formatDate(date2);
+    }
 
-    // ---------------------
-    // API CALL FUNCTIONS
-    // ---------------------
+    // Function to update calendar header
+    function updateCalendarHeader() {
+      const serviceInfoElement = bookingContainer.querySelector(".calendar-info .info-line:first-child span:last-child");
+      const dentistInfoElement = bookingContainer.querySelector(".calendar-info .info-line:last-child span:last-child");
+      
+      if (serviceInfoElement) {
+        serviceInfoElement.textContent = state.selectedService ? 
+          getLocalizedServiceName(state.selectedService, state.language) : "---";
+      }
+      
+      if (dentistInfoElement) {
+        dentistInfoElement.textContent = state.selectedDentist || "---";
+      }
+    }
+    
+    // Function to get dentists that provide a specific service
+    function getDentistsForService(serviceName) {
+      try {
+        // First, try to get the English service name if the input is in French
+        const englishServiceName = getOriginalServiceName(serviceName, state.language);
+        console.log("Looking for service:", serviceName);
+        console.log("Mapped to English service name:", englishServiceName);
+        
+        return Object.keys(state.dentistsInfo).filter(dentistName => {
+          const dentist = state.dentistsInfo[dentistName];
+          // Check if dentist exists and has services
+          if (!dentist || !dentist.services) return false;
+          
+          // Try with the original service name
+          if (dentist.services[serviceName]) return true;
+          
+          // Try with the English equivalent
+          if (englishServiceName !== serviceName && dentist.services[englishServiceName]) return true;
+          
+          // Try with "Dental cleanings and exams" as fallback for any dental cleaning service
+          if (serviceName.toLowerCase().includes("nettoyage") || 
+              serviceName.toLowerCase().includes("examen") ||
+              serviceName.toLowerCase().includes("cleaning") ||
+              serviceName.toLowerCase().includes("exam")) {
+            return dentist.services["Dental cleanings and exams"] !== undefined;
+          }
+          
+          return false;
+        });
+      } catch (error) {
+        console.error("Error getting dentists for service:", error);
+        return Object.keys(state.dentistsInfo).slice(0, 2); // Return first 2 dentists as fallback
+      }
+    }
+    
+    // Function to update dentist information
+    async function updateDentistInfo(dentistName) {
+      try {
+        if (!dentistName || !state.dentistsInfo[dentistName]) return;
+        
+        const dentistData = state.dentistsInfo[dentistName];
+        state.selectedDentist = dentistName;
+        state.apiKey = dentistData.apiKey || "demo-api-key";
+        state.scheduleId = dentistData.scheduleId || "demo-schedule-id";
+        
+        // Get the right service key to look up in the dentist's services
+        const serviceToCheck = state.originalServiceName || state.selectedService;
+        
+        // Check if the dentist offers the pre-selected service
+        if (dentistData.services && dentistData.services[serviceToCheck]) {
+          const serviceDetails = dentistData.services[serviceToCheck];
+          state.eventTypeId = serviceDetails.eventId || "1";
+          state.eventTypeSlug = serviceDetails.eventSlug || "default";
+          console.log(`Found service ${serviceToCheck} for dentist ${dentistName}`, serviceDetails);
+        } else {
+          // Fallback for "Dental cleanings and exams" or similar services
+          if (state.selectedService.toLowerCase().includes("nettoyage") || 
+              state.selectedService.toLowerCase().includes("examen") || 
+              state.selectedService.toLowerCase().includes("cleaning") || 
+              state.selectedService.toLowerCase().includes("exam")) {
+            
+            const cleaningService = dentistData.services["Dental cleanings and exams"];
+            if (cleaningService) {
+              state.eventTypeId = cleaningService.eventId || "1";
+              state.eventTypeSlug = cleaningService.eventSlug || "default";
+              console.log(`Found "Dental cleanings and exams" as fallback for ${state.selectedService}`);
+            } else {
+              console.warn(`Dentist ${dentistName} does not offer the service ${state.selectedService}`);
+              state.eventTypeId = "1";
+              state.eventTypeSlug = "default-event";
+            }
+          } else {
+            console.warn(`Dentist ${dentistName} does not offer the service ${state.selectedService}`);
+            state.eventTypeId = "1";
+            state.eventTypeSlug = "default-event";
+          }
+        }
+        
+        // Reset selections
+        state.selectedTime = null;
+        state.availableSlots = {};
+        
+        // Update working days
+        state.workingDays = await fetchWorkingDays();
+        
+        // Set a new default selected date
+        const defaultDay = getDefaultActiveDay();
+        state.selectedDate = defaultDay;
+        
+        // Fetch available slots
+        const dayKey = formatDate(defaultDay);
+        try {
+          const defaultSlots = await fetchAvailableSlots(dayKey);
+          state.availableSlots[dayKey] = defaultSlots;
+        } catch (error) {
+          console.error("Error fetching slots:", error);
+          // Generate demo time slots as fallback
+          state.availableSlots[dayKey] = generateDemoTimeSlots(defaultDay);
+        }
+      } catch (error) {
+        console.error("Error in updateDentistInfo:", error);
+      }
+    }
+    
+    // Function to get default active day
+    function getDefaultActiveDay() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (state.workingDays.includes(today.getDay())) return today;
+      
+      // Find next working day
+      const next = new Date(today);
+      for (let i = 1; i <= 7; i++) {
+        next.setDate(next.getDate() + 1);
+        if (state.workingDays.includes(next.getDay())) {
+          return next;
+        }
+      }
+      
+      return today; // Fallback to today
+    }
+    
+    // API function to fetch working days
     async function fetchWorkingDays() {
       if (!state.apiKey || !state.scheduleId) return [1, 2, 3, 4, 5];
+      
       try {
+        // For demo/testing, just return weekdays
+        if (state.apiKey === "demo-api-key") {
+          return [1, 2, 3, 4, 5];
+        }
+        
         const res = await fetch(`https://api.cal.com/v2/schedules/${state.scheduleId}`, {
           method: "GET",
           headers: {
@@ -5266,19 +5431,16 @@ const BookingCalendarDExtension = {
             "Content-Type": "application/json"
           }
         });
+        
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        
         const data = await res.json();
-        console.log("Schedule data:", data);
         const availability = data.data?.availability || [];
         const dayNameToNumber = {
-          "Sunday": 0,
-          "Monday": 1,
-          "Tuesday": 2,
-          "Wednesday": 3,
-          "Thursday": 4,
-          "Friday": 5,
-          "Saturday": 6
+          "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3, 
+          "Thursday": 4, "Friday": 5, "Saturday": 6
         };
+        
         const workingDaysSet = new Set();
         availability.forEach(item => {
           if (Array.isArray(item.days)) {
@@ -5290,836 +5452,720 @@ const BookingCalendarDExtension = {
             });
           }
         });
+        
         return Array.from(workingDaysSet);
       } catch (err) {
         console.error("Error fetching schedule:", err);
-        return [1, 2, 3, 4, 5];
+        return [1, 2, 3, 4, 5]; // Default to weekdays
       }
     }
-
+    
+    // API function to fetch available slots
     async function fetchAvailableSlots(selectedDateISO) {
-      const start = new Date(selectedDateISO);
-      start.setUTCHours(0, 0, 0, 0);
-      const end = new Date(selectedDateISO);
-      end.setUTCHours(23, 59, 59, 999);
-      
-      // Get eventTypeSlug for the current selected dentist and service
-      let eventSlug = state.eventTypeSlug;
-      if (!eventSlug && state.selectedDentist && state.originalServiceName) {
-        const dentistData = state.dentistsInfo[state.selectedDentist];
-        if (dentistData && dentistData.services) {
-          // Try to find the service by original name
-          const serviceEntry = Object.entries(dentistData.services).find(([service]) => 
-            service.toLowerCase() === state.originalServiceName.toLowerCase()
-          );
-          
-          if (serviceEntry) {
-            const [_, serviceData] = serviceEntry;
-            eventSlug = serviceData.eventSlug;
-          }
-        }
-      }
-      
-      // If still no eventSlug, create a default one
-      if (!eventSlug) {
-        eventSlug = `appointment-${state.eventTypeId}`;
-      }
-      
-      const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${state.eventTypeId}&eventTypeSlug=${eventSlug}`;
       try {
+        // For demo/testing, generate demo slots
+        if (state.apiKey === "demo-api-key") {
+          const demoDate = new Date(selectedDateISO);
+          return generateDemoTimeSlots(demoDate);
+        }
+        
+        const start = new Date(selectedDateISO);
+        start.setUTCHours(0, 0, 0, 0);
+        const end = new Date(selectedDateISO);
+        end.setUTCHours(23, 59, 59, 999);
+        
+        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${state.eventTypeId}&eventTypeSlug=${state.eventTypeSlug}`;
+        
         const res = await fetch(url, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${state.apiKey}`,
-            "cal-api-version": "2024-06-11", 
+            "cal-api-version": "2024-08-13",
             "Content-Type": "application/json"
           }
         });
+        
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        
         const responseBody = await res.json();
         if (!responseBody || typeof responseBody !== "object") {
-          throw new Error("Invalid or missing response body from the API");
+          throw new Error("Invalid response");
         }
+        
         if (responseBody.status !== "success") {
-          throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+          throw new Error("API error");
         }
+        
         const slotsObj = responseBody.data?.slots || {};
         const slotsForDate = slotsObj[selectedDateISO] || [];
         return slotsForDate.map(slot => slot.time);
       } catch (err) {
-        console.error("Error fetching available slots:", err);
-        return [];
+        console.error("Error fetching slots:", err);
+        const demoDate = new Date(selectedDateISO);
+        return generateDemoTimeSlots(demoDate);
       }
     }
-
-    // ---------------------
-    // IMPROVED BOOKING FUNCTION
-    // ---------------------
+    
+    // Generate demo time slots
+    function generateDemoTimeSlots(date) {
+      const slots = [];
+      const baseDate = new Date(date);
+      
+      // Generate morning slots (9am to 12pm)
+      for (let hour = 9; hour < 12; hour++) {
+        for (let minute of [0, 30]) {
+          const slotTime = new Date(baseDate);
+          slotTime.setHours(hour, minute, 0, 0);
+          slots.push(slotTime.toISOString());
+        }
+      }
+      
+      // Generate afternoon slots (2pm to 5pm)
+      for (let hour = 14; hour < 17; hour++) {
+        for (let minute of [0, 30]) {
+          const slotTime = new Date(baseDate);
+          slotTime.setHours(hour, minute, 0, 0);
+          slots.push(slotTime.toISOString());
+        }
+      }
+      
+      return slots;
+    }
+    
+    // Function to create booking
     async function createBooking(startTimeISO) {
       try {
+        // Demo mode - just return success
+        if (state.apiKey === "demo-api-key") {
+          return { success: true, id: "demo-booking-123" };
+        }
+        
         const bookingDate = new Date(startTimeISO);
         const dateStr = formatDate(bookingDate);
+        
         const currentAvailableSlots = await fetchAvailableSlots(dateStr);
         if (!currentAvailableSlots.includes(startTimeISO)) {
-          throw new Error("This slot is no longer available. Please select another time.");
+          throw new Error("This slot is no longer available");
         }
+        
         const url = `https://api.cal.com/v2/bookings`;
-        
-        // Get the proper eventTypeSlug from selected dentist and service if available
-        let eventSlug = state.eventTypeSlug;
-        
-        if (!eventSlug && state.selectedDentist && state.originalServiceName) {
-          const dentistData = state.dentistsInfo[state.selectedDentist];
-          if (dentistData && dentistData.services) {
-            const serviceEntry = Object.entries(dentistData.services).find(([service]) => 
-              service.toLowerCase() === state.originalServiceName.toLowerCase()
-            );
-            
-            if (serviceEntry) {
-              const [_, serviceData] = serviceEntry;
-              eventSlug = serviceData.eventSlug;
-            }
-          }
-        }
-        
-        // Fallback to default format if needed
-        if (!eventSlug) {
-          eventSlug = `appointment-${state.eventTypeId}`;
-        }
-        
         const body = {
           start: startTimeISO,
-          end: new Date(new Date(startTimeISO).getTime() + 60 * 60 * 1000).toISOString(), // Add 1 hour by default
-          eventTypeId: Number(state.eventTypeId),
-          eventTypeSlug: eventSlug,
-          attendee: { 
-            name: fullName, 
-            email: email, 
-            timeZone: timezone 
-          }
+          attendee: { name: fullName, email: email, timeZone: timezone },
+          eventTypeId: Number(state.eventTypeId)
         };
-        
-        console.log("Booking request:", JSON.stringify(body));
         
         const res = await fetch(url, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${state.apiKey}`,
-            "cal-api-version": "2024-06-11", 
+            "cal-api-version": "2024-08-13",
             "Content-Type": "application/json"
           },
           body: JSON.stringify(body)
         });
+        
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+          throw new Error(`Booking failed`);
         }
+        
         const responseBody = await res.json();
         if (responseBody.status && responseBody.status !== "success") {
-          throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+          throw new Error(`Booking error`);
         }
+        
         return responseBody;
       } catch (err) {
         console.error("Booking error:", err);
-        showErrorMessage(err.message || "Unable to complete booking. Please try again.");
+        showErrorMessage(err.message || "Unable to complete booking");
         return null;
       }
     }
-
-    // ---------------------
-    // ERROR DISPLAY FUNCTION
-    // ---------------------
+    
+    // Function to show error message
     function showErrorMessage(message) {
-      // Log error to console for debugging
-      console.error("Calendar extension error:", message);
-      
       const errorOverlay = document.createElement("div");
-      errorOverlay.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
+      errorOverlay.style.position = "absolute";
+      errorOverlay.style.top = "0";
+      errorOverlay.style.left = "0";
+      errorOverlay.style.width = "100%";
+      errorOverlay.style.height = "100%";
+      errorOverlay.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+      errorOverlay.style.display = "flex";
+      errorOverlay.style.justifyContent = "center";
+      errorOverlay.style.alignItems = "center";
+      errorOverlay.style.zIndex = "1000";
+      
+      const errorBox = document.createElement("div");
+      errorBox.style.backgroundColor = "#fff0f0";
+      errorBox.style.border = "1px solid #ffdddd";
+      errorBox.style.borderRadius = "8px";
+      errorBox.style.padding = "20px";
+      errorBox.style.maxWidth = "80%";
+      errorBox.style.textAlign = "center";
+      
+      errorBox.innerHTML = `
+        <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">⚠️</div>
+        <p style="margin: 0 0 15px 0; color: #333;">${message}</p>
+        <button style="background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
       `;
-      const errorMessage = document.createElement("div");
-      errorMessage.style.cssText = `
-        background-color: #fff0f0;
-        border: 1px solid #ffdddd;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        max-width: 80%;
-      `;
-      errorMessage.innerHTML = `
-        <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
-          </svg>
-        </div>
-        <p style="margin: 0; color: #333;">${message}</p>
-        <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">OK</button>
-      `;
-      errorOverlay.appendChild(errorMessage);
-      calendarContainer.appendChild(errorOverlay);
-      const closeButton = errorMessage.querySelector("button");
+      
+      errorOverlay.appendChild(errorBox);
+      bookingContainer.appendChild(errorOverlay);
+      
+      const closeButton = errorBox.querySelector("button");
       closeButton.addEventListener("click", () => {
-        calendarContainer.removeChild(errorOverlay);
-        if (state.selectedDate) {
-          try {
-            const dateKey = formatDate(state.selectedDate);
-            fetchAvailableSlots(dateKey).then(slots => {
-              state.availableSlots[dateKey] = slots;
-              renderCalendar();
-            }).catch(err => {
-              console.error("Error after closing error message:", err);
-              // Don't show another error to avoid potential loop
-              renderCalendar();
-            });
-          } catch (err) {
-            console.error("Error in error handler:", err);
-            renderCalendar();
-          }
-        }
+        bookingContainer.removeChild(errorOverlay);
       });
     }
-
-    // ---------------------
-    // EXTENSION INTERNAL STATE
-    // ---------------------
-    // Process the service name to handle both English and French versions
-    const originalServiceName = getOriginalServiceName(serviceName, language);
-    const localizedServiceName = getLocalizedServiceName(originalServiceName, language);
     
-    // Filter dentists by service
-    const filteredDentistsInfo = filterDentistsByService(dentistsInfo, originalServiceName, language);
-
-    const state = {
-      currentDate: new Date(),
-      selectedDate: selectedDate ? new Date(selectedDate) : null,
-      selectedTime: selectedTime || null,
-      availableSlots: {},
-      workingDays: [1, 2, 3, 4, 5], // Default to weekdays, will be updated
-      isConfirmed: false,
-      language: language || "en",
-      dentistsInfo: filteredDentistsInfo,
-      // Make sure we select a dentist who offers the service
-      selectedDentist: (serviceProvider && filteredDentistsInfo[serviceProvider]) 
-        ? serviceProvider 
-        : Object.keys(filteredDentistsInfo)[0] || "",
-      apiKey: apiKey,
-      scheduleId: scheduleId,
-      eventTypeId: eventTypeId,
-      eventTypeSlug: eventTypeSlug,
-      // Store both original and localized service names for reference
-      originalServiceName: originalServiceName,
-      localizedServiceName: localizedServiceName
-    };
-
-    // Initialize API parameters based on selected dentist
-    if (Object.keys(state.dentistsInfo).length > 0 && state.selectedDentist) {
-      const dentistData = state.dentistsInfo[state.selectedDentist];
-      if (dentistData) {
-        state.apiKey = dentistData.apiKey || state.apiKey;
-        state.scheduleId = dentistData.scheduleId || state.scheduleId;
-        
-        // If we have services info and a specific service name
-        if (dentistData.services && state.originalServiceName) {
-          // Find the matching service (case insensitive)
-          const serviceEntry = Object.entries(dentistData.services).find(([service]) => 
-            service.toLowerCase() === state.originalServiceName.toLowerCase()
-          );
-          
-          if (serviceEntry) {
-            const [_, serviceData] = serviceEntry;
-            state.eventTypeId = serviceData.eventId || state.eventTypeId;
-            // Use the actual slug from the service if available
-            if (serviceData.eventSlug) {
-              state.eventTypeSlug = serviceData.eventSlug;
-            }
-          }
-        } else {
-          state.eventTypeId = dentistData.eventId || state.eventTypeId;
-        }
-      }
-    }
-
-    const translations = {
-      en: {
-        selectDateAndTime: "Select Date & Time",
-        selectDate: "Select a date to view available times",
-        pleaseSelectDate: "Please select a date first",
-        availableTimesFor: "Available times for",
-        noAvailableSlots: "No available time slots for this date",
-        confirmBooking: "Confirm Booking",
-        bookingConfirmed: "Booking Confirmed",
-        weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-        selectDentist: "Select a dentist",
-        selectDentistPlaceholder: "-- Select a dentist --",
-        noDentistsAvailable: "No dentists available for this service"
-      },
-      fr: {
-        selectDateAndTime: "Sélectionner Date & Heure",
-        selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-        pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-        availableTimesFor: "Horaires disponibles pour",
-        noAvailableSlots: "Aucun horaire disponible pour cette date",
-        confirmBooking: "Confirmer la Réservation",
-        bookingConfirmed: "Réservation Confirmée",
-        weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-        selectDentist: "Sélectionner un dentiste",
-        selectDentistPlaceholder: "-- Sélectionner un dentiste --",
-        noDentistsAvailable: "Aucun dentiste disponible pour ce service"
-      }
-    }; 
-
-    function getText(key) {
-      const lang = translations[state.language] ? state.language : "en";
-      return translations[lang][key];
-    }
-
-    function formatDate(date) {
-      const d = new Date(date);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
-
-    function isSameDay(date1, date2) {
-      if (!date1 || !date2) return false;
-      return formatDate(date1) === formatDate(date2);
-    }
-
-    function isToday(date) {
-      const now = new Date();
-      return isSameDay(date, now);
-    }
-
-    function getDefaultActiveDay() {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (state.workingDays.includes(today.getDay())) return today;
-      const next = new Date(today);
-      while (!state.workingDays.includes(next.getDay())) {
-        next.setDate(next.getDate() + 1);
-      }
-      return next;
-    }
-
-    // Update information when dentist changes
-    async function updateDentistInfo(dentistName) {
-      if (!dentistName || !state.dentistsInfo[dentistName]) return;
+    // Create SELECTORS SECTION - Modified to show pre-selected service
+    function createSelectors() {
+      // Create container
+      const selectorsContainer = document.createElement("div");
+      selectorsContainer.className = "selectors-container";
       
-      const dentistData = state.dentistsInfo[dentistName];
-      state.selectedDentist = dentistName;
-      state.apiKey = dentistData.apiKey;
-      state.scheduleId = dentistData.scheduleId;
+      // Create wrapper
+      const selectorsWrapper = document.createElement("div");
+      selectorsWrapper.className = "selectors-wrapper";
       
-      // If we have services info and a specific service name
-      if (dentistData.services && state.originalServiceName) {
-        // Find the matching service (case insensitive)
-        const serviceEntry = Object.entries(dentistData.services).find(([service]) => 
-          service.toLowerCase() === state.originalServiceName.toLowerCase()
-        );
-        
-        if (serviceEntry) {
-          const [_, serviceData] = serviceEntry;
-          state.eventTypeId = serviceData.eventId;
-          // Use the actual slug from the service if available
-          if (serviceData.eventSlug) {
-            state.eventTypeSlug = serviceData.eventSlug;
-          }
-        } else {
-          // Fallback to default eventTypeId if service not found
-          state.eventTypeId = dentistData.eventId;
-        }
-      } else {
-        // Fallback to default eventTypeId
-        state.eventTypeId = dentistData.eventId;
-      }
+      // SERVICE DISPLAY (not interactive, just displays the pre-selected service)
+      const serviceDisplayContainer = document.createElement("div");
+      serviceDisplayContainer.className = "service-display-container";
       
-      // Make sure eventTypeId is a number, not a string
-      if (typeof state.eventTypeId === 'string') {
-        state.eventTypeId = parseInt(state.eventTypeId, 10);
-      }
+      const serviceDisplayTitle = document.createElement("div");
+      serviceDisplayTitle.className = "service-display-title";
+      serviceDisplayTitle.textContent = getText("selectService");
       
-      // Reset selected date and time
-      state.selectedTime = null;
-      state.availableSlots = {};
+      const serviceDisplayValue = document.createElement("div");
+      serviceDisplayValue.className = "service-display-value";
+      serviceDisplayValue.textContent = getLocalizedServiceName(state.selectedService, state.language);
       
-      try {
-        // Update working days for this dentist
-        state.workingDays = await fetchWorkingDays();
-        
-        // Set a new default selected date based on working days
-        const defaultDay = getDefaultActiveDay();
-        state.selectedDate = defaultDay;
-        const dayKey = formatDate(defaultDay);
-        const defaultSlots = await fetchAvailableSlots(dayKey);
-        state.availableSlots[dayKey] = defaultSlots;
-      } catch (error) {
-        console.error("Error updating dentist info:", error);
-        // Default to standard weekdays if there's an error
-        state.workingDays = [1, 2, 3, 4, 5];
-        showErrorMessage("Could not fetch dentist's schedule. Please try again or contact support.");
-      }
-    }
-
-    // Initialize default selected date and fetch its slots if not already set.
-    if (!state.selectedDate) {
-      const defaultDay = getDefaultActiveDay();
-      state.selectedDate = defaultDay;
-      const dayKey = formatDate(defaultDay);
-      const defaultSlots = await fetchAvailableSlots(dayKey);
-      state.availableSlots[dayKey] = defaultSlots;
-    }
-
-    // ---------------------
-    // RENDER CALENDAR COMPONENTS
-    // ---------------------
-    function renderDentistSelector() {
-      // Only render selector if we have dentist data
-      if (Object.keys(state.dentistsInfo).length === 0) {
-        const container = document.createElement("div");
-        container.className = "dentist-selector-container";
-        
-        const noDentistsMessage = document.createElement("div");
-        noDentistsMessage.style.textAlign = "center";
-        noDentistsMessage.style.padding = "10px";
-        noDentistsMessage.style.color = "#666";
-        noDentistsMessage.textContent = getText("noDentistsAvailable");
-        
-        container.appendChild(noDentistsMessage);
-        return container;
-      }
+      serviceDisplayContainer.appendChild(serviceDisplayTitle);
+      serviceDisplayContainer.appendChild(serviceDisplayValue);
       
-      const container = document.createElement("div");
-      container.className = "dentist-selector-container";
+      // DENTIST SELECTOR
+      const dentistContainer = document.createElement("div");
+      dentistContainer.className = "select-container";
       
-      const label = document.createElement("label");
-      label.className = "dentist-selector-label";
-      label.textContent = getText("selectDentist");
+      const dentistLabel = document.createElement("label");
+      dentistLabel.className = "select-label";
+      dentistLabel.textContent = getText("selectDentist");
       
-      // Create the custom dropdown UI
-      const dropdownWrapper = document.createElement("div");
-      dropdownWrapper.className = "select-wrapper";
+      const dentistDropdown = document.createElement("div");
+      dentistDropdown.className = "select-dropdown";
       
-      const selectDisplay = document.createElement("div");
-      selectDisplay.className = "select-display";
-      selectDisplay.innerHTML = `
+      const dentistDisplay = document.createElement("div");
+      dentistDisplay.className = "select-display";
+      dentistDisplay.innerHTML = `
         <span>${state.selectedDentist || getText("selectDentistPlaceholder")}</span>
         <div class="dropdown-icon">${SVG_CHEVRON}</div>
       `;
       
-      const customOptions = document.createElement("div");
-      customOptions.className = "custom-options";
+      const dentistOptions = document.createElement("div");
+      dentistOptions.className = "select-options";
       
-      // Add options for each dentist
-      Object.keys(state.dentistsInfo).forEach(dentistName => {
-        const option = document.createElement("div");
-        option.className = "custom-option";
-        if (state.selectedDentist === dentistName) {
-          option.classList.add("selected");
+      // Get dentists for the pre-selected service
+      const dentists = getDentistsForService(state.selectedService);
+      state.currentDentists = dentists;
+      console.log(`Dentists that provide ${state.selectedService}:`, dentists);
+      
+      // Function to populate dentist options
+      function populateDentistOptions(dentistNames) {
+        // Clear options
+        dentistOptions.innerHTML = "";
+        
+        if (dentistNames.length === 0) {
+          // Add a message in the dropdown if no dentists available
+          const emptyOption = document.createElement("div");
+          emptyOption.className = "option-item";
+          emptyOption.textContent = isEnglish ? "No dentists available for this service" : "Aucun dentiste disponible pour ce service";
+          dentistOptions.appendChild(emptyOption);
+          return;
         }
         
-        option.innerHTML = `
-          <div class="option-checkbox">${SVG_CHECK}</div>
-          <span>${dentistName}</span>
-        `;
-        
-        option.addEventListener("click", async () => {
-          if (state.isConfirmed) return;
+        // Add options
+        dentistNames.forEach(dentistName => {
+          const option = document.createElement("div");
+          option.className = `option-item ${state.selectedDentist === dentistName ? 'selected' : ''}`;
+          option.setAttribute("data-value", dentistName);
           
-          // Update dentist info and UI
-          await updateDentistInfo(dentistName);
+          const checkBox = document.createElement("div");
+          checkBox.className = "option-checkbox";
+          checkBox.innerHTML = SVG_CHECK;
           
-          // Update display
-          const displayText = selectDisplay.querySelector("span");
-          if (displayText) {
-            displayText.textContent = dentistName;
-          }
+          const optionText = document.createElement("span");
+          optionText.textContent = dentistName;
           
-          // Update option classes
-          customOptions.querySelectorAll(".custom-option").forEach(el => {
-            el.classList.remove("selected");
+          option.appendChild(checkBox);
+          option.appendChild(optionText);
+          
+          option.addEventListener("click", async function() {
+            // Update dentist info
+            await updateDentistInfo(dentistName);
+            
+            // Update display
+            dentistDisplay.querySelector("span").textContent = dentistName;
+            
+            // Update selection
+            dentistOptions.querySelectorAll(".option-item").forEach(el => {
+              el.classList.remove("selected");
+            });
+            this.classList.add("selected");
+            
+            // Hide dropdown
+            dentistOptions.classList.remove("show");
+            dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
+            
+            // Render calendar
+            renderCalendar();
           });
-          option.classList.add("selected");
           
-          // Hide dropdown
-          customOptions.classList.remove("show-options");
-          const icon = selectDisplay.querySelector(".dropdown-icon");
-          if (icon) {
-            icon.classList.remove("rotate");
+          dentistOptions.appendChild(option);
+        });
+      }
+      
+      // Initial population of dentist options
+      populateDentistOptions(dentists);
+      
+      // Auto-select dentist if only one is available
+      if (dentists.length === 1) {
+        setTimeout(async () => {
+          await updateDentistInfo(dentists[0]);
+          dentistDisplay.querySelector("span").textContent = dentists[0];
+          
+          // Update selection in dropdown
+          const option = dentistOptions.querySelector(`.option-item[data-value="${dentists[0]}"]`);
+          if (option) {
+            option.classList.add("selected");
           }
           
+          // Render calendar
           renderCalendar();
-        });
-        
-        customOptions.appendChild(option);
-      });
+        }, 0);
+      }
       
-      // Toggle dropdown on click
-      selectDisplay.addEventListener("click", (e) => {
+      // Dentist dropdown toggle
+      dentistDisplay.addEventListener("click", function(e) {
         e.stopPropagation();
-        customOptions.classList.toggle("show-options");
-        const icon = selectDisplay.querySelector(".dropdown-icon");
-        if (icon) {
-          icon.classList.toggle("rotate");
+        
+        // Toggle dropdown
+        const isShowing = dentistOptions.classList.contains("show");
+        
+        // Close all dropdowns first
+        dentistOptions.classList.remove("show");
+        this.querySelector(".dropdown-icon").classList.remove("rotate");
+        
+        if (!isShowing) {
+          dentistOptions.classList.add("show");
+          this.querySelector(".dropdown-icon").classList.add("rotate");
         }
       });
       
-      // Close dropdown when clicking outside
-      document.addEventListener("click", () => {
-        customOptions.classList.remove("show-options");
-        const icon = selectDisplay.querySelector(".dropdown-icon");
-        if (icon) {
-          icon.classList.remove("rotate");
-        }
+      // Close dropdown on outside click
+      document.addEventListener("click", function() {
+        dentistOptions.classList.remove("show");
+        dentistDisplay.querySelector(".dropdown-icon").classList.remove("rotate");
       });
       
-      dropdownWrapper.appendChild(selectDisplay);
-      dropdownWrapper.appendChild(customOptions);
+      // Prevent closing when clicking inside dropdown
+      dentistOptions.addEventListener("click", function(e) {
+        e.stopPropagation();
+      });
       
-      container.appendChild(label);
-      container.appendChild(dropdownWrapper);
+      // Assemble dentist selector
+      dentistDropdown.appendChild(dentistDisplay);
+      dentistDropdown.appendChild(dentistOptions);
+      dentistContainer.appendChild(dentistLabel);
+      dentistContainer.appendChild(dentistDropdown);
       
-      return container;
+      // Add components to containers
+      selectorsContainer.appendChild(serviceDisplayContainer);
+      selectorsContainer.appendChild(selectorsWrapper);
+      selectorsWrapper.appendChild(dentistContainer);
+      
+      return selectorsContainer;
     }
-
-    function renderHeader() {
+    
+    // Create CALENDAR HEADER
+    function createCalendarHeader() {
       const header = document.createElement("div");
       header.className = "calendar-header";
-      const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
       
-      // Create calendar title with provider and service info
-      const calendarTitle = document.createElement("div");
-      calendarTitle.className = "calendar-title";
+      // Info section
+      const infoSection = document.createElement("div");
+      infoSection.className = "calendar-info";
       
-      // Calendar icon
-      const calendarIcon = document.createElement("span");
-      calendarIcon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
-      `;
-      
-      // Provider and service information section
-      const titleContent = document.createElement("div");
-      titleContent.className = "calendar-title-content";
-      
-      const providerDiv = document.createElement("div");
-      providerDiv.className = "service-provider";
-      providerDiv.innerHTML = `
-        <span class="provider-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-          <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
-          </svg>
-        </span>
-        <span>${state.selectedDentist}</span>
-      `;
-      
-      const serviceDiv = document.createElement("div");
-      serviceDiv.className = "service-name";
-      serviceDiv.innerHTML = `
-        <span class="service-icon">
+      // Service info
+      const serviceInfo = document.createElement("div");
+      serviceInfo.className = "info-line";
+      serviceInfo.innerHTML = `
+        <div class="info-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
             <path fill="#9C27B0" d="M186.1 52.1C169.3 39.1 148.7 32 127.5 32C74.7 32 32 74.7 32 127.5l0 6.2c0 15.8 3.7 31.3 10.7 45.5l23.5 47.1c4.5 8.9 7.6 18.4 9.4 28.2l36.7 205.8c2 11.2 11.6 19.4 22.9 19.8s21.4-7.4 24-18.4l28.9-121.3C192.2 323.7 207 312 224 312s31.8 11.7 35.8 28.3l28.9 121.3c2.6 11.1 12.7 18.8 24 18.4s20.9-8.6 22.9-19.8l36.7-205.8c1.8-9.8 4.9-19.3 9.4-28.2l23.5-47.1c7.1-14.1 10.7-29.7 10.7-45.5l0-2.1c0-55-44.6-99.6-99.6-99.6c-24.1 0-47.4 8.8-65.6 24.6l-3.2 2.8 19.5 15.2c7 5.4 8.2 15.5 2.8 22.5s-15.5 8.2-22.5 2.8l-24.4-19-37-28.8z"/>
           </svg>
-        </span>
-        <span>${state.localizedServiceName}</span>
+        </div>
+        <span>${state.selectedService ? getLocalizedServiceName(state.selectedService, state.language) : "---"}</span>
       `;
-      titleContent.appendChild(serviceDiv);
-      titleContent.appendChild(providerDiv);
       
-      calendarTitle.appendChild(titleContent);
+      // Dentist info
+      const dentistInfo = document.createElement("div");
+      dentistInfo.className = "info-line";
+      dentistInfo.innerHTML = `
+        <div class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
+            <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
+          </svg>
+        </div>
+        <span>${state.selectedDentist || "---"}</span>
+      `;
       
-      // Calendar navigation section (remains unchanged)
-      const calendarNav = document.createElement("div");
-      calendarNav.className = "calendar-nav";
-      const currentDateEl = document.createElement("div");
-      currentDateEl.className = "current-date";
-      currentDateEl.textContent = dateFormatter.format(state.currentDate);
-      currentDateEl.style.cssText = "background: #F8EAFA; padding: 6px 14px; border-radius: 20px; font-weight: 500; color: #9C27B0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: all 0.3s;";
+      infoSection.appendChild(serviceInfo);
+      infoSection.appendChild(dentistInfo);
       
-      const prevBtn = document.createElement("button");
-      prevBtn.className = "nav-btn prev-btn";
-      prevBtn.innerHTML = `
+      // Nav section
+      const navSection = document.createElement("div");
+      navSection.className = "calendar-nav";
+      
+      const dateFormatter = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
+      const currentDateDisplay = document.createElement("div");
+      currentDateDisplay.className = "current-date";
+      currentDateDisplay.textContent = dateFormatter.format(state.currentDate);
+      
+      const prevButton = document.createElement("button");
+      prevButton.className = "nav-btn";
+      prevButton.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       `;
-      prevBtn.addEventListener("click", () => {
+      
+      const nextButton = document.createElement("button");
+      nextButton.className = "nav-btn";
+      nextButton.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+      
+      // Navigation events
+      prevButton.addEventListener("click", () => {
         if (!state.isConfirmed) {
           state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
           renderCalendar();
         }
       });
       
-      const nextBtn = document.createElement("button");
-      nextBtn.className = "nav-btn next-btn";
-      nextBtn.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      `;
-      nextBtn.addEventListener("click", () => {
+      nextButton.addEventListener("click", () => {
         if (!state.isConfirmed) {
           state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
           renderCalendar();
         }
       });
       
-      calendarNav.appendChild(currentDateEl);
-      calendarNav.appendChild(prevBtn);
-      calendarNav.appendChild(nextBtn);
+      navSection.appendChild(currentDateDisplay);
+      navSection.appendChild(prevButton);
+      navSection.appendChild(nextButton);
       
-      header.appendChild(calendarTitle);
-      header.appendChild(calendarNav);
+      // Add to header
+      header.appendChild(infoSection);
+      header.appendChild(navSection);
       
       return header;
     }
-       
-    async function renderCalendarDays() {
+    
+    // Create DAYS GRID
+    function createDaysGrid() {
       const daysContainer = document.createElement("div");
       daysContainer.className = "days-container";
+      
+      // Weekdays header
       const weekdaysDiv = document.createElement("div");
       weekdaysDiv.className = "weekdays";
+      
       const weekdays = getText("weekdays");
       weekdays.forEach(day => {
         const dayEl = document.createElement("div");
         dayEl.textContent = day;
         weekdaysDiv.appendChild(dayEl);
       });
-      daysContainer.appendChild(weekdaysDiv);
-      const daysDiv = document.createElement("div");
-      daysDiv.className = "days";
-      let daysToShow = [];
+      
+      // Days grid
+      const daysGrid = document.createElement("div");
+      daysGrid.className = "days";
+      
+      // Calculate days
       const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
-      const daysFromPrevMonth = firstDay.getDay();
-      const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
-      const totalDays = lastDay.getDate();
-      for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
-        const day = new Date(firstDay);
-        day.setDate(day.getDate() - i - 1);
-        daysToShow.push({ date: day, inactive: true });
-      }
-      for (let i = 1; i <= totalDays; i++) {
-        const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
-        daysToShow.push({ date: day, inactive: false });
-      }
-      const remainingDays = 42 - daysToShow.length;
-      for (let i = 1; i <= remainingDays; i++) {
-        const day = new Date(lastDay);
-        day.setDate(day.getDate() + i);
-        daysToShow.push({ date: day, inactive: true });
-      }
-      const highlightDay = state.selectedDate || getDefaultActiveDay();
-      daysToShow.forEach(({ date, inactive }) => {
+      const startDay = firstDay.getDay();
+      const daysInMonth = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0).getDate();
+      
+      // Add previous month days
+      for (let i = 0; i < startDay; i++) {
         const dayEl = document.createElement("div");
-        dayEl.className = "day";
-        dayEl.textContent = date.getDate();
-        if (inactive) {
-          dayEl.classList.add("inactive");
+        dayEl.className = "day inactive";
+        dayEl.textContent = new Date(firstDay.getFullYear(), firstDay.getMonth(), -startDay + i + 1).getDate();
+        daysGrid.appendChild(dayEl);
+      }
+      
+      // Add current month days
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), day);
+        const dayEl = document.createElement("div");
+        dayEl.textContent = day;
+        
+        if (currentDate < today) {
+          // Past days
+          dayEl.className = "day inactive";
         } else {
-          const dayOfWeek = date.getDay();
+          // Check if working day
+          const dayOfWeek = currentDate.getDay();
           if (!state.workingDays.includes(dayOfWeek)) {
-            dayEl.classList.add("inactive");
+            dayEl.className = "day inactive";
           } else {
-            const todayMidnight = new Date();
-            todayMidnight.setHours(0, 0, 0, 0);
-            if (date < todayMidnight) {
-              dayEl.classList.add("inactive");
-            } else {
-              if (formatDate(date) === formatDate(highlightDay)) {
-                dayEl.classList.add("today");
-              }
-              if (state.selectedDate && isSameDay(date, state.selectedDate)) {
-                dayEl.classList.add("active");
-              }
-              dayEl.classList.add("available");
-              dayEl.addEventListener("click", async () => {
-                state.selectedDate = new Date(date);
-                state.selectedTime = null;
-                const slots = await fetchAvailableSlots(formatDate(date));
-                state.availableSlots[formatDate(date)] = slots;
-                renderCalendar();
-              });
+            // Available day
+            dayEl.className = "day available";
+            
+            // Check if selected
+            if (state.selectedDate && isSameDay(currentDate, state.selectedDate)) {
+              dayEl.classList.add("active");
             }
+            
+            // Click handler
+            dayEl.addEventListener("click", async () => {
+              if (!state.selectedDentist) {
+                showErrorMessage(getText("pleaseSelectDentist"));
+                return;
+              }
+              
+              // Update selected date
+              state.selectedDate = new Date(currentDate);
+              state.selectedTime = null;
+              
+              // Fetch slots
+              const dateStr = formatDate(currentDate);
+              try {
+                const slots = await fetchAvailableSlots(dateStr);
+                state.availableSlots[dateStr] = slots;
+              } catch (error) {
+                console.error("Error fetching slots:", error);
+                state.availableSlots[dateStr] = generateDemoTimeSlots(currentDate);
+              }
+              
+              // Render calendar
+              renderCalendar();
+            });
           }
         }
-        daysDiv.appendChild(dayEl);
-      });
-      daysContainer.appendChild(daysDiv);
+        
+        daysGrid.appendChild(dayEl);
+      }
+      
+      // Fill remaining grid
+      const totalCells = daysGrid.childElementCount;
+      const remaining = 42 - totalCells;
+      
+      for (let i = 1; i <= remaining; i++) {
+        const dayEl = document.createElement("div");
+        dayEl.className = "day inactive";
+        dayEl.textContent = i;
+        daysGrid.appendChild(dayEl);
+      }
+      
+      daysContainer.appendChild(weekdaysDiv);
+      daysContainer.appendChild(daysGrid);
+      
       return daysContainer;
     }
-
-    async function renderTimeSlots() {
+    
+    // Create TIME SLOTS
+    function createTimeSlots() {
       const timesContainer = document.createElement("div");
       timesContainer.className = "times-container";
+      
+      // Header
       const timeHeader = document.createElement("div");
       timeHeader.className = "time-header";
+      
+      // Check if dentist is selected
+      if (!state.selectedDentist) {
+        timeHeader.textContent = getText("selectDate");
+        
+        const messageBlock = document.createElement("div");
+        messageBlock.className = "message-block";
+        messageBlock.textContent = getText("pleaseSelectDentist");
+        
+        timesContainer.appendChild(timeHeader);
+        timesContainer.appendChild(messageBlock);
+        return timesContainer;
+      }
+      
+      // Display based on selection
       if (state.selectedDate) {
         const dateFormatter = new Intl.DateTimeFormat(locale, { weekday: "long", month: "long", day: "numeric" });
         timeHeader.textContent = `${getText("availableTimesFor")} ${dateFormatter.format(state.selectedDate)}`;
       } else {
-        timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText("selectDate")}</span>`;
+        timeHeader.textContent = getText("selectDate");
       }
+      
       timesContainer.appendChild(timeHeader);
+      
+      // Time slots section
       const timeSlotsDiv = document.createElement("div");
       timeSlotsDiv.className = "time-slots";
+      
+      // Display slots if date selected
       if (state.selectedDate) {
         const dateKey = formatDate(state.selectedDate);
         const timeSlots = state.availableSlots[dateKey] || [];
+        
         if (timeSlots.length === 0) {
           const noSlots = document.createElement("div");
+          noSlots.className = "message-block";
           noSlots.textContent = getText("noAvailableSlots");
-          noSlots.style.textAlign = "center";
-          noSlots.style.padding = "20px 0";
-          noSlots.style.color = "#666";
           timeSlotsDiv.appendChild(noSlots);
         } else {
+          // Create columns
           const columnsContainer = document.createElement("div");
-          columnsContainer.className = "time-slots-columns";
+          columnsContainer.className = "time-columns";
+          
           const amColumn = document.createElement("div");
-          amColumn.className = "time-slots-column";
-          const pmColumn = document.createElement("div");
-          pmColumn.className = "time-slots-column";
+          amColumn.className = "time-column";
+          
           const amHeader = document.createElement("div");
+          amHeader.className = "column-header";
           amHeader.textContent = "AM";
-          amHeader.style.fontWeight = "bold";
-          amHeader.style.marginBottom = "5px";
           amColumn.appendChild(amHeader);
+          
+          const pmColumn = document.createElement("div");
+          pmColumn.className = "time-column";
+          
           const pmHeader = document.createElement("div");
+          pmHeader.className = "column-header";
           pmHeader.textContent = "PM";
-          pmHeader.style.fontWeight = "bold";
-          pmHeader.style.marginBottom = "5px";
           pmColumn.appendChild(pmHeader);
-          timeSlots.forEach((timeISO, index) => {
+          
+          // Sort slots
+          timeSlots.sort((a, b) => new Date(a) - new Date(b));
+          
+          // Add slots to columns
+          timeSlots.forEach(timeISO => {
             const dateTime = new Date(timeISO);
             const hours = dateTime.getHours();
+            
             const timeSlot = document.createElement("div");
-            timeSlot.className = "time-slot available";
-            timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
-            if (state.selectedTime === timeISO) {
-              timeSlot.classList.add("selected");
-            }
+            timeSlot.className = `time-slot ${state.selectedTime === timeISO ? 'selected' : ''}`;
+            
             const timeFormatter = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", hour12: true });
             timeSlot.textContent = timeFormatter.format(dateTime);
+            
             timeSlot.addEventListener("click", () => {
               if (!state.isConfirmed) {
                 state.selectedTime = timeISO;
                 renderCalendar();
               }
             });
+            
             if (hours < 12) {
               amColumn.appendChild(timeSlot);
             } else {
               pmColumn.appendChild(timeSlot);
             }
           });
+          
+          // Add columns
           columnsContainer.appendChild(amColumn);
           columnsContainer.appendChild(pmColumn);
           timeSlotsDiv.appendChild(columnsContainer);
         }
       } else {
+        // No date selected
         const noDate = document.createElement("div");
+        noDate.className = "message-block";
         noDate.textContent = getText("pleaseSelectDate");
-        noDate.style.textAlign = "center";
-        noDate.style.padding = "20px 0";
-        noDate.style.color = "#666";
         timeSlotsDiv.appendChild(noDate);
       }
+      
       timesContainer.appendChild(timeSlotsDiv);
       return timesContainer;
     }
-
-    function renderFooter() {
+    
+    // Create FOOTER
+    function createFooter() {
       const footer = document.createElement("div");
       footer.className = "calendar-footer";
+      
       const confirmBtn = document.createElement("button");
-      confirmBtn.className = "action-btn confirm-btn";
+      confirmBtn.className = "confirm-btn";
       
       if (state.isConfirmed) {
-        const isEnglish = locale === "en-US";
         confirmBtn.textContent = isEnglish ? "Booked ✓" : "Réservée ✓";
-        confirmBtn.style.backgroundImage = "none";
         confirmBtn.style.backgroundColor = "#4CAF50";
         confirmBtn.style.color = "white";
         confirmBtn.disabled = true;
       } else {
         confirmBtn.textContent = getText("confirmBooking");
-        if (!state.selectedDate || !state.selectedTime) { 
-          confirmBtn.disabled = true; 
+        
+        if (!state.selectedDate || !state.selectedTime || !state.selectedDentist) {
+          confirmBtn.disabled = true;
         }
         
         confirmBtn.addEventListener("click", async () => {
-          if (state.selectedDate && state.selectedTime) {
-            // Show loading state
+          if (state.selectedDate && state.selectedTime && state.selectedDentist) {
+            // Loading state
             confirmBtn.disabled = true;
             confirmBtn.textContent = getText('confirmBooking') + '...';
             
             try {
-              // 1. First completes the booking with Cal.com
+              // Create booking
               const bookingResponse = await createBooking(state.selectedTime);
               
               if (bookingResponse) {
-                // 2. Then updates the UI to show confirmation
+                // Update state and UI
                 state.isConfirmed = true;
                 renderCalendar();
                 
-                // 3. Finally shows the success animation
+                // Show success message
                 const successOverlay = document.createElement('div');
-                successOverlay.style.cssText = `
-                  position: absolute;
-                  top: 0;
-                  left: 0;
-                  width: 100%;
-                  height: 100%;
-                  background-color: rgba(156, 39, 176, 0.05);
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-                  z-index: 1000;
-                  opacity: 0;
-                  transition: opacity 0.5s;
-                  pointer-events: none;
-                `;
+                successOverlay.style.position = "absolute";
+                successOverlay.style.top = "0";
+                successOverlay.style.left = "0";
+                successOverlay.style.width = "100%";
+                successOverlay.style.height = "100%";
+                successOverlay.style.backgroundColor = "rgba(156, 39, 176, 0.05)";
+                successOverlay.style.display = "flex";
+                successOverlay.style.justifyContent = "center";
+                successOverlay.style.alignItems = "center";
+                successOverlay.style.zIndex = "1000";
+                successOverlay.style.opacity = "0";
+                successOverlay.style.transition = "opacity 0.5s";
                 
                 const successMessage = document.createElement('div');
-                successMessage.style.cssText = `
-                  background-color: white;
-                  border-radius: 15px;
-                  padding: 20px 30px;
-                  box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15);
-                  text-align: center;
-                  transform: translateY(20px);
-                  transition: transform 0.5s, opacity 0.5s;
-                  opacity: 0;
+                successMessage.style.backgroundColor = "white";
+                successMessage.style.borderRadius = "15px";
+                successMessage.style.padding = "20px 30px";
+                successMessage.style.boxShadow = "0 10px 30px rgba(156, 39, 176, 0.15)";
+                successMessage.style.textAlign = "center";
+                successMessage.style.transform = "translateY(20px)";
+                successMessage.style.transition = "transform 0.5s, opacity 0.5s";
+                successMessage.style.opacity = "0";
+                
+                successMessage.innerHTML = `
+                  <div>
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
+                      <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <p style="font-size: 18px; font-weight: 600; margin-top: 15px; color: #9C27B0;">
+                    ${getText('bookingConfirmed')}!
+                  </p>
                 `;
                 
-                const checkmark = document.createElement('div');
-                checkmark.innerHTML = `
-                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-                    <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                `;
-                
-                successMessage.appendChild(checkmark);
-                const successText = document.createElement('p');
-                successText.textContent = getText('bookingConfirmed') + '!';
-                successText.style.cssText = `
-                  font-size: 18px;
-                  font-weight: 600;
-                  margin-top: 15px;
-                  color: #9C27B0;
-                `;
-                successMessage.appendChild(successText);
                 successOverlay.appendChild(successMessage);
-                calendarContainer.appendChild(successOverlay);
+                bookingContainer.appendChild(successOverlay);
                 
                 // Animation sequence
                 setTimeout(() => {
@@ -6128,45 +6174,30 @@ const BookingCalendarDExtension = {
                   successMessage.style.transform = 'translateY(0)';
                   
                   setTimeout(() => {
-                    // Start hiding animation
                     successOverlay.style.opacity = '0';
                     successMessage.style.opacity = '0';
                     successMessage.style.transform = 'translateY(-20px)';
                     
                     setTimeout(() => {
-                      // Remove overlay after animation completes
-                      calendarContainer.removeChild(successOverlay);
+                      bookingContainer.removeChild(successOverlay);
                       
-                      // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                      // Send data to Voiceflow
                       const dateStr = formatDate(state.selectedDate);
-                      const timeFormatter = new Intl.DateTimeFormat(locale, { 
-                        hour: 'numeric', 
-                        minute: '2-digit', 
-                        hour12: true 
-                      });
-                      const formattedDate = new Intl.DateTimeFormat(locale, { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      }).format(state.selectedDate);
-                      const formattedTime = new Intl.DateTimeFormat(locale, { 
-                        hour: 'numeric', 
-                        minute: '2-digit', 
-                        hour12: true 
-                      }).format(new Date(state.selectedTime));
+                      const timeFormatter = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', hour12: true });
+                      const formattedDate = new Intl.DateTimeFormat(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(state.selectedDate);
+                      const formattedTime = timeFormatter.format(new Date(state.selectedTime));
                       const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
-
+                      
                       const formData = { 
                         fullName,
                         email,
                         dentist: state.selectedDentist,
+                        service: state.selectedService,
                         date: dateStr,
                         time: state.selectedTime,
                         formattedDate,
                         formattedTime,
-                        formattedDateTime,
-                        service: state.localizedServiceName
+                        formattedDateTime
                       };
                       
                       if (window.voiceflow && window.voiceflow.chat) {
@@ -6177,15 +6208,15 @@ const BookingCalendarDExtension = {
                       } else {
                         console.log("Form submitted:", formData);
                       }
-                    }, 500); // End of hide animation
-                  }, 2500); // Show duration before hiding
-                }, 100); // Start of show animation
+                    }, 500);
+                  }, 2500);
+                }, 100);
               }
             } catch (err) {
               console.error("Booking error:", err);
               confirmBtn.disabled = false;
               confirmBtn.textContent = getText("confirmBooking");
-              showErrorMessage(err.message || "Unable to complete booking. Please try again.");
+              showErrorMessage(err.message || "Unable to complete booking");
             }
           }
         });
@@ -6194,45 +6225,50 @@ const BookingCalendarDExtension = {
       footer.appendChild(confirmBtn);
       return footer;
     }
-
-    async function renderCalendar() {
-      calendarContainer.innerHTML = "";
-      if (state.isConfirmed) {
-        calendarContainer.classList.add("confirmed");
-      } else {
-        calendarContainer.classList.remove("confirmed");
-      }
+    
+    // Main render function
+    function renderCalendar() {
+      // Clear container
+      bookingContainer.innerHTML = '';
       
-      // Add the dentist selector if we have dentist data
-      const dentistSelector = renderDentistSelector();
-      if (dentistSelector) {
-        calendarContainer.appendChild(dentistSelector);
-      }
+      // Create components
+      const selectors = createSelectors();
+      const header = createCalendarHeader();
       
-      calendarContainer.appendChild(renderHeader());
       const calendarBody = document.createElement("div");
       calendarBody.className = "calendar-body";
-      calendarBody.appendChild(await renderCalendarDays());
-      calendarBody.appendChild(await renderTimeSlots());
-      calendarContainer.appendChild(calendarBody);
-      calendarContainer.appendChild(renderFooter());
-      shadow.innerHTML = "";
-      shadow.appendChild(style);
-      shadow.appendChild(calendarContainer);
+      
+      const daysGrid = createDaysGrid();
+      const timeSlots = createTimeSlots();
+      
+      calendarBody.appendChild(daysGrid);
+      calendarBody.appendChild(timeSlots);
+      
+      const footer = createFooter();
+      
+      // Add components
+      bookingContainer.appendChild(selectors);
+      bookingContainer.appendChild(header);
+      bookingContainer.appendChild(calendarBody);
+      bookingContainer.appendChild(footer);
     }
-
-    // Initialize the working days for the current selected dentist
-    state.workingDays = await fetchWorkingDays();
-
-    const calendarContainer = document.createElement("div");
-    calendarContainer.className = "calendar-container";
+    
+    // Initial render
+    container.appendChild(style);
+    container.appendChild(bookingContainer);
     renderCalendar();
+    
+    // Add to parent
     element.appendChild(container);
+    
+    // Handle resize
     window.addEventListener("resize", () => {
       container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
     });
   }
 };
+
+    
 
     
 const BookingInformationExtension = {
