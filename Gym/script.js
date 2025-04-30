@@ -9098,474 +9098,757 @@ function handleFormTimeout() {
   /*************************************************************
      * 3) ContactFormExtension - MAIN EXTENSION OBJECT (Mode 1 Only)
      *************************************************************/
-    const ContactFormExtension = {
+  const ContactFormExtension = {
       name: "ContactForm",
       type: "response",
-      match: ({ trace }) => trace.type === `ext_contact_form` || trace.payload?.name === `ext_contact_form`,
+      match: ({ trace }) => trace.type === 'ext_contact_form' || trace.payload?.name === 'ext_contact_form',
       render: ({ trace, element }) => {
         const { language } = trace.payload || { language: 'FR' };
         const isEnglish = language === 'en';
         const dentalData = createDentalData(language);
-    
-	 let formTimeoutId = null;
+        
+        // Initialize form variables
+        let formTimeoutId = null;
         let isFormSubmitted = false;
-        const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
-		
+        let currentStep = 1;
+        const totalSteps = 5; // Now 5 steps
+        const TIMEOUT_DURATION = 900000; // 900 seconds (15 minutes) in milliseconds
+        
+        // Track selected dentist and services for form validation and summary
+        let selectedDentist = null;
+        let selectedService = null;
+        
         /*************************************************************
          * HTML Generation & Initial Setup
          *************************************************************/
-        // Removed tabs since only one mode remains.
         const formContainer = document.createElement("form");
         formContainer.setAttribute("novalidate", "true");
         formContainer.innerHTML = `
-		 <style>
-    /* ========== Dropdown Components ========== */
-    .main-container {
-      display: block;
-      transition: height 0.3s ease;
-      border-radius: 6px;
-      margin-bottom: 15px;
-    }
-    .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      min-width: 300px;
-      max-width: 800px;
-      width: 100%;
-      min-height: 50px;
-    }
-    .select-display {
-      padding: 0 15px;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 50px;
-    }
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #F8EAFA;
-      border-radius: 50%;
-    }
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
-    
-    /* Custom Options */
-    .custom-options {
-      display: none;
-      border-top: 1px solid #ddd;
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-    }
-    /* Hide scrollbar for Chrome, Safari, Opera */
-    .custom-options::-webkit-scrollbar {
-      display: none; 
-    }
-    /* Hide scrollbar for IE, Edge, and Firefox */
-    .custom-options {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;     /* Firefox */
-    }
-    .custom-option {
-      padding: 12px 15px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
-    .custom-option:hover {
-      background-color: #F8EAFA;
-      color:#9c27b0;
-    }
-    .custom-option.selected {
-      background-color: #F8EAFA;
-      color:#9c27b0;
-      font-weight: bold;
-    }
-    /* Option Checkbox – consolidated duplicate rules */
-    .option-checkbox {
-      width: 24px;
-      height: 24px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      transition: all 0.2s;
-    }
-    .option-checkbox::after {
-      content: "";
-      color: #9c27b0;
-      font-size: 12px;
-      display: none;
-    }
-    .custom-option.selected .option-checkbox {
-      border-color: #9c27b0;
-      background-color: #9c27b0;
-    }
-    .custom-option.selected .option-checkbox::after {
-      display: block;
-      color: #fff;
-    }
-    .custom-option:not(.selected):hover .option-checkbox,
-    .custom-option:not(.selected):hover .option-checkbox::after {
-      border-color: #9c27b0;
-      display: block;
-      color: #9c27b0;
-    }
-    .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
-    .show-options {
-      display: block;
-    }
-    
-    .custom-option.selected .main-arrow,
-    .custom-option:hover .main-arrow {
-      background-color: #fff;
-    }
-    
-    /* ========== Error Components ========== */
-    .error-container {
-      width: 100%;
-      margin: 2px 0;
-      box-sizing: border-box;
-    }
-    .error-message {
-      display: none;
-      padding: 5px;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 14px;
-      align-items: center;
-    }
-    .error-icon {
-      background-color: red;
-      color: #fff;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      margin-right: 15px;
-      flex-shrink: 0;
-    }
-    
-    /* ========== Form Inputs & Layout ========== */
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      max-width: 800px;      
-      min-width: 400px;
-      margin: 0 auto;
-      padding: 16px;
-      border-radius: 6px;
-    }
-    .flex-row {
-      display: flex;
-      gap: 10px 16px;
-      flex-wrap: wrap;
-    } 
-    .flex-row > div {
-      flex: 1;
-      min-width: 300px;
-    }
-    .bold-label {
-      font-weight: 600;
-      color: #000;
-      font-size: 14px;
-      display: block;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    #details {
-      width: 100%;
-      min-width: 200px;
-      max-width: 800px;
-      border: 1px solid rgba(0,0,0,0.2);
-      border-radius: 6px;
-      padding: 8px;
-      background: #fff;
-      font-size: 14px;
-      outline: none;
-      box-sizing: border-box;
-      height: 50px;
-    }
-    #details {
-      resize: vertical;
-      min-height: 100px;
-      max-height: 200px;
-      width: 100%;
-      min-width: 200px;
-      max-width: 100%;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="tel"]:focus,
-    #details:focus {
-      border: 2px solid #9c27b0;
-    }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-    
-    /* ========== Buttons ========== */
-    .appointment-btn,
-    .submit {
-      color: #9c27b0;
-      background-color: #F8EAFA;
-      border: none;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
-      width: 100%;
-    }
-    .appointment-btn:hover,
-    .submit:hover {
-      color: #fff;
-      background-color: #9c27b0;
-      font-weight: 600;
-    }
-    .appointment-btn:disabled,
-    .submit:disabled {
-      background-color: #ccc;
-      color: #666;
-      cursor: not-allowed;
-      font-weight: 700;
-    }
-    
-    /* ========== Sections & Tabs ========== */
-    .section {
-      border: 1px solid rgba(0,0,0,0.2);
-      border-radius: 6px;
-      margin-bottom: 10px;
-      overflow: hidden;
-      background: #fff;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .section-card {
-      padding: 10px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border-radius: 6px;
-    }
-    .section.active {
-      border: 2px solid #9c27b0;
-      box-shadow: 0 3px 8px rgba(154,13,242,0.1);
-    }
-    .section:hover:not(.disabled) {
-      border-color: #9c27b0;
-      box-shadow: 0 3px 8px rgba(154,13,242,0.1);
-    }
-    .section-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .section-icon {
-      background-color: #F8EAFA;
-      color: #9c27b0;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .section-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: #444;
-    }
-    .collapse-icon {
-      transition: transform 0.3s;
-      background: #F8EAFA;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-    }
-    .collapse-icon.active {
-      transform: rotate(-180deg);
-    }
-    .collapsible-section {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.3s ease-out;
-    }
-    .collapsible-section.expanded {
-      max-height: 1000px;
-    }
-    .section-content {
-      padding: 20px;
-      background: #fefefe;
-      border-top: 1px solid #eee;
-    }
-    .select-label {
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #444;
-    }
-    
-    /* ========== Disabled State ========== */
-     .disabled {
-      cursor: not-allowed !important;
-    }
-    
-    .disabled * {
-      cursor: not-allowed !important;
-      pointer-events: none !important;
-    }
-    
-    /* Miscellaneous adjustments */
-    .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9c27b0;
-    }
+          <style>
+            /* ========= Base Styles ========= */
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
 
-    .custom-option:not(.selected):hover .option-checkbox {
-  position: relative;
-  border-color: #9c27b0;
-}
+            .hidden {
+              display: none !important;
+            }
 
-.custom-option:not(.selected):hover .option-checkbox svg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 18px;
-  height: 18px;
-}
+            /* ========= Form Layout ========= */
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              width: 100%;
+              max-width: 800px;
+              min-width: 350px;
+              margin: 0 auto;
+              padding: 16px;
+              border-radius: 6px;
+            }
 
-/* Make sure the SVG is properly centered in all states */
-.option-checkbox svg {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  
- }
+            .flex-row {
+              display: flex;
+              gap: 10px 16px;
+              flex-wrap: wrap;
+              width: 100%;
+            }
 
-    .main-arrow {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      background-color: #F8EAFA;
-      padding: 5px;
-      border-radius: 50%;
-      transition: background-color 0.3s;
-    }
-    .arrow-icon {
-      transition: transform 0.3s ease;
-    }
-    .arrow-icon.rotate {
-      transform: rotate(180deg);
-    }
-    
-  </style>
-          <!-- Section 1: Contact Information -->
-          <div class="flex-row">
-          <div class="section">
-            <div class="section-card" data-target="section-contactInfo">
-              <div class="section-info">
-                <div class="section-icon">${SVG_USER}</div>
-                <div class="section-title">${isEnglish ? "Your Contact Details" : "Vos coordonnées"}</div>
+            .flex-row > div {
+              flex: 1;
+              min-width: 300px;
+            }
+
+            .bold-label {
+              font-weight: 600;
+              font-size: 15px;
+              margin-bottom: 8px;
+              display: block;
+            }
+
+            /* ========= Input Fields ========= */
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            #details {
+              width: 100%;
+              border: 1px solid rgba(0,0,0,0.2);
+              border-radius: 6px;
+              padding: 8px;
+              background: #fff;
+              font-size: 14px;
+              outline: none;
+              box-sizing: border-box;
+              height: 50px;
+            }
+
+            #details {
+              resize: vertical;
+              min-height: 100px;
+              max-height: 200px;
+            }
+
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="tel"]:focus,
+            #details:focus {
+              border: 2px solid #9C27B0;
+            }
+
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+
+            input[type="number"] {
+              -moz-appearance: textfield;
+            }
+
+            /* ========= Dropdown Components ========= */
+            .main-container {
+              display: block;
+              transition: height 0.3s ease;
+              border-radius: 6px;
+              width: 100%;
+              margin-bottom: 15px;
+            }
+
+            .select-wrapper {
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              background-color: #fff;
+              position: relative;
+              width: 100%;
+              min-height: 50px;
+            }
+
+            .select-display {
+              padding: 0 15px;
+              font-size: 14px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              height: 50px;
+              color: #444;
+            }
+
+            .dropdown-icon {
+              width: 24px;
+              height: 24px;
+              transition: transform 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #F8EAFA;
+              border-radius: 50%;
+            }
+
+            .dropdown-icon.rotate {
+              transform: rotate(180deg);
+            }
+
+            .custom-options {
+              display: none;
+              font-size: 14px;
+              border-top: 1px solid #ddd;
+              max-height: 300px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 100;
+              border-radius: 0 0 6px 6px;
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+              width: 100%;
+            }
+
+            .custom-options::-webkit-scrollbar {
+              display: none;
+            }
+
+            .custom-option {
+              padding: 12px 15px;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              transition: background 0.2s;
+              position: relative;
+            }
+
+            .custom-option:hover {
+              background-color: #F8EAFA;
+              color: #9C27B0;
+            }
+
+            .custom-option.selected {
+              background-color: #F8EAFA;
+              color: #9C27B0;
+              font-weight: bold;
+            }
+
+            .option-checkbox {
+              width: 18px;
+              height: 18px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              margin-right: 12px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #fff;
+              transition: all 0.2s;
+            }
+
+            .option-checkbox svg {
+              width: 12px;
+              height: 12px;
+              display: none;
+            }
+
+            .custom-option:hover:not(.selected) .option-checkbox {
+              border-color: #9C27B0;
+            }
+
+            .custom-option:hover:not(.selected) .option-checkbox svg {
+              display: block;
+            }
+
+            .custom-option:hover:not(.selected) .option-checkbox svg path {
+              fill: #9C27B0;
+            }
+
+            .custom-option.selected .option-checkbox {
+              border-color: #9C27B0;
+              background-color: #9C27B0;
+            }
+
+            .custom-option.selected .option-checkbox svg {
+              display: block;
+            }
+
+            .custom-option.selected .option-checkbox svg path {
+              fill: #fff !important;
+            }
+
+            .show-options {
+              display: block;
+            }
+
+            select {
+              display: none;
+            }
+
+            /* ========= Error Components ========= */
+            .error-container {
+              width: 100%;
+              margin: 2px 0;
+              box-sizing: border-box;
+            }
+
+            .error-message {
+              display: none;
+              padding: 5px;
+              border: 1px solid #e8e8e8;
+              border-radius: 6px;
+              background-color: #fff;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+              font-size: 14px;
+              align-items: center;
+            }
+
+            .error-icon {
+              background-color: red;
+              color: #fff;
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              margin-right: 15px;
+              flex-shrink: 0;
+            }
+
+            /* ========= Multi-step form styles ========= */
+            .step-container {
+              display: none;
+              animation: fadeIn 0.5s;
+            }
+
+            .step-container.active {
+              display: block;
+            }
+
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            .step-heading {
+              font-size: 24px;
+              color: #9C27B0;
+              margin-bottom: 20px;
+              font-weight: 600;
+            }
+
+            /* Progress indicator */
+            .progress-container {
+              padding: 0;
+            }
+
+            .step-progress {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              position: relative;
+              margin-bottom: 30px;
+              width: 100%;
+            }
+
+            .step-progress::before {
+              content: '';
+              position: absolute;
+              top: 50%;
+              left: 0;
+              width: 100%;
+              height: 2px;
+              background: #e0e0e0;
+              z-index: 1;
+              transform: translateY(-50%);
+            }
+
+            .progress-bar {
+              position: absolute;
+              top: 50%;
+              left: 0;
+              height: 2px;
+              background: #9C27B0;
+              z-index: 2;
+              transform: translateY(-50%);
+              transition: width 0.3s ease;
+            }
+
+            .step-item {
+              z-index: 3;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              position: relative;
+              text-align: center;
+              width: 20%; /* For 5 steps */
+            }
+
+            .step-icon {
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              background: #e0e0e0;
+              margin-bottom: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+              transition: all 0.3s ease;
+            }
+
+            .step-icon::after {
+              content: '';
+              width: 6px;
+              height: 6px;
+              border-radius: 50%;
+              background: white;
+              position: absolute;
+            }
+
+            .step-title {
+              font-size: 13px;
+              color: #757575;
+              position: absolute;
+              width: 100%;
+              text-align: center;
+              top: 30px;
+              font-weight: 500;
+              transition: all 0.3s ease;
+            }
+
+            .step-item.active .step-icon {
+              background: #9C27B0;
+            }
+
+            .step-item.active .step-title {
+              color: #9C27B0;
+              font-weight: 600;
+            }
+
+            .step-item.completed .step-icon {
+              background: #9C27B0;
+            }
+
+            .step-item.completed .step-title {
+              color: #9C27B0;
+            }
+
+            /* Navigation buttons */
+            .form-buttons {
+              display: flex;
+              justify-content: space-between;
+              margin-top: 30px;
+              gap: 10px;
+            }
+
+            .btn {
+              padding: 12px 24px;
+              border: none;
+              border-radius: 6px;
+              font-size: 16px;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              min-width: 120px;
+              text-align: center;
+            }
+
+            .btn-prev {
+              color: #9C27B0;
+              background-color: #F8EAFA;
+            }
+
+            .btn-prev:hover {
+              background-color: #E1BEE7;
+            }
+
+            .btn-next, .btn-submit {
+              color: #fff;
+              background-color: #9C27B0;
+              font-weight: 500;
+            }
+
+            .btn-next:hover, .btn-submit:hover {
+              background-color: #7B1FA2;
+            }
+
+            .btn:disabled {
+              background-color: #ccc;
+              color: #666;
+              cursor: not-allowed;
+            }
+
+            /* Summary styles */
+            .summary-container {
+              background-color: #f9f9f9;
+              border-radius: 8px;
+              padding: 20px;
+              margin-top: 20px;
+            }
+
+            .summary-row {
+              display: flex;
+              padding: 10px 0;
+              border-bottom: 1px solid #eee;
+              align-items: center;
+            }
+
+            .summary-row:last-child {
+              border-bottom: none;
+            }
+
+            .summary-label {
+              font-weight: 600;
+              width: 30%;
+              color: #555;
+            }
+
+            .summary-value {
+              flex: 1;
+            }
+
+            .edit-btn {
+              background: none;
+              border: none;
+              color: #9C27B0;
+              cursor: pointer;
+              padding: 5px 10px;
+              font-size: 14px;
+              text-decoration: underline;
+            }
+
+            .edit-btn:hover {
+              color: #7B1FA2;
+            }
+
+            /* ========= Responsive Media Queries ========= */
+            @media screen and (max-width: 768px) {
+              form {
+                padding: 12px;
+                min-width: 100%;
+              }
+              
+              .flex-row {
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 5px;
+              }
+              
+              .flex-row > div {
+                flex: 100%;
+                min-width: 100%;
+                width: 100%;
+              }
+              
+              .bold-label {
+                font-size: 14px;
+                margin-bottom: 6px;
+              }
+              
+              input[type="text"],
+              input[type="email"],
+              input[type="tel"] {
+                height: 45px;
+                font-size: 13px;
+              }
+              
+              .select-display {
+                height: 45px;
+                font-size: 13px;
+              }
+              
+              .dropdown-icon {
+                width: 22px;
+                height: 22px;
+              }
+              
+              .custom-option {
+                padding: 10px 12px;
+                font-size: 13px;
+              }
+              
+              .option-checkbox {
+                width: 16px !important;
+                height: 16px !important;
+              }
+              
+              .error-message {
+                font-size: 13px;
+                padding: 4px;
+              }
+              
+              .error-icon {
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+              }
+              
+              /* Responsive progress indicator */
+              .step-progress {
+                margin-bottom: 35px;
+              }
+              
+              .step-title {
+                font-size: 11px;
+                top: 25px;
+              }
+              
+              .step-icon {
+                width: 16px;
+                height: 16px;
+              }
+              
+              .step-heading {
+                font-size: 20px;
+                margin-bottom: 15px;
+              }
+              
+              .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+                min-width: 100px;
+              }
+            }
+
+            @media screen and (max-width: 480px) {
+              form {
+                padding: 10px;
+              }
+              
+              .flex-row {
+                gap: 8px;
+              }
+              
+              .bold-label {
+                font-size: 13px;
+                margin-bottom: 4px;
+              }
+              
+              input[type="text"],
+              input[type="email"],
+              input[type="tel"] {
+                height: 42px;
+                font-size: 12px;
+                padding: 6px;
+              }
+              
+              .select-display {
+                height: 42px;
+                font-size: 12px;
+                padding: 0 10px;
+              }
+              
+              .dropdown-icon {
+                width: 20px;
+                height: 20px;
+              }
+              
+              .custom-option {
+                padding: 8px 10px;
+                font-size: 12px;
+              }
+              
+              .option-checkbox {
+                width: 14px;
+                height: 14px;
+              }
+              
+              .error-message {
+                font-size: 12px;
+                padding: 3px;
+              }
+              
+              .error-icon {
+                width: 18px;
+                height: 18px;
+                margin-right: 8px;
+              }
+              
+              #details {
+                min-height: 80px;
+                font-size: 12px;
+              }
+              
+              /* Smaller progress indicator */
+              .step-progress {
+                margin-bottom: 30px;
+              }
+              
+              .step-title {
+                font-size: 10px;
+                top: 22px;
+              }
+              
+              .step-icon {
+                width: 14px;
+                height: 14px;
+              }
+              
+              .step-heading {
+                font-size: 18px;
+                margin-bottom: 12px;
+              }
+              
+              .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+                min-width: 80px;
+              }
+            }
+          </style>
+
+          <!-- Step Progress Indicator -->
+          <div class="progress-container">
+            <div class="step-progress">
+              <div class="progress-bar" id="progress-bar"></div>
+              <div class="step-item active" data-step="1">
+                <div class="step-icon"></div>
+                <div class="step-title">${isEnglish ? 'Contact' : 'Contact'}</div>
               </div>
-              <div class="collapse-icon">${SVG_CHEVRON}</div>
+              <div class="step-item" data-step="2">
+                <div class="step-icon"></div>
+                <div class="step-title">${isEnglish ? 'Dentist' : 'Dentiste'}</div>
+              </div>
+              <div class="step-item" data-step="3">
+                <div class="step-icon"></div>
+                <div class="step-title">${isEnglish ? 'Service' : 'Service'}</div>
+              </div>
+              <div class="step-item" data-step="4">
+                <div class="step-icon"></div>
+                <div class="step-title">${isEnglish ? 'Message' : 'Message'}</div>
+              </div>
+              <div class="step-item" data-step="5">
+                <div class="step-icon"></div>
+                <div class="step-title">${isEnglish ? 'Summary' : 'Résumé'}</div>
+              </div>
             </div>
-            <div class="collapsible-section" id="section-contactInfo">
-              <div class="section-content">
-                <div class="flex-row">
-                  <div>
-                    <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
-                    <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
-                    <div class="error-container">
-                      <div class="error-message" id="errorFullName">
-                        <div class="error-icon">!</div>
-                        <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="email" class="bold-label">Email</label>
-                    <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
-                    <div class="error-container">
-                      <div class="error-message" id="errorEmail">
-                        <div class="error-icon">!</div>
-                        <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-                    <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
-                    <div class="error-container">
-                      <div class="error-message" id="errorPhone">
-                        <div class="error-icon">!</div>
-                        <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
-                      </div>
-                    </div>
+          </div>
+
+          <!-- Step 1: Contact Information -->
+          <div class="step-container active" id="step-1">
+            <h2 class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <label for="full-name" class="bold-label">${isEnglish ? 'Full Name' : 'Nom complet'}</label>
+                <input type="text" id="full-name" name="full-name" placeholder="${isEnglish ? 'Enter your full name' : 'Entrez votre nom complet'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorFullName">
+                    <div class="error-icon">!</div>
+                    <span>${isEnglish ? 'Full Name is required.' : 'Le nom complet est obligatoire.'}</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <!-- Section 2: Dentist and Service (Mode 1) -->
-          <div class="section">
-            <div class="section-card" data-target="section-dentist-service">
-              <div class="section-info">
-                <div class="section-icon">${SVG_DENTIST}</div>
-                <div class="section-title">${isEnglish ? "Dentist & Service" : "Dentiste et Service"}</div>
+            
+            <div class="flex-row">
+              <div>
+                <label for="email" class="bold-label">Email</label>
+                <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorEmail">
+                    <div class="error-icon">!</div>
+                    <span>${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+                  </div>
+                </div>
               </div>
-              <div class="collapse-icon">${SVG_CHEVRON}</div>
             </div>
-            <div class="collapsible-section" id="section-dentist-service">
-              <div class="section-content">
-                <!-- Custom Practitioner Dropdown -->
-                <div class="main-container" id="practitionerDropdown">
-                  <label class="bold-label">${isEnglish ? 'Select a Dentist' : 'Sélectionnez un dentiste'}</label>
+            
+            <div class="flex-row">
+              <div>
+                <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+                <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorPhone">
+                    <div class="error-icon">!</div>
+                    <span>${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <div></div>
+              <button type="button" class="btn btn-next" id="step1-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Dentist Selection -->
+          <div class="step-container" id="step-2">
+            <h2 class="step-heading">${isEnglish ? 'Select a Dentist' : 'Sélectionnez un dentiste'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <div class="main-container" id="dentistDropdown">
+                  <label class="bold-label">${isEnglish ? 'Choose a Dentist' : 'Choisissez un dentiste'}</label>
                   <select id="dentistSelect" name="dentistSelect" required style="display:none;"></select>
                   <div class="select-wrapper">
-                    <div class="select-display" id="selectDisplayPractitioner">
+                    <div class="select-display" id="selectDisplayDentist">
                       <span>${isEnglish ? '-- Select a Dentist --' : '-- Sélectionnez un dentiste --'}</span>
-                      <div class="dropdown-icon" id="dropdownIconPractitioner">${SVG_CHEVRON}</div>
+                      <div class="dropdown-icon" id="dropdownIconDentist">${SVG_CHEVRON}</div>
                     </div>
-                    <div class="custom-options" id="customOptionsPractitioner"></div>
+                    <div class="custom-options" id="customOptionsDentist"></div>
                   </div>
                   <div class="error-container">
                     <div class="error-message" id="errorDentist">
@@ -9574,80 +9857,170 @@ function handleFormTimeout() {
                     </div>
                   </div>
                 </div>
-                <!-- Custom Service Dropdown (dependent on selected Dentist) -->
-                <div id="practitionerServiceContainer" style="display:none;">
-                  <label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
-                  <div class="main-container" id="serviceDropdownPractitioner">
-                    <select id="dentistServiceSelect" name="dentistServiceSelect" required style="display:none;"></select>
-                    <div class="select-wrapper">
-                      <div class="select-display" id="selectDisplayPractitionerService">
-                        <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
-                        <div class="dropdown-icon" id="dropdownIconPractitionerService">${SVG_CHEVRON}</div>
-                      </div>
-                      <div class="custom-options" id="customOptionsPractitionerService"></div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step2-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-next" id="step2-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Service Selection -->
+          <div class="step-container" id="step-3">
+            <h2 class="step-heading">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <div class="main-container" id="serviceDropdown">
+                  <label class="bold-label">${isEnglish ? 'Choose a Service' : 'Choisissez un service'}</label>
+                  <select id="serviceSelect" name="serviceSelect" required style="display:none;"></select>
+                  <div class="select-wrapper">
+                    <div class="select-display" id="selectDisplayService">
+                      <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
+                      <div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
                     </div>
-                    <div class="error-container">
-                      <div class="error-message" id="errorDentistService">
-                        <div class="error-icon">!</div>
-                        <span>${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
-                      </div>
+                    <div class="custom-options" id="customOptionsService"></div>
+                  </div>
+                  <div class="error-container">
+                    <div class="error-message" id="errorService">
+                      <div class="error-icon">!</div>
+                      <span>${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          </div>
-                    <!-- Message Section -->
-           <div class="section">
-        <div class="section-card" data-target="section-message">
-          <div class="section-info">
-            <div class="section-icon">
-              ${SVG_MESSAGE}
-            </div>
-            <div class="section-title">
-              ${isEnglish ? "Message" : "Message"}
-            </div>
-          </div>
-          <div class="collapse-icon">
-            ${SVG_CHEVRON}
-          </div>
-        </div>
-        <div class="collapsible-section" id="section-message">
-          <div class="section-content">
-            <label for="details" class="bold-label">
-              ${isEnglish ? 'Message' : 'Message'}
-            </label>
-            <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
             
-            <div class="error-container">
-  <div class="error-message" id="errorMessage">
-    <div class="error-icon">!</div>
-    <span>${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
-  </div>
-</div>
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step3-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-next" id="step3-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
+          <!-- Step 4: Message -->
+          <div class="step-container" id="step-4">
+            <h2 class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
+                <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+                <div class="error-container">
+                  <div class="error-message" id="errorMessage">
+                    <div class="error-icon">!</div>
+                    <span>${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step4-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-next" id="step4-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
 
-
-          <!-- Submit button -->
-          <button type="button" class="appointment-btn" id="submit-button">
-            ${isEnglish ? 'Submit' : 'Soumettre'}
-          </button>
+          <!-- Step 5: Summary and Submit -->
+          <div class="step-container" id="step-5">
+            <h2 class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</h2>
+            
+            <div class="summary-container">
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Full Name' : 'Nom complet'}:</div>
+                <div class="summary-value" id="summary-fullname"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">Email:</div>
+                <div class="summary-value" id="summary-email"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Phone' : 'Téléphone'}:</div>
+                <div class="summary-value" id="summary-phone"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Dentist' : 'Dentiste'}:</div>
+                <div class="summary-value" id="summary-dentist"></div>
+                <button type="button" class="edit-btn" data-step="2">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Service' : 'Service'}:</div>
+                <div class="summary-value" id="summary-service"></div>
+                <button type="button" class="edit-btn" data-step="3">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Message' : 'Message'}:</div>
+                <div class="summary-value" id="summary-message"></div>
+                <button type="button" class="edit-btn" data-step="4">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step5-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-submit" id="submit-button">
+                ${isEnglish ? 'Submit' : 'Envoyer'}
+              </button>
+            </div>
+          </div>
         `;
         element.appendChild(formContainer);
     
         /*************************************************************
-         * UI Helper Functions for Custom Dropdown (Mode 1)
+         * Form Navigation Functions
          *************************************************************/
-		 
-		 
-		 function startFormTimer() {
+        function showStep(stepNumber) {
+          formContainer.querySelectorAll('.step-container').forEach(step => {
+            step.classList.remove('active');
+          });
+          
+          formContainer.querySelector(`#step-${stepNumber}`).classList.add('active');
+          currentStep = stepNumber;
+          updateProgressBar();
+          
+          // Scroll to top of form
+          formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function updateProgressBar() {
+          const progressBar = formContainer.querySelector('#progress-bar');
+          const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+          progressBar.style.width = `${progressPercentage}%`;
+          
+          formContainer.querySelectorAll('.step-item').forEach(item => {
+            const stepNumber = parseInt(item.getAttribute('data-step'));
+            item.classList.remove('active', 'completed');
+            
+            if (stepNumber === currentStep) {
+              item.classList.add('active');
+            } else if (stepNumber < currentStep) {
+              item.classList.add('completed');
+            }
+          });
+        }
+        
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
           let timeLeft = TIMEOUT_DURATION;
           
-          // Just set the timeout - no display updates needed
           formTimeoutId = setInterval(() => {
             timeLeft -= 1000;
             
@@ -9659,7 +10032,7 @@ function handleFormTimeout() {
             }
           }, 1000);
         }
-        
+
         function handleFormTimeout() {
           disableAllFormElements();
           
@@ -9669,288 +10042,409 @@ function handleFormTimeout() {
           submitButton.style.backgroundColor = "#f44336";
           submitButton.style.color = "white";
           
-          window.voiceflow.chat.interact({
-            type: "timeEnd",
-            payload: {
-              message: "Time expired"
-            }
+          if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            window.voiceflow.chat.interact({
+              type: "timeEnd",
+              payload: {
+                message: "Time expired"
+              }
+            });
+          }
+        }
+        
+        /*************************************************************
+         * Form Disable Function
+         *************************************************************/
+        function disableAllFormElements() {
+          // Set cursor style to not-allowed for all interactive elements
+          formContainer.querySelectorAll('button, input, select, textarea, .custom-options, .select-wrapper, .dropdown-icon').forEach(el => {
+            el.disabled = true;
+            el.style.cursor = "not-allowed";
           });
+          
+          // Disable dropdown functionality
+          formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => {
+            opt.classList.remove('show-options');
+          });
+          
+          formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => {
+            icon.classList.remove('rotate');
+          });
+          
+          formContainer.classList.add('disabled');
         }
-    
-	
-        function closeAllUIElements() {
-          // Close all dropdown menus within the form container.
-          formContainer.querySelectorAll('.custom-options').forEach(opt => opt.classList.remove('show-options'));
-          formContainer.querySelectorAll('.dropdown-icon').forEach(icon => icon.classList.remove('rotate'));
-          // Optionally collapse any expanded sections.
-          formContainer.querySelectorAll('.collapsible-section.expanded').forEach(sec => sec.classList.remove('expanded'));
-          formContainer.querySelectorAll('.section-card.active').forEach(card => card.classList.remove('active'));
-        }
-    
+        
+        /*************************************************************
+         * Custom Dropdown Initialization
+         *************************************************************/
         function initializeCustomDropdown(dropdownId, placeholderText, optionsData, onSelect) {
           const container = formContainer.querySelector(`#${dropdownId}`);
           const selectDisplay = container.querySelector('.select-display');
           const customOptions = container.querySelector('.custom-options');
           const dropdownIcon = container.querySelector('.dropdown-icon');
           const nativeSelect = container.querySelector('select');
+          
           nativeSelect.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
           selectDisplay.querySelector('span').textContent = placeholderText;
           customOptions.innerHTML = "";
+          
           optionsData.forEach(item => {
             const optionEl = document.createElement('div');
             optionEl.className = 'custom-option';
             optionEl.dataset.value = item.id;
             optionEl.innerHTML = `<div class="option-checkbox">${SVG_CHECK}</div><span>${item.name}</span>`;
             customOptions.appendChild(optionEl);
+            
             const opt = document.createElement('option');
             opt.value = item.id;
             opt.textContent = item.name;
             nativeSelect.appendChild(opt);
+            
             optionEl.addEventListener('click', function(e) {
               e.stopPropagation();
-              customOptions.querySelectorAll('.custom-option').forEach(opt => {
-                opt.classList.remove('selected');
-              });
+              customOptions.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
               this.classList.add('selected');
               selectDisplay.querySelector('span').textContent = item.name;
               nativeSelect.value = item.id;
               customOptions.classList.remove('show-options');
               dropdownIcon.classList.remove('rotate');
+              
               if (onSelect) onSelect(item);
-              const errorEl = container.parentNode.querySelector(".error-message");
+              
+              const errorEl = container.querySelector(".error-message") || 
+                             container.parentNode.querySelector(".error-message");
               if (errorEl) errorEl.style.display = "none";
             });
           });
-          selectDisplay.addEventListener('click', function(e) {
+          
+          // Direct DOM binding for dropdown toggle
+          selectDisplay.onclick = function(e) {
             e.stopPropagation();
-            const isOpen = customOptions.classList.contains('show-options');
-            // Only close dropdowns within form container.
-            formContainer.querySelectorAll('.custom-options').forEach(optList => optList.classList.remove('show-options'));
-            formContainer.querySelectorAll('.dropdown-icon').forEach(icon => icon.classList.remove('rotate'));
-            if (!isOpen) {
-              customOptions.classList.add('show-options');
-              dropdownIcon.classList.add('rotate');
-            } else {
+            if (customOptions.classList.contains('show-options')) {
               customOptions.classList.remove('show-options');
               dropdownIcon.classList.remove('rotate');
+            } else {
+              // Close all other dropdowns first
+              formContainer.querySelectorAll('.custom-options').forEach(optList => {
+                if (optList !== customOptions) {
+                  optList.classList.remove('show-options');
+                }
+              });
+              
+              formContainer.querySelectorAll('.dropdown-icon').forEach(icon => {
+                if (icon !== dropdownIcon) {
+                  icon.classList.remove('rotate');
+                }
+              });
+              
+              customOptions.classList.add('show-options');
+              dropdownIcon.classList.add('rotate');
             }
-          });
-          formContainer.addEventListener('click', function(e) {
+          };
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', function(e) {
             if (!container.contains(e.target)) {
               customOptions.classList.remove('show-options');
               dropdownIcon.classList.remove('rotate');
             }
           });
         }
-    
+        
         /*************************************************************
-         * Section and Tab Functionality
+         * Form Validation
          *************************************************************/
-        function toggleSection(sectionId, forceOpen = false) {
-  const section = formContainer.querySelector(`#${sectionId}`);
-  if (!section) return;
-  const parentSection = section.previousElementSibling;
-  const icon = parentSection.querySelector(".collapse-icon");
-  const wasExpanded = section.classList.contains("expanded");
-  
-  // Close all other sections.
-  formContainer.querySelectorAll(".collapsible-section").forEach(sec => {
-    if (sec.id !== sectionId) {
-      sec.classList.remove("expanded");
-      const card = sec.previousElementSibling;
-      if (card) card.classList.remove("active");
-      const icon = card ? card.querySelector(".collapse-icon") : null;
-      if (icon) icon.classList.remove("active");
-    }
-  });
-  
-  // If forceOpen is true, always open the section
-  // Otherwise, toggle the section based on its current state
-  if (forceOpen || !wasExpanded) {
-    section.classList.add("expanded");
-    parentSection.classList.add("active");
-    if (icon) icon.classList.add("active");
-  } else {
-    section.classList.remove("expanded");
-    parentSection.classList.remove("active");
-    if (icon) icon.classList.remove("active");
-  }
-}
-        formContainer.querySelectorAll('.section-card').forEach(card => {
-          const targetId = card.getAttribute("data-target");
-          card.addEventListener("click", (e) => {
-            e.stopPropagation();
-            toggleSection(targetId);
-          });
-        });
-    
-        /*************************************************************
-         * Initialize the Custom Dropdown for Practitioner Mode (Mode 1)
-         *************************************************************/
-        const practitionersData = dentalData.allPractitioners.map(practitioner => ({
-          id: practitioner.nom,
-          name: practitioner.nom
-        }));
-        initializeCustomDropdown("practitionerDropdown", isEnglish ? '-- Select a Dentist --' : '-- Sélectionnez un dentiste --', practitionersData, (selectedDentist) => {
-          const dentist = dentalData.allPractitioners.find(d => d.nom === selectedDentist.name);
-          if (dentist) {
-            formContainer.querySelector("#dentistServiceSelect").value = "";
-            formContainer.querySelector("#selectDisplayPractitionerService").querySelector("span").textContent = isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --';
-            const serviceData = dentist.services.map(s => ({ id: s, name: s }));
-            const serviceDropdownEl = formContainer.querySelector("#serviceDropdownPractitioner");
-// Clear the native select and custom options without replacing the whole node.
-const nativeSelect = serviceDropdownEl.querySelector("select");
-const customOptions = serviceDropdownEl.querySelector(".custom-options");
-nativeSelect.innerHTML = `<option value="" disabled selected>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</option>`;
-customOptions.innerHTML = "";
-initializeCustomDropdown("serviceDropdownPractitioner", isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', serviceData);
-
-            formContainer.querySelector("#practitionerServiceContainer").style.display = "block";
-            // Optionally: automatically open the service dropdown.
-            const disp = formContainer.querySelector("#selectDisplayPractitionerService");
-            const opts = formContainer.querySelector("#customOptionsPractitionerService");
-            const icon = formContainer.querySelector("#dropdownIconPractitionerService");
-            if(disp && opts && icon){
-              opts.classList.add("show-options");
-              icon.classList.add("rotate");
-            }
+        function validateStep1() {
+          let isValid = true;
+          
+          // Full Name validation
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          if (!fullName) {
+            formContainer.querySelector("#errorFullName").style.display = "flex";
+            isValid = false;
           }
-        });
-    
-        /*************************************************************
-         * Live Validation for Input Fields
-         *************************************************************/
-        formContainer.querySelector("#full-name").addEventListener("input", function() {
-          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
-        });
-        formContainer.querySelector("#email").addEventListener("input", function() {
-          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
-        });
-        formContainer.querySelector("#phone").addEventListener("input", function() {
-          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
-        });
-    
-        /*************************************************************
-         * Disable All Form Elements After Submission
-         *************************************************************/
-        function disableAllFormElements() {
-          formContainer.querySelectorAll('.collapsible-section.expanded').forEach(sec => {
-            sec.classList.remove('expanded');
-            let card = sec.previousElementSibling;
-            if (card) {
-              card.classList.remove('active');
-              let icon = card.querySelector('.collapse-icon');
-              if (icon) icon.classList.remove('active');
-            }
-          });
-          formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => opt.classList.remove('show-options'));
-          formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => icon.classList.remove('rotate'));
-          formContainer.classList.add('disabled');
+          
+          // Email validation
+          const email = formContainer.querySelector("#email").value.trim();
+          if (!email || !isValidEmail(email)) {
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            isValid = false;
+          }
+          
+          // Phone validation
+          const phone = formContainer.querySelector("#phone").value.trim();
+          if (!phone || !isValidPhoneNumber(phone)) {
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
         }
-    
+        
+        function validateStep2() {
+          let isValid = true;
+          
+          // Dentist validation
+          const dentist = formContainer.querySelector("#dentistSelect").value;
+          if (!dentist) {
+            formContainer.querySelector("#errorDentist").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
+        function validateStep3() {
+          let isValid = true;
+          
+          // Service validation
+          const service = formContainer.querySelector("#serviceSelect").value;
+          if (!service) {
+            formContainer.querySelector("#errorService").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
+        function validateStep4() {
+          let isValid = true;
+          
+          // Message validation
+          const message = formContainer.querySelector("#details").value.trim();
+          if (!message) {
+            formContainer.querySelector("#errorMessage").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
         /*************************************************************
-         * Form Submission Process with Sequential Validation
+         * Update Summary
          *************************************************************/
-        formContainer.querySelector("#submit-button").addEventListener("click", () => {
-          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
-            errorEl.style.display = "none";
-          });
-    
+        function updateSummary() {
+          // Contact information
           const fullName = formContainer.querySelector("#full-name").value.trim();
           const email = formContainer.querySelector("#email").value.trim();
           const phone = formContainer.querySelector("#phone").value.trim();
-          // For Mode 1 only:
-          const selectedDentist = formContainer.querySelector("#dentistSelect").value;
-          const selectedService = formContainer.querySelector("#dentistServiceSelect").value;
-        const details = formContainer.querySelector("#details").value.trim();
-
-    
-          if (!fullName) {
-            toggleSection("section-contactInfo", true);
-            formContainer.querySelector("#errorFullName").style.display = "flex";
-            return;
-          }
-          if (!email || !isValidEmail(email)) {
-            toggleSection("section-contactInfo", true);
-            formContainer.querySelector("#errorEmail").style.display = "flex";
-            return;
-          }
-          if (!phone || !isValidPhoneNumber(phone)) {
-            toggleSection("section-contactInfo", true);
-            formContainer.querySelector("#errorPhone").style.display = "flex";
-            return;
-          }
-    
-          if (!selectedDentist) {
-            toggleSection("section-dentist-service", true);
-            formContainer.querySelector("#errorDentist").style.display = "flex";
-            return;
-          }
-          if (!selectedService) {
-            toggleSection("section-dentist-service", true);
-            formContainer.querySelector("#errorDentistService").style.display = "flex";
-            return;
-          }
-  if (!details) {
-    toggleSection("section-message", true);  // Force open with true
-    // Note: I see a potential issue here - there's no #errorMessage element defined in your HTML
-    // You might need to add this error element in your HTML
-    const errorMessage = formContainer.querySelector("#errorMessage");
-    if (errorMessage) {
-      errorMessage.style.display = "flex";
-    } else {
-      // Create an error message if it doesn't exist
-      console.error("Error message element for details field not found");
-    }
-    return;
-  }
-
-    
-          formContainer.querySelectorAll(".error-message").forEach(errorEl => {
+          
+          // Dentist and service
+          const dentistName = formContainer.querySelector("#dentistSelect").value;
+          const serviceName = formContainer.querySelector("#serviceSelect").value;
+          
+          // Message
+          const message = formContainer.querySelector("#details").value.trim();
+          
+          // Update summary values
+          formContainer.querySelector("#summary-fullname").textContent = fullName;
+          formContainer.querySelector("#summary-email").textContent = email;
+          formContainer.querySelector("#summary-phone").textContent = phone;
+          formContainer.querySelector("#summary-dentist").textContent = dentistName;
+          formContainer.querySelector("#summary-service").textContent = serviceName;
+          formContainer.querySelector("#summary-message").textContent = message.length > 100 ? message.substring(0, 100) + '...' : message;
+        }
+        
+        /*************************************************************
+         * Initialize Dropdowns & Form Controls
+         *************************************************************/
+        // Load all dentists for the first dropdown
+        const dentistsData = dentalData.allPractitioners.map(practitioner => ({
+          id: practitioner.nom,
+          name: practitioner.nom
+        }));
+        
+        initializeCustomDropdown("dentistDropdown", 
+                              isEnglish ? '-- Select a Dentist --' : '-- Sélectionnez un dentiste --', 
+                              dentistsData, 
+                              (selectedItem) => {
+                                // Store selected dentist for later use
+                                selectedDentist = selectedItem.id;
+                                
+                                // Reset service dropdown when dentist changes
+                                const serviceSelect = formContainer.querySelector("#serviceSelect");
+                                if (serviceSelect) serviceSelect.value = "";
+                                
+                                // Reset service display text
+                                const serviceDisplay = formContainer.querySelector("#selectDisplayService span");
+                                if (serviceDisplay) serviceDisplay.textContent = isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --';
+                              });
+        
+        // Input validation event listeners
+        formContainer.querySelector("#full-name").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorFullName").style.display = "none";
+        });
+        
+        formContainer.querySelector("#email").addEventListener("input", function() {
+          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+        });
+        
+        formContainer.querySelector("#phone").addEventListener("input", function() {
+          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+        });
+        
+        formContainer.querySelector("#details").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorMessage").style.display = "none";
+        });
+        
+        /*************************************************************
+         * Navigation Setup
+         *************************************************************/
+        // Step 1 to Step 2
+        formContainer.querySelector("#step1-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-1 .error-message").forEach(errorEl => {
             errorEl.style.display = "none";
           });
-    
-          const dentistInfo = dentalData.allPractitioners.find(d => d.nom === selectedDentist);
-          if (!dentistInfo) {
-            alert(isEnglish ? "Invalid dentist selected." : "Dentiste sélectionné invalide.");
-            return;
+          
+          if (validateStep1()) {
+            showStep(2);
           }
-    
-          const submitButton = formContainer.querySelector("#submit-button");
+        });
+        
+        // Step 2 navigation
+        formContainer.querySelector("#step2-prev").addEventListener("click", function() {
+          showStep(1);
+        });
+        
+        formContainer.querySelector("#step2-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-2 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep2()) {
+            // Prepare services for selected dentist
+            const dentistName = formContainer.querySelector("#dentistSelect").value;
+            const dentist = dentalData.allPractitioners.find(d => d.nom === dentistName);
+            
+            if (dentist) {
+              // Populate services dropdown
+              const serviceData = dentist.services.map(s => ({ id: s, name: s }));
+              
+              // Initialize the services dropdown with the dentist's services
+              initializeCustomDropdown("serviceDropdown", 
+                                    isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', 
+                                    serviceData,
+                                    (selectedItem) => {
+                                      // Store selected service for later use
+                                      selectedService = selectedItem.id;
+                                    });
+              
+              showStep(3);
+            }
+          }
+        });
+        
+        // Step 3 navigation
+        formContainer.querySelector("#step3-prev").addEventListener("click", function() {
+          showStep(2);
+        });
+        
+        formContainer.querySelector("#step3-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-3 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep3()) {
+            showStep(4);
+          }
+        });
+        
+        // Step 4 navigation
+        formContainer.querySelector("#step4-prev").addEventListener("click", function() {
+          showStep(3);
+        });
+        
+        formContainer.querySelector("#step4-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-4 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep4()) {
+            updateSummary();
+            showStep(5);
+          }
+        });
+        
+        // Step 5 navigation
+        formContainer.querySelector("#step5-prev").addEventListener("click", function() {
+          showStep(4);
+        });
+        
+        // Edit buttons in summary view
+        formContainer.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const stepToShow = parseInt(btn.getAttribute('data-step'));
+            showStep(stepToShow);
+          });
+        });
+        
+        /*************************************************************
+         * Form Submission
+         *************************************************************/
+        formContainer.querySelector("#submit-button").addEventListener("click", function() {
+          // Collect all form data
+          const fullName = formContainer.querySelector("#full-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const dentistName = formContainer.querySelector("#dentistSelect").value;
+          const serviceName = formContainer.querySelector("#serviceSelect").value;
+          const message = formContainer.querySelector("#details").value.trim();
+          
+          // Disable form elements and update button
+          const submitButton = this;
           submitButton.disabled = true;
           submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
           submitButton.style.cursor = "not-allowed";
           submitButton.style.backgroundColor = "#4CAF50";
-          submitButton.style.color = "white";
-		  
-		   // Mark form as submitted and clear the timeout
+          submitButton.style.color = "#fff";
+          
+          // Mark form as submitted to prevent timeout
           isFormSubmitted = true;
           if (formTimeoutId) {
             clearInterval(formTimeoutId);
           }
-    
-         
-                      window.voiceflow.chat.interact({
-            type: "complete",
-            payload: {
-              fullName,
-              email,
-              phone: formatPhoneNumber(phone),
-              practitioner: dentistInfo.nom,
-              service: selectedService,
-              message: details  // New field added here
-            },
-          });
-
-            submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
           
+          // Log form data (for demonstration)
+          console.log("Form Data Submitted:", {
+            fullName,
+            email,
+            phone: formatPhoneNumber(phone),
+            dentist: dentistName,
+            service: serviceName,
+            message
+          });
+          
+          // Send data to Voiceflow if available
+          if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            window.voiceflow.chat.interact({ 
+              type: "complete",
+              payload: { 
+                fullName,
+                email,
+                phone: formatPhoneNumber(phone),
+                practitioner: dentistName,
+                service: serviceName,
+                message
+              },
+            });
+          }
+          
+          // Disable all form elements
           disableAllFormElements();
+          submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
         });
-		startFormTimer();
+        
+        // Start the form timer
+        startFormTimer();
+        
+        // Initialize progress bar
+        updateProgressBar();
       }
     };
-    
-    
 
 window.BookingFormExtension = BookingFormExtension;
 window.BookingCalendarExtension = BookingCalendarExtension;
