@@ -1494,7 +1494,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 }
 .days-container {
   width: 47%;
-  padding: 15px 10px;
   position: relative;
   background-image: linear-gradient(
       rgba(156, 39, 176, 0.03) 1px,
@@ -6781,7 +6780,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 }
 .days-container {
   width: 47%;
-  padding: 15px 10px;
   position: relative;
   background-image: linear-gradient(
       rgba(156, 39, 176, 0.03) 1px,
@@ -7408,7 +7406,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   }
   
   .days-container {
-    width: 50%;
+    width: 47%;
   }
   
   .times-container {
