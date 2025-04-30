@@ -9098,7 +9098,7 @@ function handleFormTimeout() {
   /*************************************************************
      * 3) ContactFormExtension - MAIN EXTENSION OBJECT (Mode 1 Only)
      *************************************************************/
-  const ContactFormExtension = {
+   const ContactFormExtension = {
       name: "ContactForm",
       type: "response",
       match: ({ trace }) => trace.type === 'ext_contact_form' || trace.payload?.name === 'ext_contact_form',
@@ -9399,6 +9399,13 @@ function handleFormTimeout() {
             /* Progress indicator */
             .progress-container {
               padding: 0;
+              min-width: 275px;
+            }
+            
+            @media screen and (min-width: 768px) {
+              .progress-container {
+                min-width: 400px;
+              }
             }
 
             .step-progress {
@@ -9841,7 +9848,6 @@ function handleFormTimeout() {
             <div class="flex-row">
               <div>
                 <div class="main-container" id="dentistDropdown">
-                  <label class="bold-label">${isEnglish ? 'Choose a Dentist' : 'Choisissez un dentiste'}</label>
                   <select id="dentistSelect" name="dentistSelect" required style="display:none;"></select>
                   <div class="select-wrapper">
                     <div class="select-display" id="selectDisplayDentist">
@@ -9877,7 +9883,6 @@ function handleFormTimeout() {
             <div class="flex-row">
               <div>
                 <div class="main-container" id="serviceDropdown">
-                  <label class="bold-label">${isEnglish ? 'Choose a Service' : 'Choisissez un service'}</label>
                   <select id="serviceSelect" name="serviceSelect" required style="display:none;"></select>
                   <div class="select-wrapper">
                     <div class="select-display" id="selectDisplayService">
@@ -9912,7 +9917,6 @@ function handleFormTimeout() {
             
             <div class="flex-row">
               <div>
-                <label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
                 <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
                 <div class="error-container">
                   <div class="error-message" id="errorMessage">
