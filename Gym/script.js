@@ -7240,7 +7240,187 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   font-weight: 500;
 }
 
+@media (max-width: 768px) {
+  .calendar-body {
+    flex-direction: column;
+    height: auto;
+  }
+  .days-container,
+  .times-container {
+    width: 100%;
+  }
+  .times-container {
+    border-left: none;
+    border-top: 1px solid #eaeaea;
+    max-height: 250px;
+  }
+  .day {
+    height: 40px;
+    width: 40px;
+    font-size: 13px;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .time-header {
+    font-size: 15px;
+  }
+  .action-btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+  .service-provider,
+  .service-name {
+    font-size: 14px;
+  }
+  
+  .current-date {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+  
+  /* Make calendar grid more compact */
+  .weekdays {
+    font-size: 11px;
+    padding: 10px 0 5px;
+  }
+  
+  /* Adjust animation for mobile */
+  @keyframes mobileShimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .confirm-btn:hover:not(:disabled)::before {
+    animation: mobileShimmer 2s infinite;
+  }
+  
+  /* Better touch targets for mobile */
+  .time-slot {
+    padding: 12px 8px;
+    min-width: 70px;
+    margin: 0 auto;
+    width: 60%;
+  }
+  
+  /* Keep AM/PM columns side by side even on small screens */
+  .time-slots-columns {
+    gap: 10px;
+  }
+  
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
+}
 
+/* Additional breakpoint for very small screens */
+@media (max-width: 480px) {
+  .calendar-container {
+    border-radius: 10px;
+  }
+  
+  .calendar-header {
+    padding: 12px 15px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .day {
+    height: 35px;
+    width: 35px;
+    font-size: 12px;
+  }
+  
+  .provider-icon, .service-icon, .appointment-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .service-provider, .service-name, .appointment-date {
+    font-size: 13px;
+    height: 20px;
+    line-height: 20px;
+  }
+  
+  .time-slot {
+    padding: 10px 4px;
+    font-size: 13px;
+  }
+  
+  /* Keep AM/PM side-by-side but adjust sizes */
+  .time-slots-column {
+    min-width: 0;
+    width: calc(50% - 5px);
+  }
+  
+  .time-slots-columns {
+    gap: 10px;
+    display: flex;
+    flex-direction: row;
+  }
+  
+  /* Fix footer on small screens */
+  .calendar-footer {
+    padding: 12px 10px;
+  }
+  
+  .confirm-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  /* Reduce the textarea size */
+  .reschedule-reason {
+    padding: 15px 10px;
+  }
+  
+  .reschedule-reason textarea {
+    min-height: 50px;
+  }
+}
+
+/* Tap state for mobile devices */
+@media (hover: none) {
+  .day:active:not(.inactive):not(.active) {
+    background-color: #F8EAFA;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
+  }
+  
+  .time-slot.available:active:not(.selected) {
+    background-color: #F8EAFA;
+    color: #9c27b0;
+    border: 2px solid #9c27b0;
+  }
+  
+  .confirm-btn:active:not(:disabled) {
+    background: #9c27b0;
+    color: white;
+  }
+}
+
+#details {
+  resize: vertical;
+  min-height: 100px;
+  max-height: 200px;
+  border-radius: 10px 10px 0px 10px;
+}
 
         `;
         shadow.appendChild(style);
