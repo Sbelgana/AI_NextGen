@@ -6932,6 +6932,8 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
   padding: 0 5px;
   line-height: 1.4;
   position: relative;
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Include padding in width */
 }
 .time-header::after {
   content: "";
@@ -7332,10 +7334,27 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     font-size: 12px;
   }
   
-  /* Time slot adjustments */
-  .time-slot {
-    padding: 10px 4px;
-    font-size: 13px;
+  .time-header {
+    font-size: 14px; /* Slightly smaller font size */
+    padding: 0 10px; /* More horizontal padding */
+    margin: 12px auto; /* Center with auto margins */
+    max-width: 90%; /* Contain width on small screens */
+    overflow-wrap: break-word; /* Allow text wrapping */
+  }
+  
+  /* Fix container centering */
+  .times-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Ensure time slots maintain centering */
+  .time-slots {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   /* Column layout preservation */
