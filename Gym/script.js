@@ -387,7 +387,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
       font-weight: 600;
       color: #000;
       font-size: 14px;
-      margin-bottom: 4px;
       display: block;
     }
     input[type="text"],
@@ -6320,7 +6319,7 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
     form {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
       width: 100%;
       max-width: 800px;      
       min-width: 400px;
@@ -6332,7 +6331,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
       font-weight: 600;
       color: #000;
       font-size: 14px;
-      margin-bottom: 8px;
       display: block;
     }
     input[type="text"],
@@ -9298,7 +9296,6 @@ function handleFormTimeout() {
       font-weight: 600;
       color: #000;
       font-size: 14px;
-      margin-bottom: 4px;
       display: block;
     }
     input[type="text"],
