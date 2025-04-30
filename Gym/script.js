@@ -1623,7 +1623,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 .times-container {
   width: 53%;
   border-left: 1px solid #eaeaea;
-  padding: 20px 10px;
   overflow-y: auto;
   background-color: #fefeff;
   position: relative;
@@ -6909,7 +6908,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
 .times-container {
   width: 53%;
   border-left: 1px solid #eaeaea;
-  padding: 20px 10px;
   overflow-y: auto;
   background-color: #fefeff;
   position: relative;
