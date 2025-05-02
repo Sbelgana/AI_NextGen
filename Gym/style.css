@@ -412,3 +412,134 @@ height: 100px;
     width: 100%;
     height: 300px;
 }
+
+.vfrc-carousel.w2917p4 {
+    position: relative;
+    overflow: visible;
+    margin-bottom: 50px;
+    padding-bottom: 0;
+}
+
+/* Carousel track */
+.w2917p1 {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    padding-bottom: 0;
+}
+
+/* Hide scrollbar */
+.w2917p1::-webkit-scrollbar {
+    display: none;
+}
+
+/* Card container */
+.o231sh1 {
+    transition: transform 0.3s ease;
+    position: relative;
+    flex: 0 0 auto;
+    margin-right: 15px;
+}
+
+/* Card styles */
+.vfrc-card._1lbxmyd0 {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 10px  10px 10px rgb(0 0 0 / 16%);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    margin: 10px 10px;
+}
+
+/* RIGHT SWIPE BUTTON (left position) */
+.vfrc-carousel--button.betklma {
+    left: calc(50% - 60px) !important; /* More standard positioning */
+    right: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* LEFT SWIPE BUTTON (right position) */
+.vfrc-carousel--button.betklmc {
+    right: calc(50% - 60px) !important; /* More standard positioning */
+    left: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Base button styles */
+.vfrc-carousel--button {
+    position: absolute !important;
+    width: 50px !important;
+    height: 50px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 100 !important;
+    cursor: pointer !important;
+    border: none !important;
+}
+
+/* Button hover effects */
+.vfrc-carousel--button:hover {
+    background: #38bdf8 !important;
+    color: white !important;
+    transform: scale(1.1) !important;
+}
+
+
+
+/* Left-pointing arrow */
+.betklmc .vfrc-icon svg {
+    transform: rotate(0deg);
+}
+
+/* Left-pointing arrow */
+.betklma .vfrc-icon svg {
+    transform: rotate(0deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .o231sh1 {
+        width: 250px;
+    }
+    
+    .vfrc-carousel--button {
+        width: 44px !important;
+        height: 44px !important;
+        bottom: 15px !important;
+    }
+    
+    .vfrc-carousel--button.betklma {
+        left: calc(50% - 55px) !important;
+    }
+    
+    .vfrc-carousel--button.betklmc {
+        right: calc(50% - 55px) !important;
+    }
+}
+.vfrc-carousel--button.betklma, .betklmc {
+    position: absolute !important;
+    top: auto !important;
+    bottom: -50px !important; /* Position below the carousel */
+    transform: none !important;
+    width: 50px !important;
+    height: 50px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 100 !important;
+    cursor: pointer !important;
+    border: none !important;
+}
+
+
