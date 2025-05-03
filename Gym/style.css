@@ -408,8 +408,8 @@ height: 100px;
 }
 
 ._1lbxmyd1 {
-    display: inline-block;
-    width: 100%;
+    /* display: inline-block; */
+    /* width: 100%; */
     height: 250px;
 }
 
@@ -418,6 +418,7 @@ height: 100px;
     overflow: visible;
     margin-bottom: 50px;
     padding-bottom: 0;
+	
 }
 
 /* Carousel track */
@@ -428,6 +429,8 @@ height: 100px;
     -webkit-overflow-scrolling: touch;
     display: flex;
     padding-bottom: 0;
+	  flex-wrap: nowrap;
+
 }
 
 /* Hide scrollbar */
@@ -470,41 +473,6 @@ height: 100px;
     visibility: visible !important;
 }
 
-/* Base button styles */
-.vfrc-carousel--button {
-    position: absolute !important;
-    width: 50px !important;
-    height: 50px !important;
-    background: white !important;
-    border-radius: 50% !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 100 !important;
-    cursor: pointer !important;
-    border: none !important;
-}
-
-/* Button hover effects */
-.vfrc-carousel--button:hover {
-    background: #38bdf8 !important;
-    color: white !important;
-    transform: scale(1.1) !important;
-}
-
-
-
-/* Left-pointing arrow */
-.betklmc .vfrc-icon svg {
-    transform: rotate(0deg);
-}
-
-/* Left-pointing arrow */
-.betklma .vfrc-icon svg {
-    transform: rotate(0deg);
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .o231sh1 {
@@ -529,17 +497,72 @@ height: 100px;
     position: absolute !important;
     top: auto !important;
     bottom: -50px !important; /* Position below the carousel */
-    transform: none !important;
-    width: 50px !important;
-    height: 50px !important;
-    background: white !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    z-index: 100 !important;
-    cursor: pointer !important;
-    border: none !important;
+	border-radius:50%;
+}
+
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklmc .vfrc-icon svg {
+    transform: rotate(0deg);
+	color: #9C27B0;
+}
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklmc:hover .vfrc-icon svg {
+    transform: rotate(0deg);
+	color:#9C27B0;
+}
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklmc:active .vfrc-icon svg {
+    transform: rotate(0deg);
+	color:white;
+}
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklma .vfrc-icon svg {
+    transform: rotate(0deg);
+	color: #9C27B0;
+}
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklma:hover .vfrc-icon svg {
+    transform: rotate(0deg);
+	color:#9C27B0;
+}
+
+/* Left-pointing arrow */
+.vfrc-carousel--button.betklma:active .vfrc-icon svg {
+    transform: rotate(0deg);
+	color:white;
+}
+
+/* Click/active state - Solid purple */
+.vfrc-carousel--button.betklma {
+    background: #fff !important;
+    border-color: #9C27B0 !important;
+}
+
+.vfrc-carousel--button.betklma:hover {
+    background: #F8E8F8 !important;
+}
+
+.vfrc-carousel--button.betklma:active {
+    background: #9C27B0 !important;
+}
+
+/* Click/active state - Solid purple */
+.vfrc-carousel--button.betklmc {
+    background: #fff !important;
+    border-color: #9C27B0 !important;
+}
+
+.vfrc-carousel--button.betklmc:hover {
+    background: #F8E8F8 !important;
+}
+
+.vfrc-carousel--button.betklmc:active {
+    background: #9C27B0 !important;
 }
 
 
