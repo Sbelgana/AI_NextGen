@@ -42,7 +42,7 @@
 /* Background caroussel*/
 ._1lbxmyd0 {
     background-color: #f1f2f2;
-    width: 300px;
+    width: 400px;
 }
 
 /* caroussel div*/
@@ -403,14 +403,21 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   animation: heartbeat 1s infinite;
 }
 
+
 ._1lbxmyd2 {
-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--_1bof89na);
+    line-height: 20px;
+    padding: 11px 16px 10px;
+    justify-content: space-around;
 }
 
 ._1lbxmyd1 {
     /* display: inline-block; */
-    /* width: 100%; */
-    height: 250px;
+    width: 100%;
+    height: 270px;
 }
 
 .vfrc-carousel.w2917p4 {
@@ -564,5 +571,3 @@ height: 100px;
 .vfrc-carousel--button.betklmc:active {
     background: #9C27B0 !important;
 }
-
-
