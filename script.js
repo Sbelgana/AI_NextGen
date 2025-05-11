@@ -5253,7 +5253,7 @@ function addInfoButtonStyles() {
 const dummyTrace = { 
   type: "ext_chatbot_form", 
   payload: { 
-    currentLanguage: "en"
+    currentLanguage: "fr"
   } 
 };
 
