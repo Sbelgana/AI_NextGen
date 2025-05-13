@@ -1016,9 +1016,9 @@
           }
           
           // currentLanguages - Convert both array and string to use names
-          if (processedData.currentLanguages && Array.isArray(processedData.currentLanguages) && processedData.currentLanguages.length > 0) {
-            const currentLanguageNames = processedData.currentLanguages.map(langId => {
-              const lang = localFormData.currentLanguages.find(l => l.id === langId);
+          if (processedData.languages  && Array.isArray(processedData.languages )) {
+            const currentLanguageNames = processedData.languages.map(langId => {
+              const lang = localFormData.languages.find(l => l.id === langId);
               return lang ? lang.name : langId;
             });
             // Replace the original array with names
