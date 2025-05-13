@@ -5342,7 +5342,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
 };
 
 
-    const BookingDirectExtension = {
+const BookingDirectExtension = {
             name: 'BookingDirect',
             type: 'response',
             match: ({ trace }) => trace.type === 'ext_booking_direct' || trace.payload?.name === 'ext_booking_direct',
