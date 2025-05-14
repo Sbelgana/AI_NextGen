@@ -1556,6 +1556,8 @@
       color: #9C27B0;
       font-weight: 600;
       position: relative;
+      margin-top: 0;
+      margin-bottom: 0;
     }
     
     .step-heading::after {
@@ -10492,10 +10494,12 @@ const ContactFormExtension = {
             }
 
             .step-heading {
-      font-size: 24px;
+     font-size: 24px;
       color: #9C27B0;
       font-weight: 600;
       position: relative;
+      margin-top: 0;
+      margin-bottom: 0;
             }
             
             .step-heading::after {
