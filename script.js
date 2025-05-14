@@ -5354,7 +5354,8 @@ const BookingDirectExtension = {
         const {
             apiKey = "cal_live_3e7d9e0eb2df1b25ba452160f8668502",
             language = "en",
-            timezone = "America/Toronto"
+            timezone = "America/Toronto",
+	    vf
         } = trace.payload || {};
 
         const isEnglish = language === "en";
@@ -6775,7 +6776,7 @@ function handleFormTimeout() {
   }
   
   // Notify Voiceflow if available
-  if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+  if (vf) {
     window.voiceflow.chat.interact({
       type: "timeEnd",
       payload: {
@@ -7650,7 +7651,7 @@ const calendarBooking = {
                     
                     const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
                     
-                    if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+                    if (vf) {
                       window.voiceflow.chat.interact({
                         type: "success",
                         payload: {
