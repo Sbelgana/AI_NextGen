@@ -2198,7 +2198,7 @@
   display: block !important;
 }
 #social-platforms-group {
-  margin-bottom: 24px;
+
 }
 /* default state */
 .info-button svg .info-bg   { fill: #f8e8f8; }
