@@ -2490,6 +2490,7 @@
     
     <div id="form-options" style="display: none;">
       <div class="question-groups">
+        <div class="form-group">
         <label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
         <div class="select-container multi-select" id="formTypesDropdown">
           <select id="formTypesSelect" multiple></select>
@@ -2502,6 +2503,7 @@
           </div>
         </div>
         <div class="error-message" id="error-form-types">Veuillez sélectionner au moins un type</div>
+      </div>
       </div>
       
       <div class="form-group">
@@ -2541,6 +2543,7 @@
   <div id="website-options" style="display: none;">
     <div class="question-groups">
     <div class="form-group">
+      <div class="form-group">
       <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
       <div class="select-container" id="websitePlatformDropdown">
         <select id="website-platform"></select>
@@ -2554,6 +2557,7 @@
       </div>
       <div class="error-message" id="error-platform">Veuillez sélectionner une plateforme</div>
     </div>
+     </div>
     
     <div class="form-group" id="other-platform-group" style="display: none;">
       <label class="form-label" id="other-platform-label">Précisez la plateforme</label>
