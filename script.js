@@ -2504,7 +2504,6 @@
         </div>
         <div class="error-message" id="error-form-types">Veuillez sélectionner au moins un type</div>
       </div>
-      </div>
       
       <div class="form-group">
         <label class="form-label" id="form-purpose-label">À quoi serviront ces formulaires ?</label>
@@ -2512,6 +2511,7 @@
         <div class="char-counter"><span id="form-purpose-counter">0</span>/300</div>
       </div>
     </div>
+      </div>
     
     <div class="form-buttons">
       <button type="button" class="btn btn-prev" id="step5-prev">Précédent</button>
