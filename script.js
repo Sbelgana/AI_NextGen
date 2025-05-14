@@ -1431,7 +1431,6 @@
       width: 100%;
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
       border-radius: 12px;
       background: #fff;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -1453,8 +1452,8 @@
   justify-content: space-between;
   align-items: center;
   position: relative;
-  margin: 20px 10px;
-  padding: 0 60px;     
+  margin: 0;
+  padding: 0 10px;     
     }
 
     .step-progress::before {
@@ -1547,7 +1546,6 @@
     .step-container {
       display: none;
       animation: fadeIn 0.5s;
-      padding: 10px;
     }
 
     .step-container.active {
@@ -1562,10 +1560,8 @@
     .step-heading {
       font-size: 24px;
       color: #9C27B0;
-      margin-bottom: 24px;
       font-weight: 600;
       position: relative;
-      padding-bottom: 10px;
     }
     
     .step-heading::after {
@@ -6570,12 +6566,12 @@ const BookingDirectExtension = {
 
 
 .step-progress {
-  display: flex;
+  ddisplay: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
-  margin: 20px 10px;
-  padding: 0 60px;           /* inset the line so it lines up perfectly under the first/last circle */
+  margin: 0;
+  padding: 0 10px;             /* inset the line so it lines up perfectly under the first/last circle */
 }
 
 .step-progress::before {
@@ -10518,12 +10514,10 @@ const ContactFormExtension = {
             }
 
             .step-heading {
-              font-size: 14px;
-              color: #9C27B0;
-              margin-bottom: 12px;
-              font-weight: 600;
-              position: relative;
-              padding-bottom: 10px;
+      font-size: 24px;
+      color: #9C27B0;
+      font-weight: 600;
+      position: relative;
             }
             
             .step-heading::after {
@@ -10547,8 +10541,8 @@ const ContactFormExtension = {
   justify-content: space-between;
   align-items: center;
   position: relative;
-  margin: 20px 10px;
-  padding: 0 60px;      
+  margin: 0;
+  padding: 0 10px;    
             }
 
             .step-progress::before {
@@ -10804,7 +10798,6 @@ const ContactFormExtension = {
               
               .step-heading {
                 font-size: 20px;
-                margin-bottom: 12px;
               }
               
               .btn {
@@ -10894,7 +10887,6 @@ const ContactFormExtension = {
               
               .step-heading {
                 font-size: 18px;
-                margin-bottom: 12px;
               }
               
               .btn {
