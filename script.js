@@ -2539,6 +2539,7 @@
   </div>
   
   <div id="website-options" style="display: none;">
+    <div class="question-groups">
     <div class="form-group">
       <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
       <div class="select-container" id="websitePlatformDropdown">
@@ -2579,6 +2580,7 @@
         </div>
       </div>
       <div class="error-message" id="error-website-traffic">Veuillez indiquer le trafic de votre site</div>
+    </div>
     </div>
   </div>
   
