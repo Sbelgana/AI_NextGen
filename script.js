@@ -1450,10 +1450,11 @@
 
     .step-progress {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 20px 10px;
+  padding: 0 60px;     
     }
 
     .step-progress::before {
@@ -6574,7 +6575,7 @@ const BookingDirectExtension = {
   align-items: center;
   position: relative;
   margin: 20px 10px;
-  padding: 0 60px;       /* inset the line so it lines up perfectly under the first/last circle */
+  padding: 0 60px;           /* inset the line so it lines up perfectly under the first/last circle */
 }
 
 .step-progress::before {
@@ -10543,10 +10544,11 @@ const ContactFormExtension = {
 
             .step-progress {
               display: flex;
-              justify-content: space-between;
-              align-items: center;
-              position: relative;
-              width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin: 20px 10px;
+  padding: 0 60px;      
             }
 
             .step-progress::before {
