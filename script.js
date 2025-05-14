@@ -1326,12 +1326,6 @@
         formContainer.innerHTML = `
   <style>
     /* ========== Reset & Base Styles ========== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-	
 	/* Info Button and Panel Styles */
     .info-button {
       display: inline-flex;
@@ -5526,11 +5520,7 @@ const BookingDirectExtension = {
                 container.innerHTML = `
                             <style>
         /* Base styles */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+       
         
         body {
             font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -9217,11 +9207,7 @@ function handleFormTimeout() {
       formContainer.innerHTML = `
 <style>
   /* ========== Responsive Layout ========== */
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+
 
   /* ========== Dropdown Components ========== */
   .main-container {
@@ -9847,11 +9833,7 @@ function handleFormTimeout() {
       formContainer.innerHTML = `
 <style>
   /* ========== Responsive Layout ========== */
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+
 
   /* ========== Error Components ========== */
   .error-container {
@@ -10238,11 +10220,7 @@ const ContactFormExtension = {
         formContainer.innerHTML = `
           <style>
             /* ========= Base Styles ========= */
-            * {
-              box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-            }
+          
 
             .hidden {
               display: none !important;
