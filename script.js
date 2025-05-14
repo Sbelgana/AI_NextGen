@@ -1965,8 +1965,7 @@
     .form-buttons {
       display: flex;
       justify-content: space-between;
-      margin-top: 30px;
-      gap: 15px;
+      gap: 10px;
     }
 
     .btn {
