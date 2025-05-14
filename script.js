@@ -695,7 +695,7 @@
       render: ({ trace, element }) => {
         // Get language from payload with French as default
         //let { currentLanguage = "fr" } = trace.payload || {};
-        let currentLanguage = trace.payload?.currentLanguage || "fr";
+        let {currentLanguage, vf} = trace.payload;
         // Initialize form data with the current language
         let formData = createFormData(currentLanguage);
         
@@ -3068,13 +3068,14 @@ function handleFormTimeout() {
       btn.style.backgroundColor = "#f44336";
       btn.style.color = "white";
     });
-  
+    if(vf){
     window.voiceflow.chat.interact({
       type: "timeEnd",
       payload: {
         message: "Time expired"
       }
     });
+    }
 
 }
 
@@ -5138,11 +5139,13 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     console.log('Success:', data);
     
     // After successful webhook, send data to Voiceflow
-    
+
+ if(vf){
       window.voiceflow.chat.interact({
         type: "success",
         payload: submissionData
       });
+ }
     
     // Hide all steps and show confirmation
     formContainer.querySelectorAll('.step-container').forEach(step => {
