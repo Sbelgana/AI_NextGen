@@ -1574,6 +1574,13 @@
     /* ========== Questions & Form Groups ========== */
     .question-group {
     }
+
+    .question-groups {
+    display: flex
+;
+    flex-direction: column;
+    gap: 10px;
+    }
     
     .question-label {
       font-size: 16px;
@@ -2482,7 +2489,7 @@
     </div>
     
     <div id="form-options" style="display: none;">
-      <div class="question-group">
+      <div class="question-groups">
         <label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
         <div class="select-container multi-select" id="formTypesDropdown">
           <select id="formTypesSelect" multiple></select>
