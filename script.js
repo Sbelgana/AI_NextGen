@@ -1573,7 +1573,6 @@
     
     /* ========== Questions & Form Groups ========== */
     .question-group {
-      margin-bottom: 24px;
     }
     
     .question-label {
