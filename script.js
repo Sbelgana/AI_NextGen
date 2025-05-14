@@ -1585,7 +1585,6 @@
     }
     
     .form-group {
-      margin-bottom: 20px;
       position: relative;
     }
     
@@ -5717,7 +5716,6 @@ const BookingDirectExtension = {
         
         .form-group {
             flex: 1;
-            margin-bottom: 15px;
         }
         
         .form-group label {
@@ -7617,7 +7615,6 @@ const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
         
         .form-group {
             flex: 1;
-            margin-bottom: 15px;
         }
         
         .form-group label {
