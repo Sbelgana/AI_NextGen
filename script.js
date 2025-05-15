@@ -112,6 +112,258 @@
       },
     ];
 	
+    
+    
+    function createFormData(language) {
+      return formDataTranslations[language];
+    }
+    
+    function addInfoButton(labelId, infoTitle, infoContent, language) {
+      const label = document.getElementById(labelId);
+      if (!label) return;
+      
+      // Create info button
+      const infoButton = document.createElement('button');
+      infoButton.className = 'info-button';
+      infoButton.type = 'button';
+      infoButton.setAttribute('aria-label', language === 'fr' ? 'Plus d\'informations' : 'More information');
+      infoButton.innerHTML = SVG_INFO;
+      
+      // Create info panel
+      const infoPanel = document.createElement('div');
+      infoPanel.className = 'info-panel';
+      infoPanel.id = `${labelId}-info`;
+      
+      // Add title if provided
+      if (infoTitle) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'info-title';
+        titleEl.textContent = infoTitle;
+        infoPanel.appendChild(titleEl);
+      }
+      
+      // Add content
+      const contentEl = document.createElement('div');
+      contentEl.innerHTML = infoContent;
+      infoPanel.appendChild(contentEl);
+      
+      // Add close button
+      const closeButton = document.createElement('button');
+      closeButton.className = 'close-info';
+      closeButton.type = 'button';
+      closeButton.setAttribute('aria-label', language === 'fr' ? 'Fermer' : 'Close');
+      closeButton.innerHTML = SVG_CLOSE;
+      closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        infoPanel.classList.remove('show');
+      });
+      infoPanel.appendChild(closeButton);
+      
+      // Add click handler to button
+      infoButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // Close any other open info panels
+        document.querySelectorAll('.info-panel').forEach(panel => {
+          if (panel.id !== infoPanel.id) {
+            panel.classList.remove('show');
+          }
+        });
+        
+        // Toggle this panel
+        infoPanel.classList.toggle('show');
+      });
+      
+      // Append button to label
+      label.appendChild(infoButton);
+      
+      // Find the parent form-group or question-group
+      const parentGroup = label.closest('.form-group') || label.closest('.question-group');
+      if (parentGroup) {
+        // Insert panel after the label but before the next element
+        parentGroup.insertBefore(infoPanel, label.nextSibling);
+      }
+    }
+
+    function initializeInfoButtons(currentLanguage) {
+      // Define info content in both languages
+      const infoContent = {
+        "fr": {
+          crm: {
+            title: "Systèmes de Gestion de la Relation Client (CRM)",
+            content: `Un CRM vous permet de suivre les interactions avec vos clients et prospects. L'intégration de votre chatbot avec un CRM permet d'enregistrer automatiquement les conversations et les données des utilisateurs dans votre système existant.<br><br>Choisissez les CRMs que vous utilisez déjà ou que vous souhaitez intégrer.`
+          },
+          database: {
+            title: "Bases de données",
+            content: `Une base de données stocke les informations recueillies par votre chatbot. Cela peut inclure les profils utilisateurs, les préférences, l'historique des conversations, et d'autres données importantes.<br><br>Si vous avez des systèmes existants, sélectionnez-les pour que nous puissions configurer les intégrations appropriées.`
+          },
+          booking: {
+            title: "Systèmes de réservation",
+            content: `Les systèmes de réservation permettent à vos clients de prendre rendez-vous ou de réserver vos services directement via le chatbot. L'intégration avec votre système actuel permet de synchroniser les disponibilités et d'éviter les doubles réservations.<br><br>Si vous n'avez pas encore de système, nous pouvons vous recommander la solution la plus adaptée à vos besoins.`
+          },
+          formTypes: {
+            title: "Types de formulaires",
+            content: `Les formulaires interactifs peuvent être intégrés à votre chatbot pour collecter des informations spécifiques. Chaque type de formulaire est conçu pour un objectif particulier:<br><br>
+              • <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
+              • <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
+              • <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
+              • <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
+              • <strong>Support client</strong>: Pour les demandes d'assistance<br>
+              • Et plus encore selon vos besoins spécifiques`
+          },
+          websitePlatform: {
+            title: "Plateformes Web",
+            content: `La connaissance de votre plateforme web nous permet de créer une intégration optimale pour votre chatbot. Chaque plateforme a ses propres spécificités techniques et requiert une approche d'intégration différente.<br><br>Si votre site est personnalisé, précisez les technologies utilisées (PHP, Node.js, React, etc.).`
+          },
+          socialPlatforms: {
+            title: "Plateformes sociales",
+            content: `Votre chatbot peut être déployé sur différentes plateformes de messagerie sociale pour atteindre vos clients là où ils se trouvent. Chaque plateforme offre des fonctionnalités spécifiques et nécessite une configuration particulière.<br><br>Sélectionnez les plateformes où vous souhaitez déployer votre chatbot.`
+          },
+          languageType: {
+            title: "Configuration linguistique",
+            content: `Un chatbot multilingue peut communiquer avec vos utilisateurs dans plusieurs langues, élargissant ainsi votre audience potentielle. Un chatbot unilingue ne fonctionnera que dans une seule langue.<br><br>Le support multilingue est plus complexe à mettre en place mais offre une meilleure expérience utilisateur pour une audience internationale.`
+          },
+          leadCapture: {
+            title: "Capture de prospects",
+            content: `Cette fonctionnalité permet à votre chatbot de collecter automatiquement les informations de contact des visiteurs intéressés par vos produits ou services. Ces informations peuvent ensuite être transmises à votre équipe commerciale ou intégrées à votre CRM.`
+          },
+          leadQualification: {
+            title: "Qualification de prospects",
+            content: `Votre chatbot peut poser une série de questions pour déterminer si un visiteur correspond à votre client idéal. Cela permet de filtrer les prospects selon vos critères et de concentrer vos efforts sur les plus prometteurs.`
+          },
+          conversationSummary: {
+            title: "Synthèse automatique des conversations",
+            content: `Cette fonctionnalité permet à votre chatbot de générer automatiquement des résumés des conversations avec les utilisateurs. Ces synthèses extraient les points clés, les demandes et les engagements pris pendant l'échange.<br><br>Avantages:<br>
+              • Suivi efficace des interactions clients<br>
+              • Identification rapide des besoins récurrents<br>
+              • Facilitation du transfert vers une personne réelle si nécessaire<br>
+              • Documentation automatique des échanges pour analyse ultérieure`
+          },
+          websiteTraffic: {
+            title: "Volume de trafic mensuel",
+            content: `Cette information nous permet de dimensionner correctement votre solution de chatbot. Le volume de trafic influence:<br><br>
+              • La capacité de traitement nécessaire<br>
+              • Les ressources serveur à allouer<br>
+              • La structure optimale des dialogues<br>
+              • Les stratégies de mise en cache et d'optimisation<br><br>
+              Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
+          },
+          handleCancellation: {
+            title: "Gestion des annulations et reports",
+            content: `Cette fonctionnalité permet à vos clients de modifier ou d'annuler leurs réservations directement via le chatbot, sans intervention humaine.<br><br>Le chatbot peut:<br>
+              • Accéder au calendrier des réservations existantes<br>
+              • Proposer des créneaux alternatifs disponibles<br>
+              • Confirmer les modifications par email/SMS<br>
+              • Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
+              Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
+          }
+        },
+        "en": {
+          crm: {
+            title: "Customer Relationship Management (CRM) Systems",
+            content: `A CRM helps you track interactions with your customers and leads. Integrating your chatbot with a CRM allows conversations and user data to be automatically recorded in your existing system.<br><br>Select the CRMs you already use or want to integrate with.`
+          },
+          database: {
+            title: "Databases",
+            content: `A database stores information collected by your chatbot. This can include user profiles, preferences, conversation history, and other important data.<br><br>If you have existing systems, select them so we can set up the appropriate integrations.`
+          },
+          booking: {
+            title: "Booking Systems",
+            content: `Booking systems allow your customers to make appointments or reserve your services directly through the chatbot. Integration with your current system ensures availability synchronization and prevents double bookings.<br><br>If you don't have a system yet, we can recommend the solution that best fits your needs.`
+          },
+          formTypes: {
+            title: "Form Types",
+            content: `Interactive forms can be integrated into your chatbot to collect specific information. Each form type is designed for a particular purpose:<br><br>
+              • <strong>Contact Form</strong>: Collects visitor contact details<br>
+              • <strong>Lead Generation</strong>: Qualifies potential prospects<br>
+              • <strong>Survey</strong>: Gathers detailed information<br>
+              • <strong>Booking</strong>: Allows scheduling a time slot<br>
+              • <strong>Customer Support</strong>: For assistance requests<br>
+              • And more based on your specific needs`
+          },
+          websitePlatform: {
+            title: "Web Platforms",
+            content: `Understanding your web platform allows us to create optimal integration for your chatbot. Each platform has its own technical specifications and requires a different integration approach.<br><br>If your site is custom-built, please specify the technologies used (PHP, Node.js, React, etc.).`
+          },
+          socialPlatforms: {
+            title: "Social Platforms",
+            content: `Your chatbot can be deployed on various social messaging platforms to reach your customers where they are. Each platform offers specific features and requires particular configuration.<br><br>Select the platforms where you want to deploy your chatbot.`
+          },
+          languageType: {
+            title: "Language Configuration",
+            content: `A multilingual chatbot can communicate with your users in multiple languages, expanding your potential audience. A unilingual chatbot will only work in one language.<br><br>Multilingual support is more complex to set up but provides a better user experience for an international audience.`
+          },
+          leadCapture: {
+            title: "Lead Capture",
+            content: `This feature allows your chatbot to automatically collect contact information from visitors interested in your products or services. This information can then be passed to your sales team or integrated into your CRM.`
+          },
+          leadQualification: {
+            title: "Lead Qualification",
+            content: `Your chatbot can ask a series of questions to determine if a visitor matches your ideal customer profile. This helps filter prospects according to your criteria and focus your efforts on the most promising ones.`
+          },
+          conversationSummary: {
+            title: "Automated Conversation Synthesis",
+            content: `This feature enables your chatbot to automatically generate summaries of user conversations. These summaries extract key points, requests, and commitments made during the interaction.<br><br>Benefits:<br>
+              • Efficient tracking of customer interactions<br>
+              • Quick identification of recurring needs<br>
+              • Seamless handover to human agents when necessary<br>
+              • Automatic documentation of exchanges for later analysis`
+          },
+          websiteTraffic: {
+            title: "Monthly Traffic Volume",
+            content: `This information helps us properly size your chatbot solution. Traffic volume influences:<br><br>
+              • Required processing capacity<br>
+              • Server resources allocation<br>
+              • Optimal dialog structure<br>
+              • Caching and optimization strategies<br><br>
+              A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
+          },
+          handleCancellation: {
+            title: "Cancellation and Rescheduling Management",
+            content: `This functionality allows your customers to modify or cancel their bookings directly through the chatbot without human intervention.<br><br>The chatbot can:<br>
+              • Access the calendar of existing reservations<br>
+              • Offer available alternative time slots<br>
+              • Confirm changes via email/SMS<br>
+              • Apply your business rules regarding cancellation deadlines or fees<br><br>
+              This automation improves customer experience while reducing administrative workload.`
+          }
+        }
+      };
+      
+      // Add info buttons to specific fields - modified as requested
+  addInfoButton('use-form-question', infoContent[currentLanguage].formTypes.title, infoContent[currentLanguage].formTypes.content, currentLanguage);
+  addInfoButton('use-crm-question', infoContent[currentLanguage].crm.title, infoContent[currentLanguage].crm.content, currentLanguage);
+  addInfoButton('has-booking-question', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
+  addInfoButton('use-database-question', infoContent[currentLanguage].database.title, infoContent[currentLanguage].database.content, currentLanguage);
+  addInfoButton('social-bot-question', infoContent[currentLanguage].socialPlatforms.title, infoContent[currentLanguage].socialPlatforms.content, currentLanguage);
+  
+  // Also add to "want booking recommendation" for users without booking systems
+  addInfoButton('want-booking-recommendation', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
+  
+  // Keep other existing info buttons
+  addInfoButton('platform-label', infoContent[currentLanguage].websitePlatform.title, infoContent[currentLanguage].websitePlatform.content, currentLanguage);
+  addInfoButton('language-type-question', infoContent[currentLanguage].languageType.title, infoContent[currentLanguage].languageType.content, currentLanguage);
+  addInfoButton('lead-capture-question', infoContent[currentLanguage].leadCapture.title, infoContent[currentLanguage].leadCapture.content, currentLanguage);
+  addInfoButton('lead-qualification-question', infoContent[currentLanguage].leadQualification.title, infoContent[currentLanguage].leadQualification.content, currentLanguage);
+  addInfoButton('conversation-summary-question', infoContent[currentLanguage].conversationSummary.title, infoContent[currentLanguage].conversationSummary.content, currentLanguage);
+  addInfoButton('website-traffic-label', infoContent[currentLanguage].websiteTraffic.title, infoContent[currentLanguage].websiteTraffic.content, currentLanguage);
+  addInfoButton('handle-cancellation-question', infoContent[currentLanguage].handleCancellation.title, infoContent[currentLanguage].handleCancellation.content, currentLanguage);
+    }
+
+
+    /*************************************************************
+     * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
+     *************************************************************/
+
+
+    /*************************************************************
+     * 1) Helper Functions and Constants
+     *************************************************************/
+    
+
+    /*************************************************************
+     * 2) Data Creation Functions
+     *************************************************************/
     // Multilingual form data
     const formDataTranslations = {
       "fr": {
@@ -451,239 +703,8 @@
       return formDataTranslations[language];
     }
     
-    function addInfoButton(labelId, infoTitle, infoContent, language) {
-      const label = document.getElementById(labelId);
-      if (!label) return;
-      
-      // Create info button
-      const infoButton = document.createElement('button');
-      infoButton.className = 'info-button';
-      infoButton.type = 'button';
-      infoButton.setAttribute('aria-label', language === 'fr' ? 'Plus d\'informations' : 'More information');
-      infoButton.innerHTML = SVG_INFO;
-      
-      // Create info panel
-      const infoPanel = document.createElement('div');
-      infoPanel.className = 'info-panel';
-      infoPanel.id = `${labelId}-info`;
-      
-      // Add title if provided
-      if (infoTitle) {
-        const titleEl = document.createElement('div');
-        titleEl.className = 'info-title';
-        titleEl.textContent = infoTitle;
-        infoPanel.appendChild(titleEl);
-      }
-      
-      // Add content
-      const contentEl = document.createElement('div');
-      contentEl.innerHTML = infoContent;
-      infoPanel.appendChild(contentEl);
-      
-      // Add close button
-      const closeButton = document.createElement('button');
-      closeButton.className = 'close-info';
-      closeButton.type = 'button';
-      closeButton.setAttribute('aria-label', language === 'fr' ? 'Fermer' : 'Close');
-      closeButton.innerHTML = SVG_CLOSE;
-      closeButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        infoPanel.classList.remove('show');
-      });
-      infoPanel.appendChild(closeButton);
-      
-      // Add click handler to button
-      infoButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Close any other open info panels
-        document.querySelectorAll('.info-panel').forEach(panel => {
-          if (panel.id !== infoPanel.id) {
-            panel.classList.remove('show');
-          }
-        });
-        
-        // Toggle this panel
-        infoPanel.classList.toggle('show');
-      });
-      
-      // Append button to label
-      label.appendChild(infoButton);
-      
-      // Find the parent form-group or question-group
-      const parentGroup = label.closest('.form-group') || label.closest('.question-group');
-      if (parentGroup) {
-        // Insert panel after the label but before the next element
-        parentGroup.insertBefore(infoPanel, label.nextSibling);
-      }
-    }
-
-    function initializeInfoButtons(currentLanguage) {
-      // Define info content in both languages
-      const infoContent = {
-        "fr": {
-          crm: {
-            title: "Systèmes de Gestion de la Relation Client (CRM)",
-            content: `Un CRM vous permet de suivre les interactions avec vos clients et prospects. L'intégration de votre chatbot avec un CRM permet d'enregistrer automatiquement les conversations et les données des utilisateurs dans votre système existant.<br><br>Choisissez les CRMs que vous utilisez déjà ou que vous souhaitez intégrer.`
-          },
-          database: {
-            title: "Bases de données",
-            content: `Une base de données stocke les informations recueillies par votre chatbot. Cela peut inclure les profils utilisateurs, les préférences, l'historique des conversations, et d'autres données importantes.<br><br>Si vous avez des systèmes existants, sélectionnez-les pour que nous puissions configurer les intégrations appropriées.`
-          },
-          booking: {
-            title: "Systèmes de réservation",
-            content: `Les systèmes de réservation permettent à vos clients de prendre rendez-vous ou de réserver vos services directement via le chatbot. L'intégration avec votre système actuel permet de synchroniser les disponibilités et d'éviter les doubles réservations.<br><br>Si vous n'avez pas encore de système, nous pouvons vous recommander la solution la plus adaptée à vos besoins.`
-          },
-          formTypes: {
-            title: "Types de formulaires",
-            content: `Les formulaires interactifs peuvent être intégrés à votre chatbot pour collecter des informations spécifiques. Chaque type de formulaire est conçu pour un objectif particulier:<br><br>
-              • <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
-              • <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
-              • <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
-              • <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
-              • <strong>Support client</strong>: Pour les demandes d'assistance<br>
-              • Et plus encore selon vos besoins spécifiques`
-          },
-          websitePlatform: {
-            title: "Plateformes Web",
-            content: `La connaissance de votre plateforme web nous permet de créer une intégration optimale pour votre chatbot. Chaque plateforme a ses propres spécificités techniques et requiert une approche d'intégration différente.<br><br>Si votre site est personnalisé, précisez les technologies utilisées (PHP, Node.js, React, etc.).`
-          },
-          socialPlatforms: {
-            title: "Plateformes sociales",
-            content: `Votre chatbot peut être déployé sur différentes plateformes de messagerie sociale pour atteindre vos clients là où ils se trouvent. Chaque plateforme offre des fonctionnalités spécifiques et nécessite une configuration particulière.<br><br>Sélectionnez les plateformes où vous souhaitez déployer votre chatbot.`
-          },
-          languageType: {
-            title: "Configuration linguistique",
-            content: `Un chatbot multilingue peut communiquer avec vos utilisateurs dans plusieurs langues, élargissant ainsi votre audience potentielle. Un chatbot unilingue ne fonctionnera que dans une seule langue.<br><br>Le support multilingue est plus complexe à mettre en place mais offre une meilleure expérience utilisateur pour une audience internationale.`
-          },
-          leadCapture: {
-            title: "Capture de prospects",
-            content: `Cette fonctionnalité permet à votre chatbot de collecter automatiquement les informations de contact des visiteurs intéressés par vos produits ou services. Ces informations peuvent ensuite être transmises à votre équipe commerciale ou intégrées à votre CRM.`
-          },
-          leadQualification: {
-            title: "Qualification de prospects",
-            content: `Votre chatbot peut poser une série de questions pour déterminer si un visiteur correspond à votre client idéal. Cela permet de filtrer les prospects selon vos critères et de concentrer vos efforts sur les plus prometteurs.`
-          },
-          conversationSummary: {
-            title: "Synthèse automatique des conversations",
-            content: `Cette fonctionnalité permet à votre chatbot de générer automatiquement des résumés des conversations avec les utilisateurs. Ces synthèses extraient les points clés, les demandes et les engagements pris pendant l'échange.<br><br>Avantages:<br>
-              • Suivi efficace des interactions clients<br>
-              • Identification rapide des besoins récurrents<br>
-              • Facilitation du transfert vers une personne réelle si nécessaire<br>
-              • Documentation automatique des échanges pour analyse ultérieure`
-          },
-          websiteTraffic: {
-            title: "Volume de trafic mensuel",
-            content: `Cette information nous permet de dimensionner correctement votre solution de chatbot. Le volume de trafic influence:<br><br>
-              • La capacité de traitement nécessaire<br>
-              • Les ressources serveur à allouer<br>
-              • La structure optimale des dialogues<br>
-              • Les stratégies de mise en cache et d'optimisation<br><br>
-              Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
-          },
-          handleCancellation: {
-            title: "Gestion des annulations et reports",
-            content: `Cette fonctionnalité permet à vos clients de modifier ou d'annuler leurs réservations directement via le chatbot, sans intervention humaine.<br><br>Le chatbot peut:<br>
-              • Accéder au calendrier des réservations existantes<br>
-              • Proposer des créneaux alternatifs disponibles<br>
-              • Confirmer les modifications par email/SMS<br>
-              • Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
-              Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
-          }
-        },
-        "en": {
-          crm: {
-            title: "Customer Relationship Management (CRM) Systems",
-            content: `A CRM helps you track interactions with your customers and leads. Integrating your chatbot with a CRM allows conversations and user data to be automatically recorded in your existing system.<br><br>Select the CRMs you already use or want to integrate with.`
-          },
-          database: {
-            title: "Databases",
-            content: `A database stores information collected by your chatbot. This can include user profiles, preferences, conversation history, and other important data.<br><br>If you have existing systems, select them so we can set up the appropriate integrations.`
-          },
-          booking: {
-            title: "Booking Systems",
-            content: `Booking systems allow your customers to make appointments or reserve your services directly through the chatbot. Integration with your current system ensures availability synchronization and prevents double bookings.<br><br>If you don't have a system yet, we can recommend the solution that best fits your needs.`
-          },
-          formTypes: {
-            title: "Form Types",
-            content: `Interactive forms can be integrated into your chatbot to collect specific information. Each form type is designed for a particular purpose:<br><br>
-              • <strong>Contact Form</strong>: Collects visitor contact details<br>
-              • <strong>Lead Generation</strong>: Qualifies potential prospects<br>
-              • <strong>Survey</strong>: Gathers detailed information<br>
-              • <strong>Booking</strong>: Allows scheduling a time slot<br>
-              • <strong>Customer Support</strong>: For assistance requests<br>
-              • And more based on your specific needs`
-          },
-          websitePlatform: {
-            title: "Web Platforms",
-            content: `Understanding your web platform allows us to create optimal integration for your chatbot. Each platform has its own technical specifications and requires a different integration approach.<br><br>If your site is custom-built, please specify the technologies used (PHP, Node.js, React, etc.).`
-          },
-          socialPlatforms: {
-            title: "Social Platforms",
-            content: `Your chatbot can be deployed on various social messaging platforms to reach your customers where they are. Each platform offers specific features and requires particular configuration.<br><br>Select the platforms where you want to deploy your chatbot.`
-          },
-          languageType: {
-            title: "Language Configuration",
-            content: `A multilingual chatbot can communicate with your users in multiple languages, expanding your potential audience. A unilingual chatbot will only work in one language.<br><br>Multilingual support is more complex to set up but provides a better user experience for an international audience.`
-          },
-          leadCapture: {
-            title: "Lead Capture",
-            content: `This feature allows your chatbot to automatically collect contact information from visitors interested in your products or services. This information can then be passed to your sales team or integrated into your CRM.`
-          },
-          leadQualification: {
-            title: "Lead Qualification",
-            content: `Your chatbot can ask a series of questions to determine if a visitor matches your ideal customer profile. This helps filter prospects according to your criteria and focus your efforts on the most promising ones.`
-          },
-          conversationSummary: {
-            title: "Automated Conversation Synthesis",
-            content: `This feature enables your chatbot to automatically generate summaries of user conversations. These summaries extract key points, requests, and commitments made during the interaction.<br><br>Benefits:<br>
-              • Efficient tracking of customer interactions<br>
-              • Quick identification of recurring needs<br>
-              • Seamless handover to human agents when necessary<br>
-              • Automatic documentation of exchanges for later analysis`
-          },
-          websiteTraffic: {
-            title: "Monthly Traffic Volume",
-            content: `This information helps us properly size your chatbot solution. Traffic volume influences:<br><br>
-              • Required processing capacity<br>
-              • Server resources allocation<br>
-              • Optimal dialog structure<br>
-              • Caching and optimization strategies<br><br>
-              A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
-          },
-          handleCancellation: {
-            title: "Cancellation and Rescheduling Management",
-            content: `This functionality allows your customers to modify or cancel their bookings directly through the chatbot without human intervention.<br><br>The chatbot can:<br>
-              • Access the calendar of existing reservations<br>
-              • Offer available alternative time slots<br>
-              • Confirm changes via email/SMS<br>
-              • Apply your business rules regarding cancellation deadlines or fees<br><br>
-              This automation improves customer experience while reducing administrative workload.`
-          }
-        }
-      };
-      
-      // Add info buttons to specific fields - modified as requested
-  addInfoButton('use-form-question', infoContent[currentLanguage].formTypes.title, infoContent[currentLanguage].formTypes.content, currentLanguage);
-  addInfoButton('use-crm-question', infoContent[currentLanguage].crm.title, infoContent[currentLanguage].crm.content, currentLanguage);
-  addInfoButton('has-booking-question', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
-  addInfoButton('use-database-question', infoContent[currentLanguage].database.title, infoContent[currentLanguage].database.content, currentLanguage);
-  addInfoButton('social-bot-question', infoContent[currentLanguage].socialPlatforms.title, infoContent[currentLanguage].socialPlatforms.content, currentLanguage);
-  
-  // Also add to "want booking recommendation" for users without booking systems
-  addInfoButton('want-booking-recommendation', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
-  
-  // Keep other existing info buttons
-  addInfoButton('platform-label', infoContent[currentLanguage].websitePlatform.title, infoContent[currentLanguage].websitePlatform.content, currentLanguage);
-  addInfoButton('language-type-question', infoContent[currentLanguage].languageType.title, infoContent[currentLanguage].languageType.content, currentLanguage);
-  addInfoButton('lead-capture-question', infoContent[currentLanguage].leadCapture.title, infoContent[currentLanguage].leadCapture.content, currentLanguage);
-  addInfoButton('lead-qualification-question', infoContent[currentLanguage].leadQualification.title, infoContent[currentLanguage].leadQualification.content, currentLanguage);
-  addInfoButton('conversation-summary-question', infoContent[currentLanguage].conversationSummary.title, infoContent[currentLanguage].conversationSummary.content, currentLanguage);
-  addInfoButton('website-traffic-label', infoContent[currentLanguage].websiteTraffic.title, infoContent[currentLanguage].websiteTraffic.content, currentLanguage);
-  addInfoButton('handle-cancellation-question', infoContent[currentLanguage].handleCancellation.title, infoContent[currentLanguage].handleCancellation.content, currentLanguage);
-    }
-
-
+    
+	
     /*************************************************************
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
@@ -695,7 +716,7 @@
       render: ({ trace, element }) => {
         // Get language from payload with French as default
         //let { currentLanguage = "fr" } = trace.payload || {};
-        let {currentLanguage, vf} = trace.payload;
+        let currentLanguage = trace.payload?.currentLanguage || "fr";
         // Initialize form data with the current language
         let formData = createFormData(currentLanguage);
         
@@ -749,264 +770,7 @@
 		
     // URL du webhook Make - Remplacez par votre URL réelle
     const WEBHOOK_URL = "https://hook.us2.make.com/va34lvxwhhcbp3iojevheqivo2ybbxua";
-	
-        // Load saved data if available
-        function loadSavedData() {
-  const savedData = localStorage.getItem('chatbotFormData');
-  if (savedData) {
-    try {
-      const parsedData = JSON.parse(savedData);
-      Object.assign(formValues, parsedData);
-      restoreFormValues();
-    } catch (e) {
-      console.error("Error loading saved form data:", e);
-    }
-  }
-  // Set initial visibility
-  document.getElementById('form-options').style.display = formValues.useForm === 'yes' ? 'block' : 'none';
-  document.getElementById('crm-selection').style.display = formValues.useCRM === 'yes' ? 'block' : 'none';
-  document.getElementById('social-platforms-group').style.display = formValues.needSocialBot === 'yes' ? 'block' : 'none';
-  document.getElementById('need-booking-options').style.display = formValues.hasBookingSystem === 'no' ? 'block' : 'none';
-}
-        
-        // Save form data to localStorage
-        function saveFormData() {
-          localStorage.setItem('chatbotFormData', JSON.stringify(formValues));
-        }
-        
-        // Restore form values from saved data
-        function restoreFormValues() {
-          // Will implement restoration logic for each step when creating form elements
-        }
-        
-        // Transform form values for submission (using readable values in current language)
-        function prepareDataForSubmission(formValues) {
-          // Create a copy of the form values
-          const processedData = JSON.parse(JSON.stringify(formValues));
-          
-          // Use the actual form data based on the currentLanguage
-          const localFormData = createFormData(currentLanguage);
-          
-          // Function to get text from translations
-          function getLocalizedText(key) {
-            return translations[currentLanguage][key] || key;
-          }
-          
-          // Niche
-          if (processedData.niche) {
-            if (processedData.niche === 'other' && processedData.otherNiche) {
-              processedData.niche = processedData.otherNiche;
-            } else {
-              const niche = localFormData.niches.find(n => n.id === processedData.niche);
-              if (niche) processedData.niche = niche.name;
-            }
-          } else {
-            processedData.niche = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Budget
-          if (processedData.budget) {
-            if (processedData.budget === 'custom' && processedData.customBudget) {
-              processedData.budget = processedData.customBudget;
-            } else {
-              const budget = localFormData.budgetRanges.find(b => b.id === processedData.budget);
-              if (budget) processedData.budget = budget.name;
-            }
-          } else {
-            processedData.budget = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Team Size
-          if (processedData.teamSize) {
-            const teamSizeMap = {
-              'solo': getLocalizedText('solo'),
-              'small': getLocalizedText('smallTeam'),
-              'medium': getLocalizedText('mediumTeam'),
-              'large': getLocalizedText('largeTeam')
-            };
-            processedData.teamSize = teamSizeMap[processedData.teamSize] || processedData.teamSize;
-          } else {
-            processedData.teamSize = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Website Platform
-          if (processedData.websitePlatform) {
-            if (processedData.websitePlatform === 'other' && processedData.otherPlatform) {
-              processedData.websitePlatform = processedData.otherPlatform;
-            } else {
-              const platform = localFormData.websitePlatforms.find(p => p.id === processedData.websitePlatform);
-              if (platform) processedData.websitePlatform = platform.name;
-            }
-          } else {
-            processedData.websitePlatform = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Website Traffic
-          if (processedData.websiteTraffic) {
-            const traffic = localFormData.websiteTraffic.find(t => t.id === processedData.websiteTraffic);
-            if (traffic) processedData.websiteTraffic = traffic.name;
-          } else {
-            processedData.websiteTraffic = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Form Types - Convert both array and string to use names
-          if (processedData.formTypes && Array.isArray(processedData.formTypes) && processedData.formTypes.length > 0) {
-            const formTypeNames = processedData.formTypes.map(typeId => {
-              const type = localFormData.formTypes.find(t => t.id === typeId);
-              return type ? type.name : typeId;
-            });
-            // Replace the original array with names
-            processedData.formTypesArray = formTypeNames;
-            // Create string version
-            processedData.formTypesString = formTypeNames.join(', ');
-            // Replace the original formTypes with names
-            processedData.formTypes = formTypeNames;
-          } else {
-            processedData.formTypesArray = [];
-            processedData.formTypesString = "";
-            processedData.formTypes = [];
-          }
-          
-          // CRMs - Convert both array and string to use names
-          if (processedData.crms && Array.isArray(processedData.crms) && processedData.crms.length > 0) {
-            const crmNames = processedData.crms.map(crmId => {
-              const crm = localFormData.crms.find(c => c.id === crmId);
-              return crm ? crm.name : crmId;
-            });
-            // Replace the original array with names
-            processedData.crmsArray = crmNames;
-            // Create string version
-            processedData.crmsString = crmNames.join(', ');
-            // Replace the original crms with names
-            processedData.crms = crmNames;
-          } else {
-            processedData.crmsArray = [];
-            processedData.crmsString = "";
-            processedData.crms = [];
-          }
-          
-          // Booking Systems
-          if (processedData.bookingSystems) {
-            // Handle both array and single value formats
-            if (Array.isArray(processedData.bookingSystems) && processedData.bookingSystems.length > 0) {
-              const systemNames = processedData.bookingSystems.map(systemId => {
-                const system = localFormData.bookingSystems.find(s => s.id === systemId);
-                return system ? system.name : systemId;
-              });
-              processedData.bookingSystems = systemNames;
-              processedData.bookingSystemsString = systemNames.join(', ');
-            } else if (typeof processedData.bookingSystems === 'string') {
-              const system = localFormData.bookingSystems.find(s => s.id === processedData.bookingSystems);
-              if (system) {
-                processedData.bookingSystems = system.name;
-                processedData.bookingSystemsString = system.name;
-              }
-            }
-          } else {
-            processedData.bookingSystems = "";
-            processedData.bookingSystemsString = "";
-          }
-          
-          // Databases - Convert both array and string to use names
-          if (processedData.databases && Array.isArray(processedData.databases) && processedData.databases.length > 0) {
-            const dbNames = processedData.databases.map(dbId => {
-              const db = localFormData.databases.find(d => d.id === dbId);
-              return db ? db.name : dbId;
-            });
-            // Replace the original array with names
-            processedData.databasesArray = dbNames;
-            // Create string version
-            processedData.databasesString = dbNames.join(', ');
-            // Replace the original databases with names
-            processedData.databases = dbNames;
-          } else {
-            processedData.databasesArray = [];
-            processedData.databasesString = "";
-            processedData.databases = [];
-          }
-          
-          // Social Platforms - Convert both array and string to use names
-          if (processedData.socialPlatforms && Array.isArray(processedData.socialPlatforms) && processedData.socialPlatforms.length > 0) {
-            const platformNames = processedData.socialPlatforms.map(platformId => {
-              const platform = localFormData.socialPlatforms.find(p => p.id === platformId);
-              return platform ? platform.name : platformId;
-            });
-            // Replace the original array with names
-            processedData.socialPlatformsArray = platformNames;
-            // Create string version
-            processedData.socialPlatformsString = platformNames.join(', ');
-            // Replace the original socialPlatforms with names
-            processedData.socialPlatforms = platformNames;
-          } else {
-            processedData.socialPlatformsArray = [];
-            processedData.socialPlatformsString = "";
-            processedData.socialPlatforms = [];
-          }
-          
-          // currentLanguages - Convert both array and string to use names
-          if (processedData.languages  && Array.isArray(processedData.languages )) {
-            const currentLanguageNames = processedData.languages.map(langId => {
-              const lang = localFormData.languages.find(l => l.id === langId);
-              return lang ? lang.name : langId;
-            });
-            // Replace the original array with names
-            processedData.currentLanguagesArray = currentLanguageNames;
-            // Create string version
-            processedData.currentLanguagesString = currentLanguageNames.join(', ');
-            // Replace the original currentLanguages with names
-            processedData.currentLanguages = currentLanguageNames;
-          } else {
-            processedData.currentLanguagesArray = [];
-            processedData.currentLanguagesString = "";
-            processedData.currentLanguages = [];
-          }
-          
-          // currentLanguage Type
-          if (processedData.currentLanguageType) {
-            if (processedData.currentLanguageType === 'multilingual') {
-              processedData.currentLanguageType = getLocalizedText('multilingual');
-            } else if (processedData.currentLanguageType === 'unilingual') {
-              processedData.currentLanguageType = getLocalizedText('unilingual');
-            }
-          } else {
-            processedData.currentLanguageType = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
-          }
-          
-          // Yes/No answers - Convert to true/false for Airtable checkboxes
-          const yesNoFields = [
-            'leadCapture', 'leadQualification', 'conversationSummary', 
-            'useForm', 'hasWebsite', 'useCRM', 'hasBookingSystem', 
-            'wantBookingRecommendation', 'handleCancellation', 
-            'useDatabase', 'needSocialBot'
-          ];
-
-          yesNoFields.forEach(field => {
-            // Check the current value of the field
-            if (processedData[field] === 'yes') {
-              processedData[field] = true;
-            } else if (processedData[field] === 'no') {
-              processedData[field] = false;
-            } else {
-              // If the field is not defined or has another value
-              processedData[field] = false; // Default value
-            }
-          });
-          
-          // Validate optional text fields
-          const optionalTextFields = ['company', 'otherNiche', 'otherPlatform', 'customBudget', 'formPurpose', 'websiteUrl'];
-          optionalTextFields.forEach(field => {
-            if (!processedData[field] || processedData[field].trim() === '') {
-              processedData[field] = "";
-            }
-          });
-          
-          return processedData;
-        }
-
-        
-        // Traductions
-        // Enhanced translations object that can replace the current translations object in your code
-        const translations = {
+	        const translations = {
           "fr": {
             // Steps
             step1Title: "Coordonnées professionnelles",
@@ -1312,12 +1076,10 @@
           }
         };
         
-        // Fonction pour obtenir les traductions
-        function getText(key) {
-          return translations[currentLanguage][key] || key;
-        }
-        
-        /*************************************************************
+       
+        // Load saved data if available
+           // Load saved data if available
+    /*************************************************************
          * HTML Generation & Initial Setup
          *************************************************************/
         const formContainer = document.createElement("form");
@@ -1326,6 +1088,12 @@
         formContainer.innerHTML = `
   <style>
     /* ========== Reset & Base Styles ========== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+	
 	/* Info Button and Panel Styles */
     .info-button {
       display: inline-flex;
@@ -1425,6 +1193,7 @@
       width: 100%;
       max-width: 800px;
       margin: 0 auto;
+      padding: 20px;
       border-radius: 12px;
       background: #fff;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -1443,11 +1212,10 @@
 
     .step-progress {
       display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  margin: 0;
-  padding: 0 10px;     
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      width: 100%;
     }
 
     .step-progress::before {
@@ -1540,6 +1308,7 @@
     .step-container {
       display: none;
       animation: fadeIn 0.5s;
+      padding: 10px;
     }
 
     .step-container.active {
@@ -1554,10 +1323,10 @@
     .step-heading {
       font-size: 24px;
       color: #9C27B0;
+      margin-bottom: 24px;
       font-weight: 600;
       position: relative;
-      margin-top: 0;
-      margin-bottom: 0;
+      padding-bottom: 10px;
     }
     
     .step-heading::after {
@@ -1573,13 +1342,7 @@
     
     /* ========== Questions & Form Groups ========== */
     .question-group {
-    }
-
-    .question-groups {
-    display: flex
-;
-    flex-direction: column;
-    gap: 10px;
+      margin-bottom: 24px;
     }
     
     .question-label {
@@ -1591,6 +1354,7 @@
     }
     
     .form-group {
+      margin-bottom: 20px;
       position: relative;
     }
     
@@ -1970,7 +1734,8 @@
     .form-buttons {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
+      margin-top: 30px;
+      gap: 15px;
     }
 
     .btn {
@@ -2198,7 +1963,7 @@
   display: block !important;
 }
 #social-platforms-group {
-
+  margin-bottom: 24px;
 }
 /* default state */
 .info-button svg .info-bg   { fill: #f8e8f8; }
@@ -2226,6 +1991,7 @@
     </div>
     <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
+    <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
   
   <!-- Step Progress Indicator -->
@@ -2488,8 +2254,7 @@
     </div>
     
     <div id="form-options" style="display: none;">
-      <div class="question-groups">
-        <div class="form-group">
+      <div class="question-group">
         <label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
         <div class="select-container multi-select" id="formTypesDropdown">
           <select id="formTypesSelect" multiple></select>
@@ -2510,7 +2275,6 @@
         <div class="char-counter"><span id="form-purpose-counter">0</span>/300</div>
       </div>
     </div>
-      </div>
     
     <div class="form-buttons">
       <button type="button" class="btn btn-prev" id="step5-prev">Précédent</button>
@@ -2540,9 +2304,7 @@
   </div>
   
   <div id="website-options" style="display: none;">
-    <div class="question-groups">
     <div class="form-group">
-      <div class="form-group">
       <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
       <div class="select-container" id="websitePlatformDropdown">
         <select id="website-platform"></select>
@@ -2556,7 +2318,6 @@
       </div>
       <div class="error-message" id="error-platform">Veuillez sélectionner une plateforme</div>
     </div>
-     </div>
     
     <div class="form-group" id="other-platform-group" style="display: none;">
       <label class="form-label" id="other-platform-label">Précisez la plateforme</label>
@@ -2583,7 +2344,6 @@
         </div>
       </div>
       <div class="error-message" id="error-website-traffic">Veuillez indiquer le trafic de votre site</div>
-    </div>
     </div>
   </div>
   
@@ -3015,6 +2775,8 @@
     
     function updateProgressBar() {
       const progressBar = formContainer.querySelector('#progress-bar');
+      if (!progressBar) return;
+      
       const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
       progressBar.style.width = `${progressPercentage}%`;
       
@@ -3030,285 +2792,506 @@
       });
     }
     
-    /*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Just set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
+	
+	function loadSavedData() {
+      const savedData = localStorage.getItem('chatbotFormData');
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          Object.assign(formValues, parsedData);
+          restoreFormValues();
+        } catch (e) {
+          console.error("Error loading saved form data:", e);
+        }
+      }
+      // Set initial visibility
+      const formOptions = formContainer.querySelector('#form-options');
+      const crmSelection = formContainer.querySelector('#crm-selection');
+      const socialPlatformsGroup = formContainer.querySelector('#social-platforms-group');
+      const needBookingOptions = formContainer.querySelector('#need-booking-options');
+      
+      if (formOptions) formOptions.style.display = formValues.useForm === 'yes' ? 'block' : 'none';
+      if (crmSelection) crmSelection.style.display = formValues.useCRM === 'yes' ? 'block' : 'none';
+      if (socialPlatformsGroup) socialPlatformsGroup.style.display = formValues.needSocialBot === 'yes' ? 'block' : 'none';
+      if (needBookingOptions) needBookingOptions.style.display = formValues.hasBookingSystem === 'no' ? 'block' : 'none';
+    }
+        
+    // Save form data to localStorage
+    function saveFormData() {
+      localStorage.setItem('chatbotFormData', JSON.stringify(formValues));
+    }
     
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
+    // Restore form values from saved data
+    function restoreFormValues() {
+      // Will implement restoration logic for each step when creating form elements
+    }
+    
+    // Transform form values for submission (using readable values in current language)
+    function prepareDataForSubmission(formValues) {
+      // Create a copy of the form values
+      const processedData = JSON.parse(JSON.stringify(formValues));
+      
+      // Use the actual form data based on the currentLanguage
+      const localFormData = createFormData(currentLanguage);
+      
+      // Function to get text from translations
+      function getLocalizedText(key) {
+        return translations[currentLanguage][key] || key;
       }
-    }
-  }, 1000);
-}
-
-function handleFormTimeout() {
-  disableAllFormElements();
-  
-  const submitButton = formContainer.querySelector("#submit-button");
-  submitButton.disabled = true;
-  submitButton.textContent = currentLanguage === 'fr' ? "Temps expiré" : "Time Expired";
-  submitButton.style.backgroundColor = "#f44336";
-  submitButton.style.color = "white";
-  
-  // also disable & style any Next buttons
-  formContainer
-    .querySelectorAll(".btn-next")
-    .forEach(btn => {
-      btn.disabled = true;
-      btn.textContent = currentLanguage === "fr" ? "Temps expiré" : "Time Expired";
-      btn.style.backgroundColor = "#f44336";
-      btn.style.color = "white";
-    });
-    if(vf){
-    window.voiceflow.chat.interact({
-      type: "timeEnd",
-      payload: {
-        message: "Time expired"
-      }
-    });
-    }
-
-}
-
-/*************************************************************
- * Form Disable Function
- *************************************************************/
-function disableAllFormElements() {
-  // Set cursor style to not-allowed for all interactive elements
-  formContainer.querySelectorAll('button, input, select, textarea, .custom-options, .select-wrapper, .dropdown-icon').forEach(el => {
-    el.disabled = true;
-    el.style.cursor = "not-allowed";
-  });
-  
-  // Disable dropdown functionality
-  formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => {
-    opt.classList.remove('show-options');
-  });
-  
-  formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => {
-    icon.classList.remove('rotate');
-  });
-  
-  formContainer.classList.add('disabled');
-}
-
-    // Function to set up real-time validation for input fields
-function setupRealTimeValidation() {
-  // Text inputs validation
-  document.getElementById('first-name').addEventListener('input', function() {
-    formValues.firstName = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-firstname');
-    }
-    saveFormData();
-  });
-  
-  document.getElementById('last-name').addEventListener('input', function() {
-    formValues.lastName = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-lastname');
-    }
-    saveFormData();
-  });
-  
-  document.getElementById('email').addEventListener('input', function() {
-    formValues.email = this.value.trim();
-    if (this.value.trim()) {
-      if (isValidEmail(this.value.trim())) {
-        hideError('error-email');
+      
+      // Niche
+      if (processedData.niche) {
+        if (processedData.niche === 'other' && processedData.otherNiche) {
+          processedData.niche = processedData.otherNiche;
+        } else {
+          const niche = localFormData.niches.find(n => n.id === processedData.niche);
+          if (niche) processedData.niche = niche.name;
+        }
       } else {
-        showError('error-email', 'emailInvalid');
+        processedData.niche = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
       }
-    }
-    saveFormData();
-  });
-  
-  document.getElementById('phone').addEventListener('input', function() {
-    formValues.phone = this.value.trim();
-    if (this.value.trim()) {
-      if (isValidPhoneNumber(this.value.trim())) {
-        hideError('error-phone');
+      
+      // Budget
+      if (processedData.budget) {
+        if (processedData.budget === 'custom' && processedData.customBudget) {
+          processedData.budget = processedData.customBudget;
+        } else {
+          const budget = localFormData.budgetRanges.find(b => b.id === processedData.budget);
+          if (budget) processedData.budget = budget.name;
+        }
       } else {
-        showError('error-phone', 'phoneInvalid');
+        processedData.budget = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
+      }
+      
+      // Team Size
+      if (processedData.teamSize) {
+        const teamSizeMap = {
+          'solo': getLocalizedText('solo'),
+          'small': getLocalizedText('smallTeam'),
+          'medium': getLocalizedText('mediumTeam'),
+          'large': getLocalizedText('largeTeam')
+        };
+        processedData.teamSize = teamSizeMap[processedData.teamSize] || processedData.teamSize;
+      } else {
+        processedData.teamSize = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
+      }
+      
+      // Website Platform
+      if (processedData.websitePlatform) {
+        if (processedData.websitePlatform === 'other' && processedData.otherPlatform) {
+          processedData.websitePlatform = processedData.otherPlatform;
+        } else {
+          const platform = localFormData.websitePlatforms.find(p => p.id === processedData.websitePlatform);
+          if (platform) processedData.websitePlatform = platform.name;
+        }
+      } else {
+        processedData.websitePlatform = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
+      }
+      
+      // Website Traffic
+      if (processedData.websiteTraffic) {
+        const traffic = localFormData.websiteTraffic.find(t => t.id === processedData.websiteTraffic);
+        if (traffic) processedData.websiteTraffic = traffic.name;
+      } else {
+        processedData.websiteTraffic = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
+      }
+      
+      // Form Types - Convert both array and string to use names
+      if (processedData.formTypes && Array.isArray(processedData.formTypes) && processedData.formTypes.length > 0) {
+        const formTypeNames = processedData.formTypes.map(typeId => {
+          const type = localFormData.formTypes.find(t => t.id === typeId);
+          return type ? type.name : typeId;
+        });
+        // Replace the original array with names
+        processedData.formTypesArray = formTypeNames;
+        // Create string version
+        processedData.formTypesString = formTypeNames.join(', ');
+        // Replace the original formTypes with names
+        processedData.formTypes = formTypeNames;
+      } else {
+        processedData.formTypesArray = [];
+        processedData.formTypesString = "";
+        processedData.formTypes = [];
+      }
+      
+      // CRMs - Convert both array and string to use names
+      if (processedData.crms && Array.isArray(processedData.crms) && processedData.crms.length > 0) {
+        const crmNames = processedData.crms.map(crmId => {
+          const crm = localFormData.crms.find(c => c.id === crmId);
+          return crm ? crm.name : crmId;
+        });
+        // Replace the original array with names
+        processedData.crmsArray = crmNames;
+        // Create string version
+        processedData.crmsString = crmNames.join(', ');
+        // Replace the original crms with names
+        processedData.crms = crmNames;
+      } else {
+        processedData.crmsArray = [];
+        processedData.crmsString = "";
+        processedData.crms = [];
+      }
+      
+      // Booking Systems
+      if (processedData.bookingSystems) {
+        // Handle both array and single value formats
+        if (Array.isArray(processedData.bookingSystems) && processedData.bookingSystems.length > 0) {
+          const systemNames = processedData.bookingSystems.map(systemId => {
+            const system = localFormData.bookingSystems.find(s => s.id === systemId);
+            return system ? system.name : systemId;
+          });
+          processedData.bookingSystems = systemNames;
+          processedData.bookingSystemsString = systemNames.join(', ');
+        } else if (typeof processedData.bookingSystems === 'string') {
+          const system = localFormData.bookingSystems.find(s => s.id === processedData.bookingSystems);
+          if (system) {
+            processedData.bookingSystems = system.name;
+            processedData.bookingSystemsString = system.name;
+          }
+        }
+      } else {
+        processedData.bookingSystems = "";
+        processedData.bookingSystemsString = "";
+      }
+      
+      // Databases - Convert both array and string to use names
+      if (processedData.databases && Array.isArray(processedData.databases) && processedData.databases.length > 0) {
+        const dbNames = processedData.databases.map(dbId => {
+          const db = localFormData.databases.find(d => d.id === dbId);
+          return db ? db.name : dbId;
+        });
+        // Replace the original array with names
+        processedData.databasesArray = dbNames;
+        // Create string version
+        processedData.databasesString = dbNames.join(', ');
+        // Replace the original databases with names
+        processedData.databases = dbNames;
+      } else {
+        processedData.databasesArray = [];
+        processedData.databasesString = "";
+        processedData.databases = [];
+      }
+      
+      // Social Platforms - Convert both array and string to use names
+      if (processedData.socialPlatforms && Array.isArray(processedData.socialPlatforms) && processedData.socialPlatforms.length > 0) {
+        const platformNames = processedData.socialPlatforms.map(platformId => {
+          const platform = localFormData.socialPlatforms.find(p => p.id === platformId);
+          return platform ? platform.name : platformId;
+        });
+        // Replace the original array with names
+        processedData.socialPlatformsArray = platformNames;
+        // Create string version
+        processedData.socialPlatformsString = platformNames.join(', ');
+        // Replace the original socialPlatforms with names
+        processedData.socialPlatforms = platformNames;
+      } else {
+        processedData.socialPlatformsArray = [];
+        processedData.socialPlatformsString = "";
+        processedData.socialPlatforms = [];
+      }
+      
+      // currentLanguages - Convert both array and string to use names
+      if (processedData.languages  && Array.isArray(processedData.languages )) {
+        const currentLanguageNames = processedData.languages.map(langId => {
+          const lang = localFormData.languages.find(l => l.id === langId);
+          return lang ? lang.name : langId;
+        });
+        // Replace the original array with names
+        processedData.currentLanguagesArray = currentLanguageNames;
+        // Create string version
+        processedData.currentLanguagesString = currentLanguageNames.join(', ');
+        // Replace the original currentLanguages with names
+        processedData.currentLanguages = currentLanguageNames;
+      } else {
+        processedData.currentLanguagesArray = [];
+        processedData.currentLanguagesString = "";
+        processedData.currentLanguages = [];
+      }
+      
+      // currentLanguage Type
+      if (processedData.currentLanguageType) {
+        if (processedData.currentLanguageType === 'multilingual') {
+          processedData.currentLanguageType = getLocalizedText('multilingual');
+        } else if (processedData.currentLanguageType === 'unilingual') {
+          processedData.currentLanguageType = getLocalizedText('unilingual');
+        }
+      } else {
+        processedData.currentLanguageType = currentLanguage === 'fr' ? "Non spécifié" : "Not specified";
+      }
+      
+      // Yes/No answers - Convert to true/false for Airtable checkboxes
+      const yesNoFields = [
+        'leadCapture', 'leadQualification', 'conversationSummary', 
+        'useForm', 'hasWebsite', 'useCRM', 'hasBookingSystem', 
+        'wantBookingRecommendation', 'handleCancellation', 
+        'useDatabase', 'needSocialBot'
+      ];
+
+      yesNoFields.forEach(field => {
+        // Check the current value of the field
+        if (processedData[field] === 'yes') {
+          processedData[field] = true;
+        } else if (processedData[field] === 'no') {
+          processedData[field] = false;
+        } else {
+          // If the field is not defined or has another value
+          processedData[field] = false; // Default value
+        }
+      });
+      
+      // Validate optional text fields
+      const optionalTextFields = ['company', 'otherNiche', 'otherPlatform', 'customBudget', 'formPurpose', 'websiteUrl'];
+      optionalTextFields.forEach(field => {
+        if (!processedData[field] || processedData[field].trim() === '') {
+          processedData[field] = "";
+        }
+      });
+      
+      return processedData;
+    }
+
+    // Traductions
+        // Enhanced translations object that can replace the current translations object in your code
+      // Fonction pour obtenir les traductions
+        function getText(key) {
+          return translations[currentLanguage][key] || key;
+        }
+        
+        
+		
+	 function addInfoButton(labelId, infoTitle, infoContent, language) {
+      const label = formContainer.querySelector(`#${labelId}`);
+      if (!label) return;
+      
+      // Create info button
+      const infoButton = document.createElement('button');
+      infoButton.className = 'info-button';
+      infoButton.type = 'button';
+      infoButton.setAttribute('aria-label', language === 'fr' ? 'Plus d\'informations' : 'More information');
+      infoButton.innerHTML = SVG_INFO;
+      
+      // Create info panel
+      const infoPanel = document.createElement('div');
+      infoPanel.className = 'info-panel';
+      infoPanel.id = `${labelId}-info`;
+      
+      // Add title if provided
+      if (infoTitle) {
+        const titleEl = document.createElement('div');
+        titleEl.className = 'info-title';
+        titleEl.textContent = infoTitle;
+        infoPanel.appendChild(titleEl);
+      }
+      
+      // Add content
+      const contentEl = document.createElement('div');
+      contentEl.innerHTML = infoContent;
+      infoPanel.appendChild(contentEl);
+      
+      // Add close button
+      const closeButton = document.createElement('button');
+      closeButton.className = 'close-info';
+      closeButton.type = 'button';
+      closeButton.setAttribute('aria-label', language === 'fr' ? 'Fermer' : 'Close');
+      closeButton.innerHTML = SVG_CLOSE;
+      closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        infoPanel.classList.remove('show');
+      });
+      infoPanel.appendChild(closeButton);
+      
+      // Add click handler to button
+      infoButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // Close any other open info panels
+        formContainer.querySelectorAll('.info-panel').forEach(panel => {
+          if (panel.id !== infoPanel.id) {
+            panel.classList.remove('show');
+          }
+        });
+        
+        // Toggle this panel
+        infoPanel.classList.toggle('show');
+      });
+      
+      // Append button to label
+      label.appendChild(infoButton);
+      
+      // Find the parent form-group or question-group
+      const parentGroup = label.closest('.form-group') || label.closest('.question-group');
+      if (parentGroup) {
+        // Insert panel after the label but before the next element
+        parentGroup.insertBefore(infoPanel, label.nextSibling);
       }
     }
-    saveFormData();
-  });
-  
-  document.getElementById('description').addEventListener('input', function() {
-    formValues.description = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-description');
-    }
-    document.getElementById('description-counter').textContent = this.value.length;
-    saveFormData();
-  });
-  
-  document.getElementById('other-niche').addEventListener('input', function() {
-    formValues.otherNiche = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-other-niche');
-    }
-    saveFormData();
-  });
-  
-  document.getElementById('custom-budget').addEventListener('input', function() {
-    formValues.customBudget = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-custom-budget');
-    }
-    saveFormData();
-  });
-  
-  document.getElementById('services').addEventListener('input', function() {
-    formValues.services = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-services');
-    }
-    document.getElementById('services-counter').textContent = this.value.length;
-    saveFormData();
-  });
-  
-  document.getElementById('website-url').addEventListener('input', function() {
-    formValues.websiteUrl = this.value.trim();
-    saveFormData();
-  });
-  
-  document.getElementById('other-platform').addEventListener('input', function() {
-    formValues.otherPlatform = this.value.trim();
-    if (this.value.trim()) {
-      hideError('error-other-platform');
-    }
-    saveFormData();
-  });
-}
 
-function setupRadioButtonValidation() {
-  // Lead capture radio buttons
-  document.querySelectorAll('input[name="leadCapture"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-lead-capture');
-      formValues.leadCapture = this.value;
-      saveFormData();
-    });
-  });
+   function initializeInfoButtons(currentLanguage) {
+      // Define info content in both languages
+      const infoContent = {
+        "fr": {
+          crm: {
+            title: "Systèmes de Gestion de la Relation Client (CRM)",
+            content: `Un CRM vous permet de suivre les interactions avec vos clients et prospects. L'intégration de votre chatbot avec un CRM permet d'enregistrer automatiquement les conversations et les données des utilisateurs dans votre système existant.<br><br>Choisissez les CRMs que vous utilisez déjà ou que vous souhaitez intégrer.`
+          },
+          database: {
+            title: "Bases de données",
+            content: `Une base de données stocke les informations recueillies par votre chatbot. Cela peut inclure les profils utilisateurs, les préférences, l'historique des conversations, et d'autres données importantes.<br><br>Si vous avez des systèmes existants, sélectionnez-les pour que nous puissions configurer les intégrations appropriées.`
+          },
+          booking: {
+            title: "Systèmes de réservation",
+            content: `Les systèmes de réservation permettent à vos clients de prendre rendez-vous ou de réserver vos services directement via le chatbot. L'intégration avec votre système actuel permet de synchroniser les disponibilités et d'éviter les doubles réservations.<br><br>Si vous n'avez pas encore de système, nous pouvons vous recommander la solution la plus adaptée à vos besoins.`
+          },
+          formTypes: {
+            title: "Types de formulaires",
+            content: `Les formulaires interactifs peuvent être intégrés à votre chatbot pour collecter des informations spécifiques. Chaque type de formulaire est conçu pour un objectif particulier:<br><br>
+              • <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
+              • <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
+              • <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
+              • <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
+              • <strong>Support client</strong>: Pour les demandes d'assistance<br>
+              • Et plus encore selon vos besoins spécifiques`
+          },
+          websitePlatform: {
+            title: "Plateformes Web",
+            content: `La connaissance de votre plateforme web nous permet de créer une intégration optimale pour votre chatbot. Chaque plateforme a ses propres spécificités techniques et requiert une approche d'intégration différente.<br><br>Si votre site est personnalisé, précisez les technologies utilisées (PHP, Node.js, React, etc.).`
+          },
+          socialPlatforms: {
+            title: "Plateformes sociales",
+            content: `Votre chatbot peut être déployé sur différentes plateformes de messagerie sociale pour atteindre vos clients là où ils se trouvent. Chaque plateforme offre des fonctionnalités spécifiques et nécessite une configuration particulière.<br><br>Sélectionnez les plateformes où vous souhaitez déployer votre chatbot.`
+          },
+          languageType: {
+            title: "Configuration linguistique",
+            content: `Un chatbot multilingue peut communiquer avec vos utilisateurs dans plusieurs langues, élargissant ainsi votre audience potentielle. Un chatbot unilingue ne fonctionnera que dans une seule langue.<br><br>Le support multilingue est plus complexe à mettre en place mais offre une meilleure expérience utilisateur pour une audience internationale.`
+          },
+          leadCapture: {
+            title: "Capture de prospects",
+            content: `Cette fonctionnalité permet à votre chatbot de collecter automatiquement les informations de contact des visiteurs intéressés par vos produits ou services. Ces informations peuvent ensuite être transmises à votre équipe commerciale ou intégrées à votre CRM.`
+          },
+          leadQualification: {
+            title: "Qualification de prospects",
+            content: `Votre chatbot peut poser une série de questions pour déterminer si un visiteur correspond à votre client idéal. Cela permet de filtrer les prospects selon vos critères et de concentrer vos efforts sur les plus prometteurs.`
+          },
+          conversationSummary: {
+            title: "Synthèse automatique des conversations",
+            content: `Cette fonctionnalité permet à votre chatbot de générer automatiquement des résumés des conversations avec les utilisateurs. Ces synthèses extraient les points clés, les demandes et les engagements pris pendant l'échange.<br><br>Avantages:<br>
+              • Suivi efficace des interactions clients<br>
+              • Identification rapide des besoins récurrents<br>
+              • Facilitation du transfert vers une personne réelle si nécessaire<br>
+              • Documentation automatique des échanges pour analyse ultérieure`
+          },
+          websiteTraffic: {
+            title: "Volume de trafic mensuel",
+            content: `Cette information nous permet de dimensionner correctement votre solution de chatbot. Le volume de trafic influence:<br><br>
+              • La capacité de traitement nécessaire<br>
+              • Les ressources serveur à allouer<br>
+              • La structure optimale des dialogues<br>
+              • Les stratégies de mise en cache et d'optimisation<br><br>
+              Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
+          },
+          handleCancellation: {
+            title: "Gestion des annulations et reports",
+            content: `Cette fonctionnalité permet à vos clients de modifier ou d'annuler leurs réservations directement via le chatbot, sans intervention humaine.<br><br>Le chatbot peut:<br>
+              • Accéder au calendrier des réservations existantes<br>
+              • Proposer des créneaux alternatifs disponibles<br>
+              • Confirmer les modifications par email/SMS<br>
+              • Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
+              Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
+          }
+        },
+        "en": {
+          crm: {
+            title: "Customer Relationship Management (CRM) Systems",
+            content: `A CRM helps you track interactions with your customers and leads. Integrating your chatbot with a CRM allows conversations and user data to be automatically recorded in your existing system.<br><br>Select the CRMs you already use or want to integrate with.`
+          },
+          database: {
+            title: "Databases",
+            content: `A database stores information collected by your chatbot. This can include user profiles, preferences, conversation history, and other important data.<br><br>If you have existing systems, select them so we can set up the appropriate integrations.`
+          },
+          booking: {
+            title: "Booking Systems",
+            content: `Booking systems allow your customers to make appointments or reserve your services directly through the chatbot. Integration with your current system ensures availability synchronization and prevents double bookings.<br><br>If you don't have a system yet, we can recommend the solution that best fits your needs.`
+          },
+          formTypes: {
+            title: "Form Types",
+            content: `Interactive forms can be integrated into your chatbot to collect specific information. Each form type is designed for a particular purpose:<br><br>
+              • <strong>Contact Form</strong>: Collects visitor contact details<br>
+              • <strong>Lead Generation</strong>: Qualifies potential prospects<br>
+              • <strong>Survey</strong>: Gathers detailed information<br>
+              • <strong>Booking</strong>: Allows scheduling a time slot<br>
+              • <strong>Customer Support</strong>: For assistance requests<br>
+              • And more based on your specific needs`
+          },
+          websitePlatform: {
+            title: "Web Platforms",
+            content: `Understanding your web platform allows us to create optimal integration for your chatbot. Each platform has its own technical specifications and requires a different integration approach.<br><br>If your site is custom-built, please specify the technologies used (PHP, Node.js, React, etc.).`
+          },
+          socialPlatforms: {
+            title: "Social Platforms",
+            content: `Your chatbot can be deployed on various social messaging platforms to reach your customers where they are. Each platform offers specific features and requires particular configuration.<br><br>Select the platforms where you want to deploy your chatbot.`
+          },
+          languageType: {
+            title: "Language Configuration",
+            content: `A multilingual chatbot can communicate with your users in multiple languages, expanding your potential audience. A unilingual chatbot will only work in one language.<br><br>Multilingual support is more complex to set up but provides a better user experience for an international audience.`
+          },
+          leadCapture: {
+            title: "Lead Capture",
+            content: `This feature allows your chatbot to automatically collect contact information from visitors interested in your products or services. This information can then be passed to your sales team or integrated into your CRM.`
+          },
+          leadQualification: {
+            title: "Lead Qualification",
+            content: `Your chatbot can ask a series of questions to determine if a visitor matches your ideal customer profile. This helps filter prospects according to your criteria and focus your efforts on the most promising ones.`
+          },
+          conversationSummary: {
+            title: "Automated Conversation Synthesis",
+            content: `This feature enables your chatbot to automatically generate summaries of user conversations. These summaries extract key points, requests, and commitments made during the interaction.<br><br>Benefits:<br>
+              • Efficient tracking of customer interactions<br>
+              • Quick identification of recurring needs<br>
+              • Seamless handover to human agents when necessary<br>
+              • Automatic documentation of exchanges for later analysis`
+          },
+          websiteTraffic: {
+            title: "Monthly Traffic Volume",
+            content: `This information helps us properly size your chatbot solution. Traffic volume influences:<br><br>
+              • Required processing capacity<br>
+              • Server resources allocation<br>
+              • Optimal dialog structure<br>
+              • Caching and optimization strategies<br><br>
+              A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
+          },
+          handleCancellation: {
+            title: "Cancellation and Rescheduling Management",
+            content: `This functionality allows your customers to modify or cancel their bookings directly through the chatbot without human intervention.<br><br>The chatbot can:<br>
+              • Access the calendar of existing reservations<br>
+              • Offer available alternative time slots<br>
+              • Confirm changes via email/SMS<br>
+              • Apply your business rules regarding cancellation deadlines or fees<br><br>
+              This automation improves customer experience while reducing administrative workload.`
+          }
+        }
+      };
+      
+      // Add info buttons to specific fields - modified as requested
+  addInfoButton('use-form-question', infoContent[currentLanguage].formTypes.title, infoContent[currentLanguage].formTypes.content, currentLanguage);
+  addInfoButton('use-crm-question', infoContent[currentLanguage].crm.title, infoContent[currentLanguage].crm.content, currentLanguage);
+  addInfoButton('has-booking-question', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
+  addInfoButton('use-database-question', infoContent[currentLanguage].database.title, infoContent[currentLanguage].database.content, currentLanguage);
+  addInfoButton('social-bot-question', infoContent[currentLanguage].socialPlatforms.title, infoContent[currentLanguage].socialPlatforms.content, currentLanguage);
   
-  // Lead qualification radio buttons
-  document.querySelectorAll('input[name="leadQualification"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-lead-qualification');
-      formValues.leadQualification = this.value;
-      saveFormData();
-    });
-  });
+  // Also add to "want booking recommendation" for users without booking systems
+  addInfoButton('want-booking-recommendation', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
   
-  // Conversation summary radio buttons
-  document.querySelectorAll('input[name="conversationSummary"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-conversation-summary');
-      formValues.conversationSummary = this.value;
-      saveFormData();
-    });
-  });
-  
-  // Use form radio buttons
-  // In the radio button change handler for useForm
-document.querySelectorAll('input[name="useForm"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    const formOptions = document.getElementById('form-options');
-    const formTypesDropdown = document.getElementById('formTypesDropdown');
-    const formPurpose = document.getElementById('form-purpose-group'); // Add this wrapper div
-    
-    if (this.value === 'yes') {
-      formOptions.style.display = 'block';
-      formTypesDropdown.style.display = 'block';
-      formPurpose.style.display = 'block';
-    } else {
-      formOptions.style.display = 'none';
-      formTypesDropdown.style.display = 'none';
-      formPurpose.style.display = 'none';
+  // Keep other existing info buttons
+  addInfoButton('platform-label', infoContent[currentLanguage].websitePlatform.title, infoContent[currentLanguage].websitePlatform.content, currentLanguage);
+  addInfoButton('language-type-question', infoContent[currentLanguage].languageType.title, infoContent[currentLanguage].languageType.content, currentLanguage);
+  addInfoButton('lead-capture-question', infoContent[currentLanguage].leadCapture.title, infoContent[currentLanguage].leadCapture.content, currentLanguage);
+  addInfoButton('lead-qualification-question', infoContent[currentLanguage].leadQualification.title, infoContent[currentLanguage].leadQualification.content, currentLanguage);
+  addInfoButton('conversation-summary-question', infoContent[currentLanguage].conversationSummary.title, infoContent[currentLanguage].conversationSummary.content, currentLanguage);
+  addInfoButton('website-traffic-label', infoContent[currentLanguage].websiteTraffic.title, infoContent[currentLanguage].websiteTraffic.content, currentLanguage);
+  addInfoButton('handle-cancellation-question', infoContent[currentLanguage].handleCancellation.title, infoContent[currentLanguage].handleCancellation.content, currentLanguage);
     }
-  });
-});
-  
-  // Has website radio buttons
-  document.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-has-website');
-      const websiteOptions = document.getElementById('website-options');
-      websiteOptions.style.display = this.value === 'yes' ? 'block' : 'none';
-      formValues.hasWebsite = this.value;
-      saveFormData();
-    });
-  });
-  
-  // Use CRM radio buttons
-  // In the radio button change handler for useCRM
-document.querySelectorAll('input[name="useCRM"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    const crmSelection = document.getElementById('crm-selection');
-    if (this.value === 'yes') {
-      crmSelection.style.display = 'block';
-    } else {
-      crmSelection.style.display = 'none';
-    }
-  });
-});
-  
-  // Has booking system radio buttons
-  // Modify the booking system radio button handler
-// Booking System Recommendation Toggle
-document.querySelectorAll('input[name="hasBookingSystem"]').forEach(radio =>
-  radio.addEventListener('change', e =>
-    document
-      .getElementById('need-booking-options')
-      .classList.toggle('visible', e.target.value === 'no')
-  )
-);
-  
-  // Use database radio buttons
-  document.querySelectorAll('input[name="useDatabase"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-use-database');
-      const databaseSelection = document.getElementById('database-selection');
-      databaseSelection.style.display = this.value === 'yes' ? 'block' : 'none';
-      formValues.useDatabase = this.value;
-      saveFormData();
-    });
-  });
-  
-  // Need social bot radio buttons
-  // In the radio button change handler for needSocialBot
-// Social Media Integration Toggle
-document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
-  radio.addEventListener('change', e =>
-    document
-      .getElementById('social-platforms-group')
-      .classList.toggle('visible', e.target.value === 'yes')
-  )
-);
-  
-  // Language type radio buttons
-  document.querySelectorAll('input[name="languageType"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      hideError('error-language-type');
-      // Existing language type change handler code remains the same
-    });
-  });
-}
-    
-    /*************************************************************
-     * Translation Functions
-     *************************************************************/
-    function updateAllTexts() {
+
+function updateAllTexts() {
       // Get the updated form data based on current language
       formData = createFormData(currentLanguage);
       
@@ -3363,7 +3346,394 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
       initializeInfoButtons(currentLanguage);
     }
     
-    function updateRadioButtonLabels() {
+   function initializeForm() {
+      // Initialize character counters
+      document.getElementById('services-counter').textContent = formValues.services.length || 0;
+      document.getElementById('form-purpose-counter').textContent = formValues.formPurpose.length || 0;
+      document.getElementById('description-counter').textContent = formValues.description.length || 0;
+      
+      // Initialize dropdowns
+      initializeDropdowns();
+      
+      // Load saved data
+      loadSavedData();
+      
+      // Set the formLanguage
+      formValues.formLanguage = currentLanguage;
+      
+      // Get the form data for current language
+      formData = createFormData(currentLanguage);
+      
+      // Update all text elements
+      updateAllTexts();
+      
+      // Initialize progress bar
+      updateProgressBar();
+      
+      // Setup real-time validation
+      setupRealTimeValidation();
+      
+      // Setup radio button validation
+      setupRadioButtonValidation();
+      
+      // Show/hide conditional sections based on saved values
+      if (formValues.useForm === 'yes') {
+        document.getElementById('form-options').style.display = 'block';
+      }
+      
+      if (formValues.hasWebsite === 'yes') {
+        document.getElementById('website-options').style.display = 'block';
+      }
+      
+      if (formValues.needSocialBot === 'yes') {
+        document.getElementById('social-platforms-group').style.display = 'block';
+      }
+      
+      if (formValues.useCRM === 'yes') {
+        document.getElementById('crm-selection').style.display = 'block';
+      }
+      
+      if (formValues.hasBookingSystem === 'yes') {
+        document.getElementById('existing-booking-options').style.display = 'block';
+      } else if (formValues.hasBookingSystem === 'no') {
+        document.getElementById('need-booking-options').style.display = 'block';
+      }
+      
+      if (formValues.useDatabase === 'yes') {
+        document.getElementById('database-selection').style.display = 'block';
+      }
+      
+      if (formValues.languageType) {
+        document.getElementById('language-selection').style.display = 'block';
+      }
+      startFormTimer();
+    }
+
+    
+	
+    /*************************************************************
+ * Timer Functionality
+ *************************************************************/
+function startFormTimer() {
+      let timeLeft = TIMEOUT_DURATION;
+      
+      // Just set the timeout - no display updates needed
+      formTimeoutId = setInterval(() => {
+        timeLeft -= 1000;
+        
+        if (timeLeft <= 0) {
+          clearInterval(formTimeoutId);
+          if (!isFormSubmitted) {
+            handleFormTimeout();
+          }
+        }
+      }, 1000);
+    }
+
+    function handleFormTimeout() {
+      disableAllFormElements();
+      
+      const submitButton = formContainer.querySelector("#submit-button");
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = currentLanguage === 'fr' ? "Temps expiré" : "Time Expired";
+        submitButton.style.backgroundColor = "#f44336";
+        submitButton.style.color = "white";
+      }
+      
+      // also disable & style any Next buttons
+      formContainer
+        .querySelectorAll(".btn-next")
+        .forEach(btn => {
+          btn.disabled = true;
+          btn.textContent = currentLanguage === "fr" ? "Temps expiré" : "Time Expired";
+          btn.style.backgroundColor = "#f44336";
+          btn.style.color = "white";
+        });
+        
+      if(vf){
+        window.voiceflow.chat.interact({
+          type: "timeEnd",
+          payload: {
+            message: "Time expired"
+          }
+        });
+      }
+    }
+
+    /*************************************************************
+     * Form Disable Function
+     *************************************************************/
+    function disableAllFormElements() {
+      // Set cursor style to not-allowed for all interactive elements
+      formContainer.querySelectorAll('button, input, select, textarea, .custom-options, .select-wrapper, .dropdown-icon').forEach(el => {
+        el.disabled = true;
+        el.style.cursor = "not-allowed";
+      });
+      
+      // Disable dropdown functionality
+      formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => {
+        opt.classList.remove('show-options');
+      });
+      
+      formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => {
+        icon.classList.remove('rotate');
+      });
+      
+      formContainer.classList.add('disabled');
+    }
+
+    // Function to set up real-time validation for input fields
+    function setupRealTimeValidation() {
+      // Text inputs validation
+      const firstName = formContainer.querySelector('#first-name');
+      if (firstName) {
+        firstName.addEventListener('input', function() {
+          formValues.firstName = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-firstname');
+          }
+          saveFormData();
+        });
+      }
+      
+      const lastName = formContainer.querySelector('#last-name');
+      if (lastName) {
+        lastName.addEventListener('input', function() {
+          formValues.lastName = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-lastname');
+          }
+          saveFormData();
+        });
+      }
+      
+      const email = formContainer.querySelector('#email');
+      if (email) {
+        email.addEventListener('input', function() {
+          formValues.email = this.value.trim();
+          if (this.value.trim()) {
+            if (isValidEmail(this.value.trim())) {
+              hideError('error-email');
+            } else {
+              showError('error-email', 'emailInvalid');
+            }
+          }
+          saveFormData();
+        });
+      }
+      
+      const phone = formContainer.querySelector('#phone');
+      if (phone) {
+        phone.addEventListener('input', function() {
+          formValues.phone = this.value.trim();
+          if (this.value.trim()) {
+            if (isValidPhoneNumber(this.value.trim())) {
+              hideError('error-phone');
+            } else {
+              showError('error-phone', 'phoneInvalid');
+            }
+          }
+          saveFormData();
+        });
+      }
+      
+      const description = formContainer.querySelector('#description');
+      if (description) {
+        description.addEventListener('input', function() {
+          formValues.description = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-description');
+          }
+          const counter = formContainer.querySelector('#description-counter');
+          if (counter) counter.textContent = this.value.length;
+          saveFormData();
+        });
+      }
+      
+      const otherNiche = formContainer.querySelector('#other-niche');
+      if (otherNiche) {
+        otherNiche.addEventListener('input', function() {
+          formValues.otherNiche = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-other-niche');
+          }
+          saveFormData();
+        });
+      }
+      
+      const customBudget = formContainer.querySelector('#custom-budget');
+      if (customBudget) {
+        customBudget.addEventListener('input', function() {
+          formValues.customBudget = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-custom-budget');
+          }
+          saveFormData();
+        });
+      }
+      
+      const services = formContainer.querySelector('#services');
+      if (services) {
+        services.addEventListener('input', function() {
+          formValues.services = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-services');
+          }
+          const counter = formContainer.querySelector('#services-counter');
+          if (counter) counter.textContent = this.value.length;
+          saveFormData();
+        });
+      }
+      
+      const websiteUrl = formContainer.querySelector('#website-url');
+      if (websiteUrl) {
+        websiteUrl.addEventListener('input', function() {
+          formValues.websiteUrl = this.value.trim();
+          saveFormData();
+        });
+      }
+      
+      const otherPlatform = formContainer.querySelector('#other-platform');
+      if (otherPlatform) {
+        otherPlatform.addEventListener('input', function() {
+          formValues.otherPlatform = this.value.trim();
+          if (this.value.trim()) {
+            hideError('error-other-platform');
+          }
+          saveFormData();
+        });
+      }
+    }
+
+    function setupRadioButtonValidation() {
+      // Lead capture radio buttons
+      formContainer.querySelectorAll('input[name="leadCapture"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-lead-capture');
+          formValues.leadCapture = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Lead qualification radio buttons
+      formContainer.querySelectorAll('input[name="leadQualification"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-lead-qualification');
+          formValues.leadQualification = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Conversation summary radio buttons
+      formContainer.querySelectorAll('input[name="conversationSummary"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-conversation-summary');
+          formValues.conversationSummary = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Use form radio buttons
+      formContainer.querySelectorAll('input[name="useForm"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const formOptions = formContainer.querySelector('#form-options');
+          const formTypesDropdown = formContainer.querySelector('#formTypesDropdown');
+          const formPurpose = formContainer.querySelector('#form-purpose-group');
+          
+          if (formOptions && this.value === 'yes') {
+            formOptions.style.display = 'block';
+            if (formTypesDropdown) formTypesDropdown.style.display = 'block';
+            if (formPurpose) formPurpose.style.display = 'block';
+          } else if (formOptions) {
+            formOptions.style.display = 'none';
+            if (formTypesDropdown) formTypesDropdown.style.display = 'none';
+            if (formPurpose) formPurpose.style.display = 'none';
+          }
+          
+          formValues.useForm = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Has website radio buttons
+      formContainer.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-has-website');
+          const websiteOptions = formContainer.querySelector('#website-options');
+          if (websiteOptions) {
+            websiteOptions.style.display = this.value === 'yes' ? 'block' : 'none';
+          }
+          formValues.hasWebsite = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Use CRM radio buttons
+      formContainer.querySelectorAll('input[name="useCRM"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          const crmSelection = formContainer.querySelector('#crm-selection');
+          if (crmSelection) {
+            crmSelection.style.display = this.value === 'yes' ? 'block' : 'none';
+          }
+          formValues.useCRM = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Booking System Recommendation Toggle
+      formContainer.querySelectorAll('input[name="hasBookingSystem"]').forEach(radio =>
+        radio.addEventListener('change', e => {
+          const needBookingOptions = formContainer.querySelector('#need-booking-options');
+          if (needBookingOptions) {
+            needBookingOptions.classList.toggle('visible', e.target.value === 'no');
+          }
+          formValues.hasBookingSystem = e.target.value;
+          saveFormData();
+        })
+      );
+      
+      // Use database radio buttons
+      formContainer.querySelectorAll('input[name="useDatabase"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-use-database');
+          const databaseSelection = formContainer.querySelector('#database-selection');
+          if (databaseSelection) {
+            databaseSelection.style.display = this.value === 'yes' ? 'block' : 'none';
+          }
+          formValues.useDatabase = this.value;
+          saveFormData();
+        });
+      });
+      
+      // Social Media Integration Toggle
+      formContainer.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
+        radio.addEventListener('change', e => {
+          const socialPlatformsGroup = formContainer.querySelector('#social-platforms-group');
+          if (socialPlatformsGroup) {
+            socialPlatformsGroup.classList.toggle('visible', e.target.value === 'yes');
+          }
+          formValues.needSocialBot = e.target.value;
+          saveFormData();
+        })
+      );
+      
+      // Language type radio buttons
+      formContainer.querySelectorAll('input[name="languageType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          hideError('error-language-type');
+          // Existing language type change handler code remains the same
+          formValues.languageType = this.value;
+          saveFormData();
+        });
+      });
+    }
+    
+    
+	/*************************************************************
+     * Translation Functions
+     *************************************************************/
+     function updateRadioButtonLabels() {
       // Update Yes/No labels
       document.querySelectorAll('.radio-option').forEach(option => {
         const radioInput = option.querySelector('input[type="radio"]');
@@ -3609,10 +3979,12 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
      
     // Single-select dropdown builder
     function buildSingleSelectDropdown(selectId, customOptionsId, displayId, iconId, options) {
-      const select = document.getElementById(selectId);
-      const customOptions = document.getElementById(customOptionsId);
-      const display = document.getElementById(displayId);
-      const icon = document.getElementById(iconId);
+      const select = formContainer.querySelector(`#${selectId}`);
+      const customOptions = formContainer.querySelector(`#${customOptionsId}`);
+      const display = formContainer.querySelector(`#${displayId}`);
+      const icon = formContainer.querySelector(`#${iconId}`);
+      
+      if (!select || !customOptions || !display || !icon) return;
       
       // Clear previous options
       select.innerHTML = '';
@@ -3654,21 +4026,27 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
           
           // Handle specific cases
           if (selectId === 'website-platform' && option.id === 'other') {
-            document.getElementById('other-platform-group').style.display = 'block';
+            const otherPlatformGroup = formContainer.querySelector('#other-platform-group');
+            if (otherPlatformGroup) otherPlatformGroup.style.display = 'block';
           } else if (selectId === 'website-platform') {
-            document.getElementById('other-platform-group').style.display = 'none';
+            const otherPlatformGroup = formContainer.querySelector('#other-platform-group');
+            if (otherPlatformGroup) otherPlatformGroup.style.display = 'none';
           }
           
           if (selectId === 'niche' && option.id === 'other') {
-            document.getElementById('other-niche-group').style.display = 'block';
+            const otherNicheGroup = formContainer.querySelector('#other-niche-group');
+            if (otherNicheGroup) otherNicheGroup.style.display = 'block';
           } else if (selectId === 'niche') {
-            document.getElementById('other-niche-group').style.display = 'none';
+            const otherNicheGroup = formContainer.querySelector('#other-niche-group');
+            if (otherNicheGroup) otherNicheGroup.style.display = 'none';
           }
           
           if (selectId === 'budget' && option.id === 'custom') {
-            document.getElementById('custom-budget-group').style.display = 'block';
+            const customBudgetGroup = formContainer.querySelector('#custom-budget-group');
+            if (customBudgetGroup) customBudgetGroup.style.display = 'block';
           } else if (selectId === 'budget') {
-            document.getElementById('custom-budget-group').style.display = 'none';
+            const customBudgetGroup = formContainer.querySelector('#custom-budget-group');
+            if (customBudgetGroup) customBudgetGroup.style.display = 'none';
           }
           
           // Save form value
@@ -3697,11 +4075,11 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         e.stopPropagation();
         
         // Close all other dropdowns
-        document.querySelectorAll('.custom-options').forEach(opt => {
+        formContainer.querySelectorAll('.custom-options').forEach(opt => {
           if (opt !== customOptions) opt.classList.remove('show-options');
         });
         
-        document.querySelectorAll('.dropdown-icon').forEach(icn => {
+        formContainer.querySelectorAll('.dropdown-icon').forEach(icn => {
           if (icn !== icon) icn.classList.remove('rotate');
         });
         
@@ -3720,7 +4098,8 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         }
         
         if (formValues.websitePlatform === 'other') {
-          document.getElementById('other-platform-group').style.display = 'block';
+          const otherPlatformGroup = formContainer.querySelector('#other-platform-group');
+          if (otherPlatformGroup) otherPlatformGroup.style.display = 'block';
         }
       }
       
@@ -3734,7 +4113,8 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         }
         
         if (formValues.niche === 'other') {
-          document.getElementById('other-niche-group').style.display = 'block';
+		  const otherNicheformGroup = formContainer.querySelector('#other-niche-group');
+          if (otherNicheformGroup) otherNicheformGroup.style.display = 'block';
         }
       }
       
@@ -3748,7 +4128,8 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         }
         
         if (formValues.budget === 'custom') {
-          document.getElementById('custom-budget-group').style.display = 'block';
+		  const customBudgetGroup = formContainer.querySelector('#custom-budget-group');
+          if (customBudgetGroup) customBudgetGroup.style.display = 'block';
         }
       }
       
@@ -3789,10 +4170,12 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     
     // Multi-select dropdown builder
     function buildMultiSelectDropdown(selectId, customOptionsId, displayId, iconId, options) {
-      const select = document.getElementById(selectId);
-      const customOptions = document.getElementById(customOptionsId);
-      const display = document.getElementById(displayId);
-      const icon = document.getElementById(iconId);
+      const select = formContainer.querySelector(`#${selectId}`);
+      const customOptions = formContainer.querySelector(`#${customOptionsId}`);
+      const display = formContainer.querySelector(`#${displayId}`);
+      const icon = formContainer.querySelector(`#${iconId}`);
+      
+      if (!select || !customOptions || !display || !icon) return;
       
       // Clear previous options
       select.innerHTML = '';
@@ -3936,7 +4319,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
               .map(opt => opt.value);
           }
           
-           if (selectId === 'formTypesSelect') hideError('error-form-types');
+          if (selectId === 'formTypesSelect') hideError('error-form-types');
           if (selectId === 'socialPlatformsSelect') hideError('error-social-platforms');
           if (selectId === 'crmsSelect') hideError('error-crms');
           if (selectId === 'databasesSelect') hideError('error-databases');
@@ -3953,11 +4336,11 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         e.stopPropagation();
         
         // Close all other dropdowns
-        document.querySelectorAll('.custom-options').forEach(opt => {
+        formContainer.querySelectorAll('.custom-options').forEach(opt => {
           if (opt !== customOptions) opt.classList.remove('show-options');
         });
         
-        document.querySelectorAll('.dropdown-icon').forEach(icn => {
+        formContainer.querySelectorAll('.dropdown-icon').forEach(icn => {
           if (icn !== icon) icn.classList.remove('rotate');
         });
         
@@ -4065,6 +4448,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         
         updateMultiSelectText(select, display);
       }
+    
     }
     
     function updateMultiSelectText(select, display) {
@@ -4085,11 +4469,11 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     // Global click handler to close dropdowns
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.select-wrapper')) {
-        document.querySelectorAll('.custom-options').forEach(opt => {
+        formContainer.querySelectorAll('.custom-options').forEach(opt => {
           opt.classList.remove('show-options');
         });
         
-        document.querySelectorAll('.dropdown-icon').forEach(icon => {
+        formContainer.querySelectorAll('.dropdown-icon').forEach(icon => {
           icon.classList.remove('rotate');
         });
       }
@@ -4099,66 +4483,65 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
      * Form Validation Functions
      *************************************************************/
     function validateStep1() {
-      let isValid = true;
-      
-      // Validate first name
-      const firstName = document.getElementById('first-name').value.trim();
-      if (!firstName) {
-        showError('error-firstname', 'firstNameRequired');
-        isValid = false;
-      } else {
-        hideError('error-firstname');
-        formValues.firstName = firstName;
-      }
-      
-      // Validate last name
-      const lastName = document.getElementById('last-name').value.trim();
-      if (!lastName) {
-        showError('error-lastname', 'lastNameRequired');
-        isValid = false;
-      } else {
-        hideError('error-lastname');
-        formValues.lastName = lastName;
-      }
-      
-      // Validate email
-      const email = document.getElementById('email').value.trim();
-      if (!email) {
-        showError('error-email', 'emailRequired');
-        isValid = false;
-      } else if (!isValidEmail(email)) {
-        showError('error-email', 'emailInvalid');
-        isValid = false;
-      } else {
-        hideError('error-email');
-        formValues.email = email;
-      }
-      
-      // Validate phone
-      const phone = document.getElementById('phone').value.trim();
-      if (!phone) {
-        showError('error-phone', 'phoneRequired');
-        isValid = false;
-      } else if (!isValidPhoneNumber(phone)) {
-        showError('error-phone', 'phoneInvalid');
-        isValid = false;
-      } else {
-        hideError('error-phone');
-        formValues.phone = formatPhoneNumber(phone);
-      }
-      
-      // Get company (optional)
-      const company = document.getElementById('company').value.trim();
-      formValues.company = company;
-      
-      return isValid;
-    }
-    
-    function validateStep2() {
+  let isValid = true;
+  
+  // Validate first name - FIXED SELECTOR
+  const firstName = formContainer.querySelector('#first-name').value.trim();
+  if (!firstName) {
+    showError('error-firstname', 'firstNameRequired');
+    isValid = false;
+  } else {
+    hideError('error-firstname');
+    formValues.firstName = firstName;
+  }
+  
+  // Validate last name - FIXED SELECTOR
+  const lastName = formContainer.querySelector('#last-name').value.trim();
+  if (!lastName) {
+    showError('error-lastname', 'lastNameRequired');
+    isValid = false;
+  } else {
+    hideError('error-lastname');
+    formValues.lastName = lastName;
+  }
+  
+  // Validate email - FIXED SELECTOR
+  const email = formContainer.querySelector('#email').value.trim();
+  if (!email) {
+    showError('error-email', 'emailRequired');
+    isValid = false;
+  } else if (!isValidEmail(email)) {
+    showError('error-email', 'emailInvalid');
+    isValid = false;
+  } else {
+    hideError('error-email');
+    formValues.email = email;
+  }
+  
+  // Validate phone - FIXED SELECTOR
+  const phone = formContainer.querySelector('#phone').value.trim();
+  if (!phone) {
+    showError('error-phone', 'phoneRequired');
+    isValid = false;
+  } else if (!isValidPhoneNumber(phone)) {
+    showError('error-phone', 'phoneInvalid');
+    isValid = false;
+  } else {
+    hideError('error-phone');
+    formValues.phone = formatPhoneNumber(phone);
+  }
+  
+  // Get company (optional) - FIXED SELECTOR
+  const company = formContainer.querySelector('#company').value.trim();
+  formValues.company = company;
+  
+  return isValid;
+}
+function validateStep2() {
       let isValid = true;
       
       // Validate niche
-      const niche = document.getElementById('niche').value;
+      const niche = formContainer.querySelector('#niche').value;
       if (!niche) {
         showError('error-niche', 'nicheRequired');
         isValid = false;
@@ -4168,7 +4551,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         
         // Validate other niche if selected
         if (niche === 'other') {
-          const otherNiche = document.getElementById('other-niche').value.trim();
+          const otherNiche = formContainer.querySelector('#other-niche').value.trim();
           if (!otherNiche) {
             showError('error-other-niche', 'otherNicheRequired');
             isValid = false;
@@ -4180,7 +4563,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
       }
       
       // Validate budget
-      const budget = document.getElementById('budget').value;
+      const budget = formContainer.querySelector('#budget').value;
       if (!budget) {
         showError('error-budget', 'budgetRequired');
         isValid = false;
@@ -4190,7 +4573,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         
         // Validate custom budget if selected
         if (budget === 'custom') {
-          const customBudget = document.getElementById('custom-budget').value.trim();
+          const customBudget = formContainer.querySelector('#custom-budget').value.trim();
           if (!customBudget) {
             showError('error-custom-budget', 'customBudgetRequired');
             isValid = false;
@@ -4202,7 +4585,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
       }
       
       // Validate description
-      const description = document.getElementById('description').value.trim();
+      const description = formContainer.querySelector('#description').value.trim();
       if (!description) {
         showError('error-description', 'descriptionRequired');
         isValid = false;
@@ -4218,7 +4601,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
       let isValid = true;
       
       // Validate team size
-      const teamSize = document.getElementById('team-size').value;
+      const teamSize = formContainer.querySelector('#team-size').value;
       if (!teamSize) {
         showError('error-team-size', 'teamSizeRequired');
         isValid = false;
@@ -4228,7 +4611,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
       }
       
       // Validate services
-      const services = document.getElementById('services').value.trim();
+      const services = formContainer.querySelector('#services').value.trim();
       if (!services) {
         showError('error-services', 'servicesRequired');
         isValid = false;
@@ -4308,7 +4691,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         
         // Validate platform if "yes"
         if (hasWebsite.value === 'yes') {
-          const websitePlatform = document.getElementById('website-platform').value;
+          const websitePlatform = formContainer.querySelector('#website-platform').value;
           if (!websitePlatform) {
             showError('error-platform', 'platformRequired');
             isValid = false;
@@ -4318,7 +4701,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
             
             // Validate other platform if selected
             if (websitePlatform === 'other') {
-              const otherPlatform = document.getElementById('other-platform').value.trim();
+              const otherPlatform = formContainer.querySelector('#other-platform').value.trim();
               if (!otherPlatform) {
                 showError('error-other-platform', 'otherPlatformRequired');
                 isValid = false;
@@ -4330,7 +4713,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
           }
           
           // Validate website URL
-          const websiteUrl = document.getElementById('website-url').value.trim();
+          const websiteUrl = formContainer.querySelector('#website-url').value.trim();
           if (!websiteUrl) {
             showError('error-website-url', 'websiteUrlRequired');
             isValid = false;
@@ -4340,7 +4723,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
           }
           
           // Validate website traffic
-          const websiteTraffic = document.getElementById('website-traffic').value;
+          const websiteTraffic = formContainer.querySelector('#website-traffic').value;
           if (!websiteTraffic) {
             showError('error-website-traffic', 'websiteTrafficRequired');
             isValid = false;
@@ -4368,7 +4751,7 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
         
         if (hasBookingSystem.value === 'yes') {
           // Validate booking system selection
-          const bookingSystem = document.getElementById('bookingSystemsSelect').value;
+          const bookingSystem = formContainer.querySelector('#bookingSystemsSelect').value;
           
           if (!bookingSystem) {
             showError('error-booking-systems', 'bookingSystemsRequired');
@@ -5138,13 +5521,11 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     console.log('Success:', data);
     
     // After successful webhook, send data to Voiceflow
-
- if(vf){
+    
       window.voiceflow.chat.interact({
         type: "success",
         payload: submissionData
       });
- }
     
     // Hide all steps and show confirmation
     formContainer.querySelectorAll('.step-container').forEach(step => {
@@ -5172,69 +5553,6 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     /*************************************************************
      * Initialize Form
      *************************************************************/
-    function initializeForm() {
-      // Initialize character counters
-      document.getElementById('services-counter').textContent = formValues.services.length || 0;
-      document.getElementById('form-purpose-counter').textContent = formValues.formPurpose.length || 0;
-      document.getElementById('description-counter').textContent = formValues.description.length || 0;
-      
-      // Initialize dropdowns
-      initializeDropdowns();
-      
-      // Load saved data
-      loadSavedData();
-      
-      // Set the formLanguage
-      formValues.formLanguage = currentLanguage;
-      
-      // Get the form data for current language
-      formData = createFormData(currentLanguage);
-      
-      // Update all text elements
-      updateAllTexts();
-      
-      // Initialize progress bar
-      updateProgressBar();
-      
-      // Setup real-time validation
-      setupRealTimeValidation();
-      
-      // Setup radio button validation
-      setupRadioButtonValidation();
-      
-      // Show/hide conditional sections based on saved values
-      if (formValues.useForm === 'yes') {
-        document.getElementById('form-options').style.display = 'block';
-      }
-      
-      if (formValues.hasWebsite === 'yes') {
-        document.getElementById('website-options').style.display = 'block';
-      }
-      
-      if (formValues.needSocialBot === 'yes') {
-        document.getElementById('social-platforms-group').style.display = 'block';
-      }
-      
-      if (formValues.useCRM === 'yes') {
-        document.getElementById('crm-selection').style.display = 'block';
-      }
-      
-      if (formValues.hasBookingSystem === 'yes') {
-        document.getElementById('existing-booking-options').style.display = 'block';
-      } else if (formValues.hasBookingSystem === 'no') {
-        document.getElementById('need-booking-options').style.display = 'block';
-      }
-      
-      if (formValues.useDatabase === 'yes') {
-        document.getElementById('database-selection').style.display = 'block';
-      }
-      
-      if (formValues.languageType) {
-        document.getElementById('language-selection').style.display = 'block';
-      }
-      startFormTimer();
-    }
-
     function initializeDropdowns() {
       // Initialize Team Size dropdown
       buildSingleSelectDropdown(
@@ -5345,6 +5663,10 @@ document.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
     initializeForm();
   }
 };
+
+
+
+
 
 
 const BookingDirectExtension = {
