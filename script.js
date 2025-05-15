@@ -4905,7 +4905,7 @@ function validateStep2() {
     }
     
     function showError(errorId, messageKey) {
-      const errorElement = document.getElementById(errorId);
+      const errorElement = formContainer.querySelector(`#${errorId}`);
       if (errorElement) {
         // If messageKey is provided, update the error message text
         if (messageKey) {
@@ -4916,7 +4916,7 @@ function validateStep2() {
     }
     
     function hideError(errorId) {
-      const errorElement = document.getElementById(errorId);
+      const errorElement = formContainer.querySelector(`#${errorId}`);
       if (errorElement) {
         errorElement.classList.remove('show');
       }
