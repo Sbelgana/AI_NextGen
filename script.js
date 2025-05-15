@@ -1192,7 +1192,7 @@
       flex-direction: column;
       width: 100%;
       max-width: 800px;
-      min-width: 600px;
+      min-width: 800px;
       margin: 0 auto;
       padding: 20px;
       border-radius: 12px;
