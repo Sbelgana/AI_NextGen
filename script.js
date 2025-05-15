@@ -1192,9 +1192,9 @@
       flex-direction: column;
       width: 100%;
       max-width: 800px;
-      min-width: 600px;
+      min-width: 800px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 10px 20px;
       border-radius: 12px;
       background: #fff;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -1205,7 +1205,7 @@
     
     /* ========== Step Progress Indicator ========== */
     .progress-container {
-      padding: 0;
+      padding: 0px 0px 10px 0;
     }
     .step-title {
   display: none;
@@ -1309,7 +1309,6 @@
     .step-container {
       display: none;
       animation: fadeIn 0.5s;
-      padding: 10px;
     }
 
     .step-container.active {
@@ -1324,7 +1323,7 @@
     .step-heading {
       font-size: 24px;
       color: #9C27B0;
-      margin-bottom: 24px;
+      margin-bottom: 10px;
       font-weight: 600;
       position: relative;
       padding-bottom: 10px;
@@ -1355,7 +1354,7 @@
     }
     
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       position: relative;
     }
     
@@ -1744,7 +1743,6 @@
     .form-buttons {
       display: flex;
       justify-content: space-between;
-      margin-top: 30px;
       gap: 15px;
     }
 
