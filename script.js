@@ -1192,7 +1192,7 @@
       flex-direction: column;
       width: 100%;
       max-width: 800px;
-      min-width: 800px;
+      min-width: 600px;
       margin: 0 auto;
       padding: 20px;
       border-radius: 12px;
@@ -1536,7 +1536,10 @@
     input[type="email"],
     input[type="tel"],
     input[type="number"],
-    textarea,
+    #details,
+	#description,
+#services,
+#form-purpose,
     select {
       width: 100%;
       border: 1px solid #ddd;
@@ -1551,7 +1554,10 @@
     input[type="email"]:focus,
     input[type="tel"]:focus,
     input[type="number"]:focus,
-    textarea:focus,
+    #details:focus,
+	#description:focus,
+#services:focus,
+#form-purpose:focus,
     select:focus {
       border-color: #9C27B0;
       box-shadow: 0 0 0 3px rgba(156,39,176,0.1);
@@ -1559,7 +1565,10 @@
       background-color: #fff;
     }
     
-    textarea {
+    #details,
+	#description,
+#services,
+#form-purpose{
       min-height: 120px;
       resize: vertical;
     }
@@ -1928,7 +1937,7 @@
     @media (max-width: 480px) {
       form.chatbot-form {
         padding: 15px 10px;
-      min-width: 200px;
+		min-width: 200px
       }
       
       .step-heading {
@@ -1950,7 +1959,10 @@
     
     /* ========== Focus Styles for Accessibility ========== */
     input:focus-visible, 
-    textarea:focus-visible, 
+    #details:focus-visible, 
+#description:focus-visible,
+#services:focus-visible,
+#form-purpose:focus-visible,
     select:focus-visible,
     button:focus-visible {
       outline: 2px solid #9C27B0;
