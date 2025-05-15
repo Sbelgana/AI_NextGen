@@ -1342,14 +1342,14 @@
     
     /* ========== Questions & Form Groups ========== */
     .question-group {
-      margin-bottom: 24px;
+      margin-bottom: 12px;
     }
     
     .question-label {
       font-size: 16px;
       font-weight: 500;
       color: #333;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       display: block;
     }
     
@@ -1975,7 +1975,7 @@
   display: block !important;
 }
 #social-platforms-group {
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 /* default state */
 .info-button svg .info-bg   { fill: #f8e8f8; }
