@@ -709,7 +709,7 @@
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
 
-    const SubmissionFormExtension = {
+       const SubmissionFormExtension = {
       name: "ChatbotForm",
       type: "response",
       match: ({ trace }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
@@ -3296,31 +3296,31 @@ function updateAllTexts() {
       formData = createFormData(currentLanguage);
       
       // Step progress indicators
-      document.getElementById('progress-step1').textContent = getText('step1Title');
-      document.getElementById('progress-step2').textContent = getText('step2Title');
-      document.getElementById('progress-step3').textContent = getText('step3Title');
-      document.getElementById('progress-step4').textContent = getText('step4Title');
-      document.getElementById('progress-step5').textContent = getText('step5Title');
-      document.getElementById('progress-step6').textContent = getText('step6Title');
-      document.getElementById('progress-step7').textContent = getText('step7Title');
-      document.getElementById('progress-step8').textContent = getText('step8Title');
-      document.getElementById('progress-step9').textContent = getText('step9Title');
+      formContainer.querySelector('#progress-step1').textContent = getText('step1Title');
+      formContainer.querySelector('#progress-step2').textContent = getText('step2Title');
+      formContainer.querySelector('#progress-step3').textContent = getText('step3Title');
+      formContainer.querySelector('#progress-step4').textContent = getText('step4Title');
+      formContainer.querySelector('#progress-step5').textContent = getText('step5Title');
+      formContainer.querySelector('#progress-step6').textContent = getText('step6Title');
+      formContainer.querySelector('#progress-step7').textContent = getText('step7Title');
+      formContainer.querySelector('#progress-step8').textContent = getText('step8Title');
+      formContainer.querySelector('#progress-step9').textContent = getText('step9Title');
       
       // Step headings
-      document.getElementById('step1-heading').textContent = getText('step1Title');
-      document.getElementById('step2-heading').textContent = getText('step2Title');
-      document.getElementById('step3-heading').textContent = getText('step3Title');
-      document.getElementById('step4-heading').textContent = getText('step4Title');
-      document.getElementById('step5-heading').textContent = getText('step5Title');
-      document.getElementById('step6-heading').textContent = getText('step6Title');
-      document.getElementById('step7-heading').textContent = getText('step7Title');
-      document.getElementById('step8-heading').textContent = getText('step8Title');
-      document.getElementById('step9-heading').textContent = getText('step9Title');
+      formContainer.querySelector('#step1-heading').textContent = getText('step1Title');
+      formContainer.querySelector('#step2-heading').textContent = getText('step2Title');
+      formContainer.querySelector('#step3-heading').textContent = getText('step3Title');
+      formContainer.querySelector('#step4-heading').textContent = getText('step4Title');
+      formContainer.querySelector('#step5-heading').textContent = getText('step5Title');
+      formContainer.querySelector('#step6-heading').textContent = getText('step6Title');
+      formContainer.querySelector('#step7-heading').textContent = getText('step7Title');
+      formContainer.querySelector('#step8-heading').textContent = getText('step8Title');
+      formContainer.querySelector('#step9-heading').textContent = getText('step9Title');
       
       // Confirmation screen
-      document.getElementById('confirmation-title').textContent = getText('confirmationTitle');
-      document.getElementById('confirmation-message').textContent = getText('confirmationMessage');
-      document.getElementById('back-to-form').textContent = getText('backToForm');
+      formContainer.querySelector('#confirmation-title').textContent = getText('confirmationTitle');
+      formContainer.querySelector('#confirmation-message').textContent = getText('confirmationMessage');
+      formContainer.querySelector('#back-to-form').textContent = getText('backToForm');
       
       // Update all labels and questions
       updateStep1Labels();
@@ -3348,9 +3348,9 @@ function updateAllTexts() {
     
    function initializeForm() {
       // Initialize character counters
-      document.getElementById('services-counter').textContent = formValues.services.length || 0;
-      document.getElementById('form-purpose-counter').textContent = formValues.formPurpose.length || 0;
-      document.getElementById('description-counter').textContent = formValues.description.length || 0;
+      formContainer.querySelector('#services-counter').textContent = formValues.services.length || 0;
+      formContainer.querySelector('#form-purpose-counter').textContent = formValues.formPurpose.length || 0;
+      formContainer.querySelector('#description-counter').textContent = formValues.description.length || 0;
       
       // Initialize dropdowns
       initializeDropdowns();
@@ -3378,33 +3378,33 @@ function updateAllTexts() {
       
       // Show/hide conditional sections based on saved values
       if (formValues.useForm === 'yes') {
-        document.getElementById('form-options').style.display = 'block';
+        formContainer.querySelector('#form-options').style.display = 'block';
       }
       
       if (formValues.hasWebsite === 'yes') {
-        document.getElementById('website-options').style.display = 'block';
+        formContainer.querySelector('#website-options').style.display = 'block';
       }
       
       if (formValues.needSocialBot === 'yes') {
-        document.getElementById('social-platforms-group').style.display = 'block';
+        formContainer.querySelector('#social-platforms-group').style.display = 'block';
       }
       
       if (formValues.useCRM === 'yes') {
-        document.getElementById('crm-selection').style.display = 'block';
+        formContainer.querySelector('#crm-selection').style.display = 'block';
       }
       
       if (formValues.hasBookingSystem === 'yes') {
-        document.getElementById('existing-booking-options').style.display = 'block';
+        formContainer.querySelector('#existing-booking-options').style.display = 'block';
       } else if (formValues.hasBookingSystem === 'no') {
-        document.getElementById('need-booking-options').style.display = 'block';
+        formContainer.querySelector('#need-booking-options').style.display = 'block';
       }
       
       if (formValues.useDatabase === 'yes') {
-        document.getElementById('database-selection').style.display = 'block';
+        formContainer.querySelector('#database-selection').style.display = 'block';
       }
       
       if (formValues.languageType) {
-        document.getElementById('language-selection').style.display = 'block';
+        formContainer.querySelector('#language-selection').style.display = 'block';
       }
       startFormTimer();
     }
@@ -3746,166 +3746,166 @@ function startFormTimer() {
       });
       
       // Update specific labels
-      if (document.getElementById('multilingual-label')) {
-        document.getElementById('multilingual-label').textContent = getText('multilingual');
+      if (formContainer.querySelector('#multilingual-label')) {
+        formContainer.querySelector('#multilingual-label').textContent = getText('multilingual');
       }
-      if (document.getElementById('unilingual-label')) {
-        document.getElementById('unilingual-label').textContent = getText('unilingual');
+      if (formContainer.querySelector('#unilingual-label')) {
+        formContainer.querySelector('#unilingual-label').textContent = getText('unilingual');
       }
     }
     
     function updateStep1Labels() {
-      document.getElementById('firstname-label').textContent = getText('firstName');
-      document.getElementById('lastname-label').textContent = getText('lastName');
-      document.getElementById('email-label').textContent = getText('email');
-      document.getElementById('phone-label').textContent = getText('phone');
-      document.getElementById('company-label').textContent = getText('companyOptional');
+      formContainer.querySelector('#firstname-label').textContent = getText('firstName');
+      formContainer.querySelector('#lastname-label').textContent = getText('lastName');
+      formContainer.querySelector('#email-label').textContent = getText('email');
+      formContainer.querySelector('#phone-label').textContent = getText('phone');
+      formContainer.querySelector('#company-label').textContent = getText('companyOptional');
       
       // Placeholders
-      document.getElementById('first-name').placeholder = `${getText('firstName')}...`;
-      document.getElementById('last-name').placeholder = `${getText('lastName')}...`;
-      document.getElementById('email').placeholder = `${getText('email')}...`;
-      document.getElementById('phone').placeholder = `${getText('phone')}...`;
-      document.getElementById('company').placeholder = `${getText('company')}...`;
+      formContainer.querySelector('#first-name').placeholder = `${getText('firstName')}...`;
+      formContainer.querySelector('#last-name').placeholder = `${getText('lastName')}...`;
+      formContainer.querySelector('#email').placeholder = `${getText('email')}...`;
+      formContainer.querySelector('#phone').placeholder = `${getText('phone')}...`;
+      formContainer.querySelector('#company').placeholder = `${getText('company')}...`;
       
       // Error messages
-      document.getElementById('error-firstname').textContent = getText('fieldRequired');
-      document.getElementById('error-lastname').textContent = getText('fieldRequired');
-      document.getElementById('error-email').textContent = getText('enterValidEmail');
-      document.getElementById('error-phone').textContent = getText('enterValidPhone');
+      formContainer.querySelector('#error-firstname').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-lastname').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-email').textContent = getText('enterValidEmail');
+      formContainer.querySelector('#error-phone').textContent = getText('enterValidPhone');
     }
     
     function updateStep2Labels() {
-      document.getElementById('niche-label').textContent = getText('selectNiche');
-      document.getElementById('other-niche-label').textContent = getText('otherNicheSpecify');
-      document.getElementById('budget-label').textContent = getText('budgetQuestion');
-      document.getElementById('custom-budget-label').textContent = getText('customBudgetQuestion');
-      document.getElementById('description-label').textContent = getText('projectDescription');
+      formContainer.querySelector('#niche-label').textContent = getText('selectNiche');
+      formContainer.querySelector('#other-niche-label').textContent = getText('otherNicheSpecify');
+      formContainer.querySelector('#budget-label').textContent = getText('budgetQuestion');
+      formContainer.querySelector('#custom-budget-label').textContent = getText('customBudgetQuestion');
+      formContainer.querySelector('#description-label').textContent = getText('projectDescription');
       
       // Placeholders
-      document.getElementById('other-niche').placeholder = `${getText('otherNicheSpecify')}...`;
-      document.getElementById('description').placeholder = getText('projectDescriptionPlaceholder');
-      document.getElementById('custom-budget').placeholder = `${getText('customBudgetQuestion')}...`;
+      formContainer.querySelector('#other-niche').placeholder = `${getText('otherNicheSpecify')}...`;
+      formContainer.querySelector('#description').placeholder = getText('projectDescriptionPlaceholder');
+      formContainer.querySelector('#custom-budget').placeholder = `${getText('customBudgetQuestion')}...`;
       
       // Error messages
-      document.getElementById('error-niche').textContent = getText('fieldRequired');
-      document.getElementById('error-other-niche').textContent = getText('fieldRequired');
-      document.getElementById('error-budget').textContent = getText('fieldRequired');
-      document.getElementById('error-custom-budget').textContent = getText('fieldRequired');
-      document.getElementById('error-description').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-niche').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-other-niche').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-budget').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-custom-budget').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-description').textContent = getText('fieldRequired');
     }
     
     function updateStep3Labels() {
-      document.getElementById('team-size-question').textContent = getText('teamSizeQuestion');
-      document.getElementById('services-label').textContent = getText('servicesQuestion');
+      formContainer.querySelector('#team-size-question').textContent = getText('teamSizeQuestion');
+      formContainer.querySelector('#services-label').textContent = getText('servicesQuestion');
       
       // Placeholders
-      document.getElementById('services').placeholder = getText('servicesPlaceholder');
+      formContainer.querySelector('#services').placeholder = getText('servicesPlaceholder');
       
       // Error messages
-      document.getElementById('error-team-size').textContent = getText('fieldRequired');
-      document.getElementById('error-services').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-team-size').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-services').textContent = getText('fieldRequired');
     }
     
     function updateStep4Labels() {
-      document.getElementById('lead-capture-question').textContent = getText('leadCaptureQuestion');
-      document.getElementById('lead-qualification-question').textContent = getText('leadQualificationQuestion');
-      document.getElementById('conversation-summary-question').textContent = getText('conversationSummaryQuestion');
+      formContainer.querySelector('#lead-capture-question').textContent = getText('leadCaptureQuestion');
+      formContainer.querySelector('#lead-qualification-question').textContent = getText('leadQualificationQuestion');
+      formContainer.querySelector('#conversation-summary-question').textContent = getText('conversationSummaryQuestion');
       
       // Error messages
-      document.getElementById('error-lead-capture').textContent = getText('fieldRequired');
-      document.getElementById('error-lead-qualification').textContent = getText('fieldRequired');
-      document.getElementById('error-conversation-summary').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-lead-capture').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-lead-qualification').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-conversation-summary').textContent = getText('fieldRequired');
     }
     
     function updateStep5Labels() {
-      document.getElementById('use-form-question').textContent = getText('useFormQuestion');
-      document.getElementById('form-types-label').textContent = getText('selectFormTypes');
-      document.getElementById('form-purpose-label').textContent = getText('formPurposeQuestion');
+      formContainer.querySelector('#use-form-question').textContent = getText('useFormQuestion');
+      formContainer.querySelector('#form-types-label').textContent = getText('selectFormTypes');
+      formContainer.querySelector('#form-purpose-label').textContent = getText('formPurposeQuestion');
       
       // Placeholders
-      document.getElementById('form-purpose').placeholder = getText('formPurposePlaceholder');
+      formContainer.querySelector('#form-purpose').placeholder = getText('formPurposePlaceholder');
       
       // Error messages
-      document.getElementById('error-use-form').textContent = getText('fieldRequired');
-      document.getElementById('error-form-types').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-use-form').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-form-types').textContent = getText('selectAtLeastOne');
     }
     
     function updateStep6Labels() {
-      document.getElementById('website-question').textContent = getText('websiteQuestion');
-      document.getElementById('platform-label').textContent = getText('selectPlatform');
-      document.getElementById('other-platform-label').textContent = getText('other');
-      document.getElementById('website-url-label').textContent = getText('websiteUrlLabel');
-      document.getElementById('website-traffic-label').textContent = getText('websiteTrafficLabel');
+      formContainer.querySelector('#website-question').textContent = getText('websiteQuestion');
+      formContainer.querySelector('#platform-label').textContent = getText('selectPlatform');
+      formContainer.querySelector('#other-platform-label').textContent = getText('other');
+      formContainer.querySelector('#website-url-label').textContent = getText('websiteUrlLabel');
+      formContainer.querySelector('#website-traffic-label').textContent = getText('websiteTrafficLabel');
       
       // Placeholders
-      document.getElementById('other-platform').placeholder = `${getText('other')}...`;
-      document.getElementById('website-url').placeholder = "https://www.example.com";
+      formContainer.querySelector('#other-platform').placeholder = `${getText('other')}...`;
+      formContainer.querySelector('#website-url').placeholder = "https://www.example.com";
       
       // Error messages
-      document.getElementById('error-has-website').textContent = getText('fieldRequired');
-      document.getElementById('error-platform').textContent = getText('fieldRequired');
-      document.getElementById('error-other-platform').textContent = getText('fieldRequired');
-      document.getElementById('error-website-url').textContent = getText('fieldRequired');
-      document.getElementById('error-website-traffic').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-has-website').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-platform').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-other-platform').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-website-url').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-website-traffic').textContent = getText('fieldRequired');
     }
     
     function updateStep7Labels() {
-      document.getElementById('use-crm-question').textContent = getText('useCRMQuestion');
-      document.getElementById('yes-label').textContent = getText('yes');
-      document.getElementById('no-label').textContent = getText('no');
-      document.getElementById('crm-select-label').textContent = getText('selectCRMs');
+      formContainer.querySelector('#use-crm-question').textContent = getText('useCRMQuestion');
+      formContainer.querySelector('#yes-label').textContent = getText('yes');
+      formContainer.querySelector('#no-label').textContent = getText('no');
+      formContainer.querySelector('#crm-select-label').textContent = getText('selectCRMs');
       
-      document.getElementById('has-booking-question').textContent = getText('hasBookingQuestion');
-      document.getElementById('booking-select-label').textContent = getText('selectBookingSystems');
-      document.getElementById('handle-cancellation-question').textContent = getText('handleCancellationQuestion');
-      document.getElementById('want-booking-recommendation').textContent = getText('wantBookingRecommendation');
+      formContainer.querySelector('#has-booking-question').textContent = getText('hasBookingQuestion');
+      formContainer.querySelector('#booking-select-label').textContent = getText('selectBookingSystems');
+      formContainer.querySelector('#handle-cancellation-question').textContent = getText('handleCancellationQuestion');
+      formContainer.querySelector('#want-booking-recommendation').textContent = getText('wantBookingRecommendation');
       
-      document.getElementById('use-database-question').textContent = getText('useDatabaseQuestion');
-      document.getElementById('database-select-label').textContent = getText('selectDatabases');
+      formContainer.querySelector('#use-database-question').textContent = getText('useDatabaseQuestion');
+      formContainer.querySelector('#database-select-label').textContent = getText('selectDatabases');
       
       // Error messages
-      document.getElementById('error-use-crm').textContent = getText('fieldRequired');
-      document.getElementById('error-crms').textContent = getText('selectAtLeastOne');
-      document.getElementById('error-has-booking').textContent = getText('fieldRequired');
-      document.getElementById('error-booking-systems').textContent = getText('selectAtLeastOne');
-      document.getElementById('error-use-database').textContent = getText('fieldRequired');
-      document.getElementById('error-databases').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-use-crm').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-crms').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-has-booking').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-booking-systems').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-use-database').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-databases').textContent = getText('selectAtLeastOne');
     }
     
     function updateStep8Labels() {
-      document.getElementById('social-bot-question').textContent = getText('needSocialBotQuestion');
-      document.getElementById('social-platforms-label').textContent = getText('selectSocialPlatforms');
+      formContainer.querySelector('#social-bot-question').textContent = getText('needSocialBotQuestion');
+      formContainer.querySelector('#social-platforms-label').textContent = getText('selectSocialPlatforms');
       
-      document.getElementById('language-type-question').textContent = getText('languageTypeQuestion');
-      document.getElementById('multilingual-label').textContent = getText('multilingual');
-      document.getElementById('unilingual-label').textContent = getText('unilingual');
+      formContainer.querySelector('#language-type-question').textContent = getText('languageTypeQuestion');
+      formContainer.querySelector('#multilingual-label').textContent = getText('multilingual');
+      formContainer.querySelector('#unilingual-label').textContent = getText('unilingual');
       
-      const languageSelectLabel = document.getElementById('language-select-label');
+      const languageSelectLabel = formContainer.querySelector('#language-select-label');
       if (languageSelectLabel) {
         const isMultilingual = formValues.languageType === 'multilingual';
         languageSelectLabel.textContent = isMultilingual ? getText('selectLanguages') : getText('selectLanguage');
       }
       
       // Error messages
-      document.getElementById('error-need-social').textContent = getText('fieldRequired');
-      document.getElementById('error-social-platforms').textContent = getText('selectAtLeastOne');
-      document.getElementById('error-language-type').textContent = getText('fieldRequired');
-      document.getElementById('error-languages').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-need-social').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-social-platforms').textContent = getText('selectAtLeastOne');
+      formContainer.querySelector('#error-language-type').textContent = getText('fieldRequired');
+      formContainer.querySelector('#error-languages').textContent = getText('selectAtLeastOne');
     }
     
     function updateStep9Labels() {
-      document.getElementById('step9-heading').textContent = getText('recapTitle');
+      formContainer.querySelector('#step9-heading').textContent = getText('recapTitle');
       
       // Recap sections
-      document.getElementById('recap-contact-heading').textContent = getText('recapContact');
-      document.getElementById('recap-project-heading').textContent = getText('recapProject');
-      document.getElementById('recap-business-heading').textContent = getText('recapBusiness');
-      document.getElementById('recap-features-heading').textContent = getText('recapFeatures');
-      document.getElementById('recap-forms-heading').textContent = getText('recapForms');
-      document.getElementById('recap-website-heading').textContent = getText('recapWebsite');
-      document.getElementById('recap-integrations-heading').textContent = getText('recapIntegrations');
-      document.getElementById('recap-channels-heading').textContent = getText('recapChannels');
+      formContainer.querySelector('#recap-contact-heading').textContent = getText('recapContact');
+      formContainer.querySelector('#recap-project-heading').textContent = getText('recapProject');
+      formContainer.querySelector('#recap-business-heading').textContent = getText('recapBusiness');
+      formContainer.querySelector('#recap-features-heading').textContent = getText('recapFeatures');
+      formContainer.querySelector('#recap-forms-heading').textContent = getText('recapForms');
+      formContainer.querySelector('#recap-website-heading').textContent = getText('recapWebsite');
+      formContainer.querySelector('#recap-integrations-heading').textContent = getText('recapIntegrations');
+      formContainer.querySelector('#recap-channels-heading').textContent = getText('recapChannels');
       
       // Edit buttons
       document.querySelectorAll('.edit-btn').forEach(btn => {
@@ -3913,35 +3913,35 @@ function startFormTimer() {
       });
       
       // Labels
-      document.getElementById('recap-name-label').textContent = getText('firstName') + ' / ' + getText('lastName');
-      document.getElementById('recap-email-label').textContent = getText('email');
-      document.getElementById('recap-phone-label').textContent = getText('phone');
-      document.getElementById('recap-company-label').textContent = getText('company');
+      formContainer.querySelector('#recap-name-label').textContent = getText('firstName') + ' / ' + getText('lastName');
+      formContainer.querySelector('#recap-email-label').textContent = getText('email');
+      formContainer.querySelector('#recap-phone-label').textContent = getText('phone');
+      formContainer.querySelector('#recap-company-label').textContent = getText('company');
       
-      document.getElementById('recap-niche-label').textContent = getText('selectNiche');
-      document.getElementById('recap-budget-label').textContent = getText('budgetQuestion');
-      document.getElementById('recap-description-label').textContent = getText('projectDescription');
+      formContainer.querySelector('#recap-niche-label').textContent = getText('selectNiche');
+      formContainer.querySelector('#recap-budget-label').textContent = getText('budgetQuestion');
+      formContainer.querySelector('#recap-description-label').textContent = getText('projectDescription');
       
-      document.getElementById('recap-team-size-label').textContent = getText('teamSizeQuestion');
-      document.getElementById('recap-services-label').textContent = getText('servicesQuestion');
+      formContainer.querySelector('#recap-team-size-label').textContent = getText('teamSizeQuestion');
+      formContainer.querySelector('#recap-services-label').textContent = getText('servicesQuestion');
       
-      document.getElementById('recap-leads-label').textContent = getText('leadCaptureQuestion');
+      formContainer.querySelector('#recap-leads-label').textContent = getText('leadCaptureQuestion');
       
-      document.getElementById('recap-forms-label').textContent = getText('useFormQuestion');
+      formContainer.querySelector('#recap-forms-label').textContent = getText('useFormQuestion');
       
-      document.getElementById('recap-has-website-label').textContent = getText('websiteQuestion');
-      document.getElementById('recap-platform-label').textContent = getText('selectPlatform');
-      document.getElementById('recap-website-url-label').textContent = getText('websiteUrlLabel');
-      document.getElementById('recap-website-traffic-label').textContent = getText('websiteTrafficLabel');
+      formContainer.querySelector('#recap-has-website-label').textContent = getText('websiteQuestion');
+      formContainer.querySelector('#recap-platform-label').textContent = getText('selectPlatform');
+      formContainer.querySelector('#recap-website-url-label').textContent = getText('websiteUrlLabel');
+      formContainer.querySelector('#recap-website-traffic-label').textContent = getText('websiteTrafficLabel');
 
       
-      document.getElementById('recap-crm-label').textContent = getText('useCRMQuestion');
-      document.getElementById('recap-booking-label').textContent = getText('hasBookingQuestion');
-      document.getElementById('recap-database-label').textContent = getText('useDatabaseQuestion');
+      formContainer.querySelector('#recap-crm-label').textContent = getText('useCRMQuestion');
+      formContainer.querySelector('#recap-booking-label').textContent = getText('hasBookingQuestion');
+      formContainer.querySelector('#recap-database-label').textContent = getText('useDatabaseQuestion');
       
-      document.getElementById('recap-social-label').textContent = getText('needSocialBotQuestion');
-      document.getElementById('recap-language-type-label').textContent = getText('languageTypeQuestion');
-      document.getElementById('recap-languages-label').textContent = getText('selectLanguages');
+      formContainer.querySelector('#recap-social-label').textContent = getText('needSocialBotQuestion');
+      formContainer.querySelector('#recap-language-type-label').textContent = getText('languageTypeQuestion');
+      formContainer.querySelector('#recap-languages-label').textContent = getText('selectLanguages');
       
     }
     
@@ -4780,7 +4780,7 @@ function validateStep2() {
         
         // Validate CRM selection if "yes"
         if (useCRM.value === 'yes') {
-          const crmsSelect = document.getElementById('crmsSelect');
+          const crmsSelect = formContainer.querySelector('#crmsSelect');
           const selectedCRMs = Array.from(crmsSelect.options).filter(opt => opt.selected);
           
           if (selectedCRMs.length === 0) {
@@ -4810,7 +4810,7 @@ function validateStep2() {
         
         // Validate database selection if "yes"
         if (useDatabase.value === 'yes') {
-          const databasesSelect = document.getElementById('databasesSelect');
+          const databasesSelect = formContainer.querySelector('#databasesSelect');
           const selectedDatabases = Array.from(databasesSelect.options).filter(opt => opt.selected);
           
           if (selectedDatabases.length === 0) {
@@ -4840,7 +4840,7 @@ function validateStep2() {
         
         // Validate social platforms if "yes"
         if (needSocialBot.value === 'yes') {
-          const socialPlatformsSelect = document.getElementById('socialPlatformsSelect');
+          const socialPlatformsSelect = formContainer.querySelector('#socialPlatformsSelect');
           const selectedPlatforms = Array.from(socialPlatformsSelect.options).filter(opt => opt.selected);
           
           if (selectedPlatforms.length === 0) {
@@ -4865,7 +4865,7 @@ function validateStep2() {
         // Different validation logic based on language type
         if (languageType.value === 'multilingual') {
           // For multilingual: validate multiple selections in the multi-select
-          const languagesSelect = document.getElementById('languagesSelect');
+          const languagesSelect = formContainer.querySelector('#languagesSelect');
           const selectedLanguages = Array.from(languagesSelect.options).filter(opt => opt.selected);
           
           if (selectedLanguages.length === 0) {
@@ -4877,7 +4877,7 @@ function validateStep2() {
           }
         } else {
           // For unilingual: validate single selection
-          const selectedLanguage = document.getElementById('languagesSelect').value;
+          const selectedLanguage = formContainer.querySelector('#languagesSelect').value;
           
           if (!selectedLanguage) {
             showError('error-languages', 'languagesRequired');
@@ -4917,15 +4917,15 @@ function validateStep2() {
       const localFormData = createFormData(currentLanguage);
       
       // Contact information
-      document.getElementById('recap-name').textContent = `${formValues.firstName} ${formValues.lastName}`;
-      document.getElementById('recap-email').textContent = formValues.email;
-      document.getElementById('recap-phone').textContent = formValues.phone;
+      formContainer.querySelector('#recap-name').textContent = `${formValues.firstName} ${formValues.lastName}`;
+      formContainer.querySelector('#recap-email').textContent = formValues.email;
+      formContainer.querySelector('#recap-phone').textContent = formValues.phone;
       
       if (formValues.company) {
-        document.getElementById('recap-company').textContent = formValues.company;
-        document.getElementById('recap-company-row').style.display = 'flex';
+        formContainer.querySelector('#recap-company').textContent = formValues.company;
+        formContainer.querySelector('#recap-company-row').style.display = 'flex';
       } else {
-        document.getElementById('recap-company-row').style.display = 'none';
+        formContainer.querySelector('#recap-company-row').style.display = 'none';
       }
       
       // Project Details
@@ -4936,7 +4936,7 @@ function validateStep2() {
         const niche = localFormData.niches.find(n => n.id === formValues.niche);
         nicheText = niche ? niche.name : formValues.niche;
       }
-      document.getElementById('recap-niche').textContent = nicheText;
+      formContainer.querySelector('#recap-niche').textContent = nicheText;
       
       let budgetText = '';
       if (formValues.budget === 'custom' && formValues.customBudget) {
@@ -4945,9 +4945,9 @@ function validateStep2() {
         const budget = localFormData.budgetRanges.find(b => b.id === formValues.budget);
         budgetText = budget ? budget.name : formValues.budget;
       }
-      document.getElementById('recap-budget').textContent = budgetText;
+      formContainer.querySelector('#recap-budget').textContent = budgetText;
       
-      document.getElementById('recap-description').textContent = formValues.description;
+      formContainer.querySelector('#recap-description').textContent = formValues.description;
       
       // Business Profile
       let teamSizeText = '';
@@ -4957,16 +4957,16 @@ function validateStep2() {
         case 'medium': teamSizeText = getText('mediumTeam'); break;
         case 'large': teamSizeText = getText('largeTeam'); break;
       }
-      document.getElementById('recap-team-size').textContent = teamSizeText;
+      formContainer.querySelector('#recap-team-size').textContent = teamSizeText;
       
-      document.getElementById('recap-services').textContent = formValues.services;
+      formContainer.querySelector('#recap-services').textContent = formValues.services;
       
       // Features
       let leadsText = '';
       leadsText += `${getText('leadCaptureQuestion')}: ${formValues.leadCapture === 'yes' ? getText('yes') : getText('no')}\n`;
       leadsText += `${getText('leadQualificationQuestion')}: ${formValues.leadQualification === 'yes' ? getText('yes') : getText('no')}\n`;
       leadsText += `${getText('conversationSummaryQuestion')}: ${formValues.conversationSummary === 'yes' ? getText('yes') : getText('no')}`;
-      document.getElementById('recap-leads').innerHTML = leadsText.replace(/\n/g, '<br>');
+      formContainer.querySelector('#recap-leads').innerHTML = leadsText.replace(/\n/g, '<br>');
       
       // Forms
       let formsText = formValues.useForm === 'yes' ? getText('yes') : getText('no');
@@ -4981,13 +4981,13 @@ function validateStep2() {
           formsText += ` (${formValues.formPurpose})`;
         }
       }
-      document.getElementById('recap-forms').textContent = formsText;
+      formContainer.querySelector('#recap-forms').textContent = formsText;
       
       // Website
-      document.getElementById('recap-has-website').textContent = formValues.hasWebsite === 'yes' ? getText('yes') : getText('no');
+      formContainer.querySelector('#recap-has-website').textContent = formValues.hasWebsite === 'yes' ? getText('yes') : getText('no');
 
       if (formValues.hasWebsite === 'yes' && formValues.websitePlatform) {
-        document.getElementById('recap-platform-row').style.display = 'flex';
+        formContainer.querySelector('#recap-platform-row').style.display = 'flex';
         
         let platformText = '';
         if (formValues.websitePlatform === 'other' && formValues.otherPlatform) {
@@ -4996,20 +4996,20 @@ function validateStep2() {
           const platform = localFormData.websitePlatforms.find(p => p.id === formValues.websitePlatform);
           platformText = platform ? platform.name : formValues.websitePlatform;
         }
-        document.getElementById('recap-platform').textContent = platformText;
+        formContainer.querySelector('#recap-platform').textContent = platformText;
         
         // Add website URL to summary
-        document.getElementById('recap-website-url-row').style.display = 'flex';
-        document.getElementById('recap-website-url').textContent = formValues.websiteUrl || '(non spécifié)';
+        formContainer.querySelector('#recap-website-url-row').style.display = 'flex';
+        formContainer.querySelector('#recap-website-url').textContent = formValues.websiteUrl || '(non spécifié)';
         
         // Add this block for website traffic
-        document.getElementById('recap-website-traffic-row').style.display = 'flex';
+        formContainer.querySelector('#recap-website-traffic-row').style.display = 'flex';
         const traffic = localFormData.websiteTraffic.find(t => t.id === formValues.websiteTraffic);
-        document.getElementById('recap-website-traffic').textContent = traffic ? traffic.name : '(non spécifié)';
+        formContainer.querySelector('#recap-website-traffic').textContent = traffic ? traffic.name : '(non spécifié)';
       } else {
-        document.getElementById('recap-platform-row').style.display = 'none';
-        document.getElementById('recap-website-url-row').style.display = 'none';
-        document.getElementById('recap-website-traffic-row').style.display = 'none';
+        formContainer.querySelector('#recap-platform-row').style.display = 'none';
+        formContainer.querySelector('#recap-website-url-row').style.display = 'none';
+        formContainer.querySelector('#recap-website-traffic-row').style.display = 'none';
       }
       
       // Integrations
@@ -5021,7 +5021,7 @@ function validateStep2() {
         });
         crmText += `: ${crmNames.join(', ')}`;
       }
-      document.getElementById('recap-crm').textContent = crmText;
+      formContainer.querySelector('#recap-crm').textContent = crmText;
       
       // Booking System - Updated for the new approach
       let bookingText = '';
@@ -5054,7 +5054,7 @@ function validateStep2() {
         bookingText += ` | ${getText('handleCancellationQuestion')}: ${formValues.handleCancellation === 'yes' ? getText('yes') : getText('no')}`;
       }
       
-      document.getElementById('recap-booking').textContent = bookingText;
+      formContainer.querySelector('#recap-booking').textContent = bookingText;
       
       let databaseText = formValues.useDatabase === 'yes' ? getText('yes') : getText('no');
       if (formValues.useDatabase === 'yes' && formValues.databases.length > 0) {
@@ -5064,7 +5064,7 @@ function validateStep2() {
         });
         databaseText += `: ${dbNames.join(', ')}`;
       }
-      document.getElementById('recap-database').textContent = databaseText;
+      formContainer.querySelector('#recap-database').textContent = databaseText;
       
       // Communication Channels
       let socialText = formValues.needSocialBot === 'yes' ? getText('yes') : getText('no');
@@ -5075,7 +5075,7 @@ function validateStep2() {
         });
         socialText += `: ${platformNames.join(', ')}`;
       }
-      document.getElementById('recap-social').textContent = socialText;
+      formContainer.querySelector('#recap-social').textContent = socialText;
       
       // Language Configuration
       let languageTypeText = '';
@@ -5087,11 +5087,11 @@ function validateStep2() {
           languageTypeText = getText('unilingual'); 
           break;
       }
-      document.getElementById('recap-language-type').textContent = languageTypeText;
+      formContainer.querySelector('#recap-language-type').textContent = languageTypeText;
       
       // Handle languages display in summary
       if (formValues.languages && formValues.languages.length > 0) {
-        document.getElementById('recap-languages-row').style.display = 'flex';
+        formContainer.querySelector('#recap-languages-row').style.display = 'flex';
         
         // Get the names of selected languages
         const languageNames = formValues.languages.map(langId => {
@@ -5102,16 +5102,16 @@ function validateStep2() {
         // Update based on language type
         if (formValues.languageType === 'unilingual') {
           // Display single language label and value
-          document.getElementById('recap-languages-label').textContent = getText('selectLanguage');
-          document.getElementById('recap-languages').textContent = languageNames[0] || '';
+          formContainer.querySelector('#recap-languages-label').textContent = getText('selectLanguage');
+          formContainer.querySelector('#recap-languages').textContent = languageNames[0] || '';
         } else {
           // Display multiple languages label and comma-separated values
-          document.getElementById('recap-languages-label').textContent = getText('selectLanguages');
-          document.getElementById('recap-languages').textContent = languageNames.join(', ');
+          formContainer.querySelector('#recap-languages-label').textContent = getText('selectLanguages');
+          formContainer.querySelector('#recap-languages').textContent = languageNames.join(', ');
         }
       } else {
         // Hide language row if no languages selected
-        document.getElementById('recap-languages-row').style.display = 'none';
+        formContainer.querySelector('#recap-languages-row').style.display = 'none';
       }
     }
     
@@ -5122,19 +5122,19 @@ function validateStep2() {
     // Language type selection
     formContainer.querySelectorAll('input[name="languageType"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const languageSelection = document.getElementById('language-selection');
+        const languageSelection = formContainer.querySelector('#language-selection');
         languageSelection.style.display = 'block';
         
         // Reset language values when switching modes
         formValues.languages = [];
         
         // Get references to all the elements we need to modify
-        const languageSelectLabel = document.getElementById('language-select-label');
-        const languagesDropdown = document.getElementById('languagesDropdown');
-        const customOptionsContainer = document.getElementById('customOptionsLanguages');
-        const selectElement = document.getElementById('languagesSelect');
-        const displayElement = document.getElementById('selectDisplayLanguages');
-        const iconElement = document.getElementById('dropdownIconLanguages');
+        const languageSelectLabel = formContainer.querySelector('#language-select-label');
+        const languagesDropdown = formContainer.querySelector('#languagesDropdown');
+        const customOptionsContainer = formContainer.querySelector('#customOptionsLanguages');
+        const selectElement = formContainer.querySelector('#languagesSelect');
+        const displayElement = formContainer.querySelector('#selectDisplayLanguages');
+        const iconElement = formContainer.querySelector('#dropdownIconLanguages');
         
         // Clear existing dropdown options and reset select element
         customOptionsContainer.innerHTML = '';
@@ -5169,10 +5169,10 @@ function validateStep2() {
           selectElement.multiple = false;
           
           // Create single-select dropdown manually to ensure it works correctly
-          const select = document.getElementById('languagesSelect');
-          const customOptions = document.getElementById('customOptionsLanguages');
-          const display = document.getElementById('selectDisplayLanguages');
-          const icon = document.getElementById('dropdownIconLanguages');
+          const select = formContainer.querySelector('#languagesSelect');
+          const customOptions = formContainer.querySelector('#customOptionsLanguages');
+          const display = formContainer.querySelector('#selectDisplayLanguages');
+          const icon = formContainer.querySelector('#dropdownIconLanguages');
           
           // Add blank option to select
           select.appendChild(new Option(getText('selectPlaceholder'), ''));
@@ -5246,7 +5246,7 @@ function validateStep2() {
         }
         
         // Reset the display text to placeholder
-        const updatedDisplay = document.getElementById('selectDisplayLanguages');
+        const updatedDisplay = formContainer.querySelector('#selectDisplayLanguages');
         updatedDisplay.classList.add('placeholder');
         updatedDisplay.querySelector('span').textContent = updatedDisplay.getAttribute('data-placeholder');
         
@@ -5259,7 +5259,7 @@ function validateStep2() {
     // CRM usage
     formContainer.querySelectorAll('input[name="useCRM"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const crmSelection = document.getElementById('crm-selection');
+        const crmSelection = formContainer.querySelector('#crm-selection');
         crmSelection.style.display = this.value === 'yes' ? 'block' : 'none';
         formValues.useCRM = this.value;
         saveFormData();
@@ -5269,8 +5269,8 @@ function validateStep2() {
     // Has booking system
     formContainer.querySelectorAll('input[name="hasBookingSystem"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const existingBookingOptions = document.getElementById('existing-booking-options');
-        const needBookingOptions = document.getElementById('need-booking-options');
+        const existingBookingOptions = formContainer.querySelector('#existing-booking-options');
+        const needBookingOptions = formContainer.querySelector('#need-booking-options');
         
         if (this.value === 'yes') {
           existingBookingOptions.style.display = 'block';
@@ -5296,7 +5296,7 @@ function validateStep2() {
     // Database usage
     formContainer.querySelectorAll('input[name="useDatabase"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const databaseSelection = document.getElementById('database-selection');
+        const databaseSelection = formContainer.querySelector('#database-selection');
         
         if (this.value === 'yes') {
           databaseSelection.style.display = 'block';
@@ -5312,7 +5312,7 @@ function validateStep2() {
     // Form usage
     formContainer.querySelectorAll('input[name="useForm"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const formOptions = document.getElementById('form-options');
+        const formOptions = formContainer.querySelector('#form-options');
         formOptions.style.display = this.value === 'yes' ? 'block' : 'none';
         formValues.useForm = this.value;
         saveFormData();
@@ -5322,7 +5322,7 @@ function validateStep2() {
     // Website
     formContainer.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const websiteOptions = document.getElementById('website-options');
+        const websiteOptions = formContainer.querySelector('#website-options');
         websiteOptions.style.display = this.value === 'yes' ? 'block' : 'none';
         formValues.hasWebsite = this.value;
         saveFormData();
@@ -5332,7 +5332,7 @@ function validateStep2() {
     // Social bot
     formContainer.querySelectorAll('input[name="needSocialBot"]').forEach(radio => {
       radio.addEventListener('change', function() {
-        const socialPlatformsGroup = document.getElementById('social-platforms-group');
+        const socialPlatformsGroup = formContainer.querySelector('#social-platforms-group');
         socialPlatformsGroup.style.display = this.value === 'yes' ? 'block' : 'none';
         formValues.needSocialBot = this.value;
         saveFormData();
@@ -5340,67 +5340,67 @@ function validateStep2() {
     });
     
     // Text input changes with character counting
-    document.getElementById('services').addEventListener('input', function() {
+    formContainer.querySelector('#services').addEventListener('input', function() {
       formValues.services = this.value;
-      document.getElementById('services-counter').textContent = this.value.length;
+      formContainer.querySelector('#services-counter').textContent = this.value.length;
       saveFormData();
     });
     
-    document.getElementById('form-purpose').addEventListener('input', function() {
+    formContainer.querySelector('#form-purpose').addEventListener('input', function() {
       formValues.formPurpose = this.value;
-      document.getElementById('form-purpose-counter').textContent = this.value.length;
+      formContainer.querySelector('#form-purpose-counter').textContent = this.value.length;
       saveFormData();
     });
     
-    document.getElementById('description').addEventListener('input', function() {
+    formContainer.querySelector('#description').addEventListener('input', function() {
       formValues.description = this.value;
-      document.getElementById('description-counter').textContent = this.value.length;
+      formContainer.querySelector('#description-counter').textContent = this.value.length;
       saveFormData();
     });
     
     // Contact form fields
-    document.getElementById('first-name').addEventListener('input', function() {
+    formContainer.querySelector('#first-name').addEventListener('input', function() {
       formValues.firstName = this.value;
       saveFormData();
     });
     
-    document.getElementById('last-name').addEventListener('input', function() {
+    formContainer.querySelector('#last-name').addEventListener('input', function() {
       formValues.lastName = this.value;
       saveFormData();
     });
     
-    document.getElementById('email').addEventListener('input', function() {
+    formContainer.querySelector('#email').addEventListener('input', function() {
       formValues.email = this.value;
       saveFormData();
     });
     
-    document.getElementById('phone').addEventListener('input', function() {
+    formContainer.querySelector('#phone').addEventListener('input', function() {
       formValues.phone = this.value;
       saveFormData();
     });
     
-    document.getElementById('company').addEventListener('input', function() {
+    formContainer.querySelector('#company').addEventListener('input', function() {
       formValues.company = this.value;
       saveFormData();
     });
     
     // Other text fields
-    document.getElementById('other-platform').addEventListener('input', function() {
+    formContainer.querySelector('#other-platform').addEventListener('input', function() {
       formValues.otherPlatform = this.value;
       saveFormData();
     });
     
-    document.getElementById('other-niche').addEventListener('input', function() {
+    formContainer.querySelector('#other-niche').addEventListener('input', function() {
       formValues.otherNiche = this.value;
       saveFormData();
     });
     
-    document.getElementById('custom-budget').addEventListener('input', function() {
+    formContainer.querySelector('#custom-budget').addEventListener('input', function() {
       formValues.customBudget = this.value;
       saveFormData();
     });
     
-    document.getElementById('website-url').addEventListener('input', function() {
+    formContainer.querySelector('#website-url').addEventListener('input', function() {
       formValues.websiteUrl = this.value;
       saveFormData();
     });
@@ -5410,63 +5410,63 @@ function validateStep2() {
      *************************************************************/
     
     // Step 1 navigation
-    document.getElementById('step1-next').addEventListener('click', function() {
+    formContainer.querySelector('#step1-next').addEventListener('click', function() {
       if (validateStep1()) {
         showStep(2);
       }
     });
     
     // Step 2 navigation
-    document.getElementById('step2-prev').addEventListener('click', () => showStep(1));
-    document.getElementById('step2-next').addEventListener('click', function() {
+    formContainer.querySelector('#step2-prev').addEventListener('click', () => showStep(1));
+    formContainer.querySelector('#step2-next').addEventListener('click', function() {
       if (validateStep2()) {
         showStep(3);
       }
     });
     
     // Step 3 navigation
-    document.getElementById('step3-prev').addEventListener('click', () => showStep(2));
-    document.getElementById('step3-next').addEventListener('click', function() {
+    formContainer.querySelector('#step3-prev').addEventListener('click', () => showStep(2));
+    formContainer.querySelector('#step3-next').addEventListener('click', function() {
       if (validateStep3()) {
         showStep(4);
       }
     });
     
     // Step 4 navigation
-    document.getElementById('step4-prev').addEventListener('click', () => showStep(3));
-    document.getElementById('step4-next').addEventListener('click', function() {
+    formContainer.querySelector('#step4-prev').addEventListener('click', () => showStep(3));
+    formContainer.querySelector('#step4-next').addEventListener('click', function() {
       if (validateStep4()) {
         showStep(5);
       }
     });
     
     // Step 5 navigation
-    document.getElementById('step5-prev').addEventListener('click', () => showStep(4));
-    document.getElementById('step5-next').addEventListener('click', function() {
+    formContainer.querySelector('#step5-prev').addEventListener('click', () => showStep(4));
+    formContainer.querySelector('#step5-next').addEventListener('click', function() {
       if (validateStep5()) {
         showStep(6);
       }
     });
     
     // Step 6 navigation
-    document.getElementById('step6-prev').addEventListener('click', () => showStep(5));
-    document.getElementById('step6-next').addEventListener('click', function() {
+    formContainer.querySelector('#step6-prev').addEventListener('click', () => showStep(5));
+    formContainer.querySelector('#step6-next').addEventListener('click', function() {
       if (validateStep6()) {
         showStep(7);
       }
     });
     
     // Step 7 navigation
-    document.getElementById('step7-prev').addEventListener('click', () => showStep(6));
-    document.getElementById('step7-next').addEventListener('click', function() {
+    formContainer.querySelector('#step7-prev').addEventListener('click', () => showStep(6));
+    formContainer.querySelector('#step7-next').addEventListener('click', function() {
       if (validateStep7()) {
         showStep(8);
       }
     });
     
     // Step 8 navigation
-    document.getElementById('step8-prev').addEventListener('click', () => showStep(7));
-    document.getElementById('step8-next').addEventListener('click', function() {
+    formContainer.querySelector('#step8-prev').addEventListener('click', () => showStep(7));
+    formContainer.querySelector('#step8-next').addEventListener('click', function() {
       if (validateStep8()) {
         updateSummary();
         showStep(9);
@@ -5474,22 +5474,22 @@ function validateStep2() {
     });
     
     // Step 9 navigation
-    document.getElementById('step9-prev').addEventListener('click', () => showStep(8));
+    formContainer.querySelector('#step9-prev').addEventListener('click', () => showStep(8));
     
     // Edit buttons in summary
-    document.getElementById('edit-contact').addEventListener('click', () => showStep(1));
-    document.getElementById('edit-project').addEventListener('click', () => showStep(2));
-    document.getElementById('edit-business').addEventListener('click', () => showStep(3));
-    document.getElementById('edit-features').addEventListener('click', () => showStep(4));
-    document.getElementById('edit-forms').addEventListener('click', () => showStep(5));
-    document.getElementById('edit-website').addEventListener('click', () => showStep(6));
-    document.getElementById('edit-integrations').addEventListener('click', () => showStep(7));
-    document.getElementById('edit-channels').addEventListener('click', () => showStep(8));
+    formContainer.querySelector('#edit-contact').addEventListener('click', () => showStep(1));
+    formContainer.querySelector('#edit-project').addEventListener('click', () => showStep(2));
+    formContainer.querySelector('#edit-business').addEventListener('click', () => showStep(3));
+    formContainer.querySelector('#edit-features').addEventListener('click', () => showStep(4));
+    formContainer.querySelector('#edit-forms').addEventListener('click', () => showStep(5));
+    formContainer.querySelector('#edit-website').addEventListener('click', () => showStep(6));
+    formContainer.querySelector('#edit-integrations').addEventListener('click', () => showStep(7));
+    formContainer.querySelector('#edit-channels').addEventListener('click', () => showStep(8));
     
     /*************************************************************
      * Form Submission
      *************************************************************/
-    document.getElementById('submit-button').addEventListener('click', function() {
+    formContainer.querySelector('#submit-button').addEventListener('click', function() {
   // Update button state
   const submitButton = this;
   submitButton.disabled = true;
@@ -5531,7 +5531,7 @@ function validateStep2() {
     formContainer.querySelectorAll('.step-container').forEach(step => {
       step.classList.remove('active');
     });
-    document.getElementById('confirmation-screen').classList.add('active');
+    formContainer.querySelector('#confirmation-screen').classList.add('active');
     
     // Clear saved form data
     localStorage.removeItem('chatbotFormData');
@@ -5545,8 +5545,8 @@ function validateStep2() {
 });
     
     // Back to form button
-    document.getElementById('back-to-form').addEventListener('click', function() {
-      document.getElementById('confirmation-screen').classList.remove('active');
+    formContainer.querySelector('#back-to-form').addEventListener('click', function() {
+      formContainer.querySelector('#confirmation-screen').classList.remove('active');
       showStep(1);
     });
     
@@ -5663,6 +5663,8 @@ function validateStep2() {
     initializeForm();
   }
 };
+
+
 
 
 
