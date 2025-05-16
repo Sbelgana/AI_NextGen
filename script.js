@@ -6018,11 +6018,10 @@ const BookingDirectExtension = {
 }
 
 /* ========= Container Layout ========= */
-form.chatbot-form {
+form.booking-container {
       display: flex;
       flex-direction: column;
       width: 100%;
-      max-width: 800px;
       min-width: 800px;
       margin: 0 auto;
       padding: 10px 20px;
