@@ -10919,35 +10919,38 @@ const ContactFormExtension = {
               display: none !important;
             }
 
+* {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
             /* ========= Form Layout ========= */
             form {
               display: flex;
-              flex-direction: column;
-              gap: 10px;
-              width: 100%;
-              max-width: 800px;
-              min-width: 800px;
-              margin: 0 auto;
-              padding: 16px;
-              border-radius: 12px;
-              background: #fff;
-              font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-              box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-              position: relative;
-              overflow: hidden;
-            }
+      flex-direction: column;
+      width: 100%;
+      max-width: 800px;
+      min-width: 800px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: #fff;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
 
             .flex-row {
-              display: flex;
-              gap: 10px 16px;
-              flex-wrap: wrap;
-              width: 100%;
-            }
+      display: flex;
+      gap: 0 15px;
+      flex-wrap: wrap;
+    }
 
-            .flex-row > div {
-              flex: 1;
-              min-width: 300px;
-            }
+    .flex-row > div {
+      flex: 1;
+      min-width: 300px;
+    }
 
             .bold-label {
               font-weight: 600;
@@ -11009,79 +11012,97 @@ const ContactFormExtension = {
             }
 
             .select-wrapper {
-              border: 1px solid #ddd;
-              border-radius: 6px;
-              background-color: #fff;
-              position: relative;
-              width: 100%;
-              min-height: 48px;
-            }
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background-color: #fff;
+      position: relative;
+      width: 100%;
+      min-height: 48px;
+    }
 
-            .select-display {
-              padding: 0 15px;
-              font-size: 14px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              height: 48px;
-              color: #444;
-            }
+    .select-display {
+      padding: 0 15px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 48px;
+      color: #444;
+    }
 
-            .dropdown-icon {
-              width: 24px;
-              height: 24px;
-              transition: transform 0.3s ease;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background-color: #f0e5f4;
-              border-radius: 50%;
-            }
+    .dropdown-icon {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0e5f4;
+      border-radius: 50%;
+    }
 
-            .dropdown-icon.rotate {
-              transform: rotate(180deg);
-            }
+    .dropdown-icon.rotate {
+      transform: rotate(180deg);
+    }
 
-            .custom-options {
-              display: none;
-              font-size: 14px;
-              border-top: 1px solid #ddd;
-              max-height: 250px;
-              overflow-y: auto;
-              background-color: #fff;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-              z-index: 100;
-              border-radius: 0 0 6px 6px;
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-              width: 100%;
-            }
+    .custom-options {
+      display: none;
+      font-size: 14px;
+      border-top: 1px solid #ddd;
+      max-height: 250px;
+      overflow-y: auto;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 100;
+      border-radius: 0 0 6px 6px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      width: 100%;
+    }
 
-            .custom-options::-webkit-scrollbar {
-              display: none;
-            }
+    .custom-options::-webkit-scrollbar {
+      display: none;
+    }
 
-            .custom-option {
-              padding: 12px 15px;
-              display: flex;
-              align-items: center;
-              cursor: pointer;
-              transition: background 0.2s;
-              position: relative;
-            }
+            .select-wrapper {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background-color: #fff;
+      position: relative;
+      width: 100%;
+      min-height: 48px;
+    }
 
-            .custom-option:hover {
-              background-color: #f0e5f4;
-              color: #9C27B0;
-            }
+    .select-display {
+      padding: 0 15px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 48px;
+      color: #444;
+    }
 
-            .custom-option.selected {
-              background-color: #f0e5f4;
-              color: #9C27B0;
-              font-weight: bold;
-            }
+    .dropdown-icon {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0e5f4;
+      border-radius: 50%;
+    }
 
+    .dropdown-icon.rotate {
+      transform: rotate(180deg);
+    }
+
+   
+
+   
             .option-checkbox {
               width: 18px;
               height: 18px;
@@ -11142,30 +11163,40 @@ const ContactFormExtension = {
             }
 
             .error-message {
-              display: none;
-              padding: 5px;
-              border: 1px solid #e8e8e8;
-              border-radius: 6px;
-              background-color: #fff;
-              box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-              font-size: 14px;
-              align-items: center;
-            }
+      display: none;
+      color: #d32f2f;
+      font-size: 14px;
+      margin-top: 5px;
+      padding: 8px 12px;
+      background-color: #ffebee;
+      border-radius: 4px;
+      border: 1px solid #ffcdd2;
+      animation: fadeIn 0.3s;
+    }
+    
+    .error-message.show {
+  display: flex;
+}
 
-            .error-icon {
-              background-color: red;
-              color: #fff;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              margin-right: 15px;
-              flex-shrink: 0;
-            }
+.error-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  background-color: #d32f2f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 14px;
+  
+}
 
+.error-text {
+  flex: 1;
+}
             /* ========= Multi-step form styles ========= */
             .step-container {
               display: none;
@@ -11184,124 +11215,126 @@ const ContactFormExtension = {
               to { opacity: 1; transform: translateY(0); }
             }
 
-            .step-heading {
-     font-size: 24px;
+           .step-heading {
+      font-size: 24px;
       color: #9C27B0;
+      margin-bottom: 10px;
       font-weight: 600;
       position: relative;
-      margin-top: 0;
-      margin-bottom: 0;
-            }
-            
-            .step-heading::after {
-              content: '';
-              position: absolute;
-              bottom: 0;
-              left: 0;
-              width: 60px;
-              height: 3px;
-              background: linear-gradient(90deg, #9C27B0, #E1BEE7);
-              border-radius: 3px;
-            }
+      padding-bottom: 10px;
+    }
+    
+    .step-heading::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, #9C27B0, #E1BEE7);
+      border-radius: 3px;
+    }
 
             /* Progress indicator */
-            .progress-container {
-              padding: 0;
-            }
+           .progress-container {
+      padding: 0px 0px 10px 0;
+    }
+    .step-title {
+  display: none;
+}
 
             .step-progress {
-              display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  margin: 0;
-  padding: 0 10px;    
-            }
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      width: 100%;
+    }
 
-            .step-progress::before {
-              content: '';
-              position: absolute;
-              top: 50%;
-              left: 0;
-              width: 100%;
-              height: 3px;
-              background: #e0e0e0;
-              z-index: 1;
-              transform: translateY(-50%);
-            }
-
+    .step-progress::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #e0e0e0;
+      z-index: 1;
+      transform: translateY(-50%);
+    }
             .progress-bar {
-              position: absolute;
-              top: 50%;
-              left: 0;
-              height: 3px;
-              background: linear-gradient(90deg, #9C27B0, #7B1FA2);
-              z-index: 2;
-              transform: translateY(-50%);
-              transition: width 0.4s ease;
-              box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
-            }
+      position: absolute;
+      top: 50%;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #9C27B0, #7B1FA2);
+      z-index: 2;
+      transform: translateY(-50%);
+      transition: width 0.4s ease;
+      box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
+    }
 
-            .step-item {
-              z-index: 3;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              position: relative;
-              text-align: center;
-              width: 25%;
-            }
+    .step-item {
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      text-align: center;
+      width: calc(100% / 9);
+    }
 
-            .step-icon {
-              width: 30px;
-              height: 30px;
-              border-radius: 50%;
-              background: #e0e0e0;
-              margin-bottom: 8px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              position: relative;
-              transition: all 0.3s ease;
-              border: 2px solid #f5f5f5;
-              font-weight: bold;
-              font-size: 14px;
-              color: #757575;
-            }
+    .step-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      color: #757575;
+      position: relative;
+      transition: all 0.3s ease;
+      border: 2px solid #f5f5f5;
+    }
 
-            .step-title {
-              font-size: 13px;
-              color: #757575;
-              position: absolute;
-              width: 100%;
-              text-align: center;
-              top: 35px;
-              font-weight: 500;
-              transition: all 0.3s ease;
-              display:none;
-            }
+    .step-title {
+      font-size: 11px;
+      color: #757575;
+      position: absolute;
+      width: 110px;
+      text-align: center;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
 
-            .step-item.active .step-icon {
-              background: #9C27B0;
-              color: white;
-              border-color: #9C27B0;
-              box-shadow: 0 4px 8px rgba(156, 39, 176, 0.2);
-            }
+    .step-item.active .step-icon {
+      background: #9C27B0;
+      color: white;
+      border-color: #9C27B0;
+      box-shadow: 0 4px 8px rgba(156, 39, 176, 0.2);
+    }
 
-            .step-item.active .step-title {
-              color: #9C27B0;
-              font-weight: 600;
-            }
+    .step-item.active .step-title {
+      color: #9C27B0;
+      font-weight: 600;
+    }
 
-            .step-item.completed .step-icon {
-              background: #9C27B0;
-              color: white;
-              border-color: #9C27B0;
-            }
+    .step-item.completed .step-icon {
+      background: #9C27B0;
+      color: white;
+      border-color: #9C27B0;
+    }
 
-            .step-item.completed .step-title {
-              color: #9C27B0;
-            }
+    .step-item.completed .step-title {
+      color: #9C27B0;
+    }
 
             /* Navigation buttons */
             .form-buttons {
