@@ -5808,7 +5808,7 @@ const BookingDirectExtension = {
             apiKey = "cal_live_3e7d9e0eb2df1b25ba452160f8668502",
             language = "en",
             timezone = "America/Toronto",
-	    vf
+	    vf= true
         } = trace.payload || {};
 
         const isEnglish = language === "en";
