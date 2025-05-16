@@ -5808,7 +5808,7 @@ const BookingDirectExtension = {
             apiKey = "cal_live_3e7d9e0eb2df1b25ba452160f8668502",
             language = "en",
             timezone = "America/Toronto",
-	    vf= true
+            vf
         } = trace.payload || {};
 
         const isEnglish = language === "en";
@@ -5983,12 +5983,29 @@ const BookingDirectExtension = {
             fullName: ""
         };
 
-        // Create the container
-        const container = document.createElement("form");
-        container.setAttribute("novalidate", "true");
-        container.className = "booking-container";
-        container.innerHTML = `
-  <style>
+        // SVG constants
+        const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+            <g transform="translate(75, 75)">
+                <path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+            </g>
+        </svg>`;
+        
+        const SVG_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
+            <path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+        </svg>`;
+
+        // Create the container using formContainer instead of setting innerHTML directly
+        const formContainer = document.createElement("form");
+        formContainer.setAttribute("novalidate", "true");
+        formContainer.className = "booking-container";
+        
+        // Prevent default form submission
+        formContainer.addEventListener('submit', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        formContainer.innerHTML = `
+<style>
 /* ========= Base Styles ========= */
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -6221,8 +6238,12 @@ input[type="tel"]:focus {
   align-items: center;
 }
 
+.error-message.show {
+  display: flex;
+}
+
 .error-icon {
-  background-color: red;
+  background-color: #d32f2f;
   color: #fff;
   width: 24px;
   height: 24px;
@@ -7082,1121 +7103,1147 @@ input[type="tel"]:focus {
 }
 </style>
   
-  <div class="progress-container">
-    <div class="step-progress">
-      <div class="progress-bar" id="progress-bar"></div>
-      <div class="step-item active" data-step="1">
-        <div class="step-icon">1</div>
-        <div class="step-title">${isEnglish ? 'Service' : 'Service'}</div>
-      </div>
-      <div class="step-item" data-step="2">
-        <div class="step-icon">2</div>
-        <div class="step-title">${isEnglish ? 'Info' : 'Infos'}</div>
-      </div>
-      <div class="step-item" data-step="3">
-        <div class="step-icon">3</div>
-        <div class="step-title">${isEnglish ? 'Calendar' : 'Calendrier'}</div>
-      </div>
+<div class="progress-container">
+  <div class="step-progress">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div class="step-item active" data-step="1">
+      <div class="step-icon">1</div>
+      <div class="step-title">${isEnglish ? 'Service' : 'Service'}</div>
+    </div>
+    <div class="step-item" data-step="2">
+      <div class="step-icon">2</div>
+      <div class="step-title">${isEnglish ? 'Info' : 'Infos'}</div>
+    </div>
+    <div class="step-item" data-step="3">
+      <div class="step-icon">3</div>
+      <div class="step-title">${isEnglish ? 'Calendar' : 'Calendrier'}</div>
+    </div>
+  </div>
+</div>
+
+<div class="step-content">
+  <!-- Step 1: Service selection -->
+  <div id="step1-content" class="step-container active">
+    <h2 class="step-heading">${texts.step1Title}</h2>
+    <div class="service-options">
+      ${texts.meetingOptions.map((option, index) => `
+        <div class="service-option" data-id="${option.id}">
+          <div class="checkmark-icon">${SVG_CHECK}</div>
+          <h4 class="service-title">${option.title}</h4>
+          <p class="service-description">${option.description}</p>
+          <span class="service-duration">${option.duration}</span>
+        </div>
+      `).join('')}
     </div>
   </div>
   
-  <div class="step-content">
-    <!-- Step 1: Service selection -->
-    <div id="step1-content" class="step-container active">
-      <h2 class="step-heading">${texts.step1Title}</h2>
-      <div class="service-options">
-        ${texts.meetingOptions.map((option, index) => `
-          <div class="service-option" data-id="${option.id}">
-            <div class="checkmark-icon">${SVG_CHECK}</div>
-            <h4 class="service-title">${option.title}</h4>
-            <p class="service-description">${option.description}</p>
-            <span class="service-duration">${option.duration}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-    
-    <!-- Step 2: User information form -->
-    <div id="step2-content" class="step-container">
-      <h2 class="step-heading">${texts.step2Title}</h2>
-      <div class="flex-row">
-        <div>
-          <label for="first-name" class="bold-label">${texts.firstName}</label>
-          <input type="text" id="first-name" name="first-name" placeholder="${texts.firstNamePlaceholder}" required />
-          <div class="error-container">
-            <div class="error-message" id="errorFirstName">
-              <div class="error-icon">!</div>
-              <span>${texts.firstNameError}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div>
-          <label for="last-name" class="bold-label">${texts.lastName}</label>
-          <input type="text" id="last-name" name="last-name" placeholder="${texts.lastNamePlaceholder}" required />
-          <div class="error-container">
-            <div class="error-message" id="errorLastName">
-              <div class="error-icon">!</div>
-              <span>${texts.lastNameError}</span>
-            </div>
+  <!-- Step 2: User information form -->
+  <div id="step2-content" class="step-container">
+    <h2 class="step-heading">${texts.step2Title}</h2>
+    <div class="flex-row">
+      <div>
+        <label for="first-name" class="bold-label">${texts.firstName}</label>
+        <input type="text" id="first-name" name="first-name" placeholder="${texts.firstNamePlaceholder}" required />
+        <div class="error-container">
+          <div class="error-message" id="errorFirstName">
+            <div class="error-icon">!</div>
+            <span>${texts.firstNameError}</span>
           </div>
         </div>
       </div>
       
-      <div class="flex-row">
-        <div>
-          <label for="email" class="bold-label">${texts.email}</label>
-          <input type="email" id="email" name="email" placeholder="${texts.emailPlaceholder}" required />
-          <div class="error-container">
-            <div class="error-message" id="errorEmail">
-              <div class="error-icon">!</div>
-              <span>${texts.emailError}</span>
-            </div>
+      <div>
+        <label for="last-name" class="bold-label">${texts.lastName}</label>
+        <input type="text" id="last-name" name="last-name" placeholder="${texts.lastNamePlaceholder}" required />
+        <div class="error-container">
+          <div class="error-message" id="errorLastName">
+            <div class="error-icon">!</div>
+            <span>${texts.lastNameError}</span>
           </div>
         </div>
       </div>
     </div>
     
-    <!-- Step 3: Calendar -->
-    <div id="step3-content" class="step-container">
-      <h2 class="step-heading">${texts.step3Title}</h2>
-      <div id="calendar-component"></div>
-    </div>
-    
-    <!-- Success message -->
-    <div id="success-content" class="success-section">
-      <div class="success-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
+    <div class="flex-row">
+      <div>
+        <label for="email" class="bold-label">${texts.email}</label>
+        <input type="email" id="email" name="email" placeholder="${texts.emailPlaceholder}" required />
+        <div class="error-container">
+          <div class="error-message" id="errorEmail">
+            <div class="error-icon">!</div>
+            <span>${texts.emailError}</span>
+          </div>
+        </div>
       </div>
-      <h3 class="success-title">${texts.successTitle}</h3>
-      <p class="success-message">${texts.successMessage}</p>
     </div>
   </div>
   
-  <div class="booking-footer form-buttons">
-    <button id="back-button" class="btn btn-prev" style="visibility: hidden;">${texts.backButton}</button>
-    <button id="next-button" class="btn btn-next" disabled>${texts.nextButton}</button>
+  <!-- Step 3: Calendar -->
+  <div id="step3-content" class="step-container">
+    <h2 class="step-heading">${texts.step3Title}</h2>
+    <div id="calendar-component"></div>
   </div>
+  
+  <!-- Success message -->
+  <div id="success-content" class="success-section">
+    <div class="success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h3 class="success-title">${texts.successTitle}</h3>
+    <p class="success-message">${texts.successMessage}</p>
+  </div>
+</div>
+
+<div class="booking-footer form-buttons">
+  <button id="back-button" type="button" class="btn btn-prev" style="visibility: hidden;">${texts.backButton}</button>
+  <button id="next-button" type="button" class="btn btn-next" disabled>${texts.nextButton}</button>
+</div>
 `;
 
-element.appendChild(container);
+        element.appendChild(formContainer);
 
-// Get DOM elements
-const backButton = container.querySelector("#back-button");
-const nextButton = container.querySelector("#next-button");
-const step1Content = container.querySelector("#step1-content");
-const step2Content = container.querySelector("#step2-content");
-const step3Content = container.querySelector("#step3-content");
-const successContent = container.querySelector("#success-content");
-const calendarComponent = container.querySelector("#calendar-component");
-const serviceOptions = container.querySelectorAll(".service-option");
-const firstNameInput = container.querySelector("#first-name");
-const lastNameInput = container.querySelector("#last-name");
-const emailInput = container.querySelector("#email");
-
-/*************************************************************
- * Timer Functionality
- *************************************************************/
-function startFormTimer() {
-  let timeLeft = TIMEOUT_DURATION;
-  
-  // Set the timeout - no display updates needed
-  formTimeoutId = setInterval(() => {
-    timeLeft -= 1000;
-    
-    if (timeLeft <= 0) {
-      clearInterval(formTimeoutId);
-      if (!isFormSubmitted) {
-        handleFormTimeout();
-      }
-    }
-  }, 1000);
-}
-
-function handleFormTimeout() {
-  disableAllFormElements();
-  
-  // Update UI to show timeout
-  const submitButton = container.querySelector("#next-button");
-  if (submitButton) {
-    submitButton.disabled = true;
-    submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
-    submitButton.style.backgroundColor = "#f44336";
-    submitButton.style.color = "white";
-  }
-  
-  // Notify Voiceflow if available
-  if (vf) {
-    window.voiceflow.chat.interact({
-      type: "timeEnd",
-      payload: {
-        message: "Time expired"
-      }
-    });
-  }
-}
-
-function disableAllFormElements() {
-  // Add disabled class to form
-  container.classList.add("form-disabled");
-  
-  // Disable all interactive elements
-  container.querySelectorAll('button, input, select, textarea, .service-option').forEach(el => {
-    if (el.tagName === 'BUTTON') {
-      el.disabled = true;
-    } else {
-      el.setAttribute('disabled', 'disabled');
-    }
-    el.style.cursor = "not-allowed";
-  });
-  
-  // Disable service option clicking
-  serviceOptions.forEach(opt => {
-    opt.style.pointerEvents = "none";
-    opt.style.opacity = "0.7";
-  });
-  
-  // Disable any active calendars
-  const calendarContainer = container.querySelector(".calendar-container");
-  if (calendarContainer) {
-    calendarContainer.classList.add("confirmed");
-    calendarContainer.querySelectorAll('.nav-btn, .day, .time-slot').forEach(el => {
-      el.style.pointerEvents = "none";
-      el.style.cursor = "not-allowed";
-    });
-  }
-}
-
-// Function to navigate between steps
-function goToStep(step) {
-  // Update bullet classes
-  const items = container.querySelectorAll(".step-item");
-  items.forEach((item, i) => {
-    item.classList.remove("active", "completed");
-    if (i + 1 < step) {
-      item.classList.add("completed");
-    } else if (i + 1 === step) {
-      item.classList.add("active");
-    }
-  });
-
-  // Show/hide content panels
-  container.querySelectorAll(".step-container").forEach((stepContainer, i) => {
-    if (i + 1 === step) {
-      stepContainer.classList.add("active");
-    } else {
-      stepContainer.classList.remove("active");
-    }
-  });
-  
-  // Hide success content
-  successContent.style.display = "none";
-
-  // Footer button logic
-  backButton.style.visibility = step > 1 ? "visible" : "hidden";
-  
-  // Default next button state
-  nextButton.disabled = true;
-  
-  // Set next button state based on current step
-  if (step === 1 && selectedService) {
-    nextButton.disabled = false;
-  } else if (step === 2) {
-    checkFormValidity();
-  }
-
-  // Resize the purple fill-bar
-  const pct = ((step - 1) / (items.length - 1)) * 100;
-  container.querySelector(".progress-bar").style.width = pct + "%";
-
-  // Remember current step
-  currentStep = step;
-  
-  // Scroll to top of form if needed
-  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// Validation functions
-function validateStep1() {
-  return selectedService !== null;
-}
-
-function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function validateStep2() {
-  let isValid = true;
-  
-  // Validate first name
-  if (!firstNameInput.value.trim()) {
-    document.getElementById("errorFirstName").style.display = "flex";
-    isValid = false;
-  } else {
-    document.getElementById("errorFirstName").style.display = "none";
-  }
-  
-  // Validate last name
-  if (!lastNameInput.value.trim()) {
-    document.getElementById("errorLastName").style.display = "flex";
-    isValid = false;
-  } else {
-    document.getElementById("errorLastName").style.display = "none";
-  }
-  
-  // Validate email
-  if (!emailInput.value.trim() || !isValidEmail(emailInput.value.trim())) {
-    document.getElementById("errorEmail").style.display = "flex";
-    isValid = false;
-  } else {
-    document.getElementById("errorEmail").style.display = "none";
-  }
-  
-  return isValid;
-}
-
-function updateFormData() {
-  userData.firstName = firstNameInput.value.trim();
-  userData.lastName = lastNameInput.value.trim();
-  userData.email = emailInput.value.trim();
-  userData.fullName = `${userData.firstName} ${userData.lastName}`;
-}
-
-// Add event listeners to service options
-serviceOptions.forEach(option => {
-  option.addEventListener("click", function() {
-    // Deselect all options
-    serviceOptions.forEach(opt => {
-      opt.classList.remove("selected");
-      opt.querySelector(".checkmark-icon").style.display = "none";
-    });
-    
-    // Select clicked option
-    this.classList.add("selected");
-    this.querySelector(".checkmark-icon").style.display = "flex";
-    
-    // Store selected service
-    const serviceId = parseInt(this.dataset.id);
-    selectedService = texts.meetingOptions.find(option => option.id === serviceId);
-    
-    // Enable next button
-    nextButton.disabled = false;
-  });
-});
-
-// Setup input field listeners
-function setupInputListeners() {
-  firstNameInput.addEventListener("input", function() {
-    if (this.value.trim()) {
-      document.getElementById("errorFirstName").style.display = "none";
-    }
-    checkFormValidity();
-  });
-
-  lastNameInput.addEventListener("input", function() {
-    if (this.value.trim()) {
-      document.getElementById("errorLastName").style.display = "none";
-    }
-    checkFormValidity();
-  });
-
-  emailInput.addEventListener("input", function() {
-    if (this.value.trim() && isValidEmail(this.value.trim())) {
-      document.getElementById("errorEmail").style.display = "none";
-    }
-    checkFormValidity();
-  });
-}
-
-// Call the setup function
-setupInputListeners();
-
-// Check form validity
-function checkFormValidity() {
-  if (currentStep === 2) {
-    if (firstNameInput.value.trim() && 
-        lastNameInput.value.trim() && 
-        emailInput.value.trim() && 
-        isValidEmail(emailInput.value.trim())) {
-      nextButton.disabled = false;
-    } else {
-      nextButton.disabled = true;
-    }
-  }
-}
-
-// Back button event listener
-backButton.addEventListener("click", function() {
-  if (currentStep > 1) {
-    goToStep(currentStep - 1);
-  }
-});
-
-// Next button event listener
-nextButton.addEventListener("click", function() {
-  // For step 1, check if a service is selected
-  if (currentStep === 1) {
-    if (validateStep1()) {
-      goToStep(2);
-      // Initially disable next button until form is valid
-      nextButton.disabled = true;
-      checkFormValidity(); // Check if form already has valid input
-    }
-  } else if (currentStep === 2) {
-    if (validateStep2()) {
-      updateFormData();
-      goToStep(3);
-      
-      // Show calendar component
-      renderCalendar();
-    }
-  }
-});
-
-// Function to show the success screen
-function showSuccessScreen() {
-  // Hide all content sections
-  step1Content.style.display = "none";
-  step2Content.style.display = "none";
-  step3Content.style.display = "none";
-  successContent.style.display = "block";
-  
-  // Hide footer buttons
-  backButton.style.display = "none";
-  nextButton.style.display = "none";
-  
-  // Mark form as submitted so timeout doesn't trigger
-  isFormSubmitted = true;
-  if (formTimeoutId) {
-    clearInterval(formTimeoutId);
-  }
-}
-
-// Calendar component implementation
-const calendarBooking = {
-  state: {
-    currentDate: new Date(),
-    selectedDate: null,
-    selectedTime: null,
-    availableSlots: {},
-    workingDays: [1, 2, 3, 4, 5], // Default Mon-Fri
-    isConfirmed: false
-  },
-  
-  // Calendar utility functions
-  formatDate(date) {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  },
-  
-  isSameDay(date1, date2) {
-    if (!date1 || !date2) return false;
-    return this.formatDate(date1) === this.formatDate(date2);
-  },
-  
-  isToday(date) {
-    const now = new Date();
-    return this.isSameDay(date, now);
-  },
-  
-  getDefaultActiveDay() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (this.state.workingDays.includes(today.getDay())) return today;
-    
-    // Find the next working day
-    const next = new Date(today);
-    let daysChecked = 0;
-    while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
-      next.setDate(next.getDate() + 1);
-      daysChecked++;
-    }
-    return next;
-  },
-  
-  // API call functions
-  async fetchWorkingDays(scheduleId) {
-    if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
-    
-    try {
-      const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "cal-api-version": "2024-06-11",
-          "Content-Type": "application/json"
+        // Define helper function for validation
+        function isValidEmail(email) {
+            const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+            return emailPattern.test(email);
         }
-      });
-      
-      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-      
-      const data = await res.json();
-      console.log("Schedule data:", data);
-      
-      const availability = data.data?.availability || [];
-      const dayNameToNumber = {
-        "Sunday": 0,
-        "Monday": 1,
-        "Tuesday": 2,
-        "Wednesday": 3,
-        "Thursday": 4,
-        "Friday": 5,
-        "Saturday": 6
-      };
-      
-      const workingDaysSet = new Set();
-      availability.forEach(item => {
-        if (Array.isArray(item.days)) {
-          item.days.forEach(dayName => {
-            const dayNum = dayNameToNumber[dayName];
-            if (dayNum !== undefined) {
-              workingDaysSet.add(dayNum);
+
+        // Helper function to show errors using the SubmissionFormExtension pattern
+        function showError(errorId) {
+            const errorElement = formContainer.querySelector(`#${errorId}`);
+            if (errorElement) {
+                errorElement.classList.add('show');
             }
-          });
         }
-      });
-      
-      return Array.from(workingDaysSet);
-    } catch (err) {
-      console.error("Error fetching schedule:", err);
-      return [1, 2, 3, 4, 5]; // Default to Mon-Fri on error
-    }
-  },
-  
-  async fetchAvailableSlots(selectedDateISO, eventTypeId, eventTypeSlug) {
-    const start = new Date(selectedDateISO);
-    start.setUTCHours(0, 0, 0, 0);
-    const end = new Date(selectedDateISO);
-    end.setUTCHours(23, 59, 59, 999);
-    
-    const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
-    
-    try {
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "cal-api-version": "2024-08-13",
-          "Content-Type": "application/json"
+
+        // Helper function to hide errors
+        function hideError(errorId) {
+            const errorElement = formContainer.querySelector(`#${errorId}`);
+            if (errorElement) {
+                errorElement.classList.remove('show');
+            }
         }
-      });
-      
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      
-      const responseBody = await res.json();
-      if (!responseBody || typeof responseBody !== "object") {
-        throw new Error("Invalid or missing response body from the API");
-      }
-      
-      if (responseBody.status !== "success") {
-        throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-      }
-      
-      const slotsObj = responseBody.data?.slots || {};
-      const slotsForDate = slotsObj[selectedDateISO] || [];
-      return slotsForDate.map(slot => slot.time);
-    } catch (err) {
-      console.error("Error fetching available slots:", err);
-      return [];
-    }
-  },
-  
-  async createBooking(startTimeISO, fullName, email, eventTypeId) {
-    try {
-      // Validate the slot is still available
-      const bookingDate = new Date(startTimeISO);
-      const dateStr = this.formatDate(bookingDate);
-      const currentAvailableSlots = await this.fetchAvailableSlots(
-        dateStr, 
-        eventTypeId, 
-        selectedService.eventTypeSlug
-      );
-      
-      if (!currentAvailableSlots.includes(startTimeISO)) {
-        throw new Error(language === "fr" ? 
-          "Ce créneau n'est plus disponible. Veuillez en sélectionner un autre." : 
-          "This slot is no longer available. Please select another time."
-        );
-      }
-      
-      // Create the booking
-      const url = `https://api.cal.com/v2/bookings`;
-      const body = {
-        start: startTimeISO,
-        attendee: { 
-          name: fullName, 
-          email: email, 
-          timeZone: timezone 
-        },
-        eventTypeId: Number(eventTypeId)
-      };
-      
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "cal-api-version": "2024-08-13",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
-      }
-      
-      const responseBody = await res.json();
-      if (responseBody.status && responseBody.status !== "success") {
-        throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-      }
-      
-      return responseBody;
-    } catch (err) {
-      console.error("Booking error:", err);
-      this.showErrorMessage(err.message || (language === "fr" ? 
-        "Impossible de terminer la réservation. Veuillez réessayer." : 
-        "Unable to complete booking. Please try again."
-      ));
-      
-      return null;
-    }
-  },
-  
-  showErrorMessage(message) {
-    const errorOverlay = document.createElement("div");
-    errorOverlay.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    `;
-    
-    const errorMessage = document.createElement("div");
-    errorMessage.style.cssText = `
-      background-color: #fff0f0;
-      border: 1px solid #ffdddd;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 80%;
-    `;
-    
-    errorMessage.innerHTML = `
-      <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
-        </svg>
-      </div>
-      <p style="margin: 0; color: #333;">${message}</p>
-      <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">${language === "fr" ? "OK" : "OK"}</button>
-    `;
-    
-    const calendarContainer = document.querySelector(".calendar-container");
-    calendarContainer.appendChild(errorOverlay);
-    
-    const closeButton = errorMessage.querySelector("button");
-    closeButton.addEventListener("click", () => {
-      calendarContainer.removeChild(errorOverlay);
-      if (this.state.selectedDate) {
-        const dateKey = this.formatDate(this.state.selectedDate);
-        this.fetchAvailableSlots(
-          dateKey, 
-          selectedService.eventTypeId, 
-          selectedService.eventTypeSlug
-        ).then(slots => {
-          this.state.availableSlots[dateKey] = slots;
-          this.renderCalendar();
-        });
-      }
-    });
-    
-    errorOverlay.appendChild(errorMessage);
-  },
-  
-  // Calendar component rendering
-  renderHeader() {
-    const header = document.createElement("div");
-    header.className = "calendar-header";
-    const dateFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
-    
-    // Create calendar title with provider and service info
-    const calendarTitle = document.createElement("div");
-    calendarTitle.className = "calendar-title";
-    
-    // Calendar icon
-    const calendarIcon = document.createElement("span");
-    calendarIcon.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
-    `;
-    
-    // Provider and service information section
-    const titleContent = document.createElement("div");
-    titleContent.className = "calendar-title-content";
-    
-    const providerDiv = document.createElement("div");
-    providerDiv.className = "service-provider";
-    providerDiv.innerHTML = `
-      <span class="provider-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-          <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
-        </svg>
-      </span>
-      <span>${selectedService.eventName || 'Appointment'}</span>
-    `;
-    
-    titleContent.appendChild(providerDiv);
-    calendarTitle.appendChild(titleContent);
-    
-    // Calendar navigation section with chevron SVGs
-    const calendarNav = document.createElement("div");
-    calendarNav.className = "calendar-nav";
-    
-    const currentDateEl = document.createElement("div");
-    currentDateEl.className = "current-date";
-    currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
-    
-    const prevBtn = document.createElement("button");
-    prevBtn.className = "nav-btn prev-btn";
-    prevBtn.title = language === "fr" ? "Mois précédent" : "Previous month";
-    prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
-    prevBtn.addEventListener("click", () => {
-      if (!this.state.isConfirmed) {
-        this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
-        this.renderCalendar();
-      }
-    });
-    
-    const nextBtn = document.createElement("button");
-    nextBtn.className = "nav-btn next-btn";
-    nextBtn.title = language === "fr" ? "Mois suivant" : "Next month";
-    nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
-    nextBtn.addEventListener("click", () => {
-      if (!this.state.isConfirmed) {
-        this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
-        this.renderCalendar();
-      }
-    });
-    
-    calendarNav.appendChild(prevBtn);
-    calendarNav.appendChild(currentDateEl);
-    calendarNav.appendChild(nextBtn);
-    
-    header.appendChild(calendarTitle);
-    header.appendChild(calendarNav);
-    
-    return header;
-  },
-  
-  async renderCalendarDays() {
-    const daysContainer = document.createElement("div");
-    daysContainer.className = "days-container";
-    const weekdaysDiv = document.createElement("div");
-    weekdaysDiv.className = "weekdays";
-    const weekdays = texts.weekdays;
-    weekdays.forEach(day => {
-      const dayEl = document.createElement("div");
-      dayEl.textContent = day;
-      weekdaysDiv.appendChild(dayEl);
-    });
-    daysContainer.appendChild(weekdaysDiv);
-    const daysDiv = document.createElement("div");
-    daysDiv.className = "days";
-    let daysToShow = [];
-    const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
-    const daysFromPrevMonth = firstDay.getDay();
-    const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
-    const totalDays = lastDay.getDate();
-    for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
-      const day = new Date(firstDay);
-      day.setDate(day.getDate() - i - 1);
-      daysToShow.push({ date: day, inactive: true });
-    }
-    for (let i = 1; i <= totalDays; i++) {
-      const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
-      daysToShow.push({ date: day, inactive: false });
-    }
-    const remainingDays = 42 - daysToShow.length;
-    for (let i = 1; i <= remainingDays; i++) {
-      const day = new Date(lastDay);
-      day.setDate(day.getDate() + i);
-      daysToShow.push({ date: day, inactive: true });
-    }
-    const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
-    
-    const self = this; // For use in event handlers
-    
-    daysToShow.forEach(({ date, inactive }) => {
-      const dayEl = document.createElement("div");
-      dayEl.className = "day";
-      dayEl.textContent = date.getDate();
-      if (inactive) {
-        dayEl.classList.add("inactive");
-      } else {
-        const dayOfWeek = date.getDay();
-        if (!this.state.workingDays.includes(dayOfWeek)) {
-          dayEl.classList.add("inactive");
-        } else {
-          const todayMidnight = new Date();
-          todayMidnight.setHours(0, 0, 0, 0);
-          if (date < todayMidnight) {
-            dayEl.classList.add("inactive");
-          } else {
-            if (this.formatDate(date) === this.formatDate(highlightDay)) {
-              dayEl.classList.add("today");
-            }
-            if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
-              dayEl.classList.add("active");
-            }
-            dayEl.classList.add("available");
-            dayEl.addEventListener("click", async function() {
-              self.state.selectedDate = new Date(date);
-              self.state.selectedTime = null;
-              const dateKey = self.formatDate(date);
-              const slots = await self.fetchAvailableSlots(
-                dateKey, 
-                selectedService.eventTypeId, 
-                selectedService.eventTypeSlug
-              );
-              self.state.availableSlots[dateKey] = slots;
-              self.renderCalendar();
-            });
-          }
-        }
-      }
-      daysDiv.appendChild(dayEl);
-    });
-    daysContainer.appendChild(daysDiv);
-    return daysContainer;
-  },
-  
-  async renderTimeSlots() {
-    const timesContainer = document.createElement("div");
-    timesContainer.className = "times-container";
-    const timeHeader = document.createElement("div");
-    timeHeader.className = "time-header";
-    if (this.state.selectedDate) {
-      const dateFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { weekday: "long", month: "long", day: "numeric" });
-      timeHeader.textContent = `${texts.availableTimesFor} ${dateFormatter.format(this.state.selectedDate)}`;
-    } else {
-      timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${texts.selectDate}</span>`;
-    }
-    timesContainer.appendChild(timeHeader);
-    const timeSlotsDiv = document.createElement("div");
-    timeSlotsDiv.className = "time-slots";
-    
-    const self = this; // For use in event handlers
-    
-    if (this.state.selectedDate) {
-      const dateKey = this.formatDate(this.state.selectedDate);
-      const timeSlots = this.state.availableSlots[dateKey] || [];
-      if (timeSlots.length === 0) {
-        const noSlots = document.createElement("div");
-        noSlots.textContent = texts.noAvailableSlots;
-        noSlots.style.textAlign = "center";
-        noSlots.style.padding = "20px 0";
-        noSlots.style.color = "#666";
-        timeSlotsDiv.appendChild(noSlots);
-      } else {
-        const columnsContainer = document.createElement("div");
-        columnsContainer.className = "time-slots-columns";
-        const amColumn = document.createElement("div");
-        amColumn.className = "time-slots-column";
-        const pmColumn = document.createElement("div");
-        pmColumn.className = "time-slots-column";
-        const amHeader = document.createElement("div");
-        amHeader.textContent = "AM";
-        amHeader.style.fontWeight = "bold";
-        amHeader.style.marginBottom = "5px";
-        amColumn.appendChild(amHeader);
-        const pmHeader = document.createElement("div");
-        pmHeader.textContent = "PM";
-        pmHeader.style.fontWeight = "bold";
-        pmHeader.style.marginBottom = "5px";
-        pmColumn.appendChild(pmHeader);
-        timeSlots.forEach((timeISO, index) => {
-          const dateTime = new Date(timeISO);
-          const hours = dateTime.getHours();
-          const timeSlot = document.createElement("div");
-          timeSlot.className = "time-slot available";
-          timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
-          if (this.state.selectedTime === timeISO) {
-            timeSlot.classList.add("selected");
-          }
-          const timeFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-          timeSlot.textContent = timeFormatter.format(dateTime);
-          timeSlot.addEventListener("click", () => {
-            if (!this.state.isConfirmed) {
-              this.state.selectedTime = timeISO;
-              this.renderCalendar();
-            }
-          });
-          if (hours < 12) {
-            amColumn.appendChild(timeSlot);
-          } else {
-            pmColumn.appendChild(timeSlot);
-          }
-        });
-        columnsContainer.appendChild(amColumn);
-        columnsContainer.appendChild(pmColumn);
-        timeSlotsDiv.appendChild(columnsContainer);
-      }
-    } else {
-      const noDate = document.createElement("div");
-      noDate.textContent = texts.pleaseSelectDate;
-      noDate.style.textAlign = "center";
-      noDate.style.padding = "20px 0";
-      noDate.style.color = "#666";
-      timeSlotsDiv.appendChild(noDate);
-    }
-    timesContainer.appendChild(timeSlotsDiv);
-    return timesContainer;
-  },
-  
-  renderFooter() {
-    const footer = document.createElement("div");
-    footer.className = "calendar-footer";
-    const confirmBtn = document.createElement("button");
-    confirmBtn.className = "btn btn-submit";
-    
-    const self = this; // For use in event handlers
-    
-    if (this.state.isConfirmed) {
-      confirmBtn.textContent = language === "en" ? "Booked ✓" : "Réservé ✓";
-      confirmBtn.style.backgroundColor = "#4CAF50";
-      confirmBtn.style.color = "white";
-      confirmBtn.disabled = true;
-    } else {
-      confirmBtn.textContent = texts.confirmBooking;
-      if (!this.state.selectedDate || !this.state.selectedTime) { 
-        confirmBtn.disabled = true; 
-      }
-      
-      confirmBtn.addEventListener("click", async function() {
-        if (self.state.selectedDate && self.state.selectedTime) {
-          // Show loading state
-          confirmBtn.disabled = true;
-          confirmBtn.textContent = texts.confirming;
-          
-          try {
-            // Complete the booking with Cal.com
-            const bookingResponse = await self.createBooking(
-              self.state.selectedTime, 
-              userData.fullName, 
-              userData.email, 
-              selectedService.eventTypeId
-            );
+
+        // Get DOM elements using formContainer as the base
+        const backButton = formContainer.querySelector("#back-button");
+        const nextButton = formContainer.querySelector("#next-button");
+        const step1Content = formContainer.querySelector("#step1-content");
+        const step2Content = formContainer.querySelector("#step2-content");
+        const step3Content = formContainer.querySelector("#step3-content");
+        const successContent = formContainer.querySelector("#success-content");
+        const calendarComponent = formContainer.querySelector("#calendar-component");
+        const serviceOptions = formContainer.querySelectorAll(".service-option");
+        const firstNameInput = formContainer.querySelector("#first-name");
+        const lastNameInput = formContainer.querySelector("#last-name");
+        const emailInput = formContainer.querySelector("#email");
+
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
+            let timeLeft = TIMEOUT_DURATION;
             
-            if (bookingResponse) {
-              // Update UI to show confirmation
-              self.state.isConfirmed = true;
-              self.renderCalendar();
-              
-              // Show success animation and message
-              const successOverlay = document.createElement('div');
-              successOverlay.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: #9C27B00d;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                opacity: 0;
-                transition: opacity 0.5s;
-                pointer-events: none;
-              `;
-              
-              const successMessage = document.createElement('div');
-              successMessage.style.cssText = `
-                background-color: white;
-                border-radius: 15px;
-                padding: 20px 30px;
-                box-shadow: 0 10px 30px #9C27B026;
-                text-align: center;
-                transform: translateY(20px);
-                transition: transform 0.5s, opacity 0.5s;
-                opacity: 0;
-              `;
-              
-              const checkmark = document.createElement('div');
-              checkmark.innerHTML = `
-                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
-                  <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              `;
-              
-              successMessage.appendChild(checkmark);
-              const successText = document.createElement('p');
-              successText.textContent = texts.bookingConfirmed;
-              successText.style.cssText = `
-                font-size: 18px;
-                font-weight: 600;
-                margin-top: 15px;
-                color: #9C27B0;
-              `;
-              
-              const successSubtext = document.createElement('p');
-              successSubtext.textContent = texts.bookingComplete;
-              successSubtext.style.cssText = `
-                font-size: 14px;
-                margin-top: 10px;
-                color: #555;
-              `;
-              
-              successMessage.appendChild(successText);
-              successMessage.appendChild(successSubtext);
-              successOverlay.appendChild(successMessage);
-              
-              const calendarContainer = document.querySelector(".calendar-container");
-              calendarContainer.appendChild(successOverlay);
-              
-              // Animation sequence
-              setTimeout(() => {
-                successOverlay.style.opacity = '1';
-                successMessage.style.opacity = '1';
-                successMessage.style.transform = 'translateY(0)';
+            // Set the timeout - no display updates needed
+            formTimeoutId = setInterval(() => {
+                timeLeft -= 1000;
                 
-                setTimeout(() => {
-                  // Start hiding animation
-                  successOverlay.style.opacity = '0';
-                  successMessage.style.opacity = '0';
-                  successMessage.style.transform = 'translateY(-20px)';
-                  
-                  setTimeout(() => {
-                    // Remove overlay after animation completes
-                    calendarContainer.removeChild(successOverlay);
-                    
-                    // Show global success screen
-                    showSuccessScreen();
-                    
-                    // Send data to Voiceflow
-                    const dateStr = self.formatDate(self.state.selectedDate);
-                    const formattedDate = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    }).format(self.state.selectedDate);
-                    
-                    const formattedTime = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
-                      hour: 'numeric', 
-                      minute: '2-digit', 
-                      hour12: true 
-                    }).format(new Date(self.state.selectedTime));
-                    
-                    const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
-                    
-                    if (vf) {
-                      window.voiceflow.chat.interact({
-                        type: "success",
-                        payload: {
-                          firstName: userData.firstName,
-                          lastName: userData.lastName,
-                          fullName: userData.fullName,
-                          email: userData.email,
-                          service: selectedService.eventName,
-                          date: dateStr,
-                          time: self.state.selectedTime,
-                          formattedDateTime: formattedDateTime
-                        }
-                      });
+                if (timeLeft <= 0) {
+                    clearInterval(formTimeoutId);
+                    if (!isFormSubmitted) {
+                        handleFormTimeout();
                     }
-                  }, 500); // End of hide animation
-                }, 2000); // Show duration before hiding
-              }, 100); // Start of show animation
+                }
+            }, 1000);
+        }
+
+        function handleFormTimeout() {
+            disableAllFormElements();
+            
+            // Update UI to show timeout
+            const submitButton = formContainer.querySelector("#next-button");
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+                submitButton.style.backgroundColor = "#f44336";
+                submitButton.style.color = "white";
             }
-          } catch (err) {
-            console.error("Booking error:", err);
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = texts.confirmBooking;
-            self.showErrorMessage(err.message || texts.errorOccurred);
-          }
+            
+            // Notify Voiceflow if available
+            if (vf) {
+                window.voiceflow.chat.interact({
+                    type: "timeEnd",
+                    payload: {
+                        message: "Time expired"
+                    }
+                });
+            }
         }
-      });
+
+        function disableAllFormElements() {
+            // Add disabled class to form
+            formContainer.classList.add("form-disabled");
+            
+            // Disable all interactive elements
+            formContainer.querySelectorAll('button, input, select, textarea, .service-option').forEach(el => {
+                if (el.tagName === 'BUTTON') {
+                    el.disabled = true;
+                } else {
+                    el.setAttribute('disabled', 'disabled');
+                }
+                el.style.cursor = "not-allowed";
+            });
+            
+            // Disable service option clicking
+            serviceOptions.forEach(opt => {
+                opt.style.pointerEvents = "none";
+                opt.style.opacity = "0.7";
+            });
+            
+            // Disable any active calendars
+            const calendarContainer = formContainer.querySelector(".calendar-container");
+            if (calendarContainer) {
+                calendarContainer.classList.add("confirmed");
+                calendarContainer.querySelectorAll('.nav-btn, .day, .time-slot').forEach(el => {
+                    el.style.pointerEvents = "none";
+                    el.style.cursor = "not-allowed";
+                });
+            }
+        }
+
+        // Function to navigate between steps
+        function goToStep(step) {
+            // Update bullet classes
+            const items = formContainer.querySelectorAll(".step-item");
+            items.forEach((item, i) => {
+                item.classList.remove("active", "completed");
+                if (i + 1 < step) {
+                    item.classList.add("completed");
+                } else if (i + 1 === step) {
+                    item.classList.add("active");
+                }
+            });
+
+            // Show/hide content panels
+            formContainer.querySelectorAll(".step-container").forEach((stepContainer, i) => {
+                if (i + 1 === step) {
+                    stepContainer.classList.add("active");
+                } else {
+                    stepContainer.classList.remove("active");
+                }
+            });
+            
+            // Hide success content
+            successContent.style.display = "none";
+
+            // Footer button logic
+            backButton.style.visibility = step > 1 ? "visible" : "hidden";
+            
+            // Handle "Next" button visibility for Step 3
+            if (step === 3) {
+                // Hide the next button in Step 3 (Calendar step)
+                nextButton.style.display = "none";
+            } else {
+                // Show the next button for other steps
+                nextButton.style.display = "block";
+                
+                // Default next button state
+                nextButton.disabled = true;
+                
+                // Set next button state based on current step
+                if (step === 1 && selectedService) {
+                    nextButton.disabled = false;
+                } else if (step === 2) {
+                    checkFormValidity();
+                }
+            }
+
+            // Resize the purple fill-bar
+            const pct = ((step - 1) / (items.length - 1)) * 100;
+            formContainer.querySelector(".progress-bar").style.width = pct + "%";
+
+            // Remember current step
+            currentStep = step;
+            
+            // Scroll to top of form if needed
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Validation functions
+        function validateStep1() {
+            return selectedService !== null;
+        }
+
+        function validateStep2() {
+            let isValid = true;
+            
+            // Validate first name
+            if (!firstNameInput.value.trim()) {
+                showError("errorFirstName");
+                isValid = false;
+            } else {
+                hideError("errorFirstName");
+            }
+            
+            // Validate last name
+            if (!lastNameInput.value.trim()) {
+                showError("errorLastName");
+                isValid = false;
+            } else {
+                hideError("errorLastName");
+            }
+            
+            // Validate email
+            if (!emailInput.value.trim() || !isValidEmail(emailInput.value.trim())) {
+                showError("errorEmail");
+                isValid = false;
+            } else {
+                hideError("errorEmail");
+            }
+            
+            return isValid;
+        }
+
+        function updateFormData() {
+            userData.firstName = firstNameInput.value.trim();
+            userData.lastName = lastNameInput.value.trim();
+            userData.email = emailInput.value.trim();
+            userData.fullName = `${userData.firstName} ${userData.lastName}`;
+        }
+
+        // Add event listeners to service options
+        serviceOptions.forEach(option => {
+            option.addEventListener("click", function() {
+                // Deselect all options
+                serviceOptions.forEach(opt => {
+                    opt.classList.remove("selected");
+                    opt.querySelector(".checkmark-icon").style.display = "none";
+                });
+                
+                // Select clicked option
+                this.classList.add("selected");
+                this.querySelector(".checkmark-icon").style.display = "flex";
+                
+                // Store selected service
+                const serviceId = parseInt(this.dataset.id);
+                selectedService = texts.meetingOptions.find(option => option.id === serviceId);
+                
+                // Enable next button
+                nextButton.disabled = false;
+            });
+        });
+
+        // Setup input field listeners
+        function setupInputListeners() {
+            firstNameInput.addEventListener("input", function() {
+                if (this.value.trim()) {
+                    hideError("errorFirstName");
+                }
+                checkFormValidity();
+            });
+
+            lastNameInput.addEventListener("input", function() {
+                if (this.value.trim()) {
+                    hideError("errorLastName");
+                }
+                checkFormValidity();
+            });
+
+            emailInput.addEventListener("input", function() {
+                if (this.value.trim() && isValidEmail(this.value.trim())) {
+                    hideError("errorEmail");
+                }
+                checkFormValidity();
+            });
+        }
+
+        // Call the setup function
+        setupInputListeners();
+
+        // Check form validity
+        function checkFormValidity() {
+            if (currentStep === 2) {
+                if (firstNameInput.value.trim() && 
+                    lastNameInput.value.trim() && 
+                    emailInput.value.trim() && 
+                    isValidEmail(emailInput.value.trim())) {
+                    nextButton.disabled = false;
+                } else {
+                    nextButton.disabled = true;
+                }
+            }
+        }
+
+        // Back button event listener
+        backButton.addEventListener("click", function() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+
+        // Next button event listener
+        nextButton.addEventListener("click", function() {
+            // For step 1, check if a service is selected
+            if (currentStep === 1) {
+                if (validateStep1()) {
+                    goToStep(2);
+                    // Initially disable next button until form is valid
+                    nextButton.disabled = true;
+                    checkFormValidity(); // Check if form already has valid input
+                }
+            } else if (currentStep === 2) {
+                if (validateStep2()) {
+                    updateFormData();
+                    goToStep(3);
+                    
+                    // Show calendar component
+                    renderCalendar();
+                }
+            }
+        });
+
+        // Function to show the success screen
+        function showSuccessScreen() {
+            // Hide all content sections
+            step1Content.style.display = "none";
+            step2Content.style.display = "none";
+            step3Content.style.display = "none";
+            successContent.style.display = "block";
+            
+            // Hide footer buttons
+            backButton.style.display = "none";
+            nextButton.style.display = "none";
+            
+            // Mark form as submitted so timeout doesn't trigger
+            isFormSubmitted = true;
+            if (formTimeoutId) {
+                clearInterval(formTimeoutId);
+            }
+        }
+
+        // Calendar component implementation
+        const calendarBooking = {
+            state: {
+                currentDate: new Date(),
+                selectedDate: null,
+                selectedTime: null,
+                availableSlots: {},
+                workingDays: [1, 2, 3, 4, 5], // Default Mon-Fri
+                isConfirmed: false
+            },
+            
+            // Calendar utility functions
+            formatDate(date) {
+                const d = new Date(date);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const day = String(d.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            },
+            
+            isSameDay(date1, date2) {
+                if (!date1 || !date2) return false;
+                return this.formatDate(date1) === this.formatDate(date2);
+            },
+            
+            isToday(date) {
+                const now = new Date();
+                return this.isSameDay(date, now);
+            },
+            
+            getDefaultActiveDay() {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (this.state.workingDays.includes(today.getDay())) return today;
+                
+                // Find the next working day
+                const next = new Date(today);
+                let daysChecked = 0;
+                while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
+                    next.setDate(next.getDate() + 1);
+                    daysChecked++;
+                }
+                return next;
+            },
+            
+            // API call functions
+            async fetchWorkingDays(scheduleId) {
+                if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+                
+                try {
+                    const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${apiKey}`,
+                            "cal-api-version": "2024-06-11",
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    
+                    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                    
+                    const data = await res.json();
+                    console.log("Schedule data:", data);
+                    
+                    const availability = data.data?.availability || [];
+                    const dayNameToNumber = {
+                        "Sunday": 0,
+                        "Monday": 1,
+                        "Tuesday": 2,
+                        "Wednesday": 3,
+                        "Thursday": 4,
+                        "Friday": 5,
+                        "Saturday": 6
+                    };
+                    
+                    const workingDaysSet = new Set();
+                    availability.forEach(item => {
+                        if (Array.isArray(item.days)) {
+                            item.days.forEach(dayName => {
+                                const dayNum = dayNameToNumber[dayName];
+                                if (dayNum !== undefined) {
+                                    workingDaysSet.add(dayNum);
+                                }
+                            });
+                        }
+                    });
+                    
+                    return Array.from(workingDaysSet);
+                } catch (err) {
+                    console.error("Error fetching schedule:", err);
+                    return [1, 2, 3, 4, 5]; // Default to Mon-Fri on error
+                }
+            },
+            
+            async fetchAvailableSlots(selectedDateISO, eventTypeId, eventTypeSlug) {
+                const start = new Date(selectedDateISO);
+                start.setUTCHours(0, 0, 0, 0);
+                const end = new Date(selectedDateISO);
+                end.setUTCHours(23, 59, 59, 999);
+                
+                const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+                
+                try {
+                    const res = await fetch(url, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${apiKey}`,
+                            "cal-api-version": "2024-08-13",
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    
+                    const responseBody = await res.json();
+                    if (!responseBody || typeof responseBody !== "object") {
+                        throw new Error("Invalid or missing response body from the API");
+                    }
+                    
+                    if (responseBody.status !== "success") {
+                        throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                    }
+                    
+                    const slotsObj = responseBody.data?.slots || {};
+                    const slotsForDate = slotsObj[selectedDateISO] || [];
+                    return slotsForDate.map(slot => slot.time);
+                } catch (err) {
+                    console.error("Error fetching available slots:", err);
+                    return [];
+                }
+            },
+            
+            async createBooking(startTimeISO, fullName, email, eventTypeId) {
+                try {
+                    // Validate the slot is still available
+                    const bookingDate = new Date(startTimeISO);
+                    const dateStr = this.formatDate(bookingDate);
+                    const currentAvailableSlots = await this.fetchAvailableSlots(
+                        dateStr, 
+                        eventTypeId, 
+                        selectedService.eventTypeSlug
+                    );
+                    
+                    if (!currentAvailableSlots.includes(startTimeISO)) {
+                        throw new Error(language === "fr" ? 
+                            "Ce créneau n'est plus disponible. Veuillez en sélectionner un autre." : 
+                            "This slot is no longer available. Please select another time."
+                        );
+                    }
+                    
+                    // Create the booking
+                    const url = `https://api.cal.com/v2/bookings`;
+                    const body = {
+                        start: startTimeISO,
+                        attendee: { 
+                            name: fullName, 
+                            email: email, 
+                            timeZone: timezone 
+                        },
+                        eventTypeId: Number(eventTypeId)
+                    };
+                    
+                    const res = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${apiKey}`,
+                            "cal-api-version": "2024-08-13",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+                    }
+                    
+                    const responseBody = await res.json();
+                    if (responseBody.status && responseBody.status !== "success") {
+                        throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                    }
+                    
+                    return responseBody;
+                } catch (err) {
+                    console.error("Booking error:", err);
+                    this.showErrorMessage(err.message || (language === "fr" ? 
+                        "Impossible de terminer la réservation. Veuillez réessayer." : 
+                        "Unable to complete booking. Please try again."
+                    ));
+                    
+                    return null;
+                }
+            },
+            
+            showErrorMessage(message) {
+                const errorOverlay = document.createElement("div");
+                errorOverlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(255, 255, 255, 0.9);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                `;
+                
+                const errorMessage = document.createElement("div");
+                errorMessage.style.cssText = `
+                    background-color: #fff0f0;
+                    border: 1px solid #ffdddd;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    text-align: center;
+                    max-width: 80%;
+                `;
+                
+                errorMessage.innerHTML = `
+                    <div style="color: #d32f2f; font-size: 24px; margin-bottom: 10px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <p style="margin: 0; color: #333;">${message}</p>
+                    <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">${language === "fr" ? "OK" : "OK"}</button>
+                `;
+                
+                const calendarContainer = formContainer.querySelector(".calendar-container");
+                calendarContainer.appendChild(errorOverlay);
+                
+                const closeButton = errorMessage.querySelector("button");
+                closeButton.addEventListener("click", () => {
+                    calendarContainer.removeChild(errorOverlay);
+                    if (this.state.selectedDate) {
+                        const dateKey = this.formatDate(this.state.selectedDate);
+                        this.fetchAvailableSlots(
+                            dateKey, 
+                            selectedService.eventTypeId, 
+                            selectedService.eventTypeSlug
+                        ).then(slots => {
+                            this.state.availableSlots[dateKey] = slots;
+                            this.renderCalendar();
+                        });
+                    }
+                });
+                
+                errorOverlay.appendChild(errorMessage);
+            },
+            
+            // Calendar component rendering
+            renderHeader() {
+                const header = document.createElement("div");
+                header.className = "calendar-header";
+                const dateFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
+                
+                // Create calendar title with provider and service info
+                const calendarTitle = document.createElement("div");
+                calendarTitle.className = "calendar-title";
+                
+                // Calendar icon
+                const calendarIcon = document.createElement("span");
+                calendarIcon.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px"><path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
+                `;
+                
+                // Provider and service information section
+                const titleContent = document.createElement("div");
+                titleContent.className = "calendar-title-content";
+                
+                const providerDiv = document.createElement("div");
+                providerDiv.className = "service-provider";
+                providerDiv.innerHTML = `
+                    <span class="provider-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
+                            <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
+                        </svg>
+                    </span>
+                    <span>${selectedService.eventName || 'Appointment'}</span>
+                `;
+                
+                titleContent.appendChild(providerDiv);
+                calendarTitle.appendChild(titleContent);
+                
+                // Calendar navigation section with chevron SVGs
+                const calendarNav = document.createElement("div");
+                calendarNav.className = "calendar-nav";
+                
+                const currentDateEl = document.createElement("div");
+                currentDateEl.className = "current-date";
+                currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
+                
+                const prevBtn = document.createElement("button");
+                prevBtn.className = "nav-btn prev-btn";
+                prevBtn.title = language === "fr" ? "Mois précédent" : "Previous month";
+                prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+                prevBtn.addEventListener("click", () => {
+                    if (!this.state.isConfirmed) {
+                        this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
+                        this.renderCalendar();
+                    }
+                });
+                
+                const nextBtn = document.createElement("button");
+                nextBtn.className = "nav-btn next-btn";
+                nextBtn.title = language === "fr" ? "Mois suivant" : "Next month";
+                nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+                nextBtn.addEventListener("click", () => {
+                    if (!this.state.isConfirmed) {
+                        this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
+                        this.renderCalendar();
+                    }
+                });
+                
+                calendarNav.appendChild(prevBtn);
+                calendarNav.appendChild(currentDateEl);
+                calendarNav.appendChild(nextBtn);
+                
+                header.appendChild(calendarTitle);
+                header.appendChild(calendarNav);
+                
+                return header;
+            },
+            
+            async renderCalendarDays() {
+                const daysContainer = document.createElement("div");
+                daysContainer.className = "days-container";
+                const weekdaysDiv = document.createElement("div");
+                weekdaysDiv.className = "weekdays";
+                const weekdays = texts.weekdays;
+                weekdays.forEach(day => {
+                    const dayEl = document.createElement("div");
+                    dayEl.textContent = day;
+                    weekdaysDiv.appendChild(dayEl);
+                });
+                daysContainer.appendChild(weekdaysDiv);
+                const daysDiv = document.createElement("div");
+                daysDiv.className = "days";
+                let daysToShow = [];
+                const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
+                const daysFromPrevMonth = firstDay.getDay();
+                const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
+                const totalDays = lastDay.getDate();
+                for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+                    const day = new Date(firstDay);
+                    day.setDate(day.getDate() - i - 1);
+                    daysToShow.push({ date: day, inactive: true });
+                }
+                for (let i = 1; i <= totalDays; i++) {
+                    const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
+                    daysToShow.push({ date: day, inactive: false });
+                }
+                const remainingDays = 42 - daysToShow.length;
+                for (let i = 1; i <= remainingDays; i++) {
+                    const day = new Date(lastDay);
+                    day.setDate(day.getDate() + i);
+                    daysToShow.push({ date: day, inactive: true });
+                }
+                const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
+                
+                const self = this; // For use in event handlers
+                
+                daysToShow.forEach(({ date, inactive }) => {
+                    const dayEl = document.createElement("div");
+                    dayEl.className = "day";
+                    dayEl.textContent = date.getDate();
+                    if (inactive) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        const dayOfWeek = date.getDay();
+                        if (!this.state.workingDays.includes(dayOfWeek)) {
+                            dayEl.classList.add("inactive");
+                        } else {
+                            const todayMidnight = new Date();
+                            todayMidnight.setHours(0, 0, 0, 0);
+                            if (date < todayMidnight) {
+                                dayEl.classList.add("inactive");
+                            } else {
+                                if (this.formatDate(date) === this.formatDate(highlightDay)) {
+                                    dayEl.classList.add("today");
+                                }
+                                if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                                    dayEl.classList.add("active");
+                                }
+                                dayEl.classList.add("available");
+                                dayEl.addEventListener("click", async function() {
+                                    self.state.selectedDate = new Date(date);
+                                    self.state.selectedTime = null;
+                                    const dateKey = self.formatDate(date);
+                                    const slots = await self.fetchAvailableSlots(
+                                        dateKey, 
+                                        selectedService.eventTypeId, 
+                                        selectedService.eventTypeSlug
+                                    );
+                                    self.state.availableSlots[dateKey] = slots;
+                                    self.renderCalendar();
+                                });
+                            }
+                        }
+                    }
+                    daysDiv.appendChild(dayEl);
+                });
+                daysContainer.appendChild(daysDiv);
+                return daysContainer;
+            },
+            
+            async renderTimeSlots() {
+                const timesContainer = document.createElement("div");
+                timesContainer.className = "times-container";
+                const timeHeader = document.createElement("div");
+                timeHeader.className = "time-header";
+                if (this.state.selectedDate) {
+                    const dateFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { weekday: "long", month: "long", day: "numeric" });
+                    timeHeader.textContent = `${texts.availableTimesFor} ${dateFormatter.format(this.state.selectedDate)}`;
+                } else {
+                    timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${texts.selectDate}</span>`;
+                }
+                timesContainer.appendChild(timeHeader);
+                const timeSlotsDiv = document.createElement("div");
+                timeSlotsDiv.className = "time-slots";
+                
+                const self = this; // For use in event handlers
+                
+                if (this.state.selectedDate) {
+                    const dateKey = this.formatDate(this.state.selectedDate);
+                    const timeSlots = this.state.availableSlots[dateKey] || [];
+                    if (timeSlots.length === 0) {
+                        const noSlots = document.createElement("div");
+                        noSlots.textContent = texts.noAvailableSlots;
+                        noSlots.style.textAlign = "center";
+                        noSlots.style.padding = "20px 0";
+                        noSlots.style.color = "#666";
+                        timeSlotsDiv.appendChild(noSlots);
+                    } else {
+                        const columnsContainer = document.createElement("div");
+                        columnsContainer.className = "time-slots-columns";
+                        const amColumn = document.createElement("div");
+                        amColumn.className = "time-slots-column";
+                        const pmColumn = document.createElement("div");
+                        pmColumn.className = "time-slots-column";
+                        const amHeader = document.createElement("div");
+                        amHeader.textContent = "AM";
+                        amHeader.style.fontWeight = "bold";
+                        amHeader.style.marginBottom = "5px";
+                        amColumn.appendChild(amHeader);
+                        const pmHeader = document.createElement("div");
+                        pmHeader.textContent = "PM";
+                        pmHeader.style.fontWeight = "bold";
+                        pmHeader.style.marginBottom = "5px";
+                        pmColumn.appendChild(pmHeader);
+                        timeSlots.forEach((timeISO, index) => {
+                            const dateTime = new Date(timeISO);
+                            const hours = dateTime.getHours();
+                            const timeSlot = document.createElement("div");
+                            timeSlot.className = "time-slot available";
+                            timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
+                            if (this.state.selectedTime === timeISO) {
+                                timeSlot.classList.add("selected");
+                            }
+                            const timeFormatter = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                            timeSlot.textContent = timeFormatter.format(dateTime);
+                            timeSlot.addEventListener("click", () => {
+                                if (!this.state.isConfirmed) {
+                                    this.state.selectedTime = timeISO;
+                                    this.renderCalendar();
+                                }
+                            });
+                            if (hours < 12) {
+                                amColumn.appendChild(timeSlot);
+                            } else {
+                                pmColumn.appendChild(timeSlot);
+                            }
+                        });
+                        columnsContainer.appendChild(amColumn);
+                        columnsContainer.appendChild(pmColumn);
+                        timeSlotsDiv.appendChild(columnsContainer);
+                    }
+                } else {
+                    const noDate = document.createElement("div");
+                    noDate.textContent = texts.pleaseSelectDate;
+                    noDate.style.textAlign = "center";
+                    noDate.style.padding = "20px 0";
+                    noDate.style.color = "#666";
+                    timeSlotsDiv.appendChild(noDate);
+                }
+                timesContainer.appendChild(timeSlotsDiv);
+                return timesContainer;
+            },
+            
+            renderFooter() {
+                const footer = document.createElement("div");
+                footer.className = "calendar-footer";
+                const confirmBtn = document.createElement("button");
+                confirmBtn.className = "btn btn-submit";
+                
+                const self = this; // For use in event handlers
+                
+                if (this.state.isConfirmed) {
+                    confirmBtn.textContent = language === "en" ? "Booked ✓" : "Réservé ✓";
+                    confirmBtn.style.backgroundColor = "#4CAF50";
+                    confirmBtn.style.color = "white";
+                    confirmBtn.disabled = true;
+                } else {
+                    confirmBtn.textContent = texts.confirmBooking;
+                    if (!this.state.selectedDate || !this.state.selectedTime) { 
+                        confirmBtn.disabled = true; 
+                    }
+                    
+                    confirmBtn.addEventListener("click", async function() {
+                        if (self.state.selectedDate && self.state.selectedTime) {
+                            // Show loading state
+                            confirmBtn.disabled = true;
+                            confirmBtn.textContent = texts.confirming;
+                            
+                            try {
+                                // Complete the booking with Cal.com
+                                const bookingResponse = await self.createBooking(
+                                    self.state.selectedTime, 
+                                    userData.fullName, 
+                                    userData.email, 
+                                    selectedService.eventTypeId
+                                );
+                                
+                                if (bookingResponse) {
+                                    // Update UI to show confirmation
+                                    self.state.isConfirmed = true;
+                                    self.renderCalendar();
+                                    
+                                    // Show success animation and message
+                                    const successOverlay = document.createElement('div');
+                                    successOverlay.style.cssText = `
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        background-color: #9C27B00d;
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: center;
+                                        z-index: 1000;
+                                        opacity: 0;
+                                        transition: opacity 0.5s;
+                                        pointer-events: none;
+                                    `;
+                                    
+                                    const successMessage = document.createElement('div');
+                                    successMessage.style.cssText = `
+                                        background-color: white;
+                                        border-radius: 15px;
+                                        padding: 20px 30px;
+                                        box-shadow: 0 10px 30px #9C27B026;
+                                        text-align: center;
+                                        transform: translateY(20px);
+                                        transition: transform 0.5s, opacity 0.5s;
+                                        opacity: 0;
+                                    `;
+                                    
+                                    const checkmark = document.createElement('div');
+                                    checkmark.innerHTML = `
+                                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="30" cy="30" r="30" fill="#F8EAFA"/>
+                                            <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    `;
+                                    
+                                    successMessage.appendChild(checkmark);
+                                    const successText = document.createElement('p');
+                                    successText.textContent = texts.bookingConfirmed;
+                                    successText.style.cssText = `
+                                        font-size: 18px;
+                                        font-weight: 600;
+                                        margin-top: 15px;
+                                        color: #9C27B0;
+                                    `;
+                                    
+                                    const successSubtext = document.createElement('p');
+                                    successSubtext.textContent = texts.bookingComplete;
+                                    successSubtext.style.cssText = `
+                                        font-size: 14px;
+                                        margin-top: 10px;
+                                        color: #555;
+                                    `;
+                                    
+                                    successMessage.appendChild(successText);
+                                    successMessage.appendChild(successSubtext);
+                                    successOverlay.appendChild(successMessage);
+                                    
+                                    const calendarContainer = formContainer.querySelector(".calendar-container");
+                                    calendarContainer.appendChild(successOverlay);
+                                    
+                                    // Animation sequence
+                                    setTimeout(() => {
+                                        successOverlay.style.opacity = '1';
+                                        successMessage.style.opacity = '1';
+                                        successMessage.style.transform = 'translateY(0)';
+                                        
+                                        setTimeout(() => {
+                                            // Start hiding animation
+                                            successOverlay.style.opacity = '0';
+                                            successMessage.style.opacity = '0';
+                                            successMessage.style.transform = 'translateY(-20px)';
+                                            
+                                            setTimeout(() => {
+                                                // Remove overlay after animation completes
+                                                calendarContainer.removeChild(successOverlay);
+                                                
+                                                // Show global success screen
+                                                showSuccessScreen();
+                                                
+                                                // Send data to Voiceflow
+                                                const dateStr = self.formatDate(self.state.selectedDate);
+                                                const formattedDate = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
+                                                    weekday: 'long', 
+                                                    year: 'numeric', 
+                                                    month: 'long', 
+                                                    day: 'numeric' 
+                                                }).format(self.state.selectedDate);
+                                                
+                                                const formattedTime = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
+                                                    hour: 'numeric', 
+                                                    minute: '2-digit', 
+                                                    hour12: true 
+                                                }).format(new Date(self.state.selectedTime));
+                                                
+                                                const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+                                                
+                                                if (vf) {
+                                                    window.voiceflow.chat.interact({
+                                                        type: "success",
+                                                        payload: {
+                                                            firstName: userData.firstName,
+                                                            lastName: userData.lastName,
+                                                            fullName: userData.fullName,
+                                                            email: userData.email,
+                                                            service: selectedService.eventName,
+                                                            date: dateStr,
+                                                            time: self.state.selectedTime,
+                                                            formattedDateTime: formattedDateTime
+                                                        }
+                                                    });
+                                                }
+                                            }, 500); // End of hide animation
+                                        }, 2000); // Show duration before hiding
+                                    }, 100); // Start of show animation
+                                }
+                            } catch (err) {
+                                console.error("Booking error:", err);
+                                confirmBtn.disabled = false;
+                                confirmBtn.textContent = texts.confirmBooking;
+                                self.showErrorMessage(err.message || texts.errorOccurred);
+                            }
+                        }
+                    });
+                }
+                
+                footer.appendChild(confirmBtn);
+                return footer;
+            },
+            
+            async renderCalendar() {
+                const calendarComponent = formContainer.querySelector("#calendar-component");
+                calendarComponent.innerHTML = "";
+                
+                const calendarContainer = document.createElement("div");
+                calendarContainer.className = "calendar-container";
+                if (this.state.isConfirmed) {
+                    calendarContainer.classList.add("confirmed");
+                }
+                
+                calendarContainer.appendChild(this.renderHeader());
+                
+                const calendarBody = document.createElement("div");
+                calendarBody.className = "calendar-body";
+                calendarBody.appendChild(await this.renderCalendarDays());
+                calendarBody.appendChild(await this.renderTimeSlots());
+                calendarContainer.appendChild(calendarBody);
+                
+                calendarContainer.appendChild(this.renderFooter());
+                
+                calendarComponent.appendChild(calendarContainer);
+            },
+            
+            async initialize(scheduleId) {
+                // Initialize working days
+                this.state.workingDays = await this.fetchWorkingDays(scheduleId);
+                
+                // Initialize default selected date
+                if (!this.state.selectedDate) {
+                    const defaultDay = this.getDefaultActiveDay();
+                    this.state.selectedDate = defaultDay;
+                    const dayKey = this.formatDate(defaultDay);
+                    if (!this.state.availableSlots[dayKey]) {
+                        const defaultSlots = await this.fetchAvailableSlots(
+                            dayKey, 
+                            selectedService.eventTypeId, 
+                            selectedService.eventTypeSlug
+                        );
+                        this.state.availableSlots[dayKey] = defaultSlots;
+                    }
+                }
+                
+                // Render the calendar
+                await this.renderCalendar();
+            }
+        };
+
+        // Function to render the calendar
+        async function renderCalendar() {
+            // Initialize and render the calendar component
+            await calendarBooking.initialize(selectedService.scheduleId);
+        }
+
+        // Start the form timer
+        startFormTimer();
+
+        // Initialize with first step
+        goToStep(1);
     }
-    
-    footer.appendChild(confirmBtn);
-    return footer;
-  },
-  
-  async renderCalendar() {
-    const calendarComponent = document.querySelector("#calendar-component");
-    calendarComponent.innerHTML = "";
-    
-    const calendarContainer = document.createElement("div");
-    calendarContainer.className = "calendar-container";
-    if (this.state.isConfirmed) {
-      calendarContainer.classList.add("confirmed");
-    }
-    
-    calendarContainer.appendChild(this.renderHeader());
-    
-    const calendarBody = document.createElement("div");
-    calendarBody.className = "calendar-body";
-    calendarBody.appendChild(await this.renderCalendarDays());
-    calendarBody.appendChild(await this.renderTimeSlots());
-    calendarContainer.appendChild(calendarBody);
-    
-    calendarContainer.appendChild(this.renderFooter());
-    
-    calendarComponent.appendChild(calendarContainer);
-  },
-  
-  async initialize(scheduleId) {
-    // Initialize working days
-    this.state.workingDays = await this.fetchWorkingDays(scheduleId);
-    
-    // Initialize default selected date
-    if (!this.state.selectedDate) {
-      const defaultDay = this.getDefaultActiveDay();
-      this.state.selectedDate = defaultDay;
-      const dayKey = this.formatDate(defaultDay);
-      if (!this.state.availableSlots[dayKey]) {
-        const defaultSlots = await this.fetchAvailableSlots(
-          dayKey, 
-          selectedService.eventTypeId, 
-          selectedService.eventTypeSlug
-        );
-        this.state.availableSlots[dayKey] = defaultSlots;
-      }
-    }
-    
-    // Render the calendar
-    await this.renderCalendar();
-  }
 };
-
-// Function to render the calendar
-async function renderCalendar() {
-  // Initialize and render the calendar component
-  await calendarBooking.initialize(selectedService.scheduleId);
-}
-
-// Start the form timer
-startFormTimer();
-
-// Initialize with first step
-goToStep(1);
-        }
-    };
         
  const BookingCalendarExtension = {
       name: 'Booking',
