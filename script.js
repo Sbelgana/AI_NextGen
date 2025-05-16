@@ -1678,8 +1678,28 @@
     }
     
     .error-message.show {
-      display: block;
-    }
+  display: flex;
+}
+
+.error-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  background-color: #d32f2f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 14px;
+  
+}
+
+.error-text {
+  flex: 1;
+}
     
     /* ========== Number Input Group ========== */
     .input-group {
@@ -2057,13 +2077,19 @@
       <div class="form-group">
         <label class="form-label required" id="firstname-label">Prénom</label>
         <input type="text" id="first-name" name="firstName" placeholder="Votre prénom" />
-        <div class="error-message" id="error-firstname">Ce champ est obligatoire</div>
+        <div class="error-message" id="error-firstname">
+          <div class="error-icon">!</div>
+          <span class="error-text">Ce champ est obligatoire</span>
+        </div>
       </div>
       
       <div class="form-group">
         <label class="form-label required" id="lastname-label">Nom</label>
         <input type="text" id="last-name" name="lastName" placeholder="Votre nom" />
-        <div class="error-message" id="error-lastname">Ce champ est obligatoire</div>
+        <div class="error-message" id="error-lastname">
+          <div class="error-icon">!</div>
+          <span class="error-text">Ce champ est obligatoire</span>
+        </div>
       </div>
     </div>
     
@@ -2071,13 +2097,19 @@
       <div class="form-group">
         <label class="form-label required" id="email-label">Email</label>
         <input type="email" id="email" name="email" placeholder="Votre email" />
-        <div class="error-message" id="error-email">Entrez une adresse email valide</div>
+        <div class="error-message" id="error-email">
+          <div class="error-icon">!</div>
+          <span class="error-text">Entrez une adresse email valide</span>
+        </div>
       </div>
       
       <div class="form-group">
         <label class="form-label required" id="phone-label">Téléphone</label>
         <input type="tel" id="phone" name="phone" placeholder="Votre numéro de téléphone" />
-        <div class="error-message" id="error-phone">Entrez un numéro de téléphone valide</div>
+        <div class="error-message" id="error-phone">
+          <div class="error-icon">!</div>
+          <span class="error-text">Entrez un numéro de téléphone valide</span>
+        </div>
       </div>
     </div>
     
@@ -2108,13 +2140,19 @@
           <div class="custom-options" id="customOptionsNiche"></div>
         </div>
       </div>
-      <div class="error-message" id="error-niche">Veuillez sélectionner une niche</div>
+      <div class="error-message" id="error-niche">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une niche</span>
+      </div>
     </div>
     
     <div class="form-group" id="other-niche-group" style="display: none;">
       <label class="form-label required" id="other-niche-label">Précisez votre niche</label>
       <input type="text" id="other-niche" name="otherNiche" placeholder="Votre niche..." />
-      <div class="error-message" id="error-other-niche">Ce champ est obligatoire</div>
+      <div class="error-message" id="error-other-niche">
+        <div class="error-icon">!</div>
+        <span class="error-text">Ce champ est obligatoire</span>
+      </div>
     </div>
     
     <div class="form-group">
@@ -2129,20 +2167,29 @@
           <div class="custom-options" id="customOptionsBudget"></div>
         </div>
       </div>
-      <div class="error-message" id="error-budget">Veuillez sélectionner un budget</div>
+      <div class="error-message" id="error-budget">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner un budget</span>
+      </div>
     </div>
     
     <div class="form-group" id="custom-budget-group" style="display: none;">
       <label class="form-label required" id="custom-budget-label">Précisez votre budget</label>
       <input type="text" id="custom-budget" name="customBudget" placeholder="Détails de votre budget..." />
-      <div class="error-message" id="error-custom-budget">Ce champ est obligatoire</div>
+      <div class="error-message" id="error-custom-budget">
+        <div class="error-icon">!</div>
+        <span class="error-text">Ce champ est obligatoire</span>
+      </div>
     </div>
     
     <div class="form-group">
       <label class="form-label required" id="description-label">Description détaillée de votre projet</label>
       <textarea id="description" name="description" placeholder="Décrivez vos besoins en détail, vos objectifs, et toute autre information pertinente..." rows="6"></textarea>
       <div class="char-counter"><span id="description-counter">0</span>/1000</div>
-      <div class="error-message" id="error-description">Ce champ est obligatoire</div>
+      <div class="error-message" id="error-description">
+        <div class="error-icon">!</div>
+        <span class="error-text">Ce champ est obligatoire</span>
+      </div>
     </div>
     
     <div class="form-buttons">
@@ -2167,14 +2214,20 @@
           <div class="custom-options" id="customOptionsTeamSize"></div>
         </div>
       </div>
-      <div class="error-message" id="error-team-size">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-team-size">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="form-group">
       <label class="form-label required" id="services-label">Quels sont vos services ?</label>
       <textarea id="services" name="services" placeholder="Décrivez vos services principaux..." rows="4"></textarea>
       <div class="char-counter"><span id="services-counter">0</span>/500</div>
-      <div class="error-message" id="error-services">Ce champ est obligatoire</div>
+      <div class="error-message" id="error-services">
+        <div class="error-icon">!</div>
+        <span class="error-text">Ce champ est obligatoire</span>
+      </div>
     </div>
     
     <div class="form-buttons">
@@ -2201,7 +2254,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-lead-capture">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-lead-capture">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="question-group">
@@ -2218,7 +2274,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-lead-qualification">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-lead-qualification">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="question-group">
@@ -2235,7 +2294,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-conversation-summary">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-conversation-summary">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="form-buttons">
@@ -2262,7 +2324,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-use-form">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-use-form">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div id="form-options" style="display: none;">
@@ -2278,7 +2343,10 @@
             <div class="custom-options" id="customOptionsFormTypes"></div>
           </div>
         </div>
-        <div class="error-message" id="error-form-types">Veuillez sélectionner au moins un type</div>
+        <div class="error-message" id="error-form-types">
+          <div class="error-icon">!</div>
+          <span class="error-text">Veuillez sélectionner au moins un type</span>
+        </div>
       </div>
       
       <div class="form-group">
@@ -2312,7 +2380,10 @@
         <span class="radio-label">Non</span>
       </label>
     </div>
-    <div class="error-message" id="error-has-website">Veuillez sélectionner une option</div>
+    <div class="error-message" id="error-has-website">
+      <div class="error-icon">!</div>
+      <span class="error-text">Veuillez sélectionner une option</span>
+    </div>
   </div>
   
   <div id="website-options" style="display: none;">
@@ -2328,19 +2399,28 @@
           <div class="custom-options" id="customOptionsWebsitePlatform"></div>
         </div>
       </div>
-      <div class="error-message" id="error-platform">Veuillez sélectionner une plateforme</div>
+      <div class="error-message" id="error-platform">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une plateforme</span>
+      </div>
     </div>
     
     <div class="form-group" id="other-platform-group" style="display: none;">
       <label class="form-label" id="other-platform-label">Précisez la plateforme</label>
       <input type="text" id="other-platform" name="otherPlatform" placeholder="Nom de la plateforme..." />
-      <div class="error-message" id="error-other-platform">Ce champ est obligatoire</div>
+      <div class="error-message" id="error-other-platform">
+        <div class="error-icon">!</div>
+        <span class="error-text">Ce champ est obligatoire</span>
+      </div>
     </div>
     
     <div class="form-group">
       <label class="form-label required" id="website-url-label">URL de votre site web</label>
       <input type="text" id="website-url" name="websiteUrl" placeholder="https://www.votresite.com" />
-      <div class="error-message" id="error-website-url">Veuillez entrer une URL valide</div>
+      <div class="error-message" id="error-website-url">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez entrer une URL valide</span>
+      </div>
     </div>
     
     <div class="form-group">
@@ -2355,7 +2435,10 @@
           <div class="custom-options" id="customOptionsWebsiteTraffic"></div>
         </div>
       </div>
-      <div class="error-message" id="error-website-traffic">Veuillez indiquer le trafic de votre site</div>
+      <div class="error-message" id="error-website-traffic">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez indiquer le trafic de votre site</span>
+      </div>
     </div>
   </div>
   
@@ -2384,7 +2467,10 @@
           <span class="radio-label" id="no-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-use-crm">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-use-crm">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="question-group" id="crm-selection" style="display: none;">
@@ -2399,7 +2485,10 @@
           <div class="custom-options" id="customOptionsCrms"></div>
         </div>
       </div>
-      <div class="error-message" id="error-crms">Veuillez sélectionner au moins un CRM</div>
+      <div class="error-message" id="error-crms">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner au moins un CRM</span>
+      </div>
     </div>
     
     <!-- Booking System Section -->
@@ -2417,7 +2506,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-has-booking">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-has-booking">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
 
     <!-- Show if they have a booking system -->
@@ -2434,7 +2526,10 @@
             <div class="custom-options" id="customOptionsBookingSystems"></div>
           </div>
         </div>
-        <div class="error-message" id="error-booking-systems">Veuillez sélectionner un système</div>
+        <div class="error-message" id="error-booking-systems">
+          <div class="error-icon">!</div>
+          <span class="error-text">Veuillez sélectionner un système</span>
+        </div>
       </div>
     </div>
 
@@ -2488,7 +2583,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-use-database">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-use-database">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="question-group" id="database-selection" style="display: none;">
@@ -2503,7 +2601,10 @@
           <div class="custom-options" id="customOptionsDatabases"></div>
         </div>
       </div>
-      <div class="error-message" id="error-databases">Veuillez sélectionner au moins une base de données</div>
+      <div class="error-message" id="error-databases">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner au moins une base de données</span>
+      </div>
     </div>
     
     <div class="form-buttons">
@@ -2530,7 +2631,10 @@
           <span class="radio-label">Non</span>
         </label>
       </div>
-      <div class="error-message" id="error-need-social">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-need-social">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div id="social-platforms-group" class="conditional-section">
@@ -2545,7 +2649,10 @@
           <div class="custom-options" id="customOptionsSocialPlatforms"></div>
         </div>
       </div>
-      <div class="error-message" id="error-social-platforms">Veuillez sélectionner au moins une plateforme</div>
+      <div class="error-message" id="error-social-platforms">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner au moins une plateforme</span>
+      </div>
     </div>
     
     <!-- Language Section -->
@@ -2563,7 +2670,10 @@
           <span class="radio-label" id="unilingual-label">Unilingue</span>
         </label>
       </div>
-      <div class="error-message" id="error-language-type">Veuillez sélectionner une option</div>
+      <div class="error-message" id="error-language-type">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner une option</span>
+      </div>
     </div>
     
     <div class="question-group" id="language-selection" style="display: none;">
@@ -2578,7 +2688,10 @@
           <div class="custom-options" id="customOptionsLanguages"></div>
         </div>
       </div>
-      <div class="error-message" id="error-languages">Veuillez sélectionner au moins une langue</div>
+      <div class="error-message" id="error-languages">
+        <div class="error-icon">!</div>
+        <span class="error-text">Veuillez sélectionner au moins une langue</span>
+      </div>
     </div>
     
     <div class="form-buttons">
@@ -4905,15 +5018,18 @@ function validateStep2() {
     }
     
     function showError(errorId, messageKey) {
-      const errorElement = formContainer.querySelector(`#${errorId}`);
-      if (errorElement) {
-        // If messageKey is provided, update the error message text
-        if (messageKey) {
-          errorElement.textContent = getText(messageKey);
-        }
-        errorElement.classList.add('show');
-      }
+  const errorElement = formContainer.querySelector(`#${errorId}`);
+  if (errorElement) {
+    // Reconstruct the entire error message structure
+    if (messageKey) {
+      errorElement.innerHTML = `
+        <div class="error-icon">!</div>
+        <span class="error-text">${getText(messageKey)}</span>
+      `;
     }
+    errorElement.classList.add('show');
+  }
+}
     
     function hideError(errorId) {
       const errorElement = formContainer.querySelector(`#${errorId}`);
@@ -5675,7 +5791,6 @@ function validateStep2() {
     initializeForm();
   }
 };
-
 
 
 
