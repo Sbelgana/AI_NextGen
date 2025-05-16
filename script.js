@@ -11012,97 +11012,79 @@ const ContactFormExtension = {
             }
 
             .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      width: 100%;
-      min-height: 48px;
-    }
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              background-color: #fff;
+              position: relative;
+              width: 100%;
+              min-height: 48px;
+            }
 
-    .select-display {
-      padding: 0 15px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 48px;
-      color: #444;
-    }
+            .select-display {
+              padding: 0 15px;
+              font-size: 14px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              height: 48px;
+              color: #444;
+            }
 
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f0e5f4;
-      border-radius: 50%;
-    }
+            .dropdown-icon {
+              width: 24px;
+              height: 24px;
+              transition: transform 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #f0e5f4;
+              border-radius: 50%;
+            }
 
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
+            .dropdown-icon.rotate {
+              transform: rotate(180deg);
+            }
 
-    .custom-options {
-      display: none;
-      font-size: 14px;
-      border-top: 1px solid #ddd;
-      max-height: 250px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-      width: 100%;
-    }
+            .custom-options {
+              display: none;
+              font-size: 14px;
+              border-top: 1px solid #ddd;
+              max-height: 250px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+              z-index: 100;
+              border-radius: 0 0 6px 6px;
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+              width: 100%;
+            }
 
-    .custom-options::-webkit-scrollbar {
-      display: none;
-    }
+            .custom-options::-webkit-scrollbar {
+              display: none;
+            }
 
-            .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      width: 100%;
-      min-height: 48px;
-    }
+            .custom-option {
+              padding: 12px 15px;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              transition: background 0.2s;
+              position: relative;
+            }
 
-    .select-display {
-      padding: 0 15px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 48px;
-      color: #444;
-    }
+            .custom-option:hover {
+              background-color: #f0e5f4;
+              color: #9C27B0;
+            }
 
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f0e5f4;
-      border-radius: 50%;
-    }
+            .custom-option.selected {
+              background-color: #f0e5f4;
+              color: #9C27B0;
+              font-weight: bold;
+            }
 
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
-
-   
-
-   
             .option-checkbox {
               width: 18px;
               height: 18px;
@@ -11154,7 +11136,7 @@ const ContactFormExtension = {
             select {
               display: none;
             }
-
+	    
             /* ========= Error Components ========= */
             .error-container {
               width: 100%;
