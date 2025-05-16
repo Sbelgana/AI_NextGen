@@ -5812,6 +5812,26 @@ const BookingDirectExtension = {
         } = trace.payload || {};
 
         const isEnglish = language === "en";
+		
+		function renderHeader() {
+  const header = document.createElement("div");
+  header.className = "extension-header";
+  
+  const icon = document.createElement("span");
+  icon.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+    </svg>
+  `;
+  
+  const title = document.createElement("h1");
+  title.className = "extension-title";
+  title.textContent = texts.bookingTitle;
+  
+  header.appendChild(icon);
+  header.appendChild(title);
+  return header;
+}
         
         // Initialize form variables
         let formTimeoutId = null;
@@ -6035,7 +6055,7 @@ form.booking-container {
 
 /* ========= Progress Indicator ========= */
 .progress-container {
-      padding: 0px 0px 10px 0;
+      padding: 0px 20px 10px 20px;
     }
 
 .step-title {
@@ -6139,13 +6159,16 @@ form.booking-container {
 
 /* ========= Step Container Styles ========= */
 .step-container {
-      display: none;
-      animation: fadeIn 0.5s;
-    }
+              display: none;
+              animation: fadeIn 0.5s;
+            }
 
-    .step-container.active {
-      display: block;
-    }
+            .step-container.active {
+    display: flex
+;
+    flex-direction: column;
+    gap: 10px;	
+}
 
 @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -6174,7 +6197,7 @@ form.booking-container {
     }
 
 .step-content {
-  padding: 0px 0;
+  padding: 0px 20px 0px 20px;
 }
 
 /* ========= Form Layout ========= */
@@ -7109,6 +7132,39 @@ input[type="tel"]:focus {
     font-size: 13px;
   }
 }
+
+/* ========= Header Styles ========= */
+.extension-header {
+  padding: 18px 24px;
+  background-color: #faf7fc;
+  border-bottom: 1px solid #eaeaea;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.extension-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: #9C27B0;
+  opacity: 0.5;
+}
+
+.extension-title {
+  font-size: 24px;
+  font-weight: 700;
+  background: #9C27B0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1;
+}
 </style>
   
 <div class="progress-container">
@@ -7212,6 +7268,11 @@ input[type="tel"]:focus {
 `;
 
         element.appendChild(formContainer);
+
+// Insert header at the top of the form
+const header = renderHeader();
+const progressContainer = formContainer.querySelector('.progress-container');
+formContainer.insertBefore(header, progressContainer);
 
         // Define helper function for validation
         function isValidEmail(email) {
@@ -8251,7 +8312,7 @@ input[type="tel"]:focus {
         // Initialize with first step
         goToStep(1);
     }
-};
+}; 
         
  const BookingCalendarExtension = {
       name: 'Booking',
