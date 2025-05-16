@@ -709,7 +709,7 @@
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
 
-       const SubmissionFormExtension = {
+      const SubmissionFormExtension = {
       name: "ChatbotForm",
       type: "response",
       match: ({ trace }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
@@ -772,6 +772,7 @@
     const WEBHOOK_URL = "https://hook.us2.make.com/va34lvxwhhcbp3iojevheqivo2ybbxua";
 	        const translations = {
           "fr": {
+		    formTitle: "Formulaire de Demande de Projet",
             // Steps
             step1Title: "Coordonnées professionnelles",
             step2Title: "Spécifications du projet",
@@ -924,6 +925,7 @@
           },
           
           "en": {
+		    formTitle: "Project Submission Form", 
             // Steps
             step1Title: "Professional Contact Details",
             step2Title: "Project Specifications",
@@ -1075,6 +1077,27 @@
             languagesRequired: "Please select at least one language"
           }
         };
+		function renderHeader() {
+  const header = document.createElement("div");
+  header.className = "form-header";
+
+  // Calendar Icon
+  const icon = document.createElement("span");
+  icon.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24">
+      <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+    </svg>
+  `;
+
+  // Title
+  const title = document.createElement("h1");
+  title.className = "form-title";
+  title.textContent = getText('formTitle');
+
+  header.appendChild(icon);
+  header.appendChild(title);
+  return header;
+}
         
        
         // Load saved data if available
@@ -1093,6 +1116,26 @@
       margin: 0;
       padding: 0;
     }
+	/* Add to the form's <style> section */
+.form-header {
+  padding: 18px 24px;
+    background-color: #faf7fc;
+    display: flex
+;
+    align-items: center;
+    gap: 12px;
+	margin-bottom: 10px;
+}
+
+.form-title {
+  font-size: 24px;
+  color: #9C27B0;
+  margin: 0;
+  background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 	
 	/* Info Button and Panel Styles */
     .info-button {
@@ -1189,23 +1232,23 @@
     /* ========== Form Layout & Containers ========== */
     form.chatbot-form {
       display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: 800px;
-      min-width: 800px;
-      margin: 0 auto;
-      padding: 10px 20px;
-      border-radius: 12px;
-      background: #fff;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
+    flex-direction: column;
+    width: 100%;
+    max-width: 800px;
+    min-width: 800px;
+    margin: 0 auto;
+    padding: 0;
+    border-radius: 12px;
+    background: #fff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
     }
     
     /* ========== Step Progress Indicator ========== */
     .progress-container {
-      padding: 0px 0px 10px 0;
+      padding: 0px 20px 10px 20px;
     }
     .step-title {
   display: none;
@@ -1307,13 +1350,17 @@
     
     /* ========== Step Container ========== */
     .step-container {
-      display: none;
-      animation: fadeIn 0.5s;
-    }
+              display: none;
+              animation: fadeIn 0.5s;
+            }
 
-    .step-container.active {
-      display: block;
-    }
+            .step-container.active {
+    display: flex
+;
+    flex-direction: column;
+    gap: 10px;	
+    padding: 0px 20px 10px 20px;
+}
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
@@ -2881,6 +2928,8 @@
   </div>
   `;
         element.appendChild(formContainer);
+		const header = renderHeader();
+formContainer.insertBefore(header, formContainer.firstChild);
     
     /*************************************************************
      * Step Navigation Functions
@@ -5791,6 +5840,7 @@ function validateStep2() {
     initializeForm();
   }
 };
+
 
 
 
