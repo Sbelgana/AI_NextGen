@@ -6,11 +6,11 @@
 .g3dqfd8 {
     display: inline-block;
     box-sizing: border-box;
-    /* padding: 10px 14px; */
+    padding: 0; 
     border-radius: 10px;
     overflow-wrap: anywhere;
     color: #000;
-    /* background-color: #f4f4f4; */
+    background-color: transparent;
 }
 
 ._1wkq7nf0 {
