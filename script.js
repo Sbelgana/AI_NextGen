@@ -10889,8 +10889,7 @@ function handleFormTimeout() {
   };
 
   
-  
-const ContactFormExtension = {
+  const ContactFormExtension = {
       name: "ContactForm",
       type: "response",
       match: ({ trace }) => trace.type === 'ext_contact_form' || trace.payload?.name === 'ext_contact_form',
@@ -10905,7 +10904,28 @@ const ContactFormExtension = {
         const totalSteps = 4; // Now 4 steps
         const TIMEOUT_DURATION = 300000; // 900 seconds (15 minutes) in milliseconds
     
-        /*************************************************************
+	    function renderHeader() {
+  const header = document.createElement("div");
+  header.className = "extension-header";
+  
+  // Icon wrapper with flex alignment
+  const iconWrapper = document.createElement("div");
+  
+  iconWrapper.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
+      <path fill="#9C27B0" d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/>
+    </svg>
+  `;
+  
+  const title = document.createElement("h1");
+  title.className = "extension-title";
+  title.textContent = isEnglish ? "Contact Form" : "Formulaire de Contact";
+  
+  header.appendChild(iconWrapper);
+  header.appendChild(title);
+  return header;
+}
+/*************************************************************
          * HTML Generation & Initial Setup
          *************************************************************/
         const formContainer = document.createElement("form");
@@ -10924,21 +10944,83 @@ const ContactFormExtension = {
       margin: 0;
       padding: 0;
     }
+	
+	/* ========= Header Styles ========= */
+.extension-header {
+  padding: 18px 24px;
+    background-color: #faf7fc;
+    position: relative;
+    display: flex
+;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+}
+
+.extension-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: #9C27B0;
+  opacity: 0.5;
+}
+
+.extension-header {
+  padding: 18px 24px;
+  background-color: #faf7fc;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  align-items: center; /* This ensures vertical centering */
+  gap: 12px;
+}
+
+/* Update header styles */
+.extension-header {
+  padding: 18px 24px;
+  background-color: #faf7fc;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  align-items: center; /* This ensures vertical centering */
+  gap: 12px;
+}
+
+/* Add icon alignment fix */
+.extension-header svg {
+  vertical-align: middle;
+}
+
+/* Keep existing title styles */
+.extension-title {
+  font-size: 24px;
+  font-weight: 700;
+  background: #9C27B0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1; /* Remove default line-height spacing */
+}
             /* ========= Form Layout ========= */
-            form {
-              display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: 800px;
-      min-width: 800px;
-      margin: 0 auto;
-      padding: 10px 20px;
-      border-radius: 12px;
-      background: #fff;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      position: relative;
-      overflow: hidden;
+           
+              form {
+    display: flex
+;
+    flex-direction: column;
+    width: 100%;
+    max-width: 800px;
+    min-width: 800px;
+    margin: 0 auto;
+    padding: 0;
+    border-radius: 12px;
+    background: #fff;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
     }
 
             .flex-row {
@@ -11189,7 +11271,8 @@ const ContactFormExtension = {
     display: flex
 ;
     flex-direction: column;
-    gap: 10px;
+    gap: 10px;	
+    padding: 0px 20px 10px 20px;
 }
 
             @keyframes fadeIn {
@@ -11219,7 +11302,7 @@ const ContactFormExtension = {
 
             /* Progress indicator */
            .progress-container {
-      padding: 0px 0px 10px 0;
+      padding: 0px 20px 10px 20px;
     }
     .step-title {
   display: none;
@@ -11771,6 +11854,10 @@ const ContactFormExtension = {
           </div>
         `;
         element.appendChild(formContainer);
+		// Insert header at the top of the form
+const header = renderHeader();
+const progressContainer = formContainer.querySelector('.progress-container');
+formContainer.insertBefore(header, progressContainer);
     
         /*************************************************************
          * Form Navigation Functions
@@ -12202,6 +12289,11 @@ const ContactFormExtension = {
         updateProgressBar();
       }
     };
+    
+ 
+    
+
+
     
 /************** EXTENSION #12: RescheduleCalendarExtension **************/
     const RescheduleCalendarExtension = {
