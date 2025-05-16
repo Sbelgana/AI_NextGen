@@ -6094,7 +6094,6 @@ form.booking-container {
       width: 100%;
       min-width: 800px;
       margin: 0 auto;
-      padding: 10px 20px;
       border-radius: 12px;
       background: #fff;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
