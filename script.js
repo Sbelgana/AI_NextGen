@@ -1374,6 +1374,7 @@
       font-weight: 600;
       position: relative;
       padding-bottom: 10px;
+      margin: 0;
     }
     
     .step-heading::after {
@@ -6232,6 +6233,7 @@ form.booking-container {
       font-weight: 600;
       position: relative;
       padding-bottom: 10px;
+      margin: 0;
     }
 
 .step-heading::after {
@@ -11397,6 +11399,7 @@ function handleFormTimeout() {
       font-weight: 600;
       position: relative;
       padding-bottom: 10px;
+      margin: 0;
     }
     
     .step-heading::after {
