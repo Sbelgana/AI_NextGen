@@ -11390,7 +11390,6 @@ const ContactFormExtension = {
               background-color: #f9f9f9;
               border-radius: 8px;
               padding: 20px;
-              margin-top: 20px;
             }
 
             .summary-row {
