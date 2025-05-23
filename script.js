@@ -29,6 +29,7 @@
       }
     }
     
+    
     // SVG constants
     const SVG_CHECK = 
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
@@ -58,7 +59,7 @@
         <path fill="#9C27B0" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
       </svg>`;
 
-    // New SVG icons for info tooltips
+
 
 
     const SVG_CLOSE = 
@@ -80,9 +81,10 @@
         l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208
         a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
  </svg>`;
- const SVG_USER = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-      <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
-    </svg>`;
+ const SVG_USER = `
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+          <path fill="#ffffff" d="M0 96C0 60.7 28.7 32 64 32l448 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zM128 288a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm32-128a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zM128 384a32 32 0 1 0 0-64 32 32 0 1 0 0 64zm96-248c-13.3 0-24 10.7-24 24s10.7 24 24 24l224 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-224 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l224 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-224 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l224 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-224 0z"/>
+		  </svg>`;
     const SVG_AGENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
       <path fill="#9C27B0" d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/>
     </svg>`;
@@ -113,243 +115,11 @@
     ];
 	
     
-    
-    function createFormData(language) {
-      return formDataTranslations[language];
-    }
-    
-    function addInfoButton(labelId, infoTitle, infoContent, language) {
-      const label = document.getElementById(labelId);
-      if (!label) return;
-      
-      // Create info button
-      const infoButton = document.createElement('button');
-      infoButton.className = 'info-button';
-      infoButton.type = 'button';
-      infoButton.setAttribute('aria-label', language === 'fr' ? 'Plus d\'informations' : 'More information');
-      infoButton.innerHTML = SVG_INFO;
-      
-      // Create info panel
-      const infoPanel = document.createElement('div');
-      infoPanel.className = 'info-panel';
-      infoPanel.id = `${labelId}-info`;
-      
-      // Add title if provided
-      if (infoTitle) {
-        const titleEl = document.createElement('div');
-        titleEl.className = 'info-title';
-        titleEl.textContent = infoTitle;
-        infoPanel.appendChild(titleEl);
-      }
-      
-      // Add content
-      const contentEl = document.createElement('div');
-      contentEl.innerHTML = infoContent;
-      infoPanel.appendChild(contentEl);
-      
-      // Add close button
-      const closeButton = document.createElement('button');
-      closeButton.className = 'close-info';
-      closeButton.type = 'button';
-      closeButton.setAttribute('aria-label', language === 'fr' ? 'Fermer' : 'Close');
-      closeButton.innerHTML = SVG_CLOSE;
-      closeButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        infoPanel.classList.remove('show');
-      });
-      infoPanel.appendChild(closeButton);
-      
-      // Add click handler to button
-      infoButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Close any other open info panels
-        document.querySelectorAll('.info-panel').forEach(panel => {
-          if (panel.id !== infoPanel.id) {
-            panel.classList.remove('show');
-          }
-        });
-        
-        // Toggle this panel
-        infoPanel.classList.toggle('show');
-      });
-      
-      // Append button to label
-      label.appendChild(infoButton);
-      
-      // Find the parent form-group or question-group
-      const parentGroup = label.closest('.form-group') || label.closest('.question-group');
-      if (parentGroup) {
-        // Insert panel after the label but before the next element
-        parentGroup.insertBefore(infoPanel, label.nextSibling);
-      }
-    }
 
-    function initializeInfoButtons(currentLanguage) {
-      // Define info content in both languages
-      const infoContent = {
-        "fr": {
-          crm: {
-            title: "Systèmes de Gestion de la Relation Client (CRM)",
-            content: `Un CRM vous permet de suivre les interactions avec vos clients et prospects. L'intégration de votre chatbot avec un CRM permet d'enregistrer automatiquement les conversations et les données des utilisateurs dans votre système existant.<br><br>Choisissez les CRMs que vous utilisez déjà ou que vous souhaitez intégrer.`
-          },
-          database: {
-            title: "Bases de données",
-            content: `Une base de données stocke les informations recueillies par votre chatbot. Cela peut inclure les profils utilisateurs, les préférences, l'historique des conversations, et d'autres données importantes.<br><br>Si vous avez des systèmes existants, sélectionnez-les pour que nous puissions configurer les intégrations appropriées.`
-          },
-          booking: {
-            title: "Systèmes de réservation",
-            content: `Les systèmes de réservation permettent à vos clients de prendre rendez-vous ou de réserver vos services directement via le chatbot. L'intégration avec votre système actuel permet de synchroniser les disponibilités et d'éviter les doubles réservations.<br><br>Si vous n'avez pas encore de système, nous pouvons vous recommander la solution la plus adaptée à vos besoins.`
-          },
-          formTypes: {
-            title: "Types de formulaires",
-            content: `Les formulaires interactifs peuvent être intégrés à votre chatbot pour collecter des informations spécifiques. Chaque type de formulaire est conçu pour un objectif particulier:<br><br>
-              • <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
-              • <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
-              • <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
-              • <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
-              • <strong>Support client</strong>: Pour les demandes d'assistance<br>
-              • Et plus encore selon vos besoins spécifiques`
-          },
-          websitePlatform: {
-            title: "Plateformes Web",
-            content: `La connaissance de votre plateforme web nous permet de créer une intégration optimale pour votre chatbot. Chaque plateforme a ses propres spécificités techniques et requiert une approche d'intégration différente.<br><br>Si votre site est personnalisé, précisez les technologies utilisées (PHP, Node.js, React, etc.).`
-          },
-          socialPlatforms: {
-            title: "Plateformes sociales",
-            content: `Votre chatbot peut être déployé sur différentes plateformes de messagerie sociale pour atteindre vos clients là où ils se trouvent. Chaque plateforme offre des fonctionnalités spécifiques et nécessite une configuration particulière.<br><br>Sélectionnez les plateformes où vous souhaitez déployer votre chatbot.`
-          },
-          languageType: {
-            title: "Configuration linguistique",
-            content: `Un chatbot multilingue peut communiquer avec vos utilisateurs dans plusieurs langues, élargissant ainsi votre audience potentielle. Un chatbot unilingue ne fonctionnera que dans une seule langue.<br><br>Le support multilingue est plus complexe à mettre en place mais offre une meilleure expérience utilisateur pour une audience internationale.`
-          },
-          leadCapture: {
-            title: "Capture de prospects",
-            content: `Cette fonctionnalité permet à votre chatbot de collecter automatiquement les informations de contact des visiteurs intéressés par vos produits ou services. Ces informations peuvent ensuite être transmises à votre équipe commerciale ou intégrées à votre CRM.`
-          },
-          leadQualification: {
-            title: "Qualification de prospects",
-            content: `Votre chatbot peut poser une série de questions pour déterminer si un visiteur correspond à votre client idéal. Cela permet de filtrer les prospects selon vos critères et de concentrer vos efforts sur les plus prometteurs.`
-          },
-          conversationSummary: {
-            title: "Synthèse automatique des conversations",
-            content: `Cette fonctionnalité permet à votre chatbot de générer automatiquement des résumés des conversations avec les utilisateurs. Ces synthèses extraient les points clés, les demandes et les engagements pris pendant l'échange.<br><br>Avantages:<br>
-              • Suivi efficace des interactions clients<br>
-              • Identification rapide des besoins récurrents<br>
-              • Facilitation du transfert vers une personne réelle si nécessaire<br>
-              • Documentation automatique des échanges pour analyse ultérieure`
-          },
-          websiteTraffic: {
-            title: "Volume de trafic mensuel",
-            content: `Cette information nous permet de dimensionner correctement votre solution de chatbot. Le volume de trafic influence:<br><br>
-              • La capacité de traitement nécessaire<br>
-              • Les ressources serveur à allouer<br>
-              • La structure optimale des dialogues<br>
-              • Les stratégies de mise en cache et d'optimisation<br><br>
-              Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
-          },
-          handleCancellation: {
-            title: "Gestion des annulations et reports",
-            content: `Cette fonctionnalité permet à vos clients de modifier ou d'annuler leurs réservations directement via le chatbot, sans intervention humaine.<br><br>Le chatbot peut:<br>
-              • Accéder au calendrier des réservations existantes<br>
-              • Proposer des créneaux alternatifs disponibles<br>
-              • Confirmer les modifications par email/SMS<br>
-              • Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
-              Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
-          }
-        },
-        "en": {
-          crm: {
-            title: "Customer Relationship Management (CRM) Systems",
-            content: `A CRM helps you track interactions with your customers and leads. Integrating your chatbot with a CRM allows conversations and user data to be automatically recorded in your existing system.<br><br>Select the CRMs you already use or want to integrate with.`
-          },
-          database: {
-            title: "Databases",
-            content: `A database stores information collected by your chatbot. This can include user profiles, preferences, conversation history, and other important data.<br><br>If you have existing systems, select them so we can set up the appropriate integrations.`
-          },
-          booking: {
-            title: "Booking Systems",
-            content: `Booking systems allow your customers to make appointments or reserve your services directly through the chatbot. Integration with your current system ensures availability synchronization and prevents double bookings.<br><br>If you don't have a system yet, we can recommend the solution that best fits your needs.`
-          },
-          formTypes: {
-            title: "Form Types",
-            content: `Interactive forms can be integrated into your chatbot to collect specific information. Each form type is designed for a particular purpose:<br><br>
-              • <strong>Contact Form</strong>: Collects visitor contact details<br>
-              • <strong>Lead Generation</strong>: Qualifies potential prospects<br>
-              • <strong>Survey</strong>: Gathers detailed information<br>
-              • <strong>Booking</strong>: Allows scheduling a time slot<br>
-              • <strong>Customer Support</strong>: For assistance requests<br>
-              • And more based on your specific needs`
-          },
-          websitePlatform: {
-            title: "Web Platforms",
-            content: `Understanding your web platform allows us to create optimal integration for your chatbot. Each platform has its own technical specifications and requires a different integration approach.<br><br>If your site is custom-built, please specify the technologies used (PHP, Node.js, React, etc.).`
-          },
-          socialPlatforms: {
-            title: "Social Platforms",
-            content: `Your chatbot can be deployed on various social messaging platforms to reach your customers where they are. Each platform offers specific features and requires particular configuration.<br><br>Select the platforms where you want to deploy your chatbot.`
-          },
-          languageType: {
-            title: "Language Configuration",
-            content: `A multilingual chatbot can communicate with your users in multiple languages, expanding your potential audience. A unilingual chatbot will only work in one language.<br><br>Multilingual support is more complex to set up but provides a better user experience for an international audience.`
-          },
-          leadCapture: {
-            title: "Lead Capture",
-            content: `This feature allows your chatbot to automatically collect contact information from visitors interested in your products or services. This information can then be passed to your sales team or integrated into your CRM.`
-          },
-          leadQualification: {
-            title: "Lead Qualification",
-            content: `Your chatbot can ask a series of questions to determine if a visitor matches your ideal customer profile. This helps filter prospects according to your criteria and focus your efforts on the most promising ones.`
-          },
-          conversationSummary: {
-            title: "Automated Conversation Synthesis",
-            content: `This feature enables your chatbot to automatically generate summaries of user conversations. These summaries extract key points, requests, and commitments made during the interaction.<br><br>Benefits:<br>
-              • Efficient tracking of customer interactions<br>
-              • Quick identification of recurring needs<br>
-              • Seamless handover to human agents when necessary<br>
-              • Automatic documentation of exchanges for later analysis`
-          },
-          websiteTraffic: {
-            title: "Monthly Traffic Volume",
-            content: `This information helps us properly size your chatbot solution. Traffic volume influences:<br><br>
-              • Required processing capacity<br>
-              • Server resources allocation<br>
-              • Optimal dialog structure<br>
-              • Caching and optimization strategies<br><br>
-              A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
-          },
-          handleCancellation: {
-            title: "Cancellation and Rescheduling Management",
-            content: `This functionality allows your customers to modify or cancel their bookings directly through the chatbot without human intervention.<br><br>The chatbot can:<br>
-              • Access the calendar of existing reservations<br>
-              • Offer available alternative time slots<br>
-              • Confirm changes via email/SMS<br>
-              • Apply your business rules regarding cancellation deadlines or fees<br><br>
-              This automation improves customer experience while reducing administrative workload.`
-          }
-        }
-      };
-      
-      // Add info buttons to specific fields - modified as requested
-  addInfoButton('use-form-question', infoContent[currentLanguage].formTypes.title, infoContent[currentLanguage].formTypes.content, currentLanguage);
-  addInfoButton('use-crm-question', infoContent[currentLanguage].crm.title, infoContent[currentLanguage].crm.content, currentLanguage);
-  addInfoButton('has-booking-question', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
-  addInfoButton('use-database-question', infoContent[currentLanguage].database.title, infoContent[currentLanguage].database.content, currentLanguage);
-  addInfoButton('social-bot-question', infoContent[currentLanguage].socialPlatforms.title, infoContent[currentLanguage].socialPlatforms.content, currentLanguage);
-  
-  // Also add to "want booking recommendation" for users without booking systems
-  addInfoButton('want-booking-recommendation', infoContent[currentLanguage].booking.title, infoContent[currentLanguage].booking.content, currentLanguage);
-  
-  // Keep other existing info buttons
-  addInfoButton('platform-label', infoContent[currentLanguage].websitePlatform.title, infoContent[currentLanguage].websitePlatform.content, currentLanguage);
-  addInfoButton('language-type-question', infoContent[currentLanguage].languageType.title, infoContent[currentLanguage].languageType.content, currentLanguage);
-  addInfoButton('lead-capture-question', infoContent[currentLanguage].leadCapture.title, infoContent[currentLanguage].leadCapture.content, currentLanguage);
-  addInfoButton('lead-qualification-question', infoContent[currentLanguage].leadQualification.title, infoContent[currentLanguage].leadQualification.content, currentLanguage);
-  addInfoButton('conversation-summary-question', infoContent[currentLanguage].conversationSummary.title, infoContent[currentLanguage].conversationSummary.content, currentLanguage);
-  addInfoButton('website-traffic-label', infoContent[currentLanguage].websiteTraffic.title, infoContent[currentLanguage].websiteTraffic.content, currentLanguage);
-  addInfoButton('handle-cancellation-question', infoContent[currentLanguage].handleCancellation.title, infoContent[currentLanguage].handleCancellation.content, currentLanguage);
-    }
+    
+   
 
+   
 
     /*************************************************************
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
@@ -709,7 +479,7 @@
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
 
-      const SubmissionFormExtension = {
+       const SubmissionFormExtension = {
       name: "ChatbotForm",
       type: "response",
       match: ({ trace }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
@@ -1078,26 +848,21 @@
           }
         };
 		function renderHeader() {
-  const header = document.createElement("div");
-  header.className = "form-header";
+          const header = document.createElement("div");
+          header.className = "form-header";
 
-  // Calendar Icon
-  const icon = document.createElement("span");
-  icon.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24">
-      <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
-    </svg>
-  `;
+          const icon = document.createElement("div");
+          icon.className = "header-icon";
+          icon.innerHTML = SVG_USER;
 
-  // Title
-  const title = document.createElement("h1");
-  title.className = "form-title";
-  title.textContent = getText('formTitle');
+          const title = document.createElement("h1");
+          title.className = "form-title";
+          title.textContent = getText('formTitle');
 
-  header.appendChild(icon);
-  header.appendChild(title);
-  return header;
-}
+          header.appendChild(icon);
+          header.appendChild(title);
+          return header;
+        }
         
        
         // Load saved data if available
@@ -1110,475 +875,268 @@
         formContainer.classList.add("chatbot-form");
         formContainer.innerHTML = `
   <style>
-    /* ========== Reset & Base Styles ========== */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-	/* Add to the form's <style> section */
+    /* ====================================
+    VSM MARKETING FORM - MAIN STYLESHEET
+    ==================================== */
+
+/* ---------- RESET & BASE STYLES ---------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ---------- LAYOUT & CONTAINER ---------- */
+.container {
+  max-width: 870px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+form.chatbot-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 870px;
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 12px;
+  background: #fff;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Two-column layout */
+.row, .form-row, .flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10px;
+  width: calc(100% + 20px);
+}
+
+.col, .form-col, .flex-row > div {
+  flex: 1 0 0;
+  padding: 0 10px;
+  min-width: 0;
+}
+
+/* ---------- FORM HEADER ---------- */
 .form-header {
-  padding: 18px 24px;
-    background-color: #faf7fc;
-    display: flex
-;
-    align-items: center;
-    gap: 12px;
-	margin-bottom: 10px;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #6a0080 0%, #9c27b0 100%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.header-icon:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .form-title {
-  font-size: 24px;
-  color: #9C27B0;
+  font-size: 28px;
+  color: white;
   margin: 0;
-  background: linear-gradient(45deg, #9C27B0, #7B1FA2);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-	
-	/* Info Button and Panel Styles */
-    .info-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #e0e0e0;
-      color: #757575;
-      font-size: 12px;
-      font-weight: bold;
-      margin-left: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: none;
-      padding: 0;
-    }
-
-    .info-button:hover {
-      background: #9C27B0;
-      color: white;
-    }
-
-    .info-panel {
-      display: none;
-      background: #f9f9f9;
-      border: 1px solid #e0e0e0;
-      border-left: 3px solid #9C27B0;
-      border-radius: 4px;
-      padding: 12px;
-      margin-top: 8px;
-      margin-bottom: 10px;
-      position: relative;
-      font-size: 13px;
-      line-height: 1.5;
-      color: #555;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      animation: fadeIn 0.3s;
-    }
-
-    .info-panel.show {
-      display: block;
-    }
-
-    .close-info {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 16px;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: #f0f0f0;
-      font-size: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      padding: 0;
-      color: #757575;
-    }
-
-    .close-info:hover {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .info-title {
-      font-weight: 600;
-      color: #9C27B0;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-    /* default state */
-.info-button svg .info-bg   { fill: #f8e8f8; }
-.info-button svg .info-icon { fill: #9C27B0; }
-
-/* hover, focus, or active */
-.info-button:hover svg .info-bg,
-.info-button:focus svg .info-bg,
-.info-button:active svg .info-bg {
-  fill: #9C27B0;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.info-button:hover svg .info-icon,
-.info-button:focus svg .info-icon,
-.info-button:active svg .info-icon {
-  fill: #ffffff;
+/* ---------- STEP PROGRESS INDICATOR ---------- */
+.progress-container {
+  padding: 00px 25px 10px 25px;
 }
-    
-    /* ========== Form Layout & Containers ========== */
-    form.chatbot-form {
-      display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    min-width: 800px;
-    margin: 0 auto;
-    padding: 0;
-    border-radius: 12px;
-    background: #fff;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    position: relative;
-    overflow: hidden;
-    }
-    
-    /* ========== Step Progress Indicator ========== */
-    .progress-container {
-      padding: 0px 20px 10px 20px;
-    }
-    .step-title {
+
+.step-progress {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 0;
+}
+
+.step-progress::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 6px;
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  z-index: -1;
+}
+
+.progress-bar {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 6px;
+  background: linear-gradient(to right, #9c27b0, #f8e8f8);
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+  z-index: -1;
+}
+
+.step-item {
+  width: 36px;
+  height: 36px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #666;
+  position: relative;
+  transition: all 0.3s ease;
+  border: 3px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+.step-item.active {
+  background-color: #F8E8F8;
+  color: #9c27b0;
+  transform: scale(1.1);
+}
+
+.step-item.completed {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.step-title {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  white-space: nowrap;
+  color: #666;
+  font-weight: 500;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  width: 110px;
+  text-align: center;
+}
+
+
+
+
+
+/* ---------- FORM STEPS & ANIMATIONS ---------- */
+.step-container {
   display: none;
+  animation: fadeIn 0.6s;
 }
 
-    .step-progress {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      width: 100%;
-    }
-
-    .step-progress::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: #e0e0e0;
-      z-index: 1;
-      transform: translateY(-50%);
-    }
-
-    .progress-bar {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #9C27B0, #7B1FA2);
-      z-index: 2;
-      transform: translateY(-50%);
-      transition: width 0.4s ease;
-      box-shadow: 0 2px 4px rgba(156, 39, 176, 0.3);
-    }
-
-    .step-item {
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      text-align: center;
-      width: calc(100% / 9);
-    }
-
-    .step-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: #e0e0e0;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 14px;
-      color: #757575;
-      position: relative;
-      transition: all 0.3s ease;
-      border: 2px solid #f5f5f5;
-    }
-
-    .step-title {
-      font-size: 11px;
-      color: #757575;
-      position: absolute;
-      width: 110px;
-      text-align: center;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .step-item.active .step-icon {
-      background: #9C27B0;
-      color: white;
-      border-color: #9C27B0;
-      box-shadow: 0 4px 8px rgba(156, 39, 176, 0.2);
-    }
-
-    .step-item.active .step-title {
-      color: #9C27B0;
-      font-weight: 600;
-    }
-
-    .step-item.completed .step-icon {
-      background: #9C27B0;
-      color: white;
-      border-color: #9C27B0;
-    }
-
-    .step-item.completed .step-title {
-      color: #9C27B0;
-    }
-    
-    /* ========== Step Container ========== */
-    .step-container {
-              display: none;
-              animation: fadeIn 0.5s;
-            }
-
-            .step-container.active {
-    display: flex
-;
-    flex-direction: column;
-    gap: 10px;	
-    padding: 0px 20px 10px 20px;
+.step-container.active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 5px 30px 10px;
 }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.step-container:not(.active) {
+  pointer-events: none;
+}
 
-    .step-heading {
-      font-size: 24px;
-      color: #9C27B0;
-      margin-bottom: 10px;
-      font-weight: 600;
-      position: relative;
-      padding-bottom: 10px;
-      margin: 0;
-    }
-    
-    .step-heading::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 3px;
-      background: linear-gradient(90deg, #9C27B0, #E1BEE7);
-      border-radius: 3px;
-    }
-    
-    /* ========== Questions & Form Groups ========== */
-    .question-group {
-      margin-bottom: 12px;
-    }
-    
-    .question-label {
-      font-size: 16px;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 8px;
-      display: block;
-    }
-    
-    .form-group {
-      margin-bottom: 10px;
-      position: relative;
-    }
-    
-    .form-label {
-      font-weight: 500;
-      color: #333;
-      font-size: 14px;
-      margin-bottom: 8px;
-      display: block;
-    }
-    
-    .required::after {
-      content: " *";
-      color: #9C27B0;
-      font-weight: bold;
-    }
-    
-    /* ========== Dropdown Components ========== */
-    .select-wrapper {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background-color: #fff;
-      position: relative;
-      width: 100%;
-      min-height: 48px;
-    }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    .select-display {
-      padding: 0 15px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 48px;
-      color: #444;
-    }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    .dropdown-icon {
-      width: 24px;
-      height: 24px;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f0e5f4;
-      border-radius: 50%;
-    }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
 
-    .dropdown-icon.rotate {
-      transform: rotate(180deg);
-    }
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(156, 39, 176, 0); }
+  100% { transform: scale(1); }
+}
 
-    .custom-options {
-      display: none;
-      font-size: 14px;
-      border-top: 1px solid #ddd;
-      max-height: 250px;
-      overflow-y: auto;
-      background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      z-index: 100;
-      border-radius: 0 0 6px 6px;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-      width: 100%;
-    }
+/* ---------- FORM ELEMENTS ---------- */
 
-    .custom-options::-webkit-scrollbar {
-      display: none;
-    }
 
-    .show-options {
-      display: block;
-    }
+.form-label, .question-label {
+  display: block;
+  font-weight: 500;
+  color: black;
+  font-size: 15px;
+}
 
-    .custom-option {
-      padding: 12px 15px;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: background 0.2s;
-      position: relative;
-    }
+.question-label {
+  font-size: 16px;
+}
 
-    .custom-option:hover {
-      background-color: #f0e5f4;
-      color: #9C27B0;
-    }
+.form-label.required::after,
+.question-label.required::after {
+  content: " *";
+  color: #e52059;
+  font-weight: bold;
+}
 
-    .custom-option.selected {
-      background-color: #f0e5f4;
-      color: #9C27B0;
-      font-weight: bold;
-    }
+.step-heading {
+  font-size: 26px;
+  color: #6a0080;
+  font-weight: 600;
+  position: relative;
+}
 
-    .option-checkbox {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #ccc;
-      border-radius: 50%;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      transition: all 0.2s;
-    }
+.step-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 70px;
+  height: 4px;
+  background: linear-gradient(90deg, #9c27b0, #f8e8f8);
+  border-radius: 4px;
+}
 
-    .multi-select .option-checkbox {
-      border-radius: 4px !important;
-    }
-
-    .custom-option.selected .option-checkbox {
-      border-color: #9C27B0;
-      background-color: #9C27B0;
-    }
-
-    .custom-option:not(.selected):hover .option-checkbox {
-      border-color: #9C27B0;
-    }
-
-    .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
-
-    .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9C27B0;
-    }
-
-    .custom-option.selected .main-arrow,
-    .custom-option:hover .main-arrow {
-      background-color: #fff;
-    }
-
-    .main-arrow {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      background-color: #f0e5f4;
-      border-radius: 50%;
-      transition: background-color 0.3s;
-      width: 24px;
-      height: 24px;
-      justify-content: center;
-    }
-
-    .arrow-icon {
-      transition: transform 0.3s ease;
-      display: flex;
-    }
-
-    .arrow-icon.rotate {
-      transform: rotate(180deg);
-    }
-
-    .sub-options {
-      margin-left: 25px;
-      border-left: 2px solid #9C27B0;
-      width: calc(100% - 25px);
-    }
-
-    select {
-      display: none;
-    }
-    
-    /* Select Display Placeholder */
-    .select-display.placeholder span {
-      color: #808080;
-    }
-
-    .select-display:not(.placeholder) span {
-      color: #000;
-    }
-    
-    /* ========== Input Fields ========== */
+/* ========== Input Fields ========== */
     input[type="text"],
     input[type="email"],
     input[type="tel"],
@@ -1619,412 +1177,612 @@
       min-height: 120px;
       resize: vertical;
     }
-    
-    /* Character counter */
-    .char-counter {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      font-size: 12px;
-      color: #757575;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 2px 6px;
-      border-radius: 10px;
+
+/* ---------- DROPDOWN COMPONENTS ---------- */
+.select-container select {
+  display: none !important;
+}
+
+.select-wrapper {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  position: relative;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.select-wrapper:hover {
+  border-color: #9c27b0;
+}
+
+.select-display {
+  padding: 0 18px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 52px;
+  color: #444;
+}
+
+.dropdown-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #9a4fa9;
+  border-radius: 50%;
+}
+
+.dropdown-icon svg path {
+  fill: white !important;
+}
+
+.dropdown-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.custom-options {
+  display: none;
+  font-size: 15px;
+  border-top: 1px solid #ddd;
+  max-height: 250px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  border-radius: 0 0 8px 8px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  width: 100%;
+}
+
+.show-options {
+  display: block;
+  animation: fadeIn 0.3s;
+}
+
+.custom-option {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  border-left: 4px solid transparent;
+}
+
+.custom-option:hover {
+  background-color: rgba(156, 39, 176, 0.08);
+  color: #6a0080;
+  border-left-color: #9c27b0;
+}
+
+.custom-option.selected {
+  background-color: rgba(156, 39, 176, 0.12);
+  color: #6a0080;
+  font-weight: bold;
+  border-left-color: #9c27b0;
+}
+
+.custom-option.selected .option-checkbox svg path {
+      fill: #fff !important;
     }
-    
-    /* ========== Radio & Checkbox Options ========== */
-    .options-group {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
+
+    .custom-option:not(.selected):hover .option-checkbox svg path {
+      fill: #9C27B0;
     }
-    
-    .radio-option,
-    .checkbox-option {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      position: relative;
-      user-select: none;
-      padding: 12px 16px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      transition: all 0.2s;
-      flex: 1;
-      min-width: 150px;
-      background: #fafafa;
-    }
-    
-    .radio-option:hover,
-    .checkbox-option:hover {
-      border-color: #9C27B0;
-      background-color: #f5f0f7;
-    }
-    
-    .radio-option input[type="radio"],
-    .checkbox-option input[type="checkbox"] {
-      position: absolute;
-      opacity: 0;
-      cursor: pointer;
-    }
-    
-    .radio-icon,
-    .checkbox-icon {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #ddd;
-      border-radius: 50%;
-      margin-right: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      background: white;
-    }
-    
-    .checkbox-icon {
-      border-radius: 4px;
-    }
-    
-    .radio-option input[type="radio"]:checked ~ .radio-icon,
-    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-icon {
-      background-color: #9C27B0;
-      border-color: #9C27B0;
-    }
-    
-    .radio-option input[type="radio"]:checked ~ .radio-icon::after {
-      content: '';
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-    }
-    
-    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-icon::after {
-      content: '✓';
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-    }
-    .radio-option input[type="radio"]:checked ~ .radio-label,
-    .checkbox-option input[type="checkbox"]:checked ~ .checkbox-label {
-      font-weight: 500;
-      color: #9C27B0;
-    }
-    
-    /* ========== Error Messages ========== */
-    .error-message {
-      display: none;
-      color: #d32f2f;
-      font-size: 14px;
-      margin-top: 5px;
-      padding: 8px 12px;
-      background-color: #ffebee;
-      border-radius: 4px;
-      border: 1px solid #ffcdd2;
-      animation: fadeIn 0.3s;
-    }
-    
-    .error-message.show {
+
+/* ---------- CHECKBOXES & RADIO BUTTONS ---------- */
+.options-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 12px 18px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  border-color: #9c27b0;
+  background-color: #F8E8F8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.radio-option::before,
+.checkbox-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #9c27b0;
+  transform: scaleY(0);
+  transition: transform 0.2s;
+  transform-origin: bottom;
+}
+
+.radio-option:hover::before,
+.checkbox-option:hover::before {
+  transform: scaleY(1);
+}
+
+.radio-option input,
+.checkbox-option input {
+  margin-right: 12px;
+  accent-color: #9c27b0;
+  transform: scale(1.2);
+}
+
+.radio-option input:checked + span,
+.checkbox-option input:checked + span {
+  font-weight: 500;
+  color: #6a0080;
+}
+
+.radio-option input:checked,
+.checkbox-option input:checked {
+  accent-color: #9c27b0;
+}
+
+/* Checkbox styling */
+.option-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.multi-select .option-checkbox {
+  border-radius: 6px !important;
+}
+
+.option-checkbox-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.option-checkbox-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+  margin: 0 auto;
+}
+
+.custom-option:not(.selected):hover .option-checkbox {
+  border-color: #9c27b0;
+  transform: scale(1.05);
+}
+
+.custom-option:not(.selected):hover .option-checkbox-icon {
+  opacity: 0.6;
+}
+
+.custom-option.selected .option-checkbox-icon {
+  opacity: 1;
+}
+
+.custom-option.selected .option-checkbox {
+  border-color: #9c27b0;
+  background-color: #9c27b0;
+  transform: scale(1.1);
+}
+
+.custom-option:not(.selected):hover .option-checkbox-icon svg path {
+  fill: #9c27b0 !important;
+}
+
+/* ---------- ERROR MESSAGES ---------- */
+.error-message {
+  color: white;
+  font-size: 13px;
+  margin-top: 8px;
+  display: none;
+  background-color: #e52059;
+  border-radius: 6px;
+  border: none;
+  padding: 10px 14px;
+  animation: shake 0.5s;
+  box-shadow: 0 2px 5px rgba(229, 32, 89, 0.2);
+}
+
+.error-message.show {
   display: flex;
 }
 
 .error-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
   border-radius: 50%;
-  background-color: #d32f2f;
-  color: white;
+  background-color: white;
+  color: #e52059;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  margin-right: 10px;
+  margin-right: 12px;
   font-size: 14px;
-  
 }
 
 .error-text {
   flex: 1;
 }
-    
-    /* ========== Number Input Group ========== */
-    .input-group {
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      flex-direction: row;
-      border-radius: 6px;
-      width: 100%;
-      border: 1px solid #ddd;
-      height: 48px;
-      overflow: hidden;
-    }
 
-    .input-group:focus-within {
-      border: 2px solid #9C27B0;
-      outline: none;
-    }
+/* ---------- BUTTONS & NAVIGATION ---------- */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+}
 
-    .input-group input[type="number"]:focus {
-      border: none !important;
-      outline: none !important;
-    }
+.btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
 
-    .input-group button,
-    .input-group input {
-      outline: none;
-      border: none;
-    }
+.btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 50%, 
+    rgba(255,255,255,0) 100%);
+  transition: all 0.6s;
+}
 
-    .input-group input {
-      width: 100%;
-      text-align: center;
-      padding: 8px;
-      flex: 1;
-    }
+.btn:hover::after {
+  left: 100%;
+}
 
-    .input-group button {
-      cursor: pointer;
-      background-color: #f0e5f4;
-      border: none;
-      padding: 0;
-      min-width: 40px;
-      width: 40px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+.btn-prev {
+  background-color: #f0f0f0;
+  color: #6a0080;
+}
 
-    .input-group button:hover {
-      background-color: #9C27B0;
-    }
+.btn-prev:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+}
 
-    .input-group button:hover svg path {
-      fill: #fff !important;
-    }
-    
-    /* ========== Navigation Buttons ========== */
-    .form-buttons {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-    }
+.btn-next,
+.btn-submit {
+  background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
 
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      min-width: 120px;
-      text-align: center;
-      font-weight: 500;
-    }
+.btn-next:hover,
+.btn-submit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.4);
+}
 
-    .btn-prev {
-      background: #f0e5f4;
-      color: #9C27B0;
-    }
+.btn-submit {
+  background: linear-gradient(135deg, #9c27b0 0%, #e52059 100%);
+  box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 
-    .btn-prev:hover {
-      background: #e0c5e4;
-    }
+.btn-submit:hover {
+  box-shadow: 0 6px 18px rgba(229, 32, 89, 0.4);
+}
 
-    .btn-next, .btn-submit {
-      background: #9C27B0;
-      color: white;
-      box-shadow: 0 2px 8px rgba(156,39,176,0.3);
-    }
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
-    .btn-next:hover, .btn-submit:hover {
-      background: #7B1FA2;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(156,39,176,0.3);
-    }
+.btn:disabled::after {
+  display: none;
+}
 
-    .btn:disabled {
-      background: #e0e0e0;
-      color: #9e9e9e;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-      opacity: 0.7;
-    }
-    
+.form-buttons .btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.2);
+}
 
-    
-    /* ========== Flex Layout ========== */
-    .flex-row {
-      display: flex;
-      gap: 0 15px;
-      flex-wrap: wrap;
-    }
+/* ---------- CONDITIONAL FIELDS ---------- */
+.conditional-field {
+  display: none;
+  margin-top: 18px;
+  padding: 15px 20px;
+  border-left: 3px solid #9c27b0;
+  background-color: rgba(156, 39, 176, 0.05);
+  border-radius: 0 8px 8px 0;
+  animation: slideDown 0.3s;
+}
 
-    .flex-row > div {
-      flex: 1;
-      min-width: 300px;
-    }
-    
-    /* ========== Summary Styles ========== */
-    .summary-container {
-      background-color: #f9f9f9;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 10px;
-      margin-bottom: 20px;
-    }
-    
-    .summary-section {
-      margin-bottom: 20px;
-    }
-    
-    .summary-heading {
-      font-size: 16px;
-      font-weight: 600;
-      color: #9C27B0;
-      margin-bottom: 10px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .edit-btn {
-      background: none;
-      border: none;
-      color: #9C27B0;
-      cursor: pointer;
-      padding: 5px 10px;
-      font-size: 13px;
-      text-decoration: underline;
-    }
-    
-    .edit-btn:hover {
-      color: #7B1FA2;
-    }
-    
-    .summary-row {
-      display: flex;
-      padding: 8px 0;
-    }
-    
-    .summary-label {
-      font-weight: 500;
-      width: 40%;
-      color: #555;
-      font-size: 14px;
-    }
-    
-    .summary-value {
-      flex: 1;
-      font-size: 14px;
-    }
-    
-    /* ========== Confirmation Screen ========== */
-    .confirmation-screen {
-      display: none;
-      text-align: center;
-      padding: 40px 20px;
-      animation: fadeIn 0.5s;
-    }
-    
-    .confirmation-screen.active {
-      display: block;
-    }
-    
-    .confirmation-icon {
-      width: 80px;
-      height: 80px;
-      background: #9C27B0;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-    }
-    
-    .confirmation-title {
-      font-size: 24px;
-      color: #9C27B0;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-    
-    .confirmation-message {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 30px;
-      line-height: 1.5;
-    }
-    
-    /* ========== Responsive Design ========== */
-    @media (max-width: 768px) {
-      .options-group {
-        flex-direction: column;
-      }
-      
-      .radio-option,
-      .checkbox-option {
-        min-width: 100%;
-      }
-      
-      .step-title {
-        font-size: 9px;
-        width: 80px;
-      }
-      
-      .form-buttons {
-        flex-direction: column;
-      }
-      
-      .btn {
+.form-col .conditional-field {
+  margin-top: 15px;
+}
+
+/* ---------- SUMMARY STYLES ---------- */
+.summary-container {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.summary-section {
+  margin-bottom: 20px;
+}
+
+.summary-heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: #9C27B0;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #9C27B0;
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.edit-btn:hover {
+  color: #7B1FA2;
+}
+
+.summary-row {
+  display: flex;
+  padding: 8px 0;
+}
+
+.summary-label {
+  font-weight: 500;
+  width: 40%;
+  color: #555;
+  font-size: 14px;
+}
+
+.summary-value {
+  flex: 1;
+  font-size: 14px;
+}
+
+/* ---------- CONFIRMATION SCREEN ---------- */
+.confirmation-screen {
+  display: none;
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.5s;
+}
+
+.confirmation-screen.active {
+  display: block;
+}
+
+.confirmation-icon {
+  width: 80px;
+  height: 80px;
+  background: #9C27B0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  animation: pulse 2s infinite;
+}
+
+.confirmation-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.confirmation-title {
+  font-size: 24px;
+  color: #9C27B0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.confirmation-message {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+.textarea-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 0; /* Assure qu'il n'y a pas de marge en bas */
+}
+
+.textarea-wrapper textarea {
+  margin-bottom: 0; /* Supprime la marge par défaut du textarea */
+  display: block;
+}
+
+/* Character counter */
+.char-counter {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 12px;
+  color: #757575;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+@media (max-width: 767px) {
+  .row, .form-row, .flex-row {
+    display: flex
+;
+        margin: 0;
         width: 100%;
-      }
+        gap: 10px;
+        flex-direction: column;
+  }
+  .step-container.active {
       
-      .step-heading {
-        font-size: 20px;
-      }
-      
-      .question-label {
-        font-size: 15px;
-      }
-      
-      .step-item {
-        width: 40px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      form.chatbot-form {
-        padding: 15px 10px;
-		min-width: 200px
-      }
-      
-      .step-heading {
-        font-size: 18px;
-      }
-      
-      .step-icon {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
-      }
-      
-      .step-title {
-        font-size: 8px;
-        width: 60px;
-        top: 35px;
-      }
-    }
-    
-    /* ========== Focus Styles for Accessibility ========== */
-    input:focus-visible, 
+  padding: 5px 15px 10px;
+  }
+  
+  .col, .form-col, .flex-row > div {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 0px;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  .form-col .conditional-field {
+    margin-left: 0;
+    padding-left: 15px;
+  }
+  
+}
+
+@media (max-width: 768px) {
+  .form-title {
+    font-size: 22px;
+  }
+  
+  .form-header {
+    padding: 10px 20px;
+  }
+  
+  .header-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .step-heading {
+    font-size: 22px;
+  }
+  
+  .btn {
+    padding: 12px 18px;
+    font-size: 15px;
+  }
+  
+  .container, form.chatbot-form {
+    margin: 15px;
+    width: auto;
+  }
+  
+  .step-item {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  
+  .progress-container {
+    padding: 0 15px;
+  }
+
+
+  
+  .radio-option,
+  .checkbox-option {
+    min-width: 100%;
+  }
+  
+  .step-title {
+    font-size: 9px;
+    width: 80px;
+  }
+  
+  .form-buttons {
+    flex-direction: row;
+    gap:10px
+  }
+  
+
+}
+
+@media (max-width: 480px) {
+  form.chatbot-form {
+    padding: 15px 10px;
+    min-width: 200px;
+  }
+  
+  .step-heading {
+    font-size: 18px;
+  }
+  
+  .step-item {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  
+  .step-title {
+    font-size: 8px;
+    width: 60px;
+    top: 35px;
+  }
+  
+  
+}
+
+/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+input:focus-visible, 
     #details:focus-visible, 
 #description:focus-visible,
 #services:focus-visible,
@@ -2034,7 +1792,8 @@
       outline: 2px solid #9C27B0;
       outline-offset: 2px;
     }
-    /* Conditional Section Styling */
+
+/* Conditional Section Styling */
 .conditional-section {
   display: none !important;
 }
@@ -2042,14 +1801,90 @@
 .conditional-section.visible {
   display: block !important;
 }
+
 #social-platforms-group {
   margin-bottom: 10px;
 }
-/* default state */
+
+/* Info Button and Panel Styles */
+.info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #757575;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  padding: 0;
+}
+
+.info-button:hover {
+  background: #9C27B0;
+  color: white;
+}
+
+.info-panel {
+  display: none;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-left: 3px solid #9C27B0;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  position: relative;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  animation: fadeIn 0.3s;
+}
+
+.info-panel.show {
+  display: block;
+}
+
+.close-info {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f0f0f0;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  color: #757575;
+}
+
+.close-info:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.info-title {
+  font-weight: 600;
+  color: #9C27B0;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
 .info-button svg .info-bg   { fill: #f8e8f8; }
 .info-button svg .info-icon { fill: #9C27B0; }
 
-/* hover, focus, or active */
 .info-button:hover svg .info-bg,
 .info-button:focus svg .info-bg,
 .info-button:active svg .info-bg {
@@ -2062,6 +1897,20 @@
   fill: #ffffff;
 }
 
+.select-display.placeholder span {
+  color: #808080;
+}
+
+.select-display:not(.placeholder) span {
+  color: #000;
+}
+
+.confirmation-screen.active + * .progress-container,
+.confirmation-screen.active ~ .progress-container {
+  display: none !important;
+}
+
+
   </style>
   
   <!-- Confirmation Screen -->
@@ -2071,7 +1920,6 @@
     </div>
     <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
-    <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
   
   <!-- Step Progress Indicator -->
@@ -2232,8 +2080,10 @@
     
     <div class="form-group">
       <label class="form-label required" id="description-label">Description détaillée de votre projet</label>
+      <div class="textarea-wrapper">
       <textarea id="description" name="description" placeholder="Décrivez vos besoins en détail, vos objectifs, et toute autre information pertinente..." rows="6"></textarea>
       <div class="char-counter"><span id="description-counter">0</span>/1000</div>
+      </div>
       <div class="error-message" id="error-description">
         <div class="error-icon">!</div>
         <span class="error-text">Ce champ est obligatoire</span>
@@ -2270,8 +2120,10 @@
     
     <div class="form-group">
       <label class="form-label required" id="services-label">Quels sont vos services ?</label>
+      <div class="textarea-wrapper">
       <textarea id="services" name="services" placeholder="Décrivez vos services principaux..." rows="4"></textarea>
       <div class="char-counter"><span id="services-counter">0</span>/500</div>
+      </div>
       <div class="error-message" id="error-services">
         <div class="error-icon">!</div>
         <span class="error-text">Ce champ est obligatoire</span>
@@ -2378,7 +2230,7 @@
       </div>
     </div>
     
-    <div id="form-options" style="display: none;">
+    <div id="form-options" style="display:none; gap: 10px; flex-direction: column;">
       <div class="question-group">
         <label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
         <div class="select-container multi-select" id="formTypesDropdown">
@@ -2399,8 +2251,10 @@
       
       <div class="form-group">
         <label class="form-label" id="form-purpose-label">À quoi serviront ces formulaires ?</label>
+        <div class="textarea-wrapper">
         <textarea id="form-purpose" name="formPurpose" placeholder="Décrivez l'utilisation prévue des formulaires..." rows="3"></textarea>
         <div class="char-counter"><span id="form-purpose-counter">0</span>/300</div>
+        </div>
       </div>
     </div>
     
@@ -2434,7 +2288,7 @@
     </div>
   </div>
   
-  <div id="website-options" style="display: none;">
+  <div id="website-options" style="display: none; gap: 10px; flex-direction: column;">
     <div class="form-group">
       <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
       <div class="select-container" id="websitePlatformDropdown">
@@ -2521,7 +2375,7 @@
       </div>
     </div>
     
-    <div class="question-group" id="crm-selection" style="display: none;">
+    <div class="question-group" id="crm-selection" style="display: none; ">
       <label class="form-label" id="crm-select-label">Sélectionnez les CRM à intégrer</label>
       <div class="select-container multi-select" id="crmsDropdown">
         <select id="crmsSelect" multiple></select>
@@ -2985,8 +2839,8 @@ formContainer.insertBefore(header, formContainer.firstChild);
       const socialPlatformsGroup = formContainer.querySelector('#social-platforms-group');
       const needBookingOptions = formContainer.querySelector('#need-booking-options');
       
-      if (formOptions) formOptions.style.display = formValues.useForm === 'yes' ? 'block' : 'none';
-      if (crmSelection) crmSelection.style.display = formValues.useCRM === 'yes' ? 'block' : 'none';
+      if (formOptions) formOptions.style.display = formValues.useForm === 'yes' ? 'flex' : 'none';
+      if (crmSelection) crmSelection.style.display = formValues.useCRM === 'yes' ? 'flex' : 'none';
       if (socialPlatformsGroup) socialPlatformsGroup.style.display = formValues.needSocialBot === 'yes' ? 'block' : 'none';
       if (needBookingOptions) needBookingOptions.style.display = formValues.hasBookingSystem === 'no' ? 'block' : 'none';
     }
@@ -3495,7 +3349,7 @@ function updateAllTexts() {
       // Confirmation screen
       formContainer.querySelector('#confirmation-title').textContent = getText('confirmationTitle');
       formContainer.querySelector('#confirmation-message').textContent = getText('confirmationMessage');
-      formContainer.querySelector('#back-to-form').textContent = getText('backToForm');
+  
       
       // Update all labels and questions
       updateStep1Labels();
@@ -3553,19 +3407,19 @@ function updateAllTexts() {
       
       // Show/hide conditional sections based on saved values
       if (formValues.useForm === 'yes') {
-        formContainer.querySelector('#form-options').style.display = 'block';
+        formContainer.querySelector('#form-options').style.display = 'flex';
       }
       
       if (formValues.hasWebsite === 'yes') {
-        formContainer.querySelector('#website-options').style.display = 'block';
+        formContainer.querySelector('#website-options').style.display = 'flex';
       }
       
       if (formValues.needSocialBot === 'yes') {
-        formContainer.querySelector('#social-platforms-group').style.display = 'block';
+        formContainer.querySelector('#social-platforms-group').style.display = 'flex';
       }
       
       if (formValues.useCRM === 'yes') {
-        formContainer.querySelector('#crm-selection').style.display = 'block';
+        formContainer.querySelector('#crm-selection').style.display = 'flex';
       }
       
       if (formValues.hasBookingSystem === 'yes') {
@@ -5491,7 +5345,7 @@ function validateStep2() {
     formContainer.querySelectorAll('input[name="useForm"]').forEach(radio => {
       radio.addEventListener('change', function() {
         const formOptions = formContainer.querySelector('#form-options');
-        formOptions.style.display = this.value === 'yes' ? 'block' : 'none';
+        formOptions.style.display = this.value === 'yes' ? 'flex' : 'none';
         formValues.useForm = this.value;
         saveFormData();
       });
@@ -5709,6 +5563,9 @@ function validateStep2() {
     formContainer.querySelectorAll('.step-container').forEach(step => {
       step.classList.remove('active');
     });
+    formContainer.querySelector('.progress-container').style.display = 'none';
+
+
     formContainer.querySelector('#confirmation-screen').classList.add('active');
     
     // Clear saved form data
@@ -5722,11 +5579,7 @@ function validateStep2() {
   });
 });
     
-    // Back to form button
-    formContainer.querySelector('#back-to-form').addEventListener('click', function() {
-      formContainer.querySelector('#confirmation-screen').classList.remove('active');
-      showStep(1);
-    });
+   
     
     /*************************************************************
      * Initialize Form
