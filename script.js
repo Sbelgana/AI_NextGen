@@ -479,7 +479,7 @@
      * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
      *************************************************************/
 
-       const SubmissionFormExtension = {
+         const SubmissionFormExtension = {
       name: "ChatbotForm",
       type: "response",
       match: ({ trace }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
@@ -1910,6 +1910,37 @@ input:focus-visible,
   display: none !important;
 }
 
+/* Ensure conditional sections are hidden by default */
+#form-options,
+#website-options,
+#crm-selection,
+#database-selection,
+#social-platforms-group,
+#existing-booking-options,
+#need-booking-options,
+#language-selection,
+#other-platform-group,
+#other-niche-group,
+#custom-budget-group {
+  display: none !important;
+}
+
+/* Override when visible class is applied */
+#form-options.visible,
+#website-options.visible,
+#crm-selection.visible,
+#database-selection.visible,
+#social-platforms-group.visible,
+#existing-booking-options.visible,
+#need-booking-options.visible,
+#language-selection.visible,
+#other-platform-group.visible,
+#other-niche-group.visible,
+#custom-budget-group.visible {
+  display: flex !important;
+  flex-direction: column;
+  gap: 10px;
+}
 
   </style>
   
@@ -1920,6 +1951,7 @@ input:focus-visible,
     </div>
     <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
+    <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
   
   <!-- Step Progress Indicator -->
@@ -2230,7 +2262,7 @@ input:focus-visible,
       </div>
     </div>
     
-    <div id="form-options" style="display:none; gap: 10px; flex-direction: column;">
+    <div id="form-options" style="display: none; gap: 10px; flex-direction: column;">
       <div class="question-group">
         <label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
         <div class="select-container multi-select" id="formTypesDropdown">
@@ -2265,6 +2297,7 @@ input:focus-visible,
   </div>
   
   <!-- Step 6: Website Integration with Traffic Field -->
+<!-- Step 6: Website Integration with Traffic Field -->
 <div class="step-container" id="step-6">
   <h2 class="step-heading" id="step6-heading">Site Web</h2>
   
@@ -2289,24 +2322,46 @@ input:focus-visible,
   </div>
   
   <div id="website-options" style="display: none; gap: 10px; flex-direction: column;">
-    <div class="form-group">
-      <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
-      <div class="select-container" id="websitePlatformDropdown">
-        <select id="website-platform"></select>
-        <div class="select-wrapper">
-          <div class="select-display placeholder" id="selectDisplayWebsitePlatform" data-placeholder="-- Sélectionnez --">
-            <span id="selectedTextWebsitePlatform">-- Sélectionnez --</span>
-            <div class="dropdown-icon" id="dropdownIconWebsitePlatform">${SVG_CHEVRON}</div>
+    <!-- Platform and Traffic Volume Side by Side -->
+    <div class="flex-row">
+      <div class="form-group">
+        <label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
+        <div class="select-container" id="websitePlatformDropdown">
+          <select id="website-platform"></select>
+          <div class="select-wrapper">
+            <div class="select-display placeholder" id="selectDisplayWebsitePlatform" data-placeholder="-- Sélectionnez --">
+              <span id="selectedTextWebsitePlatform">-- Sélectionnez --</span>
+              <div class="dropdown-icon" id="dropdownIconWebsitePlatform">${SVG_CHEVRON}</div>
+            </div>
+            <div class="custom-options" id="customOptionsWebsitePlatform"></div>
           </div>
-          <div class="custom-options" id="customOptionsWebsitePlatform"></div>
+        </div>
+        <div class="error-message" id="error-platform">
+          <div class="error-icon">!</div>
+          <span class="error-text">Veuillez sélectionner une plateforme</span>
         </div>
       </div>
-      <div class="error-message" id="error-platform">
-        <div class="error-icon">!</div>
-        <span class="error-text">Veuillez sélectionner une plateforme</span>
+      
+      <div class="form-group">
+        <label class="form-label required" id="website-traffic-label">Trafic mensuel moyen de votre site</label>
+        <div class="select-container" id="websiteTrafficDropdown">
+          <select id="website-traffic"></select>
+          <div class="select-wrapper">
+            <div class="select-display placeholder" id="selectDisplayWebsiteTraffic" data-placeholder="-- Sélectionnez --">
+              <span id="selectedTextWebsiteTraffic">-- Sélectionnez --</span>
+              <div class="dropdown-icon" id="dropdownIconWebsiteTraffic">${SVG_CHEVRON}</div>
+            </div>
+            <div class="custom-options" id="customOptionsWebsiteTraffic"></div>
+          </div>
+        </div>
+        <div class="error-message" id="error-website-traffic">
+          <div class="error-icon">!</div>
+          <span class="error-text">Veuillez indiquer le trafic de votre site</span>
+        </div>
       </div>
     </div>
     
+    <!-- Other Platform Field (Conditional) -->
     <div class="form-group" id="other-platform-group" style="display: none;">
       <label class="form-label" id="other-platform-label">Précisez la plateforme</label>
       <input type="text" id="other-platform" name="otherPlatform" placeholder="Nom de la plateforme..." />
@@ -2316,6 +2371,7 @@ input:focus-visible,
       </div>
     </div>
     
+    <!-- Website URL Field -->
     <div class="form-group">
       <label class="form-label required" id="website-url-label">URL de votre site web</label>
       <input type="text" id="website-url" name="websiteUrl" placeholder="https://www.votresite.com" />
@@ -2324,26 +2380,9 @@ input:focus-visible,
         <span class="error-text">Veuillez entrer une URL valide</span>
       </div>
     </div>
-    
-    <div class="form-group">
-      <label class="form-label required" id="website-traffic-label">Trafic mensuel moyen de votre site</label>
-      <div class="select-container" id="websiteTrafficDropdown">
-        <select id="website-traffic"></select>
-        <div class="select-wrapper">
-          <div class="select-display placeholder" id="selectDisplayWebsiteTraffic" data-placeholder="-- Sélectionnez --">
-            <span id="selectedTextWebsiteTraffic">-- Sélectionnez --</span>
-            <div class="dropdown-icon" id="dropdownIconWebsiteTraffic">${SVG_CHEVRON}</div>
-          </div>
-          <div class="custom-options" id="customOptionsWebsiteTraffic"></div>
-        </div>
-      </div>
-      <div class="error-message" id="error-website-traffic">
-        <div class="error-icon">!</div>
-        <span class="error-text">Veuillez indiquer le trafic de votre site</span>
-      </div>
-    </div>
   </div>
   
+  <!-- Navigation Buttons -->
   <div class="form-buttons">
     <button type="button" class="btn btn-prev" id="step6-prev">Précédent</button>
     <button type="button" class="btn btn-next" id="step6-next">Suivant</button>
@@ -2840,7 +2879,7 @@ formContainer.insertBefore(header, formContainer.firstChild);
       const needBookingOptions = formContainer.querySelector('#need-booking-options');
       
       if (formOptions) formOptions.style.display = formValues.useForm === 'yes' ? 'flex' : 'none';
-      if (crmSelection) crmSelection.style.display = formValues.useCRM === 'yes' ? 'flex' : 'none';
+      if (crmSelection) crmSelection.style.display = formValues.useCRM === 'yes' ? 'block' : 'none';
       if (socialPlatformsGroup) socialPlatformsGroup.style.display = formValues.needSocialBot === 'yes' ? 'block' : 'none';
       if (needBookingOptions) needBookingOptions.style.display = formValues.hasBookingSystem === 'no' ? 'block' : 'none';
     }
@@ -3349,7 +3388,7 @@ function updateAllTexts() {
       // Confirmation screen
       formContainer.querySelector('#confirmation-title').textContent = getText('confirmationTitle');
       formContainer.querySelector('#confirmation-message').textContent = getText('confirmationMessage');
-  
+      formContainer.querySelector('#back-to-form').textContent = getText('backToForm');
       
       // Update all labels and questions
       updateStep1Labels();
@@ -3375,68 +3414,220 @@ function updateAllTexts() {
       initializeInfoButtons(currentLanguage);
     }
     
-   function initializeForm() {
-      // Initialize character counters
-      formContainer.querySelector('#services-counter').textContent = formValues.services.length || 0;
-      formContainer.querySelector('#form-purpose-counter').textContent = formValues.formPurpose.length || 0;
-      formContainer.querySelector('#description-counter').textContent = formValues.description.length || 0;
-      
-      // Initialize dropdowns
-      initializeDropdowns();
-      
-      // Load saved data
-      loadSavedData();
-      
-      // Set the formLanguage
-      formValues.formLanguage = currentLanguage;
-      
-      // Get the form data for current language
-      formData = createFormData(currentLanguage);
-      
-      // Update all text elements
-      updateAllTexts();
-      
-      // Initialize progress bar
-      updateProgressBar();
-      
-      // Setup real-time validation
-      setupRealTimeValidation();
-      
-      // Setup radio button validation
-      setupRadioButtonValidation();
-      
-      // Show/hide conditional sections based on saved values
-      if (formValues.useForm === 'yes') {
-        formContainer.querySelector('#form-options').style.display = 'flex';
-      }
-      
-      if (formValues.hasWebsite === 'yes') {
-        formContainer.querySelector('#website-options').style.display = 'flex';
-      }
-      
-      if (formValues.needSocialBot === 'yes') {
-        formContainer.querySelector('#social-platforms-group').style.display = 'flex';
-      }
-      
-      if (formValues.useCRM === 'yes') {
-        formContainer.querySelector('#crm-selection').style.display = 'flex';
-      }
-      
-      if (formValues.hasBookingSystem === 'yes') {
-        formContainer.querySelector('#existing-booking-options').style.display = 'block';
-      } else if (formValues.hasBookingSystem === 'no') {
-        formContainer.querySelector('#need-booking-options').style.display = 'block';
-      }
-      
-      if (formValues.useDatabase === 'yes') {
-        formContainer.querySelector('#database-selection').style.display = 'block';
-      }
-      
-      if (formValues.languageType) {
-        formContainer.querySelector('#language-selection').style.display = 'block';
-      }
-      startFormTimer();
+function initializeForm() {
+  // STEP 1: Clear any existing saved data to start fresh
+  localStorage.removeItem('chatbotFormData');
+  
+  // STEP 2: Reset all form values to defaults
+  resetFormValues();
+  
+  // STEP 3: Force hide all conditional sections
+  forceHideConditionalSections();
+  
+  // STEP 4: Initialize character counters
+  initializeCharacterCounters();
+  
+  // STEP 5: Initialize dropdowns
+  initializeDropdowns();
+  
+  // STEP 6: Set form language and update texts
+  formValues.formLanguage = currentLanguage;
+  formData = createFormData(currentLanguage);
+  updateAllTexts();
+  
+  // STEP 7: Initialize progress bar and validation
+  updateProgressBar();
+  setupRealTimeValidation();
+  setupRadioButtonValidation();
+  
+  // STEP 8: Start form timer
+  startFormTimer();
+  
+  // STEP 9: Initialize form field values in the DOM
+  initializeDOMValues();
+}
+
+// Add this new function to reset all form values:
+function resetFormValues() {
+  Object.keys(formValues).forEach(key => {
+    if (Array.isArray(formValues[key])) {
+      formValues[key] = [];
+    } else if (typeof formValues[key] === 'boolean') {
+      formValues[key] = null;
+    } else {
+      formValues[key] = "";
     }
+  });
+  
+  // Keep the form language
+  formValues.formLanguage = currentLanguage;
+}
+
+// Add this function to initialize character counters:
+function initializeCharacterCounters() {
+  const counters = [
+    { fieldId: '#services', counterId: '#services-counter' },
+    { fieldId: '#form-purpose', counterId: '#form-purpose-counter' },
+    { fieldId: '#description', counterId: '#description-counter' }
+  ];
+  
+  counters.forEach(({ fieldId, counterId }) => {
+    const field = formContainer.querySelector(fieldId);
+    const counter = formContainer.querySelector(counterId);
+    if (field && counter) {
+      field.value = '';
+      counter.textContent = '0';
+    }
+  });
+}
+
+// Add this function to initialize DOM values:
+function initializeDOMValues() {
+  // Clear all text inputs
+  const textInputs = formContainer.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea');
+  textInputs.forEach(input => {
+    input.value = '';
+  });
+  
+  // Clear all radio buttons
+  const radioInputs = formContainer.querySelectorAll('input[type="radio"]');
+  radioInputs.forEach(radio => {
+    radio.checked = false;
+  });
+  
+  // Reset all dropdowns to placeholder state
+  const selectDisplays = formContainer.querySelectorAll('.select-display');
+  selectDisplays.forEach(display => {
+    display.classList.add('placeholder');
+    const span = display.querySelector('span');
+    if (span) {
+      span.textContent = display.getAttribute('data-placeholder') || getText('selectPlaceholder');
+    }
+  });
+  
+  // Clear all select elements
+  const selects = formContainer.querySelectorAll('select');
+  selects.forEach(select => {
+    select.selectedIndex = 0;
+    Array.from(select.options).forEach(option => option.selected = false);
+  });
+  
+  // Clear all custom option selections
+  const customOptions = formContainer.querySelectorAll('.custom-option');
+  customOptions.forEach(option => {
+    option.classList.remove('selected');
+  });
+}
+
+// Enhanced forceHideConditionalSections function:
+function forceHideConditionalSections() {
+  const conditionalSections = [
+    '#form-options',
+    '#website-options', 
+    '#crm-selection',
+    '#database-selection',
+    '#social-platforms-group',
+    '#existing-booking-options',
+    '#need-booking-options',
+    '#language-selection',
+    '#other-platform-group',
+    '#other-niche-group',
+    '#custom-budget-group'
+  ];
+  
+  conditionalSections.forEach(sectionId => {
+    const element = formContainer.querySelector(sectionId);
+    if (element) {
+      // Remove any existing visibility classes
+      element.classList.remove('visible', 'show', 'active');
+      // Explicitly set display to none with !important override
+      element.style.setProperty('display', 'none', 'important');
+      // Add hidden attribute for accessibility
+      element.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
+
+/**
+ * Apply conditional visibility based on current form values
+ */
+function applyConditionalVisibility() {
+  // Form options visibility
+  if (formValues.useForm === 'yes') {
+    showConditionalSection('#form-options');
+  }
+  
+  // Website options visibility  
+  if (formValues.hasWebsite === 'yes') {
+    showConditionalSection('#website-options');
+  }
+  
+  // Other platform field
+  if (formValues.websitePlatform === 'other') {
+    showConditionalSection('#other-platform-group');
+  }
+  
+  // Other niche field
+  if (formValues.niche === 'other') {
+    showConditionalSection('#other-niche-group');
+  }
+  
+  // Custom budget field
+  if (formValues.budget === 'custom') {
+    showConditionalSection('#custom-budget-group');
+  }
+  
+  // CRM selection
+  if (formValues.useCRM === 'yes') {
+    showConditionalSection('#crm-selection');
+  }
+  
+  // Booking system options
+  if (formValues.hasBookingSystem === 'yes') {
+    showConditionalSection('#existing-booking-options');
+  } else if (formValues.hasBookingSystem === 'no') {
+    showConditionalSection('#need-booking-options');
+  }
+  
+  // Database selection
+  if (formValues.useDatabase === 'yes') {
+    showConditionalSection('#database-selection');
+  }
+  
+  // Social platforms
+  if (formValues.needSocialBot === 'yes') {
+    showConditionalSection('#social-platforms-group');
+  }
+  
+  // Language selection
+  if (formValues.languageType) {
+    showConditionalSection('#language-selection');
+  }
+}
+
+/**
+ * Safely show a conditional section
+ */
+// Update the showConditionalSection function to be more robust:
+function showConditionalSection(sectionId) {
+  const element = formContainer.querySelector(sectionId);
+  if (element) {
+    element.style.removeProperty('display');
+    element.style.setProperty('display', 'flex', 'important');
+    element.setAttribute('aria-hidden', 'false');
+    element.classList.add('visible');
+  }
+}
+
+// Update the hideConditionalSection function:
+function hideConditionalSection(sectionId) {
+  const element = formContainer.querySelector(sectionId);
+  if (element) {
+    element.style.setProperty('display', 'none', 'important');
+    element.setAttribute('aria-hidden', 'true');
+    element.classList.remove('visible');
+  }
+}
 
     
 	
@@ -3686,29 +3877,45 @@ function startFormTimer() {
       });
       
       // Has website radio buttons
-      formContainer.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-          hideError('error-has-website');
-          const websiteOptions = formContainer.querySelector('#website-options');
-          if (websiteOptions) {
-            websiteOptions.style.display = this.value === 'yes' ? 'block' : 'none';
-          }
-          formValues.hasWebsite = this.value;
-          saveFormData();
-        });
-      });
+     formContainer.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    hideError('error-has-website');
+    formValues.hasWebsite = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#website-options');
+    } else {
+      hideConditionalSection('#website-options');
+      // Hide nested sections when parent is hidden
+      hideConditionalSection('#other-platform-group');
+      // Clear website-related values
+      formValues.websitePlatform = null;
+      formValues.websiteUrl = '';
+      formValues.websiteTraffic = null;
+      formValues.otherPlatform = '';
+    }
+    
+    saveFormData();
+  });
+});
       
       // Use CRM radio buttons
       formContainer.querySelectorAll('input[name="useCRM"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-          const crmSelection = formContainer.querySelector('#crm-selection');
-          if (crmSelection) {
-            crmSelection.style.display = this.value === 'yes' ? 'block' : 'none';
-          }
-          formValues.useCRM = this.value;
-          saveFormData();
-        });
-      });
+  radio.addEventListener('change', function() {
+    hideError('error-use-crm');
+    formValues.useCRM = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#crm-selection');
+    } else {
+      hideConditionalSection('#crm-selection');
+      // Clear CRM-related values
+      formValues.crms = [];
+    }
+    
+    saveFormData();
+  });
+});
       
       // Booking System Recommendation Toggle
       formContainer.querySelectorAll('input[name="hasBookingSystem"]').forEach(radio =>
@@ -3724,16 +3931,21 @@ function startFormTimer() {
       
       // Use database radio buttons
       formContainer.querySelectorAll('input[name="useDatabase"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-          hideError('error-use-database');
-          const databaseSelection = formContainer.querySelector('#database-selection');
-          if (databaseSelection) {
-            databaseSelection.style.display = this.value === 'yes' ? 'block' : 'none';
-          }
-          formValues.useDatabase = this.value;
-          saveFormData();
-        });
-      });
+  radio.addEventListener('change', function() {
+    hideError('error-use-database');
+    formValues.useDatabase = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#database-selection');
+    } else {
+      hideConditionalSection('#database-selection');
+      // Clear database-related values
+      formValues.databases = [];
+    }
+    
+    saveFormData();
+  });
+});
       
       // Social Media Integration Toggle
       formContainer.querySelectorAll('input[name="needSocialBot"]').forEach(radio =>
@@ -3749,13 +3961,45 @@ function startFormTimer() {
       
       // Language type radio buttons
       formContainer.querySelectorAll('input[name="languageType"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-          hideError('error-language-type');
-          // Existing language type change handler code remains the same
-          formValues.languageType = this.value;
-          saveFormData();
-        });
-      });
+  radio.addEventListener('change', function() {
+    hideError('error-language-type');
+    formValues.languageType = this.value;
+    
+    // Only show language selection when a type is explicitly chosen
+    showConditionalSection('#language-selection');
+    
+    // Reset language values when switching types
+    formValues.languages = [];
+    
+    // Clear the language dropdown selection
+    const languageSelect = formContainer.querySelector('#languagesSelect');
+    const languageDisplay = formContainer.querySelector('#selectDisplayLanguages');
+    
+    if (languageSelect && languageDisplay) {
+      // Clear all selections
+      Array.from(languageSelect.options).forEach(option => option.selected = false);
+      languageSelect.selectedIndex = 0;
+      
+      // Reset display to placeholder
+      languageDisplay.classList.add('placeholder');
+      const span = languageDisplay.querySelector('span');
+      if (span) {
+        span.textContent = this.value === 'multilingual' ? 
+          getText('selectMultiplePlaceholder') : 
+          getText('selectPlaceholder');
+      }
+      
+      // Clear custom options
+      const customOptions = formContainer.querySelectorAll('#customOptionsLanguages .custom-option');
+      customOptions.forEach(opt => opt.classList.remove('selected'));
+    }
+    
+    // Rebuild the dropdown based on selection
+    rebuildLanguageDropdown(this.value);
+    
+    saveFormData();
+  });
+});
     }
     
     
@@ -5290,32 +5534,60 @@ function validateStep2() {
 
     // CRM usage
     formContainer.querySelectorAll('input[name="useCRM"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const crmSelection = formContainer.querySelector('#crm-selection');
-        crmSelection.style.display = this.value === 'yes' ? 'block' : 'none';
-        formValues.useCRM = this.value;
-        saveFormData();
-      });
-    });
+  radio.addEventListener('change', function() {
+    hideError('error-use-crm');
+    formValues.useCRM = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#crm-selection');
+    } else {
+      hideConditionalSection('#crm-selection');
+      // Clear CRM-related values
+      formValues.crms = [];
+    }
+    
+    saveFormData();
+  });
+});
     
     // Has booking system
     formContainer.querySelectorAll('input[name="hasBookingSystem"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const existingBookingOptions = formContainer.querySelector('#existing-booking-options');
-        const needBookingOptions = formContainer.querySelector('#need-booking-options');
-        
-        if (this.value === 'yes') {
-          existingBookingOptions.style.display = 'block';
-          needBookingOptions.style.display = 'none';
-        } else {
-          existingBookingOptions.style.display = 'none';
-          needBookingOptions.style.display = 'block';
+  radio.addEventListener('change', function() {
+    hideError('error-has-booking');
+    formValues.hasBookingSystem = this.value;
+    
+    // Always hide both sections first
+    hideConditionalSection('#existing-booking-options');
+    hideConditionalSection('#need-booking-options');
+    
+    // Only show the appropriate section based on selection
+    if (this.value === 'yes') {
+      showConditionalSection('#existing-booking-options');
+      // Clear recommendation values when showing existing options
+      formValues.wantBookingRecommendation = null;
+      // Clear any checked recommendation radio buttons
+      const recommendationRadios = formContainer.querySelectorAll('input[name="wantBookingRecommendation"]');
+      recommendationRadios.forEach(r => r.checked = false);
+    } else if (this.value === 'no') {
+      showConditionalSection('#need-booking-options');
+      // Clear existing booking system values when showing recommendation options
+      formValues.bookingSystems = null;
+      // Reset booking system dropdown
+      const bookingSelect = formContainer.querySelector('#bookingSystemsSelect');
+      if (bookingSelect) {
+        bookingSelect.selectedIndex = 0;
+        const bookingDisplay = formContainer.querySelector('#selectDisplayBookingSystems');
+        if (bookingDisplay) {
+          bookingDisplay.classList.add('placeholder');
+          const span = bookingDisplay.querySelector('span');
+          if (span) span.textContent = bookingDisplay.getAttribute('data-placeholder');
         }
-        
-        formValues.hasBookingSystem = this.value;
-        saveFormData();
-      });
-    });
+      }
+    }
+    
+    saveFormData();
+  });
+});
     
     // Want booking recommendation
     formContainer.querySelectorAll('input[name="wantBookingRecommendation"]').forEach(radio => {
@@ -5327,49 +5599,81 @@ function validateStep2() {
     
     // Database usage
     formContainer.querySelectorAll('input[name="useDatabase"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const databaseSelection = formContainer.querySelector('#database-selection');
-        
-        if (this.value === 'yes') {
-          databaseSelection.style.display = 'block';
-        } else {
-          databaseSelection.style.display = 'none';
-        }
-        
-        formValues.useDatabase = this.value;
-        saveFormData();
-      });
-    });
+  radio.addEventListener('change', function() {
+    hideError('error-use-database');
+    formValues.useDatabase = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#database-selection');
+    } else {
+      hideConditionalSection('#database-selection');
+      // Clear database-related values
+      formValues.databases = [];
+    }
+    
+    saveFormData();
+  });
+});
     
     // Form usage
     formContainer.querySelectorAll('input[name="useForm"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const formOptions = formContainer.querySelector('#form-options');
-        formOptions.style.display = this.value === 'yes' ? 'flex' : 'none';
-        formValues.useForm = this.value;
-        saveFormData();
-      });
-    });
+  radio.addEventListener('change', function() {
+    hideError('error-use-form');
+    formValues.useForm = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#form-options');
+    } else {
+      hideConditionalSection('#form-options');
+      // Clear form-related values when hiding
+      formValues.formTypes = [];
+      formValues.formPurpose = '';
+    }
+    
+    saveFormData();
+  });
+});
     
     // Website
     formContainer.querySelectorAll('input[name="hasWebsite"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const websiteOptions = formContainer.querySelector('#website-options');
-        websiteOptions.style.display = this.value === 'yes' ? 'block' : 'none';
-        formValues.hasWebsite = this.value;
-        saveFormData();
-      });
-    });
+  radio.addEventListener('change', function() {
+    hideError('error-has-website');
+    formValues.hasWebsite = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#website-options');
+    } else {
+      hideConditionalSection('#website-options');
+      // Hide nested sections when parent is hidden
+      hideConditionalSection('#other-platform-group');
+      // Clear website-related values
+      formValues.websitePlatform = null;
+      formValues.websiteUrl = '';
+      formValues.websiteTraffic = null;
+      formValues.otherPlatform = '';
+    }
+    
+    saveFormData();
+  });
+});
     
     // Social bot
     formContainer.querySelectorAll('input[name="needSocialBot"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const socialPlatformsGroup = formContainer.querySelector('#social-platforms-group');
-        socialPlatformsGroup.style.display = this.value === 'yes' ? 'block' : 'none';
-        formValues.needSocialBot = this.value;
-        saveFormData();
-      });
-    });
+  radio.addEventListener('change', function() {
+    hideError('error-need-social');
+    formValues.needSocialBot = this.value;
+    
+    if (this.value === 'yes') {
+      showConditionalSection('#social-platforms-group');
+    } else {
+      hideConditionalSection('#social-platforms-group');
+      // Clear social platform values
+      formValues.socialPlatforms = [];
+    }
+    
+    saveFormData();
+  });
+});
     
     // Text input changes with character counting
     formContainer.querySelector('#services').addEventListener('input', function() {
@@ -5579,7 +5883,11 @@ function validateStep2() {
   });
 });
     
-   
+    // Back to form button
+    formContainer.querySelector('#back-to-form').addEventListener('click', function() {
+      formContainer.querySelector('#confirmation-screen').classList.remove('active');
+      showStep(1);
+    });
     
     /*************************************************************
      * Initialize Form
@@ -5694,6 +6002,7 @@ function validateStep2() {
     initializeForm();
   }
 };
+
 
 
 
