@@ -46,7 +46,7 @@
     const SVG_LANGUAGE = 
       `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
         <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"/>
-        <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2zm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6.066 6.066 0 0 1-.415-.492 1.988 1.988 0 0 1-.94.31z"/>
+        <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3spana2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1spanzm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6.066 6.066 0 0 1-.415-.492 1.988 1.988 0 0 1-.94.31z"/>
       </svg>`;
       
     const SVG_Plus = 
@@ -1949,7 +1949,7 @@ input:focus-visible,
     <div class="confirmation-icon">
       ${SVG_CHECK}
     </div>
-    <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
+    <span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
     <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
@@ -1999,7 +1999,7 @@ input:focus-visible,
   
   <!-- Step 1: Contact Information -->
   <div class="step-container active" id="step-1">
-    <h2 class="step-heading" id="step1-heading">Informations de contact</h2>
+    <span class="step-heading" id="step1-heading">Informations de contact</span>
     
     <div class="flex-row">
       <div class="form-group">
@@ -2054,7 +2054,7 @@ input:focus-visible,
   
   <!-- Step 2: Project Details (Moved from original Step 6) -->
   <div class="step-container" id="step-2">
-    <h2 class="step-heading" id="step2-heading">Détails du projet</h2>
+    <span class="step-heading" id="step2-heading">Détails du projet</span>
     
     <div class="form-group">
       <label class="form-label required" id="niche-label">Quelle est votre niche ?</label>
@@ -2130,7 +2130,7 @@ input:focus-visible,
   
   <!-- Step 3: Business Profile -->
   <div class="step-container" id="step-3">
-    <h2 class="step-heading" id="step3-heading">Profil professionnel</h2>
+    <span class="step-heading" id="step3-heading">Profil professionnel</span>
     
     <div class="question-group">
       <label class="question-label" id="team-size-question">Quelle est la taille de votre équipe ?</label>
@@ -2170,7 +2170,7 @@ input:focus-visible,
   
   <!-- Step 4: Core Features -->
   <div class="step-container" id="step-4">
-    <h2 class="step-heading" id="step4-heading">Fonctionnalités de base</h2>
+    <span class="step-heading" id="step4-heading">Fonctionnalités de base</span>
     
     <div class="question-group">
       <label class="question-label" id="lead-capture-question">Avez-vous besoin de capture de leads ?</label>
@@ -2240,7 +2240,7 @@ input:focus-visible,
   
   <!-- Step 5: Form Requirements -->
   <div class="step-container" id="step-5">
-    <h2 class="step-heading" id="step5-heading">Formulaires</h2>
+    <span class="step-heading" id="step5-heading">Formulaires</span>
     
     <div class="question-group">
       <label class="question-label" id="use-form-question">Avez-vous besoin de formulaires ?</label>
@@ -2299,7 +2299,7 @@ input:focus-visible,
   <!-- Step 6: Website Integration with Traffic Field -->
 <!-- Step 6: Website Integration with Traffic Field -->
 <div class="step-container" id="step-6">
-  <h2 class="step-heading" id="step6-heading">Site Web</h2>
+  <span class="step-heading" id="step6-heading">Site Web</span>
   
   <div class="question-group">
     <label class="question-label" id="website-question">Avez-vous un site web ?</label>
@@ -2391,7 +2391,7 @@ input:focus-visible,
   
   <!-- Step 7: Integrations -->
   <div class="step-container" id="step-7">
-    <h2 class="step-heading" id="step7-heading">Intégrations</h2>
+    <span class="step-heading" id="step7-heading">Intégrations</span>
     
     <!-- CRM Section -->
     <div class="question-group">
@@ -2556,7 +2556,7 @@ input:focus-visible,
   
   <!-- Step 8: Communication Channels -->
   <div class="step-container" id="step-8">
-    <h2 class="step-heading" id="step8-heading">Canaux de communication</h2>
+    <span class="step-heading" id="step8-heading">Canaux de communication</span>
     
     <!-- Social Media Section -->
     <div class="question-group">
@@ -2643,7 +2643,7 @@ input:focus-visible,
   
   <!-- Step 9: Summary -->
   <div class="step-container" id="step-9">
-    <h2 class="step-heading" id="step9-heading">Récapitulatif de votre demande</h2>
+    <span class="step-heading" id="step9-heading">Récapitulatif de votre demande</span>
     
     <div class="summary-container">
       <!-- Contact Information -->
