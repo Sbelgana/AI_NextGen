@@ -3391,7 +3391,6 @@ function updateAllTexts() {
       // Confirmation screen
       formContainer.querySelector('#confirmation-title').textContent = getText('confirmationTitle');
       formContainer.querySelector('#confirmation-message').textContent = getText('confirmationMessage');
-      formContainer.querySelector('#back-to-form').textContent = getText('backToForm');
       
       // Update all labels and questions
       updateStep1Labels();
@@ -5887,11 +5886,7 @@ function validateStep2() {
   });
 });
     
-    // Back to form button
-    formContainer.querySelector('#back-to-form').addEventListener('click', function() {
-      formContainer.querySelector('#confirmation-screen').classList.remove('active');
-      showStep(1);
-    });
+
     
     /*************************************************************
      * Initialize Form
