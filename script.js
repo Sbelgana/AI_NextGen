@@ -9185,7 +9185,7 @@ const ContactFormExtension = {
 
           <!-- Step 1: Contact Information -->
           <div class="step-container active" id="step-1">
-            <h2 class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</h2>
+            <span class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</span>
             
             <div class="flex-row">
               <div>
@@ -9245,7 +9245,7 @@ const ContactFormExtension = {
 
           <!-- Step 2: Services Selection -->
           <div class="step-container" id="step-2">
-            <h2 class="step-heading">${isEnglish ? 'Services Selection' : 'Sélection des services'}</h2>
+            <span class="step-heading">${isEnglish ? 'Services Selection' : 'Sélection des services'}</span>
             
             <div class="flex-row">
               <div class="main-container" id="serviceDropdown">
@@ -9279,7 +9279,7 @@ const ContactFormExtension = {
 
           <!-- Step 3: Message Details -->
           <div class="step-container" id="step-3">
-            <h2 class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</h2>
+            <span class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</span>
             
             <div class="flex-row">
               <div>
@@ -9306,7 +9306,7 @@ const ContactFormExtension = {
 
           <!-- Step 4: Summary and Submit -->
           <div class="step-container" id="step-4">
-            <h2 class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</h2>
+            <span class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</span>
             
             <div class="summary-container">
               <div class="summary-row">
