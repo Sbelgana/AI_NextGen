@@ -8388,6 +8388,1405 @@ button:focus-visible {
 
 
 
+const ContactFormExtension = {
+      name: "ContactForm",
+      type: "response",
+      match: ({ trace }) => trace.type === 'ext_contact_form' || trace.payload?.name === 'ext_contact_form',
+      render: ({ trace, element }) => {
+        const { language } = trace.payload || { language: 'FR' };
+        const isEnglish = language === 'en';
+        
+        // Initialize form variables
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        let currentStep = 1;
+        const totalSteps = 4; // Now 4 steps
+        const TIMEOUT_DURATION = 900000; // 900 seconds (15 minutes) in milliseconds
+    
+        /*************************************************************
+         * Render Header Function
+         *************************************************************/
+        function renderHeader() {
+          const header = document.createElement("div");
+          header.className = "form-header";
+
+          const icon = document.createElement("div");
+          icon.className = "header-icon";
+          icon.innerHTML = SVG_MESSAGE;
+
+          const title = document.createElement("h1");
+          title.className = "form-title";
+          title.textContent = isEnglish ? "Contact Form" : "Formulaire de Contact";
+
+          header.appendChild(icon);
+          header.appendChild(title);
+          return header;
+        }
+
+        /*************************************************************
+         * HTML Generation & Initial Setup
+         *************************************************************/
+        const formContainer = document.createElement("form");
+        formContainer.setAttribute("novalidate", "true");
+        formContainer.classList.add("chatbot-form");
+        formContainer.innerHTML = `
+          <style>
+            /* ====================================
+            VSM MARKETING FORM - MAIN STYLESHEET
+            ==================================== */
+
+            /* ---------- RESET & BASE STYLES ---------- */
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+              background-color: #f5f5f5;
+              color: #333;
+              line-height: 1.6;
+            }
+
+            html {
+              scroll-behavior: smooth;
+            }
+
+            /* ---------- LAYOUT & CONTAINER ---------- */
+            .container {
+              max-width: 870px;
+              margin: 40px auto;
+              background: #fff;
+              border-radius: 12px;
+              box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+              overflow: hidden;
+              transition: all 0.3s ease;
+            }
+
+            form.chatbot-form {
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              max-width: 870px;
+              margin: 0 auto;
+              padding: 0;
+              border-radius: 12px;
+              background: #fff;
+              font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+              box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+              position: relative;
+              overflow: hidden;
+            }
+
+            /* Two-column layout */
+            .row, .form-row, .flex-row {
+              display: flex;
+              flex-wrap: wrap;
+              margin: 0 -10px;
+              width: calc(100% + 20px);
+            }
+
+            .col, .form-col, .flex-row > div {
+              flex: 1 0 0;
+              padding: 0 10px;
+              min-width: 0;
+            }
+
+            /* ---------- FORM HEADER ---------- */
+            .form-header {
+              padding: 12px 30px;
+              background: linear-gradient(135deg, #6a0080 0%, #9c27b0 100%);
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              margin-bottom: 10px;
+              border-radius: 12px 12px 0 0;
+              box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+            }
+
+            .header-icon {
+              width: 48px;
+              height: 48px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              background-color: rgba(255, 255, 255, 0.2);
+              transition: transform 0.3s ease;
+            }
+
+            .header-icon:hover {
+              transform: scale(1.1);
+              background-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .form-title {
+              font-size: 28px;
+              color: white;
+              margin: 0;
+              font-weight: 600;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+            /* ---------- STEP PROGRESS INDICATOR ---------- */
+            .progress-container {
+              padding: 0px 25px 10px 25px;
+            }
+
+            .step-progress {
+              display: flex;
+              justify-content: space-between;
+              position: relative;
+              z-index: 0;
+            }
+
+            .step-progress::before {
+              content: '';
+              position: absolute;
+              top: 50%;
+              left: 0;
+              transform: translateY(-50%);
+              height: 6px;
+              width: 100%;
+              background-color: #e0e0e0;
+              border-radius: 10px;
+              z-index: -1;
+            }
+
+            .progress-bar {
+              position: absolute;
+              top: 50%;
+              left: 0;
+              transform: translateY(-50%);
+              height: 6px;
+              background: linear-gradient(to right, #9c27b0, #f8e8f8);
+              border-radius: 10px;
+              transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+              z-index: -1;
+            }
+
+            .step-item {
+              width: 36px;
+              height: 36px;
+              background-color: #e0e0e0;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              color: #666;
+              position: relative;
+              transition: all 0.3s ease;
+              border: 3px solid white;
+              box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+              z-index: 3;
+            }
+
+            .step-item.active {
+              background-color: #F8E8F8;
+              color: #9c27b0;
+              transform: scale(1.1);
+            }
+
+            .step-item.completed {
+              background-color: #9c27b0;
+              color: white;
+            }
+
+            .step-title {
+              position: absolute;
+              top: 40px;
+              left: 50%;
+              transform: translateX(-50%);
+              font-size: 11px;
+              white-space: nowrap;
+              color: #666;
+              font-weight: 500;
+              display: block;
+              opacity: 0;
+              transition: opacity 0.3s ease;
+              width: 110px;
+              text-align: center;
+            }
+
+            /* ---------- FORM STEPS & ANIMATIONS ---------- */
+            .step-container {
+              display: none;
+              animation: fadeIn 0.6s;
+            }
+
+            .step-container.active {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              padding: 5px 30px 10px;
+            }
+
+            .step-container:not(.active) {
+              pointer-events: none;
+            }
+
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(15px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes slideDown {
+              from { opacity: 0; transform: translateY(-10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+              20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+
+            @keyframes pulse {
+              0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4); }
+              70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(156, 39, 176, 0); }
+              100% { transform: scale(1); }
+            }
+
+            /* ---------- FORM ELEMENTS ---------- */
+            .form-label, .question-label, .bold-label {
+              display: block;
+              font-weight: 500;
+              color: black;
+              font-size: 15px;
+              margin-bottom: 8px;
+            }
+
+            .question-label {
+              font-size: 16px;
+            }
+
+            .form-label.required::after,
+            .question-label.required::after {
+              content: " *";
+              color: #e52059;
+              font-weight: bold;
+            }
+
+            .step-heading {
+              font-size: 26px;
+              color: #6a0080;
+              font-weight: 600;
+              position: relative;
+            }
+
+            .step-heading::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 70px;
+              height: 4px;
+              background: linear-gradient(90deg, #9c27b0, #f8e8f8);
+              border-radius: 4px;
+            }
+
+            /* ========== Input Fields ========== */
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="number"],
+            #details,
+            select {
+              width: 100%;
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              padding: 12px;
+              font-size: 14px;
+              transition: all 0.2s;
+              background-color: #fafafa;
+            }
+            
+            input[type="text"]:focus,
+            input[type="email"]:focus,
+            input[type="tel"]:focus,
+            input[type="number"]:focus,
+            #details:focus,
+            select:focus {
+              border-color: #9C27B0;
+              box-shadow: 0 0 0 3px rgba(156,39,176,0.1);
+              outline: none;
+              background-color: #fff;
+            }
+            
+            #details {
+              min-height: 120px;
+              resize: vertical;
+            }
+
+            /* ---------- DROPDOWN COMPONENTS ---------- */
+            .select-container select {
+              display: none !important;
+            }
+
+            .main-container {
+              display: block;
+              transition: height 0.3s ease;
+              border-radius: 6px;
+              width: 100%;
+              margin-bottom: 15px;
+            }
+
+            .select-wrapper {
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              background-color: #fff;
+              position: relative;
+              width: 100%;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+              transition: all 0.3s;
+            }
+
+            .select-wrapper:hover {
+              border-color: #9c27b0;
+            }
+
+            .select-display {
+              padding: 0 18px;
+              font-size: 15px;
+              cursor: pointer;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              height: 52px;
+              color: #444;
+            }
+
+            .dropdown-icon {
+              width: 30px;
+              height: 30px;
+              transition: transform 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #9a4fa9;
+              border-radius: 50%;
+            }
+
+            .dropdown-icon svg path {
+              fill: white !important;
+            }
+
+            .dropdown-icon.rotate {
+              transform: rotate(180deg);
+            }
+
+            .custom-options {
+              display: none;
+              font-size: 15px;
+              border-top: 1px solid #ddd;
+              max-height: 250px;
+              overflow-y: auto;
+              background-color: #fff;
+              box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+              z-index: 100;
+              border-radius: 0 0 8px 8px;
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+              width: 100%;
+            }
+
+            .show-options {
+              display: block;
+              animation: fadeIn 0.3s;
+            }
+
+            .custom-option {
+              padding: 14px 18px;
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+              transition: all 0.2s;
+              position: relative;
+              border-left: 4px solid transparent;
+            }
+
+            .custom-option:hover {
+              background-color: rgba(156, 39, 176, 0.08);
+              color: #6a0080;
+              border-left-color: #9c27b0;
+            }
+
+            .custom-option.selected {
+              background-color: rgba(156, 39, 176, 0.12);
+              color: #6a0080;
+              font-weight: bold;
+              border-left-color: #9c27b0;
+            }
+
+            .custom-option.selected .option-checkbox svg path {
+              fill: #fff !important;
+            }
+
+            .custom-option:not(.selected):hover .option-checkbox svg path {
+              fill: #9C27B0;
+            }
+
+            /* Checkbox styling */
+            .option-checkbox {
+              width: 22px;
+              height: 22px;
+              border: 2px solid #ccc;
+              border-radius: 50%;
+              margin-right: 14px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background-color: #fff;
+              transition: all 0.2s;
+              position: relative;
+            }
+
+            .option-checkbox svg {
+              width: 12px;
+              height: 12px;
+              display: none;
+            }
+
+            .custom-option:not(.selected):hover .option-checkbox {
+              border-color: #9c27b0;
+              transform: scale(1.05);
+            }
+
+            .custom-option:not(.selected):hover .option-checkbox svg {
+              display: block;
+            }
+
+            .custom-option.selected .option-checkbox svg {
+              display: block;
+            }
+
+            .custom-option.selected .option-checkbox {
+              border-color: #9c27b0;
+              background-color: #9c27b0;
+              transform: scale(1.1);
+            }
+
+            .custom-option:not(.selected):hover .option-checkbox svg path {
+              fill: #9c27b0 !important;
+            }
+
+            /* ---------- ERROR MESSAGES ---------- */
+            .error-container {
+              width: 100%;
+              margin: 2px 0;
+              box-sizing: border-box;
+            }
+
+            .error-message {
+              color: white;
+              font-size: 13px;
+              margin-top: 8px;
+              display: none;
+              background-color: #e52059;
+              border-radius: 6px;
+              border: none;
+              padding: 10px 14px;
+              animation: shake 0.5s;
+              box-shadow: 0 2px 5px rgba(229, 32, 89, 0.2);
+            }
+
+            .error-message.show {
+              display: flex;
+            }
+
+            .error-icon {
+              width: 22px;
+              height: 22px;
+              min-width: 22px;
+              border-radius: 50%;
+              background-color: white;
+              color: #e52059;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              margin-right: 12px;
+              font-size: 14px;
+            }
+
+            .error-text {
+              flex: 1;
+            }
+
+            /* ---------- BUTTONS & NAVIGATION ---------- */
+            .form-buttons {
+              display: flex;
+              justify-content: space-between;
+              gap: 10px;
+            }
+
+            .btn {
+              padding: 14px 28px;
+              border: none;
+              border-radius: 8px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s;
+              letter-spacing: 0.5px;
+              position: relative;
+              overflow: hidden;
+            }
+
+            .btn::after {
+              content: '';
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              top: 0;
+              left: -100%;
+              background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.2) 50%, 
+                rgba(255,255,255,0) 100%);
+              transition: all 0.6s;
+            }
+
+            .btn:hover::after {
+              left: 100%;
+            }
+
+            .btn-prev {
+              background-color: #f0f0f0;
+              color: #6a0080;
+            }
+
+            .btn-prev:hover {
+              background-color: #e0e0e0;
+              transform: translateY(-2px);
+            }
+
+            .btn-next,
+            .btn-submit {
+              background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+              color: white;
+              box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+            }
+
+            .btn-next:hover,
+            .btn-submit:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 6px 18px rgba(156, 39, 176, 0.4);
+            }
+
+            .btn-submit {
+              background: linear-gradient(135deg, #9c27b0 0%, #e52059 100%);
+              box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+            }
+
+            .btn-submit:hover {
+              box-shadow: 0 6px 18px rgba(229, 32, 89, 0.4);
+            }
+
+            .btn:disabled {
+              opacity: 0.7;
+              cursor: not-allowed;
+              transform: none;
+              box-shadow: none;
+            }
+
+            .btn:disabled::after {
+              display: none;
+            }
+
+            .form-buttons .btn:active {
+              transform: translateY(1px);
+              box-shadow: 0 2px 8px rgba(156, 39, 176, 0.2);
+            }
+
+            /* ---------- SUMMARY STYLES ---------- */
+            .summary-container {
+              background-color: #f9f9f9;
+              border-radius: 8px;
+              padding: 20px;
+              margin-top: 10px;
+              margin-bottom: 20px;
+            }
+
+            .summary-row {
+              display: flex;
+              padding: 10px 0;
+              border-bottom: 1px solid #eee;
+              align-items: center;
+            }
+
+            .summary-row:last-child {
+              border-bottom: none;
+            }
+
+            .summary-label {
+              font-weight: 600;
+              width: 30%;
+              color: #555;
+            }
+
+            .summary-value {
+              flex: 1;
+            }
+
+            .edit-btn {
+              background: none;
+              border: none;
+              color: #9C27B0;
+              cursor: pointer;
+              padding: 5px 10px;
+              font-size: 14px;
+              text-decoration: underline;
+            }
+
+            .edit-btn:hover {
+              color: #7B1FA2;
+            }
+
+            /* ---------- RESPONSIVE DESIGN ---------- */
+            @media (max-width: 767px) {
+              .row, .form-row, .flex-row {
+                display: flex;
+                margin: 0;
+                width: 100%;
+                gap: 10px;
+                flex-direction: column;
+              }
+              .step-container.active {
+                padding: 5px 15px 10px;
+              }
+              
+              .col, .form-col, .flex-row > div {
+                width: 100%;
+                padding: 0;
+                margin-bottom: 0px;
+              }
+              
+              .form-group {
+                margin-bottom: 10px;
+              }
+              
+              .form-col .conditional-field {
+                margin-left: 0;
+                padding-left: 15px;
+              }
+            }
+
+            @media (max-width: 768px) {
+              .form-title {
+                font-size: 22px;
+              }
+              
+              .form-header {
+                padding: 10px 20px;
+              }
+              
+              .header-icon {
+                width: 36px;
+                height: 36px;
+              }
+              
+              .step-heading {
+                font-size: 22px;
+              }
+              
+              .btn {
+                padding: 12px 18px;
+                font-size: 15px;
+              }
+              
+              .container, form.chatbot-form {
+                margin: 15px;
+                width: auto;
+              }
+              
+              .step-item {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
+              }
+              
+              .progress-container {
+                padding: 0 15px;
+              }
+              
+              .step-title {
+                font-size: 9px;
+                width: 80px;
+              }
+              
+              .form-buttons {
+                flex-direction: row;
+                gap:10px
+              }
+            }
+
+            @media (max-width: 480px) {
+              form.chatbot-form {
+                padding: 15px 10px;
+                min-width: 200px;
+              }
+              
+              .step-heading {
+                font-size: 18px;
+              }
+              
+              .step-item {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+              }
+              
+              .step-title {
+                font-size: 8px;
+                width: 60px;
+                top: 35px;
+              }
+            }
+
+            /* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+            input:focus-visible, 
+            #details:focus-visible, 
+            select:focus-visible,
+            button:focus-visible {
+              outline: 2px solid #9C27B0;
+              outline-offset: 2px;
+            }
+
+            .hidden {
+              display: none !important;
+            }
+          </style>
+
+          <!-- Step Progress Indicator -->
+          <div class="progress-container">
+            <div class="step-progress">
+              <div class="progress-bar" id="progress-bar"></div>
+              <div class="step-item active" data-step="1">
+                <div class="step-icon">1</div>
+                <div class="step-title">${isEnglish ? 'Contact' : 'Contact'}</div>
+              </div>
+              <div class="step-item" data-step="2">
+                <div class="step-icon">2</div>
+                <div class="step-title">${isEnglish ? 'Services' : 'Services'}</div>
+              </div>
+              <div class="step-item" data-step="3">
+                <div class="step-icon">3</div>
+                <div class="step-title">${isEnglish ? 'Message' : 'Message'}</div>
+              </div>
+              <div class="step-item" data-step="4">
+                <div class="step-icon">4</div>
+                <div class="step-title">${isEnglish ? 'Summary' : 'Résumé'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 1: Contact Information -->
+          <div class="step-container active" id="step-1">
+            <h2 class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <label for="first-name" class="bold-label">${isEnglish ? 'First Name' : 'Prénom'}</label>
+                <input type="text" id="first-name" name="first-name" placeholder="${isEnglish ? 'Enter your first name' : 'Entrez votre prénom'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorFirstName">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'First name is required.' : 'Le prénom est obligatoire.'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label for="last-name" class="bold-label">${isEnglish ? 'Last Name' : 'Nom de famille'}</label>
+                <input type="text" id="last-name" name="last-name" placeholder="${isEnglish ? 'Enter your last name' : 'Entrez votre nom de famille'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorLastName">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'Last name is required.' : 'Le nom de famille est obligatoire.'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex-row">
+              <div>
+                <label for="email" class="bold-label">Email</label>
+                <input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorEmail">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+                <input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+                <div class="error-container">
+                  <div class="error-message" id="errorPhone">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <div></div>
+              <button type="button" class="btn btn-next" id="step1-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Services Selection -->
+          <div class="step-container" id="step-2">
+            <h2 class="step-heading">${isEnglish ? 'Services Selection' : 'Sélection des services'}</h2>
+            
+            <div class="flex-row">
+              <div class="main-container" id="serviceDropdown">
+                <label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
+                <select id="serviceSelect" name="serviceSelect" required style="display:none;"></select>
+                <div class="select-wrapper">
+                  <div class="select-display" id="selectDisplayService">
+                    <span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
+                    <div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
+                  </div>
+                  <div class="custom-options" id="customOptionsService"></div>
+                </div>
+                <div class="error-container">
+                  <div class="error-message" id="errorService">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step2-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-next" id="step2-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Message Details -->
+          <div class="step-container" id="step-3">
+            <h2 class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</h2>
+            
+            <div class="flex-row">
+              <div>
+                <label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
+                <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+                <div class="error-container">
+                  <div class="error-message" id="errorMessage">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step3-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-next" id="step3-next">
+                ${isEnglish ? 'Next' : 'Suivant'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Summary and Submit -->
+          <div class="step-container" id="step-4">
+            <h2 class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</h2>
+            
+            <div class="summary-container">
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Full Name' : 'Nom complet'}:</div>
+                <div class="summary-value" id="summary-fullname"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">Email:</div>
+                <div class="summary-value" id="summary-email"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Phone' : 'Téléphone'}:</div>
+                <div class="summary-value" id="summary-phone"></div>
+                <button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Service' : 'Service'}:</div>
+                <div class="summary-value" id="summary-service"></div>
+                <button type="button" class="edit-btn" data-step="2">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+              <div class="summary-row">
+                <div class="summary-label">${isEnglish ? 'Message' : 'Message'}:</div>
+                <div class="summary-value" id="summary-message"></div>
+                <button type="button" class="edit-btn" data-step="3">${isEnglish ? 'Edit' : 'Modifier'}</button>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn-prev" id="step4-prev">
+                ${isEnglish ? 'Previous' : 'Précédent'}
+              </button>
+              <button type="button" class="btn btn-submit" id="submit-button">
+                ${isEnglish ? 'Submit' : 'Envoyer'}
+              </button>
+            </div>
+          </div>
+        `;
+        
+        // Add header to the form
+        const header = renderHeader();
+        formContainer.insertBefore(header, formContainer.firstChild);
+        
+        element.appendChild(formContainer);
+    
+        /*************************************************************
+         * Form Navigation Functions
+         *************************************************************/
+        function showStep(stepNumber) {
+          formContainer.querySelectorAll('.step-container').forEach(step => {
+            step.classList.remove('active');
+          });
+          
+          formContainer.querySelector(`#step-${stepNumber}`).classList.add('active');
+          currentStep = stepNumber;
+          updateProgressBar();
+          
+          // Scroll to top of form
+          formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        function updateProgressBar() {
+          const progressBar = formContainer.querySelector('#progress-bar');
+          const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+          progressBar.style.width = `${progressPercentage}%`;
+          
+          formContainer.querySelectorAll('.step-item').forEach(item => {
+            const stepNumber = parseInt(item.getAttribute('data-step'));
+            item.classList.remove('active', 'completed');
+            
+            if (stepNumber === currentStep) {
+              item.classList.add('active');
+            } else if (stepNumber < currentStep) {
+              item.classList.add('completed');
+            }
+          });
+        }
+        
+        /*************************************************************
+         * Timer Functionality
+         *************************************************************/
+        function startFormTimer() {
+          let timeLeft = TIMEOUT_DURATION;
+          
+          // Just set the timeout - no display updates needed
+          formTimeoutId = setInterval(() => {
+            timeLeft -= 1000;
+            
+            if (timeLeft <= 0) {
+              clearInterval(formTimeoutId);
+              if (!isFormSubmitted) {
+                handleFormTimeout();
+              }
+            }
+          }, 1000);
+        }
+
+        function handleFormTimeout() {
+          disableAllFormElements();
+          
+          const submitButton = formContainer.querySelector("#submit-button");
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Time Expired" : "Temps expiré";
+          submitButton.style.backgroundColor = "#f44336";
+          submitButton.style.color = "white";
+          
+          if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            window.voiceflow.chat.interact({
+              type: "timeEnd",
+              payload: {
+                message: "Time expired"
+              }
+            });
+          }
+        }
+        
+        /*************************************************************
+         * Form Disable Function
+         *************************************************************/
+        function disableAllFormElements() {
+          // Set cursor style to not-allowed for all interactive elements
+          formContainer.querySelectorAll('button, input, select, textarea, .custom-options, .select-wrapper, .dropdown-icon').forEach(el => {
+            el.disabled = true;
+            el.style.cursor = "not-allowed";
+          });
+          
+          // Disable dropdown functionality
+          formContainer.querySelectorAll('.custom-options.show-options').forEach(opt => {
+            opt.classList.remove('show-options');
+          });
+          
+          formContainer.querySelectorAll('.dropdown-icon.rotate').forEach(icon => {
+            icon.classList.remove('rotate');
+          });
+          
+          formContainer.classList.add('disabled');
+        }
+        
+        /*************************************************************
+         * Custom Dropdown Initialization
+         *************************************************************/
+        function initializeCustomDropdown(dropdownId, placeholderText, optionsData, onSelect) {
+          const container = formContainer.querySelector(`#${dropdownId}`);
+          const selectDisplay = container.querySelector('.select-display');
+          const customOptions = container.querySelector('.custom-options');
+          const dropdownIcon = container.querySelector('.dropdown-icon');
+          const nativeSelect = container.querySelector('select');
+          
+          nativeSelect.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
+          selectDisplay.querySelector('span').textContent = placeholderText;
+          customOptions.innerHTML = "";
+          
+          optionsData.forEach(item => {
+            const optionEl = document.createElement('div');
+            optionEl.className = 'custom-option';
+            optionEl.dataset.value = item.id;
+            optionEl.innerHTML = `<div class="option-checkbox">${SVG_CHECK}</div><span>${item.name}</span>`;
+            customOptions.appendChild(optionEl);
+            
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.name;
+            nativeSelect.appendChild(opt);
+            
+            optionEl.addEventListener('click', function(e) {
+              e.stopPropagation();
+              customOptions.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+              this.classList.add('selected');
+              selectDisplay.querySelector('span').textContent = item.name;
+              nativeSelect.value = item.id;
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+              
+              if (onSelect) onSelect(item);
+              
+              const errorEl = container.querySelector(".error-message") || 
+                             container.parentNode.querySelector(".error-message");
+              if (errorEl) errorEl.style.display = "none";
+            });
+          });
+          
+          // Direct DOM binding for dropdown toggle
+          selectDisplay.onclick = function(e) {
+            e.stopPropagation();
+            if (customOptions.classList.contains('show-options')) {
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+            } else {
+              // Close all other dropdowns first
+              formContainer.querySelectorAll('.custom-options').forEach(optList => {
+                if (optList !== customOptions) {
+                  optList.classList.remove('show-options');
+                }
+              });
+              
+              formContainer.querySelectorAll('.dropdown-icon').forEach(icon => {
+                if (icon !== dropdownIcon) {
+                  icon.classList.remove('rotate');
+                }
+              });
+              
+              customOptions.classList.add('show-options');
+              dropdownIcon.classList.add('rotate');
+            }
+          };
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+              customOptions.classList.remove('show-options');
+              dropdownIcon.classList.remove('rotate');
+            }
+          });
+        }
+        
+        /*************************************************************
+         * Form Validation
+         *************************************************************/
+        function validateStep1() {
+          let isValid = true;
+          
+          // First Name validation
+          const firstName = formContainer.querySelector("#first-name").value.trim();
+          if (!firstName) {
+            formContainer.querySelector("#errorFirstName").style.display = "flex";
+            isValid = false;
+          }
+          
+          // Last Name validation
+          const lastName = formContainer.querySelector("#last-name").value.trim();
+          if (!lastName) {
+            formContainer.querySelector("#errorLastName").style.display = "flex";
+            isValid = false;
+          }
+          
+          // Email validation
+          const email = formContainer.querySelector("#email").value.trim();
+          if (!email || !isValidEmail(email)) {
+            formContainer.querySelector("#errorEmail").style.display = "flex";
+            isValid = false;
+          }
+          
+          // Phone validation
+          const phone = formContainer.querySelector("#phone").value.trim();
+          if (!phone || !isValidPhoneNumber(phone)) {
+            formContainer.querySelector("#errorPhone").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
+        function validateStep2() {
+          let isValid = true;
+          
+          // Service validation
+          const service = formContainer.querySelector("#serviceSelect").value;
+          if (!service) {
+            formContainer.querySelector("#errorService").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
+        function validateStep3() {
+          let isValid = true;
+          
+          // Message validation
+          const message = formContainer.querySelector("#details").value.trim();
+          if (!message) {
+            formContainer.querySelector("#errorMessage").style.display = "flex";
+            isValid = false;
+          }
+          
+          return isValid;
+        }
+        
+        /*************************************************************
+         * Update Summary
+         *************************************************************/
+        function updateSummary() {
+          // Contact information
+          const firstName = formContainer.querySelector("#first-name").value.trim();
+          const lastName = formContainer.querySelector("#last-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          
+          // Service
+          const serviceValue = formContainer.querySelector("#serviceSelect").value;
+          // Get the localized service display name
+          const serviceDisplay = serviceDisplayMap[serviceValue] ? 
+                               (isEnglish ? serviceDisplayMap[serviceValue].en : serviceDisplayMap[serviceValue].fr) : 
+                               serviceValue;
+          
+          // Message
+          const message = formContainer.querySelector("#details").value.trim();
+          
+          // Update summary values with full name instead of separate first/last name
+          formContainer.querySelector("#summary-fullname").textContent = `${firstName} ${lastName}`;
+          formContainer.querySelector("#summary-email").textContent = email;
+          formContainer.querySelector("#summary-phone").textContent = phone;
+          formContainer.querySelector("#summary-service").textContent = serviceDisplay;
+          formContainer.querySelector("#summary-message").textContent = message.length > 100 ? message.substring(0, 100) + '...' : message;
+        }
+        
+        /*************************************************************
+         * Initialize Service Dropdown
+         *************************************************************/
+        // Service Dropdown
+        const serviceOptionsData = ServiceOptions.map(service => ({ 
+          id: service.value, 
+          name: isEnglish ? service.label.en : service.label.fr 
+        }));
+        
+        // Create a map to find display name from service ID
+        const serviceDisplayMap = {};
+        ServiceOptions.forEach(service => {
+          serviceDisplayMap[service.value] = {
+            en: service.label.en,
+            fr: service.label.fr
+          };
+        });
+        
+        initializeCustomDropdown("serviceDropdown", 
+                               isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --', 
+                               serviceOptionsData, 
+                               null);
+        
+        // Input validation event listeners
+        formContainer.querySelector("#first-name").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorFirstName").style.display = "none";
+        });
+        
+        formContainer.querySelector("#last-name").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorLastName").style.display = "none";
+        });
+        
+        formContainer.querySelector("#email").addEventListener("input", function() {
+          if (isValidEmail(this.value.trim())) formContainer.querySelector("#errorEmail").style.display = "none";
+        });
+        
+        formContainer.querySelector("#phone").addEventListener("input", function() {
+          if (isValidPhoneNumber(this.value.trim())) formContainer.querySelector("#errorPhone").style.display = "none";
+        });
+        
+        formContainer.querySelector("#details").addEventListener("input", function() {
+          if (this.value.trim()) formContainer.querySelector("#errorMessage").style.display = "none";
+        });
+        
+        /*************************************************************
+         * Navigation Setup
+         *************************************************************/
+        // Step 1 to Step 2
+        formContainer.querySelector("#step1-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-1 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep1()) {
+            showStep(2);
+          }
+        });
+        
+        // Step 2 navigation
+        formContainer.querySelector("#step2-prev").addEventListener("click", function() {
+          showStep(1);
+        });
+        
+        formContainer.querySelector("#step2-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-2 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep2()) {
+            showStep(3);
+          }
+        });
+        
+        // Step 3 navigation
+        formContainer.querySelector("#step3-prev").addEventListener("click", function() {
+          showStep(2);
+        });
+        
+        formContainer.querySelector("#step3-next").addEventListener("click", function() {
+          // Hide all error messages for this step
+          formContainer.querySelectorAll("#step-3 .error-message").forEach(errorEl => {
+            errorEl.style.display = "none";
+          });
+          
+          if (validateStep3()) {
+            updateSummary();
+            showStep(4);
+          }
+        });
+        
+        // Step 4 navigation
+        formContainer.querySelector("#step4-prev").addEventListener("click", function() {
+          showStep(3);
+        });
+        
+        // Edit buttons in summary view
+        formContainer.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const stepToShow = parseInt(btn.getAttribute('data-step'));
+            showStep(stepToShow);
+          });
+        });
+        
+        /*************************************************************
+         * Form Submission
+         *************************************************************/
+        formContainer.querySelector("#submit-button").addEventListener("click", function() {
+          // Collect all form data
+          const firstName = formContainer.querySelector("#first-name").value.trim();
+          const lastName = formContainer.querySelector("#last-name").value.trim();
+          const email = formContainer.querySelector("#email").value.trim();
+          const phone = formContainer.querySelector("#phone").value.trim();
+          const serviceValue = formContainer.querySelector("#serviceSelect").value;
+          const serviceDisplay = serviceDisplayMap[serviceValue] ? 
+                               (isEnglish ? serviceDisplayMap[serviceValue].en : serviceDisplayMap[serviceValue].fr) : 
+                               serviceValue;
+          const message = formContainer.querySelector("#details").value.trim();
+          
+          // Disable form elements and update button
+          const submitButton = this;
+          submitButton.disabled = true;
+          submitButton.textContent = isEnglish ? "Processing..." : "Traitement...";
+          submitButton.style.cursor = "not-allowed";
+          submitButton.style.backgroundColor = "#4CAF50";
+          submitButton.style.color = "#fff";
+          
+          // Mark form as submitted to prevent timeout
+          isFormSubmitted = true;
+          if (formTimeoutId) {
+            clearInterval(formTimeoutId);
+          }
+          
+          // Prepare the submission data
+          const submissionData = { 
+            firstName,
+            lastName,
+            fullName: `${firstName} ${lastName}`, // Add fullName as a combined field
+            email,
+            phone: formatPhoneNumber(phone),
+            service: serviceValue,
+            serviceDisplay,
+            message
+          };
+          
+          // Log form data (for demonstration)
+          console.log("Form Data Submitted:", submissionData);
+          
+          // Send data to Voiceflow if available
+          if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            window.voiceflow.chat.interact({ 
+              type: "success",
+              payload: submissionData,
+            });
+          }
+          
+          // Disable all form elements
+          disableAllFormElements();
+          submitButton.textContent = isEnglish ? "Submitted!" : "Soumis!";
+        });
+        
+        // Start the form timer
+        startFormTimer();
+        
+        // Initialize progress bar
+        updateProgressBar();
+      }
+    };
+    
+
+
 window.SubmissionFormExtension = SubmissionFormExtension;
 window.BookingDirectExtension = BookingDirectExtension;
+window.ContactFormExtension = ContactFormExtension;
 
