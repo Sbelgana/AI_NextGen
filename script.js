@@ -490,7 +490,7 @@ const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 5
       render: ({ trace, element }) => {
         // Get language from payload with French as default
         //let { currentLanguage = "fr" } = trace.payload || {};
-        let currentLanguage = trace.payload?.currentLanguage || "fr";
+        let {currentLanguage, vf} = trace.payload;
         // Initialize form data with the current language
         let formData = createFormData(currentLanguage);
         
@@ -3999,7 +3999,7 @@ function startFormTimer() {
     }
     
     // Rebuild the dropdown based on selection
-    rebuildLanguageDropdown(this.value);
+    
     
     saveFormData();
   });
@@ -5861,11 +5861,12 @@ function validateStep2() {
     console.log('Success:', data);
     
     // After successful webhook, send data to Voiceflow
-    
+    if(vf){
       window.voiceflow.chat.interact({
         type: "success",
         payload: submissionData
       });
+    }
     
     // Hide all steps and show confirmation
     formContainer.querySelectorAll('.step-container').forEach(step => {
