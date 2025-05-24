@@ -1955,7 +1955,6 @@ input:focus-visible,
     </div>
     <span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
-    <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
   
   <!-- Step Progress Indicator -->
