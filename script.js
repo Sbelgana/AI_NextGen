@@ -3173,6 +3173,7 @@ const SubmissionFormExtension = {
 				color: #011a26;
 				font-weight: 600;
 				position: relative;
+    				padding-bottom: 10px;
 			}
 
 			.step-heading::after {
@@ -8564,6 +8565,7 @@ const BookingDirectExtension = {
 				color: #011a26;
 				font-weight: 600;
 				position: relative;
+                                padding-bottom: 10px;
 			}
 
 			.step-heading::after {
@@ -11141,6 +11143,7 @@ const ContactFormExtension = {
 				color: #011a26;
 				font-weight: 600;
 				position: relative;
+                                padding-bottom: 10px;
 			}
 
 			.step-heading::after {
