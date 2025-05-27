@@ -6764,7 +6764,7 @@ form.chatbot-form.booking-form {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 800px;
+  max-width: 870px;
   margin: 0 auto;
   padding: 0;
   border-radius: 12px;
@@ -7314,7 +7314,7 @@ input[type="tel"]:hover:not(:focus) {
 /* ---------- CALENDAR STYLES (UNIFIED FROM CALENDAR COMPONENT) ---------- */
 .calendar-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 870px;
   margin: 0 auto;
   background: #fff;
   border-radius: 12px;
