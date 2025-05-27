@@ -2433,7 +2433,7 @@ button:focus-visible {
     <div class="confirmation-icon">
       ${SVG_CHECK}
     </div>
-    <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
+    <span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
     <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
@@ -2483,7 +2483,7 @@ button:focus-visible {
   
   <!-- Step 1: Contact Information -->
   <div class="step-container active" id="step-1">
-    <h2 class="step-heading" id="step1-heading">Informations de contact</h2>
+    <span class="step-heading" id="step1-heading">Informations de contact</span>
     
     <div class="flex-row">
       <div class="form-group">
@@ -2538,7 +2538,7 @@ button:focus-visible {
   
   <!-- Step 2: Project Details (Moved from original Step 6) -->
   <div class="step-container" id="step-2">
-    <h2 class="step-heading" id="step2-heading">Détails du projet</h2>
+    <span class="step-heading" id="step2-heading">Détails du projet</span>
     
     <div class="form-group">
       <label class="form-label required" id="niche-label">Quelle est votre niche ?</label>
@@ -2614,7 +2614,7 @@ button:focus-visible {
   
   <!-- Step 3: Business Profile -->
   <div class="step-container" id="step-3">
-    <h2 class="step-heading" id="step3-heading">Profil professionnel</h2>
+    <span class="step-heading" id="step3-heading">Profil professionnel</span>
     
     <div class="question-group">
       <label class="question-label" id="team-size-question">Quelle est la taille de votre équipe ?</label>
@@ -2654,7 +2654,7 @@ button:focus-visible {
   
   <!-- Step 4: Core Features -->
   <div class="step-container" id="step-4">
-    <h2 class="step-heading" id="step4-heading">Fonctionnalités de base</h2>
+    <span class="step-heading" id="step4-heading">Fonctionnalités de base</span>
     
     <div class="question-group">
       <label class="question-label" id="lead-capture-question">Avez-vous besoin de capture de leads ?</label>
@@ -2724,7 +2724,7 @@ button:focus-visible {
   
   <!-- Step 5: Form Requirements -->
   <div class="step-container" id="step-5">
-    <h2 class="step-heading" id="step5-heading">Formulaires</h2>
+    <span class="step-heading" id="step5-heading">Formulaires</span>
     
     <div class="question-group">
       <label class="question-label" id="use-form-question">Avez-vous besoin de formulaires ?</label>
@@ -2783,7 +2783,7 @@ button:focus-visible {
   <!-- Step 6: Website Integration with Traffic Field -->
 <!-- Step 6: Website Integration with Traffic Field -->
 <div class="step-container" id="step-6">
-  <h2 class="step-heading" id="step6-heading">Site Web</h2>
+  <span class="step-heading" id="step6-heading">Site Web</span>
   
   <div class="question-group">
     <label class="question-label" id="website-question">Avez-vous un site web ?</label>
@@ -2875,7 +2875,7 @@ button:focus-visible {
   
   <!-- Step 7: Integrations -->
   <div class="step-container" id="step-7">
-    <h2 class="step-heading" id="step7-heading">Intégrations</h2>
+    <span class="step-heading" id="step7-heading">Intégrations</span>
     
     <!-- CRM Section -->
     <div class="question-group">
@@ -3040,7 +3040,7 @@ button:focus-visible {
   
   <!-- Step 8: Communication Channels -->
   <div class="step-container" id="step-8">
-    <h2 class="step-heading" id="step8-heading">Canaux de communication</h2>
+    <span class="step-heading" id="step8-heading">Canaux de communication</span>
     
     <!-- Social Media Section -->
     <div class="question-group">
@@ -3127,7 +3127,7 @@ button:focus-visible {
   
   <!-- Step 9: Summary -->
   <div class="step-container" id="step-9">
-    <h2 class="step-heading" id="step9-heading">Récapitulatif de votre demande</h2>
+    <span class="step-heading" id="step9-heading">Récapitulatif de votre demande</span>
     
     <div class="summary-container">
       <!-- Contact Information -->
@@ -8619,7 +8619,7 @@ button:focus-visible,
                         errorMessage.innerHTML = `
                             <div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+                                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2spanv-2h-2zm0-8v6spanV7h-2z" fill="currentColor"/>
                                 </svg>
                             </div>
                             <p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
