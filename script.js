@@ -2940,7 +2940,7 @@ const SubmissionFormExtension = {
 
 			/* ---------- LAYOUT & CONTAINER ---------- */
 			.container {
-				max-width: 870px;
+				min-width: 870px;
 				margin: 40px auto;
 				background: #fff;
 				border-radius: 12px;
@@ -2958,7 +2958,7 @@ const SubmissionFormExtension = {
 				display: flex;
 				flex-direction: column;
 				width: 100%;
-				max-width: 870px;
+				min-width: 870px;
 				margin: 0 auto;
 				padding: 0;
 				border-radius: 12px;
@@ -8388,7 +8388,7 @@ const BookingDirectExtension = {
 				display: flex;
 				flex-direction: column;
 				width: 100%;
-				max-width: 870px;
+				min-width: 870px;
 				margin: 0 auto;
 				padding: 0;
 				border-radius: 12px;
@@ -8940,7 +8940,7 @@ const BookingDirectExtension = {
 			/* ---------- CALENDAR STYLES (UNIFIED FROM CALENDAR COMPONENT) ---------- */
 			.calendar-container {
 				width: 100%;
-				max-width: 870px;
+				min-width: 870px;
 				margin: 0 auto;
 				background: #fff;
 				border-radius: 12px;
@@ -10910,7 +10910,7 @@ const ContactFormExtension = {
 
 			/* ---------- LAYOUT & CONTAINER ---------- */
 			.container {
-				max-width: 870px;
+				min-width: 870px;
 				margin: 40px auto;
 				background: #fff;
 				border-radius: 12px;
@@ -10928,7 +10928,7 @@ const ContactFormExtension = {
 				display: flex;
 				flex-direction: column;
 				width: 100%;
-				max-width: 870px;
+				min-width: 870px;
 				margin: 0 auto;
 				padding: 0;
 				border-radius: 12px;
