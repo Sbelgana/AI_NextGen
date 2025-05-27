@@ -88,22 +88,22 @@ const ServiceOptions = [
     {
         value: "IA agent",
         label: {
-            en: "IA agent",
-            fr: "Agent IA"
+            "en": "IA agent",
+            "fr": "Agent IA"
         },
 },
     {
         value: "Automation",
         label: {
-            en: "Automation",
-            fr: "Automatisation"
+            "en": "Automation",
+            "fr": "Automatisation"
         },
 },
     {
         value: "Web site",
         label: {
-            en: "Web site",
-            fr: "Site web"
+            "en": "Web site",
+            "fr": "Site web"
         },
 },
 ];
@@ -8100,7 +8100,7 @@ const BookingDirectExtension = {
         const TIMEOUT_DURATION = 300000; // 5 minutes in milliseconds
         // Create the UI translations
         const UI_TRANSLATIONS = {
-            en: {
+            "en": {
                 bookingTitle: "Schedule Your Appointment",
                 step1Title: "Service Selection",
                 step2Title: "Contact Information",
@@ -8175,7 +8175,7 @@ const BookingDirectExtension = {
 }
 ]
             },
-            fr: {
+            "fr": {
                 bookingTitle: "Planifiez Votre Rendez-vous",
                 step1Title: "Sélection du Service",
                 step2Title: "Informations de Contact",
@@ -12181,8 +12181,8 @@ const ContactFormExtension = {
         const serviceDisplayMap = {};
         ServiceOptions.forEach(service => {
             serviceDisplayMap[service.value] = {
-                en: service.label.en,
-                fr: service.label.fr
+                "en": service.label.en,
+                "fr": service.label.fr
             };
         });
         initializeCustomDropdown("serviceDropdown",
