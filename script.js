@@ -2834,2092 +2834,2161 @@ const SubmissionFormExtension = {
         formContainer.setAttribute("novalidate", "true");
         formContainer.classList.add("chatbot-form");
         formContainer.innerHTML = `
-<style>
-/* ====================================
-VSM MARKETING FORM - UNIFIED STYLESHEET - DARK BLUE THEME
-==================================== */
-
-/* ---------- RESET & BASE STYLES ---------- */
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-background-color: #f5f5f5;
-color: #333;
-line-height: 1.6;
-}
-
-html {
-scroll-behavior: smooth;
-}
-
-/* ---------- ANIMATIONS ---------- */
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(15px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-from { opacity: 0; transform: translateX(10px); }
-to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideDown {
-from { opacity: 0; transform: translateY(-10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-0%, 100% { transform: translateX(0); }
-10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-@keyframes pulse {
-0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
-70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
-100% { transform: scale(1); }
-}
-
-@keyframes shimmer {
-0% { background-position: -100% 0; }
-100% { background-position: 100% 0; }
-}
-
-/* ---------- LAYOUT & CONTAINER ---------- */
-.container {
-max-width: 870px;
-margin: 40px auto;
-background: #fff;
-border-radius: 12px;
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-overflow: hidden;
-transition: all 0.3s ease;
-animation: fadeIn 0.6s;
-}
-
-.container:hover {
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
-}
-
-form.chatbot-form {
-display: flex;
-flex-direction: column;
-width: 100%;
-max-width: 870px;
-margin: 0 auto;
-padding: 0;
-border-radius: 12px;
-background: #fff;
-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-position: relative;
-overflow: hidden;
-animation: fadeIn 0.6s;
-transition: all 0.3s ease;
-}
-
-form.chatbot-form:hover {
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
-}
-
-/* Two-column layout */
-.row, .form-row, .flex-row {
-display: flex;
-flex-wrap: wrap;
-margin: 0 -10px;
-width: calc(100% + 20px);
-}
-
-.col, .form-col, .flex-row > div {
-flex: 1 0 0;
-padding: 0 10px;
-min-width: 0;
-}
-
-/* ---------- FORM HEADER ---------- */
-.form-header {
-padding: 20px 30px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-display: flex;
-align-items: center;
-gap: 16px;
-border-radius: 12px 12px 0 0;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
-color: white;
-position: relative;
-}
-
-.form-header::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-.header-icon {
-width: 48px;
-height: 48px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 50%;
-background-color: rgba(255, 255, 255, 0.2);
-transition: all 0.3s ease;
-}
-
-.header-icon:hover {
-transform: scale(1.1);
-background-color: rgba(255, 255, 255, 0.3);
-}
-
-.header-icon svg {
-filter: brightness(0) invert(1);
-}
-
-.form-title {
-font-size: 28px;
-color: white;
-margin: 0;
-font-weight: 600;
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- STEP PROGRESS INDICATOR ---------- */
-.progress-container {
-padding: 20px 25px 10px 25px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-progress {
-display: flex;
-justify-content: space-between;
-position: relative;
-z-index: 0;
-}
-
-.step-progress::before {
-content: '';
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-width: 100%;
-background-color: #e0e0e0;
-border-radius: 10px;
-z-index: -1;
-}
-
-.progress-bar {
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-background: linear-gradient(to right, #023047, #e6f2f7);
-border-radius: 10px;
-transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
-z-index: -1;
-}
-
-.step-item {
-width: 36px;
-height: 36px;
-background-color: #e0e0e0;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-color: #666;
-position: relative;
-transition: all 0.3s ease;
-border: 3px solid white;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-z-index: 3;
-}
-
-.step-item.active {
-background-color: #e6f2f7;
-color: #023047;
-transform: scale(1.1);
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.step-item.completed {
-background-color: #023047;
-color: white;
-animation: pulse 2s infinite;
-}
-
-.step-title {
-position: absolute;
-top: 40px;
-left: 50%;
-transform: translateX(-50%);
-font-size: 11px;
-white-space: nowrap;
-color: #023047;
-font-weight: 600;
-display: none;
-opacity: 0.8;
-transition: opacity 0.3s ease;
-width: 110px;
-text-align: center;
-}
-
-/* ---------- FORM STEPS & ANIMATIONS ---------- */
-.step-container {
-display: none;
-animation: fadeIn 0.6s;
-}
-
-.step-container.active {
-display: flex;
-flex-direction: column;
-gap: 10px;
-padding: 5px 30px 10px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-container:not(.active) {
-pointer-events: none;
-}
-
-/* ---------- FORM ELEMENTS ---------- */
-.form-label, .question-label, .bold-label {
-display: block;
-font-weight: 600;
-color: #011a26;
-font-size: 15px;
-}
-
-.question-label {
-font-size: 16px;
-}
-
-.form-label.required::after,
-.question-label.required::after {
-content: " *";
-color: #e52059;
-font-weight: bold;
-}
-
-.step-heading {
-font-size: 26px;
-color: #011a26;
-font-weight: 600;
-position: relative;
-}
-
-.step-heading::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 70px;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-/* ========== Input Fields ========== */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="number"],
-#details,
-#description,
-#services,
-#form-purpose,
-select {
-width: 100%;
-border: 2px solid #e0e0e0;
-border-radius: 8px;
-padding: 12px 16px;
-font-size: 14px;
-font-weight: 500;
-transition: all 0.3s ease;
-background-color: #fafafa;
-color: #444;
-position: relative;
-overflow: hidden;
-margin:0px;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus,
-input[type="number"]:focus,
-#details:focus,
-#description:focus,
-#services:focus,
-#form-purpose:focus,
-select:focus {
-border-color: #023047;
-box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
-outline: none;
-background-color: #fff;
-transform: translateY(-2px);
-}
-
-input[type="text"]:hover:not(:focus),
-input[type="email"]:hover:not(:focus),
-input[type="tel"]:hover:not(:focus),
-input[type="number"]:hover:not(:focus),
-#details:hover:not(:focus),
-#description:hover:not(:focus),
-#services:hover:not(:focus),
-#form-purpose:hover:not(:focus) {
-border-color: #023047;
-background-color: #e6f2f7;
-}
-
-#details,
-#description,
-#services,
-#form-purpose {
-min-height: 120px;
-resize: vertical;
-font-family: inherit;
-}
-
-/* ---------- DROPDOWN COMPONENTS ---------- */
-.select-container select {
-display: none !important;
-}
-
-.main-container {
-display: block;
-transition: height 0.3s ease;
-border-radius: 8px;
-width: 100%;
-margin-bottom: 15px;
-}
-
-.select-wrapper {
-border: 2px solid #e0e0e0;
-border-radius: 8px;
-background-color: #fafafa;
-position: relative;
-width: 100%;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-transition: all 0.3s ease;
-}
-
-.select-wrapper:hover {
-border-color: #023047;
-background-color: #e6f2f7;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.select-display {
-padding: 12px 18px;
-font-size: 15px;
-cursor: pointer;
-display: flex;
-justify-content: space-between;
-align-items: center;
-height: 52px;
-color: #444;
-font-weight: 500;
-}
-
-.dropdown-icon {
-width: 30px;
-height: 30px;
-transition: transform 0.3s ease;
-display: flex;
-align-items: center;
-justify-content: center;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-border-radius: 50%;
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
-}
-
-.dropdown-icon svg path {
-fill: white !important;
-}
-
-.dropdown-icon.rotate {
-transform: rotate(180deg);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
-}
-
-.custom-options {
-display: none;
-font-size: 15px;
-border-top: 1px solid #e0e0e0;
-max-height: 250px;
-overflow-y: auto;
-background-color: #fff;
-box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
-z-index: 100;
-border-radius: 0 0 8px 8px;
--ms-overflow-style: none;
-scrollbar-width: none;
-width: 100%;
-}
-
-.show-options {
-display: block;
-animation: slideDown 0.3s ease-out;
-}
-
-.custom-option {
-padding: 14px 18px;
-display: flex;
-align-items: center;
-cursor: pointer;
-transition: all 0.3s ease;
-position: relative;
-border-left: 4px solid transparent;
-}
-
-.custom-option:hover {
-background-color: rgba(2, 48, 71, 0.08);
-color: #011a26;
-border-left-color: #023047;
-transform: translateX(5px);
-}
-
-.custom-option.selected {
-background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
-color: #011a26;
-font-weight: bold;
-border-left-color: #023047;
-box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
-}
-
-.custom-option.selected .option-checkbox svg path {
-fill: #fff !important;
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg path {
-fill: #023047;
-}
-
-/* Checkbox styling */
-.option-checkbox {
-width: 22px;
-height: 22px;
-border: 2px solid #ccc;
-border-radius: 50%;
-margin-right: 14px;
-display: flex;
-align-items: center;
-justify-content: center;
-background-color: #fff;
-transition: all 0.3s ease;
-position: relative;
-}
-
-.option-checkbox svg {
-width: 12px;
-height: 12px;
-display: none;
-}
-
-.custom-option:not(.selected):hover .option-checkbox {
-border-color: #023047;
-transform: scale(1.05);
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg {
-display: block;
-}
-
-.custom-option.selected .option-checkbox svg {
-display: block;
-}
-
-.custom-option.selected .option-checkbox {
-border-color: #023047;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-transform: scale(1.1);
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg path {
-fill: #023047 !important;
-}
-
-/* ---------- CHECKBOXES & RADIO BUTTONS ---------- */
-.options-group {
-display: flex;
-flex-wrap: nowrap;
-gap: 10px;
-}
-
-.radio-option,
-.checkbox-option {
-display: flex;
-align-items: center;
-cursor: pointer;
-padding: 12px 18px;
-border: 2px solid #ddd;
-border-radius: 10px;
-transition: all 0.2s;
-flex: 1;
-min-width: 200px;
-position: relative;
-overflow: hidden;
-}
-
-.radio-option:hover,
-.checkbox-option:hover {
-border-color: #023047;
-background-color: #e6f2f7;
-transform: translateY(-2px);
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.radio-option::before,
-.checkbox-option::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 4px;
-height: 100%;
-background: #023047;
-transform: scaleY(0);
-transition: transform 0.2s;
-transform-origin: bottom;
-}
-
-.radio-option:hover::before,
-.checkbox-option:hover::before {
-transform: scaleY(1);
-}
-
-.radio-option input,
-.checkbox-option input {
-margin-right: 12px;
-accent-color: #023047;
-transform: scale(1.2);
-}
-
-.radio-option input:checked + span,
-.checkbox-option input:checked + span {
-font-weight: 500;
-color: #011a26;
-}
-
-.radio-option input:checked,
-.checkbox-option input:checked {
-accent-color: #023047;
-}
-
-/* Multi-select styling */
-.multi-select .option-checkbox {
-border-radius: 6px !important;
-}
-
-.option-checkbox-icon {
-position: absolute;
-display: flex;
-align-items: center;
-justify-content: center;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-opacity: 0;
-transition: opacity 0.2s ease;
-}
-
-.option-checkbox-icon svg {
-width: 14px;
-height: 14px;
-display: block;
-margin: 0 auto;
-}
-
-.custom-option:not(.selected):hover .option-checkbox-icon {
-opacity: 0.6;
-}
-
-.custom-option.selected .option-checkbox-icon {
-opacity: 1;
-}
-
-.custom-option:not(.selected):hover .option-checkbox-icon svg path {
-fill: #023047 !important;
-}
-
-/* ---------- ERROR MESSAGES ---------- */
-.error-container {
-width: 100%;
-margin: 2px 0;
-box-sizing: border-box;
-}
-
-.error-message {
-color: white;
-font-size: 13px;
-margin-top: 8px;
-display: none;
-background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-border-radius: 8px;
-border: none;
-padding: 12px 16px;
-animation: shake 0.5s;
-box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-}
-
-.error-message.show {
-display: flex;
-animation: slideIn 0.3s ease-out;
-}
-
-.error-icon {
-width: 22px;
-height: 22px;
-min-width: 22px;
-border-radius: 50%;
-background-color: white;
-color: #e52059;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-margin-right: 12px;
-font-size: 14px;
-}
-
-.error-text {
-flex: 1;
-}
-
-/* ---------- BUTTONS & NAVIGATION ---------- */
-.form-buttons {
-display: flex;
-justify-content: space-between;
-gap: 15px;
-}
-
-.btn {
-padding: 14px 28px;
-border: none;
-border-radius: 8px;
-font-size: 16px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s ease;
-letter-spacing: 0.5px;
-position: relative;
-overflow: hidden;
-}
-
-.btn::after {
-content: '';
-position: absolute;
-width: 100%;
-height: 100%;
-top: 0;
-left: -100%;
-background: linear-gradient(90deg, 
-rgba(255,255,255,0) 0%, 
-rgba(255,255,255,0.2) 50%, 
-rgba(255,255,255,0) 100%);
-transition: all 0.6s;
-}
-
-.btn:hover:not(:disabled)::after {
-left: 100%;
-}
-
-.btn-prev {
-background-color: #f0f0f0;
-color: #011a26;
-border: 2px solid #e0e0e0;
-}
-
-.btn-prev:hover {
-background-color: #e6f2f7;
-border-color: #023047;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.btn-next,
-.btn-submit {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.btn-next:hover,
-.btn-submit:hover {
-transform: translateY(-3px);
-box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
-}
-
-.btn-submit {
-background: linear-gradient(135deg, #023047 0%, #e52059 100%);
-box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-}
-
-.btn-submit:hover {
-box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
-}
-
-.btn:disabled {
-opacity: 0.7;
-cursor: not-allowed;
-transform: none;
-box-shadow: none;
-}
-
-.btn:disabled::after {
-display: none;
-}
-
-.form-buttons .btn:active {
-transform: translateY(1px);
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
-}
-
-/* ---------- CONDITIONAL FIELDS ---------- */
-.conditional-field {
-display: none;
-margin-top: 18px;
-padding: 15px 20px;
-border-left: 3px solid #023047;
-background-color: rgba(2, 48, 71, 0.05);
-border-radius: 0 8px 8px 0;
-animation: slideDown 0.3s;
-}
-
-.form-col .conditional-field {
-margin-top: 15px;
-}
-
-/* ---------- SUMMARY STYLES ---------- */
-.summary-container {
-background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
-border: 2px solid rgba(2, 48, 71, 0.1);
-border-radius: 12px;
-padding: 10px 15px;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
-}
-
-.summary-section {
-margin-bottom: 20px;
-}
-
-.summary-heading {
-font-size: 16px;
-font-weight: 600;
-color: #023047;
-margin-bottom: 10px;
-padding-bottom: 5px;
-border-bottom: 1px solid #e0e0e0;
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.edit-btn {
-background: none;
-border: 1px solid #023047;
-color: #023047;
-cursor: pointer;
-padding: 6px 12px;
-font-size: 14px;
-border-radius: 6px;
-transition: all 0.3s ease;
-font-weight: 500;
-}
-
-.edit-btn:hover {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
-}
-
-.summary-row {
-display: flex;
-padding: 6px 0;
-border-bottom: 1px solid rgba(2, 48, 71, 0.1);
-align-items: center;
-transition: all 0.3s ease;
-}
-
-.summary-row:last-child {
-border-bottom: none;
-}
-
-.summary-row:hover {
-background-color: rgba(2, 48, 71, 0.05);
-border-radius: 8px;
-padding-left: 10px;
-padding-right: 10px;
-}
-
-.summary-label {
-font-weight: 600;
-width: 30%;
-color: #011a26;
-}
-
-.summary-value {
-flex: 1;
-color: #023047;
-}
-
-/* ---------- CONFIRMATION SCREEN ---------- */
-.confirmation-screen {
-display: none;
-text-align: center;
-padding: 40px 20px;
-animation: fadeIn 0.5s;
-}
-
-.confirmation-screen.active {
-display: block;
-}
-
-.confirmation-icon {
-width: 80px;
-height: 80px;
-background: #023047;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-margin: 0 auto 20px;
-animation: pulse 2s infinite;
-}
-
-.confirmation-icon svg {
-width: 36px;
-height: 36px;
-}
-
-.confirmation-title {
-font-size: 24px;
-color: #023047;
-margin-bottom: 15px;
-font-weight: 600;
-}
-
-.confirmation-message {
-font-size: 16px;
-color: #555;
-margin-bottom: 30px;
-line-height: 1.5;
-}
-
-.textarea-wrapper {
-position: relative;
-width: 100%;
-margin-bottom: 0;
-}
-
-.textarea-wrapper textarea {
-margin-bottom: 0;
-display: block;
-}
-
-/* Character counter */
-.char-counter {
-position: absolute;
-right: 10px;
-bottom: 10px;
-font-size: 12px;
-color: #757575;
-background: rgba(255, 255, 255, 0.9);
-padding: 2px 6px;
-border-radius: 10px;
-}
-
-/* ---------- INFO BUTTONS ---------- */
-.info-button {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-width: 18px;
-height: 18px;
-border-radius: 50%;
-background: #e0e0e0;
-color: #757575;
-font-size: 12px;
-font-weight: bold;
-margin-left: 8px;
-cursor: pointer;
-transition: all 0.2s ease;
-border: none;
-padding: 0;
-}
-
-.info-button:hover {
-background: #023047;
-color: white;
-}
-
-.info-panel {
-display: none;
-background: #f9f9f9;
-border: 1px solid #e0e0e0;
-border-left: 3px solid #023047;
-border-radius: 4px;
-padding: 12px;
-margin-top: 8px;
-margin-bottom: 10px;
-position: relative;
-font-size: 13px;
-line-height: 1.5;
-color: #555;
-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-animation: fadeIn 0.3s;
-}
-
-.info-panel.show {
-display: block;
-}
-
-.close-info {
-position: absolute;
-top: 8px;
-right: 8px;
-width: 16px;
-height: 16px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 50%;
-background: #f0f0f0;
-font-size: 10px;
-font-weight: bold;
-cursor: pointer;
-border: none;
-padding: 0;
-color: #757575;
-}
-
-.close-info:hover {
-background: #e0e0e0;
-color: #333;
-}
-
-.info-title {
-font-weight: 600;
-color: #023047;
-margin-bottom: 6px;
-font-size: 14px;
-}
-
-.info-button svg .info-bg { fill: #e6f2f7; }
-.info-button svg .info-icon { fill: #023047; }
-
-.info-button:hover svg .info-bg,
-.info-button:focus svg .info-bg,
-.info-button:active svg .info-bg {
-fill: #023047;
-}
-
-.info-button:hover svg .info-icon,
-.info-button:focus svg .info-icon,
-.info-button:active svg .info-icon {
-fill: #ffffff;
-}
-
-.select-display.placeholder span {
-color: #808080;
-}
-
-.select-display:not(.placeholder) span {
-color: #000;
-}
-
-/* ---------- RESPONSIVE DESIGN ---------- */
-@media (max-width: 767px) {
-.row, .form-row, .flex-row {
-display: flex;
-margin: 0;
-width: 100%;
-gap: 10px;
-flex-direction: column;
-}
-.step-container.active {
-padding: 5px 15px 10px;
-}
-
-.col, .form-col, .flex-row > div {
-width: 100%;
-padding: 0;
-margin-bottom: 0px;
-}
-
-.form-group {
-margin-bottom: 10px;
-}
-
-.form-col .conditional-field {
-margin-left: 0;
-padding-left: 15px;
-}
-}
-
-@media (max-width: 768px) {
-.form-title {
-font-size: 22px;
-}
-
-.form-header {
-padding: 15px 20px;
-gap: 15px;
-}
-
-.header-icon {
-width: 36px;
-height: 36px;
-}
-
-.step-heading {
-font-size: 22px;
-}
-
-.btn {
-padding: 12px 18px;
-font-size: 15px;
-}
-
-.container, form.chatbot-form {
-width: auto;
-border-radius: 8px;
-}
-
-.step-item {
-width: 30px;
-height: 30px;
-font-size: 13px;
-}
-
-.progress-container {
-padding: 10px 10px 10px;
-}
-
-.step-title {
-font-size: 9px;
-width: 80px;
-}
-
-.radio-option,
-.checkbox-option {
-max-width: 50%;
-min-width: 40%;
-}
-
-.form-buttons {
-flex-direction: row;
-gap: 10px;
-}
-}
-
-@media (max-width: 480px) {
-form.chatbot-form {
-min-width: 200px;
-}
-.header-icon svg {
-width: 18px;
-height: 18px;
-}
-.step-heading {
-font-size: 18px;
-}
-
-.step-item {
-width: 24px;
-height: 24px;
-font-size: 12px;
-}
-
-.step-title {
-font-size: 8px;
-width: 60px;
-top: 35px;
-}
-
-.form-header {
-padding: 12px 15px;
-}
-
-.summary-container {
-padding: 15px;
-}
-}
-
-/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
-input:focus-visible, 
-#details:focus-visible, 
-#description:focus-visible,
-#services:focus-visible,
-#form-purpose:focus-visible,
-select:focus-visible,
-button:focus-visible {
-outline: 2px solid #023047;
-outline-offset: 2px;
-}
-
-.hidden {
-display: none !important;
-}
-
-/* ---------- LOADING STATES ---------- */
-.loading {
-opacity: 0.7;
-pointer-events: none;
-}
-
-.loading .btn {
-background: #ccc;
-cursor: wait;
-}
-
-/* Conditional Section Styling */
-.conditional-section {
-display: none !important;
-}
-
-.conditional-section.visible {
-display: block !important;
-}
-
-#social-platforms-group {
-margin-bottom: 10px;
-}
-
-.confirmation-screen.active + * .progress-container,
-.confirmation-screen.active ~ .progress-container {
-display: none !important;
-}
-
-/* Ensure conditional sections are hidden by default */
-#form-options,
-#website-options,
-#crm-selection,
-#database-selection,
-#social-platforms-group,
-#existing-booking-options,
-#need-booking-options,
-#language-selection,
-#other-platform-group,
-#other-niche-group,
-#custom-budget-group {
-display: none !important;
-}
-
-/* Override when visible class is applied */
-#form-options.visible,
-#website-options.visible,
-#crm-selection.visible,
-#database-selection.visible,
-#social-platforms-group.visible,
-#existing-booking-options.visible,
-#need-booking-options.visible,
-#language-selection.visible,
-#other-platform-group.visible,
-#other-niche-group.visible,
-#custom-budget-group.visible {
-display: flex !important;
-flex-direction: column;
-gap: 10px;
-}
-
-</style>
-
-<!-- Confirmation Screen -->
-<div class="confirmation-screen" id="confirmation-screen">
-<div class="confirmation-icon">
-${SVG_CHECK}
-</div>
-<span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
-<p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
-<button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
-</div>
-
-<!-- Step Progress Indicator -->
-<div class="progress-container">
-<div class="step-progress">
-<div class="progress-bar" id="progress-bar"></div>
-<div class="step-item active" data-step="1">
-<div class="step-icon">1</div>
-<div class="step-title" id="progress-step1">Informations de contact</div>
-</div>
-<div class="step-item" data-step="2">
-<div class="step-icon">2</div>
-<div class="step-title" id="progress-step2">Détails du projet</div>
-</div>
-<div class="step-item" data-step="3">
-<div class="step-icon">3</div>
-<div class="step-title" id="progress-step3">Profil professionnel</div>
-</div>
-<div class="step-item" data-step="4">
-<div class="step-icon">4</div>
-<div class="step-title" id="progress-step4">Fonctionnalités de base</div>
-</div>
-<div class="step-item" data-step="5">
-<div class="step-icon">5</div>
-<div class="step-title" id="progress-step5">Formulaires</div>
-</div>
-<div class="step-item" data-step="6">
-<div class="step-icon">6</div>
-<div class="step-title" id="progress-step6">Site Web</div>
-</div>
-<div class="step-item" data-step="7">
-<div class="step-icon">7</div>
-<div class="step-title" id="progress-step7">Intégrations</div>
-</div>
-<div class="step-item" data-step="8">
-<div class="step-icon">8</div>
-<div class="step-title" id="progress-step8">Canaux de communication</div>
-</div>
-<div class="step-item" data-step="9">
-<div class="step-icon">9</div>
-<div class="step-title" id="progress-step9">Récapitulatif</div>
-</div>
-</div>
-</div>
-
-<!-- Step 1: Contact Information -->
-<div class="step-container active" id="step-1">
-<span class="step-heading" id="step1-heading">Informations de contact</span>
-
-<div class="flex-row">
-<div class="form-group">
-<label class="form-label required" id="firstname-label">Prénom</label>
-<input type="text" id="first-name" name="firstName" placeholder="Votre prénom" />
-<div class="error-message" id="error-firstname">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="lastname-label">Nom</label>
-<input type="text" id="last-name" name="lastName" placeholder="Votre nom" />
-<div class="error-message" id="error-lastname">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-</div>
-
-<div class="flex-row">
-<div class="form-group">
-<label class="form-label required" id="email-label">Email</label>
-<input type="email" id="email" name="email" placeholder="Votre email" />
-<div class="error-message" id="error-email">
-<div class="error-icon">!</div>
-<span class="error-text">Entrez une adresse email valide</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="phone-label">Téléphone</label>
-<input type="tel" id="phone" name="phone" placeholder="Votre numéro de téléphone" />
-<div class="error-message" id="error-phone">
-<div class="error-icon">!</div>
-<span class="error-text">Entrez un numéro de téléphone valide</span>
-</div>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label" id="company-label">Entreprise (optionnel)</label>
-<input type="text" id="company" name="company" placeholder="Nom de votre entreprise" />
-</div>
-
-<div class="form-buttons">
-<div></div>
-<button type="button" class="btn btn-next" id="step1-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 2: Project Details (Moved from original Step 6) -->
-<div class="step-container" id="step-2">
-<span class="step-heading" id="step2-heading">Détails du projet</span>
-
-<div class="form-group">
-<label class="form-label required" id="niche-label">Quelle est votre niche ?</label>
-<div class="select-container" id="nicheDropdown">
-<select id="niche"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayNiche" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextNiche">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconNiche">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsNiche"></div>
-</div>
-</div>
-<div class="error-message" id="error-niche">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une niche</span>
-</div>
-</div>
-
-<div class="form-group" id="other-niche-group" style="display: none;">
-<label class="form-label required" id="other-niche-label">Précisez votre niche</label>
-<input type="text" id="other-niche" name="otherNiche" placeholder="Votre niche..." />
-<div class="error-message" id="error-other-niche">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="budget-label">Quel est votre budget ?</label>
-<div class="select-container" id="budgetDropdown">
-<select id="budget"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayBudget" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextBudget">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconBudget">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsBudget"></div>
-</div>
-</div>
-<div class="error-message" id="error-budget">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner un budget</span>
-</div>
-</div>
-
-<div class="form-group" id="custom-budget-group" style="display: none;">
-<label class="form-label required" id="custom-budget-label">Précisez votre budget</label>
-<input type="text" id="custom-budget" name="customBudget" placeholder="Détails de votre budget..." />
-<div class="error-message" id="error-custom-budget">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="description-label">Description détaillée de votre projet</label>
-<div class="textarea-wrapper">
-<textarea id="description" name="description" placeholder="Décrivez vos besoins en détail, vos objectifs, et toute autre information pertinente..." rows="6"></textarea>
-<div class="char-counter"><span id="description-counter">0</span>/1000</div>
-</div>
-<div class="error-message" id="error-description">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step2-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step2-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 3: Business Profile -->
-<div class="step-container" id="step-3">
-<span class="step-heading" id="step3-heading">Profil professionnel</span>
-
-<div class="question-group">
-<label class="question-label" id="team-size-question">Quelle est la taille de votre équipe ?</label>
-<div class="select-container" id="teamSizeDropdown">
-<select id="team-size"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayTeamSize" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextTeamSize">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconTeamSize">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsTeamSize"></div>
-</div>
-</div>
-<div class="error-message" id="error-team-size">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="services-label">Quels sont vos services ?</label>
-<div class="textarea-wrapper">
-<textarea id="services" name="services" placeholder="Décrivez vos services principaux..." rows="4"></textarea>
-<div class="char-counter"><span id="services-counter">0</span>/500</div>
-</div>
-<div class="error-message" id="error-services">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step3-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step3-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 4: Core Features -->
-<div class="step-container" id="step-4">
-<span class="step-heading" id="step4-heading">Fonctionnalités de base</span>
-
-<div class="question-group">
-<label class="question-label" id="lead-capture-question">Avez-vous besoin de capture de leads ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="leadCapture" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="leadCapture" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-lead-capture">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="question-group">
-<label class="question-label" id="lead-qualification-question">Nécessitez-vous un système de qualification des prospects ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="leadQualification" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="leadQualification" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-lead-qualification">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="question-group">
-<label class="question-label" id="conversation-summary-question">Avez-vous besoin de résumés de conversation ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="conversationSummary" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="conversationSummary" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-conversation-summary">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step4-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step4-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 5: Form Requirements -->
-<div class="step-container" id="step-5">
-<span class="step-heading" id="step5-heading">Formulaires</span>
-
-<div class="question-group">
-<label class="question-label" id="use-form-question">Avez-vous besoin de formulaires ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="useForm" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="useForm" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-use-form">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div id="form-options" style="display: none; gap: 10px; flex-direction: column;">
-<div class="question-group">
-<label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
-<div class="select-container multi-select" id="formTypesDropdown">
-<select id="formTypesSelect" multiple></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayFormTypes" data-placeholder="-- Sélectionnez (multiple) --">
-<span id="selectedTextFormTypes">-- Sélectionnez (multiple) --</span>
-<div class="dropdown-icon" id="dropdownIconFormTypes">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsFormTypes"></div>
-</div>
-</div>
-<div class="error-message" id="error-form-types">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner au moins un type</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label" id="form-purpose-label">À quoi serviront ces formulaires ?</label>
-<div class="textarea-wrapper">
-<textarea id="form-purpose" name="formPurpose" placeholder="Décrivez l'utilisation prévue des formulaires..." rows="3"></textarea>
-<div class="char-counter"><span id="form-purpose-counter">0</span>/300</div>
-</div>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step5-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step5-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 6: Website Integration with Traffic Field -->
-<!-- Step 6: Website Integration with Traffic Field -->
-<div class="step-container" id="step-6">
-<span class="step-heading" id="step6-heading">Site Web</span>
-
-<div class="question-group">
-<label class="question-label" id="website-question">Avez-vous un site web ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="hasWebsite" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="hasWebsite" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-has-website">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div id="website-options" style="display: none; gap: 10px; flex-direction: column;">
-<!-- Platform and Traffic Volume Side by Side -->
-<div class="flex-row">
-<div class="form-group">
-<label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
-<div class="select-container" id="websitePlatformDropdown">
-<select id="website-platform"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayWebsitePlatform" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextWebsitePlatform">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconWebsitePlatform">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsWebsitePlatform"></div>
-</div>
-</div>
-<div class="error-message" id="error-platform">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une plateforme</span>
-</div>
-</div>
-
-<div class="form-group">
-<label class="form-label required" id="website-traffic-label">Trafic mensuel moyen de votre site</label>
-<div class="select-container" id="websiteTrafficDropdown">
-<select id="website-traffic"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayWebsiteTraffic" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextWebsiteTraffic">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconWebsiteTraffic">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsWebsiteTraffic"></div>
-</div>
-</div>
-<div class="error-message" id="error-website-traffic">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez indiquer le trafic de votre site</span>
-</div>
-</div>
-</div>
-
-<!-- Other Platform Field (Conditional) -->
-<div class="form-group" id="other-platform-group" style="display: none;">
-<label class="form-label" id="other-platform-label">Précisez la plateforme</label>
-<input type="text" id="other-platform" name="otherPlatform" placeholder="Nom de la plateforme..." />
-<div class="error-message" id="error-other-platform">
-<div class="error-icon">!</div>
-<span class="error-text">Ce champ est obligatoire</span>
-</div>
-</div>
-
-<!-- Website URL Field -->
-<div class="form-group">
-<label class="form-label required" id="website-url-label">URL de votre site web</label>
-<input type="text" id="website-url" name="websiteUrl" placeholder="https://www.votresite.com" />
-<div class="error-message" id="error-website-url">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez entrer une URL valide</span>
-</div>
-</div>
-</div>
-
-<!-- Navigation Buttons -->
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step6-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step6-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 7: Integrations -->
-<div class="step-container" id="step-7">
-<span class="step-heading" id="step7-heading">Intégrations</span>
-
-<!-- CRM Section -->
-<div class="question-group">
-<label class="question-label" id="use-crm-question">Utiliserez-vous un CRM avec votre chatbot ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="useCRM" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label" id="yes-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="useCRM" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label" id="no-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-use-crm">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="question-group" id="crm-selection" style="display: none; ">
-<label class="form-label" id="crm-select-label">Sélectionnez les CRM à intégrer</label>
-<div class="select-container multi-select" id="crmsDropdown">
-<select id="crmsSelect" multiple></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayCrms" data-placeholder="-- Sélectionnez (multiple) --">
-<span id="selectedTextCrms">-- Sélectionnez (multiple) --</span>
-<div class="dropdown-icon" id="dropdownIconCrms">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsCrms"></div>
-</div>
-</div>
-<div class="error-message" id="error-crms">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner au moins un CRM</span>
-</div>
-</div>
-
-<!-- Booking System Section -->
-<div class="question-group">
-<label class="question-label" id="has-booking-question">Utilisez-vous déjà un système de réservation ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="hasBookingSystem" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="hasBookingSystem" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-has-booking">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<!-- Show if they have a booking system -->
-<div id="existing-booking-options" style="display: none;">
-<div class="question-group">
-<label class="form-label" id="booking-select-label">Sélectionnez votre système de réservation</label>
-<div class="select-container" id="bookingSystemsDropdown">
-<select id="bookingSystemsSelect"></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayBookingSystems" data-placeholder="-- Sélectionnez --">
-<span id="selectedTextBookingSystems">-- Sélectionnez --</span>
-<div class="dropdown-icon" id="dropdownIconBookingSystems">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsBookingSystems"></div>
-</div>
-</div>
-<div class="error-message" id="error-booking-systems">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner un système</span>
-</div>
-</div>
-</div>
-
-<!-- Show if they don't have a booking system -->
-<div id="need-booking-options" class="conditional-section">
-<div class="question-group">
-<label class="question-label" id="want-booking-recommendation">Souhaitez-vous que nous vous recommandions un système de réservation ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="wantBookingRecommendation" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="wantBookingRecommendation" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-</div>
-</div>
-
-<div class="question-group">
-<label class="question-label" id="handle-cancellation-question">Le chatbot doit-il gérer les annulations et replanifications ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="handleCancellation" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="handleCancellation" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-</div>
-
-<!-- Database Section -->
-<div class="question-group">
-<label class="question-label" id="use-database-question">Utiliserez-vous une base de données ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="useDatabase" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="useDatabase" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-use-database">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="question-group" id="database-selection" style="display: none;">
-<label class="form-label" id="database-select-label">Sélectionnez les bases de données</label>
-<div class="select-container multi-select" id="databasesDropdown">
-<select id="databasesSelect" multiple></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayDatabases" data-placeholder="-- Sélectionnez (multiple) --">
-<span id="selectedTextDatabases">-- Sélectionnez (multiple) --</span>
-<div class="dropdown-icon" id="dropdownIconDatabases">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsDatabases"></div>
-</div>
-</div>
-<div class="error-message" id="error-databases">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner au moins une base de données</span>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step7-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step7-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 8: Communication Channels -->
-<div class="step-container" id="step-8">
-<span class="step-heading" id="step8-heading">Canaux de communication</span>
-
-<!-- Social Media Section -->
-<div class="question-group">
-<label class="question-label" id="social-bot-question">Avez-vous besoin d'un chatbot pour les réseaux sociaux ?</label>
-<div class="options-group">
-<label class="radio-option"><input type="radio" name="needSocialBot" value="yes" />
-<span class="radio-icon"></span>
-<span class="radio-label">Oui</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="needSocialBot" value="no" />
-<span class="radio-icon"></span>
-<span class="radio-label">Non</span>
-</label>
-</div>
-<div class="error-message" id="error-need-social">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div id="social-platforms-group" class="conditional-section">
-<label class="form-label" id="social-platforms-label">Sélectionnez les plateformes sociales</label>
-<div class="select-container multi-select" id="socialPlatformsDropdown">
-<select id="socialPlatformsSelect" multiple></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplaySocialPlatforms" data-placeholder="-- Sélectionnez (multiple) --">
-<span id="selectedTextSocialPlatforms">-- Sélectionnez (multiple) --</span>
-<div class="dropdown-icon" id="dropdownIconSocialPlatforms">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsSocialPlatforms"></div>
-</div>
-</div>
-<div class="error-message" id="error-social-platforms">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner au moins une plateforme</span>
-</div>
-</div>
-
-<!-- Language Section -->
-<div class="question-group">
-<label class="question-label" id="language-type-question">Votre chatbot sera-t-il multilingue ou unilingue ?</label>
-<div class="options-group">
-<label class="radio-option">
-<input type="radio" name="languageType" value="multilingual" />
-<span class="radio-icon"></span>
-<span class="radio-label" id="multilingual-label">Multilingue</span>
-</label>
-<label class="radio-option">
-<input type="radio" name="languageType" value="unilingual" />
-<span class="radio-icon"></span>
-<span class="radio-label" id="unilingual-label">Unilingue</span>
-</label>
-</div>
-<div class="error-message" id="error-language-type">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner une option</span>
-</div>
-</div>
-
-<div class="question-group" id="language-selection" style="display: none;">
-<label class="form-label" id="language-select-label">Sélectionnez les langues</label>
-<div class="select-container multi-select" id="languagesDropdown">
-<select id="languagesSelect" multiple></select>
-<div class="select-wrapper">
-<div class="select-display placeholder" id="selectDisplayLanguages" data-placeholder="-- Sélectionnez (multiple) --">
-<span id="selectedTextLanguages">-- Sélectionnez (multiple) --</span>
-<div class="dropdown-icon" id="dropdownIconLanguages">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsLanguages"></div>
-</div>
-</div>
-<div class="error-message" id="error-languages">
-<div class="error-icon">!</div>
-<span class="error-text">Veuillez sélectionner au moins une langue</span>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step8-prev">Précédent</button>
-<button type="button" class="btn btn-next" id="step8-next">Suivant</button>
-</div>
-</div>
-
-<!-- Step 9: Summary -->
-<div class="step-container" id="step-9">
-<span class="step-heading" id="step9-heading">Récapitulatif de votre demande</span>
-
-<div class="summary-container">
-<!-- Contact Information -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-contact-heading">Informations de contact</span>
-<button type="button" class="edit-btn" data-step="1" id="edit-contact">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-name-label">Nom</div>
-<div class="summary-value" id="recap-name"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-email-label">Email</div>
-<div class="summary-value" id="recap-email"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-phone-label">Téléphone</div>
-<div class="summary-value" id="recap-phone"></div>
-</div>
-
-<div class="summary-row" id="recap-company-row">
-<div class="summary-label" id="recap-company-label">Entreprise</div>
-<div class="summary-value" id="recap-company"></div>
-</div>
-</div>
-
-<!-- Project Details -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-project-heading">Détails du projet</span>
-<button type="button" class="edit-btn" data-step="2" id="edit-project">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-niche-label">Niche</div>
-<div class="summary-value" id="recap-niche"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-budget-label">Budget</div>
-<div class="summary-value" id="recap-budget"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-description-label">Description</div>
-<div class="summary-value" id="recap-description"></div>
-</div>
-</div>
-
-<!-- Business Profile -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-business-heading">Profil professionnel</span>
-<button type="button" class="edit-btn" data-step="3" id="edit-business">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-team-size-label">Taille de l'équipe</div>
-<div class="summary-value" id="recap-team-size"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-services-label">Services</div>
-<div class="summary-value" id="recap-services"></div>
-</div>
-</div>
-
-<!-- Core Features -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-features-heading">Fonctionnalités de base</span>
-<button type="button" class="edit-btn" data-step="4" id="edit-features">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-leads-label">Gestion des leads</div>
-<div class="summary-value" id="recap-leads"></div>
-</div>
-</div>
-
-<!-- Forms -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-forms-heading">Formulaires</span>
-<button type="button" class="edit-btn" data-step="5" id="edit-forms">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-forms-label">Formulaires</div>
-<div class="summary-value" id="recap-forms"></div>
-</div>
-</div>
-
-<!-- Website -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-website-heading">Site web</span>
-<button type="button" class="edit-btn" data-step="6" id="edit-website">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-has-website-label">Site web</div>
-<div class="summary-value" id="recap-has-website"></div>
-</div>
-
-<div class="summary-row" id="recap-platform-row" style="display: none;">
-<div class="summary-label" id="recap-platform-label">Plateforme</div>
-<div class="summary-value" id="recap-platform"></div>
-</div>
-
-<div class="summary-row" id="recap-website-url-row" style="display: none;">
-<div class="summary-label" id="recap-website-url-label">URL du site</div>
-<div class="summary-value" id="recap-website-url"></div>
-</div>
-<div class="summary-row" id="recap-website-traffic-row" style="display: none;">
-<div class="summary-label" id="recap-website-traffic-label">Trafic du site</div>
-<div class="summary-value" id="recap-website-traffic"></div>
-</div>
-</div>
-
-<!-- Integrations -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-integrations-heading">Intégrations</span>
-<button type="button" class="edit-btn" data-step="7" id="edit-integrations">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-crm-label">CRM</div>
-<div class="summary-value" id="recap-crm"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-booking-label">Système de réservation</div>
-<div class="summary-value" id="recap-booking"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-database-label">Base de données</div>
-<div class="summary-value" id="recap-database"></div>
-</div>
-</div>
-
-<!-- Communication Channels -->
-<div class="summary-section">
-<div class="summary-heading">
-<span id="recap-channels-heading">Canaux de communication</span>
-<button type="button" class="edit-btn" data-step="8" id="edit-channels">Modifier</button>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-social-label">Chatbot social</div>
-<div class="summary-value" id="recap-social"></div>
-</div>
-
-<div class="summary-row">
-<div class="summary-label" id="recap-language-type-label">Type</div>
-<div class="summary-value" id="recap-language-type"></div>
-</div>
-
-<div class="summary-row" id="recap-languages-row" style="display: none;">
-<div class="summary-label" id="recap-languages-label">Langues</div>
-<div class="summary-value" id="recap-languages"></div>
-</div>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step9-prev">Précédent</button>
-<button type="button" class="btn btn-submit" id="submit-button">Envoyer la demande</button>
-</div>
-</div>
-`;
+			<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			}
+
+			body {
+				background-color: #f5f5f5;
+				color: #333;
+				line-height: 1.6;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			/* ---------- ANIMATIONS ---------- */
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(15px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes slideIn {
+				from {
+					opacity: 0;
+					transform: translateX(10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateX(0);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes shake {
+
+				0%,
+				100% {
+					transform: translateX(0);
+				}
+
+				10%,
+				30%,
+				50%,
+				70%,
+				90% {
+					transform: translateX(-5px);
+				}
+
+				20%,
+				40%,
+				60%,
+				80% {
+					transform: translateX(5px);
+				}
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+					box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4);
+				}
+
+				70% {
+					transform: scale(1.05);
+					box-shadow: 0 0 0 15px rgba(2, 48, 71, 0);
+				}
+
+				100% {
+					transform: scale(1);
+				}
+			}
+
+			@keyframes shimmer {
+				0% {
+					background-position: -100% 0;
+				}
+
+				100% {
+					background-position: 100% 0;
+				}
+			}
+
+			/* ---------- LAYOUT & CONTAINER ---------- */
+			.container {
+				max-width: 870px;
+				margin: 40px auto;
+				background: #fff;
+				border-radius: 12px;
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+				overflow: hidden;
+				transition: all 0.3s ease;
+				animation: fadeIn 0.6s;
+			}
+
+			.container:hover {
+				box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			form.chatbot-form {
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+				max-width: 870px;
+				margin: 0 auto;
+				padding: 0;
+				border-radius: 12px;
+				background: #fff;
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+				position: relative;
+				overflow: hidden;
+				animation: fadeIn 0.6s;
+				transition: all 0.3s ease;
+			}
+
+			form.chatbot-form:hover {
+				box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			/* Two-column layout */
+			.row,
+			.form-row,
+			.flex-row {
+				display: flex;
+				flex-wrap: wrap;
+				margin: 0 -10px;
+				width: calc(100% + 20px);
+			}
+
+			.col,
+			.form-col,
+			.flex-row>div {
+				flex: 1 0 0;
+				padding: 0 10px;
+				min-width: 0;
+			}
+
+			/* ---------- FORM HEADER ---------- */
+			.form-header {
+				padding: 20px 30px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				border-radius: 12px 12px 0 0;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+				color: white;
+				position: relative;
+			}
+
+			.form-header::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			.header-icon {
+				width: 48px;
+				height: 48px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				background-color: rgba(255, 255, 255, 0.2);
+				transition: all 0.3s ease;
+			}
+
+			.header-icon:hover {
+				transform: scale(1.1);
+				background-color: rgba(255, 255, 255, 0.3);
+			}
+
+			.header-icon svg {
+				filter: brightness(0) invert(1);
+			}
+
+			.form-title {
+				font-size: 28px;
+				color: white;
+				margin: 0;
+				font-weight: 600;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			/* ---------- STEP PROGRESS INDICATOR ---------- */
+			.progress-container {
+				padding: 20px 25px 10px 25px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-progress {
+				display: flex;
+				justify-content: space-between;
+				position: relative;
+				z-index: 0;
+			}
+
+			.step-progress::before {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				width: 100%;
+				background-color: #e0e0e0;
+				border-radius: 10px;
+				z-index: -1;
+			}
+
+			.progress-bar {
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				background: linear-gradient(to right, #023047, #e6f2f7);
+				border-radius: 10px;
+				transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+				z-index: -1;
+			}
+
+			.step-item {
+				width: 36px;
+				height: 36px;
+				background-color: #e0e0e0;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				color: #666;
+				position: relative;
+				transition: all 0.3s ease;
+				border: 3px solid white;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+				z-index: 3;
+			}
+
+			.step-item.active {
+				background-color: #e6f2f7;
+				color: #023047;
+				transform: scale(1.1);
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.step-item.completed {
+				background-color: #023047;
+				color: white;
+				animation: pulse 2s infinite;
+			}
+
+			.step-title {
+				position: absolute;
+				top: 40px;
+				left: 50%;
+				transform: translateX(-50%);
+				font-size: 11px;
+				white-space: nowrap;
+				color: #023047;
+				font-weight: 600;
+				display: none;
+				opacity: 0.8;
+				transition: opacity 0.3s ease;
+				width: 110px;
+				text-align: center;
+			}
+
+			/* ---------- FORM STEPS & ANIMATIONS ---------- */
+			.step-container {
+				display: none;
+				animation: fadeIn 0.6s;
+			}
+
+			.step-container.active {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				padding: 5px 30px 10px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-container:not(.active) {
+				pointer-events: none;
+			}
+
+			/* ---------- FORM ELEMENTS ---------- */
+			.form-label,
+			.question-label,
+			.bold-label {
+				display: block;
+				font-weight: 600;
+				color: #011a26;
+				font-size: 15px;
+			}
+
+			.question-label {
+				font-size: 16px;
+			}
+
+			.form-label.required::after,
+			.question-label.required::after {
+				content: " *";
+				color: #e52059;
+				font-weight: bold;
+			}
+
+			.step-heading {
+				font-size: 26px;
+				color: #011a26;
+				font-weight: 600;
+				position: relative;
+			}
+
+			.step-heading::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 70px;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			/* ========== Input Fields ========== */
+			input[type="text"],
+			input[type="email"],
+			input[type="tel"],
+			input[type="number"],
+			#details,
+			#description,
+			#services,
+			#form-purpose,
+			select {
+				width: 100%;
+				border: 2px solid #e0e0e0;
+				border-radius: 8px;
+				padding: 12px 16px;
+				font-size: 14px;
+				font-weight: 500;
+				transition: all 0.3s ease;
+				background-color: #fafafa;
+				color: #444;
+				position: relative;
+				overflow: hidden;
+				margin: 0px;
+			}
+
+			input[type="text"]:focus,
+			input[type="email"]:focus,
+			input[type="tel"]:focus,
+			input[type="number"]:focus,
+			#details:focus,
+			#description:focus,
+			#services:focus,
+			#form-purpose:focus,
+			select:focus {
+				border-color: #023047;
+				box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+				outline: none;
+				background-color: #fff;
+				transform: translateY(-2px);
+			}
+
+			input[type="text"]:hover:not(:focus),
+			input[type="email"]:hover:not(:focus),
+			input[type="tel"]:hover:not(:focus),
+			input[type="number"]:hover:not(:focus),
+			#details:hover:not(:focus),
+			#description:hover:not(:focus),
+			#services:hover:not(:focus),
+			#form-purpose:hover:not(:focus) {
+				border-color: #023047;
+				background-color: #e6f2f7;
+			}
+
+			#details,
+			#description,
+			#services,
+			#form-purpose {
+				min-height: 120px;
+				resize: vertical;
+				font-family: inherit;
+			}
+
+			/* ---------- DROPDOWN COMPONENTS ---------- */
+			.select-container select {
+				display: none !important;
+			}
+
+			.main-container {
+				display: block;
+				transition: height 0.3s ease;
+				border-radius: 8px;
+				width: 100%;
+				margin-bottom: 15px;
+			}
+
+			.select-wrapper {
+				border: 2px solid #e0e0e0;
+				border-radius: 8px;
+				background-color: #fafafa;
+				position: relative;
+				width: 100%;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+				transition: all 0.3s ease;
+			}
+
+			.select-wrapper:hover {
+				border-color: #023047;
+				background-color: #e6f2f7;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.select-display {
+				padding: 12px 18px;
+				font-size: 15px;
+				cursor: pointer;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				height: 52px;
+				color: #444;
+				font-weight: 500;
+			}
+
+			.dropdown-icon {
+				width: 30px;
+				height: 30px;
+				transition: transform 0.3s ease;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				border-radius: 50%;
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
+			}
+
+			.dropdown-icon svg path {
+				fill: white !important;
+			}
+
+			.dropdown-icon.rotate {
+				transform: rotate(180deg);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
+			}
+
+			.custom-options {
+				display: none;
+				font-size: 15px;
+				border-top: 1px solid #e0e0e0;
+				max-height: 250px;
+				overflow-y: auto;
+				background-color: #fff;
+				box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
+				z-index: 100;
+				border-radius: 0 0 8px 8px;
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+				width: 100%;
+			}
+
+			.show-options {
+				display: block;
+				animation: slideDown 0.3s ease-out;
+			}
+
+			.custom-option {
+				padding: 14px 18px;
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				position: relative;
+				border-left: 4px solid transparent;
+			}
+
+			.custom-option:hover {
+				background-color: rgba(2, 48, 71, 0.08);
+				color: #011a26;
+				border-left-color: #023047;
+				transform: translateX(5px);
+			}
+
+			.custom-option.selected {
+				background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
+				color: #011a26;
+				font-weight: bold;
+				border-left-color: #023047;
+				box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
+			}
+
+			.custom-option.selected .option-checkbox svg path {
+				fill: #fff !important;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg path {
+				fill: #023047;
+			}
+
+			/* Checkbox styling */
+			.option-checkbox {
+				width: 22px;
+				height: 22px;
+				border: 2px solid #ccc;
+				border-radius: 50%;
+				margin-right: 14px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background-color: #fff;
+				transition: all 0.3s ease;
+				position: relative;
+			}
+
+			.option-checkbox svg {
+				width: 12px;
+				height: 12px;
+				display: none;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox {
+				border-color: #023047;
+				transform: scale(1.05);
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg {
+				display: block;
+			}
+
+			.custom-option.selected .option-checkbox svg {
+				display: block;
+			}
+
+			.custom-option.selected .option-checkbox {
+				border-color: #023047;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				transform: scale(1.1);
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg path {
+				fill: #023047 !important;
+			}
+
+			/* ---------- CHECKBOXES & RADIO BUTTONS ---------- */
+			.options-group {
+				display: flex;
+				flex-wrap: nowrap;
+				gap: 10px;
+			}
+
+			.radio-option,
+			.checkbox-option {
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				padding: 12px 18px;
+				border: 2px solid #ddd;
+				border-radius: 10px;
+				transition: all 0.2s;
+				flex: 1;
+				min-width: 200px;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.radio-option:hover,
+			.checkbox-option:hover {
+				border-color: #023047;
+				background-color: #e6f2f7;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+			}
+
+			.radio-option::before,
+			.checkbox-option::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 4px;
+				height: 100%;
+				background: #023047;
+				transform: scaleY(0);
+				transition: transform 0.2s;
+				transform-origin: bottom;
+			}
+
+			.radio-option:hover::before,
+			.checkbox-option:hover::before {
+				transform: scaleY(1);
+			}
+
+			.radio-option input,
+			.checkbox-option input {
+				margin-right: 12px;
+				accent-color: #023047;
+				transform: scale(1.2);
+			}
+
+			.radio-option input:checked+span,
+			.checkbox-option input:checked+span {
+				font-weight: 500;
+				color: #011a26;
+			}
+
+			.radio-option input:checked,
+			.checkbox-option input:checked {
+				accent-color: #023047;
+			}
+
+			/* Multi-select styling */
+			.multi-select .option-checkbox {
+				border-radius: 6px !important;
+			}
+
+			.option-checkbox-icon {
+				position: absolute;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				opacity: 0;
+				transition: opacity 0.2s ease;
+			}
+
+			.option-checkbox-icon svg {
+				width: 14px;
+				height: 14px;
+				display: block;
+				margin: 0 auto;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox-icon {
+				opacity: 0.6;
+			}
+
+			.custom-option.selected .option-checkbox-icon {
+				opacity: 1;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox-icon svg path {
+				fill: #023047 !important;
+			}
+
+			/* ---------- ERROR MESSAGES ---------- */
+			.error-container {
+				width: 100%;
+				margin: 2px 0;
+				box-sizing: border-box;
+			}
+
+			.error-message {
+				color: white;
+				font-size: 13px;
+				margin-top: 8px;
+				display: none;
+				background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+				border-radius: 8px;
+				border: none;
+				padding: 12px 16px;
+				animation: shake 0.5s;
+				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+			}
+
+			.error-message.show {
+				display: flex;
+				animation: slideIn 0.3s ease-out;
+			}
+
+			.error-icon {
+				width: 22px;
+				height: 22px;
+				min-width: 22px;
+				border-radius: 50%;
+				background-color: white;
+				color: #e52059;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				margin-right: 12px;
+				font-size: 14px;
+			}
+
+			.error-text {
+				flex: 1;
+			}
+
+			/* ---------- BUTTONS & NAVIGATION ---------- */
+			.form-buttons {
+				display: flex;
+				justify-content: space-between;
+				gap: 15px;
+			}
+
+			.btn {
+				padding: 14px 28px;
+				border: none;
+				border-radius: 8px;
+				font-size: 16px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				letter-spacing: 0.5px;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.btn::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: -100%;
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 0) 0%,
+						rgba(255, 255, 255, 0.2) 50%,
+						rgba(255, 255, 255, 0) 100%);
+				transition: all 0.6s;
+			}
+
+			.btn:hover:not(:disabled)::after {
+				left: 100%;
+			}
+
+			.btn-prev {
+				background-color: #f0f0f0;
+				color: #011a26;
+				border: 2px solid #e0e0e0;
+			}
+
+			.btn-prev:hover {
+				background-color: #e6f2f7;
+				border-color: #023047;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.btn-next,
+			.btn-submit {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.btn-next:hover,
+			.btn-submit:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+			}
+
+			.btn-submit {
+				background: linear-gradient(135deg, #023047 0%, #e52059 100%);
+				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+			}
+
+			.btn-submit:hover {
+				box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
+			}
+
+			.btn:disabled {
+				opacity: 0.7;
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+			}
+
+			.btn:disabled::after {
+				display: none;
+			}
+
+			.form-buttons .btn:active {
+				transform: translateY(1px);
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+			}
+
+			/* ---------- CONDITIONAL FIELDS ---------- */
+			.conditional-field {
+				display: none;
+				margin-top: 18px;
+				padding: 15px 20px;
+				border-left: 3px solid #023047;
+				background-color: rgba(2, 48, 71, 0.05);
+				border-radius: 0 8px 8px 0;
+				animation: slideDown 0.3s;
+			}
+
+			.form-col .conditional-field {
+				margin-top: 15px;
+			}
+
+			/* ---------- SUMMARY STYLES ---------- */
+			.summary-container {
+				background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+				border: 2px solid rgba(2, 48, 71, 0.1);
+				border-radius: 12px;
+				padding: 10px 15px;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
+			}
+
+			.summary-section {
+				margin-bottom: 20px;
+			}
+
+			.summary-heading {
+				font-size: 16px;
+				font-weight: 600;
+				color: #023047;
+				margin-bottom: 10px;
+				padding-bottom: 5px;
+				border-bottom: 1px solid #e0e0e0;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.edit-btn {
+				background: none;
+				border: 1px solid #023047;
+				color: #023047;
+				cursor: pointer;
+				padding: 6px 12px;
+				font-size: 14px;
+				border-radius: 6px;
+				transition: all 0.3s ease;
+				font-weight: 500;
+			}
+
+			.edit-btn:hover {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
+			}
+
+			.summary-row {
+				display: flex;
+				padding: 6px 0;
+				border-bottom: 1px solid rgba(2, 48, 71, 0.1);
+				align-items: center;
+				transition: all 0.3s ease;
+			}
+
+			.summary-row:last-child {
+				border-bottom: none;
+			}
+
+			.summary-row:hover {
+				background-color: rgba(2, 48, 71, 0.05);
+				border-radius: 8px;
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+
+			.summary-label {
+				font-weight: 600;
+				width: 30%;
+				color: #011a26;
+			}
+
+			.summary-value {
+				flex: 1;
+				color: #023047;
+			}
+
+			/* ---------- CONFIRMATION SCREEN ---------- */
+			.confirmation-screen {
+				display: none;
+				text-align: center;
+				padding: 40px 20px;
+				animation: fadeIn 0.5s;
+			}
+
+			.confirmation-screen.active {
+				display: block;
+			}
+
+			.confirmation-icon {
+				width: 80px;
+				height: 80px;
+				background: #023047;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin: 0 auto 20px;
+				animation: pulse 2s infinite;
+			}
+
+			.confirmation-icon svg {
+				width: 36px;
+				height: 36px;
+			}
+
+			.confirmation-title {
+				font-size: 24px;
+				color: #023047;
+				margin-bottom: 15px;
+				font-weight: 600;
+			}
+
+			.confirmation-message {
+				font-size: 16px;
+				color: #555;
+				margin-bottom: 30px;
+				line-height: 1.5;
+			}
+
+			.textarea-wrapper {
+				position: relative;
+				width: 100%;
+				margin-bottom: 0;
+			}
+
+			.textarea-wrapper textarea {
+				margin-bottom: 0;
+				display: block;
+			}
+
+			/* Character counter */
+			.char-counter {
+				position: absolute;
+				right: 10px;
+				bottom: 10px;
+				font-size: 12px;
+				color: #757575;
+				background: rgba(255, 255, 255, 0.9);
+				padding: 2px 6px;
+				border-radius: 10px;
+			}
+
+			/* ---------- INFO BUTTONS ---------- */
+			.info-button {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 18px;
+				height: 18px;
+				border-radius: 50%;
+				background: #e0e0e0;
+				color: #757575;
+				font-size: 12px;
+				font-weight: bold;
+				margin-left: 8px;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				border: none;
+				padding: 0;
+			}
+
+			.info-button:hover {
+				background: #023047;
+				color: white;
+			}
+
+			.info-panel {
+				display: none;
+				background: #f9f9f9;
+				border: 1px solid #e0e0e0;
+				border-left: 3px solid #023047;
+				border-radius: 4px;
+				padding: 12px;
+				margin-top: 8px;
+				margin-bottom: 10px;
+				position: relative;
+				font-size: 13px;
+				line-height: 1.5;
+				color: #555;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+				animation: fadeIn 0.3s;
+			}
+
+			.info-panel.show {
+				display: block;
+			}
+
+			.close-info {
+				position: absolute;
+				top: 8px;
+				right: 8px;
+				width: 16px;
+				height: 16px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				background: #f0f0f0;
+				font-size: 10px;
+				font-weight: bold;
+				cursor: pointer;
+				border: none;
+				padding: 0;
+				color: #757575;
+			}
+
+			.close-info:hover {
+				background: #e0e0e0;
+				color: #333;
+			}
+
+			.info-title {
+				font-weight: 600;
+				color: #023047;
+				margin-bottom: 6px;
+				font-size: 14px;
+			}
+
+			.info-button svg .info-bg {
+				fill: #e6f2f7;
+			}
+
+			.info-button svg .info-icon {
+				fill: #023047;
+			}
+
+			.info-button:hover svg .info-bg,
+			.info-button:focus svg .info-bg,
+			.info-button:active svg .info-bg {
+				fill: #023047;
+			}
+
+			.info-button:hover svg .info-icon,
+			.info-button:focus svg .info-icon,
+			.info-button:active svg .info-icon {
+				fill: #ffffff;
+			}
+
+			.select-display.placeholder span {
+				color: #808080;
+			}
+
+			.select-display:not(.placeholder) span {
+				color: #000;
+			}
+
+			/* ---------- RESPONSIVE DESIGN ---------- */
+			@media (max-width: 767px) {
+
+				.row,
+				.form-row,
+				.flex-row {
+					display: flex;
+					margin: 0;
+					width: 100%;
+					gap: 10px;
+					flex-direction: column;
+				}
+
+				.step-container.active {
+					padding: 5px 15px 10px;
+				}
+
+				.col,
+				.form-col,
+				.flex-row>div {
+					width: 100%;
+					padding: 0;
+					margin-bottom: 0px;
+				}
+
+				.form-group {
+					margin-bottom: 10px;
+				}
+
+				.form-col .conditional-field {
+					margin-left: 0;
+					padding-left: 15px;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.form-title {
+					font-size: 22px;
+				}
+
+				.form-header {
+					padding: 15px 20px;
+					gap: 15px;
+				}
+
+				.header-icon {
+					width: 36px;
+					height: 36px;
+				}
+
+				.step-heading {
+					font-size: 22px;
+				}
+
+				.btn {
+					padding: 12px 18px;
+					font-size: 15px;
+				}
+
+				.container,
+				form.chatbot-form {
+					width: auto;
+					border-radius: 8px;
+				}
+
+				.step-item {
+					width: 30px;
+					height: 30px;
+					font-size: 13px;
+				}
+
+				.progress-container {
+					padding: 10px 10px 10px;
+				}
+
+				.step-title {
+					font-size: 9px;
+					width: 80px;
+				}
+
+				.radio-option,
+				.checkbox-option {
+					max-width: 50%;
+					min-width: 40%;
+				}
+
+				.form-buttons {
+					flex-direction: row;
+					gap: 10px;
+				}
+			}
+
+			@media (max-width: 480px) {
+				form.chatbot-form {
+					min-width: 200px;
+				}
+
+				.header-icon svg {
+					width: 18px;
+					height: 18px;
+				}
+
+				.step-heading {
+					font-size: 18px;
+				}
+
+				.step-item {
+					width: 24px;
+					height: 24px;
+					font-size: 12px;
+				}
+
+				.step-title {
+					font-size: 8px;
+					width: 60px;
+					top: 35px;
+				}
+
+				.form-header {
+					padding: 12px 15px;
+				}
+
+				.summary-container {
+					padding: 15px;
+				}
+			}
+
+			/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+			input:focus-visible,
+			#details:focus-visible,
+			#description:focus-visible,
+			#services:focus-visible,
+			#form-purpose:focus-visible,
+			select:focus-visible,
+			button:focus-visible {
+				outline: 2px solid #023047;
+				outline-offset: 2px;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			/* ---------- LOADING STATES ---------- */
+			.loading {
+				opacity: 0.7;
+				pointer-events: none;
+			}
+
+			.loading .btn {
+				background: #ccc;
+				cursor: wait;
+			}
+
+			/* Conditional Section Styling */
+			.conditional-section {
+				display: none !important;
+			}
+
+			.conditional-section.visible {
+				display: block !important;
+			}
+
+			#social-platforms-group {
+				margin-bottom: 10px;
+			}
+
+			.confirmation-screen.active+* .progress-container,
+			.confirmation-screen.active~.progress-container {
+				display: none !important;
+			}
+
+			/* Ensure conditional sections are hidden by default */
+			#form-options,
+			#website-options,
+			#crm-selection,
+			#database-selection,
+			#social-platforms-group,
+			#existing-booking-options,
+			#need-booking-options,
+			#language-selection,
+			#other-platform-group,
+			#other-niche-group,
+			#custom-budget-group {
+				display: none !important;
+			}
+
+			/* Override when visible class is applied */
+			#form-options.visible,
+			#website-options.visible,
+			#crm-selection.visible,
+			#database-selection.visible,
+			#social-platforms-group.visible,
+			#existing-booking-options.visible,
+			#need-booking-options.visible,
+			#language-selection.visible,
+			#other-platform-group.visible,
+			#other-niche-group.visible,
+			#custom-budget-group.visible {
+				display: flex !important;
+				flex-direction: column;
+				gap: 10px;
+			}
+
+			</style>
+
+			<!-- Confirmation Screen -->
+			<div class="confirmation-screen" id="confirmation-screen">
+				<div class="confirmation-icon">
+					${SVG_CHECK}
+				</div>
+				<span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
+				<p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
+				<button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
+			</div>
+
+			<!-- Step Progress Indicator -->
+			<div class="progress-container">
+				<div class="step-progress">
+					<div class="progress-bar" id="progress-bar"></div>
+					<div class="step-item active" data-step="1">
+						<div class="step-icon">1</div>
+						<div class="step-title" id="progress-step1">Informations de contact</div>
+					</div>
+					<div class="step-item" data-step="2">
+						<div class="step-icon">2</div>
+						<div class="step-title" id="progress-step2">Détails du projet</div>
+					</div>
+					<div class="step-item" data-step="3">
+						<div class="step-icon">3</div>
+						<div class="step-title" id="progress-step3">Profil professionnel</div>
+					</div>
+					<div class="step-item" data-step="4">
+						<div class="step-icon">4</div>
+						<div class="step-title" id="progress-step4">Fonctionnalités de base</div>
+					</div>
+					<div class="step-item" data-step="5">
+						<div class="step-icon">5</div>
+						<div class="step-title" id="progress-step5">Formulaires</div>
+					</div>
+					<div class="step-item" data-step="6">
+						<div class="step-icon">6</div>
+						<div class="step-title" id="progress-step6">Site Web</div>
+					</div>
+					<div class="step-item" data-step="7">
+						<div class="step-icon">7</div>
+						<div class="step-title" id="progress-step7">Intégrations</div>
+					</div>
+					<div class="step-item" data-step="8">
+						<div class="step-icon">8</div>
+						<div class="step-title" id="progress-step8">Canaux de communication</div>
+					</div>
+					<div class="step-item" data-step="9">
+						<div class="step-icon">9</div>
+						<div class="step-title" id="progress-step9">Récapitulatif</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 1: Contact Information -->
+			<div class="step-container active" id="step-1">
+				<span class="step-heading" id="step1-heading">Informations de contact</span>
+
+				<div class="flex-row">
+					<div class="form-group">
+						<label class="form-label required" id="firstname-label">Prénom</label>
+						<input type="text" id="first-name" name="firstName" placeholder="Votre prénom" />
+						<div class="error-message" id="error-firstname">
+							<div class="error-icon">!</div>
+							<span class="error-text">Ce champ est obligatoire</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="form-label required" id="lastname-label">Nom</label>
+						<input type="text" id="last-name" name="lastName" placeholder="Votre nom" />
+						<div class="error-message" id="error-lastname">
+							<div class="error-icon">!</div>
+							<span class="error-text">Ce champ est obligatoire</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="flex-row">
+					<div class="form-group">
+						<label class="form-label required" id="email-label">Email</label>
+						<input type="email" id="email" name="email" placeholder="Votre email" />
+						<div class="error-message" id="error-email">
+							<div class="error-icon">!</div>
+							<span class="error-text">Entrez une adresse email valide</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="form-label required" id="phone-label">Téléphone</label>
+						<input type="tel" id="phone" name="phone" placeholder="Votre numéro de téléphone" />
+						<div class="error-message" id="error-phone">
+							<div class="error-icon">!</div>
+							<span class="error-text">Entrez un numéro de téléphone valide</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="form-label" id="company-label">Entreprise (optionnel)</label>
+					<input type="text" id="company" name="company" placeholder="Nom de votre entreprise" />
+				</div>
+
+				<div class="form-buttons">
+					<div></div>
+					<button type="button" class="btn btn-next" id="step1-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 2: Project Details (Moved from original Step 6) -->
+			<div class="step-container" id="step-2">
+				<span class="step-heading" id="step2-heading">Détails du projet</span>
+
+				<div class="form-group">
+					<label class="form-label required" id="niche-label">Quelle est votre niche ?</label>
+					<div class="select-container" id="nicheDropdown">
+						<select id="niche"></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayNiche" data-placeholder="-- Sélectionnez --">
+								<span id="selectedTextNiche">-- Sélectionnez --</span>
+								<div class="dropdown-icon" id="dropdownIconNiche">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsNiche"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-niche">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une niche</span>
+					</div>
+				</div>
+
+				<div class="form-group" id="other-niche-group" style="display: none;">
+					<label class="form-label required" id="other-niche-label">Précisez votre niche</label>
+					<input type="text" id="other-niche" name="otherNiche" placeholder="Votre niche..." />
+					<div class="error-message" id="error-other-niche">
+						<div class="error-icon">!</div>
+						<span class="error-text">Ce champ est obligatoire</span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="form-label required" id="budget-label">Quel est votre budget ?</label>
+					<div class="select-container" id="budgetDropdown">
+						<select id="budget"></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayBudget" data-placeholder="-- Sélectionnez --">
+								<span id="selectedTextBudget">-- Sélectionnez --</span>
+								<div class="dropdown-icon" id="dropdownIconBudget">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsBudget"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-budget">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner un budget</span>
+					</div>
+				</div>
+
+				<div class="form-group" id="custom-budget-group" style="display: none;">
+					<label class="form-label required" id="custom-budget-label">Précisez votre budget</label>
+					<input type="text" id="custom-budget" name="customBudget" placeholder="Détails de votre budget..." />
+					<div class="error-message" id="error-custom-budget">
+						<div class="error-icon">!</div>
+						<span class="error-text">Ce champ est obligatoire</span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="form-label required" id="description-label">Description détaillée de votre projet</label>
+					<div class="textarea-wrapper">
+						<textarea id="description" name="description" placeholder="Décrivez vos besoins en détail, vos objectifs, et toute autre information pertinente..." rows="6"></textarea>
+						<div class="char-counter"><span id="description-counter">0</span>/1000</div>
+					</div>
+					<div class="error-message" id="error-description">
+						<div class="error-icon">!</div>
+						<span class="error-text">Ce champ est obligatoire</span>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step2-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step2-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 3: Business Profile -->
+			<div class="step-container" id="step-3">
+				<span class="step-heading" id="step3-heading">Profil professionnel</span>
+
+				<div class="question-group">
+					<label class="question-label" id="team-size-question">Quelle est la taille de votre équipe ?</label>
+					<div class="select-container" id="teamSizeDropdown">
+						<select id="team-size"></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayTeamSize" data-placeholder="-- Sélectionnez --">
+								<span id="selectedTextTeamSize">-- Sélectionnez --</span>
+								<div class="dropdown-icon" id="dropdownIconTeamSize">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsTeamSize"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-team-size">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="form-label required" id="services-label">Quels sont vos services ?</label>
+					<div class="textarea-wrapper">
+						<textarea id="services" name="services" placeholder="Décrivez vos services principaux..." rows="4"></textarea>
+						<div class="char-counter"><span id="services-counter">0</span>/500</div>
+					</div>
+					<div class="error-message" id="error-services">
+						<div class="error-icon">!</div>
+						<span class="error-text">Ce champ est obligatoire</span>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step3-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step3-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 4: Core Features -->
+			<div class="step-container" id="step-4">
+				<span class="step-heading" id="step4-heading">Fonctionnalités de base</span>
+
+				<div class="question-group">
+					<label class="question-label" id="lead-capture-question">Avez-vous besoin de capture de leads ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="leadCapture" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="leadCapture" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-lead-capture">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="question-group">
+					<label class="question-label" id="lead-qualification-question">Nécessitez-vous un système de qualification des prospects ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="leadQualification" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="leadQualification" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-lead-qualification">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="question-group">
+					<label class="question-label" id="conversation-summary-question">Avez-vous besoin de résumés de conversation ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="conversationSummary" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="conversationSummary" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-conversation-summary">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step4-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step4-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 5: Form Requirements -->
+			<div class="step-container" id="step-5">
+				<span class="step-heading" id="step5-heading">Formulaires</span>
+
+				<div class="question-group">
+					<label class="question-label" id="use-form-question">Avez-vous besoin de formulaires ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="useForm" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="useForm" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-use-form">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div id="form-options" style="display: none; gap: 10px; flex-direction: column;">
+					<div class="question-group">
+						<label class="form-label" id="form-types-label">Sélectionnez les types de formulaires</label>
+						<div class="select-container multi-select" id="formTypesDropdown">
+							<select id="formTypesSelect" multiple></select>
+							<div class="select-wrapper">
+								<div class="select-display placeholder" id="selectDisplayFormTypes" data-placeholder="-- Sélectionnez (multiple) --">
+									<span id="selectedTextFormTypes">-- Sélectionnez (multiple) --</span>
+									<div class="dropdown-icon" id="dropdownIconFormTypes">${SVG_CHEVRON}</div>
+								</div>
+								<div class="custom-options" id="customOptionsFormTypes"></div>
+							</div>
+						</div>
+						<div class="error-message" id="error-form-types">
+							<div class="error-icon">!</div>
+							<span class="error-text">Veuillez sélectionner au moins un type</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="form-label" id="form-purpose-label">À quoi serviront ces formulaires ?</label>
+						<div class="textarea-wrapper">
+							<textarea id="form-purpose" name="formPurpose" placeholder="Décrivez l'utilisation prévue des formulaires..." rows="3"></textarea>
+							<div class="char-counter"><span id="form-purpose-counter">0</span>/300</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step5-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step5-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 6: Website Integration with Traffic Field -->
+			<!-- Step 6: Website Integration with Traffic Field -->
+			<div class="step-container" id="step-6">
+				<span class="step-heading" id="step6-heading">Site Web</span>
+
+				<div class="question-group">
+					<label class="question-label" id="website-question">Avez-vous un site web ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="hasWebsite" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="hasWebsite" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-has-website">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div id="website-options" style="display: none; gap: 10px; flex-direction: column;">
+					<!-- Platform and Traffic Volume Side by Side -->
+					<div class="flex-row">
+						<div class="form-group">
+							<label class="form-label" id="platform-label">Sur quelle plateforme est développé votre site ?</label>
+							<div class="select-container" id="websitePlatformDropdown">
+								<select id="website-platform"></select>
+								<div class="select-wrapper">
+									<div class="select-display placeholder" id="selectDisplayWebsitePlatform" data-placeholder="-- Sélectionnez --">
+										<span id="selectedTextWebsitePlatform">-- Sélectionnez --</span>
+										<div class="dropdown-icon" id="dropdownIconWebsitePlatform">${SVG_CHEVRON}</div>
+									</div>
+									<div class="custom-options" id="customOptionsWebsitePlatform"></div>
+								</div>
+							</div>
+							<div class="error-message" id="error-platform">
+								<div class="error-icon">!</div>
+								<span class="error-text">Veuillez sélectionner une plateforme</span>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="form-label required" id="website-traffic-label">Trafic mensuel moyen de votre site</label>
+							<div class="select-container" id="websiteTrafficDropdown">
+								<select id="website-traffic"></select>
+								<div class="select-wrapper">
+									<div class="select-display placeholder" id="selectDisplayWebsiteTraffic" data-placeholder="-- Sélectionnez --">
+										<span id="selectedTextWebsiteTraffic">-- Sélectionnez --</span>
+										<div class="dropdown-icon" id="dropdownIconWebsiteTraffic">${SVG_CHEVRON}</div>
+									</div>
+									<div class="custom-options" id="customOptionsWebsiteTraffic"></div>
+								</div>
+							</div>
+							<div class="error-message" id="error-website-traffic">
+								<div class="error-icon">!</div>
+								<span class="error-text">Veuillez indiquer le trafic de votre site</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Other Platform Field (Conditional) -->
+					<div class="form-group" id="other-platform-group" style="display: none;">
+						<label class="form-label" id="other-platform-label">Précisez la plateforme</label>
+						<input type="text" id="other-platform" name="otherPlatform" placeholder="Nom de la plateforme..." />
+						<div class="error-message" id="error-other-platform">
+							<div class="error-icon">!</div>
+							<span class="error-text">Ce champ est obligatoire</span>
+						</div>
+					</div>
+
+					<!-- Website URL Field -->
+					<div class="form-group">
+						<label class="form-label required" id="website-url-label">URL de votre site web</label>
+						<input type="text" id="website-url" name="websiteUrl" placeholder="https://www.votresite.com" />
+						<div class="error-message" id="error-website-url">
+							<div class="error-icon">!</div>
+							<span class="error-text">Veuillez entrer une URL valide</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Navigation Buttons -->
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step6-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step6-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 7: Integrations -->
+			<div class="step-container" id="step-7">
+				<span class="step-heading" id="step7-heading">Intégrations</span>
+
+				<!-- CRM Section -->
+				<div class="question-group">
+					<label class="question-label" id="use-crm-question">Utiliserez-vous un CRM avec votre chatbot ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="useCRM" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label" id="yes-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="useCRM" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label" id="no-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-use-crm">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="question-group" id="crm-selection" style="display: none; ">
+					<label class="form-label" id="crm-select-label">Sélectionnez les CRM à intégrer</label>
+					<div class="select-container multi-select" id="crmsDropdown">
+						<select id="crmsSelect" multiple></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayCrms" data-placeholder="-- Sélectionnez (multiple) --">
+								<span id="selectedTextCrms">-- Sélectionnez (multiple) --</span>
+								<div class="dropdown-icon" id="dropdownIconCrms">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsCrms"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-crms">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner au moins un CRM</span>
+					</div>
+				</div>
+
+				<!-- Booking System Section -->
+				<div class="question-group">
+					<label class="question-label" id="has-booking-question">Utilisez-vous déjà un système de réservation ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="hasBookingSystem" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="hasBookingSystem" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-has-booking">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<!-- Show if they have a booking system -->
+				<div id="existing-booking-options" style="display: none;">
+					<div class="question-group">
+						<label class="form-label" id="booking-select-label">Sélectionnez votre système de réservation</label>
+						<div class="select-container" id="bookingSystemsDropdown">
+							<select id="bookingSystemsSelect"></select>
+							<div class="select-wrapper">
+								<div class="select-display placeholder" id="selectDisplayBookingSystems" data-placeholder="-- Sélectionnez --">
+									<span id="selectedTextBookingSystems">-- Sélectionnez --</span>
+									<div class="dropdown-icon" id="dropdownIconBookingSystems">${SVG_CHEVRON}</div>
+								</div>
+								<div class="custom-options" id="customOptionsBookingSystems"></div>
+							</div>
+						</div>
+						<div class="error-message" id="error-booking-systems">
+							<div class="error-icon">!</div>
+							<span class="error-text">Veuillez sélectionner un système</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Show if they don't have a booking system -->
+				<div id="need-booking-options" class="conditional-section">
+					<div class="question-group">
+						<label class="question-label" id="want-booking-recommendation">Souhaitez-vous que nous vous recommandions un système de réservation ?</label>
+						<div class="options-group">
+							<label class="radio-option">
+								<input type="radio" name="wantBookingRecommendation" value="yes" />
+								<span class="radio-icon"></span>
+								<span class="radio-label">Oui</span>
+							</label>
+							<label class="radio-option">
+								<input type="radio" name="wantBookingRecommendation" value="no" />
+								<span class="radio-icon"></span>
+								<span class="radio-label">Non</span>
+							</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="question-group">
+					<label class="question-label" id="handle-cancellation-question">Le chatbot doit-il gérer les annulations et replanifications ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="handleCancellation" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="handleCancellation" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+				</div>
+
+				<!-- Database Section -->
+				<div class="question-group">
+					<label class="question-label" id="use-database-question">Utiliserez-vous une base de données ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="useDatabase" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="useDatabase" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-use-database">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="question-group" id="database-selection" style="display: none;">
+					<label class="form-label" id="database-select-label">Sélectionnez les bases de données</label>
+					<div class="select-container multi-select" id="databasesDropdown">
+						<select id="databasesSelect" multiple></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayDatabases" data-placeholder="-- Sélectionnez (multiple) --">
+								<span id="selectedTextDatabases">-- Sélectionnez (multiple) --</span>
+								<div class="dropdown-icon" id="dropdownIconDatabases">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsDatabases"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-databases">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner au moins une base de données</span>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step7-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step7-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 8: Communication Channels -->
+			<div class="step-container" id="step-8">
+				<span class="step-heading" id="step8-heading">Canaux de communication</span>
+
+				<!-- Social Media Section -->
+				<div class="question-group">
+					<label class="question-label" id="social-bot-question">Avez-vous besoin d'un chatbot pour les réseaux sociaux ?</label>
+					<div class="options-group">
+						<label class="radio-option"><input type="radio" name="needSocialBot" value="yes" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Oui</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="needSocialBot" value="no" />
+							<span class="radio-icon"></span>
+							<span class="radio-label">Non</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-need-social">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div id="social-platforms-group" class="conditional-section">
+					<label class="form-label" id="social-platforms-label">Sélectionnez les plateformes sociales</label>
+					<div class="select-container multi-select" id="socialPlatformsDropdown">
+						<select id="socialPlatformsSelect" multiple></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplaySocialPlatforms" data-placeholder="-- Sélectionnez (multiple) --">
+								<span id="selectedTextSocialPlatforms">-- Sélectionnez (multiple) --</span>
+								<div class="dropdown-icon" id="dropdownIconSocialPlatforms">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsSocialPlatforms"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-social-platforms">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner au moins une plateforme</span>
+					</div>
+				</div>
+
+				<!-- Language Section -->
+				<div class="question-group">
+					<label class="question-label" id="language-type-question">Votre chatbot sera-t-il multilingue ou unilingue ?</label>
+					<div class="options-group">
+						<label class="radio-option">
+							<input type="radio" name="languageType" value="multilingual" />
+							<span class="radio-icon"></span>
+							<span class="radio-label" id="multilingual-label">Multilingue</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" name="languageType" value="unilingual" />
+							<span class="radio-icon"></span>
+							<span class="radio-label" id="unilingual-label">Unilingue</span>
+						</label>
+					</div>
+					<div class="error-message" id="error-language-type">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner une option</span>
+					</div>
+				</div>
+
+				<div class="question-group" id="language-selection" style="display: none;">
+					<label class="form-label" id="language-select-label">Sélectionnez les langues</label>
+					<div class="select-container multi-select" id="languagesDropdown">
+						<select id="languagesSelect" multiple></select>
+						<div class="select-wrapper">
+							<div class="select-display placeholder" id="selectDisplayLanguages" data-placeholder="-- Sélectionnez (multiple) --">
+								<span id="selectedTextLanguages">-- Sélectionnez (multiple) --</span>
+								<div class="dropdown-icon" id="dropdownIconLanguages">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsLanguages"></div>
+						</div>
+					</div>
+					<div class="error-message" id="error-languages">
+						<div class="error-icon">!</div>
+						<span class="error-text">Veuillez sélectionner au moins une langue</span>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step8-prev">Précédent</button>
+					<button type="button" class="btn btn-next" id="step8-next">Suivant</button>
+				</div>
+			</div>
+
+			<!-- Step 9: Summary -->
+			<div class="step-container" id="step-9">
+				<span class="step-heading" id="step9-heading">Récapitulatif de votre demande</span>
+
+				<div class="summary-container">
+					<!-- Contact Information -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-contact-heading">Informations de contact</span>
+							<button type="button" class="edit-btn" data-step="1" id="edit-contact">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-name-label">Nom</div>
+							<div class="summary-value" id="recap-name"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-email-label">Email</div>
+							<div class="summary-value" id="recap-email"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-phone-label">Téléphone</div>
+							<div class="summary-value" id="recap-phone"></div>
+						</div>
+
+						<div class="summary-row" id="recap-company-row">
+							<div class="summary-label" id="recap-company-label">Entreprise</div>
+							<div class="summary-value" id="recap-company"></div>
+						</div>
+					</div>
+
+					<!-- Project Details -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-project-heading">Détails du projet</span>
+							<button type="button" class="edit-btn" data-step="2" id="edit-project">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-niche-label">Niche</div>
+							<div class="summary-value" id="recap-niche"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-budget-label">Budget</div>
+							<div class="summary-value" id="recap-budget"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-description-label">Description</div>
+							<div class="summary-value" id="recap-description"></div>
+						</div>
+					</div>
+
+					<!-- Business Profile -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-business-heading">Profil professionnel</span>
+							<button type="button" class="edit-btn" data-step="3" id="edit-business">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-team-size-label">Taille de l'équipe</div>
+							<div class="summary-value" id="recap-team-size"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-services-label">Services</div>
+							<div class="summary-value" id="recap-services"></div>
+						</div>
+					</div>
+
+					<!-- Core Features -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-features-heading">Fonctionnalités de base</span>
+							<button type="button" class="edit-btn" data-step="4" id="edit-features">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-leads-label">Gestion des leads</div>
+							<div class="summary-value" id="recap-leads"></div>
+						</div>
+					</div>
+
+					<!-- Forms -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-forms-heading">Formulaires</span>
+							<button type="button" class="edit-btn" data-step="5" id="edit-forms">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-forms-label">Formulaires</div>
+							<div class="summary-value" id="recap-forms"></div>
+						</div>
+					</div>
+
+					<!-- Website -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-website-heading">Site web</span>
+							<button type="button" class="edit-btn" data-step="6" id="edit-website">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-has-website-label">Site web</div>
+							<div class="summary-value" id="recap-has-website"></div>
+						</div>
+
+						<div class="summary-row" id="recap-platform-row" style="display: none;">
+							<div class="summary-label" id="recap-platform-label">Plateforme</div>
+							<div class="summary-value" id="recap-platform"></div>
+						</div>
+
+						<div class="summary-row" id="recap-website-url-row" style="display: none;">
+							<div class="summary-label" id="recap-website-url-label">URL du site</div>
+							<div class="summary-value" id="recap-website-url"></div>
+						</div>
+						<div class="summary-row" id="recap-website-traffic-row" style="display: none;">
+							<div class="summary-label" id="recap-website-traffic-label">Trafic du site</div>
+							<div class="summary-value" id="recap-website-traffic"></div>
+						</div>
+					</div>
+
+					<!-- Integrations -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-integrations-heading">Intégrations</span>
+							<button type="button" class="edit-btn" data-step="7" id="edit-integrations">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-crm-label">CRM</div>
+							<div class="summary-value" id="recap-crm"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-booking-label">Système de réservation</div>
+							<div class="summary-value" id="recap-booking"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-database-label">Base de données</div>
+							<div class="summary-value" id="recap-database"></div>
+						</div>
+					</div>
+
+					<!-- Communication Channels -->
+					<div class="summary-section">
+						<div class="summary-heading">
+							<span id="recap-channels-heading">Canaux de communication</span>
+							<button type="button" class="edit-btn" data-step="8" id="edit-channels">Modifier</button>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-social-label">Chatbot social</div>
+							<div class="summary-value" id="recap-social"></div>
+						</div>
+
+						<div class="summary-row">
+							<div class="summary-label" id="recap-language-type-label">Type</div>
+							<div class="summary-value" id="recap-language-type"></div>
+						</div>
+
+						<div class="summary-row" id="recap-languages-row" style="display: none;">
+							<div class="summary-label" id="recap-languages-label">Langues</div>
+							<div class="summary-value" id="recap-languages"></div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step9-prev">Précédent</button>
+					<button type="button" class="btn btn-submit" id="submit-button">Envoyer la demande</button>
+				</div>
+			</div>
+
+		`;
         element.appendChild(formContainer);
         const header = renderHeader();
         formContainer.insertBefore(header, formContainer.firstChild);
@@ -5168,11 +5237,11 @@ ${SVG_CHECK}
             }
             // Yes/No answers - Convert to true/false for Airtable checkboxes
             const yesNoFields = [
-'leadCapture', 'leadQualification', 'conversationSummary',
-'useForm', 'hasWebsite', 'useCRM', 'hasBookingSystem',
-'wantBookingRecommendation', 'handleCancellation',
-'useDatabase', 'needSocialBot'
-];
+				'leadCapture', 'leadQualification', 'conversationSummary',
+				'useForm', 'hasWebsite', 'useCRM', 'hasBookingSystem',
+				'wantBookingRecommendation', 'handleCancellation',
+				'useDatabase', 'needSocialBot'
+			];
             yesNoFields.forEach(field => {
                 // Check the current value of the field
                 if (processedData[field] === 'yes') {
@@ -5277,12 +5346,12 @@ ${SVG_CHECK}
                     formTypes: {
                         title: "Types de formulaires",
                         content: `Les formulaires interactifs peuvent être intégrés à votre chatbot pour collecter des informations spécifiques. Chaque type de formulaire est conçu pour un objectif particulier:<br><br>
-• <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
-• <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
-• <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
-• <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
-• <strong>Support client</strong>: Pour les demandes d'assistance<br>
-• Et plus encore selon vos besoins spécifiques`
+									• <strong>Formulaire de contact</strong>: Recueille les coordonnées des visiteurs<br>
+									• <strong>Génération de leads</strong>: Qualifie les prospects potentiels<br>
+									• <strong>Questionnaire</strong>: Collecte des informations détaillées<br>
+									• <strong>Réservation</strong>: Permet de réserver un créneau horaire<br>
+									• <strong>Support client</strong>: Pour les demandes d'assistance<br>
+									• Et plus encore selon vos besoins spécifiques`
                     },
                     websitePlatform: {
                         title: "Plateformes Web",
@@ -5307,28 +5376,28 @@ ${SVG_CHECK}
                     conversationSummary: {
                         title: "Synthèse automatique des conversations",
                         content: `Cette fonctionnalité permet à votre chatbot de générer automatiquement des résumés des conversations avec les utilisateurs. Ces synthèses extraient les points clés, les demandes et les engagements pris pendant l'échange.<br><br>Avantages:<br>
-• Suivi efficace des interactions clients<br>
-• Identification rapide des besoins récurrents<br>
-• Facilitation du transfert vers une personne réelle si nécessaire<br>
-• Documentation automatique des échanges pour analyse ultérieure`
+									• Suivi efficace des interactions clients<br>
+									• Identification rapide des besoins récurrents<br>
+									• Facilitation du transfert vers une personne réelle si nécessaire<br>
+									• Documentation automatique des échanges pour analyse ultérieure`
                     },
                     websiteTraffic: {
                         title: "Volume de trafic mensuel",
                         content: `Cette information nous permet de dimensionner correctement votre solution de chatbot. Le volume de trafic influence:<br><br>
-• La capacité de traitement nécessaire<br>
-• Les ressources serveur à allouer<br>
-• La structure optimale des dialogues<br>
-• Les stratégies de mise en cache et d'optimisation<br><br>
-Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
+									• La capacité de traitement nécessaire<br>
+									• Les ressources serveur à allouer<br>
+									• La structure optimale des dialogues<br>
+									• Les stratégies de mise en cache et d'optimisation<br><br>
+									Un chatbot pour un site à fort trafic nécessite une architecture plus robuste et évolutive qu'un site avec moins de visiteurs.`
                     },
                     handleCancellation: {
                         title: "Gestion des annulations et reports",
                         content: `Cette fonctionnalité permet à vos clients de modifier ou d'annuler leurs réservations directement via le chatbot, sans intervention humaine.<br><br>Le chatbot peut:<br>
-• Accéder au calendrier des réservations existantes<br>
-• Proposer des créneaux alternatifs disponibles<br>
-• Confirmer les modifications par email/SMS<br>
-• Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
-Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
+									• Accéder au calendrier des réservations existantes<br>
+									• Proposer des créneaux alternatifs disponibles<br>
+									• Confirmer les modifications par email/SMS<br>
+									• Appliquer vos règles d'entreprise concernant les délais d'annulation ou les frais<br><br>
+									Cette automatisation améliore l'expérience client tout en réduisant la charge de travail administrative.`
                     }
                 },
                 "en": {
@@ -5347,12 +5416,12 @@ Cette automatisation améliore l'expérience client tout en réduisant la charge
                     formTypes: {
                         title: "Form Types",
                         content: `Interactive forms can be integrated into your chatbot to collect specific information. Each form type is designed for a particular purpose:<br><br>
-• <strong>Contact Form</strong>: Collects visitor contact details<br>
-• <strong>Lead Generation</strong>: Qualifies potential prospects<br>
-• <strong>Survey</strong>: Gathers detailed information<br>
-• <strong>Booking</strong>: Allows scheduling a time slot<br>
-• <strong>Customer Support</strong>: For assistance requests<br>
-• And more based on your specific needs`
+									• <strong>Contact Form</strong>: Collects visitor contact details<br>
+									• <strong>Lead Generation</strong>: Qualifies potential prospects<br>
+									• <strong>Survey</strong>: Gathers detailed information<br>
+									• <strong>Booking</strong>: Allows scheduling a time slot<br>
+									• <strong>Customer Support</strong>: For assistance requests<br>
+									• And more based on your specific needs`
                     },
                     websitePlatform: {
                         title: "Web Platforms",
@@ -5377,28 +5446,28 @@ Cette automatisation améliore l'expérience client tout en réduisant la charge
                     conversationSummary: {
                         title: "Automated Conversation Synthesis",
                         content: `This feature enables your chatbot to automatically generate summaries of user conversations. These summaries extract key points, requests, and commitments made during the interaction.<br><br>Benefits:<br>
-• Efficient tracking of customer interactions<br>
-• Quick identification of recurring needs<br>
-• Seamless handover to human agents when necessary<br>
-• Automatic documentation of exchanges for later analysis`
+									• Efficient tracking of customer interactions<br>
+									• Quick identification of recurring needs<br>
+									• Seamless handover to human agents when necessary<br>
+									• Automatic documentation of exchanges for later analysis`
                     },
                     websiteTraffic: {
                         title: "Monthly Traffic Volume",
                         content: `This information helps us properly size your chatbot solution. Traffic volume influences:<br><br>
-• Required processing capacity<br>
-• Server resources allocation<br>
-• Optimal dialog structure<br>
-• Caching and optimization strategies<br><br>
-A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
+									• Required processing capacity<br>
+									• Server resources allocation<br>
+									• Optimal dialog structure<br>
+									• Caching and optimization strategies<br><br>
+									A chatbot for a high-traffic site requires a more robust and scalable architecture than a site with fewer visitors.`
                     },
                     handleCancellation: {
                         title: "Cancellation and Rescheduling Management",
                         content: `This functionality allows your customers to modify or cancel their bookings directly through the chatbot without human intervention.<br><br>The chatbot can:<br>
-• Access the calendar of existing reservations<br>
-• Offer available alternative time slots<br>
-• Confirm changes via email/SMS<br>
-• Apply your business rules regarding cancellation deadlines or fees<br><br>
-This automation improves customer experience while reducing administrative workload.`
+									• Access the calendar of existing reservations<br>
+									• Offer available alternative time slots<br>
+									• Confirm changes via email/SMS<br>
+									• Apply your business rules regarding cancellation deadlines or fees<br><br>
+									This automation improves customer experience while reducing administrative workload.`
                     }
                 }
             };
@@ -5590,18 +5659,18 @@ This automation improves customer experience while reducing administrative workl
         // Enhanced forceHideConditionalSections function:
         function forceHideConditionalSections() {
             const conditionalSections = [
-'#form-options',
-'#website-options',
-'#crm-selection',
-'#database-selection',
-'#social-platforms-group',
-'#existing-booking-options',
-'#need-booking-options',
-'#language-selection',
-'#other-platform-group',
-'#other-niche-group',
-'#custom-budget-group'
-];
+				'#form-options',
+				'#website-options',
+				'#crm-selection',
+				'#database-selection',
+				'#social-platforms-group',
+				'#existing-booking-options',
+				'#need-booking-options',
+				'#language-selection',
+				'#other-platform-group',
+				'#other-niche-group',
+				'#custom-budget-group'
+			];
             conditionalSections.forEach(sectionId => {
                 const element = formContainer.querySelector(sectionId);
                 if (element) {
@@ -7176,9 +7245,9 @@ This automation improves customer experience while reducing administrative workl
                 // Reconstruct the entire error message structure
                 if (messageKey) {
                     errorElement.innerHTML = `
-<div class="error-icon">!</div>
-<span class="error-text">${getText(messageKey)}</span>
-`;
+						<div class="error-icon">!</div>
+						<span class="error-text">${getText(messageKey)}</span>
+					`;
                 }
                 errorElement.classList.add('show');
             }
@@ -8201,1408 +8270,1462 @@ const BookingDirectExtension = {
             return false;
         });
         formContainer.innerHTML = `
-<style>
-/* ====================================
-VSM MARKETING FORM - UNIFIED BOOKING EXTENSION BLUE THEME STYLESHEET
-==================================== */
-
-/* ---------- RESET & BASE STYLES ---------- */
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-background-color: #f5f5f5;
-color: #333;
-line-height: 1.6;
-}
-
-html {
-scroll-behavior: smooth;
-}
-
-.hidden {
-display: none !important;
-}
-
-/* ---------- ANIMATIONS ---------- */
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(15px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-from { opacity: 0; transform: translateX(10px); }
-to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideDown {
-from { opacity: 0; transform: translateY(-10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-0%, 100% { transform: translateX(0); }
-10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-@keyframes pulse {
-0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
-70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
-100% { transform: scale(1); }
-}
-
-@keyframes shimmer {
-0% { background-position: -100% 0; }
-100% { background-position: 100% 0; }
-}
-
-/* ---------- LAYOUT & CONTAINER ---------- */
-form.chatbot-form.booking-form {
-display: flex;
-flex-direction: column;
-width: 100%;
-max-width: 870px;
-margin: 0 auto;
-padding: 0;
-border-radius: 12px;
-background: #fff;
-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-position: relative;
-overflow: hidden;
-animation: fadeIn 0.6s;
-transition: all 0.3s ease;
-}
-
-form.chatbot-form.booking-form:hover {
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
-}
-
-/* ---------- FORM HEADER ---------- */
-.form-header {
-padding: 20px 30px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-display: flex;
-align-items: center;
-gap: 16px;
-border-radius: 12px 12px 0 0;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
-color: white;
-position: relative;
-}
-
-.form-header::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-.header-icon {
-width: 48px;
-height: 48px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 50%;
-background-color: rgba(255, 255, 255, 0.2);
-transition: all 0.3s ease;
-}
-
-.header-icon:hover {
-transform: scale(1.1);
-background-color: rgba(255, 255, 255, 0.3);
-}
-
-.header-icon svg {
-filter: brightness(0) invert(1);
-}
-
-.form-title {
-font-size: 28px;
-color: white;
-margin: 0;
-font-weight: 600;
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- STEP PROGRESS INDICATOR ---------- */
-.progress-container {
-padding: 20px 25px 10px 25px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-progress {
-display: flex;
-justify-content: space-between;
-position: relative;
-z-index: 0;
-}
-
-.step-progress::before {
-content: '';
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-width: 100%;
-background-color: #e0e0e0;
-border-radius: 10px;
-z-index: -1;
-}
-
-.progress-bar {
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-background: linear-gradient(to right, #023047, #e6f2f7);
-border-radius: 10px;
-transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
-z-index: -1;
-}
-
-.step-item {
-width: 36px;
-height: 36px;
-background-color: #e0e0e0;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-color: #666;
-position: relative;
-transition: all 0.3s ease;
-border: 3px solid white;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-z-index: 3;
-}
-
-.step-item.active {
-background-color: #e6f2f7;
-color: #023047;
-transform: scale(1.1);
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.step-item.completed {
-background-color: #023047;
-color: white;
-animation: pulse 2s infinite;
-}
-
-.step-title {
-position: absolute;
-top: 40px;
-left: 50%;
-transform: translateX(-50%);
-font-size: 11px;
-white-space: nowrap;
-color: #023047;
-font-weight: 600;
-display: none;
-opacity: 0.8;
-transition: opacity 0.3s ease;
-width: 110px;
-text-align: center;
-}
-
-/* ---------- FORM STEPS & ANIMATIONS ---------- */
-.step-container {
-display: none;
-animation: fadeIn 0.6s;
-}
-
-.step-container.active {
-display: flex;
-flex-direction: column;
-gap: 10px;
-padding: 5px 30px 10px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-container:not(.active) {
-pointer-events: none;
-}
-
-/* ---------- FORM ELEMENTS ---------- */
-.step-heading {
-font-size: 26px;
-color: #011a26;
-font-weight: 600;
-position: relative;
-}
-
-.step-heading::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 70px;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-/* ---------- SERVICE OPTIONS ---------- */
-.service-options {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-gap: 15px;
-}
-
-.service-option {
-border: 2px solid #ddd;
-border-radius: 12px;
-padding: 20px;
-cursor: pointer;
-transition: all 0.3s ease;
-position: relative;
-background-color: #fafafa;
-overflow: hidden;
-display: flex;
-flex-direction: column;
-}
-
-.service-option::before {
-content: '';
-position: absolute;
-top: 0;
-left: 0;
-width: 4px;
-height: 100%;
-background: #023047;
-transform: scaleY(0);
-transition: transform 0.3s;
-transform-origin: bottom;
-}
-
-.service-option:hover {
-border-color: #023047;
-background-color: #e6f2f7;
-transform: translateY(-3px);
-box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
-}
-
-.service-option:hover::before {
-transform: scaleY(1);
-}
-
-.service-option.selected {
-border-color: #023047;
-background-color: rgba(2, 48, 71, 0.05);
-box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
-}
-
-.service-option.selected::before {
-transform: scaleY(1);
-}
-
-.checkmark-icon {
-position: absolute;
-top: 15px;
-right: 15px;
-background-color: #023047;
-color: white;
-width: 24px;
-height: 24px;
-border-radius: 50%;
-display: none;
-align-items: center;
-justify-content: center;
-font-size: 12px;
-}
-
-.service-option.selected .checkmark-icon {
-display: flex;
-}
-
-.service-title {
-font-size: 18px;
-font-weight: 600;
-color: #023047;
-margin-bottom: 10px;
-}
-
-.service-description {
-font-size: 14px;
-color: #666;
-margin: 0 0 15px 0;
-line-height: 1.5;
-text-align: justify;
-flex: 1;
-}
-
-.service-duration {
-display: inline-block;
-background-color: #e6f2f7;
-padding: 6px 14px;
-border-radius: 20px;
-font-size: 13px;
-color: #023047;
-font-weight: 500;
-align-self: flex-start;
-}
-
-.service-option:hover .service-duration,
-.service-option.selected .service-duration {
-background-color: white;
-}
-
-.service-content {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: space-between;
-}
-
-/* ---------- FORM INPUTS ---------- */
-.flex-row {
-display: flex;
-flex-wrap: wrap;
-margin: 0 -10px;
-width: calc(100% + 20px);
-}
-
-.flex-row > div {
-flex: 1 0 0;
-padding: 0 10px;
-min-width: 0;
-}
-
-.form-label, .bold-label {
-display: block;
-font-weight: 600;
-color: #011a26;
-font-size: 15px;
-}
-
-.form-label.required::after,
-.bold-label.required::after {
-content: " *";
-color: #e52059;
-font-weight: bold;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"] {
-width: 100%;
-border: 2px solid #e0e0e0;
-border-radius: 8px;
-padding: 12px 16px;
-font-size: 14px;
-font-weight: 500;
-transition: all 0.3s ease;
-background-color: #fafafa;
-color: #444;
-position: relative;
-overflow: hidden;
-margin: 0px;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus {
-border-color: #023047;
-box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
-outline: none;
-background-color: #fff;
-transform: translateY(-2px);
-}
-
-input[type="text"]:hover:not(:focus),
-input[type="email"]:hover:not(:focus),
-input[type="tel"]:hover:not(:focus) {
-border-color: #023047;
-background-color: #e6f2f7;
-}
-
-/* ---------- ERROR MESSAGES ---------- */
-.error-container {
-width: 100%;
-margin: 2px 0;
-box-sizing: border-box;
-}
-
-.error-message {
-color: white;
-font-size: 13px;
-margin-top: 8px;
-display: none;
-background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-border-radius: 8px;
-border: none;
-padding: 12px 16px;
-animation: shake 0.5s;
-box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-}
-
-.error-message.show {
-display: flex;
-animation: slideIn 0.3s ease-out;
-}
-
-.error-icon {
-width: 22px;
-height: 22px;
-min-width: 22px;
-border-radius: 50%;
-background-color: white;
-color: #e52059;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-margin-right: 12px;
-font-size: 14px;
-}
-
-.error-text {
-flex: 1;
-}
-
-/* ---------- BUTTONS & NAVIGATION ---------- */
-.booking-footer {
-padding: 0px 30px 10px;
-display: flex;
-justify-content: space-between;
-}
-
-.form-buttons {
-display: flex;
-justify-content: space-between;
-width: 100%;
-}
-
-.btn {
-padding: 14px 28px;
-border: none;
-border-radius: 8px;
-font-size: 16px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s ease;
-letter-spacing: 0.5px;
-position: relative;
-overflow: hidden;
-}
-
-.btn::after {
-content: '';
-position: absolute;
-width: 100%;
-height: 100%;
-top: 0;
-left: -100%;
-background: linear-gradient(90deg, 
-rgba(255,255,255,0) 0%, 
-rgba(255,255,255,0.2) 50%, 
-rgba(255,255,255,0) 100%);
-transition: all 0.6s;
-}
-
-.btn:hover:not(:disabled)::after {
-left: 100%;
-}
-
-.btn-prev {
-background-color: #f0f0f0;
-color: #011a26;
-border: 2px solid #e0e0e0;
-visibility: hidden;
-}
-
-.btn-prev:hover {
-background-color: #e6f2f7;
-border-color: #023047;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.btn-prev.visible {
-visibility: visible;
-}
-
-.btn-next,
-.btn-submit {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.btn-next:hover,
-.btn-submit:hover {
-transform: translateY(-3px);
-box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
-}
-
-.btn:disabled {
-opacity: 0.7;
-cursor: not-allowed;
-transform: none;
-box-shadow: none;
-background: #e0e0e0;
-color: #9e9e9e;
-}
-
-.btn:disabled::after {
-display: none;
-}
-
-.btn:active {
-transform: translateY(1px);
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
-}
-
-/* ---------- SUCCESS MESSAGE ---------- */
-.success-section {
-display: none;
-text-align: center;
-padding: 40px 30px;
-animation: fadeIn 0.5s;
-background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
-}
-
-.success-section.active {
-display: block;
-}
-
-.success-icon {
-width: 80px;
-height: 80px;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-margin: 0 auto 20px;
-animation: pulse 2s infinite;
-color: white;
-font-size: 36px;
-}
-
-.success-icon svg {
-width: 36px;
-height: 36px;
-}
-
-.success-title {
-font-size: 24px;
-color: #011a26;
-margin-bottom: 15px;
-font-weight: 600;
-}
-
-.success-message {
-font-size: 16px;
-color: #023047;
-margin-bottom: 30px;
-line-height: 1.5;
-}
-
-/* ---------- CALENDAR STYLES (UNIFIED FROM CALENDAR COMPONENT) ---------- */
-.calendar-container {
-width: 100%;
-max-width: 870px;
-margin: 0 auto;
-background: #fff;
-border-radius: 12px;
-box-shadow: 0 4px 20px rgba(2, 48, 71, 0.08);
-overflow: hidden;
-transition: all 0.3s ease;
-position: relative;
-animation: fadeIn 0.3s ease-out forwards;
-border: 1px solid #e0e0e0;
-}
-
-.calendar-container:hover {
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-}
-
-.calendar-header {
-padding: 20px 30px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-display: flex;
-justify-content: space-between;
-align-items: center;
-color: white;
-position: relative;
-}
-
-.calendar-header::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-.calendar-title {
-display: flex;
-align-items: center;
-gap: 16px;
-}
-
-.calendar-title-content {
-display: flex;
-flex-direction: column;
-gap: 4px;
-}
-
-.service-provider {
-display: flex;
-align-items: center;
-font-size: 18px;
-font-weight: 600;
-color: white;
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.provider-icon {
-width: 24px;
-height: 24px;
-margin-right: 12px;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.provider-icon svg {
-filter: brightness(0) invert(1);
-}
-
-.calendar-nav {
-display: flex;
-align-items: center;
-gap: 20px;
-}
-
-.nav-btn {
-width: 40px;
-height: 40px;
-background: rgba(255, 255, 255, 0.2);
-border: none;
-border-radius: 50%;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: all 0.3s ease;
-color: white;
-}
-
-.nav-btn:hover:not(:disabled) {
-background: rgba(255, 255, 255, 0.3);
-transform: scale(1.1);
-}
-
-.nav-btn:disabled {
-opacity: 0.5;
-cursor: not-allowed;
-transform: none;
-}
-
-.current-date {
-font-size: 16px;
-font-weight: 600;
-color: #023047;
-padding: 8px 16px;
-background: rgba(255, 255, 255, 0.2);
-border-radius: 20px;
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.calendar-body {
-display: flex;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-min-height: 400px;
-}
-
-.days-container {
-width: 47%;
-padding: 20px;
-background-color: #fff;
-border-right: 1px solid #e0e0e0;
-}
-
-.weekdays {
-display: grid;
-grid-template-columns: repeat(7, 1fr);
-gap: 8px;
-margin-bottom: 15px;
-text-align: center;
-font-weight: 600;
-font-size: 12px;
-color: #023047;
-text-transform: uppercase;
-letter-spacing: 0.5px;
-}
-
-.days {
-display: grid;
-grid-template-columns: repeat(7, 1fr);
-}
-
-.day {
-display: flex;
-justify-content: center;
-align-items: center;
-height: 45px;
-width: 45px;
-cursor: pointer;
-position: relative;
-font-size: 14px;
-font-weight: 500;
-transition: all 0.3s ease;
-margin: 0 auto;
-border: 2px solid transparent;
-border-radius: 50%;
-color: #333;
-}
-
-.day:hover:not(.inactive) {
-background-color: #e6f2f7;
-color: #023047;
-border-color: #023047;
-transform: scale(1.1);
-}
-
-.day.available::after {
-content: "";
-position: absolute;
-bottom: 4px;
-width: 4px;
-height: 4px;
-border-radius: 50%;
-background-color: #023047;
-opacity: 0.7;
-}
-
-.day.today {
-border-color: #023047;
-background-color: rgba(2, 48, 71, 0.1);
-font-weight: 600;
-}
-
-.day.active {
-background-color: #023047;
-color: white;
-border-color: #023047;
-font-weight: 600;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-animation: pulse 2s infinite;
-}
-
-.day.active::after {
-display: none;
-}
-
-.day.inactive {
-color: #ccc;
-cursor: default;
-opacity: 0.5;
-}
-
-.day.inactive:hover {
-transform: none;
-background-color: transparent;
-border-color: transparent;
-}
-
-.times-container {
-width: 53%;
-padding: 20px;
-background-color: #fafafa;
-overflow-y: auto;
-max-height: 400px;
-}
-
-.times-container::-webkit-scrollbar {
-width: 6px;
-}
-
-.times-container::-webkit-scrollbar-track {
-background: #f1f1f1;
-border-radius: 10px;
-}
-
-.times-container::-webkit-scrollbar-thumb {
-background: rgba(2, 48, 71, 0.3);
-border-radius: 10px;
-}
-
-.times-container::-webkit-scrollbar-thumb:hover {
-background: rgba(2, 48, 71, 0.5);
-}
-
-.time-header {
-font-size: 16px;
-font-weight: 600;
-color: #011a26;
-text-align: center;
-margin-bottom: 20px;
-padding-bottom: 10px;
-position: relative;
-}
-
-.time-header::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 50%;
-transform: translateX(-50%);
-width: 50px;
-height: 3px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 3px;
-}
-
-.time-slots {
-display: flex;
-flex-direction: column;
-gap: 15px;
-}
-
-.time-slots-columns {
-display: flex;
-gap: 15px;
-}
-
-.time-slots-column {
-flex: 1;
-display: flex;
-flex-direction: column;
-gap: 10px;
-align-items: center;
-}
-
-.time-slots-column > div:first-child {
-font-weight: 600;
-color: #023047;
-margin-bottom: 8px;
-font-size: 14px;
-}
-
-.time-slot {
-padding: 12px 16px;
-border-radius: 8px;
-text-align: center;
-cursor: pointer;
-transition: all 0.3s ease;
-border: 2px solid #e0e0e0;
-background-color: white;
-color: #444;
-font-size: 14px;
-font-weight: 500;
-position: relative;
-overflow: hidden;
-width: 85%;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.time-slot::before {
-content: '';
-position: absolute;
-width: 100%;
-height: 100%;
-top: 0;
-left: -100%;
-background: linear-gradient(90deg, 
-rgba(255,255,255,0) 0%, 
-rgba(2, 48, 71, 0.1) 50%, 
-rgba(255,255,255,0) 100%);
-transition: all 0.6s;
-}
-
-.time-slot.available:hover:not(.selected) {
-background-color: #e6f2f7;
-color: #023047;
-border-color: #023047;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.time-slot.available:hover:not(.selected)::before {
-left: 100%;
-}
-
-.time-slot.selected {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-border-color: #023047;
-font-weight: 600;
-box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
-transform: translateY(-2px);
-}
-
-.time-slot.unavailable {
-background-color: #f5f5f5;
-color: #999;
-cursor: not-allowed;
-opacity: 0.6;
-}
-
-.calendar-footer {
-padding: 20px 30px;
-display: flex;
-justify-content: center;
-border-top: 1px solid #e0e0e0;
-background-color: #fafafa;
-}
-
-.confirm-btn {
-padding: 14px 28px;
-border: none;
-border-radius: 8px;
-font-size: 16px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s ease;
-letter-spacing: 0.5px;
-position: relative;
-overflow: hidden;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.confirm-btn::after {
-content: '';
-position: absolute;
-width: 100%;
-height: 100%;
-top: 0;
-left: -100%;
-background: linear-gradient(90deg, 
-rgba(255,255,255,0) 0%, 
-rgba(255,255,255,0.2) 50%, 
-rgba(255,255,255,0) 100%);
-transition: all 0.6s;
-}
-
-.confirm-btn:hover:not(:disabled) {
-transform: translateY(-3px);
-box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
-}
-
-.confirm-btn:hover:not(:disabled)::after {
-left: 100%;
-}
-
-.confirm-btn:disabled {
-opacity: 0.6;
-cursor: not-allowed;
-transform: none;
-box-shadow: none;
-}
-
-.confirm-btn:disabled::after {
-display: none;
-}
-
-/* ---------- CONFIRMED STATE ---------- */
-.calendar-container.confirmed .day,
-.calendar-container.confirmed .time-slot,
-.calendar-container.confirmed .nav-btn {
-pointer-events: none;
-cursor: default;
-opacity: 0.7;
-}
-
-.calendar-container.confirmed .day.active,
-.calendar-container.confirmed .time-slot.selected {
-opacity: 1;
-}
-
-/* Disabled form styles */
-.form-disabled input, 
-.form-disabled button, 
-.form-disabled select, 
-.form-disabled textarea, 
-.form-disabled .service-option {
-pointer-events: none;
-opacity: 0.7;
-cursor: not-allowed !important;
-}
-
-/* ---------- RESPONSIVE DESIGN ---------- */
-@media (max-width: 767px) {
-.flex-row {
-display: flex;
-margin: 0;
-width: 100%;
-gap: 10px;
-flex-direction: column;
-}
-
-.step-container.active {
-padding: 5px 15px 10px;
-}
-
-.flex-row > div {
-width: 100%;
-padding: 0;
-}
-
-.service-options {
-grid-template-columns: 1fr;
-gap: 15px;
-}
-}
-
-@media (max-width: 768px) {
-.form-title {
-font-size: 22px;
-}
-
-.form-header {
-padding: 15px 20px;
-gap: 15px;
-}
-
-.header-icon {
-width: 36px;
-height: 36px;
-}
-
-.step-heading {
-font-size: 22px;
-}
-
-.btn {
-padding: 12px 18px;
-font-size: 15px;
-}
-
-form.chatbot-form.booking-form {
-width: auto;
-border-radius: 8px;
-margin: 15px;
-}
-
-.step-item {
-width: 30px;
-height: 30px;
-font-size: 13px;
-}
-
-.progress-container {
-padding: 10px 10px 10px;
-}
-
-.step-title {
-font-size: 9px;
-width: 80px;
-display: none;
-}
-
-.booking-footer {
-padding: 0px 15px 10px;
-}
-
-.form-buttons {
-flex-direction: row;
-gap: 10px;
-}
-
-/* Calendar responsive */
-.calendar-container {
-border-radius: 8px;
-}
-
-.calendar-header {
-padding: 15px 20px;
-flex-direction: column;
-gap: 15px;
-align-items: center;
-}
-
-.calendar-nav {
-gap: 15px;
-}
-
-.nav-btn {
-width: 36px;
-height: 36px;
-}
-
-.current-date {
-font-size: 14px;
-padding: 6px 12px;
-}
-
-.service-provider {
-font-size: 16px;
-}
-
-.calendar-body {
-flex-direction: column;
-}
-
-.days-container,
-.times-container {
-width: 100%;
-padding: 15px;
-}
-
-.times-container {
-border-right: none;
-border-top: 1px solid #e0e0e0;
-max-height: 300px;
-}
-
-.day {
-height: 40px;
-width: 40px;
-font-size: 13px;
-}
-
-.time-slot {
-padding: 10px 12px;
-font-size: 13px;
-width: 90%;
-}
-
-.time-slots-columns {
-gap: 10px;
-}
-
-.confirm-btn {
-width: 100%;
-padding: 12px 20px;
-font-size: 14px;
-}
-
-.calendar-footer {
-padding: 15px 20px;
-}
-}
-
-@media (max-width: 480px) {
-form.chatbot-form.booking-form {
-min-width: 200px;
-}
-
-.header-icon svg {
-width: 18px;
-height: 18px;
-}
-
-.step-heading {
-font-size: 18px;
-}
-
-.step-item {
-width: 24px;
-height: 24px;
-font-size: 12px;
-}
-
-.btn {
-padding: 8px 12px;
-font-size: 13px;
-min-width: 80px;
-}
-
-.day {
-height: 35px;
-width: 35px;
-font-size: 12px;
-}
-
-.weekdays {
-font-size: 11px;
-}
-
-.time-header {
-font-size: 14px;
-}
-
-.time-slot {
-padding: 8px 10px;
-font-size: 12px;
-}
-
-.provider-icon {
-width: 20px;
-height: 20px;
-margin-right: 8px;
-}
-
-.service-provider {
-font-size: 14px;
-}
-
-.service-title {
-font-size: 16px;
-}
-
-.service-description {
-font-size: 13px;
-}
-
-.step-title {
-font-size: 8px;
-width: 60px;
-top: 35px;
-}
-
-.form-header {
-padding: 12px 15px;
-}
-
-.calendar-header {
-padding: 12px 15px;
-}
-
-.days-container,
-.times-container {
-padding: 10px;
-}
-}
-
-/* ---------- LOADING STATES ---------- */
-.loading {
-opacity: 0.7;
-pointer-events: none;
-}
-
-.loading .confirm-btn {
-background: #ccc;
-cursor: wait;
-}
-
-/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
-input:focus-visible, 
-button:focus-visible,
-.day:focus-visible,
-.time-slot:focus-visible,
-.nav-btn:focus-visible,
-.confirm-btn:focus-visible {
-outline: 2px solid #023047;
-outline-offset: 2px;
-}
-
-</style>
-
-<!-- Step Progress Indicator -->
-<div class="progress-container">
-<div class="step-progress">
-<div class="progress-bar" id="progress-bar"></div>
-<div class="step-item active" data-step="1">
-<div class="step-icon">1</div>
-<div class="step-title">${texts.step1Title}</div>
-</div>
-<div class="step-item" data-step="2">
-<div class="step-icon">2</div>
-<div class="step-title">${texts.step2Title}</div>
-</div>
-<div class="step-item" data-step="3">
-<div class="step-icon">3</div>
-<div class="step-title">${texts.step3Title}</div>
-</div>
-</div>
-</div>
-
-<!-- Step 1: Service selection -->
-<div id="step1-content" class="step-container active">
-<span class="step-heading">${texts.step1Title}</span>
-<div class="service-options">
-${texts.meetingOptions.map((option, index) => `
-<div class="service-option" data-id="${option.id}">
-<div class="checkmark-icon">${SVG_CHECK}</div>
-<h4 class="service-title">${option.title}</h4>
-<div class="service-content">
-<p class="service-description">${option.description}</p>
-<span class="service-duration">${option.duration}</span>
-</div>
-</div>
-`).join('')}
-</div>
-</div>
-
-<!-- Step 2: User information form -->
-<div id="step2-content" class="step-container">
-<span class="step-heading">${texts.step2Title}</span>
-<div class="flex-row">
-<div>
-<label for="first-name" class="form-label required">${texts.firstName}</label>
-<input type="text" id="first-name" name="first-name" placeholder="${texts.firstNamePlaceholder}" required />
-<div class="error-container">
-<div class="error-message" id="errorFirstName">
-<div class="error-icon">!</div>
-<span class="error-text">${texts.firstNameError}</span>
-</div>
-</div>
-</div>
-
-<div>
-<label for="last-name" class="form-label required">${texts.lastName}</label>
-<input type="text" id="last-name" name="last-name" placeholder="${texts.lastNamePlaceholder}" required />
-<div class="error-container">
-<div class="error-message" id="errorLastName">
-<div class="error-icon">!</div>
-<span class="error-text">${texts.lastNameError}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="flex-row">
-<div>
-<label for="email" class="form-label required">${texts.email}</label>
-<input type="email" id="email" name="email" placeholder="${texts.emailPlaceholder}" required />
-<div class="error-container">
-<div class="error-message" id="errorEmail">
-<div class="error-icon">!</div>
-<span class="error-text">${texts.emailError}</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Step 3: Calendar -->
-<div id="step3-content" class="step-container">
-<span class="step-heading">${texts.step3Title}</span>
-<div id="calendar-component"></div>
-</div>
-
-<!-- Success message -->
-<div id="success-content" class="success-section">
-<div class="success-icon">
-<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-<polyline points="22 4 12 14.01 9 11.01"></polyline>
-</svg>
-</div>
-<h3 class="success-title">${texts.successTitle}</h3>
-<p class="success-message">${texts.successMessage}</p>
-</div>
-
-<div class="booking-footer">
-<div class="form-buttons">
-<button id="back-button" type="button" class="btn btn-prev">${texts.backButton}</button>
-<button id="next-button" type="button" class="btn btn-next" disabled>${texts.nextButton}</button>
-</div>
-</div>
-`;
+			<style>
+			/* ====================================
+			VSM MARKETING FORM - UNIFIED BOOKING EXTENSION BLUE THEME STYLESHEET
+			==================================== */
+			/* ---------- RESET & BASE STYLES ---------- */
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			}
+
+			body {
+				background-color: #f5f5f5;
+				color: #333;
+				line-height: 1.6;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			/* ---------- ANIMATIONS ---------- */
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(15px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes slideIn {
+				from {
+					opacity: 0;
+					transform: translateX(10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateX(0);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes shake {
+
+				0%,
+				100% {
+					transform: translateX(0);
+				}
+
+				10%,
+				30%,
+				50%,
+				70%,
+				90% {
+					transform: translateX(-5px);
+				}
+
+				20%,
+				40%,
+				60%,
+				80% {
+					transform: translateX(5px);
+				}
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+					box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4);
+				}
+
+				70% {
+					transform: scale(1.05);
+					box-shadow: 0 0 0 15px rgba(2, 48, 71, 0);
+				}
+
+				100% {
+					transform: scale(1);
+				}
+			}
+
+			@keyframes shimmer {
+				0% {
+					background-position: -100% 0;
+				}
+
+				100% {
+					background-position: 100% 0;
+				}
+			}
+
+			/* ---------- LAYOUT & CONTAINER ---------- */
+			form.chatbot-form.booking-form {
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+				max-width: 870px;
+				margin: 0 auto;
+				padding: 0;
+				border-radius: 12px;
+				background: #fff;
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+				position: relative;
+				overflow: hidden;
+				animation: fadeIn 0.6s;
+				transition: all 0.3s ease;
+			}
+
+			form.chatbot-form.booking-form:hover {
+				box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			/* ---------- FORM HEADER ---------- */
+			.form-header {
+				padding: 20px 30px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				border-radius: 12px 12px 0 0;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+				color: white;
+				position: relative;
+			}
+
+			.form-header::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			.header-icon {
+				width: 48px;
+				height: 48px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				background-color: rgba(255, 255, 255, 0.2);
+				transition: all 0.3s ease;
+			}
+
+			.header-icon:hover {
+				transform: scale(1.1);
+				background-color: rgba(255, 255, 255, 0.3);
+			}
+
+			.header-icon svg {
+				filter: brightness(0) invert(1);
+			}
+
+			.form-title {
+				font-size: 28px;
+				color: white;
+				margin: 0;
+				font-weight: 600;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			/* ---------- STEP PROGRESS INDICATOR ---------- */
+			.progress-container {
+				padding: 20px 25px 10px 25px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-progress {
+				display: flex;
+				justify-content: space-between;
+				position: relative;
+				z-index: 0;
+			}
+
+			.step-progress::before {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				width: 100%;
+				background-color: #e0e0e0;
+				border-radius: 10px;
+				z-index: -1;
+			}
+
+			.progress-bar {
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				background: linear-gradient(to right, #023047, #e6f2f7);
+				border-radius: 10px;
+				transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+				z-index: -1;
+			}
+
+			.step-item {
+				width: 36px;
+				height: 36px;
+				background-color: #e0e0e0;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				color: #666;
+				position: relative;
+				transition: all 0.3s ease;
+				border: 3px solid white;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+				z-index: 3;
+			}
+
+			.step-item.active {
+				background-color: #e6f2f7;
+				color: #023047;
+				transform: scale(1.1);
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.step-item.completed {
+				background-color: #023047;
+				color: white;
+				animation: pulse 2s infinite;
+			}
+
+			.step-title {
+				position: absolute;
+				top: 40px;
+				left: 50%;
+				transform: translateX(-50%);
+				font-size: 11px;
+				white-space: nowrap;
+				color: #023047;
+				font-weight: 600;
+				display: none;
+				opacity: 0.8;
+				transition: opacity 0.3s ease;
+				width: 110px;
+				text-align: center;
+			}
+
+			/* ---------- FORM STEPS & ANIMATIONS ---------- */
+			.step-container {
+				display: none;
+				animation: fadeIn 0.6s;
+			}
+
+			.step-container.active {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				padding: 5px 30px 10px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-container:not(.active) {
+				pointer-events: none;
+			}
+
+			/* ---------- FORM ELEMENTS ---------- */
+			.step-heading {
+				font-size: 26px;
+				color: #011a26;
+				font-weight: 600;
+				position: relative;
+			}
+
+			.step-heading::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 70px;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			/* ---------- SERVICE OPTIONS ---------- */
+			.service-options {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+				gap: 15px;
+			}
+
+			.service-option {
+				border: 2px solid #ddd;
+				border-radius: 12px;
+				padding: 20px;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				position: relative;
+				background-color: #fafafa;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.service-option::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 4px;
+				height: 100%;
+				background: #023047;
+				transform: scaleY(0);
+				transition: transform 0.3s;
+				transform-origin: bottom;
+			}
+
+			.service-option:hover {
+				border-color: #023047;
+				background-color: #e6f2f7;
+				transform: translateY(-3px);
+				box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
+			}
+
+			.service-option:hover::before {
+				transform: scaleY(1);
+			}
+
+			.service-option.selected {
+				border-color: #023047;
+				background-color: rgba(2, 48, 71, 0.05);
+				box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
+			}
+
+			.service-option.selected::before {
+				transform: scaleY(1);
+			}
+
+			.checkmark-icon {
+				position: absolute;
+				top: 15px;
+				right: 15px;
+				background-color: #023047;
+				color: white;
+				width: 24px;
+				height: 24px;
+				border-radius: 50%;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				font-size: 12px;
+			}
+
+			.service-option.selected .checkmark-icon {
+				display: flex;
+			}
+
+			.service-title {
+				font-size: 18px;
+				font-weight: 600;
+				color: #023047;
+				margin-bottom: 10px;
+			}
+
+			.service-description {
+				font-size: 14px;
+				color: #666;
+				margin: 0 0 15px 0;
+				line-height: 1.5;
+				text-align: justify;
+				flex: 1;
+			}
+
+			.service-duration {
+				display: inline-block;
+				background-color: #e6f2f7;
+				padding: 6px 14px;
+				border-radius: 20px;
+				font-size: 13px;
+				color: #023047;
+				font-weight: 500;
+				align-self: flex-start;
+			}
+
+			.service-option:hover .service-duration,
+			.service-option.selected .service-duration {
+				background-color: white;
+			}
+
+			.service-content {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+
+			/* ---------- FORM INPUTS ---------- */
+			.flex-row {
+				display: flex;
+				flex-wrap: wrap;
+				margin: 0 -10px;
+				width: calc(100% + 20px);
+			}
+
+			.flex-row>div {
+				flex: 1 0 0;
+				padding: 0 10px;
+				min-width: 0;
+			}
+
+			.form-label,
+			.bold-label {
+				display: block;
+				font-weight: 600;
+				color: #011a26;
+				font-size: 15px;
+			}
+
+			.form-label.required::after,
+			.bold-label.required::after {
+				content: " *";
+				color: #e52059;
+				font-weight: bold;
+			}
+
+			input[type="text"],
+			input[type="email"],
+			input[type="tel"] {
+				width: 100%;
+				border: 2px solid #e0e0e0;
+				border-radius: 8px;
+				padding: 12px 16px;
+				font-size: 14px;
+				font-weight: 500;
+				transition: all 0.3s ease;
+				background-color: #fafafa;
+				color: #444;
+				position: relative;
+				overflow: hidden;
+				margin: 0px;
+			}
+
+			input[type="text"]:focus,
+			input[type="email"]:focus,
+			input[type="tel"]:focus {
+				border-color: #023047;
+				box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+				outline: none;
+				background-color: #fff;
+				transform: translateY(-2px);
+			}
+
+			input[type="text"]:hover:not(:focus),
+			input[type="email"]:hover:not(:focus),
+			input[type="tel"]:hover:not(:focus) {
+				border-color: #023047;
+				background-color: #e6f2f7;
+			}
+
+			/* ---------- ERROR MESSAGES ---------- */
+			.error-container {
+				width: 100%;
+				margin: 2px 0;
+				box-sizing: border-box;
+			}
+
+			.error-message {
+				color: white;
+				font-size: 13px;
+				margin-top: 8px;
+				display: none;
+				background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+				border-radius: 8px;
+				border: none;
+				padding: 12px 16px;
+				animation: shake 0.5s;
+				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+			}
+
+			.error-message.show {
+				display: flex;
+				animation: slideIn 0.3s ease-out;
+			}
+
+			.error-icon {
+				width: 22px;
+				height: 22px;
+				min-width: 22px;
+				border-radius: 50%;
+				background-color: white;
+				color: #e52059;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				margin-right: 12px;
+				font-size: 14px;
+			}
+
+			.error-text {
+				flex: 1;
+			}
+
+			/* ---------- BUTTONS & NAVIGATION ---------- */
+			.booking-footer {
+				padding: 0px 30px 10px;
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.form-buttons {
+				display: flex;
+				justify-content: space-between;
+				width: 100%;
+			}
+
+			.btn {
+				padding: 14px 28px;
+				border: none;
+				border-radius: 8px;
+				font-size: 16px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				letter-spacing: 0.5px;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.btn::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: -100%;
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 0) 0%,
+						rgba(255, 255, 255, 0.2) 50%,
+						rgba(255, 255, 255, 0) 100%);
+				transition: all 0.6s;
+			}
+
+			.btn:hover:not(:disabled)::after {
+				left: 100%;
+			}
+
+			.btn-prev {
+				background-color: #f0f0f0;
+				color: #011a26;
+				border: 2px solid #e0e0e0;
+				visibility: hidden;
+			}
+
+			.btn-prev:hover {
+				background-color: #e6f2f7;
+				border-color: #023047;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.btn-prev.visible {
+				visibility: visible;
+			}
+
+			.btn-next,
+			.btn-submit {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.btn-next:hover,
+			.btn-submit:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+			}
+
+			.btn:disabled {
+				opacity: 0.7;
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+				background: #e0e0e0;
+				color: #9e9e9e;
+			}
+
+			.btn:disabled::after {
+				display: none;
+			}
+
+			.btn:active {
+				transform: translateY(1px);
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+			}
+
+			/* ---------- SUCCESS MESSAGE ---------- */
+			.success-section {
+				display: none;
+				text-align: center;
+				padding: 40px 30px;
+				animation: fadeIn 0.5s;
+				background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+			}
+
+			.success-section.active {
+				display: block;
+			}
+
+			.success-icon {
+				width: 80px;
+				height: 80px;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin: 0 auto 20px;
+				animation: pulse 2s infinite;
+				color: white;
+				font-size: 36px;
+			}
+
+			.success-icon svg {
+				width: 36px;
+				height: 36px;
+			}
+
+			.success-title {
+				font-size: 24px;
+				color: #011a26;
+				margin-bottom: 15px;
+				font-weight: 600;
+			}
+
+			.success-message {
+				font-size: 16px;
+				color: #023047;
+				margin-bottom: 30px;
+				line-height: 1.5;
+			}
+
+			/* ---------- CALENDAR STYLES (UNIFIED FROM CALENDAR COMPONENT) ---------- */
+			.calendar-container {
+				width: 100%;
+				max-width: 870px;
+				margin: 0 auto;
+				background: #fff;
+				border-radius: 12px;
+				box-shadow: 0 4px 20px rgba(2, 48, 71, 0.08);
+				overflow: hidden;
+				transition: all 0.3s ease;
+				position: relative;
+				animation: fadeIn 0.3s ease-out forwards;
+				border: 1px solid #e0e0e0;
+			}
+
+			.calendar-container:hover {
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+			}
+
+			.calendar-header {
+				padding: 20px 30px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				color: white;
+				position: relative;
+			}
+
+			.calendar-header::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			.calendar-title {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+			}
+
+			.calendar-title-content {
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+			}
+
+			.service-provider {
+				display: flex;
+				align-items: center;
+				font-size: 18px;
+				font-weight: 600;
+				color: white;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			.provider-icon {
+				width: 24px;
+				height: 24px;
+				margin-right: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.provider-icon svg {
+				filter: brightness(0) invert(1);
+			}
+
+			.calendar-nav {
+				display: flex;
+				align-items: center;
+				gap: 20px;
+			}
+
+			.nav-btn {
+				width: 40px;
+				height: 40px;
+				background: rgba(255, 255, 255, 0.2);
+				border: none;
+				border-radius: 50%;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.3s ease;
+				color: white;
+			}
+
+			.nav-btn:hover:not(:disabled) {
+				background: rgba(255, 255, 255, 0.3);
+				transform: scale(1.1);
+			}
+
+			.nav-btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+				transform: none;
+			}
+
+			.current-date {
+				font-size: 16px;
+				font-weight: 600;
+				color: #023047;
+				padding: 8px 16px;
+				background: rgba(255, 255, 255, 0.2);
+				border-radius: 20px;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			.calendar-body {
+				display: flex;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+				min-height: 400px;
+			}
+
+			.days-container {
+				width: 47%;
+				padding: 20px;
+				background-color: #fff;
+				border-right: 1px solid #e0e0e0;
+			}
+
+			.weekdays {
+				display: grid;
+				grid-template-columns: repeat(7, 1fr);
+				gap: 8px;
+				margin-bottom: 15px;
+				text-align: center;
+				font-weight: 600;
+				font-size: 12px;
+				color: #023047;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+
+			.days {
+				display: grid;
+				grid-template-columns: repeat(7, 1fr);
+			}
+
+			.day {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 45px;
+				width: 45px;
+				cursor: pointer;
+				position: relative;
+				font-size: 14px;
+				font-weight: 500;
+				transition: all 0.3s ease;
+				margin: 0 auto;
+				border: 2px solid transparent;
+				border-radius: 50%;
+				color: #333;
+			}
+
+			.day:hover:not(.inactive) {
+				background-color: #e6f2f7;
+				color: #023047;
+				border-color: #023047;
+				transform: scale(1.1);
+			}
+
+			.day.available::after {
+				content: "";
+				position: absolute;
+				bottom: 4px;
+				width: 4px;
+				height: 4px;
+				border-radius: 50%;
+				background-color: #023047;
+				opacity: 0.7;
+			}
+
+			.day.today {
+				border-color: #023047;
+				background-color: rgba(2, 48, 71, 0.1);
+				font-weight: 600;
+			}
+
+			.day.active {
+				background-color: #023047;
+				color: white;
+				border-color: #023047;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+				animation: pulse 2s infinite;
+			}
+
+			.day.active::after {
+				display: none;
+			}
+
+			.day.inactive {
+				color: #ccc;
+				cursor: default;
+				opacity: 0.5;
+			}
+
+			.day.inactive:hover {
+				transform: none;
+				background-color: transparent;
+				border-color: transparent;
+			}
+
+			.times-container {
+				width: 53%;
+				padding: 20px;
+				background-color: #fafafa;
+				overflow-y: auto;
+				max-height: 400px;
+			}
+
+			.times-container::-webkit-scrollbar {
+				width: 6px;
+			}
+
+			.times-container::-webkit-scrollbar-track {
+				background: #f1f1f1;
+				border-radius: 10px;
+			}
+
+			.times-container::-webkit-scrollbar-thumb {
+				background: rgba(2, 48, 71, 0.3);
+				border-radius: 10px;
+			}
+
+			.times-container::-webkit-scrollbar-thumb:hover {
+				background: rgba(2, 48, 71, 0.5);
+			}
+
+			.time-header {
+				font-size: 16px;
+				font-weight: 600;
+				color: #011a26;
+				text-align: center;
+				margin-bottom: 20px;
+				padding-bottom: 10px;
+				position: relative;
+			}
+
+			.time-header::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 50px;
+				height: 3px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 3px;
+			}
+
+			.time-slots {
+				display: flex;
+				flex-direction: column;
+				gap: 15px;
+			}
+
+			.time-slots-columns {
+				display: flex;
+				gap: 15px;
+			}
+
+			.time-slots-column {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				align-items: center;
+			}
+
+			.time-slots-column>div:first-child {
+				font-weight: 600;
+				color: #023047;
+				margin-bottom: 8px;
+				font-size: 14px;
+			}
+
+			.time-slot {
+				padding: 12px 16px;
+				border-radius: 8px;
+				text-align: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				border: 2px solid #e0e0e0;
+				background-color: white;
+				color: #444;
+				font-size: 14px;
+				font-weight: 500;
+				position: relative;
+				overflow: hidden;
+				width: 85%;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+			}
+
+			.time-slot::before {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: -100%;
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 0) 0%,
+						rgba(2, 48, 71, 0.1) 50%,
+						rgba(255, 255, 255, 0) 100%);
+				transition: all 0.6s;
+			}
+
+			.time-slot.available:hover:not(.selected) {
+				background-color: #e6f2f7;
+				color: #023047;
+				border-color: #023047;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.time-slot.available:hover:not(.selected)::before {
+				left: 100%;
+			}
+
+			.time-slot.selected {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				border-color: #023047;
+				font-weight: 600;
+				box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
+				transform: translateY(-2px);
+			}
+
+			.time-slot.unavailable {
+				background-color: #f5f5f5;
+				color: #999;
+				cursor: not-allowed;
+				opacity: 0.6;
+			}
+
+			.calendar-footer {
+				padding: 20px 30px;
+				display: flex;
+				justify-content: center;
+				border-top: 1px solid #e0e0e0;
+				background-color: #fafafa;
+			}
+
+			.confirm-btn {
+				padding: 14px 28px;
+				border: none;
+				border-radius: 8px;
+				font-size: 16px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				letter-spacing: 0.5px;
+				position: relative;
+				overflow: hidden;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.confirm-btn::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: -100%;
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 0) 0%,
+						rgba(255, 255, 255, 0.2) 50%,
+						rgba(255, 255, 255, 0) 100%);
+				transition: all 0.6s;
+			}
+
+			.confirm-btn:hover:not(:disabled) {
+				transform: translateY(-3px);
+				box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+			}
+
+			.confirm-btn:hover:not(:disabled)::after {
+				left: 100%;
+			}
+
+			.confirm-btn:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+			}
+
+			.confirm-btn:disabled::after {
+				display: none;
+			}
+
+			/* ---------- CONFIRMED STATE ---------- */
+			.calendar-container.confirmed .day,
+			.calendar-container.confirmed .time-slot,
+			.calendar-container.confirmed .nav-btn {
+				pointer-events: none;
+				cursor: default;
+				opacity: 0.7;
+			}
+
+			.calendar-container.confirmed .day.active,
+			.calendar-container.confirmed .time-slot.selected {
+				opacity: 1;
+			}
+
+			/* Disabled form styles */
+			.form-disabled input,
+			.form-disabled button,
+			.form-disabled select,
+			.form-disabled textarea,
+			.form-disabled .service-option {
+				pointer-events: none;
+				opacity: 0.7;
+				cursor: not-allowed !important;
+			}
+
+			/* ---------- RESPONSIVE DESIGN ---------- */
+			@media (max-width: 767px) {
+				.flex-row {
+					display: flex;
+					margin: 0;
+					width: 100%;
+					gap: 10px;
+					flex-direction: column;
+				}
+
+				.step-container.active {
+					padding: 5px 15px 10px;
+				}
+
+				.flex-row>div {
+					width: 100%;
+					padding: 0;
+				}
+
+				.service-options {
+					grid-template-columns: 1fr;
+					gap: 15px;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.form-title {
+					font-size: 22px;
+				}
+
+				.form-header {
+					padding: 15px 20px;
+					gap: 15px;
+				}
+
+				.header-icon {
+					width: 36px;
+					height: 36px;
+				}
+
+				.step-heading {
+					font-size: 22px;
+				}
+
+				.btn {
+					padding: 12px 18px;
+					font-size: 15px;
+				}
+
+				form.chatbot-form.booking-form {
+					width: auto;
+					border-radius: 8px;
+					margin: 15px;
+				}
+
+				.step-item {
+					width: 30px;
+					height: 30px;
+					font-size: 13px;
+				}
+
+				.progress-container {
+					padding: 10px 10px 10px;
+				}
+
+				.step-title {
+					font-size: 9px;
+					width: 80px;
+					display: none;
+				}
+
+				.booking-footer {
+					padding: 0px 15px 10px;
+				}
+
+				.form-buttons {
+					flex-direction: row;
+					gap: 10px;
+				}
+
+				/* Calendar responsive */
+				.calendar-container {
+					border-radius: 8px;
+				}
+
+				.calendar-header {
+					padding: 15px 20px;
+					flex-direction: column;
+					gap: 15px;
+					align-items: center;
+				}
+
+				.calendar-nav {
+					gap: 15px;
+				}
+
+				.nav-btn {
+					width: 36px;
+					height: 36px;
+				}
+
+				.current-date {
+					font-size: 14px;
+					padding: 6px 12px;
+				}
+
+				.service-provider {
+					font-size: 16px;
+				}
+
+				.calendar-body {
+					flex-direction: column;
+				}
+
+				.days-container,
+				.times-container {
+					width: 100%;
+					padding: 15px;
+				}
+
+				.times-container {
+					border-right: none;
+					border-top: 1px solid #e0e0e0;
+					max-height: 300px;
+				}
+
+				.day {
+					height: 40px;
+					width: 40px;
+					font-size: 13px;
+				}
+
+				.time-slot {
+					padding: 10px 12px;
+					font-size: 13px;
+					width: 90%;
+				}
+
+				.time-slots-columns {
+					gap: 10px;
+				}
+
+				.confirm-btn {
+					width: 100%;
+					padding: 12px 20px;
+					font-size: 14px;
+				}
+
+				.calendar-footer {
+					padding: 15px 20px;
+				}
+			}
+
+			@media (max-width: 480px) {
+				form.chatbot-form.booking-form {
+					min-width: 200px;
+				}
+
+				.header-icon svg {
+					width: 18px;
+					height: 18px;
+				}
+
+				.step-heading {
+					font-size: 18px;
+				}
+
+				.step-item {
+					width: 24px;
+					height: 24px;
+					font-size: 12px;
+				}
+
+				.btn {
+					padding: 8px 12px;
+					font-size: 13px;
+					min-width: 80px;
+				}
+
+				.day {
+					height: 35px;
+					width: 35px;
+					font-size: 12px;
+				}
+
+				.weekdays {
+					font-size: 11px;
+				}
+
+				.time-header {
+					font-size: 14px;
+				}
+
+				.time-slot {
+					padding: 8px 10px;
+					font-size: 12px;
+				}
+
+				.provider-icon {
+					width: 20px;
+					height: 20px;
+					margin-right: 8px;
+				}
+
+				.service-provider {
+					font-size: 14px;
+				}
+
+				.service-title {
+					font-size: 16px;
+				}
+
+				.service-description {
+					font-size: 13px;
+				}
+
+				.step-title {
+					font-size: 8px;
+					width: 60px;
+					top: 35px;
+				}
+
+				.form-header {
+					padding: 12px 15px;
+				}
+
+				.calendar-header {
+					padding: 12px 15px;
+				}
+
+				.days-container,
+				.times-container {
+					padding: 10px;
+				}
+			}
+
+			/* ---------- LOADING STATES ---------- */
+			.loading {
+				opacity: 0.7;
+				pointer-events: none;
+			}
+
+			.loading .confirm-btn {
+				background: #ccc;
+				cursor: wait;
+			}
+
+			/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+			input:focus-visible,
+			button:focus-visible,
+			.day:focus-visible,
+			.time-slot:focus-visible,
+			.nav-btn:focus-visible,
+			.confirm-btn:focus-visible {
+				outline: 2px solid #023047;
+				outline-offset: 2px;
+			}
+
+			</style>
+
+			<!-- Step Progress Indicator -->
+			<div class="progress-container">
+				<div class="step-progress">
+					<div class="progress-bar" id="progress-bar"></div>
+					<div class="step-item active" data-step="1">
+						<div class="step-icon">1</div>
+						<div class="step-title">${texts.step1Title}</div>
+					</div>
+					<div class="step-item" data-step="2">
+						<div class="step-icon">2</div>
+						<div class="step-title">${texts.step2Title}</div>
+					</div>
+					<div class="step-item" data-step="3">
+						<div class="step-icon">3</div>
+						<div class="step-title">${texts.step3Title}</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 1: Service selection -->
+			<div id="step1-content" class="step-container active">
+				<span class="step-heading">${texts.step1Title}</span>
+				<div class="service-options">
+					${texts.meetingOptions.map((option, index) => `
+					<div class="service-option" data-id="${option.id}">
+						<div class="checkmark-icon">${SVG_CHECK}</div>
+						<h4 class="service-title">${option.title}</h4>
+						<div class="service-content">
+							<p class="service-description">${option.description}</p>
+							<span class="service-duration">${option.duration}</span>
+						</div>
+					</div>
+					`).join('')}
+				</div>
+			</div>
+
+			<!-- Step 2: User information form -->
+			<div id="step2-content" class="step-container">
+				<span class="step-heading">${texts.step2Title}</span>
+				<div class="flex-row">
+					<div>
+						<label for="first-name" class="form-label required">${texts.firstName}</label>
+						<input type="text" id="first-name" name="first-name" placeholder="${texts.firstNamePlaceholder}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorFirstName">
+								<div class="error-icon">!</div>
+								<span class="error-text">${texts.firstNameError}</span>
+							</div>
+						</div>
+					</div>
+
+					<div>
+						<label for="last-name" class="form-label required">${texts.lastName}</label>
+						<input type="text" id="last-name" name="last-name" placeholder="${texts.lastNamePlaceholder}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorLastName">
+								<div class="error-icon">!</div>
+								<span class="error-text">${texts.lastNameError}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="flex-row">
+					<div>
+						<label for="email" class="form-label required">${texts.email}</label>
+						<input type="email" id="email" name="email" placeholder="${texts.emailPlaceholder}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorEmail">
+								<div class="error-icon">!</div>
+								<span class="error-text">${texts.emailError}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 3: Calendar -->
+			<div id="step3-content" class="step-container">
+				<span class="step-heading">${texts.step3Title}</span>
+				<div id="calendar-component"></div>
+			</div>
+
+			<!-- Success message -->
+			<div id="success-content" class="success-section">
+				<div class="success-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+						<polyline points="22 4 12 14.01 9 11.01"></polyline>
+					</svg>
+				</div>
+				<h3 class="success-title">${texts.successTitle}</h3>
+				<p class="success-message">${texts.successMessage}</p>
+			</div>
+
+			<div class="booking-footer">
+				<div class="form-buttons">
+					<button id="back-button" type="button" class="btn btn-prev">${texts.backButton}</button>
+					<button id="next-button" type="button" class="btn btn-next" disabled>${texts.nextButton}</button>
+				</div>
+			</div>
+
+		`;
         element.appendChild(formContainer);
         // Insert header at the top of the form
         const header = renderHeader();
@@ -10036,48 +10159,48 @@ ${texts.meetingOptions.map((option, index) => `
             showErrorMessage(message) {
                 const errorOverlay = document.createElement("div");
                 errorOverlay.style.cssText = `
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-color: rgba(255, 255, 255, 0.95);
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 1000;
-backdrop-filter: blur(4px);
-`;
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					background-color: rgba(255, 255, 255, 0.95);
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					z-index: 1000;
+					backdrop-filter: blur(4px);
+				`;
                 const errorMessage = document.createElement("div");
                 errorMessage.style.cssText = `
-background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
-border: 2px solid #ffdddd;
-border-radius: 12px;
-padding: 30px;
-box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
-text-align: center;
-max-width: 80%;
-animation: fadeIn 0.3s ease-out;
-`;
+					background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+					border: 2px solid #ffdddd;
+					border-radius: 12px;
+					padding: 30px;
+					box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
+					text-align: center;
+					max-width: 80%;
+					animation: fadeIn 0.3s ease-out;
+				`;
                 errorMessage.innerHTML = `
-<div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
-<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2spanv-2h-2zm0-8v6spanV7h-2z" fill="currentColor"/>
-</svg>
-</div>
-<p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
-<button style="
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-border: none;
-padding: 12px 24px;
-border-radius: 8px;
-cursor: pointer;
-font-size: 14px;
-font-weight: 600;
-transition: all 0.3s ease;
-">OK</button>
-`;
+					<div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
+					<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2spanv-2h-2zm0-8v6spanV7h-2z" fill="currentColor"/>
+					</svg>
+					</div>
+					<p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
+					<button style="
+					background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+					color: white;
+					border: none;
+					padding: 12px 24px;
+					border-radius: 8px;
+					cursor: pointer;
+					font-size: 14px;
+					font-weight: 600;
+					transition: all 0.3s ease;
+					">OK</button>
+				`;
                 const calendarContainer = formContainer.querySelector(".calendar-container");
                 calendarContainer.appendChild(errorOverlay);
                 const closeButton = errorMessage.querySelector("button");
@@ -10120,13 +10243,13 @@ transition: all 0.3s ease;
                 const providerDiv = document.createElement("div");
                 providerDiv.className = "service-provider";
                 providerDiv.innerHTML = `
-<span class="provider-icon">
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
-<path fill="currentColor" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
-</svg>
-</span>
-<span>${selectedService.eventName || 'Available Appointments'}</span>
-`;
+					<span class="provider-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+					<path fill="currentColor" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
+					</svg>
+					</span>
+					<span>${selectedService.eventName || 'Available Appointments'}</span>
+				`;
                 titleContent.appendChild(providerDiv);
                 calendarTitle.appendChild(titleContent);
                 const calendarNav = document.createElement("div");
@@ -10377,56 +10500,56 @@ transition: all 0.3s ease;
                                     // 3. Finally shows the success animation
                                     const successOverlay = document.createElement('div');
                                     successOverlay.style.cssText = `
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 1000;
-opacity: 0;
-transition: opacity 0.5s;
-pointer-events: none;
-backdrop-filter: blur(4px);
-`;
+										position: absolute;
+										top: 0;
+										left: 0;
+										width: 100%;
+										height: 100%;
+										background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+										display: flex;
+										justify-content: center;
+										align-items: center;
+										z-index: 1000;
+										opacity: 0;
+										transition: opacity 0.5s;
+										pointer-events: none;
+										backdrop-filter: blur(4px);
+									`;
                                     const successMessage = document.createElement('div');
                                     successMessage.style.cssText = `
-background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
-border-radius: 15px;
-padding: 30px 40px;
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
-text-align: center;
-transform: translateY(20px);
-transition: transform 0.5s, opacity 0.5s;
-opacity: 0;
-border: 2px solid rgba(2, 48, 71, 0.1);
-`;
+										background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
+										border-radius: 15px;
+										padding: 30px 40px;
+										box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
+										text-align: center;
+										transform: translateY(20px);
+										transition: transform 0.5s, opacity 0.5s;
+										opacity: 0;
+										border: 2px solid rgba(2, 48, 71, 0.1);
+									`;
                                     const checkmark = document.createElement('div');
                                     checkmark.innerHTML = `
-<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
-<path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<defs>
-<linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-<stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
-<stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
-</linearGradient>
-</defs>
-</svg>
-`;
+										<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+										<circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
+										<path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+										<defs>
+										<linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+										<stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
+										<stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
+										</linearGradient>
+										</defs>
+										</svg>
+									`;
                                     checkmark.style.marginBottom = "20px";
                                     successMessage.appendChild(checkmark);
                                     const successText = document.createElement('p');
                                     successText.textContent = texts.bookingConfirmed + '!';
                                     successText.style.cssText = `
-font-size: 20px;
-font-weight: 600;
-margin: 0;
-color: #011a26;
-`;
+										font-size: 20px;
+										font-weight: 600;
+										margin: 0;
+										color: #011a26;
+									`;
                                     successMessage.appendChild(successText);
                                     successOverlay.appendChild(successMessage);
                                     const calendarContainer = formContainer.querySelector(".calendar-container");
@@ -10543,6 +10666,7 @@ color: #011a26;
         goToStep(1);
     }
 };
+
 const ContactFormExtension = {
     name: "ContactForm",
     type: "response",
@@ -10678,1041 +10802,1106 @@ const ContactFormExtension = {
         formContainer.setAttribute("novalidate", "true");
         formContainer.classList.add("chatbot-form");
         formContainer.innerHTML = `
-<style>
-/* ====================================
-VSM MARKETING FORM - UNIFIED STYLESHEET - DARK BLUE THEME
-==================================== */
-
-/* ---------- RESET & BASE STYLES ---------- */
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-background-color: #f5f5f5;
-color: #333;
-line-height: 1.6;
-}
-
-html {
-scroll-behavior: smooth;
-}
-
-/* ---------- ANIMATIONS ---------- */
-@keyframes fadeIn {
-from { opacity: 0; transform: translateY(15px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-from { opacity: 0; transform: translateX(10px); }
-to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideDown {
-from { opacity: 0; transform: translateY(-10px); }
-to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-0%, 100% { transform: translateX(0); }
-10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-@keyframes pulse {
-0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
-70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
-100% { transform: scale(1); }
-}
-
-@keyframes shimmer {
-0% { background-position: -100% 0; }
-100% { background-position: 100% 0; }
-}
-
-/* ---------- LAYOUT & CONTAINER ---------- */
-.container {
-max-width: 870px;
-margin: 40px auto;
-background: #fff;
-border-radius: 12px;
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-overflow: hidden;
-transition: all 0.3s ease;
-animation: fadeIn 0.6s;
-}
-
-.container:hover {
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
-}
-
-form.chatbot-form {
-display: flex;
-flex-direction: column;
-width: 100%;
-max-width: 870px;
-margin: 0 auto;
-padding: 0;
-border-radius: 12px;
-background: #fff;
-font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
-position: relative;
-overflow: hidden;
-animation: fadeIn 0.6s;
-transition: all 0.3s ease;
-}
-
-form.chatbot-form:hover {
-box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
-}
-
-/* Two-column layout */
-.row, .form-row, .flex-row {
-display: flex;
-flex-wrap: wrap;
-margin: 0 -10px;
-width: calc(100% + 20px);
-}
-
-.col, .form-col, .flex-row > div {
-flex: 1 0 0;
-padding: 0 10px;
-min-width: 0;
-}
-
-/* ---------- FORM HEADER ---------- */
-.form-header {
-padding: 20px 30px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-display: flex;
-align-items: center;
-gap: 16px;
-border-radius: 12px 12px 0 0;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
-color: white;
-position: relative;
-}
-
-.form-header::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-.header-icon {
-width: 48px;
-height: 48px;
-display: flex;
-align-items: center;
-justify-content: center;
-border-radius: 50%;
-background-color: rgba(255, 255, 255, 0.2);
-transition: all 0.3s ease;
-}
-
-.header-icon:hover {
-transform: scale(1.1);
-background-color: rgba(255, 255, 255, 0.3);
-}
-
-.header-icon svg {
-filter: brightness(0) invert(1);
-}
-
-.form-title {
-font-size: 28px;
-color: white;
-margin: 0;
-font-weight: 600;
-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- STEP PROGRESS INDICATOR ---------- */
-.progress-container {
-padding: 10px 25px 10px 25px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-progress {
-display: flex;
-justify-content: space-between;
-position: relative;
-z-index: 0;
-}
-
-.step-progress::before {
-content: '';
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-width: 100%;
-background-color: #e0e0e0;
-border-radius: 10px;
-z-index: -1;
-}
-
-.progress-bar {
-position: absolute;
-top: 50%;
-left: 0;
-transform: translateY(-50%);
-height: 6px;
-background: linear-gradient(to right, #023047, #e6f2f7);
-border-radius: 10px;
-transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
-z-index: -1;
-}
-
-.step-item {
-width: 36px;
-height: 36px;
-background-color: #e0e0e0;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-color: #666;
-position: relative;
-transition: all 0.3s ease;
-border: 3px solid white;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-z-index: 3;
-}
-
-.step-item.active {
-background-color: #e6f2f7;
-color: #023047;
-transform: scale(1.1);
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.step-item.completed {
-background-color: #023047;
-color: white;
-animation: pulse 2s infinite;
-}
-
-.step-title {
-position: absolute;
-top: 40px;
-left: 50%;
-transform: translateX(-50%);
-font-size: 11px;
-white-space: nowrap;
-color: #023047;
-font-weight: 600;
-display: none;
-opacity: 0.8;
-transition: opacity 0.3s ease;
-width: 110px;
-text-align: center;
-}
-
-/* ---------- FORM STEPS & ANIMATIONS ---------- */
-.step-container {
-display: none;
-animation: fadeIn 0.6s;
-}
-
-.step-container.active {
-display: flex;
-flex-direction: column;
-gap: 10px;
-padding: 5px 30px 10px;
-background: linear-gradient(to bottom, #ffffff, #fefeff);
-}
-
-.step-container:not(.active) {
-pointer-events: none;
-}
-
-/* ---------- FORM ELEMENTS ---------- */
-.form-label, .question-label, .bold-label {
-display: block;
-font-weight: 600;
-color: #011a26;
-font-size: 15px;
-}
-
-.question-label {
-font-size: 16px;
-}
-
-.form-label.required::after,
-.question-label.required::after {
-content: " *";
-color: #e52059;
-font-weight: bold;
-}
-
-.step-heading {
-font-size: 26px;
-color: #011a26;
-font-weight: 600;
-position: relative;
-}
-
-.step-heading::after {
-content: '';
-position: absolute;
-bottom: 0;
-left: 0;
-width: 70px;
-height: 4px;
-background: linear-gradient(90deg, #023047, #e6f2f7);
-border-radius: 4px;
-}
-
-/* ========== Input Fields ========== */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="number"],
-#details,
-select {
-width: 100%;
-border: 2px solid #e0e0e0;
-border-radius: 8px;
-padding: 12px 16px;
-font-size: 14px;
-font-weight: 500;
-transition: all 0.3s ease;
-background-color: #fafafa;
-color: #444;
-position: relative;
-overflow: hidden;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus,
-input[type="number"]:focus,
-#details:focus,
-select:focus {
-border-color: #023047;
-box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
-outline: none;
-background-color: #fff;
-transform: translateY(-2px);
-}
-
-input[type="text"]:hover:not(:focus),
-input[type="email"]:hover:not(:focus),
-input[type="tel"]:hover:not(:focus),
-input[type="number"]:hover:not(:focus),
-#details:hover:not(:focus) {
-border-color: #023047;
-background-color: #e6f2f7;
-}
-
-#details {
-min-height: 120px;
-resize: vertical;
-font-family: inherit;
-}
-
-/* ---------- DROPDOWN COMPONENTS ---------- */
-.select-container select {
-display: none !important;
-}
-
-.main-container {
-display: block;
-transition: height 0.3s ease;
-border-radius: 8px;
-width: 100%;
-margin-bottom: 15px;
-}
-
-.select-wrapper {
-border: 2px solid #e0e0e0;
-border-radius: 8px;
-background-color: #fafafa;
-position: relative;
-width: 100%;
-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-transition: all 0.3s ease;
-}
-
-.select-wrapper:hover {
-border-color: #023047;
-background-color: #e6f2f7;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.select-display {
-padding: 12px 18px;
-font-size: 15px;
-cursor: pointer;
-display: flex;
-justify-content: space-between;
-align-items: center;
-height: 52px;
-color: #444;
-font-weight: 500;
-}
-
-.dropdown-icon {
-width: 30px;
-height: 30px;
-transition: transform 0.3s ease;
-display: flex;
-align-items: center;
-justify-content: center;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-border-radius: 50%;
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
-}
-
-.dropdown-icon svg path {
-fill: white !important;
-}
-
-.dropdown-icon.rotate {
-transform: rotate(180deg);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
-}
-
-.custom-options {
-display: none;
-font-size: 15px;
-border-top: 1px solid #e0e0e0;
-max-height: 250px;
-overflow-y: auto;
-background-color: #fff;
-box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
-z-index: 100;
-border-radius: 0 0 8px 8px;
--ms-overflow-style: none;
-scrollbar-width: none;
-width: 100%;
-}
-
-.show-options {
-display: block;
-animation: slideDown 0.3s ease-out;
-}
-
-.custom-option {
-padding: 14px 18px;
-display: flex;
-align-items: center;
-cursor: pointer;
-transition: all 0.3s ease;
-position: relative;
-border-left: 4px solid transparent;
-}
-
-.custom-option:hover {
-background-color: rgba(2, 48, 71, 0.08);
-color: #011a26;
-border-left-color: #023047;
-transform: translateX(5px);
-}
-
-.custom-option.selected {
-background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
-color: #011a26;
-font-weight: bold;
-border-left-color: #023047;
-box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
-}
-
-.custom-option.selected .option-checkbox svg path {
-fill: #fff !important;
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg path {
-fill: #023047;
-}
-
-/* Checkbox styling */
-.option-checkbox {
-width: 22px;
-height: 22px;
-border: 2px solid #ccc;
-border-radius: 50%;
-margin-right: 14px;
-display: flex;
-align-items: center;
-justify-content: center;
-background-color: #fff;
-transition: all 0.3s ease;
-position: relative;
-}
-
-.option-checkbox svg {
-width: 12px;
-height: 12px;
-display: none;
-}
-
-.custom-option:not(.selected):hover .option-checkbox {
-border-color: #023047;
-transform: scale(1.05);
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg {
-display: block;
-}
-
-.custom-option.selected .option-checkbox svg {
-display: block;
-}
-
-.custom-option.selected .option-checkbox {
-border-color: #023047;
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-transform: scale(1.1);
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.custom-option:not(.selected):hover .option-checkbox svg path {
-fill: #023047 !important;
-}
-
-/* ---------- ERROR MESSAGES ---------- */
-.error-container {
-width: 100%;
-margin: 2px 0;
-box-sizing: border-box;
-}
-
-.error-message {
-color: white;
-font-size: 13px;
-margin-top: 8px;
-display: none;
-background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-border-radius: 8px;
-border: none;
-padding: 12px 16px;
-animation: shake 0.5s;
-box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-}
-
-.error-message.show {
-display: flex;
-animation: slideIn 0.3s ease-out;
-}
-
-.error-icon {
-width: 22px;
-height: 22px;
-min-width: 22px;
-border-radius: 50%;
-background-color: white;
-color: #e52059;
-display: flex;
-align-items: center;
-justify-content: center;
-font-weight: bold;
-margin-right: 12px;
-font-size: 14px;
-}
-
-.error-text {
-flex: 1;
-}
-
-/* ---------- BUTTONS & NAVIGATION ---------- */
-.form-buttons {
-display: flex;
-justify-content: space-between;
-gap: 15px;
-}
-
-.btn {
-padding: 14px 28px;
-border: none;
-border-radius: 8px;
-font-size: 16px;
-font-weight: 600;
-cursor: pointer;
-transition: all 0.3s ease;
-letter-spacing: 0.5px;
-position: relative;
-overflow: hidden;
-}
-
-.btn::after {
-content: '';
-position: absolute;
-width: 100%;
-height: 100%;
-top: 0;
-left: -100%;
-background: linear-gradient(90deg, 
-rgba(255,255,255,0) 0%, 
-rgba(255,255,255,0.2) 50%, 
-rgba(255,255,255,0) 100%);
-transition: all 0.6s;
-}
-
-.btn:hover:not(:disabled)::after {
-left: 100%;
-}
-
-.btn-prev {
-background-color: #f0f0f0;
-color: #011a26;
-border: 2px solid #e0e0e0;
-}
-
-.btn-prev:hover {
-background-color: #e6f2f7;
-border-color: #023047;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
-}
-
-.btn-next,
-.btn-submit {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
-}
-
-.btn-next:hover,
-.btn-submit:hover {
-transform: translateY(-3px);
-box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
-}
-
-.btn-submit {
-background: linear-gradient(135deg, #023047 0%, #e52059 100%);
-box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-}
-
-.btn-submit:hover {
-box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
-}
-
-.btn:disabled {
-opacity: 0.7;
-cursor: not-allowed;
-transform: none;
-box-shadow: none;
-}
-
-.btn:disabled::after {
-display: none;
-}
-
-.form-buttons .btn:active {
-transform: translateY(1px);
-box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
-}
-
-/* ---------- SUMMARY STYLES ---------- */
-.summary-container {
-background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
-border: 2px solid rgba(2, 48, 71, 0.1);
-border-radius: 12px;
-padding: 10px 15px;
-box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
-}
-
-.summary-row {
-display: flex;
-padding: 6px 0;
-border-bottom: 1px solid rgba(2, 48, 71, 0.1);
-align-items: center;
-transition: all 0.3s ease;
-}
-
-.summary-row:last-child {
-border-bottom: none;
-}
-
-.summary-row:hover {
-background-color: rgba(2, 48, 71, 0.05);
-border-radius: 8px;
-padding-left: 10px;
-padding-right: 10px;
-}
-
-.summary-label {
-font-weight: 600;
-width: 30%;
-color: #011a26;
-}
-
-.summary-value {
-flex: 1;
-color: #023047;
-}
-
-.edit-btn {
-background: none;
-border: 1px solid #023047;
-color: #023047;
-cursor: pointer;
-padding: 6px 12px;
-font-size: 14px;
-border-radius: 6px;
-transition: all 0.3s ease;
-font-weight: 500;
-}
-
-.edit-btn:hover {
-background: linear-gradient(135deg, #023047 0%, #011a26 100%);
-color: white;
-transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
-}
-
-/* ---------- RESPONSIVE DESIGN ---------- */
-@media (max-width: 767px) {
-.row, .form-row, .flex-row {
-display: flex;
-margin: 0;
-width: 100%;
-gap: 10px;
-flex-direction: column;
-}
-.step-container.active {
-padding: 5px 15px 10px;
-}
-
-.col, .form-col, .flex-row > div {
-width: 100%;
-padding: 0;
-margin-bottom: 0px;
-}
-
-.form-group {
-margin-bottom: 10px;
-}
-
-.form-col .conditional-field {
-margin-left: 0;
-padding-left: 15px;
-}
-}
-
-@media (max-width: 768px) {
-.form-title {
-font-size: 22px;
-}
-
-.form-header {
-padding: 15px 20px;
-gap: 15px;
-}
-
-.header-icon {
-width: 36px;
-height: 36px;
-}
-
-.step-heading {
-font-size: 22px;
-}
-
-.btn {
-padding: 12px 18px;
-font-size: 15px;
-}
-
-.container, form.chatbot-form {
-width: auto;
-border-radius: 8px;
-}
-
-.step-item {
-width: 30px;
-height: 30px;
-font-size: 13px;
-}
-
-.progress-container {
-
-padding: 10px 10px 10px;
-}
-
-.step-title {
-font-size: 9px;
-width: 80px;
-}
-
-.form-buttons {
-flex-direction: row;
-gap: 10px;
-}
-}
-
-@media (max-width: 480px) {
-form.chatbot-form {
-min-width: 200px;
-}
-.header-icon svg {
-width: 18px;
-height: 18px;
-}
-.step-heading {
-font-size: 18px;
-}
-
-.step-item {
-width: 24px;
-height: 24px;
-font-size: 12px;
-}
-
-.step-title {
-font-size: 8px;
-width: 60px;
-top: 35px;
-}
-
-.form-header {
-padding: 12px 15px;
-}
-
-.summary-container {
-padding: 15px;
-}
-}
-
-/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
-input:focus-visible, 
-#details:focus-visible, 
-select:focus-visible,
-button:focus-visible {
-outline: 2px solid #023047;
-outline-offset: 2px;
-}
-
-.hidden {
-display: none !important;
-}
-
-/* ---------- LOADING STATES ---------- */
-.loading {
-opacity: 0.7;
-pointer-events: none;
-}
-
-.loading .btn {
-background: #ccc;
-cursor: wait;
-}
-.textarea-wrapper {
-position: relative;
-width: 100%;
-margin-bottom: 0;
-}
-
-.textarea-wrapper textarea {
-margin-bottom: 0;
-display: block;
-}
-</style>
-
-<!-- Step Progress Indicator -->
-<div class="progress-container">
-<div class="step-progress">
-<div class="progress-bar" id="progress-bar"></div>
-<div class="step-item active" data-step="1">
-<div class="step-icon">1</div>
-<div class="step-title">${isEnglish ? 'Contact' : 'Contact'}</div>
-</div>
-<div class="step-item" data-step="2">
-<div class="step-icon">2</div>
-<div class="step-title">${isEnglish ? 'Services' : 'Services'}</div>
-</div>
-<div class="step-item" data-step="3">
-<div class="step-icon">3</div>
-<div class="step-title">${isEnglish ? 'Message' : 'Message'}</div>
-</div>
-<div class="step-item" data-step="4">
-<div class="step-icon">4</div>
-<div class="step-title">${isEnglish ? 'Summary' : 'Résumé'}</div>
-</div>
-</div>
-</div>
-
-<!-- Step 1: Contact Information -->
-<div class="step-container active" id="step-1">
-<span class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</span>
-
-<div class="flex-row">
-<div>
-<label for="first-name" class="bold-label">${isEnglish ? 'First Name' : 'Prénom'}</label>
-<input type="text" id="first-name" name="first-name" placeholder="${isEnglish ? 'Enter your first name' : 'Entrez votre prénom'}" required />
-<div class="error-container">
-<div class="error-message" id="errorFirstName">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'First name is required.' : 'Le prénom est obligatoire.'}</span>
-</div>
-</div>
-</div>
-
-<div>
-<label for="last-name" class="bold-label">${isEnglish ? 'Last Name' : 'Nom de famille'}</label>
-<input type="text" id="last-name" name="last-name" placeholder="${isEnglish ? 'Enter your last name' : 'Entrez votre nom de famille'}" required />
-<div class="error-container">
-<div class="error-message" id="errorLastName">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'Last name is required.' : 'Le nom de famille est obligatoire.'}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="flex-row">
-<div>
-<label for="email" class="bold-label">Email</label>
-<input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
-<div class="error-container">
-<div class="error-message" id="errorEmail">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
-</div>
-</div>
-</div>
-
-<div>
-<label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
-<input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
-<div class="error-container">
-<div class="error-message" id="errorPhone">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="form-buttons">
-<div></div>
-<button type="button" class="btn btn-next" id="step1-next">
-${isEnglish ? 'Next' : 'Suivant'}
-</button>
-</div>
-</div>
-
-<!-- Step 2: Services Selection -->
-<div class="step-container" id="step-2">
-<span class="step-heading">${isEnglish ? 'Services Selection' : 'Sélection des services'}</span>
-
-<div class="flex-row">
-<div class="main-container" id="serviceDropdown">
-<label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
-<select id="serviceSelect" name="serviceSelect" required style="display:none;"></select>
-<div class="select-wrapper">
-<div class="select-display" id="selectDisplayService">
-<span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
-<div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
-</div>
-<div class="custom-options" id="customOptionsService"></div>
-</div>
-<div class="error-container">
-<div class="error-message" id="errorService">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step2-prev">
-${isEnglish ? 'Previous' : 'Précédent'}
-</button>
-<button type="button" class="btn btn-next" id="step2-next">
-${isEnglish ? 'Next' : 'Suivant'}
-</button>
-</div>
-</div>
-
-<!-- Step 3: Message Details -->
-<div class="step-container" id="step-3">
-<span class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</span>
-
-<div class="flex-row">
-<div>
-<label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
-<div class="textarea-wrapper">
-<textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
-</div>
-<div class="error-container">
-<div class="error-message" id="errorMessage">
-<div class="error-icon">!</div>
-<span class="error-text">${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
-</div>
-</div>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step3-prev">
-${isEnglish ? 'Previous' : 'Précédent'}
-</button>
-<button type="button" class="btn btn-next" id="step3-next">
-${isEnglish ? 'Next' : 'Suivant'}
-</button>
-</div>
-</div>
-
-<!-- Step 4: Summary and Submit -->
-<div class="step-container" id="step-4">
-<span class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</span>
-
-<div class="summary-container">
-<div class="summary-row">
-<div class="summary-label">${isEnglish ? 'Full Name' : 'Nom complet'}:</div>
-<div class="summary-value" id="summary-fullname"></div>
-<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
-</div>
-<div class="summary-row">
-<div class="summary-label">Email:</div>
-<div class="summary-value" id="summary-email"></div>
-<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
-</div>
-<div class="summary-row">
-<div class="summary-label">${isEnglish ? 'Phone' : 'Téléphone'}:</div>
-<div class="summary-value" id="summary-phone"></div>
-<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
-</div>
-<div class="summary-row">
-<div class="summary-label">${isEnglish ? 'Service' : 'Service'}:</div>
-<div class="summary-value" id="summary-service"></div>
-<button type="button" class="edit-btn" data-step="2">${isEnglish ? 'Edit' : 'Modifier'}</button>
-</div>
-<div class="summary-row">
-<div class="summary-label">${isEnglish ? 'Message' : 'Message'}:</div>
-<div class="summary-value" id="summary-message"></div>
-<button type="button" class="edit-btn" data-step="3">${isEnglish ? 'Edit' : 'Modifier'}</button>
-</div>
-</div>
-
-<div class="form-buttons">
-<button type="button" class="btn btn-prev" id="step4-prev">
-${isEnglish ? 'Previous' : 'Précédent'}
-</button>
-<button type="button" class="btn btn-submit" id="submit-button">
-${isEnglish ? 'Submit' : 'Envoyer'}
-</button>
-</div>
-</div>
-`;
+			<style>
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			}
+
+			body {
+				background-color: #f5f5f5;
+				color: #333;
+				line-height: 1.6;
+			}
+
+			html {
+				scroll-behavior: smooth;
+			}
+
+			/* ---------- ANIMATIONS ---------- */
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(15px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes slideIn {
+				from {
+					opacity: 0;
+					transform: translateX(10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateX(0);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-10px);
+				}
+
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes shake {
+
+				0%,
+				100% {
+					transform: translateX(0);
+				}
+
+				10%,
+				30%,
+				50%,
+				70%,
+				90% {
+					transform: translateX(-5px);
+				}
+
+				20%,
+				40%,
+				60%,
+				80% {
+					transform: translateX(5px);
+				}
+			}
+
+			@keyframes pulse {
+				0% {
+					transform: scale(1);
+					box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4);
+				}
+
+				70% {
+					transform: scale(1.05);
+					box-shadow: 0 0 0 15px rgba(2, 48, 71, 0);
+				}
+
+				100% {
+					transform: scale(1);
+				}
+			}
+
+			@keyframes shimmer {
+				0% {
+					background-position: -100% 0;
+				}
+
+				100% {
+					background-position: 100% 0;
+				}
+			}
+
+			/* ---------- LAYOUT & CONTAINER ---------- */
+			.container {
+				max-width: 870px;
+				margin: 40px auto;
+				background: #fff;
+				border-radius: 12px;
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+				overflow: hidden;
+				transition: all 0.3s ease;
+				animation: fadeIn 0.6s;
+			}
+
+			.container:hover {
+				box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			form.chatbot-form {
+				display: flex;
+				flex-direction: column;
+				width: 100%;
+				max-width: 870px;
+				margin: 0 auto;
+				padding: 0;
+				border-radius: 12px;
+				background: #fff;
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+				position: relative;
+				overflow: hidden;
+				animation: fadeIn 0.6s;
+				transition: all 0.3s ease;
+			}
+
+			form.chatbot-form:hover {
+				box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			/* Two-column layout */
+			.row,
+			.form-row,
+			.flex-row {
+				display: flex;
+				flex-wrap: wrap;
+				margin: 0 -10px;
+				width: calc(100% + 20px);
+			}
+
+			.col,
+			.form-col,
+			.flex-row>div {
+				flex: 1 0 0;
+				padding: 0 10px;
+				min-width: 0;
+			}
+
+			/* ---------- FORM HEADER ---------- */
+			.form-header {
+				padding: 20px 30px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				border-radius: 12px 12px 0 0;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+				color: white;
+				position: relative;
+			}
+
+			.form-header::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100%;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			.header-icon {
+				width: 48px;
+				height: 48px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border-radius: 50%;
+				background-color: rgba(255, 255, 255, 0.2);
+				transition: all 0.3s ease;
+			}
+
+			.header-icon:hover {
+				transform: scale(1.1);
+				background-color: rgba(255, 255, 255, 0.3);
+			}
+
+			.header-icon svg {
+				filter: brightness(0) invert(1);
+			}
+
+			.form-title {
+				font-size: 28px;
+				color: white;
+				margin: 0;
+				font-weight: 600;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			/* ---------- STEP PROGRESS INDICATOR ---------- */
+			.progress-container {
+				padding: 10px 25px 10px 25px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-progress {
+				display: flex;
+				justify-content: space-between;
+				position: relative;
+				z-index: 0;
+			}
+
+			.step-progress::before {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				width: 100%;
+				background-color: #e0e0e0;
+				border-radius: 10px;
+				z-index: -1;
+			}
+
+			.progress-bar {
+				position: absolute;
+				top: 50%;
+				left: 0;
+				transform: translateY(-50%);
+				height: 6px;
+				background: linear-gradient(to right, #023047, #e6f2f7);
+				border-radius: 10px;
+				transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+				z-index: -1;
+			}
+
+			.step-item {
+				width: 36px;
+				height: 36px;
+				background-color: #e0e0e0;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				color: #666;
+				position: relative;
+				transition: all 0.3s ease;
+				border: 3px solid white;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+				z-index: 3;
+			}
+
+			.step-item.active {
+				background-color: #e6f2f7;
+				color: #023047;
+				transform: scale(1.1);
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.step-item.completed {
+				background-color: #023047;
+				color: white;
+				animation: pulse 2s infinite;
+			}
+
+			.step-title {
+				position: absolute;
+				top: 40px;
+				left: 50%;
+				transform: translateX(-50%);
+				font-size: 11px;
+				white-space: nowrap;
+				color: #023047;
+				font-weight: 600;
+				display: none;
+				opacity: 0.8;
+				transition: opacity 0.3s ease;
+				width: 110px;
+				text-align: center;
+			}
+
+			/* ---------- FORM STEPS & ANIMATIONS ---------- */
+			.step-container {
+				display: none;
+				animation: fadeIn 0.6s;
+			}
+
+			.step-container.active {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+				padding: 5px 30px 10px;
+				background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			.step-container:not(.active) {
+				pointer-events: none;
+			}
+
+			/* ---------- FORM ELEMENTS ---------- */
+			.form-label,
+			.question-label,
+			.bold-label {
+				display: block;
+				font-weight: 600;
+				color: #011a26;
+				font-size: 15px;
+			}
+
+			.question-label {
+				font-size: 16px;
+			}
+
+			.form-label.required::after,
+			.question-label.required::after {
+				content: " *";
+				color: #e52059;
+				font-weight: bold;
+			}
+
+			.step-heading {
+				font-size: 26px;
+				color: #011a26;
+				font-weight: 600;
+				position: relative;
+			}
+
+			.step-heading::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 70px;
+				height: 4px;
+				background: linear-gradient(90deg, #023047, #e6f2f7);
+				border-radius: 4px;
+			}
+
+			/* ========== Input Fields ========== */
+			input[type="text"],
+			input[type="email"],
+			input[type="tel"],
+			input[type="number"],
+			#details,
+			select {
+				width: 100%;
+				border: 2px solid #e0e0e0;
+				border-radius: 8px;
+				padding: 12px 16px;
+				font-size: 14px;
+				font-weight: 500;
+				transition: all 0.3s ease;
+				background-color: #fafafa;
+				color: #444;
+				position: relative;
+				overflow: hidden;
+			}
+
+			input[type="text"]:focus,
+			input[type="email"]:focus,
+			input[type="tel"]:focus,
+			input[type="number"]:focus,
+			#details:focus,
+			select:focus {
+				border-color: #023047;
+				box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+				outline: none;
+				background-color: #fff;
+				transform: translateY(-2px);
+			}
+
+			input[type="text"]:hover:not(:focus),
+			input[type="email"]:hover:not(:focus),
+			input[type="tel"]:hover:not(:focus),
+			input[type="number"]:hover:not(:focus),
+			#details:hover:not(:focus) {
+				border-color: #023047;
+				background-color: #e6f2f7;
+			}
+
+			#details {
+				min-height: 120px;
+				resize: vertical;
+				font-family: inherit;
+			}
+
+			/* ---------- DROPDOWN COMPONENTS ---------- */
+			.select-container select {
+				display: none !important;
+			}
+
+			.main-container {
+				display: block;
+				transition: height 0.3s ease;
+				border-radius: 8px;
+				width: 100%;
+				margin-bottom: 15px;
+			}
+
+			.select-wrapper {
+				border: 2px solid #e0e0e0;
+				border-radius: 8px;
+				background-color: #fafafa;
+				position: relative;
+				width: 100%;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+				transition: all 0.3s ease;
+			}
+
+			.select-wrapper:hover {
+				border-color: #023047;
+				background-color: #e6f2f7;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.select-display {
+				padding: 12px 18px;
+				font-size: 15px;
+				cursor: pointer;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				height: 52px;
+				color: #444;
+				font-weight: 500;
+			}
+
+			.dropdown-icon {
+				width: 30px;
+				height: 30px;
+				transition: transform 0.3s ease;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				border-radius: 50%;
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
+			}
+
+			.dropdown-icon svg path {
+				fill: white !important;
+			}
+
+			.dropdown-icon.rotate {
+				transform: rotate(180deg);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
+			}
+
+			.custom-options {
+				display: none;
+				font-size: 15px;
+				border-top: 1px solid #e0e0e0;
+				max-height: 250px;
+				overflow-y: auto;
+				background-color: #fff;
+				box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
+				z-index: 100;
+				border-radius: 0 0 8px 8px;
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+				width: 100%;
+			}
+
+			.show-options {
+				display: block;
+				animation: slideDown 0.3s ease-out;
+			}
+
+			.custom-option {
+				padding: 14px 18px;
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				position: relative;
+				border-left: 4px solid transparent;
+			}
+
+			.custom-option:hover {
+				background-color: rgba(2, 48, 71, 0.08);
+				color: #011a26;
+				border-left-color: #023047;
+				transform: translateX(5px);
+			}
+
+			.custom-option.selected {
+				background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
+				color: #011a26;
+				font-weight: bold;
+				border-left-color: #023047;
+				box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
+			}
+
+			.custom-option.selected .option-checkbox svg path {
+				fill: #fff !important;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg path {
+				fill: #023047;
+			}
+
+			/* Checkbox styling */
+			.option-checkbox {
+				width: 22px;
+				height: 22px;
+				border: 2px solid #ccc;
+				border-radius: 50%;
+				margin-right: 14px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background-color: #fff;
+				transition: all 0.3s ease;
+				position: relative;
+			}
+
+			.option-checkbox svg {
+				width: 12px;
+				height: 12px;
+				display: none;
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox {
+				border-color: #023047;
+				transform: scale(1.05);
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg {
+				display: block;
+			}
+
+			.custom-option.selected .option-checkbox svg {
+				display: block;
+			}
+
+			.custom-option.selected .option-checkbox {
+				border-color: #023047;
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				transform: scale(1.1);
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.custom-option:not(.selected):hover .option-checkbox svg path {
+				fill: #023047 !important;
+			}
+
+			/* ---------- ERROR MESSAGES ---------- */
+			.error-container {
+				width: 100%;
+				margin: 2px 0;
+				box-sizing: border-box;
+			}
+
+			.error-message {
+				color: white;
+				font-size: 13px;
+				margin-top: 8px;
+				display: none;
+				background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+				border-radius: 8px;
+				border: none;
+				padding: 12px 16px;
+				animation: shake 0.5s;
+				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+			}
+
+			.error-message.show {
+				display: flex;
+				animation: slideIn 0.3s ease-out;
+			}
+
+			.error-icon {
+				width: 22px;
+				height: 22px;
+				min-width: 22px;
+				border-radius: 50%;
+				background-color: white;
+				color: #e52059;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				margin-right: 12px;
+				font-size: 14px;
+			}
+
+			.error-text {
+				flex: 1;
+			}
+
+			/* ---------- BUTTONS & NAVIGATION ---------- */
+			.form-buttons {
+				display: flex;
+				justify-content: space-between;
+				gap: 15px;
+			}
+
+			.btn {
+				padding: 14px 28px;
+				border: none;
+				border-radius: 8px;
+				font-size: 16px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				letter-spacing: 0.5px;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.btn::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: -100%;
+				background: linear-gradient(90deg,
+						rgba(255, 255, 255, 0) 0%,
+						rgba(255, 255, 255, 0.2) 50%,
+						rgba(255, 255, 255, 0) 100%);
+				transition: all 0.6s;
+			}
+
+			.btn:hover:not(:disabled)::after {
+				left: 100%;
+			}
+
+			.btn-prev {
+				background-color: #f0f0f0;
+				color: #011a26;
+				border: 2px solid #e0e0e0;
+			}
+
+			.btn-prev:hover {
+				background-color: #e6f2f7;
+				border-color: #023047;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+			}
+
+			.btn-next,
+			.btn-submit {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.btn-next:hover,
+			.btn-submit:hover {
+				transform: translateY(-3px);
+				box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+			}
+
+			.btn-submit {
+				background: linear-gradient(135deg, #023047 0%, #e52059 100%);
+				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+			}
+
+			.btn-submit:hover {
+				box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
+			}
+
+			.btn:disabled {
+				opacity: 0.7;
+				cursor: not-allowed;
+				transform: none;
+				box-shadow: none;
+			}
+
+			.btn:disabled::after {
+				display: none;
+			}
+
+			.form-buttons .btn:active {
+				transform: translateY(1px);
+				box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+			}
+
+			/* ---------- SUMMARY STYLES ---------- */
+			.summary-container {
+				background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+				border: 2px solid rgba(2, 48, 71, 0.1);
+				border-radius: 12px;
+				padding: 10px 15px;
+				box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
+			}
+
+			.summary-row {
+				display: flex;
+				padding: 6px 0;
+				border-bottom: 1px solid rgba(2, 48, 71, 0.1);
+				align-items: center;
+				transition: all 0.3s ease;
+			}
+
+			.summary-row:last-child {
+				border-bottom: none;
+			}
+
+			.summary-row:hover {
+				background-color: rgba(2, 48, 71, 0.05);
+				border-radius: 8px;
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+
+			.summary-label {
+				font-weight: 600;
+				width: 30%;
+				color: #011a26;
+			}
+
+			.summary-value {
+				flex: 1;
+				color: #023047;
+			}
+
+			.edit-btn {
+				background: none;
+				border: 1px solid #023047;
+				color: #023047;
+				cursor: pointer;
+				padding: 6px 12px;
+				font-size: 14px;
+				border-radius: 6px;
+				transition: all 0.3s ease;
+				font-weight: 500;
+			}
+
+			.edit-btn:hover {
+				background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+				color: white;
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
+			}
+
+			/* ---------- RESPONSIVE DESIGN ---------- */
+			@media (max-width: 767px) {
+
+				.row,
+				.form-row,
+				.flex-row {
+					display: flex;
+					margin: 0;
+					width: 100%;
+					gap: 10px;
+					flex-direction: column;
+				}
+
+				.step-container.active {
+					padding: 5px 15px 10px;
+				}
+
+				.col,
+				.form-col,
+				.flex-row>div {
+					width: 100%;
+					padding: 0;
+					margin-bottom: 0px;
+				}
+
+				.form-group {
+					margin-bottom: 10px;
+				}
+
+				.form-col .conditional-field {
+					margin-left: 0;
+					padding-left: 15px;
+				}
+			}
+
+			@media (max-width: 768px) {
+				.form-title {
+					font-size: 22px;
+				}
+
+				.form-header {
+					padding: 15px 20px;
+					gap: 15px;
+				}
+
+				.header-icon {
+					width: 36px;
+					height: 36px;
+				}
+
+				.step-heading {
+					font-size: 22px;
+				}
+
+				.btn {
+					padding: 12px 18px;
+					font-size: 15px;
+				}
+
+				.container,
+				form.chatbot-form {
+					width: auto;
+					border-radius: 8px;
+				}
+
+				.step-item {
+					width: 30px;
+					height: 30px;
+					font-size: 13px;
+				}
+
+				.progress-container {
+					padding: 10px 10px 10px;
+				}
+
+				.step-title {
+					font-size: 9px;
+					width: 80px;
+				}
+
+				.form-buttons {
+					flex-direction: row;
+					gap: 10px;
+				}
+			}
+
+			@media (max-width: 480px) {
+				form.chatbot-form {
+					min-width: 200px;
+				}
+
+				.header-icon svg {
+					width: 18px;
+					height: 18px;
+				}
+
+				.step-heading {
+					font-size: 18px;
+				}
+
+				.step-item {
+					width: 24px;
+					height: 24px;
+					font-size: 12px;
+				}
+
+				.step-title {
+					font-size: 8px;
+					width: 60px;
+					top: 35px;
+				}
+
+				.form-header {
+					padding: 12px 15px;
+				}
+
+				.summary-container {
+					padding: 15px;
+				}
+			}
+
+			/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+			input:focus-visible,
+			#details:focus-visible,
+			select:focus-visible,
+			button:focus-visible {
+				outline: 2px solid #023047;
+				outline-offset: 2px;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			/* ---------- LOADING STATES ---------- */
+			.loading {
+				opacity: 0.7;
+				pointer-events: none;
+			}
+
+			.loading .btn {
+				background: #ccc;
+				cursor: wait;
+			}
+
+			.textarea-wrapper {
+				position: relative;
+				width: 100%;
+				margin-bottom: 0;
+			}
+
+			.textarea-wrapper textarea {
+				margin-bottom: 0;
+				display: block;
+			}
+
+			</style>
+
+			<!-- Step Progress Indicator -->
+			<div class="progress-container">
+				<div class="step-progress">
+					<div class="progress-bar" id="progress-bar"></div>
+					<div class="step-item active" data-step="1">
+						<div class="step-icon">1</div>
+						<div class="step-title">${isEnglish ? 'Contact' : 'Contact'}</div>
+					</div>
+					<div class="step-item" data-step="2">
+						<div class="step-icon">2</div>
+						<div class="step-title">${isEnglish ? 'Services' : 'Services'}</div>
+					</div>
+					<div class="step-item" data-step="3">
+						<div class="step-icon">3</div>
+						<div class="step-title">${isEnglish ? 'Message' : 'Message'}</div>
+					</div>
+					<div class="step-item" data-step="4">
+						<div class="step-icon">4</div>
+						<div class="step-title">${isEnglish ? 'Summary' : 'Résumé'}</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Step 1: Contact Information -->
+			<div class="step-container active" id="step-1">
+				<span class="step-heading">${isEnglish ? 'Contact Information' : 'Informations de contact'}</span>
+
+				<div class="flex-row">
+					<div>
+						<label for="first-name" class="bold-label">${isEnglish ? 'First Name' : 'Prénom'}</label>
+						<input type="text" id="first-name" name="first-name" placeholder="${isEnglish ? 'Enter your first name' : 'Entrez votre prénom'}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorFirstName">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'First name is required.' : 'Le prénom est obligatoire.'}</span>
+							</div>
+						</div>
+					</div>
+
+					<div>
+						<label for="last-name" class="bold-label">${isEnglish ? 'Last Name' : 'Nom de famille'}</label>
+						<input type="text" id="last-name" name="last-name" placeholder="${isEnglish ? 'Enter your last name' : 'Entrez votre nom de famille'}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorLastName">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'Last name is required.' : 'Le nom de famille est obligatoire.'}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="flex-row">
+					<div>
+						<label for="email" class="bold-label">Email</label>
+						<input type="email" id="email" name="email" placeholder="${isEnglish ? 'Enter your email address' : 'Entrez votre adresse email'}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorEmail">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'A valid email is required.' : "Une adresse email valide est obligatoire."}</span>
+							</div>
+						</div>
+					</div>
+
+					<div>
+						<label for="phone" class="bold-label">${isEnglish ? 'Phone Number' : 'Numéro de téléphone'}</label>
+						<input type="tel" id="phone" name="phone" placeholder="${isEnglish ? 'Enter your phone number' : 'Entrez votre numéro de téléphone'}" required />
+						<div class="error-container">
+							<div class="error-message" id="errorPhone">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'A valid phone number is required.' : "Un numéro de téléphone valide est obligatoire."}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<div></div>
+					<button type="button" class="btn btn-next" id="step1-next">
+						${isEnglish ? 'Next' : 'Suivant'}
+					</button>
+				</div>
+			</div>
+
+			<!-- Step 2: Services Selection -->
+			<div class="step-container" id="step-2">
+				<span class="step-heading">${isEnglish ? 'Services Selection' : 'Sélection des services'}</span>
+
+				<div class="flex-row">
+					<div class="main-container" id="serviceDropdown">
+						<label class="bold-label">${isEnglish ? 'Select a Service' : 'Sélectionnez un service'}</label>
+						<select id="serviceSelect" name="serviceSelect" required style="display:none;"></select>
+						<div class="select-wrapper">
+							<div class="select-display" id="selectDisplayService">
+								<span>${isEnglish ? '-- Select a Service --' : '-- Sélectionnez un service --'}</span>
+								<div class="dropdown-icon" id="dropdownIconService">${SVG_CHEVRON}</div>
+							</div>
+							<div class="custom-options" id="customOptionsService"></div>
+						</div>
+						<div class="error-container">
+							<div class="error-message" id="errorService">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'You must select a service.' : 'Vous devez sélectionner un service.'}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step2-prev">
+						${isEnglish ? 'Previous' : 'Précédent'}
+					</button>
+					<button type="button" class="btn btn-next" id="step2-next">
+						${isEnglish ? 'Next' : 'Suivant'}
+					</button>
+				</div>
+			</div>
+
+			<!-- Step 3: Message Details -->
+			<div class="step-container" id="step-3">
+				<span class="step-heading">${isEnglish ? 'Message Details' : 'Détails du message'}</span>
+
+				<div class="flex-row">
+					<div>
+						<label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
+						<div class="textarea-wrapper">
+							<textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+						</div>
+						<div class="error-container">
+							<div class="error-message" id="errorMessage">
+								<div class="error-icon">!</div>
+								<span class="error-text">${isEnglish ? 'A message is required.' : 'Un message est obligatoire.'}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step3-prev">
+						${isEnglish ? 'Previous' : 'Précédent'}
+					</button>
+					<button type="button" class="btn btn-next" id="step3-next">
+						${isEnglish ? 'Next' : 'Suivant'}
+					</button>
+				</div>
+			</div>
+
+			<!-- Step 4: Summary and Submit -->
+			<div class="step-container" id="step-4">
+				<span class="step-heading">${isEnglish ? 'Review Your Information' : 'Vérifiez vos informations'}</span>
+
+				<div class="summary-container">
+					<div class="summary-row">
+						<div class="summary-label">${isEnglish ? 'Full Name' : 'Nom complet'}:</div>
+						<div class="summary-value" id="summary-fullname"></div>
+						<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+					</div>
+					<div class="summary-row">
+						<div class="summary-label">Email:</div>
+						<div class="summary-value" id="summary-email"></div>
+						<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+					</div>
+					<div class="summary-row">
+						<div class="summary-label">${isEnglish ? 'Phone' : 'Téléphone'}:</div>
+						<div class="summary-value" id="summary-phone"></div>
+						<button type="button" class="edit-btn" data-step="1">${isEnglish ? 'Edit' : 'Modifier'}</button>
+					</div>
+					<div class="summary-row">
+						<div class="summary-label">${isEnglish ? 'Service' : 'Service'}:</div>
+						<div class="summary-value" id="summary-service"></div>
+						<button type="button" class="edit-btn" data-step="2">${isEnglish ? 'Edit' : 'Modifier'}</button>
+					</div>
+					<div class="summary-row">
+						<div class="summary-label">${isEnglish ? 'Message' : 'Message'}:</div>
+						<div class="summary-value" id="summary-message"></div>
+						<button type="button" class="edit-btn" data-step="3">${isEnglish ? 'Edit' : 'Modifier'}</button>
+					</div>
+				</div>
+
+				<div class="form-buttons">
+					<button type="button" class="btn btn-prev" id="step4-prev">
+						${isEnglish ? 'Previous' : 'Précédent'}
+					</button>
+					<button type="button" class="btn btn-submit" id="submit-button">
+						${isEnglish ? 'Submit' : 'Envoyer'}
+					</button>
+				</div>
+			</div>
+
+		`;
         // Add header to the form
         const header = renderHeader();
         formContainer.insertBefore(header, formContainer.firstChild);
