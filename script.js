@@ -492,7 +492,7 @@ const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 5
         //let { currentLanguage = "fr" } = trace.payload || {};
         let {currentLanguage, vf} = trace.payload;
         // Initialize form data with the current language
-        let formData = createFormData(currentLanguage);
+        
         
         // Step management
         let currentStep = 1;
@@ -851,6 +851,7 @@ const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 5
             languagesRequired: "Please select at least one language"
           }
         };
+		
 		function renderHeader() {
           const header = document.createElement("div");
           header.className = "form-header";
@@ -867,6 +868,346 @@ const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 5
           header.appendChild(title);
           return header;
         }
+		
+		const formDataTranslations = {
+      "fr": {
+        languages: [
+          { id: "fr", name: "Français" },
+          { id: "en", name: "Anglais" },
+          { id: "es", name: "Espagnol" },
+          { id: "de", name: "Allemand" },
+          { id: "it", name: "Italien" },
+          { id: "ar", name: "Arabe" },
+          { id: "zh", name: "Chinois" },
+          // Langues supplémentaires
+          { id: "pt", name: "Portugais" },
+          { id: "ru", name: "Russe" },
+          { id: "ja", name: "Japonais" },
+          { id: "ko", name: "Coréen" },
+          { id: "hi", name: "Hindi" },
+          { id: "nl", name: "Néerlandais" },
+          { id: "sv", name: "Suédois" }
+        ],
+        websiteTraffic: [
+          { id: "less_than_1000", name: "Moins de 1 000 visiteurs/mois" },
+          { id: "1000_5000", name: "1 000 - 5 000 visiteurs/mois" },
+          { id: "5000_10000", name: "5 000 - 10 000 visiteurs/mois" },
+          { id: "10000_50000", name: "10 000 - 50 000 visiteurs/mois" },
+          { id: "50000_100000", name: "50 000 - 100 000 visiteurs/mois" },
+          { id: "100000_500000", name: "100 000 - 500 000 visiteurs/mois" },
+          { id: "500000_1000000", name: "500 000 - 1 000 000 visiteurs/mois" },
+          { id: "more_than_1000000", name: "Plus de 1 000 000 visiteurs/mois" },
+          { id: "unknown", name: "Je ne sais pas" },
+          { id: "new_site", name: "Nouveau site (pas encore de trafic)" }
+        ],
+        crms: [
+          { id: "salesforce", name: "Salesforce" },
+          { id: "hubspot", name: "HubSpot" },
+          { id: "zoho", name: "Zoho CRM" },
+          { id: "pipedrive", name: "Pipedrive" },
+          { id: "monday", name: "monday.com" },
+          { id: "freshsales", name: "Freshsales" },
+          // CRMs supplémentaires
+          { id: "dynamics", name: "Microsoft Dynamics 365" },
+          { id: "sugarcrm", name: "SugarCRM" },
+          { id: "insightly", name: "Insightly" },
+          { id: "bitrix24", name: "Bitrix24" },
+          { id: "agilecrm", name: "Agile CRM" },
+          { id: "keap", name: "Keap (Infusionsoft)" },
+          { id: "efficy", name: "Efficy CRM" },
+          { id: "netsuite", name: "NetSuite CRM" },
+          { id: "other", name: "Autre" }
+        ],
+        bookingSystems: [
+          { id: "cal", name: "Cal.com" },
+          { id: "calendly", name: "Calendly" },
+          { id: "acuity", name: "Acuity Scheduling" },
+          { id: "booksy", name: "Booksy" },
+          { id: "simplybook", name: "SimplyBook.me" },
+          { id: "square", name: "Square Appointments" },
+          { id: "google_calendar", name: "Google Calendar" },
+          { id: "setmore", name: "Setmore" },
+          { id: "appointy", name: "Appointy" },
+          { id: "timetap", name: "TimeTap" },
+          { id: "bookafy", name: "Bookafy" },
+          { id: "schedulicity", name: "Schedulicity" },
+          { id: "youcanbook", name: "YouCanBookMe" },
+          { id: "planyo", name: "Planyo" },
+          { id: "reservio", name: "Reservio" },
+          { id: "other", name: "Autre" }
+        ],
+        databases: [
+          { id: "mysql", name: "MySQL" },
+          { id: "postgresql", name: "PostgreSQL" },
+          { id: "mongodb", name: "MongoDB" },
+          { id: "firebase", name: "Firebase" },
+          { id: "airtable", name: "Airtable" },
+          { id: "google_sheets", name: "Google Sheets" },
+          { id: "oracle", name: "Oracle Database" },
+          { id: "sqlserver", name: "Microsoft SQL Server" },
+          { id: "mariadb", name: "MariaDB" },
+          { id: "dynamodb", name: "Amazon DynamoDB" },
+          { id: "cassandra", name: "Apache Cassandra" },
+          { id: "redis", name: "Redis" },
+          { id: "supabase", name: "Supabase" },
+          { id: "notion", name: "Notion Database" },
+          { id: "other", name: "Autre" }
+        ],
+        websitePlatforms: [
+          { id: "wordpress", name: "WordPress" },
+          { id: "shopify", name: "Shopify" },
+          { id: "wix", name: "Wix" },
+          { id: "squarespace", name: "Squarespace" },
+          { id: "webflow", name: "Webflow" },
+          { id: "custom", name: "Sur mesure" },
+          { id: "drupal", name: "Drupal" },
+          { id: "joomla", name: "Joomla" },
+          { id: "magento", name: "Magento" },
+          { id: "bigcommerce", name: "BigCommerce" },
+          { id: "godaddy", name: "GoDaddy Website Builder" },
+          { id: "strikingly", name: "Strikingly" },
+          { id: "ghost", name: "Ghost" },
+          { id: "prestashop", name: "PrestaShop" },
+          { id: "bubble", name: "Bubble.io" },
+          { id: "other", name: "Autre" }
+        ],
+        socialPlatforms: [
+          { id: "facebook", name: "Facebook Messenger" },
+          { id: "instagram", name: "Instagram" },
+          { id: "whatsapp", name: "WhatsApp" },
+          { id: "telegram", name: "Telegram" },
+          { id: "discord", name: "Discord" },
+          { id: "slack", name: "Slack" },
+          { id: "viber", name: "Teams" }
+        ],
+        niches: [
+          { id: "ecommerce", name: "E-commerce" },
+          { id: "services", name: "Services professionnels" },
+          { id: "healthcare", name: "Santé" },
+          { id: "education", name: "Éducation" },
+          { id: "realestate", name: "Immobilier" },
+          { id: "restaurant", name: "Restauration" },
+          { id: "fitness", name: "Fitness & Bien-être" },
+          { id: "travel", name: "Voyage & Tourisme" },
+          { id: "finance", name: "Finance & Assurance" },
+          { id: "manufacturing", name: "Industrie manufacturière" },
+          { id: "automotive", name: "Automobile" },
+          { id: "legal", name: "Services juridiques" },
+          { id: "technology", name: "IT & Technologie" },
+          { id: "media", name: "Médias & Divertissement" },
+          { id: "construction", name: "Construction & BTP" },
+          { id: "agriculture", name: "Agriculture & Agroalimentaire" },
+          { id: "nonprofit", name: "Associations & ONG" },
+          { id: "beauty", name: "Beauté & Cosmétiques" },
+          { id: "consulting", name: "Conseil & Consulting" },
+          { id: "retail", name: "Commerce de détail" },
+          { id: "other", name: "Autre" }
+        ],
+        formTypes: [
+          { id: "contact", name: "Formulaire de contact" },
+          { id: "lead", name: "Génération de leads" },
+          { id: "survey", name: "Questionnaire" },
+          { id: "booking", name: "Réservation" },
+          { id: "support", name: "Support client" },
+          { id: "feedback", name: "Feedback client" },
+          { id: "quote", name: "Demande de devis" },
+          { id: "registration", name: "Inscription/Enregistrement" },
+          { id: "newsletter", name: "Abonnement newsletter" },
+          { id: "contest", name: "Participation concours" },
+          { id: "job", name: "Candidature emploi" },
+          { id: "event", name: "Inscription événement" },
+          { id: "payment", name: "Formulaire de paiement" },
+          { id: "appointment", name: "Prise de rendez-vous" },
+          { id: "order", name: "Bon de commande" },
+          { id: "membership", name: "Adhésion" },
+          { id: "other", name: "Autre" }
+        ],
+        budgetRanges: [
+          { id: "less_than_1000", name: "Moins de 1 000 $" },
+          { id: "1000_2500", name: "1 000 $ - 2 500 $" },
+          { id: "2500_5000", name: "2 500 $ - 5 000 $" },
+          { id: "5000_7500", name: "5 000 $ - 7 500 $" },
+          { id: "7500_10000", name: "7 500 $ - 10 000 $" },
+          { id: "more_than_10000", name: "Plus de 10 000 $" },
+          { id: "monthly_subscription", name: "Abonnement mensuel" },
+          { id: "annual_subscription", name: "Abonnement annuel" },
+          { id: "not_specified", name: "Budget non défini" }
+        ]
+      },
+      "en": {
+        languages: [
+          { id: "fr", name: "French" },
+          { id: "en", name: "English" },
+          { id: "es", name: "Spanish" },
+          { id: "de", name: "German" },
+          { id: "it", name: "Italian" },
+          { id: "ar", name: "Arabic" },
+          { id: "zh", name: "Chinese" },
+          { id: "pt", name: "Portuguese" },
+          { id: "ru", name: "Russian" },
+          { id: "ja", name: "Japanese" },
+          { id: "ko", name: "Korean" },
+          { id: "hi", name: "Hindi" },
+          { id: "nl", name: "Dutch" },
+          { id: "sv", name: "Swedish" }
+        ],
+        websiteTraffic: [
+          { id: "less_than_1000", name: "Less than 1,000 visitors/month" },
+          { id: "1000_5000", name: "1,000 - 5,000 visitors/month" },
+          { id: "5000_10000", name: "5,000 - 10,000 visitors/month" },
+          { id: "10000_50000", name: "10,000 - 50,000 visitors/month" },
+          { id: "50000_100000", name: "50,000 - 100,000 visitors/month" },
+          { id: "100000_500000", name: "100,000 - 500,000 visitors/month" },
+          { id: "500000_1000000", name: "500,000 - 1,000,000 visitors/month" },
+          { id: "more_than_1000000", name: "More than 1,000,000 visitors/month" },
+          { id: "unknown", name: "I don't know" },
+          { id: "new_site", name: "New site (no traffic yet)" }
+        ],
+        crms: [
+          { id: "salesforce", name: "Salesforce" },
+          { id: "hubspot", name: "HubSpot" },
+          { id: "zoho", name: "Zoho CRM" },
+          { id: "pipedrive", name: "Pipedrive" },
+          { id: "monday", name: "monday.com" },
+          { id: "freshsales", name: "Freshsales" },
+          // Additional CRMs
+          { id: "dynamics", name: "Microsoft Dynamics 365" },
+          { id: "sugarcrm", name: "SugarCRM" },
+          { id: "insightly", name: "Insightly" },
+          { id: "bitrix24", name: "Bitrix24" },
+          { id: "agilecrm", name: "Agile CRM" },
+          { id: "keap", name: "Keap (Infusionsoft)" },
+          { id: "efficy", name: "Efficy CRM" },
+          { id: "netsuite", name: "NetSuite CRM" },
+          { id: "other", name: "Other" }
+        ],
+        bookingSystems: [
+          { id: "cal", name: "Cal.com" },
+          { id: "calendly", name: "Calendly" },
+          { id: "acuity", name: "Acuity Scheduling" },
+          { id: "booksy", name: "Booksy" },
+          { id: "simplybook", name: "SimplyBook.me" },
+          { id: "square", name: "Square Appointments" },
+          { id: "google_calendar", name: "Google Calendar" },
+          // Additional booking systems
+          { id: "setmore", name: "Setmore" },
+          { id: "appointy", name: "Appointy" },
+          { id: "timetap", name: "TimeTap" },
+          { id: "bookafy", name: "Bookafy" },
+          { id: "schedulicity", name: "Schedulicity" },
+          { id: "youcanbook", name: "YouCanBookMe" },
+          { id: "planyo", name: "Planyo" },
+          { id: "reservio", name: "Reservio" },
+          { id: "other", name: "Other" }
+        ],
+        databases: [
+          { id: "mysql", name: "MySQL" },
+          { id: "postgresql", name: "PostgreSQL" },
+          { id: "mongodb", name: "MongoDB" },
+          { id: "firebase", name: "Firebase" },
+          { id: "airtable", name: "Airtable" },
+          { id: "google_sheets", name: "Google Sheets" },
+          // Additional databases
+          { id: "oracle", name: "Oracle Database" },
+          { id: "sqlserver", name: "Microsoft SQL Server" },
+          { id: "mariadb", name: "MariaDB" },
+          { id: "dynamodb", name: "Amazon DynamoDB" },
+          { id: "cassandra", name: "Apache Cassandra" },
+          { id: "redis", name: "Redis" },
+          { id: "supabase", name: "Supabase" },
+          { id: "notion", name: "Notion Database" },
+          { id: "other", name: "Other" }
+        ],
+        websitePlatforms: [
+          { id: "wordpress", name: "WordPress" },
+          { id: "shopify", name: "Shopify" },
+          { id: "wix", name: "Wix" },
+          { id: "squarespace", name: "Squarespace" },
+          { id: "webflow", name: "Webflow" },
+          { id: "custom", name: "Custom" },
+          // Additional platforms
+          { id: "drupal", name: "Drupal" },
+          { id: "joomla", name: "Joomla" },
+          { id: "magento", name: "Magento" },
+          { id: "bigcommerce", name: "BigCommerce" },
+          { id: "godaddy", name: "GoDaddy Website Builder" },
+          { id: "strikingly", name: "Strikingly" },
+          { id: "ghost", name: "Ghost" },
+          { id: "prestashop", name: "PrestaShop" },
+          { id: "bubble", name: "Bubble.io" },
+          { id: "other", name: "Other" }
+        ],
+        socialPlatforms: [
+          { id: "facebook", name: "Facebook Messenger" },
+          { id: "instagram", name: "Instagram" },
+          { id: "whatsapp", name: "WhatsApp" },
+          { id: "telegram", name: "Telegram" },
+          { id: "discord", name: "Discord" },
+          { id: "slack", name: "Slack" },
+          { id: "viber", name: "Teams" }
+        ],
+        niches: [
+          { id: "ecommerce", name: "E-commerce" },
+          { id: "services", name: "Professional Services" },
+          { id: "healthcare", name: "Healthcare" },
+          { id: "education", name: "Education" },
+          { id: "realestate", name: "Real Estate" },
+          { id: "restaurant", name: "Restaurant & Food" },
+          { id: "fitness", name: "Fitness & Wellness" },
+          { id: "travel", name: "Travel & Tourism" },
+          { id: "finance", name: "Finance & Insurance" },
+          // Additional niches
+          { id: "manufacturing", name: "Manufacturing" },
+          { id: "automotive", name: "Automotive" },
+          { id: "legal", name: "Legal Services" },
+          { id: "technology", name: "IT & Technology" },
+          { id: "media", name: "Media & Entertainment" },
+          { id: "construction", name: "Construction" },
+          { id: "agriculture", name: "Agriculture & Farming" },
+          { id: "nonprofit", name: "Non-profit & NGO" },
+          { id: "beauty", name: "Beauty & Cosmetics" },
+          { id: "consulting", name: "Consulting" },
+          { id: "retail", name: "Retail" },
+          { id: "other", name: "Other" }
+        ],
+        formTypes: [
+          { id: "contact", name: "Contact Form" },
+          { id: "lead", name: "Lead Generation" },
+          { id: "survey", name: "Survey" },
+          { id: "booking", name: "Booking" },
+          { id: "support", name: "Customer Support" },
+          { id: "feedback", name: "Customer Feedback" },
+          { id: "quote", name: "Quote Request" },
+          // Additional form types
+          { id: "registration", name: "Registration" },
+          { id: "newsletter", name: "Newsletter Signup" },
+          { id: "contest", name: "Contest/Giveaway Entry" },
+          { id: "job", name: "Job Application" },
+          { id: "event", name: "Event Registration" },
+          { id: "payment", name: "Payment Form" },
+          { id: "appointment", name: "Appointment Scheduling" },
+          { id: "order", name: "Order Form" },
+          { id: "membership", name: "Membership Application" },
+          { id: "other", name: "Other" }
+        ],
+        budgetRanges: [
+          { id: "less_than_1000", name: "Less than 1,000 $" },
+          { id: "1000_2500", name: "1,000 $ - 2,500 $" },
+          { id: "2500_5000", name: "2,500 $ - 5,000 $" },
+          { id: "5000_7500", name: "5,000 $ - 7,500 $" },
+          { id: "7500_10000", name: "7,500 $ - 10,000 $" },
+          { id: "monthly_subscription", name: "Monthly Subscription" },
+          { id: "annual_subscription", name: "Annual Subscription" },
+          { id: "not_specified", name: "Budget not defined" }
+        ]
+      }
+    };
+    
+    function createFormData(language) {
+      return formDataTranslations[language];
+    }
+		
+		let formData = createFormData(currentLanguage);
         
        
         // Load saved data if available
@@ -880,7 +1221,7 @@ const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 5
         formContainer.innerHTML = `
   <style>
     /* ====================================
-    VSM MARKETING FORM - MAIN STYLESHEET
+    VSM MARKETING FORM - UNIFIED STYLESHEET - DARK BLUE THEME
     ==================================== */
 
 /* ---------- RESET & BASE STYLES ---------- */
@@ -901,15 +1242,53 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}
+
 /* ---------- LAYOUT & CONTAINER ---------- */
 .container {
   max-width: 870px;
   margin: 40px auto;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+  box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
   overflow: hidden;
   transition: all 0.3s ease;
+  animation: fadeIn 0.6s;
+}
+
+.container:hover {
+  box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
 }
 
 form.chatbot-form {
@@ -922,9 +1301,15 @@ form.chatbot-form {
   border-radius: 12px;
   background: #fff;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+  box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
   position: relative;
   overflow: hidden;
+  animation: fadeIn 0.6s;
+  transition: all 0.3s ease;
+}
+
+form.chatbot-form:hover {
+  box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
 }
 
 /* Two-column layout */
@@ -943,14 +1328,26 @@ form.chatbot-form {
 
 /* ---------- FORM HEADER ---------- */
 .form-header {
-  padding: 12px 30px;
-  background: linear-gradient(135deg, #6a0080 0%, #9c27b0 100%);
+  padding: 20px 30px;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 10px;
   border-radius: 12px 12px 0 0;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+  color: white;
+  position: relative;
+}
+
+.form-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
+  border-radius: 4px;
 }
 
 .header-icon {
@@ -961,12 +1358,16 @@ form.chatbot-form {
   justify-content: center;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .header-icon:hover {
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-icon svg {
+  filter: brightness(0) invert(1);
 }
 
 .form-title {
@@ -979,7 +1380,8 @@ form.chatbot-form {
 
 /* ---------- STEP PROGRESS INDICATOR ---------- */
 .progress-container {
-  padding: 00px 25px 10px 25px;
+  padding: 20px 25px 10px 25px;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
 }
 
 .step-progress {
@@ -1008,7 +1410,7 @@ form.chatbot-form {
   left: 0;
   transform: translateY(-50%);
   height: 6px;
-  background: linear-gradient(to right, #9c27b0, #f8e8f8);
+  background: linear-gradient(to right, #023047, #e6f2f7);
   border-radius: 10px;
   transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
   z-index: -1;
@@ -1032,14 +1434,16 @@ form.chatbot-form {
 }
 
 .step-item.active {
-  background-color: #F8E8F8;
-  color: #9c27b0;
+  background-color: #e6f2f7;
+  color: #023047;
   transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
 }
 
 .step-item.completed {
-  background-color: #9c27b0;
+  background-color: #023047;
   color: white;
+  animation: pulse 2s infinite;
 }
 
 .step-title {
@@ -1049,18 +1453,14 @@ form.chatbot-form {
   transform: translateX(-50%);
   font-size: 11px;
   white-space: nowrap;
-  color: #666;
-  font-weight: 500;
-  display: block;
-  opacity: 0;
+  color: #023047;
+  font-weight: 600;
+  display: none;
+  opacity: 0.8;
   transition: opacity 0.3s ease;
   width: 110px;
   text-align: center;
 }
-
-
-
-
 
 /* ---------- FORM STEPS & ANIMATIONS ---------- */
 .step-container {
@@ -1073,41 +1473,18 @@ form.chatbot-form {
   flex-direction: column;
   gap: 10px;
   padding: 5px 30px 10px;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
 }
 
 .step-container:not(.active) {
   pointer-events: none;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(156, 39, 176, 0); }
-  100% { transform: scale(1); }
-}
-
 /* ---------- FORM ELEMENTS ---------- */
-
-
-.form-label, .question-label {
+.form-label, .question-label, .bold-label {
   display: block;
-  font-weight: 500;
-  color: black;
+  font-weight: 600;
+  color: #011a26;
   font-size: 15px;
 }
 
@@ -1124,7 +1501,7 @@ form.chatbot-form {
 
 .step-heading {
   font-size: 26px;
-  color: #6a0080;
+  color: #011a26;
   font-weight: 600;
   position: relative;
 }
@@ -1136,73 +1513,103 @@ form.chatbot-form {
   left: 0;
   width: 70px;
   height: 4px;
-  background: linear-gradient(90deg, #9c27b0, #f8e8f8);
+  background: linear-gradient(90deg, #023047, #e6f2f7);
   border-radius: 4px;
 }
 
 /* ========== Input Fields ========== */
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    input[type="number"],
-    #details,
-	#description,
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+#details,
+#description,
 #services,
 #form-purpose,
-    select {
-      width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 14px;
-      transition: all 0.2s;
-      background-color: #fafafa;
-    }
-    
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="tel"]:focus,
-    input[type="number"]:focus,
-    #details:focus,
-	#description:focus,
+select {
+  width: 100%;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background-color: #fafafa;
+  color: #444;
+  position: relative;
+  overflow: hidden;
+  margin:0px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+#details:focus,
+#description:focus,
 #services:focus,
 #form-purpose:focus,
-    select:focus {
-      border-color: #9C27B0;
-      box-shadow: 0 0 0 3px rgba(156,39,176,0.1);
-      outline: none;
-      background-color: #fff;
-    }
-    
-    #details,
-	#description,
+select:focus {
+  border-color: #023047;
+  box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+  outline: none;
+  background-color: #fff;
+  transform: translateY(-2px);
+}
+
+input[type="text"]:hover:not(:focus),
+input[type="email"]:hover:not(:focus),
+input[type="tel"]:hover:not(:focus),
+input[type="number"]:hover:not(:focus),
+#details:hover:not(:focus),
+#description:hover:not(:focus),
+#services:hover:not(:focus),
+#form-purpose:hover:not(:focus) {
+  border-color: #023047;
+  background-color: #e6f2f7;
+}
+
+#details,
+#description,
 #services,
-#form-purpose{
-      min-height: 120px;
-      resize: vertical;
-    }
+#form-purpose {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+}
 
 /* ---------- DROPDOWN COMPONENTS ---------- */
 .select-container select {
   display: none !important;
 }
 
-.select-wrapper {
-  border: 1px solid #ddd;
+.main-container {
+  display: block;
+  transition: height 0.3s ease;
   border-radius: 8px;
-  background-color: #fff;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.select-wrapper {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
   position: relative;
   width: 100%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .select-wrapper:hover {
-  border-color: #9c27b0;
+  border-color: #023047;
+  background-color: #e6f2f7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
 }
 
 .select-display {
-  padding: 0 18px;
+  padding: 12px 18px;
   font-size: 15px;
   cursor: pointer;
   display: flex;
@@ -1210,6 +1617,7 @@ form.chatbot-form {
   align-items: center;
   height: 52px;
   color: #444;
+  font-weight: 500;
 }
 
 .dropdown-icon {
@@ -1219,8 +1627,9 @@ form.chatbot-form {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #9a4fa9;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
 }
 
 .dropdown-icon svg path {
@@ -1229,16 +1638,17 @@ form.chatbot-form {
 
 .dropdown-icon.rotate {
   transform: rotate(180deg);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
 }
 
 .custom-options {
   display: none;
   font-size: 15px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #e0e0e0;
   max-height: 250px;
   overflow-y: auto;
   background-color: #fff;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
   z-index: 100;
   border-radius: 0 0 8px 8px;
   -ms-overflow-style: none;
@@ -1248,7 +1658,7 @@ form.chatbot-form {
 
 .show-options {
   display: block;
-  animation: fadeIn 0.3s;
+  animation: slideDown 0.3s ease-out;
 }
 
 .custom-option {
@@ -1256,36 +1666,84 @@ form.chatbot-form {
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   position: relative;
   border-left: 4px solid transparent;
 }
 
 .custom-option:hover {
-  background-color: rgba(156, 39, 176, 0.08);
-  color: #6a0080;
-  border-left-color: #9c27b0;
+  background-color: rgba(2, 48, 71, 0.08);
+  color: #011a26;
+  border-left-color: #023047;
+  transform: translateX(5px);
 }
 
 .custom-option.selected {
-  background-color: rgba(156, 39, 176, 0.12);
-  color: #6a0080;
+  background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
+  color: #011a26;
   font-weight: bold;
-  border-left-color: #9c27b0;
+  border-left-color: #023047;
+  box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
 }
 
 .custom-option.selected .option-checkbox svg path {
-      fill: #fff !important;
-    }
+  fill: #fff !important;
+}
 
-    .custom-option:not(.selected):hover .option-checkbox svg path {
-      fill: #9C27B0;
-    }
+.custom-option:not(.selected):hover .option-checkbox svg path {
+  fill: #023047;
+}
+
+/* Checkbox styling */
+.option-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.option-checkbox svg {
+  width: 12px;
+  height: 12px;
+  display: none;
+}
+
+.custom-option:not(.selected):hover .option-checkbox {
+  border-color: #023047;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+}
+
+.custom-option:not(.selected):hover .option-checkbox svg {
+  display: block;
+}
+
+.custom-option.selected .option-checkbox svg {
+  display: block;
+}
+
+.custom-option.selected .option-checkbox {
+  border-color: #023047;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+}
+
+.custom-option:not(.selected):hover .option-checkbox svg path {
+  fill: #023047 !important;
+}
 
 /* ---------- CHECKBOXES & RADIO BUTTONS ---------- */
 .options-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
 }
 
@@ -1306,8 +1764,8 @@ form.chatbot-form {
 
 .radio-option:hover,
 .checkbox-option:hover {
-  border-color: #9c27b0;
-  background-color: #F8E8F8;
+  border-color: #023047;
+  background-color: #e6f2f7;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
@@ -1320,7 +1778,7 @@ form.chatbot-form {
   left: 0;
   width: 4px;
   height: 100%;
-  background: #9c27b0;
+  background: #023047;
   transform: scaleY(0);
   transition: transform 0.2s;
   transform-origin: bottom;
@@ -1334,36 +1792,22 @@ form.chatbot-form {
 .radio-option input,
 .checkbox-option input {
   margin-right: 12px;
-  accent-color: #9c27b0;
+  accent-color: #023047;
   transform: scale(1.2);
 }
 
 .radio-option input:checked + span,
 .checkbox-option input:checked + span {
   font-weight: 500;
-  color: #6a0080;
+  color: #011a26;
 }
 
 .radio-option input:checked,
 .checkbox-option input:checked {
-  accent-color: #9c27b0;
+  accent-color: #023047;
 }
 
-/* Checkbox styling */
-.option-checkbox {
-  width: 22px;
-  height: 22px;
-  border: 2px solid #ccc;
-  border-radius: 50%;
-  margin-right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #fff;
-  transition: all 0.2s;
-  position: relative;
-}
-
+/* Multi-select styling */
 .multi-select .option-checkbox {
   border-radius: 6px !important;
 }
@@ -1388,11 +1832,6 @@ form.chatbot-form {
   margin: 0 auto;
 }
 
-.custom-option:not(.selected):hover .option-checkbox {
-  border-color: #9c27b0;
-  transform: scale(1.05);
-}
-
 .custom-option:not(.selected):hover .option-checkbox-icon {
   opacity: 0.6;
 }
@@ -1401,32 +1840,33 @@ form.chatbot-form {
   opacity: 1;
 }
 
-.custom-option.selected .option-checkbox {
-  border-color: #9c27b0;
-  background-color: #9c27b0;
-  transform: scale(1.1);
-}
-
 .custom-option:not(.selected):hover .option-checkbox-icon svg path {
-  fill: #9c27b0 !important;
+  fill: #023047 !important;
 }
 
 /* ---------- ERROR MESSAGES ---------- */
+.error-container {
+  width: 100%;
+  margin: 2px 0;
+  box-sizing: border-box;
+}
+
 .error-message {
   color: white;
   font-size: 13px;
   margin-top: 8px;
   display: none;
-  background-color: #e52059;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+  border-radius: 8px;
   border: none;
-  padding: 10px 14px;
+  padding: 12px 16px;
   animation: shake 0.5s;
-  box-shadow: 0 2px 5px rgba(229, 32, 89, 0.2);
+  box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
 }
 
 .error-message.show {
   display: flex;
+  animation: slideIn 0.3s ease-out;
 }
 
 .error-icon {
@@ -1452,6 +1892,7 @@ form.chatbot-form {
 .form-buttons {
   display: flex;
   justify-content: space-between;
+  gap: 15px;
 }
 
 .btn {
@@ -1461,7 +1902,7 @@ form.chatbot-form {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
@@ -1481,40 +1922,43 @@ form.chatbot-form {
   transition: all 0.6s;
 }
 
-.btn:hover::after {
+.btn:hover:not(:disabled)::after {
   left: 100%;
 }
 
 .btn-prev {
   background-color: #f0f0f0;
-  color: #6a0080;
+  color: #011a26;
+  border: 2px solid #e0e0e0;
 }
 
 .btn-prev:hover {
-  background-color: #e0e0e0;
+  background-color: #e6f2f7;
+  border-color: #023047;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
 }
 
 .btn-next,
 .btn-submit {
-  background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
 }
 
 .btn-next:hover,
 .btn-submit:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.4);
+  box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #9c27b0 0%, #e52059 100%);
+  background: linear-gradient(135deg, #023047 0%, #e52059 100%);
   box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
 }
 
 .btn-submit:hover {
-  box-shadow: 0 6px 18px rgba(229, 32, 89, 0.4);
+  box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
 }
 
 .btn:disabled {
@@ -1530,7 +1974,7 @@ form.chatbot-form {
 
 .form-buttons .btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.2);
+  box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
 }
 
 /* ---------- CONDITIONAL FIELDS ---------- */
@@ -1538,8 +1982,8 @@ form.chatbot-form {
   display: none;
   margin-top: 18px;
   padding: 15px 20px;
-  border-left: 3px solid #9c27b0;
-  background-color: rgba(156, 39, 176, 0.05);
+  border-left: 3px solid #023047;
+  background-color: rgba(2, 48, 71, 0.05);
   border-radius: 0 8px 8px 0;
   animation: slideDown 0.3s;
 }
@@ -1550,11 +1994,11 @@ form.chatbot-form {
 
 /* ---------- SUMMARY STYLES ---------- */
 .summary-container {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 10px;
-  margin-bottom: 20px;
+  background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+  border: 2px solid rgba(2, 48, 71, 0.1);
+  border-radius: 12px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
 }
 
 .summary-section {
@@ -1564,7 +2008,7 @@ form.chatbot-form {
 .summary-heading {
   font-size: 16px;
   font-weight: 600;
-  color: #9C27B0;
+  color: #023047;
   margin-bottom: 10px;
   padding-bottom: 5px;
   border-bottom: 1px solid #e0e0e0;
@@ -1575,33 +2019,51 @@ form.chatbot-form {
 
 .edit-btn {
   background: none;
-  border: none;
-  color: #9C27B0;
+  border: 1px solid #023047;
+  color: #023047;
   cursor: pointer;
-  padding: 5px 10px;
-  font-size: 13px;
-  text-decoration: underline;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .edit-btn:hover {
-  color: #7B1FA2;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
 }
 
 .summary-row {
   display: flex;
-  padding: 8px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(2, 48, 71, 0.1);
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row:hover {
+  background-color: rgba(2, 48, 71, 0.05);
+  border-radius: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .summary-label {
-  font-weight: 500;
-  width: 40%;
-  color: #555;
-  font-size: 14px;
+  font-weight: 600;
+  width: 30%;
+  color: #011a26;
 }
 
 .summary-value {
   flex: 1;
-  font-size: 14px;
+  color: #023047;
 }
 
 /* ---------- CONFIRMATION SCREEN ---------- */
@@ -1619,7 +2081,7 @@ form.chatbot-form {
 .confirmation-icon {
   width: 80px;
   height: 80px;
-  background: #9C27B0;
+  background: #023047;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1635,7 +2097,7 @@ form.chatbot-form {
 
 .confirmation-title {
   font-size: 24px;
-  color: #9C27B0;
+  color: #023047;
   margin-bottom: 15px;
   font-weight: 600;
 }
@@ -1646,15 +2108,15 @@ form.chatbot-form {
   margin-bottom: 30px;
   line-height: 1.5;
 }
+
 .textarea-wrapper {
   position: relative;
-  display: inline-block;
   width: 100%;
-  margin-bottom: 0; /* Assure qu'il n'y a pas de marge en bas */
+  margin-bottom: 0;
 }
 
 .textarea-wrapper textarea {
-  margin-bottom: 0; /* Supprime la marge par défaut du textarea */
+  margin-bottom: 0;
   display: block;
 }
 
@@ -1670,147 +2132,7 @@ form.chatbot-form {
   border-radius: 10px;
 }
 
-/* ---------- RESPONSIVE DESIGN ---------- */
-@media (max-width: 767px) {
-  .row, .form-row, .flex-row {
-    display: flex
-;
-        margin: 0;
-        width: 100%;
-        gap: 10px;
-        flex-direction: column;
-  }
-  .step-container.active {
-      
-  padding: 5px 15px 10px;
-  }
-  
-  .col, .form-col, .flex-row > div {
-    width: 100%;
-    padding: 0;
-    margin-bottom: 0px;
-  }
-  
-  .form-group {
-    margin-bottom: 10px;
-  }
-  
-  .form-col .conditional-field {
-    margin-left: 0;
-    padding-left: 15px;
-  }
-  
-}
-
-@media (max-width: 768px) {
-  .form-title {
-    font-size: 22px;
-  }
-  
-  .form-header {
-    padding: 10px 20px;
-  }
-  
-  .header-icon {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .step-heading {
-    font-size: 22px;
-  }
-  
-  .btn {
-    padding: 12px 18px;
-    font-size: 15px;
-  }
-  
-  .container, form.chatbot-form {
-    margin: 15px;
-    width: auto;
-  }
-  
-  .step-item {
-    width: 30px;
-    height: 30px;
-    font-size: 13px;
-  }
-  
-  .progress-container {
-    padding: 0 15px;
-  }
-
-
-  
-  .radio-option,
-  .checkbox-option {
-    min-width: 100%;
-  }
-  
-  .step-title {
-    font-size: 9px;
-    width: 80px;
-  }
-  
-  .form-buttons {
-    flex-direction: row;
-    gap:10px
-  }
-  
-
-}
-
-@media (max-width: 480px) {
-  form.chatbot-form {
-    padding: 15px 10px;
-    min-width: 200px;
-  }
-  
-  .step-heading {
-    font-size: 18px;
-  }
-  
-  .step-item {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-  }
-  
-  .step-title {
-    font-size: 8px;
-    width: 60px;
-    top: 35px;
-  }
-  
-  
-}
-
-/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
-input:focus-visible, 
-    #details:focus-visible, 
-#description:focus-visible,
-#services:focus-visible,
-#form-purpose:focus-visible,
-    select:focus-visible,
-    button:focus-visible {
-      outline: 2px solid #9C27B0;
-      outline-offset: 2px;
-    }
-
-/* Conditional Section Styling */
-.conditional-section {
-  display: none !important;
-}
-
-.conditional-section.visible {
-  display: block !important;
-}
-
-#social-platforms-group {
-  margin-bottom: 10px;
-}
-
-/* Info Button and Panel Styles */
+/* ---------- INFO BUTTONS ---------- */
 .info-button {
   display: inline-flex;
   align-items: center;
@@ -1830,7 +2152,7 @@ input:focus-visible,
 }
 
 .info-button:hover {
-  background: #9C27B0;
+  background: #023047;
   color: white;
 }
 
@@ -1838,7 +2160,7 @@ input:focus-visible,
   display: none;
   background: #f9f9f9;
   border: 1px solid #e0e0e0;
-  border-left: 3px solid #9C27B0;
+  border-left: 3px solid #023047;
   border-radius: 4px;
   padding: 12px;
   margin-top: 8px;
@@ -1881,18 +2203,18 @@ input:focus-visible,
 
 .info-title {
   font-weight: 600;
-  color: #9C27B0;
+  color: #023047;
   margin-bottom: 6px;
   font-size: 14px;
 }
 
-.info-button svg .info-bg   { fill: #f8e8f8; }
-.info-button svg .info-icon { fill: #9C27B0; }
+.info-button svg .info-bg   { fill: #e6f2f7; }
+.info-button svg .info-icon { fill: #023047; }
 
 .info-button:hover svg .info-bg,
 .info-button:focus svg .info-bg,
 .info-button:active svg .info-bg {
-  fill: #9C27B0;
+  fill: #023047;
 }
 
 .info-button:hover svg .info-icon,
@@ -1907,6 +2229,164 @@ input:focus-visible,
 
 .select-display:not(.placeholder) span {
   color: #000;
+}
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+@media (max-width: 767px) {
+  .row, .form-row, .flex-row {
+    display: flex;
+    margin: 0;
+    width: 100%;
+    gap: 10px;
+    flex-direction: column;
+  }
+  .step-container.active {
+    padding: 5px 15px 10px;
+  }
+  
+  .col, .form-col, .flex-row > div {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 0px;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  .form-col .conditional-field {
+    margin-left: 0;
+    padding-left: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-title {
+    font-size: 22px;
+  }
+  
+  .form-header {
+    padding: 15px 20px;
+    gap: 15px;
+  }
+  
+  .header-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .step-heading {
+    font-size: 22px;
+  }
+  
+  .btn {
+    padding: 12px 18px;
+    font-size: 15px;
+  }
+  
+  .container, form.chatbot-form {
+    width: auto;
+    border-radius: 8px;
+  }
+  
+  .step-item {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  
+  .progress-container {
+    padding: 10px 10px 10px;
+  }
+  
+  .step-title {
+    font-size: 9px;
+    width: 80px;
+  }
+  
+  .radio-option,
+  .checkbox-option {
+    max-width: 50%;
+    min-width: 40%;
+  }
+  
+  .form-buttons {
+    flex-direction: row;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  form.chatbot-form {
+    min-width: 200px;
+  }
+  .header-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .step-heading {
+    font-size: 18px;
+  }
+  
+  .step-item {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  
+  .step-title {
+    font-size: 8px;
+    width: 60px;
+    top: 35px;
+  }
+
+  .form-header {
+    padding: 12px 15px;
+  }
+  
+  .summary-container {
+    padding: 15px;
+  }
+}
+
+/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+input:focus-visible, 
+#details:focus-visible, 
+#description:focus-visible,
+#services:focus-visible,
+#form-purpose:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid #023047;
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------- LOADING STATES ---------- */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading .btn {
+  background: #ccc;
+  cursor: wait;
+}
+
+/* Conditional Section Styling */
+.conditional-section {
+  display: none !important;
+}
+
+.conditional-section.visible {
+  display: block !important;
+}
+
+#social-platforms-group {
+  margin-bottom: 10px;
 }
 
 .confirmation-screen.active + * .progress-container,
@@ -1953,8 +2433,9 @@ input:focus-visible,
     <div class="confirmation-icon">
       ${SVG_CHECK}
     </div>
-    <span class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</span>
+    <h2 class="confirmation-title" id="confirmation-title">Demande envoyée avec succès!</h2>
     <p class="confirmation-message" id="confirmation-message">Merci pour votre demande. Notre équipe vous contactera sous peu.</p>
+    <button type="button" class="btn btn-next" id="back-to-form">Retour au formulaire</button>
   </div>
   
   <!-- Step Progress Indicator -->
@@ -2002,7 +2483,7 @@ input:focus-visible,
   
   <!-- Step 1: Contact Information -->
   <div class="step-container active" id="step-1">
-    <span class="step-heading" id="step1-heading">Informations de contact</span>
+    <h2 class="step-heading" id="step1-heading">Informations de contact</h2>
     
     <div class="flex-row">
       <div class="form-group">
@@ -2057,7 +2538,7 @@ input:focus-visible,
   
   <!-- Step 2: Project Details (Moved from original Step 6) -->
   <div class="step-container" id="step-2">
-    <span class="step-heading" id="step2-heading">Détails du projet</span>
+    <h2 class="step-heading" id="step2-heading">Détails du projet</h2>
     
     <div class="form-group">
       <label class="form-label required" id="niche-label">Quelle est votre niche ?</label>
@@ -2133,7 +2614,7 @@ input:focus-visible,
   
   <!-- Step 3: Business Profile -->
   <div class="step-container" id="step-3">
-    <span class="step-heading" id="step3-heading">Profil professionnel</span>
+    <h2 class="step-heading" id="step3-heading">Profil professionnel</h2>
     
     <div class="question-group">
       <label class="question-label" id="team-size-question">Quelle est la taille de votre équipe ?</label>
@@ -2173,7 +2654,7 @@ input:focus-visible,
   
   <!-- Step 4: Core Features -->
   <div class="step-container" id="step-4">
-    <span class="step-heading" id="step4-heading">Fonctionnalités de base</span>
+    <h2 class="step-heading" id="step4-heading">Fonctionnalités de base</h2>
     
     <div class="question-group">
       <label class="question-label" id="lead-capture-question">Avez-vous besoin de capture de leads ?</label>
@@ -2243,7 +2724,7 @@ input:focus-visible,
   
   <!-- Step 5: Form Requirements -->
   <div class="step-container" id="step-5">
-    <span class="step-heading" id="step5-heading">Formulaires</span>
+    <h2 class="step-heading" id="step5-heading">Formulaires</h2>
     
     <div class="question-group">
       <label class="question-label" id="use-form-question">Avez-vous besoin de formulaires ?</label>
@@ -2302,7 +2783,7 @@ input:focus-visible,
   <!-- Step 6: Website Integration with Traffic Field -->
 <!-- Step 6: Website Integration with Traffic Field -->
 <div class="step-container" id="step-6">
-  <span class="step-heading" id="step6-heading">Site Web</span>
+  <h2 class="step-heading" id="step6-heading">Site Web</h2>
   
   <div class="question-group">
     <label class="question-label" id="website-question">Avez-vous un site web ?</label>
@@ -2394,7 +2875,7 @@ input:focus-visible,
   
   <!-- Step 7: Integrations -->
   <div class="step-container" id="step-7">
-    <span class="step-heading" id="step7-heading">Intégrations</span>
+    <h2 class="step-heading" id="step7-heading">Intégrations</h2>
     
     <!-- CRM Section -->
     <div class="question-group">
@@ -2559,7 +3040,7 @@ input:focus-visible,
   
   <!-- Step 8: Communication Channels -->
   <div class="step-container" id="step-8">
-    <span class="step-heading" id="step8-heading">Canaux de communication</span>
+    <h2 class="step-heading" id="step8-heading">Canaux de communication</h2>
     
     <!-- Social Media Section -->
     <div class="question-group">
@@ -2646,7 +3127,7 @@ input:focus-visible,
   
   <!-- Step 9: Summary -->
   <div class="step-container" id="step-9">
-    <span class="step-heading" id="step9-heading">Récapitulatif de votre demande</span>
+    <h2 class="step-heading" id="step9-heading">Récapitulatif de votre demande</h2>
     
     <div class="summary-container">
       <!-- Contact Information -->
@@ -3996,9 +4477,7 @@ function startFormTimer() {
       customOptions.forEach(opt => opt.classList.remove('selected'));
     }
     
-    // Rebuild the dropdown based on selection
-    
-    
+   
     saveFormData();
   });
 });
@@ -5864,7 +6343,7 @@ function validateStep2() {
         type: "success",
         payload: submissionData
       });
-    }
+	 }
     
     // Hide all steps and show confirmation
     formContainer.querySelectorAll('.step-container').forEach(step => {
@@ -6004,7 +6483,9 @@ function validateStep2() {
 
 
 
- const BookingDirectExtension = {
+
+
+const BookingDirectExtension = {
             name: 'BookingDirect',
             type: 'response',
             match: ({ trace }) => trace.type === 'ext_booking_direct' || trace.payload?.name === 'ext_booking_direct',
@@ -6220,7 +6701,7 @@ function validateStep2() {
                 formContainer.innerHTML = `
 <style>
 /* ====================================
-VSM MARKETING FORM - BOOKING EXTENSION STYLESHEET
+VSM MARKETING FORM - UNIFIED BOOKING EXTENSION BLUE THEME STYLESHEET
 ==================================== */
 
 /* ---------- RESET & BASE STYLES ---------- */
@@ -6245,32 +6726,83 @@ html {
   display: none !important;
 }
 
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 100% 0; }
+}
+
 /* ---------- LAYOUT & CONTAINER ---------- */
 form.chatbot-form.booking-form {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 870px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 0;
   border-radius: 12px;
   background: #fff;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+  box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
   position: relative;
   overflow: hidden;
+  animation: fadeIn 0.6s;
+  transition: all 0.3s ease;
+}
+
+form.chatbot-form.booking-form:hover {
+  box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
 }
 
 /* ---------- FORM HEADER ---------- */
 .form-header {
-    padding: 12px 30px;
-    background: linear-gradient(135deg, #6a0080 0%, #9c27b0 100%);
+    padding: 20px 30px;
+    background: linear-gradient(90deg, #023047, #e6f2f7);
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 10px;
     border-radius: 12px 12px 0 0;
-    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+    box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+    color: white;
+    position: relative;
+}
+
+.form-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
+  border-radius: 4px;
 }
 
 .header-icon {
@@ -6281,12 +6813,16 @@ form.chatbot-form.booking-form {
   justify-content: center;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .header-icon:hover {
   transform: scale(1.1);
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-icon svg {
+  filter: brightness(0) invert(1);
 }
 
 .form-title {
@@ -6299,7 +6835,8 @@ form.chatbot-form.booking-form {
 
 /* ---------- STEP PROGRESS INDICATOR ---------- */
 .progress-container {
-  padding: 0px 25px 10px 25px;
+  padding: 20px 25px 10px 25px;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
 }
 
 .step-progress {
@@ -6328,7 +6865,7 @@ form.chatbot-form.booking-form {
   left: 0;
   transform: translateY(-50%);
   height: 6px;
-  background: linear-gradient(to right, #9c27b0, #f8e8f8);
+  background: linear-gradient(to right, #023047, #e6f2f7);
   border-radius: 10px;
   transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
   z-index: -1;
@@ -6352,14 +6889,16 @@ form.chatbot-form.booking-form {
 }
 
 .step-item.active {
-  background-color: #F8E8F8;
-  color: #9c27b0;
+  background-color: #e6f2f7;
+  color: #023047;
   transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
 }
 
 .step-item.completed {
-  background-color: #9c27b0;
+  background-color: #023047;
   color: white;
+  animation: pulse 2s infinite;
 }
 
 .step-title {
@@ -6369,10 +6908,10 @@ form.chatbot-form.booking-form {
   transform: translateX(-50%);
   font-size: 11px;
   white-space: nowrap;
-  color: #666;
-  font-weight: 500;
-  display: block;
-  opacity: 0;
+  color: #023047;
+  font-weight: 600;
+  display: none;
+  opacity: 0.8;
   transition: opacity 0.3s ease;
   width: 110px;
   text-align: center;
@@ -6388,39 +6927,18 @@ form.chatbot-form.booking-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 10px 30px 10px;
+  padding: 5px 30px 10px;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
 }
 
 .step-container:not(.active) {
   pointer-events: none;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(156, 39, 176, 0); }
-  100% { transform: scale(1); }
-}
-
 /* ---------- FORM ELEMENTS ---------- */
 .step-heading {
   font-size: 26px;
-  color: #6a0080;
+  color: #011a26;
   font-weight: 600;
   position: relative;
 }
@@ -6428,11 +6946,11 @@ form.chatbot-form.booking-form {
 .step-heading::after {
   content: '';
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   left: 0;
   width: 70px;
   height: 4px;
-  background: linear-gradient(90deg, #9c27b0, #f8e8f8);
+  background: linear-gradient(90deg, #023047, #e6f2f7);
   border-radius: 4px;
 }
 
@@ -6440,20 +6958,20 @@ form.chatbot-form.booking-form {
 .service-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 10px;
+  gap: 15px;
 }
 
 .service-option {
   border: 2px solid #ddd;
   border-radius: 12px;
-  padding: 10px 15px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   background-color: #fafafa;
   overflow: hidden;
-  display: flex; /* Make it a flex container */
-  flex-direction: column; /* Stack elements vertically */
+  display: flex;
+  flex-direction: column;
 }
 
 .service-option::before {
@@ -6463,17 +6981,17 @@ form.chatbot-form.booking-form {
   left: 0;
   width: 4px;
   height: 100%;
-  background: #9c27b0;
+  background: #023047;
   transform: scaleY(0);
   transition: transform 0.3s;
   transform-origin: bottom;
 }
 
 .service-option:hover {
-  border-color: #9c27b0;
-  background-color: #F8E8F8;
+  border-color: #023047;
+  background-color: #e6f2f7;
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
 }
 
 .service-option:hover::before {
@@ -6481,9 +6999,9 @@ form.chatbot-form.booking-form {
 }
 
 .service-option.selected {
-  border-color: #9c27b0;
-  background-color: rgba(156, 39, 176, 0.05);
-  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.15);
+  border-color: #023047;
+  background-color: rgba(2, 48, 71, 0.05);
+  box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
 }
 
 .service-option.selected::before {
@@ -6494,7 +7012,7 @@ form.chatbot-form.booking-form {
   position: absolute;
   top: 15px;
   right: 15px;
-  background-color: #9c27b0;
+  background-color: #023047;
   color: white;
   width: 24px;
   height: 24px;
@@ -6512,26 +7030,40 @@ form.chatbot-form.booking-form {
 .service-title {
   font-size: 18px;
   font-weight: 600;
-  color: #9c27b0;
+  color: #023047;
+  margin-bottom: 10px;
 }
 
 .service-description {
   font-size: 14px;
   color: #666;
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0;
   line-height: 1.5;
   text-align: justify;
+  flex: 1;
 }
 
 .service-duration {
   display: inline-block;
-  background-color: #F8E8F8;
+  background-color: #e6f2f7;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
-  color: #9c27b0;
+  color: #023047;
   font-weight: 500;
   align-self: flex-start;
+}
+
+.service-option:hover .service-duration,
+.service-option.selected .service-duration {
+  background-color: white;
+}
+
+.service-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* ---------- FORM INPUTS ---------- */
@@ -6550,8 +7082,8 @@ form.chatbot-form.booking-form {
 
 .form-label, .bold-label {
   display: block;
-  font-weight: 500;
-  color: black;
+  font-weight: 600;
+  color: #011a26;
   font-size: 15px;
 }
 
@@ -6566,21 +7098,34 @@ input[type="text"],
 input[type="email"],
 input[type="tel"] {
   width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.3s ease;
   background-color: #fafafa;
+  color: #444;
+  position: relative;
+  overflow: hidden;
+  margin: 0px;
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus {
-  border-color: #9C27B0;
-  box-shadow: 0 0 0 3px rgba(156,39,176,0.1);
+  border-color: #023047;
+  box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
   outline: none;
   background-color: #fff;
+  transform: translateY(-2px);
+}
+
+input[type="text"]:hover:not(:focus),
+input[type="email"]:hover:not(:focus),
+input[type="tel"]:hover:not(:focus) {
+  border-color: #023047;
+  background-color: #e6f2f7;
 }
 
 /* ---------- ERROR MESSAGES ---------- */
@@ -6595,16 +7140,17 @@ input[type="tel"]:focus {
   font-size: 13px;
   margin-top: 8px;
   display: none;
-  background-color: #e52059;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+  border-radius: 8px;
   border: none;
-  padding: 10px 14px;
+  padding: 12px 16px;
   animation: shake 0.5s;
-  box-shadow: 0 2px 5px rgba(229, 32, 89, 0.2);
+  box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
 }
 
 .error-message.show {
   display: flex;
+  animation: slideIn 0.3s ease-out;
 }
 
 .error-icon {
@@ -6646,7 +7192,7 @@ input[type="tel"]:focus {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   letter-spacing: 0.5px;
   position: relative;
   overflow: hidden;
@@ -6666,19 +7212,22 @@ input[type="tel"]:focus {
   transition: all 0.6s;
 }
 
-.btn:hover::after {
+.btn:hover:not(:disabled)::after {
   left: 100%;
 }
 
 .btn-prev {
   background-color: #f0f0f0;
-  color: #6a0080;
+  color: #011a26;
+  border: 2px solid #e0e0e0;
   visibility: hidden;
 }
 
 .btn-prev:hover {
-  background-color: #e0e0e0;
+  background-color: #e6f2f7;
+  border-color: #023047;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
 }
 
 .btn-prev.visible {
@@ -6687,15 +7236,15 @@ input[type="tel"]:focus {
 
 .btn-next,
 .btn-submit {
-  background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
 }
 
 .btn-next:hover,
 .btn-submit:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(156, 39, 176, 0.4);
+  box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
 }
 
 .btn:disabled {
@@ -6711,12 +7260,18 @@ input[type="tel"]:focus {
   display: none;
 }
 
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
+}
+
 /* ---------- SUCCESS MESSAGE ---------- */
 .success-section {
   display: none;
   text-align: center;
   padding: 40px 30px;
   animation: fadeIn 0.5s;
+  background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
 }
 
 .success-section.active {
@@ -6726,13 +7281,15 @@ input[type="tel"]:focus {
 .success-icon {
   width: 80px;
   height: 80px;
-  background: #9C27B0;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
   animation: pulse 2s infinite;
+  color: white;
+  font-size: 36px;
 }
 
 .success-icon svg {
@@ -6742,165 +7299,185 @@ input[type="tel"]:focus {
 
 .success-title {
   font-size: 24px;
-  color: #9C27B0;
+  color: #011a26;
   margin-bottom: 15px;
   font-weight: 600;
 }
 
 .success-message {
   font-size: 16px;
-  color: #555;
+  color: #023047;
   margin-bottom: 30px;
   line-height: 1.5;
 }
 
-/* ---------- CALENDAR STYLES ---------- */
+/* ---------- CALENDAR STYLES (UNIFIED FROM CALENDAR COMPONENT) ---------- */
 .calendar-container {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
   border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(2, 48, 71, 0.08);
   overflow: hidden;
-  background: #ffffff;
-  color: #333;
-  animation: fadeIn 0.3s ease-out forwards;
-  border: 1px solid #e0e0e0;
   transition: all 0.3s ease;
   position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease-out forwards;
+  border: 1px solid #e0e0e0;
+}
+
+.calendar-container:hover {
+  box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
 }
 
 .calendar-header {
+  padding: 20px 30px;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(156, 39, 176, 0.1) 0%, rgba(156, 39, 176, 0.05) 100%);
-  border-bottom: 1px solid #e0e0e0;
+  color: white;
+  position: relative;
+}
+
+.calendar-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
+  border-radius: 4px;
 }
 
 .calendar-title {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  font-size: 16px;
-  gap: 12px;
+  gap: 16px;
 }
 
 .calendar-title-content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 4px;
 }
 
-.service-provider, .service-name {
+.service-provider {
   display: flex;
-  align-items: center; 
-  height: 24px;
-  font-size: 16px;
-  color: #9C27B0;
-  margin: 3px 0;
-  line-height: 24px;
+  align-items: center;
+  font-size: 18px;
   font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.provider-icon, .service-icon, .appointment-icon {
+.provider-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 8px;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
+}
+
+.provider-icon svg {
+  filter: brightness(0) invert(1);
 }
 
 .calendar-nav {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
 }
 
 .nav-btn {
-  background: white;
-  border: 1px solid #e0e0e0;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: all 0.2s;
-  color: #9C27B0;
+  transition: all 0.3s ease;
+  color: white;
 }
 
-.nav-btn:hover {
-  background-color: #F8E8F8;
-  border-color: #9c27b0;
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .current-date {
+  font-size: 16px;
   font-weight: 600;
-  font-size: 17px;
-  background: #F8E8F8;
+  color: #023047;
   padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  color: #9C27B0;
-  border: 1px solid rgba(156, 39, 176, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .calendar-body {
   display: flex;
-  background: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #fefeff);
+  min-height: 400px;
 }
 
 .days-container {
-  width: 50%;
-  position: relative;
-  max-height: 400px;
+  width: 47%;
+  padding: 20px;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
 }
 
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
   text-align: center;
   font-weight: 600;
-  font-size: 13px;
-  padding: 15px 10px 10px;
-  color: #666;
-  letter-spacing: 0.5px;
+  font-size: 12px;
+  color: #023047;
   text-transform: uppercase;
-  background: rgba(156, 39, 176, 0.02);
+  letter-spacing: 0.5px;
 }
 
 .days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  padding: 10px;
 }
 
 .day {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 42px;
-  width: 42px;
+  height: 45px;
+  width: 45px;
   cursor: pointer;
   position: relative;
   font-size: 14px;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.3s ease;
   margin: 0 auto;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   border-radius: 50%;
-  z-index: 1;
+  color: #333;
 }
 
 .day:hover:not(.inactive) {
-  background-color: #F8E8F8;
-  color: #9C27B0;
-  border-color: #9c27b0;
-  font-weight: 500;
+  background-color: #e6f2f7;
+  color: #023047;
+  border-color: #023047;
   transform: scale(1.1);
 }
 
@@ -6911,21 +7488,23 @@ input[type="tel"]:focus {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background-color: #9C27B0;
+  background-color: #023047;
   opacity: 0.7;
 }
 
 .day.today {
-  border: 2px solid #9C27B0;
+  border-color: #023047;
+  background-color: rgba(2, 48, 71, 0.1);
   font-weight: 600;
 }
 
 .day.active {
-  background-color: #9C27B0;
+  background-color: #023047;
   color: white;
-  border-radius: 8px;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+  border-color: #023047;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+  animation: pulse 2s infinite;
 }
 
 .day.active::after {
@@ -6938,44 +7517,64 @@ input[type="tel"]:focus {
   opacity: 0.5;
 }
 
+.day.inactive:hover {
+  transform: none;
+  background-color: transparent;
+  border-color: transparent;
+}
+
 .times-container {
-  width: 50%;
-  border-left: 1px solid #e0e0e0;
-  padding: 20px 15px;
+  width: 53%;
+  padding: 20px;
+  background-color: #fafafa;
   overflow-y: auto;
-  background: linear-gradient(135deg, #fefeff 0%, rgba(156, 39, 176, 0.01) 100%);
-  position: relative;
   max-height: 400px;
 }
 
+.times-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.times-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb {
+  background: rgba(2, 48, 71, 0.3);
+  border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(2, 48, 71, 0.5);
+}
+
 .time-header {
-  font-weight: 600;
-  margin-bottom: 20px;
   font-size: 16px;
+  font-weight: 600;
+  color: #011a26;
   text-align: center;
-  color: #9C27B0;
-  padding: 0 5px;
-  line-height: 1.4;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
   position: relative;
 }
 
 .time-header::after {
-  content: "";
+  content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 50px;
   height: 3px;
-  background-color: #9C27B0;
-  opacity: 0.5;
+  background: linear-gradient(90deg, #023047, #e6f2f7);
   border-radius: 3px;
 }
 
 .time-slots {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
 .time-slots-columns {
@@ -6987,82 +7586,146 @@ input[type="tel"]:focus {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
+.time-slots-column > div:first-child {
+  font-weight: 600;
+  color: #023047;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
 .time-slot {
-  padding: 12px 8px;
+  padding: 12px 16px;
   border-radius: 8px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #e0e0e0;
-  font-size: 13px;
+  transition: all 0.3s ease;
+  border: 2px solid #e0e0e0;
   background-color: white;
   color: #444;
+  font-size: 14px;
+  font-weight: 500;
   position: relative;
   overflow: hidden;
-  width: 80%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 85%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.time-slot::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(2, 48, 71, 0.1) 50%, 
+    rgba(255,255,255,0) 100%);
+  transition: all 0.6s;
 }
 
 .time-slot.available:hover:not(.selected) {
-  background-color: #F8E8F8;
-  color: #9C27B0;
-  border-color: #9c27b0;
+  background-color: #e6f2f7;
+  color: #023047;
+  border-color: #023047;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+}
+
+.time-slot.available:hover:not(.selected)::before {
+  left: 100%;
 }
 
 .time-slot.selected {
-  background-color: #9C27B0;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   color: white;
-  border-color: #9C27B0;
-  font-weight: bold;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+  border-color: #023047;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
+  transform: translateY(-2px);
 }
 
 .time-slot.unavailable {
-  background-color: #f4f4f5;
+  background-color: #f5f5f5;
   color: #999;
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .calendar-footer {
-  padding: 20px;
+  padding: 20px 30px;
   display: flex;
   justify-content: center;
   border-top: 1px solid #e0e0e0;
-  background: rgba(156, 39, 176, 0.02);
+  background-color: #fafafa;
 }
 
 .confirm-btn {
-  padding: 12px 28px;
+  padding: 14px 28px;
   border: none;
   border-radius: 8px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 600;
-  background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #023047 0%, #011a26 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+  box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+}
+
+.confirm-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 50%, 
+    rgba(255,255,255,0) 100%);
+  transition: all 0.6s;
 }
 
 .confirm-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+}
+
+.confirm-btn:hover:not(:disabled)::after {
+  left: 100%;
 }
 
 .confirm-btn:disabled {
-  background: #e0e0e0;
-  color: #9e9e9e;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.confirm-btn:disabled::after {
+  display: none;
+}
+
+/* ---------- CONFIRMED STATE ---------- */
+.calendar-container.confirmed .day,
+.calendar-container.confirmed .time-slot,
+.calendar-container.confirmed .nav-btn {
+  pointer-events: none;
+  cursor: default;
   opacity: 0.7;
+}
+
+.calendar-container.confirmed .day.active,
+.calendar-container.confirmed .time-slot.selected {
+  opacity: 1;
 }
 
 /* Disabled form styles */
@@ -7087,7 +7750,7 @@ input[type="tel"]:focus {
   }
   
   .step-container.active {
-    padding: 20px 15px 10px;
+    padding: 5px 15px 10px;
   }
   
   .flex-row > div {
@@ -7097,7 +7760,7 @@ input[type="tel"]:focus {
   
   .service-options {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 15px;
   }
 }
 
@@ -7108,6 +7771,7 @@ input[type="tel"]:focus {
   
   .form-header {
     padding: 15px 20px;
+    gap: 15px;
   }
   
   .header-icon {
@@ -7125,8 +7789,9 @@ input[type="tel"]:focus {
   }
   
   form.chatbot-form.booking-form {
-    margin: 15px;
     width: auto;
+    border-radius: 8px;
+    margin: 15px;
   }
   
   .step-item {
@@ -7136,7 +7801,7 @@ input[type="tel"]:focus {
   }
   
   .progress-container {
-    padding: 0 15px 10px;
+    padding: 10px 10px 10px;
   }
   
   .step-title {
@@ -7146,7 +7811,7 @@ input[type="tel"]:focus {
   }
   
   .booking-footer {
-    padding: 15px 20px;
+    padding: 0px 15px 10px;
   }
   
   .form-buttons {
@@ -7155,46 +7820,86 @@ input[type="tel"]:focus {
   }
   
   /* Calendar responsive */
+  .calendar-container {
+    border-radius: 8px;
+  }
+  
+  .calendar-header {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .calendar-nav {
+    gap: 15px;
+  }
+  
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .current-date {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  
+  .service-provider {
+    font-size: 16px;
+  }
+  
   .calendar-body {
     flex-direction: column;
-    height: auto;
   }
   
   .days-container,
   .times-container {
     width: 100%;
+    padding: 15px;
   }
   
   .times-container {
-    border-left: none;
+    border-right: none;
     border-top: 1px solid #e0e0e0;
-    max-height: 250px;
+    max-height: 300px;
   }
   
   .day {
-    height: 36px;
-    width: 36px;
+    height: 40px;
+    width: 40px;
     font-size: 13px;
   }
   
   .time-slot {
-    padding: 10px 6px;
-    font-size: 12px;
+    padding: 10px 12px;
+    font-size: 13px;
     width: 90%;
   }
   
-  .calendar-header {
-    padding: 15px;
-    flex-direction: column;
+  .time-slots-columns {
     gap: 10px;
-    align-items: center;
+  }
+  
+  .confirm-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .calendar-footer {
+    padding: 15px 20px;
   }
 }
 
 @media (max-width: 480px) {
   form.chatbot-form.booking-form {
-    padding: 15px 10px;
     min-width: 200px;
+  }
+  
+  .header-icon svg {
+    width: 18px;
+    height: 18px;
   }
   
   .step-heading {
@@ -7214,14 +7919,32 @@ input[type="tel"]:focus {
   }
   
   .day {
-    height: 32px;
-    width: 32px;
+    height: 35px;
+    width: 35px;
     font-size: 12px;
   }
   
-  .time-slot {
-    padding: 8px 4px;
+  .weekdays {
     font-size: 11px;
+  }
+  
+  .time-header {
+    font-size: 14px;
+  }
+  
+  .time-slot {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .provider-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+  
+  .service-provider {
+    font-size: 14px;
   }
   
   .service-title {
@@ -7231,46 +7954,49 @@ input[type="tel"]:focus {
   .service-description {
     font-size: 13px;
   }
+  
+  .step-title {
+    font-size: 8px;
+    width: 60px;
+    top: 35px;
+  }
+
+  .form-header {
+    padding: 12px 15px;
+  }
+  
+  .calendar-header {
+    padding: 12px 15px;
+  }
+  
+  .days-container,
+  .times-container {
+    padding: 10px;
+  }
+}
+
+/* ---------- LOADING STATES ---------- */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading .confirm-btn {
+  background: #ccc;
+  cursor: wait;
 }
 
 /* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
 input:focus-visible, 
-button:focus-visible {
-  outline: 2px solid #9C27B0;
+button:focus-visible,
+.day:focus-visible,
+.time-slot:focus-visible,
+.nav-btn:focus-visible,
+.confirm-btn:focus-visible {
+  outline: 2px solid #023047;
   outline-offset: 2px;
 }
 
-/* ---------- Animation keyframes ---------- */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -100% 0;
-  }
-  100% {
-    background-position: 100% 0;
-  }
-}
-
-.service-content {
-  flex: 1; 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.service-option:hover .service-duration,
-.service-option.selected .service-duration {
-  background-color: white;
-}
 </style>
 
 <!-- Step Progress Indicator -->
@@ -7681,7 +8407,7 @@ button:focus-visible {
                     }
                 }
 
-                // Calendar component implementation
+                // Calendar component implementation with unified styling
                 const calendarBooking = {
                     state: {
                         currentDate: new Date(),
@@ -7870,33 +8596,44 @@ button:focus-visible {
                             left: 0;
                             width: 100%;
                             height: 100%;
-                            background-color: rgba(255, 255, 255, 0.9);
+                            background-color: rgba(255, 255, 255, 0.95);
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             z-index: 1000;
+                            backdrop-filter: blur(4px);
                         `;
                         
                         const errorMessage = document.createElement("div");
                         errorMessage.style.cssText = `
-                            background-color: #fff0f0;
-                            border: 1px solid #ffdddd;
-                            border-left: 3px solid #e52059;
-                            border-radius: 8px;
-                            padding: 20px;
-                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                            background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+                            border: 2px solid #ffdddd;
+                            border-radius: 12px;
+                            padding: 30px;
+                            box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
                             text-align: center;
                             max-width: 80%;
+                            animation: fadeIn 0.3s ease-out;
                         `;
                         
                         errorMessage.innerHTML = `
-                            <div style="color: #e52059; font-size: 24px; margin-bottom: 10px;">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2spanv-2h-2zm0-8v6spanV7h-2z" fill="currentColor"/>
+                            <div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <p style="margin: 0; color: #333;">${message}</p>
-                            <button style="margin-top: 15px; background: #9C27B0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">${language === "fr" ? "OK" : "OK"}</button>
+                            <p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
+                            <button style="
+                                background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+                                color: white;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                font-weight: 600;
+                                transition: all 0.3s ease;
+                            ">OK</button>
                         `;
                         
                         const calendarContainer = formContainer.querySelector(".calendar-container");
@@ -7918,6 +8655,16 @@ button:focus-visible {
                             }
                         });
                         
+                        closeButton.addEventListener("mouseover", () => {
+                            closeButton.style.transform = "translateY(-2px)";
+                            closeButton.style.boxShadow = "0 6px 18px rgba(2, 48, 71, 0.4)";
+                        });
+                        
+                        closeButton.addEventListener("mouseout", () => {
+                            closeButton.style.transform = "translateY(0)";
+                            closeButton.style.boxShadow = "none";
+                        });
+                        
                         errorOverlay.appendChild(errorMessage);
                     },
                     
@@ -7929,13 +8676,6 @@ button:focus-visible {
                         const calendarTitle = document.createElement("div");
                         calendarTitle.className = "calendar-title";
                         
-                        const calendarIcon = document.createElement("span");
-                        calendarIcon.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="18px" height="18px">
-                                <path fill="#9C27B0" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192z"/>
-                            </svg>
-                        `;
-                        
                         const titleContent = document.createElement("div");
                         titleContent.className = "calendar-title-content";
                         
@@ -7943,15 +8683,14 @@ button:focus-visible {
                         providerDiv.className = "service-provider";
                         providerDiv.innerHTML = `
                             <span class="provider-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="18px" height="18px">
-                                    <path fill="#9C27B0" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32z"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+                                    <path fill="currentColor" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/>
                                 </svg>
                             </span>
-                            <span>${selectedService.eventName || 'Appointment'}</span>
+                            <span>${selectedService.eventName || 'Available Appointments'}</span>
                         `;
                         
                         titleContent.appendChild(providerDiv);
-                        calendarTitle.appendChild(calendarIcon);
                         calendarTitle.appendChild(titleContent);
                         
                         const calendarNav = document.createElement("div");
@@ -7964,7 +8703,7 @@ button:focus-visible {
                         const prevBtn = document.createElement("button");
                         prevBtn.className = "nav-btn prev-btn";
                         prevBtn.title = language === "fr" ? "Mois précédent" : "Previous month";
-                        prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+                        prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
                         prevBtn.addEventListener("click", () => {
                             if (!this.state.isConfirmed) {
                                 this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
@@ -7975,7 +8714,7 @@ button:focus-visible {
                         const nextBtn = document.createElement("button");
                         nextBtn.className = "nav-btn next-btn";
                         nextBtn.title = language === "fr" ? "Mois suivant" : "Next month";
-                        nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(2px);">${SVG_CHEVRON}</div>`;
+                        nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
                         nextBtn.addEventListener("click", () => {
                             if (!this.state.isConfirmed) {
                                 this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
@@ -8111,15 +8850,9 @@ button:focus-visible {
                                 pmColumn.className = "time-slots-column";
                                 const amHeader = document.createElement("div");
                                 amHeader.textContent = "AM";
-                                amHeader.style.fontWeight = "bold";
-                                amHeader.style.marginBottom = "5px";
-                                amHeader.style.color = "#9C27B0";
                                 amColumn.appendChild(amHeader);
                                 const pmHeader = document.createElement("div");
                                 pmHeader.textContent = "PM";
-                                pmHeader.style.fontWeight = "bold";
-                                pmHeader.style.marginBottom = "5px";
-                                pmHeader.style.color = "#9C27B0";
                                 pmColumn.appendChild(pmHeader);
                                 timeSlots.forEach((timeISO, index) => {
                                     const dateTime = new Date(timeISO);
@@ -8169,9 +8902,9 @@ button:focus-visible {
                         const self = this;
                         
                         if (this.state.isConfirmed) {
-                            confirmBtn.textContent = language === "en" ? "Booked ✓" : "Réservé ✓";
-                            confirmBtn.style.backgroundColor = "#4CAF50";
-                            confirmBtn.style.color = "white";
+                            const isEnglish = language === "en";
+                            confirmBtn.textContent = isEnglish ? "Booked ✓" : "Réservée ✓";
+                            confirmBtn.style.background = "#4CAF50";
                             confirmBtn.disabled = true;
                         } else {
                             confirmBtn.textContent = texts.confirmBooking;
@@ -8179,12 +8912,15 @@ button:focus-visible {
                                 confirmBtn.disabled = true; 
                             }
                             
-                            confirmBtn.addEventListener("click", async function() {
+                            confirmBtn.addEventListener("click", async () => {
                                 if (self.state.selectedDate && self.state.selectedTime) {
+                                    // Show loading state
                                     confirmBtn.disabled = true;
                                     confirmBtn.textContent = texts.confirming;
+                                    confirmBtn.classList.add('loading');
                                     
                                     try {
+                                        // 1. First completes the booking with Cal.com
                                         const bookingResponse = await self.createBooking(
                                             self.state.selectedTime, 
                                             userData.fullName, 
@@ -8193,10 +8929,15 @@ button:focus-visible {
                                         );
                                         
                                         if (bookingResponse) {
+                                            // 2. Then updates the UI to show confirmation
                                             self.state.isConfirmed = true;
+                                            isFormSubmitted = true;
+                                            if (formTimeoutId) {
+                                                clearInterval(formTimeoutId);
+                                            }
                                             self.renderCalendar();
                                             
-                                            // Success animation
+                                            // 3. Finally shows the success animation
                                             const successOverlay = document.createElement('div');
                                             successOverlay.style.cssText = `
                                                 position: absolute;
@@ -8204,7 +8945,7 @@ button:focus-visible {
                                                 left: 0;
                                                 width: 100%;
                                                 height: 100%;
-                                                background-color: rgba(156, 39, 176, 0.05);
+                                                background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
                                                 display: flex;
                                                 justify-content: center;
                                                 align-items: center;
@@ -8212,67 +8953,70 @@ button:focus-visible {
                                                 opacity: 0;
                                                 transition: opacity 0.5s;
                                                 pointer-events: none;
+                                                backdrop-filter: blur(4px);
                                             `;
                                             
                                             const successMessage = document.createElement('div');
                                             successMessage.style.cssText = `
-                                                background-color: white;
+                                                background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
                                                 border-radius: 15px;
-                                                padding: 30px;
-                                                box-shadow: 0 10px 30px rgba(156, 39, 176, 0.2);
+                                                padding: 30px 40px;
+                                                box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
                                                 text-align: center;
                                                 transform: translateY(20px);
                                                 transition: transform 0.5s, opacity 0.5s;
                                                 opacity: 0;
+                                                border: 2px solid rgba(2, 48, 71, 0.1);
                                             `;
                                             
                                             const checkmark = document.createElement('div');
                                             checkmark.innerHTML = `
-                                                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <circle cx="30" cy="30" r="30" fill="#F8E8F8"/>
-                                                    <path d="M20 30L27 37L40 23" stroke="#9C27B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
+                                                    <path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <defs>
+                                                        <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                            <stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
+                                                            <stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
+                                                        </linearGradient>
+                                                    </defs>
                                                 </svg>
                                             `;
+                                            checkmark.style.marginBottom = "20px";
                                             
                                             successMessage.appendChild(checkmark);
                                             const successText = document.createElement('p');
-                                            successText.textContent = texts.bookingConfirmed;
+                                            successText.textContent = texts.bookingConfirmed + '!';
                                             successText.style.cssText = `
-                                                font-size: 18px;
+                                                font-size: 20px;
                                                 font-weight: 600;
-                                                margin-top: 15px;
-                                                color: #9C27B0;
+                                                margin: 0;
+                                                color: #011a26;
                                             `;
-                                            
-                                            const successSubtext = document.createElement('p');
-                                            successSubtext.textContent = texts.bookingComplete;
-                                            successSubtext.style.cssText = `
-                                                font-size: 14px;
-                                                margin-top: 10px;
-                                                color: #555;
-                                            `;
-                                            
                                             successMessage.appendChild(successText);
-                                            successMessage.appendChild(successSubtext);
                                             successOverlay.appendChild(successMessage);
                                             
                                             const calendarContainer = formContainer.querySelector(".calendar-container");
                                             calendarContainer.appendChild(successOverlay);
                                             
+                                            // Animation sequence
                                             setTimeout(() => {
                                                 successOverlay.style.opacity = '1';
                                                 successMessage.style.opacity = '1';
                                                 successMessage.style.transform = 'translateY(0)';
                                                 
                                                 setTimeout(() => {
+                                                    // Start hiding animation
                                                     successOverlay.style.opacity = '0';
                                                     successMessage.style.opacity = '0';
                                                     successMessage.style.transform = 'translateY(-20px)';
                                                     
                                                     setTimeout(() => {
+                                                        // Remove overlay after animation completes
                                                         calendarContainer.removeChild(successOverlay);
                                                         showSuccessScreen();
                                                         
+                                                        // 4. FINALLY - Send data to Voiceflow (LAST STEP)
                                                         const dateStr = self.formatDate(self.state.selectedDate);
                                                         const formattedDate = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
                                                             weekday: 'long', 
@@ -8280,38 +9024,41 @@ button:focus-visible {
                                                             month: 'long', 
                                                             day: 'numeric' 
                                                         }).format(self.state.selectedDate);
-                                                        
                                                         const formattedTime = new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-US", { 
                                                             hour: 'numeric', 
                                                             minute: '2-digit', 
                                                             hour12: true 
                                                         }).format(new Date(self.state.selectedTime));
-                                                        
                                                         const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+
+                                                        const formData = { 
+                                                            firstName: userData.firstName,
+                                                            lastName: userData.lastName,
+                                                            fullName: userData.fullName,
+                                                            email: userData.email,
+                                                            service: selectedService.eventName,
+                                                            date: dateStr,
+                                                            time: self.state.selectedTime,
+                                                            formattedDate,
+                                                            formattedTime,
+                                                            formattedDateTime
+                                                        };
                                                         
                                                         if (vf) {
                                                             window.voiceflow.chat.interact({
                                                                 type: "success",
-                                                                payload: {
-                                                                    firstName: userData.firstName,
-                                                                    lastName: userData.lastName,
-                                                                    fullName: userData.fullName,
-                                                                    email: userData.email,
-                                                                    service: selectedService.eventName,
-                                                                    date: dateStr,
-                                                                    time: self.state.selectedTime,
-                                                                    formattedDateTime: formattedDateTime
-                                                                }
+                                                                payload: formData
                                                             });
                                                         }
-                                                    }, 500);
-                                                }, 2000);
-                                            }, 100);
+                                                    }, 500); // End of hide animation
+                                                }, 2500); // Show duration before hiding
+                                            }, 100); // Start of show animation
                                         }
                                     } catch (err) {
                                         console.error("Booking error:", err);
                                         confirmBtn.disabled = false;
                                         confirmBtn.textContent = texts.confirmBooking;
+                                        confirmBtn.classList.remove('loading');
                                         self.showErrorMessage(err.message || texts.errorOccurred);
                                     }
                                 }
@@ -8330,6 +9077,8 @@ button:focus-visible {
                         calendarContainer.className = "calendar-container";
                         if (this.state.isConfirmed) {
                             calendarContainer.classList.add("confirmed");
+                        } else {
+                            calendarContainer.classList.remove("confirmed");
                         }
                         
                         calendarContainer.appendChild(this.renderHeader());
@@ -8379,7 +9128,7 @@ button:focus-visible {
             }
         };
 
-
+        
 
 
 
@@ -8409,7 +9158,7 @@ const ContactFormExtension = {
           icon.className = "header-icon";
           icon.innerHTML = SVG_MESSAGE;
 
-          const title = document.createElement("h1");
+          const title = document.createElement("span");
           title.className = "form-title";
           title.textContent = isEnglish ? "Contact Form" : "Formulaire de Contact";
 
@@ -8427,7 +9176,7 @@ const ContactFormExtension = {
         formContainer.innerHTML = `
           <style>
             /* ====================================
-            VSM MARKETING FORM - MAIN STYLESHEET
+            VSM MARKETING FORM - UNIFIED STYLESHEET - DARK BLUE THEME
             ==================================== */
 
             /* ---------- RESET & BASE STYLES ---------- */
@@ -8448,15 +9197,53 @@ const ContactFormExtension = {
               scroll-behavior: smooth;
             }
 
+            /* ---------- ANIMATIONS ---------- */
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(15px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes slideIn {
+              from { opacity: 0; transform: translateX(10px); }
+              to { opacity: 1; transform: translateX(0); }
+            }
+
+            @keyframes slideDown {
+              from { opacity: 0; transform: translateY(-10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+              20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+
+            @keyframes pulse {
+              0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+              70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+              100% { transform: scale(1); }
+            }
+
+            @keyframes shimmer {
+              0% { background-position: -100% 0; }
+              100% { background-position: 100% 0; }
+            }
+
             /* ---------- LAYOUT & CONTAINER ---------- */
             .container {
               max-width: 870px;
               margin: 40px auto;
               background: #fff;
               border-radius: 12px;
-              box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+              box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
               overflow: hidden;
               transition: all 0.3s ease;
+              animation: fadeIn 0.6s;
+            }
+
+            .container:hover {
+              box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
             }
 
             form.chatbot-form {
@@ -8469,9 +9256,15 @@ const ContactFormExtension = {
               border-radius: 12px;
               background: #fff;
               font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-              box-shadow: 0 8px 30px rgba(156, 39, 176, 0.12);
+              box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
               position: relative;
               overflow: hidden;
+              animation: fadeIn 0.6s;
+              transition: all 0.3s ease;
+            }
+
+            form.chatbot-form:hover {
+              box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
             }
 
             /* Two-column layout */
@@ -8490,14 +9283,26 @@ const ContactFormExtension = {
 
             /* ---------- FORM HEADER ---------- */
             .form-header {
-              padding: 12px 30px;
-              background: linear-gradient(135deg, #6a0080 0%, #9c27b0 100%);
+              padding: 20px 30px;
+              background: linear-gradient(90deg, #023047, #e6f2f7);
               display: flex;
               align-items: center;
               gap: 16px;
-              margin-bottom: 10px;
               border-radius: 12px 12px 0 0;
-              box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+              box-shadow: 0 4px 15px rgba(2, 48, 71, 0.15);
+              color: white;
+              position: relative;
+            }
+
+            .form-header::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 4px;
+              background: linear-gradient(90deg, #023047, #e6f2f7);
+              border-radius: 4px;
             }
 
             .header-icon {
@@ -8508,12 +9313,16 @@ const ContactFormExtension = {
               justify-content: center;
               border-radius: 50%;
               background-color: rgba(255, 255, 255, 0.2);
-              transition: transform 0.3s ease;
+              transition: all 0.3s ease;
             }
 
             .header-icon:hover {
               transform: scale(1.1);
               background-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .header-icon svg {
+              filter: brightness(0) invert(1);
             }
 
             .form-title {
@@ -8526,7 +9335,8 @@ const ContactFormExtension = {
 
             /* ---------- STEP PROGRESS INDICATOR ---------- */
             .progress-container {
-              padding: 0px 25px 10px 25px;
+              padding: 10px 25px 10px 25px;
+              background: linear-gradient(to bottom, #ffffff, #fefeff);
             }
 
             .step-progress {
@@ -8555,7 +9365,7 @@ const ContactFormExtension = {
               left: 0;
               transform: translateY(-50%);
               height: 6px;
-              background: linear-gradient(to right, #9c27b0, #f8e8f8);
+              background: linear-gradient(to right, #023047, #e6f2f7);
               border-radius: 10px;
               transition: width 0.5s cubic-bezier(0.65, 0, 0.35, 1);
               z-index: -1;
@@ -8579,14 +9389,16 @@ const ContactFormExtension = {
             }
 
             .step-item.active {
-              background-color: #F8E8F8;
-              color: #9c27b0;
+              background-color: #e6f2f7;
+              color: #023047;
               transform: scale(1.1);
+              box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
             }
 
             .step-item.completed {
-              background-color: #9c27b0;
+              background-color: #023047;
               color: white;
+              animation: pulse 2s infinite;
             }
 
             .step-title {
@@ -8596,10 +9408,10 @@ const ContactFormExtension = {
               transform: translateX(-50%);
               font-size: 11px;
               white-space: nowrap;
-              color: #666;
-              font-weight: 500;
-              display: block;
-              opacity: 0;
+              color: #023047;
+              font-weight: 600;
+              display: none;
+              opacity: 0.8;
               transition: opacity 0.3s ease;
               width: 110px;
               text-align: center;
@@ -8616,41 +9428,19 @@ const ContactFormExtension = {
               flex-direction: column;
               gap: 10px;
               padding: 5px 30px 10px;
+              background: linear-gradient(to bottom, #ffffff, #fefeff);
             }
 
             .step-container:not(.active) {
               pointer-events: none;
             }
 
-            @keyframes fadeIn {
-              from { opacity: 0; transform: translateY(15px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-
-            @keyframes slideDown {
-              from { opacity: 0; transform: translateY(-10px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-
-            @keyframes shake {
-              0%, 100% { transform: translateX(0); }
-              10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-              20%, 40%, 60%, 80% { transform: translateX(5px); }
-            }
-
-            @keyframes pulse {
-              0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(156, 39, 176, 0.4); }
-              70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(156, 39, 176, 0); }
-              100% { transform: scale(1); }
-            }
-
             /* ---------- FORM ELEMENTS ---------- */
             .form-label, .question-label, .bold-label {
               display: block;
-              font-weight: 500;
-              color: black;
+              font-weight: 600;
+              color: #011a26;
               font-size: 15px;
-              margin-bottom: 8px;
             }
 
             .question-label {
@@ -8666,7 +9456,7 @@ const ContactFormExtension = {
 
             .step-heading {
               font-size: 26px;
-              color: #6a0080;
+              color: #011a26;
               font-weight: 600;
               position: relative;
             }
@@ -8678,7 +9468,7 @@ const ContactFormExtension = {
               left: 0;
               width: 70px;
               height: 4px;
-              background: linear-gradient(90deg, #9c27b0, #f8e8f8);
+              background: linear-gradient(90deg, #023047, #e6f2f7);
               border-radius: 4px;
             }
 
@@ -8690,12 +9480,16 @@ const ContactFormExtension = {
             #details,
             select {
               width: 100%;
-              border: 1px solid #ddd;
-              border-radius: 6px;
-              padding: 12px;
+              border: 2px solid #e0e0e0;
+              border-radius: 8px;
+              padding: 12px 16px;
               font-size: 14px;
-              transition: all 0.2s;
+              font-weight: 500;
+              transition: all 0.3s ease;
               background-color: #fafafa;
+              color: #444;
+              position: relative;
+              overflow: hidden;
             }
             
             input[type="text"]:focus,
@@ -8704,15 +9498,26 @@ const ContactFormExtension = {
             input[type="number"]:focus,
             #details:focus,
             select:focus {
-              border-color: #9C27B0;
-              box-shadow: 0 0 0 3px rgba(156,39,176,0.1);
+              border-color: #023047;
+              box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
               outline: none;
               background-color: #fff;
+              transform: translateY(-2px);
+            }
+
+            input[type="text"]:hover:not(:focus),
+            input[type="email"]:hover:not(:focus),
+            input[type="tel"]:hover:not(:focus),
+            input[type="number"]:hover:not(:focus),
+            #details:hover:not(:focus) {
+              border-color: #023047;
+              background-color: #e6f2f7;
             }
             
             #details {
               min-height: 120px;
               resize: vertical;
+              font-family: inherit;
             }
 
             /* ---------- DROPDOWN COMPONENTS ---------- */
@@ -8723,27 +9528,30 @@ const ContactFormExtension = {
             .main-container {
               display: block;
               transition: height 0.3s ease;
-              border-radius: 6px;
+              border-radius: 8px;
               width: 100%;
               margin-bottom: 15px;
             }
 
             .select-wrapper {
-              border: 1px solid #ddd;
+              border: 2px solid #e0e0e0;
               border-radius: 8px;
-              background-color: #fff;
+              background-color: #fafafa;
               position: relative;
               width: 100%;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-              transition: all 0.3s;
+              box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+              transition: all 0.3s ease;
             }
 
             .select-wrapper:hover {
-              border-color: #9c27b0;
+              border-color: #023047;
+              background-color: #e6f2f7;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
             }
 
             .select-display {
-              padding: 0 18px;
+              padding: 12px 18px;
               font-size: 15px;
               cursor: pointer;
               display: flex;
@@ -8751,6 +9559,7 @@ const ContactFormExtension = {
               align-items: center;
               height: 52px;
               color: #444;
+              font-weight: 500;
             }
 
             .dropdown-icon {
@@ -8760,8 +9569,9 @@ const ContactFormExtension = {
               display: flex;
               align-items: center;
               justify-content: center;
-              background-color: #9a4fa9;
+              background: linear-gradient(135deg, #023047 0%, #011a26 100%);
               border-radius: 50%;
+              box-shadow: 0 2px 8px rgba(2, 48, 71, 0.3);
             }
 
             .dropdown-icon svg path {
@@ -8770,16 +9580,17 @@ const ContactFormExtension = {
 
             .dropdown-icon.rotate {
               transform: rotate(180deg);
+              box-shadow: 0 4px 12px rgba(2, 48, 71, 0.4);
             }
 
             .custom-options {
               display: none;
               font-size: 15px;
-              border-top: 1px solid #ddd;
+              border-top: 1px solid #e0e0e0;
               max-height: 250px;
               overflow-y: auto;
               background-color: #fff;
-              box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+              box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
               z-index: 100;
               border-radius: 0 0 8px 8px;
               -ms-overflow-style: none;
@@ -8789,7 +9600,7 @@ const ContactFormExtension = {
 
             .show-options {
               display: block;
-              animation: fadeIn 0.3s;
+              animation: slideDown 0.3s ease-out;
             }
 
             .custom-option {
@@ -8797,22 +9608,24 @@ const ContactFormExtension = {
               display: flex;
               align-items: center;
               cursor: pointer;
-              transition: all 0.2s;
+              transition: all 0.3s ease;
               position: relative;
               border-left: 4px solid transparent;
             }
 
             .custom-option:hover {
-              background-color: rgba(156, 39, 176, 0.08);
-              color: #6a0080;
-              border-left-color: #9c27b0;
+              background-color: rgba(2, 48, 71, 0.08);
+              color: #011a26;
+              border-left-color: #023047;
+              transform: translateX(5px);
             }
 
             .custom-option.selected {
-              background-color: rgba(156, 39, 176, 0.12);
-              color: #6a0080;
+              background: linear-gradient(135deg, rgba(2, 48, 71, 0.12) 0%, rgba(230, 242, 247, 0.8) 100%);
+              color: #011a26;
               font-weight: bold;
-              border-left-color: #9c27b0;
+              border-left-color: #023047;
+              box-shadow: inset 0 1px 3px rgba(2, 48, 71, 0.1);
             }
 
             .custom-option.selected .option-checkbox svg path {
@@ -8820,7 +9633,7 @@ const ContactFormExtension = {
             }
 
             .custom-option:not(.selected):hover .option-checkbox svg path {
-              fill: #9C27B0;
+              fill: #023047;
             }
 
             /* Checkbox styling */
@@ -8834,7 +9647,7 @@ const ContactFormExtension = {
               align-items: center;
               justify-content: center;
               background-color: #fff;
-              transition: all 0.2s;
+              transition: all 0.3s ease;
               position: relative;
             }
 
@@ -8845,8 +9658,9 @@ const ContactFormExtension = {
             }
 
             .custom-option:not(.selected):hover .option-checkbox {
-              border-color: #9c27b0;
+              border-color: #023047;
               transform: scale(1.05);
+              box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
             }
 
             .custom-option:not(.selected):hover .option-checkbox svg {
@@ -8858,13 +9672,14 @@ const ContactFormExtension = {
             }
 
             .custom-option.selected .option-checkbox {
-              border-color: #9c27b0;
-              background-color: #9c27b0;
+              border-color: #023047;
+              background: linear-gradient(135deg, #023047 0%, #011a26 100%);
               transform: scale(1.1);
+              box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
             }
 
             .custom-option:not(.selected):hover .option-checkbox svg path {
-              fill: #9c27b0 !important;
+              fill: #023047 !important;
             }
 
             /* ---------- ERROR MESSAGES ---------- */
@@ -8879,16 +9694,17 @@ const ContactFormExtension = {
               font-size: 13px;
               margin-top: 8px;
               display: none;
-              background-color: #e52059;
-              border-radius: 6px;
+              background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+              border-radius: 8px;
               border: none;
-              padding: 10px 14px;
+              padding: 12px 16px;
               animation: shake 0.5s;
-              box-shadow: 0 2px 5px rgba(229, 32, 89, 0.2);
+              box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
             }
 
             .error-message.show {
               display: flex;
+              animation: slideIn 0.3s ease-out;
             }
 
             .error-icon {
@@ -8914,7 +9730,7 @@ const ContactFormExtension = {
             .form-buttons {
               display: flex;
               justify-content: space-between;
-              gap: 10px;
+              gap: 15px;
             }
 
             .btn {
@@ -8924,7 +9740,7 @@ const ContactFormExtension = {
               font-size: 16px;
               font-weight: 600;
               cursor: pointer;
-              transition: all 0.3s;
+              transition: all 0.3s ease;
               letter-spacing: 0.5px;
               position: relative;
               overflow: hidden;
@@ -8944,40 +9760,43 @@ const ContactFormExtension = {
               transition: all 0.6s;
             }
 
-            .btn:hover::after {
+            .btn:hover:not(:disabled)::after {
               left: 100%;
             }
 
             .btn-prev {
               background-color: #f0f0f0;
-              color: #6a0080;
+              color: #011a26;
+              border: 2px solid #e0e0e0;
             }
 
             .btn-prev:hover {
-              background-color: #e0e0e0;
+              background-color: #e6f2f7;
+              border-color: #023047;
               transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
             }
 
             .btn-next,
             .btn-submit {
-              background: linear-gradient(135deg, #9c27b0 0%, #6a0080 100%);
+              background: linear-gradient(135deg, #023047 0%, #011a26 100%);
               color: white;
-              box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+              box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
             }
 
             .btn-next:hover,
             .btn-submit:hover {
               transform: translateY(-3px);
-              box-shadow: 0 6px 18px rgba(156, 39, 176, 0.4);
+              box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
             }
 
             .btn-submit {
-              background: linear-gradient(135deg, #9c27b0 0%, #e52059 100%);
+              background: linear-gradient(135deg, #023047 0%, #e52059 100%);
               box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
             }
 
             .btn-submit:hover {
-              box-shadow: 0 6px 18px rgba(229, 32, 89, 0.4);
+              box-shadow: 0 6px 20px rgba(229, 32, 89, 0.4);
             }
 
             .btn:disabled {
@@ -8993,51 +9812,65 @@ const ContactFormExtension = {
 
             .form-buttons .btn:active {
               transform: translateY(1px);
-              box-shadow: 0 2px 8px rgba(156, 39, 176, 0.2);
+              box-shadow: 0 2px 8px rgba(2, 48, 71, 0.2);
             }
 
             /* ---------- SUMMARY STYLES ---------- */
             .summary-container {
-              background-color: #f9f9f9;
-              border-radius: 8px;
-              padding: 20px;
-              margin-top: 10px;
-              margin-bottom: 20px;
-            }
+    background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+    border: 2px solid rgba(2, 48, 71, 0.1);
+    border-radius: 12px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
+}
 
             .summary-row {
               display: flex;
-              padding: 10px 0;
-              border-bottom: 1px solid #eee;
+              padding: 6px 0;
+              border-bottom: 1px solid rgba(2, 48, 71, 0.1);
               align-items: center;
+              transition: all 0.3s ease;
             }
 
             .summary-row:last-child {
               border-bottom: none;
             }
 
+            .summary-row:hover {
+              background-color: rgba(2, 48, 71, 0.05);
+              border-radius: 8px;
+              padding-left: 10px;
+              padding-right: 10px;
+            }
+
             .summary-label {
               font-weight: 600;
               width: 30%;
-              color: #555;
+              color: #011a26;
             }
 
             .summary-value {
               flex: 1;
+              color: #023047;
             }
 
             .edit-btn {
               background: none;
-              border: none;
-              color: #9C27B0;
+              border: 1px solid #023047;
+              color: #023047;
               cursor: pointer;
-              padding: 5px 10px;
+              padding: 6px 12px;
               font-size: 14px;
-              text-decoration: underline;
+              border-radius: 6px;
+              transition: all 0.3s ease;
+              font-weight: 500;
             }
 
             .edit-btn:hover {
-              color: #7B1FA2;
+              background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+              color: white;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(2, 48, 71, 0.3);
             }
 
             /* ---------- RESPONSIVE DESIGN ---------- */
@@ -9075,7 +9908,8 @@ const ContactFormExtension = {
               }
               
               .form-header {
-                padding: 10px 20px;
+                padding: 15px 20px;
+                gap: 15px;
               }
               
               .header-icon {
@@ -9093,8 +9927,8 @@ const ContactFormExtension = {
               }
               
               .container, form.chatbot-form {
-                margin: 15px;
                 width: auto;
+                border-radius: 8px;
               }
               
               .step-item {
@@ -9104,7 +9938,8 @@ const ContactFormExtension = {
               }
               
               .progress-container {
-                padding: 0 15px;
+                
+              padding: 10px 10px 10px;
               }
               
               .step-title {
@@ -9114,16 +9949,18 @@ const ContactFormExtension = {
               
               .form-buttons {
                 flex-direction: row;
-                gap:10px
+                gap: 10px;
               }
             }
 
             @media (max-width: 480px) {
               form.chatbot-form {
-                padding: 15px 10px;
                 min-width: 200px;
               }
-              
+              .header-icon svg {
+                  width: 18px;
+                  height: 18px;
+              }
               .step-heading {
                 font-size: 18px;
               }
@@ -9139,6 +9976,14 @@ const ContactFormExtension = {
                 width: 60px;
                 top: 35px;
               }
+
+              .form-header {
+                padding: 12px 15px;
+              }
+              
+              .summary-container {
+                padding: 15px;
+              }
             }
 
             /* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
@@ -9146,13 +9991,34 @@ const ContactFormExtension = {
             #details:focus-visible, 
             select:focus-visible,
             button:focus-visible {
-              outline: 2px solid #9C27B0;
+              outline: 2px solid #023047;
               outline-offset: 2px;
             }
 
             .hidden {
               display: none !important;
             }
+
+            /* ---------- LOADING STATES ---------- */
+            .loading {
+              opacity: 0.7;
+              pointer-events: none;
+            }
+
+            .loading .btn {
+              background: #ccc;
+              cursor: wait;
+            }
+            .textarea-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.textarea-wrapper textarea {
+  margin-bottom: 0;
+  display: block;
+}
           </style>
 
           <!-- Step Progress Indicator -->
@@ -9279,7 +10145,9 @@ const ContactFormExtension = {
             <div class="flex-row">
               <div>
                 <label for="details" class="bold-label">${isEnglish ? 'Message' : 'Message'}</label>
+                <div class="textarea-wrapper">
                 <textarea id="details" name="details" placeholder="${isEnglish ? 'Write your message here...' : 'Écrivez votre message ici...'}" required></textarea>
+                </div>
                 <div class="error-container">
                   <div class="error-message" id="errorMessage">
                     <div class="error-icon">!</div>
@@ -9779,7 +10647,6 @@ const ContactFormExtension = {
       }
     };
     
-
 
 window.SubmissionFormExtension = SubmissionFormExtension;
 window.BookingDirectExtension = BookingDirectExtension;
