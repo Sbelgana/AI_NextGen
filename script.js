@@ -31,19 +31,19 @@ function isValidUrl(url) {
 // SVG constants
 const SVG_CHECK =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
-<path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-</svg>`;
+		<path fill="#ffffff" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+	</svg>`;
 const SVG_CHEVRON =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
-<g transform="translate(75, 75)">
-<path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-</g>
-</svg>`;
+		<g transform="translate(75, 75)">
+			<path fill="#9C27B0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+		</g>
+	</svg>`;
 const SVG_LANGUAGE =
     `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-<path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"/>
-<path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3spana2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1spanzm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6.066 6.066 0 0 1-.415-.492 1.988 1.988 0 0 1-.94.31z"/>
-</svg>`;
+		<path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286H4.545zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"/>
+		<path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3spana2 2 0 0 1-2-2V2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1spanzm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6.066 6.066 0 0 1-.415-.492 1.988 1.988 0 0 1-.94.31z"/>
+	</svg>`;
 const SVG_Plus =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
 <path fill="#9C27B0" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
@@ -81,9 +81,7 @@ const SVG_MESSAGE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 51
 const SVG_CALENDAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24">
 <path fill="#ffffff" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
 </svg>`;
-/*************************************************************
- * 2) Data Creation Functions
- *************************************************************/
+
 const ServiceOptions = [
     {
         value: "IA agent",
@@ -107,1190 +105,8 @@ const ServiceOptions = [
         },
 },
 ];
-/*************************************************************
- * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
- *************************************************************/
-/*************************************************************
- * 1) Helper Functions and Constants
- *************************************************************/
-/*************************************************************
- * 2) Data Creation Functions
- *************************************************************/
-// Multilingual form data
-const formDataTranslations = {
-    "fr": {
-        languages: [
-            {
-                id: "fr",
-                name: "Français"
-            },
-            {
-                id: "en",
-                name: "Anglais"
-            },
-            {
-                id: "es",
-                name: "Espagnol"
-            },
-            {
-                id: "de",
-                name: "Allemand"
-            },
-            {
-                id: "it",
-                name: "Italien"
-            },
-            {
-                id: "ar",
-                name: "Arabe"
-            },
-            {
-                id: "zh",
-                name: "Chinois"
-            },
-// Langues supplémentaires
-            {
-                id: "pt",
-                name: "Portugais"
-            },
-            {
-                id: "ru",
-                name: "Russe"
-            },
-            {
-                id: "ja",
-                name: "Japonais"
-            },
-            {
-                id: "ko",
-                name: "Coréen"
-            },
-            {
-                id: "hi",
-                name: "Hindi"
-            },
-            {
-                id: "nl",
-                name: "Néerlandais"
-            },
-            {
-                id: "sv",
-                name: "Suédois"
-            }
-],
-        websiteTraffic: [
-            {
-                id: "less_than_1000",
-                name: "Moins de 1 000 visiteurs/mois"
-            },
-            {
-                id: "1000_5000",
-                name: "1 000 - 5 000 visiteurs/mois"
-            },
-            {
-                id: "5000_10000",
-                name: "5 000 - 10 000 visiteurs/mois"
-            },
-            {
-                id: "10000_50000",
-                name: "10 000 - 50 000 visiteurs/mois"
-            },
-            {
-                id: "50000_100000",
-                name: "50 000 - 100 000 visiteurs/mois"
-            },
-            {
-                id: "100000_500000",
-                name: "100 000 - 500 000 visiteurs/mois"
-            },
-            {
-                id: "500000_1000000",
-                name: "500 000 - 1 000 000 visiteurs/mois"
-            },
-            {
-                id: "more_than_1000000",
-                name: "Plus de 1 000 000 visiteurs/mois"
-            },
-            {
-                id: "unknown",
-                name: "Je ne sais pas"
-            },
-            {
-                id: "new_site",
-                name: "Nouveau site (pas encore de trafic)"
-            }
-],
-        crms: [
-            {
-                id: "salesforce",
-                name: "Salesforce"
-            },
-            {
-                id: "hubspot",
-                name: "HubSpot"
-            },
-            {
-                id: "zoho",
-                name: "Zoho CRM"
-            },
-            {
-                id: "pipedrive",
-                name: "Pipedrive"
-            },
-            {
-                id: "monday",
-                name: "monday.com"
-            },
-            {
-                id: "freshsales",
-                name: "Freshsales"
-            },
-// CRMs supplémentaires
-            {
-                id: "dynamics",
-                name: "Microsoft Dynamics 365"
-            },
-            {
-                id: "sugarcrm",
-                name: "SugarCRM"
-            },
-            {
-                id: "insightly",
-                name: "Insightly"
-            },
-            {
-                id: "bitrix24",
-                name: "Bitrix24"
-            },
-            {
-                id: "agilecrm",
-                name: "Agile CRM"
-            },
-            {
-                id: "keap",
-                name: "Keap (Infusionsoft)"
-            },
-            {
-                id: "efficy",
-                name: "Efficy CRM"
-            },
-            {
-                id: "netsuite",
-                name: "NetSuite CRM"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        bookingSystems: [
-            {
-                id: "cal",
-                name: "Cal.com"
-            },
-            {
-                id: "calendly",
-                name: "Calendly"
-            },
-            {
-                id: "acuity",
-                name: "Acuity Scheduling"
-            },
-            {
-                id: "booksy",
-                name: "Booksy"
-            },
-            {
-                id: "simplybook",
-                name: "SimplyBook.me"
-            },
-            {
-                id: "square",
-                name: "Square Appointments"
-            },
-            {
-                id: "google_calendar",
-                name: "Google Calendar"
-            },
-            {
-                id: "setmore",
-                name: "Setmore"
-            },
-            {
-                id: "appointy",
-                name: "Appointy"
-            },
-            {
-                id: "timetap",
-                name: "TimeTap"
-            },
-            {
-                id: "bookafy",
-                name: "Bookafy"
-            },
-            {
-                id: "schedulicity",
-                name: "Schedulicity"
-            },
-            {
-                id: "youcanbook",
-                name: "YouCanBookMe"
-            },
-            {
-                id: "planyo",
-                name: "Planyo"
-            },
-            {
-                id: "reservio",
-                name: "Reservio"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        databases: [
-            {
-                id: "mysql",
-                name: "MySQL"
-            },
-            {
-                id: "postgresql",
-                name: "PostgreSQL"
-            },
-            {
-                id: "mongodb",
-                name: "MongoDB"
-            },
-            {
-                id: "firebase",
-                name: "Firebase"
-            },
-            {
-                id: "airtable",
-                name: "Airtable"
-            },
-            {
-                id: "google_sheets",
-                name: "Google Sheets"
-            },
-            {
-                id: "oracle",
-                name: "Oracle Database"
-            },
-            {
-                id: "sqlserver",
-                name: "Microsoft SQL Server"
-            },
-            {
-                id: "mariadb",
-                name: "MariaDB"
-            },
-            {
-                id: "dynamodb",
-                name: "Amazon DynamoDB"
-            },
-            {
-                id: "cassandra",
-                name: "Apache Cassandra"
-            },
-            {
-                id: "redis",
-                name: "Redis"
-            },
-            {
-                id: "supabase",
-                name: "Supabase"
-            },
-            {
-                id: "notion",
-                name: "Notion Database"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        websitePlatforms: [
-            {
-                id: "wordpress",
-                name: "WordPress"
-            },
-            {
-                id: "shopify",
-                name: "Shopify"
-            },
-            {
-                id: "wix",
-                name: "Wix"
-            },
-            {
-                id: "squarespace",
-                name: "Squarespace"
-            },
-            {
-                id: "webflow",
-                name: "Webflow"
-            },
-            {
-                id: "custom",
-                name: "Sur mesure"
-            },
-            {
-                id: "drupal",
-                name: "Drupal"
-            },
-            {
-                id: "joomla",
-                name: "Joomla"
-            },
-            {
-                id: "magento",
-                name: "Magento"
-            },
-            {
-                id: "bigcommerce",
-                name: "BigCommerce"
-            },
-            {
-                id: "godaddy",
-                name: "GoDaddy Website Builder"
-            },
-            {
-                id: "strikingly",
-                name: "Strikingly"
-            },
-            {
-                id: "ghost",
-                name: "Ghost"
-            },
-            {
-                id: "prestashop",
-                name: "PrestaShop"
-            },
-            {
-                id: "bubble",
-                name: "Bubble.io"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        socialPlatforms: [
-            {
-                id: "facebook",
-                name: "Facebook Messenger"
-            },
-            {
-                id: "instagram",
-                name: "Instagram"
-            },
-            {
-                id: "whatsapp",
-                name: "WhatsApp"
-            },
-            {
-                id: "telegram",
-                name: "Telegram"
-            },
-            {
-                id: "discord",
-                name: "Discord"
-            },
-            {
-                id: "slack",
-                name: "Slack"
-            },
-            {
-                id: "viber",
-                name: "Teams"
-            }
-],
-        niches: [
-            {
-                id: "ecommerce",
-                name: "E-commerce"
-            },
-            {
-                id: "services",
-                name: "Services professionnels"
-            },
-            {
-                id: "healthcare",
-                name: "Santé"
-            },
-            {
-                id: "education",
-                name: "Éducation"
-            },
-            {
-                id: "realestate",
-                name: "Immobilier"
-            },
-            {
-                id: "restaurant",
-                name: "Restauration"
-            },
-            {
-                id: "fitness",
-                name: "Fitness & Bien-être"
-            },
-            {
-                id: "travel",
-                name: "Voyage & Tourisme"
-            },
-            {
-                id: "finance",
-                name: "Finance & Assurance"
-            },
-            {
-                id: "manufacturing",
-                name: "Industrie manufacturière"
-            },
-            {
-                id: "automotive",
-                name: "Automobile"
-            },
-            {
-                id: "legal",
-                name: "Services juridiques"
-            },
-            {
-                id: "technology",
-                name: "IT & Technologie"
-            },
-            {
-                id: "media",
-                name: "Médias & Divertissement"
-            },
-            {
-                id: "construction",
-                name: "Construction & BTP"
-            },
-            {
-                id: "agriculture",
-                name: "Agriculture & Agroalimentaire"
-            },
-            {
-                id: "nonprofit",
-                name: "Associations & ONG"
-            },
-            {
-                id: "beauty",
-                name: "Beauté & Cosmétiques"
-            },
-            {
-                id: "consulting",
-                name: "Conseil & Consulting"
-            },
-            {
-                id: "retail",
-                name: "Commerce de détail"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        formTypes: [
-            {
-                id: "contact",
-                name: "Formulaire de contact"
-            },
-            {
-                id: "lead",
-                name: "Génération de leads"
-            },
-            {
-                id: "survey",
-                name: "Questionnaire"
-            },
-            {
-                id: "booking",
-                name: "Réservation"
-            },
-            {
-                id: "support",
-                name: "Support client"
-            },
-            {
-                id: "feedback",
-                name: "Feedback client"
-            },
-            {
-                id: "quote",
-                name: "Demande de devis"
-            },
-            {
-                id: "registration",
-                name: "Inscription/Enregistrement"
-            },
-            {
-                id: "newsletter",
-                name: "Abonnement newsletter"
-            },
-            {
-                id: "contest",
-                name: "Participation concours"
-            },
-            {
-                id: "job",
-                name: "Candidature emploi"
-            },
-            {
-                id: "event",
-                name: "Inscription événement"
-            },
-            {
-                id: "payment",
-                name: "Formulaire de paiement"
-            },
-            {
-                id: "appointment",
-                name: "Prise de rendez-vous"
-            },
-            {
-                id: "order",
-                name: "Bon de commande"
-            },
-            {
-                id: "membership",
-                name: "Adhésion"
-            },
-            {
-                id: "other",
-                name: "Autre"
-            }
-],
-        budgetRanges: [
-            {
-                id: "less_than_1000",
-                name: "Moins de 1 000 $"
-            },
-            {
-                id: "1000_2500",
-                name: "1 000 $ - 2 500 $"
-            },
-            {
-                id: "2500_5000",
-                name: "2 500 $ - 5 000 $"
-            },
-            {
-                id: "5000_7500",
-                name: "5 000 $ - 7 500 $"
-            },
-            {
-                id: "7500_10000",
-                name: "7 500 $ - 10 000 $"
-            },
-            {
-                id: "more_than_10000",
-                name: "Plus de 10 000 $"
-            },
-            {
-                id: "monthly_subscription",
-                name: "Abonnement mensuel"
-            },
-            {
-                id: "annual_subscription",
-                name: "Abonnement annuel"
-            },
-            {
-                id: "not_specified",
-                name: "Budget non défini"
-            }
-]
-    },
-    "en": {
-        languages: [
-            {
-                id: "fr",
-                name: "French"
-            },
-            {
-                id: "en",
-                name: "English"
-            },
-            {
-                id: "es",
-                name: "Spanish"
-            },
-            {
-                id: "de",
-                name: "German"
-            },
-            {
-                id: "it",
-                name: "Italian"
-            },
-            {
-                id: "ar",
-                name: "Arabic"
-            },
-            {
-                id: "zh",
-                name: "Chinese"
-            },
-            {
-                id: "pt",
-                name: "Portuguese"
-            },
-            {
-                id: "ru",
-                name: "Russian"
-            },
-            {
-                id: "ja",
-                name: "Japanese"
-            },
-            {
-                id: "ko",
-                name: "Korean"
-            },
-            {
-                id: "hi",
-                name: "Hindi"
-            },
-            {
-                id: "nl",
-                name: "Dutch"
-            },
-            {
-                id: "sv",
-                name: "Swedish"
-            }
-],
-        websiteTraffic: [
-            {
-                id: "less_than_1000",
-                name: "Less than 1,000 visitors/month"
-            },
-            {
-                id: "1000_5000",
-                name: "1,000 - 5,000 visitors/month"
-            },
-            {
-                id: "5000_10000",
-                name: "5,000 - 10,000 visitors/month"
-            },
-            {
-                id: "10000_50000",
-                name: "10,000 - 50,000 visitors/month"
-            },
-            {
-                id: "50000_100000",
-                name: "50,000 - 100,000 visitors/month"
-            },
-            {
-                id: "100000_500000",
-                name: "100,000 - 500,000 visitors/month"
-            },
-            {
-                id: "500000_1000000",
-                name: "500,000 - 1,000,000 visitors/month"
-            },
-            {
-                id: "more_than_1000000",
-                name: "More than 1,000,000 visitors/month"
-            },
-            {
-                id: "unknown",
-                name: "I don't know"
-            },
-            {
-                id: "new_site",
-                name: "New site (no traffic yet)"
-            }
-],
-        crms: [
-            {
-                id: "salesforce",
-                name: "Salesforce"
-            },
-            {
-                id: "hubspot",
-                name: "HubSpot"
-            },
-            {
-                id: "zoho",
-                name: "Zoho CRM"
-            },
-            {
-                id: "pipedrive",
-                name: "Pipedrive"
-            },
-            {
-                id: "monday",
-                name: "monday.com"
-            },
-            {
-                id: "freshsales",
-                name: "Freshsales"
-            },
-// Additional CRMs
-            {
-                id: "dynamics",
-                name: "Microsoft Dynamics 365"
-            },
-            {
-                id: "sugarcrm",
-                name: "SugarCRM"
-            },
-            {
-                id: "insightly",
-                name: "Insightly"
-            },
-            {
-                id: "bitrix24",
-                name: "Bitrix24"
-            },
-            {
-                id: "agilecrm",
-                name: "Agile CRM"
-            },
-            {
-                id: "keap",
-                name: "Keap (Infusionsoft)"
-            },
-            {
-                id: "efficy",
-                name: "Efficy CRM"
-            },
-            {
-                id: "netsuite",
-                name: "NetSuite CRM"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        bookingSystems: [
-            {
-                id: "cal",
-                name: "Cal.com"
-            },
-            {
-                id: "calendly",
-                name: "Calendly"
-            },
-            {
-                id: "acuity",
-                name: "Acuity Scheduling"
-            },
-            {
-                id: "booksy",
-                name: "Booksy"
-            },
-            {
-                id: "simplybook",
-                name: "SimplyBook.me"
-            },
-            {
-                id: "square",
-                name: "Square Appointments"
-            },
-            {
-                id: "google_calendar",
-                name: "Google Calendar"
-            },
-// Additional booking systems
-            {
-                id: "setmore",
-                name: "Setmore"
-            },
-            {
-                id: "appointy",
-                name: "Appointy"
-            },
-            {
-                id: "timetap",
-                name: "TimeTap"
-            },
-            {
-                id: "bookafy",
-                name: "Bookafy"
-            },
-            {
-                id: "schedulicity",
-                name: "Schedulicity"
-            },
-            {
-                id: "youcanbook",
-                name: "YouCanBookMe"
-            },
-            {
-                id: "planyo",
-                name: "Planyo"
-            },
-            {
-                id: "reservio",
-                name: "Reservio"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        databases: [
-            {
-                id: "mysql",
-                name: "MySQL"
-            },
-            {
-                id: "postgresql",
-                name: "PostgreSQL"
-            },
-            {
-                id: "mongodb",
-                name: "MongoDB"
-            },
-            {
-                id: "firebase",
-                name: "Firebase"
-            },
-            {
-                id: "airtable",
-                name: "Airtable"
-            },
-            {
-                id: "google_sheets",
-                name: "Google Sheets"
-            },
-// Additional databases
-            {
-                id: "oracle",
-                name: "Oracle Database"
-            },
-            {
-                id: "sqlserver",
-                name: "Microsoft SQL Server"
-            },
-            {
-                id: "mariadb",
-                name: "MariaDB"
-            },
-            {
-                id: "dynamodb",
-                name: "Amazon DynamoDB"
-            },
-            {
-                id: "cassandra",
-                name: "Apache Cassandra"
-            },
-            {
-                id: "redis",
-                name: "Redis"
-            },
-            {
-                id: "supabase",
-                name: "Supabase"
-            },
-            {
-                id: "notion",
-                name: "Notion Database"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        websitePlatforms: [
-            {
-                id: "wordpress",
-                name: "WordPress"
-            },
-            {
-                id: "shopify",
-                name: "Shopify"
-            },
-            {
-                id: "wix",
-                name: "Wix"
-            },
-            {
-                id: "squarespace",
-                name: "Squarespace"
-            },
-            {
-                id: "webflow",
-                name: "Webflow"
-            },
-            {
-                id: "custom",
-                name: "Custom"
-            },
-// Additional platforms
-            {
-                id: "drupal",
-                name: "Drupal"
-            },
-            {
-                id: "joomla",
-                name: "Joomla"
-            },
-            {
-                id: "magento",
-                name: "Magento"
-            },
-            {
-                id: "bigcommerce",
-                name: "BigCommerce"
-            },
-            {
-                id: "godaddy",
-                name: "GoDaddy Website Builder"
-            },
-            {
-                id: "strikingly",
-                name: "Strikingly"
-            },
-            {
-                id: "ghost",
-                name: "Ghost"
-            },
-            {
-                id: "prestashop",
-                name: "PrestaShop"
-            },
-            {
-                id: "bubble",
-                name: "Bubble.io"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        socialPlatforms: [
-            {
-                id: "facebook",
-                name: "Facebook Messenger"
-            },
-            {
-                id: "instagram",
-                name: "Instagram"
-            },
-            {
-                id: "whatsapp",
-                name: "WhatsApp"
-            },
-            {
-                id: "telegram",
-                name: "Telegram"
-            },
-            {
-                id: "discord",
-                name: "Discord"
-            },
-            {
-                id: "slack",
-                name: "Slack"
-            },
-            {
-                id: "viber",
-                name: "Teams"
-            }
-],
-        niches: [
-            {
-                id: "ecommerce",
-                name: "E-commerce"
-            },
-            {
-                id: "services",
-                name: "Professional Services"
-            },
-            {
-                id: "healthcare",
-                name: "Healthcare"
-            },
-            {
-                id: "education",
-                name: "Education"
-            },
-            {
-                id: "realestate",
-                name: "Real Estate"
-            },
-            {
-                id: "restaurant",
-                name: "Restaurant & Food"
-            },
-            {
-                id: "fitness",
-                name: "Fitness & Wellness"
-            },
-            {
-                id: "travel",
-                name: "Travel & Tourism"
-            },
-            {
-                id: "finance",
-                name: "Finance & Insurance"
-            },
-// Additional niches
-            {
-                id: "manufacturing",
-                name: "Manufacturing"
-            },
-            {
-                id: "automotive",
-                name: "Automotive"
-            },
-            {
-                id: "legal",
-                name: "Legal Services"
-            },
-            {
-                id: "technology",
-                name: "IT & Technology"
-            },
-            {
-                id: "media",
-                name: "Media & Entertainment"
-            },
-            {
-                id: "construction",
-                name: "Construction"
-            },
-            {
-                id: "agriculture",
-                name: "Agriculture & Farming"
-            },
-            {
-                id: "nonprofit",
-                name: "Non-profit & NGO"
-            },
-            {
-                id: "beauty",
-                name: "Beauty & Cosmetics"
-            },
-            {
-                id: "consulting",
-                name: "Consulting"
-            },
-            {
-                id: "retail",
-                name: "Retail"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        formTypes: [
-            {
-                id: "contact",
-                name: "Contact Form"
-            },
-            {
-                id: "lead",
-                name: "Lead Generation"
-            },
-            {
-                id: "survey",
-                name: "Survey"
-            },
-            {
-                id: "booking",
-                name: "Booking"
-            },
-            {
-                id: "support",
-                name: "Customer Support"
-            },
-            {
-                id: "feedback",
-                name: "Customer Feedback"
-            },
-            {
-                id: "quote",
-                name: "Quote Request"
-            },
-// Additional form types
-            {
-                id: "registration",
-                name: "Registration"
-            },
-            {
-                id: "newsletter",
-                name: "Newsletter Signup"
-            },
-            {
-                id: "contest",
-                name: "Contest/Giveaway Entry"
-            },
-            {
-                id: "job",
-                name: "Job Application"
-            },
-            {
-                id: "event",
-                name: "Event Registration"
-            },
-            {
-                id: "payment",
-                name: "Payment Form"
-            },
-            {
-                id: "appointment",
-                name: "Appointment Scheduling"
-            },
-            {
-                id: "order",
-                name: "Order Form"
-            },
-            {
-                id: "membership",
-                name: "Membership Application"
-            },
-            {
-                id: "other",
-                name: "Other"
-            }
-],
-        budgetRanges: [
-            {
-                id: "less_than_1000",
-                name: "Less than 1,000 $"
-            },
-            {
-                id: "1000_2500",
-                name: "1,000 $ - 2,500 $"
-            },
-            {
-                id: "2500_5000",
-                name: "2,500 $ - 5,000 $"
-            },
-            {
-                id: "5000_7500",
-                name: "5,000 $ - 7,500 $"
-            },
-            {
-                id: "7500_10000",
-                name: "7,500 $ - 10,000 $"
-            },
-            {
-                id: "monthly_subscription",
-                name: "Monthly Subscription"
-            },
-            {
-                id: "annual_subscription",
-                name: "Annual Subscription"
-            },
-            {
-                id: "not_specified",
-                name: "Budget not defined"
-            }
-]
-    }
-};
 
-function createFormData(language) {
-    return formDataTranslations[language];
-}
+
 /*************************************************************
  * 3) SubmissionFormExtension - MAIN EXTENSION OBJECT
  *************************************************************/
@@ -8062,6 +6878,7 @@ const SubmissionFormExtension = {
         initializeForm();
     }
 };
+
 const BookingDirectExtension = {
     name: 'BookingDirect',
     type: 'response',
@@ -12312,6 +11129,4245 @@ const ContactFormExtension = {
         updateProgressBar();
     }
 };
+
+const BookingCalendarExtension = {
+    name: 'Booking',
+    type: 'response',
+    match: ({
+            trace
+        }) =>
+        trace.type === 'ext_booking_calendar' || trace.payload?.name === 'ext_booking_calendar',
+    render: async ({
+        trace,
+        element
+    }) => {
+        // Add SVG chevron constant at the top
+        const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+<g transform="translate(75, 75)">
+<path fill="#023047" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+</g>
+</svg>`;
+        // --- Extract required payload values with fallbacks ---
+        const {
+            fullName = "John Doe",
+                email = "john@example.com",
+                apiKey = "",
+                scheduleId = "",
+                eventTypeId = "1",
+                eventTypeSlug = "default-event",
+                meetingName,
+                slots = {},
+                selectedDate = "",
+                selectedTime = "",
+                language = "en",
+                timezone = "America/Toronto"
+        } = trace.payload || {};
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
+        const locale = language === "fr" ? "fr-CA" : "en-US";
+        // Create a container and attach a shadow DOM for encapsulated styling.
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+        container.style.maxWidth = "800px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({
+            mode: "open"
+        });
+        // Build CSS with unified styling from the form
+        const style = document.createElement("style");
+        style.textContent = `
+/* ====================================
+VSM MARKETING CALENDAR - UNIFIED STYLESHEET - DARK BLUE THEME
+==================================== */
+
+/* ---------- RESET & BASE STYLES ---------- */
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+background-color: #f5f5f5;
+color: #333;
+line-height: 1.6;
+}
+
+html {
+scroll-behavior: smooth;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(15px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateX(10px); }
+to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+0% { background-position: -100% 0; }
+100% { background-position: 100% 0; }
+}
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ---------- CALENDAR CONTAINER ---------- */
+.calendar-container {
+width: 100%;
+max-width: 800px;
+margin: 0 auto;
+background: #fff;
+border-radius: 12px;
+box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+overflow: hidden;
+transition: all 0.3s ease;
+position: relative;
+animation: fadeIn 0.6s;
+}
+
+.calendar-container:hover {
+box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+}
+
+/* ---------- CALENDAR HEADER ---------- */
+.calendar-header {
+padding: 20px 30px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+display: flex;
+justify-content: space-between;
+align-items: center;
+color: white;
+position: relative;
+}
+
+.calendar-header::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 4px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+border-radius: 4px;
+}
+
+.calendar-title {
+display: flex;
+align-items: center;
+gap: 16px;
+}
+
+.calendar-title-content {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+.service-provider {
+display: flex;
+align-items: center;
+font-size: 18px;
+font-weight: 600;
+color: white;
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.provider-icon {
+width: 24px;
+height: 24px;
+margin-right: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.provider-icon svg {
+filter: brightness(0) invert(1);
+}
+
+/* ---------- CALENDAR NAVIGATION ---------- */
+.calendar-nav {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.nav-btn {
+width: 40px;
+height: 40px;
+background: rgba(255, 255, 255, 0.2);
+border: none;
+border-radius: 50%;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s ease;
+color: white;
+}
+
+.nav-btn:hover:not(:disabled) {
+background: rgba(255, 255, 255, 0.3);
+transform: scale(1.1);
+}
+
+.nav-btn:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+transform: none;
+}
+
+.current-date {
+font-size: 16px;
+font-weight: 600;
+color: #023047;
+padding: 8px 16px;
+background: rgba(255, 255, 255, 0.2);
+border-radius: 20px;
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- CALENDAR BODY ---------- */
+.calendar-body {
+display: flex;
+background: linear-gradient(to bottom, #ffffff, #fefeff);
+min-height: 400px;
+}
+
+/* ---------- DAYS CONTAINER ---------- */
+.days-container {
+width: 47%;
+padding: 20px;
+background-color: #fff;
+border-right: 1px solid #e0e0e0;
+}
+
+.weekdays {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 8px;
+margin-bottom: 15px;
+text-align: center;
+font-weight: 600;
+font-size: 12px;
+color: #023047;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.days {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 8px;
+}
+
+.day {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 45px;
+width: 45px;
+cursor: pointer;
+position: relative;
+font-size: 14px;
+font-weight: 500;
+transition: all 0.3s ease;
+margin: 0 auto;
+border: 2px solid transparent;
+border-radius: 50%;
+color: #333;
+}
+
+.day:hover:not(.inactive) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+transform: scale(1.1);
+}
+
+.day.available::after {
+content: "";
+position: absolute;
+bottom: 4px;
+width: 4px;
+height: 4px;
+border-radius: 50%;
+background-color: #023047;
+opacity: 0.7;
+}
+
+.day.today {
+border-color: #023047;
+background-color: rgba(2, 48, 71, 0.1);
+font-weight: 600;
+}
+
+.day.active {
+background-color: #023047;
+color: white;
+border-color: #023047;
+font-weight: 600;
+box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+animation: pulse 2s infinite;
+}
+
+.day.active::after {
+display: none;
+}
+
+.day.inactive {
+color: #ccc;
+cursor: default;
+opacity: 0.5;
+}
+
+.day.inactive:hover {
+transform: none;
+background-color: transparent;
+border-color: transparent;
+}
+
+/* ---------- TIMES CONTAINER ---------- */
+.times-container {
+width: 53%;
+padding: 20px;
+background-color: #fafafa;
+overflow-y: auto;
+max-height: 400px;
+}
+
+.times-container::-webkit-scrollbar {
+width: 6px;
+}
+
+.times-container::-webkit-scrollbar-track {
+background: #f1f1f1;
+border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb {
+background: rgba(2, 48, 71, 0.3);
+border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb:hover {
+background: rgba(2, 48, 71, 0.5);
+}
+
+.time-header {
+font-size: 16px;
+font-weight: 600;
+color: #011a26;
+text-align: center;
+margin-bottom: 20px;
+padding-bottom: 10px;
+position: relative;
+}
+
+.time-header::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 50%;
+transform: translateX(-50%);
+width: 50px;
+height: 3px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+border-radius: 3px;
+}
+
+.time-slots {
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+
+.time-slots-columns {
+display: flex;
+gap: 15px;
+}
+
+.time-slots-column {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 10px;
+align-items: center;
+}
+
+.time-slots-column > div:first-child {
+font-weight: 600;
+color: #023047;
+margin-bottom: 8px;
+font-size: 14px;
+}
+
+.time-slot {
+padding: 12px 16px;
+border-radius: 8px;
+text-align: center;
+cursor: pointer;
+transition: all 0.3s ease;
+border: 2px solid #e0e0e0;
+background-color: white;
+color: #444;
+font-size: 14px;
+font-weight: 500;
+position: relative;
+overflow: hidden;
+width: 85%;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.time-slot::before {
+content: '';
+position: absolute;
+width: 100%;
+height: 100%;
+top: 0;
+left: -100%;
+background: linear-gradient(90deg, 
+rgba(255,255,255,0) 0%, 
+rgba(2, 48, 71, 0.1) 50%, 
+rgba(255,255,255,0) 100%);
+transition: all 0.6s;
+}
+
+.time-slot.available:hover:not(.selected) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+}
+
+.time-slot.available:hover:not(.selected)::before {
+left: 100%;
+}
+
+.time-slot.selected {
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+border-color: #023047;
+font-weight: 600;
+box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
+transform: translateY(-2px);
+}
+
+.time-slot.unavailable {
+background-color: #f5f5f5;
+color: #999;
+cursor: not-allowed;
+opacity: 0.6;
+}
+
+/* ---------- CALENDAR FOOTER ---------- */
+.calendar-footer {
+padding: 20px 30px;
+display: flex;
+justify-content: center;
+border-top: 1px solid #e0e0e0;
+background-color: #fafafa;
+}
+
+.action-btn {
+padding: 14px 28px;
+border: none;
+border-radius: 8px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+letter-spacing: 0.5px;
+position: relative;
+overflow: hidden;
+}
+
+.confirm-btn {
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+}
+
+.confirm-btn::after {
+content: '';
+position: absolute;
+width: 100%;
+height: 100%;
+top: 0;
+left: -100%;
+background: linear-gradient(90deg, 
+rgba(255,255,255,0) 0%, 
+rgba(255,255,255,0.2) 50%, 
+rgba(255,255,255,0) 100%);
+transition: all 0.6s;
+}
+
+.confirm-btn:hover:not(:disabled) {
+transform: translateY(-3px);
+box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+}
+
+.confirm-btn:hover:not(:disabled)::after {
+left: 100%;
+}
+
+.confirm-btn:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+box-shadow: none;
+}
+
+.confirm-btn:disabled::after {
+display: none;
+}
+
+/* ---------- SUCCESS/ERROR MESSAGES ---------- */
+.success-section {
+display: none;
+padding: 40px 20px;
+text-align: center;
+animation: fadeIn 0.5s ease-out forwards;
+background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+}
+
+.success-icon {
+width: 80px;
+height: 80px;
+margin: 0 auto 20px;
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-size: 36px;
+animation: pulse 2s infinite;
+}
+
+.success-title {
+color: #011a26;
+margin-bottom: 15px;
+font-size: 24px;
+font-weight: 600;
+}
+
+.success-message {
+color: #023047;
+font-size: 16px;
+line-height: 1.5;
+}
+
+/* ---------- ERROR STYLES ---------- */
+.error-message {
+background-color: #fff0f0;
+border: 2px solid #ffdddd;
+border-radius: 8px;
+padding: 20px;
+margin: 20px;
+color: #d32f2f;
+text-align: center;
+box-shadow: 0 4px 15px rgba(211, 47, 47, 0.1);
+animation: shake 0.5s;
+}
+
+/* ---------- CONFIRMED STATE ---------- */
+.calendar-container.confirmed .day,
+.calendar-container.confirmed .time-slot,
+.calendar-container.confirmed .nav-btn {
+pointer-events: none;
+cursor: default;
+opacity: 0.7;
+}
+
+.calendar-container.confirmed .day.active,
+.calendar-container.confirmed .time-slot.selected {
+opacity: 1;
+}
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+@media (max-width: 768px) {
+.calendar-container {
+border-radius: 8px;
+}
+
+.calendar-header {
+padding: 15px 20px;
+flex-direction: column;
+gap: 15px;
+align-items: center;
+}
+
+.calendar-nav {
+gap: 15px;
+}
+
+.nav-btn {
+width: 36px;
+height: 36px;
+}
+
+.current-date {
+font-size: 14px;
+padding: 6px 12px;
+}
+
+.service-provider {
+font-size: 16px;
+}
+
+.calendar-body {
+flex-direction: column;
+}
+
+.days-container,
+.times-container {
+width: 100%;
+padding: 15px;
+}
+
+.times-container {
+border-right: none;
+border-top: 1px solid #e0e0e0;
+max-height: 300px;
+}
+
+.day {
+height: 40px;
+width: 40px;
+font-size: 13px;
+}
+
+.time-slot {
+padding: 10px 12px;
+font-size: 13px;
+width: 90%;
+}
+
+.time-slots-columns {
+gap: 10px;
+}
+
+.confirm-btn {
+width: 100%;
+padding: 12px 20px;
+font-size: 14px;
+}
+
+.calendar-footer {
+padding: 15px 20px;
+}
+}
+
+@media (max-width: 480px) {
+.calendar-header {
+padding: 12px 15px;
+}
+
+.days-container,
+.times-container {
+padding: 10px;
+}
+
+.day {
+height: 35px;
+width: 35px;
+font-size: 12px;
+}
+
+.weekdays {
+font-size: 11px;
+}
+
+.time-header {
+font-size: 14px;
+}
+
+.time-slot {
+padding: 8px 10px;
+font-size: 12px;
+}
+
+.provider-icon {
+width: 20px;
+height: 20px;
+margin-right: 8px;
+}
+
+.service-provider {
+font-size: 14px;
+}
+}
+
+/* ---------- LOADING STATES ---------- */
+.loading {
+opacity: 0.7;
+pointer-events: none;
+}
+
+.loading .confirm-btn {
+background: #ccc;
+cursor: wait;
+}
+
+/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+.day:focus-visible,
+.time-slot:focus-visible,
+.nav-btn:focus-visible,
+.confirm-btn:focus-visible {
+outline: 2px solid #023047;
+outline-offset: 2px;
+}
+
+/* ---------- FORM ELEMENTS ---------- */
+.form-row {
+display: flex;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.form-group {
+flex: 1;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 8px;
+font-weight: 500;
+font-size: 14px;
+color: #333;
+}
+
+.form-group input {
+width: 100%;
+padding: 12px;
+font-size: 14px;
+border: 2px solid #ddd;
+border-radius: 8px;
+transition: all 0.3s ease;
+background-color: #fafafa;
+}
+
+.form-group input:focus {
+outline: none;
+border-color: #023047;
+box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+background-color: #fff;
+}
+
+.error-text {
+color: #d32f2f;
+font-size: 12px;
+margin-top: 5px;
+display: none;
+animation: shake 0.5s;
+}
+
+.error-text.show {
+display: block;
+}
+`;
+        shadow.appendChild(style);
+        // ---------------------
+        // API CALL FUNCTIONS
+        // ---------------------
+        async function fetchWorkingDays() {
+            if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+            try {
+                const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-06-11",
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const data = await res.json();
+                console.log("Schedule data:", data);
+                const availability = data.data?.availability || [];
+                const dayNameToNumber = {
+                    "Sunday": 0,
+                    "Monday": 1,
+                    "Tuesday": 2,
+                    "Wednesday": 3,
+                    "Thursday": 4,
+                    "Friday": 5,
+                    "Saturday": 6
+                };
+                const workingDaysSet = new Set();
+                availability.forEach(item => {
+                    if (Array.isArray(item.days)) {
+                        item.days.forEach(dayName => {
+                            const dayNum = dayNameToNumber[dayName];
+                            if (dayNum !== undefined) {
+                                workingDaysSet.add(dayNum);
+                            }
+                        });
+                    }
+                });
+                return Array.from(workingDaysSet);
+            } catch (err) {
+                console.error("Error fetching schedule:", err);
+                return [1, 2, 3, 4, 5];
+            }
+        }
+        async function fetchAvailableSlots(selectedDateISO) {
+            const start = new Date(selectedDateISO);
+            start.setUTCHours(0, 0, 0, 0);
+            const end = new Date(selectedDateISO);
+            end.setUTCHours(23, 59, 59, 999);
+            const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+            try {
+                const res = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-08-13",
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const responseBody = await res.json();
+                if (!responseBody || typeof responseBody !== "object") {
+                    throw new Error("Invalid or missing response body from the API");
+                }
+                if (responseBody.status !== "success") {
+                    throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                }
+                const slotsObj = responseBody.data?.slots || {};
+                const slotsForDate = slotsObj[selectedDateISO] || [];
+                return slotsForDate.map(slot => slot.time);
+            } catch (err) {
+                console.error("Error fetching available slots:", err);
+                return [];
+            }
+        }
+        // ---------------------
+        // IMPROVED BOOKING FUNCTION
+        // ---------------------
+        async function createBooking(startTimeISO) {
+            try {
+                const bookingDate = new Date(startTimeISO);
+                const dateStr = formatDate(bookingDate);
+                const currentAvailableSlots = await fetchAvailableSlots(dateStr);
+                if (!currentAvailableSlots.includes(startTimeISO)) {
+                    throw new Error("This slot is no longer available. Please select another time.");
+                }
+                const url = `https://api.cal.com/v2/bookings`;
+                const body = {
+                    start: startTimeISO,
+                    attendee: {
+                        name: fullName,
+                        email: email,
+                        timeZone: timezone
+                    },
+                    eventTypeId: Number(eventTypeId)
+                };
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-08-13",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+                }
+                const responseBody = await res.json();
+                if (responseBody.status && responseBody.status !== "success") {
+                    throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                }
+                return responseBody;
+            } catch (err) {
+                console.error("Booking error:", err);
+                showErrorMessage(err.message || "Unable to complete booking. Please try again.");
+                return null;
+            }
+        }
+        // ---------------------
+        // ERROR DISPLAY FUNCTION
+        // ---------------------
+        function showErrorMessage(message) {
+            const errorOverlay = document.createElement("div");
+            errorOverlay.style.cssText = `
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(255, 255, 255, 0.95);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+backdrop-filter: blur(4px);
+`;
+            const errorMessage = document.createElement("div");
+            errorMessage.style.cssText = `
+background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+border: 2px solid #ffdddd;
+border-radius: 12px;
+padding: 30px;
+box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
+text-align: center;
+max-width: 80%;
+animation: fadeIn 0.3s ease-out;
+`;
+            errorMessage.innerHTML = `
+<div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+</svg>
+</div>
+<p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
+<button style="
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+border: none;
+padding: 12px 24px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+transition: all 0.3s ease;
+">OK</button>
+`;
+            errorOverlay.appendChild(errorMessage);
+            calendarContainer.appendChild(errorOverlay);
+            const closeButton = errorMessage.querySelector("button");
+            closeButton.addEventListener("click", () => {
+                calendarContainer.removeChild(errorOverlay);
+                if (state.selectedDate) {
+                    const dateKey = formatDate(state.selectedDate);
+                    fetchAvailableSlots(dateKey)
+                        .then(slots => {
+                            state.availableSlots[dateKey] = slots;
+                            renderCalendar();
+                        });
+                }
+            });
+            closeButton.addEventListener("mouseover", () => {
+                closeButton.style.transform = "translateY(-2px)";
+                closeButton.style.boxShadow = "0 6px 18px rgba(2, 48, 71, 0.4)";
+            });
+            closeButton.addEventListener("mouseout", () => {
+                closeButton.style.transform = "translateY(0)";
+                closeButton.style.boxShadow = "none";
+            });
+        }
+        // ---------------------
+        // EXTENSION INTERNAL STATE
+        // ---------------------
+        const state = {
+            currentDate: new Date(),
+            selectedDate: selectedDate ? new Date(selectedDate) : null,
+            selectedTime: selectedTime || null,
+            availableSlots: {},
+            workingDays: await fetchWorkingDays(),
+            isConfirmed: false,
+            language: language || "en"
+        };
+        const translations = {
+            en: {
+                selectDateAndTime: "Select Date & Time",
+                selectDate: "Select a date to view available times",
+                pleaseSelectDate: "Please select a date first",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                confirmBooking: "Confirm Booking",
+                bookingConfirmed: "Booking Confirmed",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            },
+            fr: {
+                selectDateAndTime: "Sélectionner Date & Heure",
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                availableTimesFor: "Horaires disponibles pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                confirmBooking: "Confirmer la Réservation",
+                bookingConfirmed: "Réservation Confirmée",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+            }
+        };
+
+        function getText(key) {
+            const lang = translations[state.language] ? state.language : "en";
+            return translations[lang][key];
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1)
+                .padStart(2, "0");
+            const day = String(d.getDate())
+                .padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function isSameDay(date1, date2) {
+            if (!date1 || !date2) return false;
+            return formatDate(date1) === formatDate(date2);
+        }
+
+        function isToday(date) {
+            const now = new Date();
+            return isSameDay(date, now);
+        }
+
+        function getDefaultActiveDay() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (state.workingDays.includes(today.getDay())) return today;
+            const next = new Date(today);
+            while (!state.workingDays.includes(next.getDay())) {
+                next.setDate(next.getDate() + 1);
+            }
+            return next;
+        }
+        // Initialize default selected date and fetch its slots if not already set.
+        if (!state.selectedDate) {
+            const defaultDay = getDefaultActiveDay();
+            state.selectedDate = defaultDay;
+            const dayKey = formatDate(defaultDay);
+            const defaultSlots = await fetchAvailableSlots(dayKey);
+            state.availableSlots[dayKey] = defaultSlots;
+        }
+        // ---------------------
+        // RENDER CALENDAR COMPONENTS
+        // ---------------------
+        function renderHeader() {
+            const header = document.createElement("div");
+            header.className = "calendar-header";
+            const dateFormatter = new Intl.DateTimeFormat(locale, {
+                month: "long",
+                year: "numeric"
+            });
+            // Create calendar title with provider and service info
+            const calendarTitle = document.createElement("div");
+            calendarTitle.className = "calendar-title";
+            // Provider and service information section
+            const titleContent = document.createElement("div");
+            titleContent.className = "calendar-title-content";
+            const providerDiv = document.createElement("div");
+            providerDiv.className = "service-provider";
+            providerDiv.innerHTML = `
+<span class="provider-icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+<path fill="currentColor" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+</svg>
+</span>
+<span>${meetingName || 'Available Appointments'}</span>
+`;
+            titleContent.appendChild(providerDiv);
+            calendarTitle.appendChild(titleContent);
+            // Calendar navigation section with chevron SVGs
+            const calendarNav = document.createElement("div");
+            calendarNav.className = "calendar-nav";
+            const currentDateEl = document.createElement("div");
+            currentDateEl.className = "current-date";
+            currentDateEl.textContent = dateFormatter.format(state.currentDate);
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "nav-btn prev-btn";
+            prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
+            prevBtn.addEventListener("click", () => {
+                if (!state.isConfirmed) {
+                    state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+                    renderCalendar();
+                }
+            });
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "nav-btn next-btn";
+            nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
+            nextBtn.addEventListener("click", () => {
+                if (!state.isConfirmed) {
+                    state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+                    renderCalendar();
+                }
+            });
+            calendarNav.appendChild(prevBtn);
+            calendarNav.appendChild(currentDateEl);
+            calendarNav.appendChild(nextBtn);
+            header.appendChild(calendarTitle);
+            header.appendChild(calendarNav);
+            return header;
+        }
+        async function renderCalendarDays() {
+            const daysContainer = document.createElement("div");
+            daysContainer.className = "days-container";
+            const weekdaysDiv = document.createElement("div");
+            weekdaysDiv.className = "weekdays";
+            const weekdays = getText("weekdays");
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysDiv.appendChild(dayEl);
+            });
+            daysContainer.appendChild(weekdaysDiv);
+            const daysDiv = document.createElement("div");
+            daysDiv.className = "days";
+            let daysToShow = [];
+            const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
+            const daysFromPrevMonth = firstDay.getDay();
+            const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
+            const totalDays = lastDay.getDate();
+            for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+                const day = new Date(firstDay);
+                day.setDate(day.getDate() - i - 1);
+                daysToShow.push({
+                    date: day,
+                    inactive: true
+                });
+            }
+            for (let i = 1; i <= totalDays; i++) {
+                const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
+                daysToShow.push({
+                    date: day,
+                    inactive: false
+                });
+            }
+            const remainingDays = 42 - daysToShow.length;
+            for (let i = 1; i <= remainingDays; i++) {
+                const day = new Date(lastDay);
+                day.setDate(day.getDate() + i);
+                daysToShow.push({
+                    date: day,
+                    inactive: true
+                });
+            }
+            const highlightDay = state.selectedDate || getDefaultActiveDay();
+            daysToShow.forEach(({
+                date,
+                inactive
+            }) => {
+                const dayEl = document.createElement("div");
+                dayEl.className = "day";
+                dayEl.textContent = date.getDate();
+                if (inactive) {
+                    dayEl.classList.add("inactive");
+                } else {
+                    const dayOfWeek = date.getDay();
+                    if (!state.workingDays.includes(dayOfWeek)) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        const todayMidnight = new Date();
+                        todayMidnight.setHours(0, 0, 0, 0);
+                        if (date < todayMidnight) {
+                            dayEl.classList.add("inactive");
+                        } else {
+                            if (formatDate(date) === formatDate(highlightDay)) {
+                                dayEl.classList.add("today");
+                            }
+                            if (state.selectedDate && isSameDay(date, state.selectedDate)) {
+                                dayEl.classList.add("active");
+                            }
+                            dayEl.classList.add("available");
+                            dayEl.addEventListener("click", async () => {
+                                state.selectedDate = new Date(date);
+                                state.selectedTime = null;
+                                const slots = await fetchAvailableSlots(formatDate(date));
+                                state.availableSlots[formatDate(date)] = slots;
+                                renderCalendar();
+                            });
+                        }
+                    }
+                }
+                daysDiv.appendChild(dayEl);
+            });
+            daysContainer.appendChild(daysDiv);
+            return daysContainer;
+        }
+        async function renderTimeSlots() {
+            const timesContainer = document.createElement("div");
+            timesContainer.className = "times-container";
+            const timeHeader = document.createElement("div");
+            timeHeader.className = "time-header";
+            if (state.selectedDate) {
+                const dateFormatter = new Intl.DateTimeFormat(locale, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric"
+                });
+                timeHeader.textContent = `${getText("availableTimesFor")} ${dateFormatter.format(state.selectedDate)}`;
+            } else {
+                timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText("selectDate")}</span>`;
+            }
+            timesContainer.appendChild(timeHeader);
+            const timeSlotsDiv = document.createElement("div");
+            timeSlotsDiv.className = "time-slots";
+            if (state.selectedDate) {
+                const dateKey = formatDate(state.selectedDate);
+                const timeSlots = state.availableSlots[dateKey] || [];
+                if (timeSlots.length === 0) {
+                    const noSlots = document.createElement("div");
+                    noSlots.textContent = getText("noAvailableSlots");
+                    noSlots.style.textAlign = "center";
+                    noSlots.style.padding = "20px 0";
+                    noSlots.style.color = "#666";
+                    timeSlotsDiv.appendChild(noSlots);
+                } else {
+                    const columnsContainer = document.createElement("div");
+                    columnsContainer.className = "time-slots-columns";
+                    const amColumn = document.createElement("div");
+                    amColumn.className = "time-slots-column";
+                    const pmColumn = document.createElement("div");
+                    pmColumn.className = "time-slots-column";
+                    const amHeader = document.createElement("div");
+                    amHeader.textContent = "AM";
+                    amColumn.appendChild(amHeader);
+                    const pmHeader = document.createElement("div");
+                    pmHeader.textContent = "PM";
+                    pmColumn.appendChild(pmHeader);
+                    timeSlots.forEach((timeISO, index) => {
+                        const dateTime = new Date(timeISO);
+                        const hours = dateTime.getHours();
+                        const timeSlot = document.createElement("div");
+                        timeSlot.className = "time-slot available";
+                        timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
+                        if (state.selectedTime === timeISO) {
+                            timeSlot.classList.add("selected");
+                        }
+                        const timeFormatter = new Intl.DateTimeFormat(locale, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true
+                        });
+                        timeSlot.textContent = timeFormatter.format(dateTime);
+                        timeSlot.addEventListener("click", () => {
+                            if (!state.isConfirmed) {
+                                state.selectedTime = timeISO;
+                                renderCalendar();
+                            }
+                        });
+                        if (hours < 12) {
+                            amColumn.appendChild(timeSlot);
+                        } else {
+                            pmColumn.appendChild(timeSlot);
+                        }
+                    });
+                    columnsContainer.appendChild(amColumn);
+                    columnsContainer.appendChild(pmColumn);
+                    timeSlotsDiv.appendChild(columnsContainer);
+                }
+            } else {
+                const noDate = document.createElement("div");
+                noDate.textContent = getText("pleaseSelectDate");
+                noDate.style.textAlign = "center";
+                noDate.style.padding = "20px 0";
+                noDate.style.color = "#666";
+                timeSlotsDiv.appendChild(noDate);
+            }
+            timesContainer.appendChild(timeSlotsDiv);
+            return timesContainer;
+        }
+
+        function renderFooter() {
+            const footer = document.createElement("div");
+            footer.className = "calendar-footer";
+            const confirmBtn = document.createElement("button");
+            confirmBtn.className = "action-btn confirm-btn";
+            if (state.isConfirmed) {
+                const isEnglish = locale === "en-US";
+                confirmBtn.textContent = isEnglish ? "Booked ✓" : "Réservée ✓";
+                confirmBtn.style.background = "#4CAF50";
+                confirmBtn.disabled = true;
+            } else {
+                confirmBtn.textContent = getText("confirmBooking");
+                if (!state.selectedDate || !state.selectedTime) {
+                    confirmBtn.disabled = true;
+                }
+                confirmBtn.addEventListener("click", async () => {
+                    if (state.selectedDate && state.selectedTime) {
+                        // Show loading state
+                        confirmBtn.disabled = true;
+                        confirmBtn.textContent = getText('confirmBooking') + '...';
+                        confirmBtn.classList.add('loading');
+                        try {
+                            // 1. First completes the booking with Cal.com
+                            const bookingResponse = await createBooking(state.selectedTime);
+                            if (bookingResponse) {
+                                // 2. Then updates the UI to show confirmation
+                                state.isConfirmed = true;
+                                isFormSubmitted = true;
+                                if (formTimeoutId) {
+                                    clearInterval(formTimeoutId);
+                                }
+                                renderCalendar();
+                                // 3. Finally shows the success animation
+                                const successOverlay = document.createElement('div');
+                                successOverlay.style.cssText = `
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+opacity: 0;
+transition: opacity 0.5s;
+pointer-events: none;
+backdrop-filter: blur(4px);
+`;
+                                const successMessage = document.createElement('div');
+                                successMessage.style.cssText = `
+background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
+border-radius: 15px;
+padding: 30px 40px;
+box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
+text-align: center;
+transform: translateY(20px);
+transition: transform 0.5s, opacity 0.5s;
+opacity: 0;
+border: 2px solid rgba(2, 48, 71, 0.1);
+`;
+                                const checkmark = document.createElement('div');
+                                checkmark.innerHTML = `
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
+<path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<defs>
+<linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
+</linearGradient>
+</defs>
+</svg>
+`;
+                                checkmark.style.marginBottom = "20px";
+                                successMessage.appendChild(checkmark);
+                                const successText = document.createElement('p');
+                                successText.textContent = getText('bookingConfirmed') + '!';
+                                successText.style.cssText = `
+font-size: 20px;
+font-weight: 600;
+margin: 0;
+color: #011a26;
+`;
+                                successMessage.appendChild(successText);
+                                successOverlay.appendChild(successMessage);
+                                calendarContainer.appendChild(successOverlay);
+                                // Animation sequence
+                                setTimeout(() => {
+                                    successOverlay.style.opacity = '1';
+                                    successMessage.style.opacity = '1';
+                                    successMessage.style.transform = 'translateY(0)';
+                                    setTimeout(() => {
+                                        // Start hiding animation
+                                        successOverlay.style.opacity = '0';
+                                        successMessage.style.opacity = '0';
+                                        successMessage.style.transform = 'translateY(-20px)';
+                                        setTimeout(() => {
+                                            // Remove overlay after animation completes
+                                            calendarContainer.removeChild(successOverlay);
+                                            // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                                            const dateStr = formatDate(state.selectedDate);
+                                            const formattedDate = new Intl.DateTimeFormat(locale, {
+                                                    weekday: 'long',
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })
+                                                .format(state.selectedDate);
+                                            const formattedTime = new Intl.DateTimeFormat(locale, {
+                                                    hour: 'numeric',
+                                                    minute: '2-digit',
+                                                    hour12: true
+                                                })
+                                                .format(new Date(state.selectedTime));
+                                            const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+                                            const formData = {
+                                                fullName,
+                                                email,
+                                                date: dateStr,
+                                                time: state.selectedTime,
+                                                formattedDate,
+                                                formattedTime,
+                                                formattedDateTime
+                                            };
+                                            window.voiceflow.chat.interact({
+                                                type: "success",
+                                                payload: formData
+                                            });
+                                        }, 500); // End of hide animation
+                                    }, 2500); // Show duration before hiding
+                                }, 100); // Start of show animation
+                            }
+                        } catch (err) {
+                            console.error("Booking error:", err);
+                            confirmBtn.disabled = false;
+                            confirmBtn.textContent = getText("confirmBooking");
+                            confirmBtn.classList.remove('loading');
+                            showErrorMessage(err.message || "Unable to complete booking. Please try again.");
+                        }
+                    }
+                });
+            }
+            footer.appendChild(confirmBtn);
+            return footer;
+        }
+        // Timer functions for timeout handling
+        function startFormTimer() {
+            let timeLeft = TIMEOUT_DURATION;
+            formTimeoutId = setInterval(() => {
+                timeLeft -= 1000;
+                if (timeLeft <= 0) {
+                    clearInterval(formTimeoutId);
+                    if (!isFormSubmitted) {
+                        handleFormTimeout();
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleFormTimeout() {
+            state.isLoading = false;
+            state.isConfirmed = true; // To prevent further interaction
+            // Update UI to show timeout
+            const confirmBtn = shadow.querySelector(".confirm-btn");
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+                confirmBtn.style.background = "#f44336";
+                confirmBtn.style.color = "white";
+            }
+            // Notify Voiceflow
+            window.voiceflow.chat.interact({
+                type: "timeEnd",
+                payload: {
+                    message: "Time expired"
+                }
+            });
+            // Re-render the calendar to disable all elements
+            renderCalendar();
+        }
+        async function renderCalendar() {
+            calendarContainer.innerHTML = "";
+            if (state.isConfirmed) {
+                calendarContainer.classList.add("confirmed");
+            } else {
+                calendarContainer.classList.remove("confirmed");
+            }
+            calendarContainer.appendChild(renderHeader());
+            const calendarBody = document.createElement("div");
+            calendarBody.className = "calendar-body";
+            calendarBody.appendChild(await renderCalendarDays());
+            calendarBody.appendChild(await renderTimeSlots());
+            calendarContainer.appendChild(calendarBody);
+            calendarContainer.appendChild(renderFooter());
+            shadow.innerHTML = "";
+            shadow.appendChild(style);
+            shadow.appendChild(calendarContainer);
+        }
+        const calendarContainer = document.createElement("div");
+        calendarContainer.className = "calendar-container";
+        renderCalendar();
+        element.appendChild(container);
+        // Improved resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+                renderCalendar();
+            }, 250);
+        });
+        // Check if touch events are supported
+        const isTouchDevice = ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0) ||
+            (navigator.msMaxTouchPoints > 0);
+        if (isTouchDevice) {
+            // Add touch-specific class to improve mobile experience
+            calendarContainer.classList.add('touch-device');
+        }
+        startFormTimer();
+    }
+};
+
+const RescheduleCalendarExtension = {
+    name: 'RescheduleCalendar',
+    type: 'response',
+    match: ({
+            trace
+        }) =>
+        trace.type === 'ext_reschedule_calendar' || trace.payload?.name === 'ext_reschedule_calendar',
+    render: async ({
+        trace,
+        element
+    }) => {
+        // Add SVG chevron constant at the top like in booking extension
+        const SVG_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+<g transform="translate(75, 75)">
+<path fill="#023047" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+</g>
+</svg>`;
+        // --- Extract required payload values with fallbacks ---
+        const {
+            email = "john@example.com",
+                meetingName = "Dr. Sophie Martin",
+                apiKey = "",
+                startTime = "4/11/2025, 3:00:00 PM",
+                scheduleId = "",
+                eventTypeId = "1",
+                eventTypeSlug = "default-event",
+                slots = {},
+                selectedDate = '',
+                selectedTime = '',
+                language = 'en',
+                timezone = 'America/Toronto',
+                uid = ""
+        } = trace.payload || {};
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 6000; // 15 minutes in milliseconds
+        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
+        // Create a container and attach a shadow DOM for encapsulated styling.
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+        container.style.maxWidth = "800px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({
+            mode: 'open'
+        });
+        // Build CSS with unified styling from the form - BLUE THEME APPLIED
+        const style = document.createElement("style");
+        style.textContent = `
+/* ====================================
+VSM MARKETING RESCHEDULE CALENDAR - UNIFIED STYLESHEET - DARK BLUE THEME
+==================================== */
+
+/* ---------- RESET & BASE STYLES ---------- */
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+background-color: #f5f5f5;
+color: #333;
+line-height: 1.6;
+}
+
+html {
+scroll-behavior: smooth;
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(15px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateX(10px); }
+to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+0% { background-position: -100% 0; }
+100% { background-position: 100% 0; }
+}
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ---------- CALENDAR CONTAINER ---------- */
+.calendar-container {
+width: 100%;
+max-width: 800px;
+margin: 0 auto;
+background: #fff;
+border-radius: 12px;
+box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+overflow: hidden;
+transition: all 0.3s ease;
+position: relative;
+animation: fadeIn 0.6s;
+}
+
+.calendar-container:hover {
+box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+}
+
+/* ---------- CALENDAR HEADER ---------- */
+.calendar-header {
+padding: 20px 30px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+display: flex;
+justify-content: space-between;
+align-items: center;
+color: white;
+position: relative;
+}
+
+.calendar-header::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 4px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+border-radius: 4px;
+}
+
+.calendar-title {
+display: flex;
+align-items: center;
+gap: 16px;
+}
+
+.calendar-title-content {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+.service-provider {
+display: flex;
+align-items: center;
+font-size: 18px;
+font-weight: 600;
+color: white;
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.appointment-date {
+display: flex;
+align-items: center;
+font-size: 14px;
+color: rgba(255, 255, 255, 0.9);
+font-weight: 400;
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.provider-icon,
+.appointment-icon {
+width: 20px;
+height: 20px;
+margin-right: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.provider-icon svg,
+.appointment-icon svg {
+filter: brightness(0) invert(1);
+}
+
+/* ---------- CALENDAR NAVIGATION ---------- */
+.calendar-nav {
+display: flex;
+align-items: center;
+gap: 20px;
+}
+
+.nav-btn {
+width: 40px;
+height: 40px;
+background: rgba(255, 255, 255, 0.2);
+border: none;
+border-radius: 50%;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s ease;
+color: white;
+}
+
+.nav-btn:hover:not(:disabled) {
+background: rgba(255, 255, 255, 0.3);
+transform: scale(1.1);
+}
+
+.nav-btn:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+transform: none;
+}
+
+.current-date {
+font-size: 16px;
+font-weight: 600;
+color: #023047;
+padding: 8px 16px;
+background: rgba(255, 255, 255, 0.2);
+border-radius: 20px;
+text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- CALENDAR BODY ---------- */
+.calendar-body {
+display: flex;
+background: linear-gradient(to bottom, #ffffff, #fefeff);
+min-height: 400px;
+}
+
+/* ---------- DAYS CONTAINER ---------- */
+.days-container {
+width: 47%;
+padding: 20px;
+background-color: #fff;
+border-right: 1px solid #e0e0e0;
+}
+
+.weekdays {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 8px;
+margin-bottom: 15px;
+text-align: center;
+font-weight: 600;
+font-size: 12px;
+color: #023047;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.days {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 8px;
+}
+
+.day {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 45px;
+width: 45px;
+cursor: pointer;
+position: relative;
+font-size: 14px;
+font-weight: 500;
+transition: all 0.3s ease;
+margin: 0 auto;
+border: 2px solid transparent;
+border-radius: 50%;
+color: #333;
+}
+
+.day:hover:not(.inactive) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+transform: scale(1.1);
+}
+
+.day.available::after {
+content: "";
+position: absolute;
+bottom: 4px;
+width: 4px;
+height: 4px;
+border-radius: 50%;
+background-color: #023047;
+opacity: 0.7;
+}
+
+.day.today {
+border-color: #023047;
+background-color: rgba(2, 48, 71, 0.1);
+font-weight: 600;
+}
+
+.day.active {
+background-color: #023047;
+color: white;
+border-color: #023047;
+font-weight: 600;
+box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+animation: pulse 2s infinite;
+}
+
+.day.active::after {
+display: none;
+}
+
+.day.inactive {
+color: #ccc;
+cursor: default;
+opacity: 0.5;
+}
+
+.day.inactive:hover {
+transform: none;
+background-color: transparent;
+border-color: transparent;
+}
+
+/* ---------- TIMES CONTAINER ---------- */
+.times-container {
+width: 53%;
+padding: 20px;
+background-color: #fafafa;
+overflow-y: auto;
+max-height: 400px;
+}
+
+.times-container::-webkit-scrollbar {
+width: 6px;
+}
+
+.times-container::-webkit-scrollbar-track {
+background: #f1f1f1;
+border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb {
+background: rgba(2, 48, 71, 0.3);
+border-radius: 10px;
+}
+
+.times-container::-webkit-scrollbar-thumb:hover {
+background: rgba(2, 48, 71, 0.5);
+}
+
+.time-header {
+font-size: 16px;
+font-weight: 600;
+color: #011a26;
+text-align: center;
+margin-bottom: 20px;
+padding-bottom: 10px;
+position: relative;
+}
+
+.time-header::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 50%;
+transform: translateX(-50%);
+width: 50px;
+height: 3px;
+background: linear-gradient(90deg, #023047, #e6f2f7);
+border-radius: 3px;
+}
+
+.time-slots {
+display: flex;
+flex-direction: column;
+gap: 15px;
+}
+
+.time-slots-columns {
+display: flex;
+gap: 15px;
+}
+
+.time-slots-column {
+flex: 1;
+display: flex;
+flex-direction: column;
+gap: 10px;
+align-items: center;
+}
+
+.time-slots-column > div:first-child {
+font-weight: 600;
+color: #023047;
+margin-bottom: 8px;
+font-size: 14px;
+}
+
+.time-slot {
+padding: 12px 16px;
+border-radius: 8px;
+text-align: center;
+cursor: pointer;
+transition: all 0.3s ease;
+border: 2px solid #e0e0e0;
+background-color: white;
+color: #444;
+font-size: 14px;
+font-weight: 500;
+position: relative;
+overflow: hidden;
+width: 85%;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.time-slot::before {
+content: '';
+position: absolute;
+width: 100%;
+height: 100%;
+top: 0;
+left: -100%;
+background: linear-gradient(90deg, 
+rgba(255,255,255,0) 0%, 
+rgba(2, 48, 71, 0.1) 50%, 
+rgba(255,255,255,0) 100%);
+transition: all 0.6s;
+}
+
+.time-slot.available:hover:not(.selected) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(2, 48, 71, 0.2);
+}
+
+.time-slot.available:hover:not(.selected)::before {
+left: 100%;
+}
+
+.time-slot.selected {
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+border-color: #023047;
+font-weight: 600;
+box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
+transform: translateY(-2px);
+}
+
+.time-slot.unavailable {
+background-color: #f5f5f5;
+color: #999;
+cursor: not-allowed;
+opacity: 0.6;
+}
+
+/* ---------- RESCHEDULE REASON SECTION ---------- */
+.reschedule-reason {
+padding: 25px 30px;
+border-top: 1px solid #e0e0e0;
+background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+}
+
+.reschedule-reason label {
+display: block;
+font-weight: 600;
+font-size: 14px;
+color: #333;
+}
+
+.reschedule-reason textarea {
+width: 100%;
+padding: 12px;
+font-size: 14px;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-family: inherit;
+min-height: 80px;
+resize: vertical;
+transition: all 0.3s ease;
+background-color: #fafafa;
+}
+
+.reschedule-reason textarea:focus {
+outline: none;
+border-color: #023047;
+box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+background-color: #fff;
+}
+
+.error-text {
+color: #d32f2f;
+font-size: 12px;
+margin-top: 5px;
+display: none;
+animation: shake 0.5s;
+}
+
+.error-text.show {
+display: block;
+}
+
+/* ---------- CALENDAR FOOTER ---------- */
+.calendar-footer {
+padding: 20px 30px;
+display: flex;
+justify-content: center;
+border-top: 1px solid #e0e0e0;
+background-color: #fafafa;
+}
+
+.action-btn {
+padding: 14px 28px;
+border: none;
+border-radius: 8px;
+font-size: 16px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+letter-spacing: 0.5px;
+position: relative;
+overflow: hidden;
+}
+
+.confirm-btn {
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+}
+
+.confirm-btn::after {
+content: '';
+position: absolute;
+width: 100%;
+height: 100%;
+top: 0;
+left: -100%;
+background: linear-gradient(90deg, 
+rgba(255,255,255,0) 0%, 
+rgba(255,255,255,0.2) 50%, 
+rgba(255,255,255,0) 100%);
+transition: all 0.6s;
+}
+
+.confirm-btn:hover:not(:disabled) {
+transform: translateY(-3px);
+box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+}
+
+.confirm-btn:hover:not(:disabled)::after {
+left: 100%;
+}
+
+.confirm-btn:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+box-shadow: none;
+}
+
+.confirm-btn:disabled::after {
+display: none;
+}
+
+/* ---------- SUCCESS/ERROR MESSAGES ---------- */
+.success-section {
+display: none;
+padding: 40px 20px;
+text-align: center;
+animation: fadeIn 0.5s ease-out forwards;
+background: linear-gradient(135deg, #e6f2f7 0%, #ffffff 100%);
+}
+
+.success-icon {
+width: 80px;
+height: 80px;
+margin: 0 auto 20px;
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-size: 36px;
+animation: pulse 2s infinite;
+}
+
+.success-title {
+color: #011a26;
+margin-bottom: 15px;
+font-size: 24px;
+font-weight: 600;
+}
+
+.success-message {
+color: #023047;
+font-size: 16px;
+line-height: 1.5;
+}
+
+/* ---------- ERROR STYLES ---------- */
+.error-message {
+background-color: #fff0f0;
+border: 2px solid #ffdddd;
+border-radius: 8px;
+padding: 20px;
+margin: 20px;
+color: #d32f2f;
+text-align: center;
+box-shadow: 0 4px 15px rgba(211, 47, 47, 0.1);
+animation: shake 0.5s;
+}
+
+/* ---------- CONFIRMED STATE ---------- */
+.calendar-container.confirmed .day,
+.calendar-container.confirmed .time-slot,
+.calendar-container.confirmed .nav-btn {
+pointer-events: none;
+cursor: default;
+opacity: 0.7;
+}
+
+.calendar-container.confirmed .day.active,
+.calendar-container.confirmed .time-slot.selected {
+opacity: 1;
+}
+
+.calendar-container.confirmed .reschedule-reason textarea {
+pointer-events: none;
+opacity: 0.7;
+}
+
+/* ---------- EXPIRED STATE (NEW) ---------- */
+.calendar-container.expired {
+opacity: 1;
+background-color: #f8f8f8;
+}
+
+.calendar-container.expired * {
+cursor: not-allowed !important;
+pointer-events: none !important;
+}
+
+.calendar-container.expired .day:hover,
+.calendar-container.expired .time-slot:hover,
+.calendar-container.expired .nav-btn:hover,
+.calendar-container.expired .confirm-btn:hover {
+transform: none !important;
+background-color: inherit !important;
+box-shadow: none !important;
+border-color: inherit !important;
+}
+
+.calendar-container.expired .day,
+.calendar-container.expired .time-slot,
+.calendar-container.expired .nav-btn,
+.calendar-container.expired .confirm-btn,
+.calendar-container.expired .reschedule-reason textarea {
+cursor: not-allowed !important;
+
+filter: grayscale(50%);
+}
+
+.calendar-container.expired .day::before,
+.calendar-container.expired .time-slot::before,
+.calendar-container.expired .confirm-btn::after {
+display: none !important;
+}
+
+.calendar-container.expired .day.active,
+.calendar-container.expired .time-slot.selected {
+opacity: 0.7 !important;
+}
+
+/* Override all hover effects for expired state */
+.calendar-container.expired .day.available:hover:not(.selected),
+.calendar-container.expired .time-slot.available:hover:not(.selected),
+.calendar-container.expired .nav-btn:hover:not(:disabled),
+.calendar-container.expired .confirm-btn:hover:not(:disabled) {
+background-color: inherit !important;
+color: inherit !important;
+border-color: inherit !important;
+transform: none !important;
+box-shadow: inherit !important;
+}
+
+/* ---------- RESPONSIVE DESIGN ---------- */
+@media (max-width: 768px) {
+.calendar-container {
+border-radius: 8px;
+}
+
+.calendar-header {
+padding: 15px 20px;
+flex-direction: column;
+gap: 15px;
+align-items: center;
+}
+
+.calendar-nav {
+gap: 15px;
+}
+
+.nav-btn {
+width: 36px;
+height: 36px;
+}
+
+.current-date {
+font-size: 14px;
+padding: 6px 12px;
+}
+
+.service-provider {
+font-size: 16px;
+}
+
+.appointment-date {
+font-size: 13px;
+}
+
+.calendar-body {
+flex-direction: column;
+}
+
+.days-container,
+.times-container {
+width: 100%;
+padding: 15px;
+}
+
+.times-container {
+border-right: none;
+border-top: 1px solid #e0e0e0;
+max-height: 300px;
+}
+
+.day {
+height: 40px;
+width: 40px;
+font-size: 13px;
+}
+
+.time-slot {
+padding: 10px 12px;
+font-size: 13px;
+width: 90%;
+}
+
+.time-slots-columns {
+gap: 10px;
+}
+
+.reschedule-reason {
+padding: 20px 15px;
+}
+
+.reschedule-reason textarea {
+min-height: 60px;
+}
+
+.confirm-btn {
+width: 100%;
+padding: 12px 20px;
+font-size: 14px;
+}
+
+.calendar-footer {
+padding: 15px 20px;
+}
+}
+
+@media (max-width: 480px) {
+.calendar-header {
+padding: 12px 15px;
+}
+
+.days-container,
+.times-container {
+padding: 10px;
+}
+
+.day {
+height: 35px;
+width: 35px;
+font-size: 12px;
+}
+
+.weekdays {
+font-size: 11px;
+}
+
+.time-header {
+font-size: 14px;
+}
+
+.time-slot {
+padding: 8px 10px;
+font-size: 12px;
+}
+
+.provider-icon,
+.appointment-icon {
+width: 16px;
+height: 16px;
+margin-right: 8px;
+}
+
+.service-provider {
+font-size: 14px;
+}
+
+.appointment-date {
+font-size: 12px;
+}
+
+.reschedule-reason {
+padding: 15px 10px;
+}
+
+.reschedule-reason textarea {
+min-height: 50px;
+}
+}
+
+/* ---------- LOADING STATES ---------- */
+.loading {
+opacity: 0.7;
+pointer-events: none;
+}
+
+.loading .confirm-btn {
+background: #ccc;
+cursor: wait;
+}
+
+/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+.day:focus-visible,
+.time-slot:focus-visible,
+.nav-btn:focus-visible,
+.confirm-btn:focus-visible,
+.reschedule-reason textarea:focus-visible {
+outline: 2px solid #023047;
+outline-offset: 2px;
+}
+
+/* Override focus styles for expired state */
+.calendar-container.expired .day:focus-visible,
+.calendar-container.expired .time-slot:focus-visible,
+.calendar-container.expired .nav-btn:focus-visible,
+.calendar-container.expired .confirm-btn:focus-visible,
+.calendar-container.expired .reschedule-reason textarea:focus-visible {
+outline: none !important;
+}
+
+/* ---------- TOUCH DEVICE STYLES ---------- */
+@media (hover: none) {
+.day:active:not(.inactive):not(.active) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+}
+
+.time-slot.available:active:not(.selected) {
+background-color: #e6f2f7;
+color: #023047;
+border-color: #023047;
+}
+
+.confirm-btn:active:not(:disabled) {
+background: linear-gradient(135deg, #011a26 0%, #001016 100%);
+}
+
+/* Override touch styles for expired state */
+.calendar-container.expired .day:active:not(.inactive):not(.active),
+.calendar-container.expired .time-slot.available:active:not(.selected),
+.calendar-container.expired .confirm-btn:active:not(:disabled) {
+background-color: inherit !important;
+color: inherit !important;
+border-color: inherit !important;
+}
+}
+`;
+        shadow.appendChild(style);
+        // ---------------------
+        // API CALL FUNCTIONS
+        // ---------------------
+        async function fetchWorkingDays() {
+            if (!apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+            try {
+                const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-06-11",
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const data = await res.json();
+                console.log("Schedule data:", data);
+                const availability = data.data?.availability || [];
+                const dayNameToNumber = {
+                    "Sunday": 0,
+                    "Monday": 1,
+                    "Tuesday": 2,
+                    "Wednesday": 3,
+                    "Thursday": 4,
+                    "Friday": 5,
+                    "Saturday": 6
+                };
+                const workingDaysSet = new Set();
+                availability.forEach(item => {
+                    if (Array.isArray(item.days)) {
+                        item.days.forEach(dayName => {
+                            const dayNum = dayNameToNumber[dayName];
+                            if (dayNum !== undefined) {
+                                workingDaysSet.add(dayNum);
+                            }
+                        });
+                    }
+                });
+                return Array.from(workingDaysSet);
+            } catch (err) {
+                console.error("Error fetching schedule:", err);
+                return [1, 2, 3, 4, 5];
+            }
+        }
+        async function fetchAvailableSlots(selectedDateISO) {
+            const start = new Date(selectedDateISO);
+            start.setUTCHours(0, 0, 0, 0);
+            const end = new Date(selectedDateISO);
+            end.setUTCHours(23, 59, 59, 999);
+            const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+            try {
+                const res = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-08-13",
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const responseBody = await res.json();
+                console.log("Available slots API response:", responseBody);
+                if (!responseBody || typeof responseBody !== 'object') {
+                    throw new Error("Invalid or missing response body from the API");
+                }
+                if (responseBody.status !== "success") {
+                    throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                }
+                const slotsObj = responseBody.data?.slots || {};
+                const slotsForDate = slotsObj[selectedDateISO] || [];
+                return slotsForDate.map(slot => slot.time);
+            } catch (err) {
+                console.error("Error fetching available slots:", err);
+                return [];
+            }
+        }
+        // New function for rescheduling a booking using the UID.
+        async function rescheduleBooking(startTimeISO, reason) {
+            try {
+                const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
+                const body = {
+                    rescheduledBy: email,
+                    reschedulingReason: reason,
+                    start: startTimeISO
+                };
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "cal-api-version": "2024-08-13",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+                }
+                const responseBody = await res.json();
+                if (responseBody.status && responseBody.status !== "success") {
+                    throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                }
+                return responseBody;
+            } catch (err) {
+                console.error("Error rescheduling booking:", err);
+                throw err;
+            }
+        }
+        // Then add this function to format the date and time
+        function formatAppointmentDate(dateTimeString, language) {
+            const date = new Date(dateTimeString);
+            // Format date with weekday, day, month, year
+            const formatOptions = {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            };
+            let locale = language === 'fr' ? 'fr-FR' : 'en-US';
+            const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+            let formattedDate = formatter.format(date);
+            // Replace the comma or add "at"/"à" between date and time
+            if (language === 'fr') {
+                formattedDate = formattedDate.replace(' à ', ' à ');
+            } else {
+                formattedDate = formattedDate.replace(' at ', ' at ');
+            }
+            return formattedDate;
+        }
+        // Function to show error messages to the user.
+        function showErrorMessage(message) {
+            const errorOverlay = document.createElement('div');
+            errorOverlay.style.cssText = `
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(255, 255, 255, 0.95);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+backdrop-filter: blur(4px);
+`;
+            const errorMessage = document.createElement('div');
+            errorMessage.style.cssText = `
+background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+border: 2px solid #ffdddd;
+border-radius: 12px;
+padding: 30px;
+box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
+text-align: center;
+max-width: 80%;
+animation: fadeIn 0.3s ease-out;
+`;
+            errorMessage.innerHTML = `
+<div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+</svg>
+</div>
+<p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${message}</p>
+<button style="
+background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+color: white;
+border: none;
+padding: 12px 24px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+transition: all 0.3s ease;
+">OK</button>
+`;
+            errorOverlay.appendChild(errorMessage);
+            calendarContainer.appendChild(errorOverlay);
+            const closeButton = errorMessage.querySelector('button');
+            closeButton.addEventListener('click', () => {
+                calendarContainer.removeChild(errorOverlay);
+                if (state.selectedDate) {
+                    const dateKey = formatDate(state.selectedDate);
+                    fetchAvailableSlots(dateKey)
+                        .then(slots => {
+                            state.availableSlots[dateKey] = slots;
+                            renderCalendar();
+                        });
+                }
+            });
+            closeButton.addEventListener("mouseover", () => {
+                closeButton.style.transform = "translateY(-2px)";
+                closeButton.style.boxShadow = "0 6px 18px rgba(2, 48, 71, 0.4)";
+            });
+            closeButton.addEventListener("mouseout", () => {
+                closeButton.style.transform = "translateY(0)";
+                closeButton.style.boxShadow = "none";
+            });
+        }
+        // ---------------------
+        // EXTENSION INTERNAL STATE
+        // ---------------------
+        const state = {
+            currentDate: new Date(),
+            selectedDate: selectedDate ? new Date(selectedDate) : null,
+            selectedTime: selectedTime || null,
+            availableSlots: {},
+            workingDays: await fetchWorkingDays(),
+            isConfirmed: false,
+            isExpired: false, // NEW: Track expired state
+            language: language || 'en',
+            reason: "",
+            isLoading: false
+        };
+        const translations = {
+            en: {
+                selectDateAndTime: "Select Date & Time",
+                selectDate: "Select a date to view available times",
+                pleaseSelectDate: "Please select a date first",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                confirmReschedule: "Confirm Reschedule",
+                rescheduleConfirmed: "Reschedule Confirmed",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                reasonLabel: "Reason for rescheduling",
+                pleaseProvideReason: "Please provide a reason for rescheduling",
+                loading: "Processing..."
+            },
+            fr: {
+                selectDateAndTime: "Sélectionner Date & Heure",
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                availableTimesFor: "Horaires disponibles pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                confirmReschedule: "Replanifier le rendez-vous",
+                rescheduleConfirmed: "Rendez-vous replanifié",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                reasonLabel: "Raison de la replanification",
+                pleaseProvideReason: "Veuillez fournir une raison pour la replanification",
+                loading: "Traitement en cours..."
+            }
+        };
+
+        function getDefaultActiveDay() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (state.workingDays.includes(today.getDay())) {
+                return today;
+            }
+            const next = new Date(today);
+            while (!state.workingDays.includes(next.getDay())) {
+                next.setDate(next.getDate() + 1);
+            }
+            return next;
+        }
+
+        function getText(key) {
+            const lang = translations[state.language] ? state.language : 'en';
+            return translations[lang][key] || key;
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1)
+                .padStart(2, '0');
+            const day = String(d.getDate())
+                .padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function isSameDay(date1, date2) {
+            if (!date1 || !date2) return false;
+            return formatDate(date1) === formatDate(date2);
+        }
+
+        function isToday(date) {
+            const now = new Date();
+            return isSameDay(date, now);
+        }
+        if (!state.selectedDate) {
+            const defaultDay = getDefaultActiveDay();
+            state.selectedDate = defaultDay;
+            const dayKey = formatDate(defaultDay);
+            const defaultSlots = await fetchAvailableSlots(dayKey);
+            state.availableSlots[dayKey] = defaultSlots;
+        }
+
+        function renderHeader() {
+            const header = document.createElement("div");
+            header.className = "calendar-header";
+            const dateFormatter = new Intl.DateTimeFormat(locale, {
+                month: "long",
+                year: "numeric"
+            });
+            // Create calendar title with provider and service info
+            const calendarTitle = document.createElement("div");
+            calendarTitle.className = "calendar-title";
+            // Provider and service information section
+            const titleContent = document.createElement("div");
+            titleContent.className = "calendar-title-content";
+            const providerDiv = document.createElement("div");
+            providerDiv.className = "service-provider";
+            providerDiv.innerHTML = `
+<span class="provider-icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="20px" height="20px">
+<path fill="currentColor" d="M64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm80 256l64 0c44.2 0 80 35.8 80 80c0 8.8-7.2 16-16 16L80 384c-8.8 0-16-7.2-16-16c0-44.2 35.8-80 80-80zm-32-96a64 64 0 1 1 128 0 64 64 0 1 1 -128 0zm256-32l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
+</span>
+<span>${meetingName}</span>
+`;
+            const appointmentDateDiv = document.createElement("div");
+            appointmentDateDiv.className = "appointment-date";
+            // Add calendar icon
+            const dateIcon = document.createElement("span");
+            dateIcon.className = "appointment-icon";
+            dateIcon.innerHTML = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16px" height="16px">
+<path fill="currentColor" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+</svg>
+`;
+            // Add the formatted date text
+            const dateTextSpan = document.createElement("span");
+            dateTextSpan.textContent = formatAppointmentDate(startTime, language);
+            // Append both to the appointment div
+            appointmentDateDiv.appendChild(dateIcon);
+            appointmentDateDiv.appendChild(dateTextSpan);
+            // Add to title content
+            titleContent.appendChild(providerDiv);
+            titleContent.appendChild(appointmentDateDiv);
+            calendarTitle.appendChild(titleContent);
+            // Calendar navigation section
+            const calendarNav = document.createElement("div");
+            calendarNav.className = "calendar-nav";
+            const currentDateEl = document.createElement("div");
+            currentDateEl.className = "current-date";
+            currentDateEl.textContent = dateFormatter.format(state.currentDate);
+            const prevBtn = document.createElement("button");
+            prevBtn.className = "nav-btn prev-btn";
+            prevBtn.innerHTML = `<div style="transform: rotate(90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
+            prevBtn.addEventListener("click", () => {
+                if (!state.isConfirmed && !state.isExpired) {
+                    state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() - 1, 1);
+                    renderCalendar();
+                }
+            });
+            const nextBtn = document.createElement("button");
+            nextBtn.className = "nav-btn next-btn";
+            nextBtn.innerHTML = `<div style="transform: rotate(-90deg) translateY(1px);">${SVG_CHEVRON}</div>`;
+            nextBtn.addEventListener("click", () => {
+                if (!state.isConfirmed && !state.isExpired) {
+                    state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 1);
+                    renderCalendar();
+                }
+            });
+            calendarNav.appendChild(prevBtn);
+            calendarNav.appendChild(currentDateEl);
+            calendarNav.appendChild(nextBtn);
+            header.appendChild(calendarTitle);
+            header.appendChild(calendarNav);
+            return header;
+        }
+        async function renderCalendarDays() {
+            const daysContainer = document.createElement("div");
+            daysContainer.className = "days-container";
+            const weekdaysDiv = document.createElement("div");
+            weekdaysDiv.className = "weekdays";
+            const weekdays = getText('weekdays');
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysDiv.appendChild(dayEl);
+            });
+            daysContainer.appendChild(weekdaysDiv);
+            const daysDiv = document.createElement("div");
+            daysDiv.className = "days";
+            let daysToShow = [];
+            const firstDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
+            const daysFromPrevMonth = firstDay.getDay();
+            const lastDay = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + 1, 0);
+            const totalDays = lastDay.getDate();
+            for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+                const day = new Date(firstDay);
+                day.setDate(day.getDate() - i - 1);
+                daysToShow.push({
+                    date: day,
+                    inactive: true
+                });
+            }
+            for (let i = 1; i <= totalDays; i++) {
+                const day = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), i);
+                daysToShow.push({
+                    date: day,
+                    inactive: false
+                });
+            }
+            const remainingDays = 42 - daysToShow.length;
+            for (let i = 1; i <= remainingDays; i++) {
+                const day = new Date(lastDay);
+                day.setDate(day.getDate() + i);
+                daysToShow.push({
+                    date: day,
+                    inactive: true
+                });
+            }
+            const highlightDay = state.selectedDate || getDefaultActiveDay();
+            daysToShow.forEach(({
+                date,
+                inactive
+            }) => {
+                const dayEl = document.createElement("div");
+                dayEl.className = "day";
+                dayEl.textContent = date.getDate();
+                if (inactive) {
+                    dayEl.classList.add("inactive");
+                } else {
+                    const dayOfWeek = date.getDay();
+                    if (!state.workingDays.includes(dayOfWeek)) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        const todayMidnight = new Date();
+                        todayMidnight.setHours(0, 0, 0, 0);
+                        if (date < todayMidnight) {
+                            dayEl.classList.add("inactive");
+                        } else {
+                            if (formatDate(date) === formatDate(highlightDay)) {
+                                dayEl.classList.add("today");
+                            }
+                            if (state.selectedDate && isSameDay(date, state.selectedDate)) {
+                                dayEl.classList.add("active");
+                            }
+                            dayEl.classList.add("available");
+                            dayEl.addEventListener("click", async () => {
+                                if (!state.isExpired) { // Check expired state
+                                    state.selectedDate = new Date(date);
+                                    state.selectedTime = null;
+                                    const slots = await fetchAvailableSlots(formatDate(date));
+                                    state.availableSlots[formatDate(date)] = slots;
+                                    renderCalendar();
+                                }
+                            });
+                        }
+                    }
+                }
+                daysDiv.appendChild(dayEl);
+            });
+            daysContainer.appendChild(daysDiv);
+            return daysContainer;
+        }
+        async function renderTimeSlots() {
+            const timesContainer = document.createElement("div");
+            timesContainer.className = "times-container";
+            const timeHeader = document.createElement("div");
+            timeHeader.className = "time-header";
+            if (state.selectedDate) {
+                const dateFormatter = new Intl.DateTimeFormat(locale, {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                timeHeader.textContent = `${getText('availableTimesFor')} ${dateFormatter.format(state.selectedDate)}`;
+            } else {
+                timeHeader.innerHTML = `<span style="display: inline-block; animation: pulse 2s infinite ease-in-out;">${getText('selectDate')}</span>`;
+            }
+            timesContainer.appendChild(timeHeader);
+            const timeSlotsDiv = document.createElement("div");
+            timeSlotsDiv.className = "time-slots";
+            if (state.selectedDate) {
+                const dateKey = formatDate(state.selectedDate);
+                const timeSlots = state.availableSlots[dateKey] || [];
+                if (timeSlots.length === 0) {
+                    const noSlots = document.createElement("div");
+                    noSlots.textContent = getText('noAvailableSlots');
+                    noSlots.style.textAlign = "center";
+                    noSlots.style.padding = "20px 0";
+                    noSlots.style.color = "#666";
+                    timeSlotsDiv.appendChild(noSlots);
+                } else {
+                    const columnsContainer = document.createElement("div");
+                    columnsContainer.className = "time-slots-columns";
+                    const amColumn = document.createElement("div");
+                    amColumn.className = "time-slots-column";
+                    const pmColumn = document.createElement("div");
+                    pmColumn.className = "time-slots-column";
+                    const amHeader = document.createElement("div");
+                    amHeader.textContent = "AM";
+                    amColumn.appendChild(amHeader);
+                    const pmHeader = document.createElement("div");
+                    pmHeader.textContent = "PM";
+                    pmColumn.appendChild(pmHeader);
+                    timeSlots.forEach((timeISO, index) => {
+                        const dateTime = new Date(timeISO);
+                        const hours = dateTime.getHours();
+                        const timeSlot = document.createElement("div");
+                        timeSlot.className = "time-slot available";
+                        timeSlot.style.animation = `slideIn ${0.2 + index * 0.1}s ease-out forwards`;
+                        if (state.selectedTime === timeISO) {
+                            timeSlot.classList.add("selected");
+                        }
+                        const timeFormatter = new Intl.DateTimeFormat(locale, {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        timeSlot.textContent = timeFormatter.format(dateTime);
+                        timeSlot.addEventListener("click", () => {
+                            if (!state.isConfirmed && !state.isExpired) { // Check expired state
+                                state.selectedTime = timeISO;
+                                renderCalendar();
+                            }
+                        });
+                        if (hours < 12) {
+                            amColumn.appendChild(timeSlot);
+                        } else {
+                            pmColumn.appendChild(timeSlot);
+                        }
+                    });
+                    columnsContainer.appendChild(amColumn);
+                    columnsContainer.appendChild(pmColumn);
+                    timeSlotsDiv.appendChild(columnsContainer);
+                }
+            } else {
+                const noDate = document.createElement("div");
+                noDate.textContent = getText('pleaseSelectDate');
+                noDate.style.textAlign = "center";
+                noDate.style.padding = "20px 0";
+                noDate.style.color = "#666";
+                timeSlotsDiv.appendChild(noDate);
+            }
+            timesContainer.appendChild(timeSlotsDiv);
+            return timesContainer;
+        }
+
+        function renderReasonSection() {
+            const reasonDiv = document.createElement("div");
+            reasonDiv.className = "reschedule-reason";
+            const reasonLabel = document.createElement("label");
+            reasonLabel.textContent = getText('reasonLabel');
+            reasonDiv.appendChild(reasonLabel);
+            const textarea = document.createElement("textarea");
+            textarea.id = "details";
+            textarea.placeholder = (language === 'fr') ?
+                "Pourquoi souhaitez-vous replanifier ce rendez-vous?" :
+                "Why do you want to reschedule this appointment?";
+            if (state.isConfirmed || state.isExpired) { // Check expired state
+                textarea.disabled = true;
+            }
+            textarea.addEventListener("input", (e) => {
+                if (!state.isExpired) { // Only allow input if not expired
+                    state.reason = e.target.value;
+                    const errorMessage = shadow.querySelector(".error-text");
+                    if (errorMessage) {
+                        errorMessage.style.display = "none";
+                    }
+                }
+            });
+            reasonDiv.appendChild(textarea);
+            const errorMessage = document.createElement("div");
+            errorMessage.className = "error-text";
+            errorMessage.textContent = getText('pleaseProvideReason');
+            errorMessage.style.display = "none";
+            reasonDiv.appendChild(errorMessage);
+            return reasonDiv;
+        }
+
+        function renderFooter() {
+            const footer = document.createElement("div");
+            footer.className = "calendar-footer";
+            const confirmBtn = document.createElement("button");
+            confirmBtn.className = "action-btn confirm-btn";
+            if (state.isConfirmed) {
+                const isEnglish = locale === "en-US";
+                confirmBtn.textContent = isEnglish ? "Rescheduled ✓" : "Replanifiée ✓";
+                confirmBtn.style.background = "#4CAF50";
+                confirmBtn.disabled = true;
+            } else if (state.isExpired) { // NEW: Handle expired state
+                confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+                confirmBtn.style.background = "#f44336";
+                confirmBtn.style.color = "white";
+                confirmBtn.disabled = true;
+            } else {
+                confirmBtn.textContent = getText('confirmReschedule');
+                confirmBtn.disabled = !state.selectedDate || !state.selectedTime || state.isLoading;
+                confirmBtn.addEventListener("click", async () => {
+                    if (state.isConfirmed || state.isExpired) return; // Check expired state
+                    const reasonText = state.reason.trim();
+                    if (!reasonText) {
+                        const textarea = shadow.querySelector(".reschedule-reason textarea");
+                        const errorMessage = shadow.querySelector(".error-text");
+                        errorMessage.style.display = "block";
+                        textarea.style.borderColor = "#023047";
+                        return;
+                    }
+                    // Show loading state
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = getText('loading');
+                    confirmBtn.classList.add('loading');
+                    state.isLoading = true;
+                    try {
+                        // 1. First completes the rescheduling with Cal.com
+                        const rescheduleResponse = await rescheduleBooking(state.selectedTime, reasonText);
+                        if (rescheduleResponse) {
+                            // 2. Then updates the UI to show confirmation
+                            state.isConfirmed = true;
+                            isFormSubmitted = true;
+                            if (formTimeoutId) {
+                                clearInterval(formTimeoutId);
+                            }
+                            renderCalendar();
+                            // 3. Finally shows the success animation
+                            const successOverlay = document.createElement('div');
+                            successOverlay.style.cssText = `
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+opacity: 0;
+transition: opacity 0.5s;
+pointer-events: none;
+backdrop-filter: blur(4px);
+`;
+                            const successMessage = document.createElement('div');
+                            successMessage.style.cssText = `
+background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
+border-radius: 15px;
+padding: 30px 40px;
+box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
+text-align: center;
+transform: translateY(20px);
+transition: transform 0.5s, opacity 0.5s;
+opacity: 0;
+border: 2px solid rgba(2, 48, 71, 0.1);
+`;
+                            const checkmark = document.createElement('div');
+                            checkmark.innerHTML = `
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
+<path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<defs>
+<linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
+<stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
+</linearGradient>
+</defs>
+</svg>
+`;
+                            checkmark.style.marginBottom = "20px";
+                            successMessage.appendChild(checkmark);
+                            const successText = document.createElement('p');
+                            successText.textContent = getText('rescheduleConfirmed') + '!';
+                            successText.style.cssText = `
+font-size: 20px;
+font-weight: 600;
+margin: 0;
+color: #011a26;
+`;
+                            successMessage.appendChild(successText);
+                            successOverlay.appendChild(successMessage);
+                            calendarContainer.appendChild(successOverlay);
+                            // Animation sequence
+                            setTimeout(() => {
+                                successOverlay.style.opacity = '1';
+                                successMessage.style.opacity = '1';
+                                successMessage.style.transform = 'translateY(0)';
+                                setTimeout(() => {
+                                    // Start hiding animation
+                                    successOverlay.style.opacity = '0';
+                                    successMessage.style.opacity = '0';
+                                    successMessage.style.transform = 'translateY(-20px)';
+                                    setTimeout(() => {
+                                        // Remove overlay after animation completes
+                                        calendarContainer.removeChild(successOverlay);
+                                        // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                                        const dateStr = formatDate(state.selectedDate);
+                                        const formattedDate = new Intl.DateTimeFormat(locale, {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })
+                                            .format(state.selectedDate);
+                                        const formattedTime = new Intl.DateTimeFormat(locale, {
+                                                hour: 'numeric',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })
+                                            .format(new Date(state.selectedTime));
+                                        const formattedDateTime = `${formattedDate} ${language === "fr" ? "à" : "at"} ${formattedTime}`;
+                                        window.voiceflow.chat.interact({
+                                            type: "complete",
+                                            payload: {
+                                                email,
+                                                date: dateStr,
+                                                time: state.selectedTime,
+                                                formattedDate,
+                                                formattedTime,
+                                                formattedDateTime,
+                                                reschedulingReason: reasonText,
+                                                uid: uid
+                                            },
+                                        });
+                                    }, 500); // End of hide animation
+                                }, 2500); // Show duration before hiding
+                            }, 100); // Start of show animation
+                        }
+                    } catch (err) {
+                        console.error("Rescheduling error:", err);
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = getText("confirmReschedule");
+                        confirmBtn.classList.remove('loading');
+                        state.isLoading = false;
+                        showErrorMessage(err.message || "Unable to complete rescheduling. Please try again.");
+                    }
+                });
+            }
+            footer.appendChild(confirmBtn);
+            return footer;
+        }
+        // Timer functions for timeout handling
+        function startFormTimer() {
+            let timeLeft = TIMEOUT_DURATION;
+            formTimeoutId = setInterval(() => {
+                timeLeft -= 1000;
+                if (timeLeft <= 0) {
+                    clearInterval(formTimeoutId);
+                    if (!isFormSubmitted) {
+                        handleFormTimeout();
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleFormTimeout() {
+            state.isLoading = false;
+            state.isExpired = true; // NEW: Set expired state instead of confirmed
+            // Re-render the calendar to apply expired styles
+            renderCalendar();
+            // Notify Voiceflow
+            window.voiceflow.chat.interact({
+                type: "timeEnd",
+                payload: {
+                    message: "Time expired"
+                }
+            });
+        }
+        async function renderCalendar() {
+            calendarContainer.innerHTML = '';
+            if (state.isConfirmed) {
+                calendarContainer.classList.add('confirmed');
+                calendarContainer.classList.remove('expired');
+            } else if (state.isExpired) { // NEW: Apply expired class
+                calendarContainer.classList.add('expired');
+                calendarContainer.classList.remove('confirmed');
+            } else {
+                calendarContainer.classList.remove('confirmed', 'expired');
+            }
+            calendarContainer.appendChild(renderHeader());
+            const calendarBody = document.createElement("div");
+            calendarBody.className = "calendar-body";
+            calendarBody.appendChild(await renderCalendarDays());
+            calendarBody.appendChild(await renderTimeSlots());
+            calendarContainer.appendChild(calendarBody);
+            calendarContainer.appendChild(renderReasonSection());
+            calendarContainer.appendChild(renderFooter());
+            shadow.innerHTML = "";
+            shadow.appendChild(style);
+            shadow.appendChild(calendarContainer);
+        }
+        const calendarContainer = document.createElement("div");
+        calendarContainer.className = "calendar-container";
+        renderCalendar();
+        element.appendChild(container);
+        // Improved resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                container.style.width = window.innerWidth <= 768 ? "100%" : "800px";
+                renderCalendar();
+            }, 250);
+        });
+        // Check if touch events are supported
+        const isTouchDevice = ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0) ||
+            (navigator.msMaxTouchPoints > 0);
+        if (isTouchDevice) {
+            // Add touch-specific class to improve mobile experience
+            calendarContainer.classList.add('touch-device');
+        }
+        startFormTimer();
+    }
+};
+
+const CancellationCalendarExtension = {
+    name: 'CancellationCalendar',
+    type: 'response',
+    match: ({
+            trace
+        }) =>
+        trace.type === 'ext_cancellation_calendar' || trace.payload?.name === 'ext_cancellation_calendar',
+    render: async ({
+        trace,
+        element
+    }) => {
+        // --- Extract payload values ---
+        const {
+            apiKey = "",
+                language = 'en', // 'en' or 'fr'
+                timezone = 'America/Toronto',
+                uid = "" // Booking UID
+        } = trace.payload || {};
+        let formTimeoutId = null;
+        let isFormSubmitted = false;
+        const TIMEOUT_DURATION = 300000; // 15 minutes in milliseconds
+        // For checking the language and reusing in conditionals
+        const locale = language === "fr" ? "fr-CA" : "en-US";
+        // Create container with shadow DOM
+        const container = document.createElement("div");
+        container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+        container.style.maxWidth = "650px";
+        container.style.margin = "0 auto";
+        const shadow = container.attachShadow({
+            mode: 'open'
+        });
+        // Unified CSS with VSM Marketing styling (BLUE THEME)
+        const style = document.createElement("style");
+        style.textContent = `
+			/* ====================================
+			VSM MARKETING CANCELLATION - UNIFIED STYLESHEET - DARK BLUE THEME
+			==================================== */
+
+			/* ---------- RESET & BASE STYLES ---------- */
+			* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			}
+
+			body {
+			background-color: #f5f5f5;
+			color: #333;
+			line-height: 1.6;
+			}
+
+			html {
+			scroll-behavior: smooth;
+			}
+
+			/* ---------- ANIMATIONS ---------- */
+			@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(15px); }
+			to { opacity: 1; transform: translateY(0); }
+			}
+
+			@keyframes slideIn {
+			from { opacity: 0; transform: translateX(10px); }
+			to { opacity: 1; transform: translateX(0); }
+			}
+
+			@keyframes pulse {
+			0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(2, 48, 71, 0.4); }
+			70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(2, 48, 71, 0); }
+			100% { transform: scale(1); }
+			}
+
+			@keyframes shimmer {
+			0% { background-position: -100% 0; }
+			100% { background-position: 100% 0; }
+			}
+
+			@keyframes shake {
+			0%, 100% { transform: translateX(0); }
+			10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+			20%, 40%, 60%, 80% { transform: translateX(5px); }
+			}
+
+			/* ---------- EXTENSION CONTAINER ---------- */
+			.extension-container {
+			width: 100%;
+			max-width: 650px;
+			margin: 0 auto;
+			background: #fff;
+			border-radius: 12px;
+			box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+			overflow: hidden;
+			transition: all 0.3s ease;
+			position: relative;
+			animation: fadeIn 0.6s;
+			}
+
+			.extension-container:hover {
+			box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			/* ---------- EXTENSION HEADER ---------- */
+			.extension-header {
+			padding: 20px 30px;
+			background: linear-gradient(90deg, #023047, #e6f2f7);
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			color: white;
+			position: relative;
+			}
+
+			.extension-header::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 4px;
+			background: linear-gradient(90deg, #023047, #e6f2f7);
+			border-radius: 4px;
+			}
+
+			.extension-header span {
+			width: 24px;
+			height: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			}
+
+			.extension-header svg {
+			filter: brightness(0) invert(1);
+			}
+
+			.extension-title {
+			font-size: 20px;
+			font-weight: 600;
+			color: white;
+			margin: 0;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+
+			/* ---------- EXTENSION BODY ---------- */
+			.extension-body {
+			padding: 25px 30px;
+			background: linear-gradient(to bottom, #ffffff, #fefeff);
+			}
+
+			/* ---------- BOOKING CARD ---------- */
+			.booking-card {
+			background: #fff;
+			border: 2px solid #e0e0e0;
+			border-radius: 12px;
+			padding: 20px;
+			margin-bottom: 25px;
+			box-shadow: 0 4px 15px rgba(2, 48, 71, 0.08);
+			transition: all 0.3s ease;
+			animation: slideIn 0.5s ease-out;
+			}
+
+			.booking-card:hover {
+			border-color: rgba(2, 48, 71, 0.3);
+			box-shadow: 0 6px 20px rgba(2, 48, 71, 0.12);
+			transform: translateY(-2px);
+			}
+
+			.booking-card span {
+			font-size: 18px;
+			font-weight: 600;
+			color: #011a26;
+			border-bottom: 2px solid #e6f2f7;
+			position: relative;
+			}
+
+			.booking-card span::after {
+			content: '';
+			position: absolute;
+			bottom: -2px;
+			left: 0;
+			width: 50px;
+			height: 2px;
+			background: #023047;
+			}
+
+			.info-line {
+			display: flex;
+			font-size: 14px;
+			line-height: 1.5;
+			padding: 8px 0;
+			border-bottom: 1px solid #f5f5f5;
+			transition: all 0.3s ease;
+			}
+
+			.info-line:last-child {
+			border-bottom: none;
+			}
+
+			.info-line:hover {
+			background-color: rgba(2, 48, 71, 0.02);
+			padding-left: 8px;
+			border-radius: 4px;
+			}
+
+			.info-label {
+			font-weight: 600;
+			width: 180px;
+			min-width: 180px;
+			color: #333;
+			font-size: 14px;
+			}
+
+			.info-value {
+			flex: 1;
+			color: #555;
+			font-size: 14px;
+			}
+
+			/* ---------- REASON SECTION ---------- */
+			.extension-reason {
+			display: flex;
+			flex-direction: column;
+			animation: slideIn 0.6s ease-out;
+			}
+
+			.extension-reason label {
+			display: block;
+			font-weight: 600;
+			font-size: 14px;
+			color: #333;
+			}
+
+			.extension-reason textarea {
+			width: 100%;
+			padding: 12px;
+			font-size: 14px;
+			border: 2px solid #ddd;
+			border-radius: 8px;
+			font-family: inherit;
+			min-height: 80px;
+			resize: vertical;
+			transition: all 0.3s ease;
+			background-color: #fafafa;
+			}
+
+			.extension-reason textarea:focus {
+			outline: none;
+			border-color: #023047;
+			box-shadow: 0 0 0 3px rgba(2, 48, 71, 0.1);
+			background-color: #fff;
+			transform: translateY(-1px);
+			}
+
+			.extension-reason textarea:disabled {
+			opacity: 0.7;
+			cursor: not-allowed;
+			}
+
+			.error-message {
+			color: #d32f2f;
+			font-size: 12px;
+			margin-top: 5px;
+			display: none;
+			animation: shake 0.5s;
+			}
+
+			.error-message.show {
+			display: block;
+			}
+
+			/* ---------- EXTENSION FOOTER ---------- */
+			.extension-footer {
+			display: flex;
+			justify-content: center;
+			padding: 20px 30px;
+			background-color: #fafafa;
+			border-top: 1px solid #e0e0e0;
+			}
+
+			.action-btn {
+			padding: 14px 28px;
+			border: none;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			letter-spacing: 0.5px;
+			position: relative;
+			overflow: hidden;
+			}
+
+			.confirm-btn {
+			background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+			color: white;
+			box-shadow: 0 4px 15px rgba(2, 48, 71, 0.3);
+			}
+
+			.confirm-btn::after {
+			content: '';
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: -100%;
+			background: linear-gradient(90deg, 
+			rgba(255,255,255,0) 0%, 
+			rgba(255,255,255,0.2) 50%, 
+			rgba(255,255,255,0) 100%);
+			transition: all 0.6s;
+			}
+
+			.confirm-btn:hover:not(:disabled) {
+			transform: translateY(-3px);
+			box-shadow: 0 6px 20px rgba(2, 48, 71, 0.4);
+			}
+
+			.confirm-btn:hover:not(:disabled)::after {
+			left: 100%;
+			}
+
+			.confirm-btn:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+			box-shadow: none;
+			}
+
+			.confirm-btn:disabled::after {
+			display: none;
+			}
+
+			/* ---------- SUCCESS OVERLAY ---------- */
+			.success-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+			opacity: 0;
+			transition: opacity 0.5s;
+			pointer-events: none;
+			backdrop-filter: blur(4px);
+			}
+
+			.success-message {
+			background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
+			border-radius: 15px;
+			padding: 30px 40px;
+			box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
+			text-align: center;
+			transform: translateY(20px);
+			transition: transform 0.5s, opacity 0.5s;
+			opacity: 0;
+			border: 2px solid rgba(2, 48, 71, 0.1);
+			}
+
+			.success-message svg {
+			margin-bottom: 15px;
+			}
+
+			.success-message p {
+			font-size: 18px;
+			font-weight: 600;
+			margin: 0;
+			color: #011a26;
+			}
+
+			/* ---------- ERROR STYLES ---------- */
+			.error-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(255, 255, 255, 0.95);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+			backdrop-filter: blur(4px);
+			}
+
+			.error-message-box {
+			background: linear-gradient(135deg, #fff0f0 0%, #ffffff 100%);
+			border: 2px solid #ffdddd;
+			border-radius: 12px;
+			padding: 30px;
+			box-shadow: 0 8px 25px rgba(211, 47, 47, 0.15);
+			text-align: center;
+			max-width: 80%;
+			animation: fadeIn 0.3s ease-out;
+			}
+
+			.error-message-box button {
+			background: linear-gradient(135deg, #023047 0%, #011a26 100%);
+			color: white;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 8px;
+			cursor: pointer;
+			font-size: 14px;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			margin-top: 20px;
+			}
+
+			.error-message-box button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 18px rgba(2, 48, 71, 0.4);
+			}
+
+			/* ---------- CONFIRMED STATE ---------- */
+			.extension-container.confirmed .extension-reason textarea {
+			pointer-events: none;
+			opacity: 0.7;
+			}
+
+			.extension-container.confirmed .booking-card {
+			opacity: 0.8;
+			}
+
+			/* ---------- RESPONSIVE DESIGN ---------- */
+			@media (max-width: 768px) {
+			.extension-container {
+			margin: 15px;
+			border-radius: 8px;
+			}
+
+			.extension-header {
+			padding: 15px 20px;
+			}
+
+			.extension-title {
+			font-size: 18px;
+			}
+
+			.extension-body {
+			padding: 20px 15px;
+			}
+
+			.booking-card {
+			padding: 15px;
+			margin-bottom: 20px;
+			}
+
+			.booking-card span {
+			font-size: 16px;
+			}
+
+
+
+
+			.info-value {
+			font-size: 13px;
+			padding-left: 10px;
+			}
+
+			.extension-reason textarea {
+			min-height: 60px;
+			}
+
+			.confirm-btn {
+			width: 100%;
+			padding: 12px 20px;
+			font-size: 14px;
+			}
+
+			.extension-footer {
+			padding: 15px 20px;
+			}
+			}
+
+			@media (max-width: 480px) {
+			.extension-header {
+			padding: 12px 15px;
+			}
+
+			.extension-title {
+			font-size: 16px;
+			}
+
+			.extension-body {
+			padding: 15px 10px;
+			}
+
+			.booking-card {
+			padding: 12px;
+			}
+
+			.booking-card span {
+			font-size: 15px;
+			}
+
+
+
+			.extension-reason textarea {
+			min-height: 50px;
+			}
+			}
+
+			/* ---------- LOADING STATES ---------- */
+			.loading {
+			opacity: 0.7;
+			pointer-events: none;
+			}
+
+			.loading .confirm-btn {
+			background: #ccc;
+			cursor: wait;
+			}
+
+			.loading .confirm-btn::after {
+			display: none;
+			}
+
+			/* ---------- FOCUS STYLES FOR ACCESSIBILITY ---------- */
+			.confirm-btn:focus-visible,
+			.extension-reason textarea:focus-visible {
+			outline: 2px solid #023047;
+			outline-offset: 2px;
+			}
+
+			/* ---------- TOUCH DEVICE STYLES ---------- */
+			@media (hover: none) {
+			.confirm-btn:active:not(:disabled) {
+			background: linear-gradient(135deg, #011a26 0%, #000d13 100%);
+			}
+
+			.booking-card:hover {
+			transform: none;
+			}
+
+			.info-line:hover {
+			background-color: transparent;
+			padding-left: 0;
+			}
+			}
+
+			/* ---------- NO BOOKING DATA STYLES ---------- */
+			.no-booking {
+			color: #666;
+			font-style: italic;
+			text-align: center;
+			padding: 20px;
+			background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
+			border-radius: 8px;
+			border: 1px dashed #ddd;
+			animation: fadeIn 0.5s ease-out;
+			}
+
+			/* ---------- ADDITIONAL ENHANCEMENTS ---------- */
+			.extension-container {
+			position: relative;
+			}
+
+			.extension-container::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: linear-gradient(90deg, #023047, #e6f2f7, #023047);
+			opacity: 0.8;
+			}
+
+			/* ---------- ENHANCED ANIMATIONS ---------- */
+			.booking-card {
+			animation: slideIn 0.5s ease-out;
+			}
+
+			.extension-reason {
+			animation: slideIn 0.6s ease-out;
+			}
+
+			.confirm-btn {
+			animation: fadeIn 0.7s ease-out;
+			}
+
+			/* ---------- IMPROVED SHADOWS ---------- */
+			.extension-container:hover {
+			box-shadow: 0 12px 40px rgba(2, 48, 71, 0.15);
+			}
+
+			.booking-card:hover {
+			box-shadow: 0 8px 25px rgba(2, 48, 71, 0.15);
+			}
+
+			.confirm-btn:hover:not(:disabled) {
+			box-shadow: 0 8px 25px rgba(2, 48, 71, 0.4);
+			}
+		`;
+        shadow.appendChild(style);
+        // Internal state
+        const state = {
+            booking: null,
+            reason: "",
+            isConfirmed: false,
+            isLoading: false
+        };
+        // API functions
+        async function fetchBooking(uid) {
+            if (!uid || !apiKey) return null;
+            const url = `https://api.cal.com/v2/bookings/${uid}`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                }
+            };
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const json = await res.json();
+                console.log("Fetched booking details:", json);
+                return json.data || null;
+            } catch (err) {
+                console.error("Error fetching booking details:", err);
+                return null;
+            }
+        }
+        async function cancelBooking(uid, reason) {
+            const url = `https://api.cal.com/v2/bookings/${uid}/cancel`;
+            const body = {
+                cancellationReason: reason
+            };
+            const options = {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            };
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok)
+                    throw new Error(`HTTP error! status: ${res.status} ${JSON.stringify(await res.text())}`);
+                const responseBody = await res.json();
+                if (responseBody.status && responseBody.status !== "success") {
+                    throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+                }
+                return responseBody;
+            } catch (err) {
+                console.error("Error cancelling booking:", err);
+                throw err;
+            }
+        }
+        // Utility functions
+        function formatDateRange(startDate, endDate) {
+            const dateFormatter = new Intl.DateTimeFormat(locale, {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                timeZone: timezone
+            });
+            const timeFormatter = new Intl.DateTimeFormat(locale, {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+                timeZone: timezone
+            });
+            const datePart = dateFormatter.format(startDate);
+            let startTime = timeFormatter.format(startDate)
+                .replace(":", "h");
+            let endTime = timeFormatter.format(endDate)
+                .replace(":", "h");
+            return `${datePart} de ${startTime} à ${endTime}`;
+        }
+        // Translation helper with added "cancelled" key
+        function t(key) {
+            const translations = {
+                en: {
+                    cancelBooking: "Booking Cancellation",
+                    bookingInfo: "Booking Information",
+                    bookingNumber: "Booking Number",
+                    status: "Status",
+                    title: "Title",
+                    when: "When",
+                    host: "Host",
+                    attendee: "Participant Name",
+                    email: "Participant Email",
+                    reasonLabel: "Reason for cancellation",
+                    confirmCancel: "Confirm Cancellation",
+                    cancelled: "Cancelled ✓",
+                    successMessage: "Your booking has been cancelled successfully!",
+                    loading: "Cancelling...",
+                    noBookingData: "Unable to load booking details."
+                },
+                fr: {
+                    cancelBooking: "Annulation de Réservation",
+                    bookingInfo: "Informations de Réservation",
+                    bookingNumber: "Numéro de Réservation",
+                    status: "Statut",
+                    title: "Titre",
+                    when: "Quand",
+                    host: "Hôte",
+                    attendee: "Nom Complet Participant",
+                    email: "Courriel Participant",
+                    reasonLabel: "Raison de l'annulation",
+                    confirmCancel: "Confirmer l'Annulation",
+                    cancelled: "Annulée ✓",
+                    successMessage: "Votre réservation a été annulée avec succès !",
+                    loading: "Annulation en cours...",
+                    noBookingData: "Impossible de charger les détails de la réservation."
+                }
+            };
+            const lang = language === 'fr' ? 'fr' : 'en';
+            return translations[lang][key] || key;
+        }
+        // UI Component functions
+        function createInfoLine(labelText, valueText) {
+            const line = document.createElement("div");
+            line.className = "info-line";
+            const label = document.createElement("div");
+            label.className = "info-label";
+            label.textContent = labelText + ":";
+            const value = document.createElement("div");
+            value.className = "info-value";
+            value.textContent = valueText;
+            line.appendChild(label);
+            line.appendChild(value);
+            return line;
+        }
+        // Updated renderHeader to add the SVG icon before the title
+        function renderHeader() {
+            const header = document.createElement("div");
+            header.className = "extension-header";
+            // Create icon element from provided SVG
+            const icon = document.createElement("span");
+            icon.innerHTML = `
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24px" height="24px">
+				<path fill="currentColor" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48L0 160l0-48C0 85.5 21.5 64 48 64l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+				</svg>
+			`;
+            const title = document.createElement("h1");
+            title.className = "extension-title";
+            title.textContent = state.isConfirmed ? t('cancelled') : t('cancelBooking');
+            header.appendChild(icon);
+            header.appendChild(title);
+            return header;
+        }
+
+        function renderBody() {
+            const body = document.createElement("div");
+            body.className = "extension-body";
+            // Booking Info Card
+            const card = document.createElement("div");
+            card.className = "booking-card";
+            const infoTitle = document.createElement("span");
+            infoTitle.textContent = t('bookingInfo');
+            card.appendChild(infoTitle);
+            if (state.booking) {
+                if (state.booking.id) {
+                    card.appendChild(createInfoLine(t('bookingNumber'), state.booking.id));
+                }
+                let displayStatus = state.booking.status || "";
+                if (displayStatus === "cancelled") {
+                    displayStatus = (language === 'fr') ? "Confirmé" : "Confirmed";
+                } else if (language === 'fr' && displayStatus === "accepted") {
+                    displayStatus = "Actif";
+                }
+                card.appendChild(createInfoLine(t('status'), displayStatus));
+                if (state.booking.start && state.booking.end) {
+                    const startDate = new Date(state.booking.start);
+                    const endDate = new Date(state.booking.end);
+                    const formatted = formatDateRange(startDate, endDate);
+                    card.appendChild(createInfoLine(t('when'), formatted));
+                }
+                if (state.booking.hosts && state.booking.hosts.length > 0) {
+                    card.appendChild(createInfoLine(t('host'), state.booking.hosts[0].name));
+                }
+                if (state.booking.attendees && state.booking.attendees.length > 0) {
+                    card.appendChild(createInfoLine(t('attendee'), state.booking.attendees[0].name));
+                    card.appendChild(createInfoLine(t('email'), state.booking.attendees[0].email));
+                }
+            } else {
+                const noBooking = document.createElement("p");
+                noBooking.className = "no-booking";
+                noBooking.textContent = t('noBookingData');
+                card.appendChild(noBooking);
+            }
+            body.appendChild(card);
+            // Cancellation Reason
+            const reasonDiv = document.createElement("div");
+            reasonDiv.className = "extension-reason";
+            const reasonLabel = document.createElement("label");
+            reasonLabel.textContent = t('reasonLabel');
+            reasonDiv.appendChild(reasonLabel);
+            const textarea = document.createElement("textarea");
+            textarea.id = "details";
+            textarea.placeholder = (language === 'fr') ?
+                "Raison de l'annulation" :
+                "Why are you cancelling?";
+            if (state.isConfirmed) {
+                textarea.disabled = true;
+            }
+            textarea.addEventListener("input", (e) => {
+                state.reason = e.target.value;
+                const errorMessage = shadow.querySelector(".error-message");
+                if (errorMessage) {
+                    errorMessage.style.display = "none";
+                }
+            });
+            reasonDiv.appendChild(textarea);
+            const errorMessage = document.createElement("div");
+            errorMessage.className = "error-message";
+            errorMessage.textContent = (language === 'fr') ?
+                "Veuillez fournir une raison pour l'annulation." :
+                "Please provide a reason for cancellation.";
+            reasonDiv.appendChild(errorMessage);
+            body.appendChild(reasonDiv);
+            return body;
+        }
+
+        function renderFooter() {
+            const footer = document.createElement("div");
+            footer.className = "extension-footer";
+            const confirmBtn = document.createElement("button");
+            confirmBtn.className = "action-btn confirm-btn";
+            if (state.isConfirmed) {
+                confirmBtn.textContent = t('cancelled');
+                confirmBtn.style.background = '#4CAF50';
+                confirmBtn.disabled = true;
+            } else {
+                confirmBtn.textContent = t('confirmCancel');
+                confirmBtn.disabled = state.isLoading || !uid;
+                confirmBtn.addEventListener("click", async () => {
+                    if (state.isConfirmed) return;
+                    const reasonText = state.reason.trim();
+                    if (!reasonText) {
+                        const textarea = shadow.querySelector(".extension-reason textarea");
+                        const errorMessage = shadow.querySelector(".error-message");
+                        errorMessage.style.display = "block";
+                        textarea.style.borderColor = "#023047";
+                        return;
+                    }
+                    // Show loading state
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = t('loading');
+                    confirmBtn.classList.add('loading');
+                    state.isLoading = true;
+                    try {
+                        // 1. First complete the cancellation with Cal.com
+                        const cancellationResponse = await cancelBooking(uid, reasonText);
+                        if (cancellationResponse) {
+                            // 2. Update UI to show confirmation
+                            state.isConfirmed = true;
+                            isFormSubmitted = true;
+                            if (formTimeoutId) {
+                                clearInterval(formTimeoutId);
+                            }
+                            renderCancellation();
+                            // 3. Show success animation
+                            const successOverlay = document.createElement('div');
+                            successOverlay.style.cssText = `
+								position: absolute;
+								top: 0;
+								left: 0;
+								width: 100%;
+								height: 100%;
+								background: linear-gradient(135deg, rgba(2, 48, 71, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+								display: flex;
+								justify-content: center;
+								align-items: center;
+								z-index: 1000;
+								opacity: 0;
+								transition: opacity 0.5s;
+								pointer-events: none;
+								backdrop-filter: blur(4px);
+							`;
+                            const successMessage = document.createElement('div');
+                            successMessage.style.cssText = `
+								background: linear-gradient(135deg, #ffffff 0%, #e6f2f7 100%);
+								border-radius: 15px;
+								padding: 30px 40px;
+								box-shadow: 0 12px 40px rgba(2, 48, 71, 0.2);
+								text-align: center;
+								transform: translateY(20px);
+								transition: transform 0.5s, opacity 0.5s;
+								opacity: 0;
+								border: 2px solid rgba(2, 48, 71, 0.1);
+							`;
+                            const checkmark = document.createElement('div');
+                            checkmark.innerHTML = `
+								<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<circle cx="40" cy="40" r="40" fill="url(#successGradient)"/>
+								<path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+								<defs>
+								<linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+								<stop offset="0%" style="stop-color:#023047;stop-opacity:1" />
+								<stop offset="100%" style="stop-color:#011a26;stop-opacity:1" />
+								</linearGradient>
+								</defs>
+								</svg>
+							`;
+                            checkmark.style.marginBottom = "20px";
+                            successMessage.appendChild(checkmark);
+                            const successText = document.createElement('p');
+                            successText.textContent = t('successMessage');
+                            successText.style.cssText = `
+								font-size: 20px;
+								font-weight: 600;
+								margin: 0;
+								color: #011a26;
+							`;
+                            successMessage.appendChild(successText);
+                            successOverlay.appendChild(successMessage);
+                            cancellationContainer.appendChild(successOverlay);
+                            // Animation sequence
+                            setTimeout(() => {
+                                successOverlay.style.opacity = '1';
+                                successMessage.style.opacity = '1';
+                                successMessage.style.transform = 'translateY(0)';
+                                setTimeout(() => {
+                                    // Start hiding animation
+                                    successOverlay.style.opacity = '0';
+                                    successMessage.style.opacity = '0';
+                                    successMessage.style.transform = 'translateY(-20px)';
+                                    setTimeout(() => {
+                                        // Remove overlay after animation completes
+                                        cancellationContainer.removeChild(successOverlay);
+                                        // 4. FINALLY - Send data to Voiceflow (LAST STEP)
+                                        window.voiceflow.chat.interact({
+                                            type: "complete",
+                                            payload: {
+                                                uid: uid,
+                                                reason: reasonText,
+                                                bookingDetails: {
+                                                    id: state.booking?.id,
+                                                    title: state.booking?.title,
+                                                    originalDate: state.booking?.start,
+                                                    formattedDate: state.booking?.start ?
+                                                        new Intl.DateTimeFormat(locale, {
+                                                            weekday: 'long',
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric'
+                                                        })
+                                                        .format(new Date(state.booking.start)) : ''
+                                                }
+                                            },
+                                        });
+                                    }, 500); // End of hide animation
+                                }, 2500); // Show duration before hiding
+                            }, 100); // Start of show animation
+                        }
+                    } catch (err) {
+                        console.error("Cancellation error:", err);
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = t('confirmCancel');
+                        confirmBtn.classList.remove('loading');
+                        state.isLoading = false;
+                        // Show error message
+                        const errorOverlay = document.createElement("div");
+                        errorOverlay.className = "error-overlay";
+                        const errorMessage = document.createElement("div");
+                        errorMessage.className = "error-message-box";
+                        errorMessage.innerHTML = `
+							<div style="color: #d32f2f; font-size: 48px; margin-bottom: 20px;">
+							<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="currentColor"/>
+							</svg>
+							</div>
+							<p style="margin: 0 0 20px 0; color: #333; font-size: 16px; line-height: 1.5;">${
+							err.message || 
+							(language === 'fr' 
+							? "Impossible d'annuler la réservation. Veuillez réessayer." 
+							: "Unable to cancel booking. Please try again.")
+							}</p>
+							<button>
+							${language === 'fr' ? "OK" : "OK"}
+							</button>
+						`;
+                        errorOverlay.appendChild(errorMessage);
+                        cancellationContainer.appendChild(errorOverlay);
+                        const closeButton = errorMessage.querySelector("button");
+                        closeButton.addEventListener("click", () => {
+                            cancellationContainer.removeChild(errorOverlay);
+                        });
+                    }
+                });
+            }
+            footer.appendChild(confirmBtn);
+            return footer;
+        }
+        // Timer functions for timeout handling
+        function startFormTimer() {
+            let timeLeft = TIMEOUT_DURATION;
+            formTimeoutId = setInterval(() => {
+                timeLeft -= 1000;
+                if (timeLeft <= 0) {
+                    clearInterval(formTimeoutId);
+                    if (!isFormSubmitted) {
+                        handleFormTimeout();
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleFormTimeout() {
+            state.isLoading = false;
+            state.isConfirmed = true; // To prevent further interaction
+            // Update UI to show timeout
+            const confirmBtn = shadow.querySelector(".confirm-btn");
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = language === 'fr' ? "Temps expiré" : "Time Expired";
+                confirmBtn.style.background = "#f44336";
+                confirmBtn.style.color = "white";
+            }
+            // Notify Voiceflow
+            window.voiceflow.chat.interact({
+                type: "timeEnd",
+                payload: {
+                    message: "Time expired"
+                }
+            });
+            // Re-render to disable all elements
+            renderCancellation();
+        }
+        async function renderCancellation() {
+            cancellationContainer.innerHTML = "";
+            cancellationContainer.appendChild(renderHeader());
+            cancellationContainer.appendChild(renderBody());
+            cancellationContainer.appendChild(renderFooter());
+            if (state.isConfirmed) {
+                cancellationContainer.classList.add("confirmed");
+            } else {
+                cancellationContainer.classList.remove("confirmed");
+            }
+        }
+        const cancellationContainer = document.createElement("div");
+        cancellationContainer.className = "extension-container";
+        let bookingData = null;
+        if (uid && apiKey) {
+            bookingData = await fetchBooking(uid);
+        }
+        state.booking = bookingData;
+        await renderCancellation();
+        shadow.appendChild(cancellationContainer);
+        element.appendChild(container);
+        // Improved resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                container.style.width = window.innerWidth <= 768 ? "100%" : "650px";
+                renderCancellation();
+            }, 250);
+        });
+        // Check if touch events are supported
+        const isTouchDevice = ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0) ||
+            (navigator.msMaxTouchPoints > 0);
+        if (isTouchDevice) {
+            // Add touch-specific class to improve mobile experience
+            cancellationContainer.classList.add('touch-device');
+        }
+        startFormTimer();
+    }
+};
+
 window.SubmissionFormExtension = SubmissionFormExtension;
-window.BookingDirectExtension = BookingDirectExtension;
 window.ContactFormExtension = ContactFormExtension;
+window.BookingDirectExtension = BookingDirectExtension;
+window.BookingCalendarExtension = BookingCalendarExtension;
+window.RescheduleCalendarExtension = RescheduleCalendarExtension;
+window.CancellationCalendarExtension = CancellationCalendarExtension;
