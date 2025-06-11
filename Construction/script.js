@@ -104,7 +104,7 @@
             previous: "Précédent",
             // Terms and conditions
             termsTitle: "Termes et conditions",
-            termsContent: "Nous vous informons que pour toute intervention de service chez Ventilation Elixair, si votre appareil n'est plus couvert par la garantie de 1 an sur la main-d'œuvre, les frais suivants s'appliqueront :",
+            termsContent: "Nous vous informons que pour toute intervention de service chez Ventilation Skalean, si votre appareil n'est plus couvert par la garantie de 1 an sur la main-d'œuvre, les frais suivants s'appliqueront :",
             travelFee: "Frais de déplacement",
             travelFeeAmount: "125 $",
             hourlyRate: "Coût horaire",
@@ -126,7 +126,7 @@
             serialNumber: "No série",
             installationYear: "Année d'installation",
             installationType: "Type d'installation",
-            installedBy: "Installation exécuté par Ventilation Elixair",
+            installedBy: "Installation exécuté par Ventilation Skalean",
             ownerOrTenant: "Propriétaire ou locataire",
             tenantInfo: "Informations du propriétaire",
             yes: "Oui",
@@ -187,7 +187,7 @@
             previous: "Previous",
             // Terms and conditions
             termsTitle: "Terms and Conditions",
-            termsContent: "We inform you that for any service intervention by Ventilation Elixair, if your device is no longer covered by the 1-year labor warranty, the following fees will apply:",
+            termsContent: "We inform you that for any service intervention by Ventilation Skalean, if your device is no longer covered by the 1-year labor warranty, the following fees will apply:",
             travelFee: "Travel fees",
             travelFeeAmount: "$125",
             hourlyRate: "Hourly rate",
@@ -209,7 +209,7 @@
             serialNumber: "Serial number",
             installationYear: "Installation year",
             installationType: "Installation type",
-            installedBy: "Installation performed by Ventilation Elixair",
+            installedBy: "Installation performed by Ventilation Skalean",
             ownerOrTenant: "Owner or tenant",
             tenantInfo: "Landlord information",
             yes: "Yes",
@@ -1458,7 +1458,7 @@
               <span id="terms-title" class="required">Termes et conditions</span>
             </h3>
             <div class="terms-content" id="terms-content">
-              Nous vous informons que pour toute intervention de service chez Ventilation Elixair, si votre appareil n'est plus couvert par la garantie de 1 an sur la main-d'œuvre, les frais suivants s'appliqueront :
+              Nous vous informons que pour toute intervention de service chez Ventilation Skalean, si votre appareil n'est plus couvert par la garantie de 1 an sur la main-d'œuvre, les frais suivants s'appliqueront :
             </div>
             <ul class="terms-list">
               <li><strong id="travel-fee-label">Frais de déplacement</strong>: <span id="travel-fee-amount">125 $</span></li>
@@ -1641,7 +1641,7 @@
             </div>
             
             <div class="form-group">
-              <label for="installed-by" class="bold-label" id="label-installed-by">Installation exécuté par Ventilation Elixair</label>
+              <label for="installed-by" class="bold-label" id="label-installed-by">Installation exécuté par Ventilation Skalean</label>
               <div id="installed-by-container">
                 <div class="radio-button-group">
                   <div class="radio-button-container">
@@ -2742,7 +2742,7 @@
           const installationType = formContainer.querySelector("#installation-type").value;
           
           // Get radio button values
-          const installedByElixair = formContainer.querySelector("#installed-by-yes").checked;
+          const installedBySkalean = formContainer.querySelector("#installed-by-yes").checked;
           const isOwner = formContainer.querySelector("#owner-status-owner").checked;
           
           const tenantInfo = formContainer.querySelector("#tenant-info").value.trim();
@@ -2789,7 +2789,7 @@
                 serialNumber,
                 installationYear,
                 installationType,
-                installedByElixair,
+                installedBySkalean,
                 isOwner,
                 tenantInfo,
                 availabilities: formattedAvailabilities,
@@ -2814,7 +2814,7 @@
               serialNumber,
               installationYear,
               installationType,
-              installedByElixair,
+              installedBySkalean,
               isOwner,
               tenantInfo,
               availabilities: formattedAvailabilities,
