@@ -28,6 +28,25 @@ function isValidUrl(url) {
         return false;
     }
 }
+
+function normalizeUrl(url) {
+            if (!url || url.trim() === '') return '';
+            
+            let normalized = url.trim();
+            
+            // Remove protocol if present
+            normalized = normalized.replace(/^https?:\/\//, '');
+            
+            // Remove trailing slash and any path
+            normalized = normalized.split('/')[0];
+            
+            // Add www. if not present
+            if (!normalized.startsWith('www.')) {
+                normalized = 'www.' + normalized;
+            }
+            
+            return normalized;
+        }
 // SVG constants
 const SVG_CHECK =`
 	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
@@ -4750,37 +4769,80 @@ function prepareDataForSubmission(formValues) {
                 );
             // Language type radio buttons
             formContainer.querySelectorAll('input[name="languageType"]')
-                .forEach(radio => {
-                    radio.addEventListener('change', function () {
-                        hideError('error-language-type');
-                        formValues.languageType = this.value;
-                        // Only show language selection when a type is explicitly chosen
-                        showConditionalSection('#language-selection');
-                        // Reset language values when switching types
-                        formValues.languages = [];
-                        // Clear the language dropdown selection
-                        const languageSelect = formContainer.querySelector('#languagesSelect');
-                        const languageDisplay = formContainer.querySelector('#selectDisplayLanguages');
-                        if (languageSelect && languageDisplay) {
-                            // Clear all selections
-                            Array.from(languageSelect.options)
-                                .forEach(option => option.selected = false);
-                            languageSelect.selectedIndex = 0;
-                            // Reset display to placeholder
-                            languageDisplay.classList.add('placeholder');
-                            const span = languageDisplay.querySelector('span');
-                            if (span) {
-                                span.textContent = this.value === 'multilingual' ?
-                                    getText('selectMultiplePlaceholder') :
-                                    getText('selectPlaceholder');
-                            }
-                            // Clear custom options
-                            const customOptions = formContainer.querySelectorAll('#customOptionsLanguages .custom-option');
-                            customOptions.forEach(opt => opt.classList.remove('selected'));
-                        }
-                        saveFormData();
-                    });
-                });
+    .forEach(radio => {
+        radio.addEventListener('change', function () {
+            const languageSelection = formContainer.querySelector('#language-selection');
+            showConditionalSection('#language-selection');
+            
+            // Reset language values when switching modes
+            formValues.languages = [];
+            
+            // Get references to elements
+            const languageSelectLabel = formContainer.querySelector('#language-select-label');
+            const languagesDropdown = formContainer.querySelector('#languagesDropdown');
+            const customOptionsContainer = formContainer.querySelector('#customOptionsLanguages');
+            const selectElement = formContainer.querySelector('#languagesSelect');
+            const displayElement = formContainer.querySelector('#selectDisplayLanguages');
+            
+            // Clear existing options
+            customOptionsContainer.innerHTML = '';
+            selectElement.innerHTML = '';
+            
+            // Remove existing event listeners by replacing elements
+            const newDisplayElement = displayElement.cloneNode(true);
+            displayElement.parentNode.replaceChild(newDisplayElement, displayElement);
+            
+            // Update the reference
+            const updatedDisplay = formContainer.querySelector('#selectDisplayLanguages');
+            const icon = formContainer.querySelector('#dropdownIconLanguages');
+            
+            if (this.value === 'multilingual') {
+                // Configure for multilingual
+                languagesDropdown.className = 'select-container multi-select';
+                languageSelectLabel.textContent = getText('selectLanguages');
+                selectElement.multiple = true;
+                
+                // Set placeholder for multilingual
+                updatedDisplay.setAttribute('data-placeholder', getText('selectMultiplePlaceholder'));
+                updatedDisplay.classList.add('placeholder');
+                updatedDisplay.querySelector('span').textContent = getText('selectMultiplePlaceholder');
+                
+                // Build multi-select dropdown
+                buildMultiSelectDropdown(
+                    'languagesSelect',
+                    'customOptionsLanguages',
+                    'selectDisplayLanguages',
+                    'dropdownIconLanguages',
+                    formData.languages
+                );
+                
+            } else {
+                // Configure for unilingual (single select)
+                languagesDropdown.className = 'select-container single-select';
+                languageSelectLabel.textContent = getText('selectLanguage');
+                selectElement.multiple = false;
+                
+                // Set placeholder for unilingual
+                updatedDisplay.setAttribute('data-placeholder', getText('selectPlaceholder'));
+                updatedDisplay.classList.add('placeholder');
+                updatedDisplay.querySelector('span').textContent = getText('selectPlaceholder');
+                
+                // Build single-select dropdown
+                buildSingleSelectDropdown(
+                    'languagesSelect',
+                    'customOptionsLanguages',
+                    'selectDisplayLanguages',
+                    'dropdownIconLanguages',
+                    formData.languages
+                );
+            }
+            
+            // Update form values and save
+            formValues.languageType = this.value;
+            hideError('error-language-type');
+            saveFormData();
+        });
+    });
         }
         /*************************************************************
          * Translation Functions
@@ -5231,6 +5293,10 @@ function prepareDataForSubmission(formValues) {
                 formValues.websiteTraffic = option.id;
                 hideError('error-website-traffic');
             }
+		if (selectId === 'languagesSelect') {
+    formValues.languages = [option.id]; // Store as array for consistency
+    hideError('error-languages');
+}
             
             saveFormData();
         });
@@ -5477,10 +5543,11 @@ function buildMultiSelectDropdown(selectId, customOptionsId, displayId, iconId, 
                     .map(opt => opt.value);
                 hideError('error-databases');
             } else if (selectId === 'languagesSelect') {
-                formValues.languages = Array.from(select.options)
-                    .filter(opt => opt.selected)
-                    .map(opt => opt.value);
-                hideError('error-languages');
+    formValues.languages = Array.from(select.options)
+        .filter(opt => opt.selected)
+        .map(opt => opt.value);
+    hideError('error-languages');
+}
             }
             
             saveFormData();
@@ -6104,65 +6171,69 @@ function validateStep6() {
 }
 
 		function validateStep8() {
-            let isValid = true;
-            // Validate social bot
-            const needSocialBot = formContainer.querySelector('input[name="needSocialBot"]:checked');
-            if (!needSocialBot) {
-                showError('error-need-social', 'needSocialRequired');
+    let isValid = true;
+    
+    // Validate social bot
+    const needSocialBot = formContainer.querySelector('input[name="needSocialBot"]:checked');
+    if (!needSocialBot) {
+        showError('error-need-social', 'needSocialRequired');
+        isValid = false;
+    } else {
+        hideError('error-need-social');
+        formValues.needSocialBot = needSocialBot.value;
+        
+        // Validate social platforms if "yes"
+        if (needSocialBot.value === 'yes') {
+            const socialPlatformsSelect = formContainer.querySelector('#socialPlatformsSelect');
+            const selectedPlatforms = Array.from(socialPlatformsSelect.options)
+                .filter(opt => opt.selected);
+            if (selectedPlatforms.length === 0) {
+                showError('error-social-platforms', 'socialPlatformsRequired');
                 isValid = false;
             } else {
-                hideError('error-need-social');
-                formValues.needSocialBot = needSocialBot.value;
-                // Validate social platforms if "yes"
-                if (needSocialBot.value === 'yes') {
-                    const socialPlatformsSelect = formContainer.querySelector('#socialPlatformsSelect');
-                    const selectedPlatforms = Array.from(socialPlatformsSelect.options)
-                        .filter(opt => opt.selected);
-                    if (selectedPlatforms.length === 0) {
-                        showError('error-social-platforms', 'socialPlatformsRequired');
-                        isValid = false;
-                    } else {
-                        hideError('error-social-platforms');
-                        formValues.socialPlatforms = selectedPlatforms.map(opt => opt.value);
-                    }
-                }
+                hideError('error-social-platforms');
+                formValues.socialPlatforms = selectedPlatforms.map(opt => opt.value);
             }
-            // Validate language type
-            const languageType = formContainer.querySelector('input[name="languageType"]:checked');
-            if (!languageType) {
-                showError('error-language-type', 'languageTypeRequired');
-                isValid = false;
-            } else {
-                hideError('error-language-type');
-                formValues.languageType = languageType.value;
-                // Different validation logic based on language type
-                if (languageType.value === 'multilingual') {
-                    // For multilingual: validate multiple selections in the multi-select
-                    const languagesSelect = formContainer.querySelector('#languagesSelect');
-                    const selectedLanguages = Array.from(languagesSelect.options)
-                        .filter(opt => opt.selected);
-                    if (selectedLanguages.length === 0) {
-                        showError('error-languages', 'languagesRequired');
-                        isValid = false;
-                    } else {
-                        hideError('error-languages');
-                        formValues.languages = selectedLanguages.map(opt => opt.value);
-                    }
-                } else {
-                    // For unilingual: validate single selection
-                    const selectedLanguage = formContainer.querySelector('#languagesSelect')
-                        .value;
-                    if (!selectedLanguage) {
-                        showError('error-languages', 'languagesRequired');
-                        isValid = false;
-                    } else {
-                        hideError('error-languages');
-                        formValues.languages = [selectedLanguage]; // Store as array for consistency
-                    }
-                }
-            }
-            return isValid;
         }
+    }
+    
+    // Validate language type
+    const languageType = formContainer.querySelector('input[name="languageType"]:checked');
+    if (!languageType) {
+        showError('error-language-type', 'languageTypeRequired');
+        isValid = false;
+    } else {
+        hideError('error-language-type');
+        formValues.languageType = languageType.value;
+        
+        // Validate language selection
+        const languagesSelect = formContainer.querySelector('#languagesSelect');
+        
+        if (languageType.value === 'multilingual') {
+            // For multilingual: check if at least one language is selected
+            const selectedLanguages = Array.from(languagesSelect.options)
+                .filter(opt => opt.selected);
+            if (selectedLanguages.length === 0) {
+                showError('error-languages', 'languagesRequired');
+                isValid = false;
+            } else {
+                hideError('error-languages');
+                formValues.languages = selectedLanguages.map(opt => opt.value);
+            }
+        } else {
+            // For unilingual: check if one language is selected
+            if (!languagesSelect.value) {
+                showError('error-languages', 'languagesRequired');
+                isValid = false;
+            } else {
+                hideError('error-languages');
+                formValues.languages = [languagesSelect.value]; // Store as array for consistency
+            }
+        }
+    }
+    
+    return isValid;
+}
 
         function showError(errorId, messageKey) {
             const errorElement = formContainer.querySelector(`#${errorId}`);
