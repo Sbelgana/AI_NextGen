@@ -32,7 +32,7 @@ function isValidUrl(url) {
     try {
         new URL(testUrl);
         // More comprehensive URL pattern that allows paths, query params, etc.
-        const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\\]@!function isValidUrl(url) {
+        const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!function isValidUrl(url) {
     if (!url || url.trim() === '') return false;
     
     let testUrl = url.trim();
