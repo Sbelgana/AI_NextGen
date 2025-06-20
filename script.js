@@ -14256,5 +14256,5 @@ const ContactFormExtension = {
 window.SubmissionFormExtension = SubmissionFormExtension;
 window.ContactFormExtension = ContactFormExtension;
 window.BookingDirectExtension = BookingDirectExtension;
-window.RescheduleCalendarExtension = RescheduleCalendarExtension;
-window.CancellationCalendarExtension = CancellationCalendarExtension;
+window.RescheduleExtension = RescheduleExtension;
+window.CancellationExtension = CancellationExtension;
