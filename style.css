@@ -3,6 +3,8 @@
     background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67be5436c2849b37cefb04ee_white-wall-texture-background.jpg);
 }*/
 
+
+
 .g3dqfd8 {
     display: inline-block;
     box-sizing: border-box;
@@ -27,7 +29,16 @@
         min-height: 800px;
         max-height: 100%;
     }
+	.s9t60i0 {
+	min-height: 800px;
 }
+
+}
+@media (min-width: 1200px) {
+.s9t60i0 {
+	min-height: 1000px;
+}
+	}
 
 ._15emaa41 {
     background-color: #e95d2c;
