@@ -2268,17 +2268,17 @@ const formValues = {
 			}
 
 			.error-message {
-				color: white;
-				font-size: 13px;
-				margin-top: 8px;
-				display: none;
-				background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-				border-radius: 8px;
-				border: none;
-				padding: 12px 16px;
-				animation: shake 0.5s;
-				box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-			}
+    color: white;
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+    background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+    border-radius: 8px;
+    border: none;
+    padding: 12px 16px;
+    animation: shake 0.5s;
+    box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 
 			.error-message.show {
 				display: flex;
@@ -2286,23 +2286,24 @@ const formValues = {
 			}
 
 			.error-icon {
-				width: 22px;
-				height: 22px;
-				min-width: 22px;
-				border-radius: 50%;
-				background-color: white;
-				
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-weight: bold;
-				margin-right: 12px;
-				font-size: 14px;
-			}
+							width: 22px;
+							height: 22px;
+							min-width: 22px;
+							border-radius: 50%;
+							background-color: white;
+							color: #e23939;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							font-weight: bold;
+							margin-right: 12px;
+							font-size: 14px;
+						}
 
 			.error-text {
-				flex: 1;
-			}
+    flex: 1;
+    color: white; /* Add this line */
+}
 
 			/* ---------- BUTTONS & NAVIGATION ---------- */
 			.form-buttons {
@@ -8421,17 +8422,17 @@ const ContactFormExtension = {
 						}
 	
 						.error-message {
-							color: white;
-							font-size: 13px;
-							margin-top: 8px;
-							display: none;
-							background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-							border-radius: 8px;
-							border: none;
-							padding: 12px 16px;
-							animation: shake 0.5s;
-							box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-						}
+    color: white;
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+    background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+    border-radius: 8px;
+    border: none;
+    padding: 12px 16px;
+    animation: shake 0.5s;
+    box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 	
 						.error-message.show {
 							display: flex;
@@ -8444,7 +8445,7 @@ const ContactFormExtension = {
 							min-width: 22px;
 							border-radius: 50%;
 							background-color: white;
-							
+							color: #e23939;
 							display: flex;
 							align-items: center;
 							justify-content: center;
@@ -8454,8 +8455,9 @@ const ContactFormExtension = {
 						}
 	
 						.error-text {
-							flex: 1;
-						}
+    flex: 1;
+    color: white; /* Add this line */
+}
 	
 						/* ---------- BUTTONS & NAVIGATION ---------- */
 						.form-buttons {
@@ -10400,18 +10402,18 @@ const ContactFormExtension = {
                             box-sizing: border-box;
                         }
 
-                        .error-message {
-                            color: white;
-                            font-size: 13px;
-                            margin-top: 8px;
-                            display: none;
-                            background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-                            border-radius: 8px;
-                            border: none;
-                            padding: 12px 16px;
-                            animation: shake 0.5s;
-                            box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-                        }
+                      .error-message {
+    color: white;
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+    background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+    border-radius: 8px;
+    border: none;
+    padding: 12px 16px;
+    animation: shake 0.5s;
+    box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 
                         .error-message.show {
                             display: flex;
@@ -10419,23 +10421,24 @@ const ContactFormExtension = {
                         }
 
                         .error-icon {
-                            width: 22px;
-                            height: 22px;
-                            min-width: 22px;
-                            border-radius: 50%;
-                            background-color: white;
-                            
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: bold;
-                            margin-right: 12px;
-                            font-size: 14px;
-                        }
+							width: 22px;
+							height: 22px;
+							min-width: 22px;
+							border-radius: 50%;
+							background-color: white;
+							color: #e23939;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							font-weight: bold;
+							margin-right: 12px;
+							font-size: 14px;
+						}
 
-                        .error-text {
-                            flex: 1;
-                        }
+                       .error-text {
+    flex: 1;
+    color: white; /* Add this line */
+}
 
                         /* ---------- BUTTONS & NAVIGATION ---------- */
                         .form-buttons {
@@ -12367,18 +12370,18 @@ const ContactFormExtension = {
                             box-sizing: border-box;
                         }
 
-                        .error-message {
-                            color: white;
-                            font-size: 13px;
-                            margin-top: 8px;
-                            display: none;
-                            background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-                            border-radius: 8px;
-                            border: none;
-                            padding: 12px 16px;
-                            animation: shake 0.5s;
-                            box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-                        }
+                     .error-message {
+    color: white;
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+    background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+    border-radius: 8px;
+    border: none;
+    padding: 12px 16px;
+    animation: shake 0.5s;
+    box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 
                         .error-message.show {
                             display: flex;
@@ -12386,23 +12389,24 @@ const ContactFormExtension = {
                         }
 
                         .error-icon {
-                            width: 22px;
-                            height: 22px;
-                            min-width: 22px;
-                            border-radius: 50%;
-                            background-color: white;
-                            
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: bold;
-                            margin-right: 12px;
-                            font-size: 14px;
-                        }
+							width: 22px;
+							height: 22px;
+							min-width: 22px;
+							border-radius: 50%;
+							background-color: white;
+							color: #e23939;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							font-weight: bold;
+							margin-right: 12px;
+							font-size: 14px;
+						}
 
-                        .error-text {
-                            flex: 1;
-                        }
+                       .error-text {
+    flex: 1;
+    color: white; /* Add this line */
+}
 
                         /* ---------- BUTTONS & NAVIGATION ---------- */
                         .form-buttons {
@@ -13974,42 +13978,43 @@ const ContactFormExtension = {
                             box-sizing: border-box;
                         }
 
-                        .error-message {
-                            color: white;
-                            font-size: 13px;
-                            margin-top: 8px;
-                            display: none;
-                            background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
-                            border-radius: 8px;
-                            border: none;
-                            padding: 12px 16px;
-                            animation: shake 0.5s;
-                            box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
-                        }
+                     .error-message {
+    color: white;
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+    background: linear-gradient(135deg, #e52059 0%, #d32f2f 100%);
+    border-radius: 8px;
+    border: none;
+    padding: 12px 16px;
+    animation: shake 0.5s;
+    box-shadow: 0 4px 15px rgba(229, 32, 89, 0.3);
+}
 
                         .error-message.show {
                             display: flex;
                             animation: slideIn 0.3s ease-out;
                         }
 
-                        .error-icon {
-                            width: 22px;
-                            height: 22px;
-                            min-width: 22px;
-                            border-radius: 50%;
-                            background-color: white;
-                            
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: bold;
-                            margin-right: 12px;
-                            font-size: 14px;
-                        }
+                       .error-icon {
+							width: 22px;
+							height: 22px;
+							min-width: 22px;
+							border-radius: 50%;
+							background-color: white;
+							color: #e23939;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							font-weight: bold;
+							margin-right: 12px;
+							font-size: 14px;
+						}
 
-                        .error-text {
-                            flex: 1;
-                        }
+                      .error-text {
+    flex: 1;
+    color: white; /* Add this line */
+}
 
                         /* ---------- BUTTONS & NAVIGATION ---------- */
                         .form-buttons {
