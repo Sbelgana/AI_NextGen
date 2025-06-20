@@ -1858,7 +1858,7 @@ const formValues = {
 			.form-label.required::after,
 			.question-label.required::after {
 				content: " *";
-				color: #e52059;
+				
 				font-weight: bold;
 			}
 
@@ -2222,7 +2222,7 @@ const formValues = {
 				min-width: 22px;
 				border-radius: 50%;
 				background-color: white;
-				color: #e52059;
+				
 				display: flex;
 				align-items: center;
 				justify-content: center;
@@ -8066,7 +8066,7 @@ const ContactFormExtension = {
 	
 						.form-label.required::after, .question-label.required::after {
 							content: " *";
-							color: #e52059;
+							
 							font-weight: bold;
 						}
 	
@@ -8324,7 +8324,7 @@ const ContactFormExtension = {
 							min-width: 22px;
 							border-radius: 50%;
 							background-color: white;
-							color: #e52059;
+							
 							display: flex;
 							align-items: center;
 							justify-content: center;
@@ -10091,7 +10091,7 @@ const ContactFormExtension = {
 
                         .form-label.required::after {
                             content: " *";
-                            color: #e52059;
+                            
                             font-weight: bold;
                         }
 
@@ -10304,7 +10304,7 @@ const ContactFormExtension = {
                             min-width: 22px;
                             border-radius: 50%;
                             background-color: white;
-                            color: #e52059;
+                            
                             display: flex;
                             align-items: center;
                             justify-content: center;
@@ -12094,7 +12094,7 @@ const ContactFormExtension = {
 
                         .form-label.required::after {
                             content: " *";
-                            color: #e52059;
+                            
                             font-weight: bold;
                         }
 
@@ -12271,7 +12271,7 @@ const ContactFormExtension = {
                             min-width: 22px;
                             border-radius: 50%;
                             background-color: white;
-                            color: #e52059;
+                            
                             display: flex;
                             align-items: center;
                             justify-content: center;
@@ -13666,7 +13666,7 @@ const ContactFormExtension = {
 
                         .form-label.required::after {
                             content: " *";
-                            color: #e52059;
+                            
                             font-weight: bold;
                         }
 
@@ -13878,7 +13878,7 @@ const ContactFormExtension = {
                             min-width: 22px;
                             border-radius: 50%;
                             background-color: white;
-                            color: #e52059;
+                            
                             display: flex;
                             align-items: center;
                             justify-content: center;
