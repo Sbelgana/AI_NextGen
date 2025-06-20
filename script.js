@@ -32,51 +32,40 @@ function isValidUrl(url) {
     try {
         new URL(testUrl);
         // More comprehensive URL pattern that allows paths, query params, etc.
-        const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!function isValidUrl(url) {
-    if (!url || url.trim() === '') return false;
-    
-    let testUrl = url.trim();
-    
-    // Add protocol if missing for URL constructor test
-    if (!testUrl.match(/^https?:\/\//)) {
-        testUrl = 'https://' + testUrl;
-    }
-    
-    try {
-        new URL(testUrl);
-        // Basic domain pattern check
-        const domainPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/;
-        return domainPattern.test(url.trim());
+        const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=%]*)?$/;
+        return urlPattern.test(url.trim());
     } catch (e) {
         return false;
     }
 }
 
-// Also update the normalizeUrl function to be more robust
 function normalizeUrl(url) {
     if (!url || url.trim() === '') return '';
     
     let normalized = url.trim();
     
-    // Remove protocol if present
-    normalized = normalized.replace(/^https?:\/\//, '');
+    // If it doesn't start with http:// or https://, add https://
+    if (!normalized.match(/^https?:\/\//)) {
+        // Check if it starts with www. or is a subdomain
+        if (normalized.startsWith('www.') || normalized.split('.').length > 2) {
+            normalized = 'https://' + normalized;
+        } else {
+            // Add www. for simple domain names
+            normalized = 'https://www.' + normalized;
+        }
+    }
     
-    // Remove trailing slash and any path
-    normalized = normalized.split('/')[0];
-    
-    // Add www. if not present and it's not already a subdomain
-    if (!normalized.includes('.') || (!normalized.startsWith('www.') && normalized.split('.').length === 2)) {
-        if (!normalized.startsWith('www.')) {
-            normalized = 'www.' + normalized;
+    // Ensure www. is present for main domains (not subdomains)
+    if (normalized.match(/^https?:\/\/[^\/]+$/)) {
+        // It's just a domain without path
+        const urlParts = normalized.split('://');
+        const domain = urlParts[1];
+        if (!domain.startsWith('www.') && domain.split('.').length === 2) {
+            normalized = urlParts[0] + '://www.' + domain;
         }
     }
     
     return normalized;
-}'()*+,;=%]*)?$/;
-        return urlPattern.test(url.trim());
-    } catch (e) {
-        return false;
-    }
 }
 
 // Updated normalizeUrl function that preserves the full URL structure
