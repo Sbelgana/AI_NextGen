@@ -31,12 +31,14 @@
     }
 	.s9t60i0 {
 	min-width: 800px;
+		left: calc(50% - 400px);
 }
 
 }
 @media (min-width: 1200px) {
 .s9t60i0 {
 	min-width: 1000px;
+		left: calc(50% - 500px);
 }
 	}
 
