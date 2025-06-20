@@ -1754,7 +1754,6 @@ const formValues = {
 				margin: 0 auto;
 				padding: 0;
 				border-radius: 12px;
-				background: #fff;
 				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 				box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
 				position: relative;
@@ -1790,7 +1789,6 @@ const formValues = {
 			.progress-container {
 
   padding: 15px 25px 0px 25px;
-  background: linear-gradient(to bottom, #ffffff, #fefeff);
 }
 
 
@@ -1837,7 +1835,6 @@ const formValues = {
 				flex-direction: column;
 				gap: 10px;
 				padding: 5px 30px 10px;
-				background: linear-gradient(to bottom, #ffffff, #fefeff);
 			}
 
 			.step-container:not(.active) {
@@ -7982,7 +7979,6 @@ const ContactFormExtension = {
 							margin: 0 auto;
 							padding: 0;
 							border-radius: 12px;
-							background: #fff;
 							font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 							box-shadow: 0 8px 30px rgba(233, 93, 44, 0.12);
 							position: relative;
@@ -8013,7 +8009,6 @@ const ContactFormExtension = {
 						/* ---------- STEP PROGRESS INDICATOR ---------- */
 						.progress-container {
 							padding: 15px 25px 0px 25px;
-							background: linear-gradient(to bottom, #ffffff, #fefeff);
 						}
 						
 						.progress-bar {
@@ -8052,7 +8047,6 @@ const ContactFormExtension = {
 							flex-direction: column;
 							gap: 10px;
 							padding: 5px 30px 10px;
-							background: linear-gradient(to bottom, #ffffff, #fefeff);
 						}
 	
 						.step-container:not(.active) {
@@ -10013,7 +10007,6 @@ const ContactFormExtension = {
                             margin: 0 auto;
                             padding: 0;
                             border-radius: 12px;
-                            background: #fff;
                             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                             box-shadow: 0 8px 30px rgba(233, 93, 44, 0.12);
                             position: relative;
@@ -10045,7 +10038,6 @@ const ContactFormExtension = {
                         /* ---------- STEP PROGRESS INDICATOR ---------- */
                         .progress-container {
                             padding: 15px 25px 0px 25px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
                         
                         .progress-bar {
@@ -10084,7 +10076,6 @@ const ContactFormExtension = {
                             flex-direction: column;
                             gap: 10px;
                             padding: 5px 30px 10px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
 
                         .step-container:not(.active) {
@@ -12019,7 +12010,6 @@ const ContactFormExtension = {
                             margin: 0 auto;
                             padding: 0;
                             border-radius: 12px;
-                            background: #fff;
                             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                             box-shadow: 0 8px 30px rgba(233, 93, 44, 0.12);
                             position: relative;
@@ -12051,7 +12041,6 @@ const ContactFormExtension = {
                         /* ---------- STEP PROGRESS INDICATOR ---------- */
                         .progress-container {
                             padding: 15px 25px 0px 25px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
                         
                         .progress-bar {
@@ -12090,7 +12079,6 @@ const ContactFormExtension = {
                             flex-direction: column;
                             gap: 10px;
                             padding: 5px 30px 10px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
 
                         .step-container:not(.active) {
@@ -13594,7 +13582,6 @@ const ContactFormExtension = {
                             margin: 0 auto;
                             padding: 0;
                             border-radius: 12px;
-                            background: #fff;
                             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                             box-shadow: 0 8px 30px rgba(233, 93, 44, 0.12);
                             position: relative;
@@ -13626,7 +13613,6 @@ const ContactFormExtension = {
                         /* ---------- STEP PROGRESS INDICATOR ---------- */
                         .progress-container {
                             padding: 15px 25px 0px 25px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
                         
                         .progress-bar {
@@ -13665,7 +13651,6 @@ const ContactFormExtension = {
                             flex-direction: column;
                             gap: 10px;
                             padding: 5px 30px 10px;
-                            background: linear-gradient(to bottom, #ffffff, #fefeff);
                         }
 
                         .step-container:not(.active) {
