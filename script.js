@@ -2706,7 +2706,6 @@ const formValues = {
 				outline: 2px solid #e95d2c;
 				outline-offset: 2px;
 			}
-=
 
 			
 
@@ -5548,7 +5547,7 @@ function buildMultiSelectDropdown(selectId, customOptionsId, displayId, iconId, 
         .map(opt => opt.value);
     hideError('error-languages');
 }
-            }
+            
             
             saveFormData();
         });
