@@ -2410,7 +2410,6 @@ const formValues = {
 
 			/* ---------- SUMMARY STYLES ---------- */
 			.summary-container {
-				background: linear-gradient(135deg, #b0cee2 0%, #ffffff 100%);
 				border: 2px solid rgba(2, 48, 71, 0.1);
 				border-radius: 12px;
 				padding: 10px 15px;
@@ -2474,7 +2473,6 @@ const formValues = {
 			.summary-label {
 				font-weight: 600;
 				width: 30%;
-				color: #a63e1b;
 			}
 
 			.summary-value {
@@ -8548,7 +8546,6 @@ const ContactFormExtension = {
 	
 						/* ---------- ENHANCED SUMMARY STYLES ---------- */
 						.summary-container {
-							background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 							border: 1px solid rgba(233, 93, 44, 0.1);
 							border-radius: 16px;
 							padding: 0;
@@ -8643,7 +8640,6 @@ const ContactFormExtension = {
 						.summary-label {
 							font-weight: 600;
 							width: 20%;
-							color: #1a2730;
 							font-size: 14px;
 							line-height: 1.4;
 							padding-right: 16px;
