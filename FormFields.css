@@ -1676,7 +1676,6 @@ select:focus-visible,
     .slider-value-label {
         font-size: 12px;
         padding: 4px 8px;
-        top: -35px;
     }
     
     .slider-value-label::after {
