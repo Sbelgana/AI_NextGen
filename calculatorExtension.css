@@ -10,7 +10,7 @@
 
 .calculator-extension {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    max-width: 800px;
+    min-width: 800px;
     margin: 20px auto;
     background: #ffffff;
     border-radius: 12px;
@@ -126,7 +126,7 @@
 @media (max-width: 768px) {
     .calculator-extension {
         margin: 10px;
-        max-width: none;
+        min-width: 500px;
     }
     
     .calculator-form-container {
@@ -145,6 +145,11 @@
 
 @media (max-width: 480px) {
     
+	.calculator-extension {
+        margin: 10px;
+        min-width: 200px;
+    }
+	
     .calculator-form-container {
         padding: 15px;
     }
