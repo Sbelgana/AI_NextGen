@@ -3,13 +3,6 @@
  * @version 3.2.0
  * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
  */
-
-/**
- * Complete FormFieldFactory System - Merged Enhanced Version
- * @version 3.2.0
- * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
- */
-
 class FormFieldFactory {
     constructor(options = {}) {
         
@@ -6466,6 +6459,9 @@ class ServiceCardField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
+        // Store config for later use
+        this.config = config;
+        
         // Service card specific config
         this.services = config.services || [];
         this.layout = config.layout || 'grid';
@@ -6484,17 +6480,18 @@ class ServiceCardField extends BaseField {
         this.element = document.createElement('div');
         this.element.className = `form-field service-card-field layout-${this.layout}`;
         
-        if (this.config.label) {
+        // Use this.label instead of this.config.label (BaseField already stores it)
+        if (this.label) {
             this.element.innerHTML = `
-                <label class="form-label ${this.config.required ? 'required' : ''}" for="${this.config.id}">
-                    ${this.config.label}
+                <label class="form-label ${this.required ? 'required' : ''}" for="${this.id}">
+                    ${this.label}
                 </label>
             `;
         }
         
         const container = document.createElement('div');
         container.className = `service-cards-container columns-${this.columns}`;
-        container.id = this.config.id;
+        container.id = this.id;
         
         // Render each service card
         this.services.forEach((service, index) => {
@@ -6505,11 +6502,11 @@ class ServiceCardField extends BaseField {
         this.element.appendChild(container);
         
         // Add error container
-        if (this.config.required) {
+        if (this.required) {
             const errorContainer = document.createElement('div');
             errorContainer.className = 'error-container';
             errorContainer.innerHTML = `
-                <div class="error-message" id="${this.config.id}-error">
+                <div class="error-message" id="${this.id}-error">
                     <div class="error-icon">!</div>
                     <span class="error-text">${this.factory.texts.fieldRequired || 'This field is required'}</span>
                 </div>
