@@ -4,6 +4,12 @@
  * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
  */
 
+/**
+ * Complete FormFieldFactory System - Merged Enhanced Version
+ * @version 3.2.0
+ * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
+ */
+
 class FormFieldFactory {
     constructor(options = {}) {
         
@@ -42,7 +48,9 @@ class FormFieldFactory {
 			edit: options.texts?.edit || "Edit",
 			noDataEntered: options.texts?.noDataEntered || "No data entered",
 			multilingual: options.texts?.multilingual || "Multilingual",
-			unilingual: options.texts?.unilingual || "Unilingual"
+			unilingual: options.texts?.unilingual || "Unilingual",
+			serviceRequired: options.texts?.serviceRequired || "Please select a service",
+			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
 		};
         
         // SVG Icons
@@ -204,8 +212,7 @@ class FormFieldFactory {
     /**
      * Universal ID to name conversion
      */
-    // FIND this function and REPLACE the entire function:
-	universalConvertIds(flatData) {
+    universalConvertIds(flatData) {
 		const converted = { ...flatData };
 		const allFieldConfigs = this.getAllFieldConfigs();
 		
@@ -401,8 +408,8 @@ class FormFieldFactory {
 
 		this.setUniversalDefaults(transformed, allFieldConfigs);
 			
-			this.setUniversalDefaults(transformed, allFieldConfigs);
-			return transformed;
+		this.setUniversalDefaults(transformed, allFieldConfigs);
+		return transformed;
     }
 
     getAllFieldConfigs() {
@@ -552,6 +559,7 @@ class FormFieldFactory {
     createMultiStepForm(config) {
         return new MultiStepForm(this, config);
     }
+	
 	createSlidingWindowRangeField(config) {
 		return new SlidingWindowRangeField(this, config);
 	}
@@ -568,17 +576,17 @@ class FormFieldFactory {
 		return new OptionsSliderField(this, config);
 	}
 	
-	// Add this method to FormFieldFactory class
 	createSlidingWindowSliderField(config) {
 		return new SlidingWindowSliderField(this, config);
 	}
 
 	createServiceCardField(config) {
-    return new ServiceCardField(this, config);  // ✅ Factory first, config second
-}
+        return new ServiceCardField(this, config);
+    }
+	
 	createCalendarField(config) {
-    return new CalendarField(this, config);  // ✅ Factory first, config second
-}
+        return new CalendarField(this, config);
+    }
 
     // Cleanup method
     destroy() {
@@ -638,7 +646,6 @@ class FormFieldFactory {
         }
     };
 }
-
 /**
  * MultiStepForm - Enhanced main manager for multi-step forms
  */
@@ -874,6 +881,9 @@ class MultiStepForm {
 /**
  * FormStep - Enhanced with subsection field support and row layout
  */
+/**
+ * FormStep - Enhanced with subsection field support and row layout
+ */
 class FormStep {
     constructor(multiStepForm, config) {
         this.multiStepForm = multiStepForm;
@@ -903,7 +913,12 @@ class FormStep {
             this.container.appendChild(titleElement);
         }
 
-        
+        if (this.description) {
+            const descriptionElement = document.createElement('p');
+            descriptionElement.className = 'step-description';
+            descriptionElement.textContent = this.description;
+            this.container.appendChild(descriptionElement);
+        }
 
         const fieldsContainer = document.createElement('div');
         fieldsContainer.className = 'step-fields';
@@ -1035,17 +1050,17 @@ class FormStep {
             case 'custom':
                 return new CustomField(this.factory, fieldConfig);
 			case 'sliding-window-range':
-				return this.factory.createSlidingWindowRangeField(config);
+				return this.factory.createSlidingWindowRangeField(fieldConfig);
 			case 'dual-range':
-				return this.factory.createDualRangeField(config);
+				return this.factory.createDualRangeField(fieldConfig);
 			case 'slider':
-				return this.factory.createSliderField(config);
+				return this.factory.createSliderField(fieldConfig);
 			case 'options-slider':
-				return this.factory.createOptionsSliderField(config);
+				return this.factory.createOptionsSliderField(fieldConfig);
 			case 'serviceCard':
 				return this.factory.createServiceCardField(fieldConfig);
-			case 'calendarField':
-				return this.factory.CalendarField(fieldConfig);
+			case 'calendar':
+				return this.factory.createCalendarField(fieldConfig);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
                 return null;
@@ -1176,7 +1191,6 @@ class FormStep {
         });
     }
 }
-
 /**
  * ProgressBar - Progress bar for multi-step forms
  */
@@ -6444,31 +6458,26 @@ class SlidingWindowSliderField extends BaseField {
 }
 
 
-        // ============================================================================
-// SERVICE CARD FIELD CLASS - Add this to FormFieldFactory.js
+// ============================================================================
+// SERVICE CARD FIELD CLASS 
 // ============================================================================
 
 class ServiceCardField extends BaseField {
-    constructor(factory, config) {  // ✅ Fixed parameter order
+    constructor(factory, config) {
         super(factory, config);
         
         // Service card specific config
         this.services = config.services || [];
-        this.layout = config.layout || 'grid'; // 'grid', 'list', 'compact'
-        this.columns = config.columns || 'auto'; // 'auto', 1, 2, 3, 4
+        this.layout = config.layout || 'grid';
+        this.columns = config.columns || 'auto';
         this.showDuration = config.showDuration !== false;
         this.showDescription = config.showDescription !== false;
         this.allowDeselect = config.allowDeselect || false;
-        this.selectionMode = config.selectionMode || 'single'; // 'single', 'multiple'
+        this.selectionMode = config.selectionMode || 'single';
         
         // State
         this.selectedServices = [];
         this.selectedService = null;
-        
-        // Bind methods
-        this.handleCardClick = this.handleCardClick.bind(this);
-        this.renderServiceCard = this.renderServiceCard.bind(this);
-        this.updateSelection = this.updateSelection.bind(this);
     }
     
     render() {
@@ -6517,7 +6526,6 @@ class ServiceCardField extends BaseField {
         card.dataset.serviceId = service.id || index;
         card.dataset.serviceIndex = index;
         
-        // Add accessibility attributes
         card.setAttribute('role', 'button');
         card.setAttribute('tabindex', '0');
         card.setAttribute('aria-pressed', 'false');
@@ -6620,21 +6628,18 @@ class ServiceCardField extends BaseField {
     }
     
     handleSingleSelection(cardElement, service) {
-        // Remove selection from all cards
         const allCards = this.element.querySelectorAll('.service-card');
         allCards.forEach(card => {
             card.classList.remove('selected');
             card.setAttribute('aria-pressed', 'false');
         });
         
-        // Handle deselection if allowed
         if (this.allowDeselect && this.selectedService && this.selectedService.id === service.id) {
             this.selectedService = null;
             this.selectedServices = [];
             return;
         }
         
-        // Select the clicked card
         cardElement.classList.add('selected');
         cardElement.setAttribute('aria-pressed', 'true');
         this.selectedService = service;
@@ -6645,18 +6650,15 @@ class ServiceCardField extends BaseField {
         const isSelected = cardElement.classList.contains('selected');
         
         if (isSelected) {
-            // Deselect
             cardElement.classList.remove('selected');
             cardElement.setAttribute('aria-pressed', 'false');
             this.selectedServices = this.selectedServices.filter(s => s.id !== service.id);
         } else {
-            // Select
             cardElement.classList.add('selected');
             cardElement.setAttribute('aria-pressed', 'true');
             this.selectedServices.push(service);
         }
         
-        // Update single selection for compatibility
         this.selectedService = this.selectedServices.length > 0 ? this.selectedServices[0] : null;
     }
     
@@ -6665,8 +6667,7 @@ class ServiceCardField extends BaseField {
             this.selectedService : 
             this.selectedServices;
             
-        this.factory.updateFieldValue(this.config.name, value);
-        this.factory.validateField(this);
+        this.handleChange();
     }
     
     getValue() {
@@ -6676,7 +6677,6 @@ class ServiceCardField extends BaseField {
     }
     
     setValue(value) {
-        // Clear current selection
         this.selectedService = null;
         this.selectedServices = [];
         
@@ -6689,7 +6689,6 @@ class ServiceCardField extends BaseField {
         if (!value) return;
         
         if (this.selectionMode === 'single') {
-            // Single selection mode
             if (typeof value === 'object' && value.id) {
                 this.selectedService = value;
                 this.selectedServices = [value];
@@ -6700,7 +6699,6 @@ class ServiceCardField extends BaseField {
                 }
             }
         } else {
-            // Multiple selection mode
             if (Array.isArray(value)) {
                 this.selectedServices = [...value];
                 this.selectedService = value.length > 0 ? value[0] : null;
@@ -6721,16 +6719,19 @@ class ServiceCardField extends BaseField {
             this.selectedService !== null : 
             this.selectedServices.length > 0;
             
-        const isValid = !this.config.required || hasSelection;
+        const isValid = !this.required || hasSelection;
         
-        return {
-            isValid,
-            errorMessage: isValid ? null : (this.factory.texts.serviceRequired || 'Please select a service')
-        };
+        if (!isValid) {
+            this.showError(this.factory.getText('serviceRequired') || 'Please select a service');
+        } else {
+            this.hideError();
+        }
+        
+        return isValid;
     }
     
     showError(message) {
-        const errorElement = this.element.querySelector(`#${this.config.id}-error`);
+        const errorElement = this.element.querySelector(`#${this.id}-error`);
         if (errorElement) {
             const errorText = errorElement.querySelector('.error-text');
             if (errorText) {
@@ -6741,101 +6742,11 @@ class ServiceCardField extends BaseField {
     }
     
     hideError() {
-        const errorElement = this.element.querySelector(`#${this.config.id}-error`);
+        const errorElement = this.element.querySelector(`#${this.id}-error`);
         if (errorElement) {
             errorElement.classList.remove('show');
         }
     }
-    
-    reset() {
-        this.selectedService = null;
-        this.selectedServices = [];
-        
-        const allCards = this.element.querySelectorAll('.service-card');
-        allCards.forEach(card => {
-            card.classList.remove('selected');
-            card.setAttribute('aria-pressed', 'false');
-        });
-        
-        this.hideError();
-    }
-    
-    disable() {
-        const allCards = this.element.querySelectorAll('.service-card');
-        allCards.forEach(card => {
-            card.style.pointerEvents = 'none';
-            card.style.opacity = '0.5';
-            card.setAttribute('tabindex', '-1');
-        });
-    }
-    
-    enable() {
-        const allCards = this.element.querySelectorAll('.service-card');
-        allCards.forEach(card => {
-            card.style.pointerEvents = '';
-            card.style.opacity = '';
-            card.setAttribute('tabindex', '0');
-        });
-    }
-    
-    // Additional utility methods
-    getSelectedCount() {
-        return this.selectedServices.length;
-    }
-    
-    getSelectedIds() {
-        return this.selectedServices.map(service => service.id);
-    }
-    
-    selectById(serviceId) {
-        const service = this.services.find(s => s.id === serviceId);
-        if (service) {
-            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
-            if (card) {
-                this.handleCardClick(card, service);
-            }
-        }
-    }
-    
-    deselectById(serviceId) {
-        if (this.selectionMode === 'single' && this.selectedService?.id === serviceId) {
-            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
-            if (card) {
-                card.classList.remove('selected');
-                card.setAttribute('aria-pressed', 'false');
-                this.selectedService = null;
-                this.selectedServices = [];
-                this.updateValue();
-            }
-        } else if (this.selectionMode === 'multiple') {
-            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
-            if (card && card.classList.contains('selected')) {
-                this.handleCardClick(card, this.services.find(s => s.id === serviceId));
-            }
-        }
-    }
-    
-    updateServices(newServices) {
-        this.services = newServices;
-        this.reset();
-        
-        // Re-render the cards
-        const container = this.element.querySelector('.service-cards-container');
-        if (container) {
-            container.innerHTML = '';
-            this.services.forEach((service, index) => {
-                const card = this.renderServiceCard(service, index);
-                container.appendChild(card);
-            });
-        }
-    }
-}
-
-// Add to FormFieldFactory class registry
-if (typeof FormFieldFactory !== 'undefined') {
-    FormFieldFactory.prototype.createServiceCardField = function(config) {
-        return new ServiceCardField(config, this);
-    };
 }
 
 // ============================================================================
@@ -6843,7 +6754,7 @@ if (typeof FormFieldFactory !== 'undefined') {
 // ============================================================================
 
 class CalendarField extends BaseField {
-    constructor(factory, config) {  // ✅ Fixed parameter order
+    constructor(factory, config) {
         super(factory, config);
         
         // Calendar specific config
@@ -6861,17 +6772,10 @@ class CalendarField extends BaseField {
             selectedDate: null,
             selectedTime: null,
             availableSlots: {},
-            workingDays: [1, 2, 3, 4, 5], // Mon-Fri default
+            workingDays: [1, 2, 3, 4, 5],
             isConfirmed: false,
             isLoading: false
         };
-        
-        // Bind methods
-        this.fetchWorkingDays = this.fetchWorkingDays.bind(this);
-        this.fetchAvailableSlots = this.fetchAvailableSlots.bind(this);
-        this.createBooking = this.createBooking.bind(this);
-        this.renderCalendar = this.renderCalendar.bind(this);
-        this.attachCalendarEvents = this.attachCalendarEvents.bind(this);
         
         // Initialize
         this.init();
@@ -6889,7 +6793,6 @@ class CalendarField extends BaseField {
         }
     }
     
-    // Utility methods
     formatDate(date) {
         const d = new Date(date);
         const year = d.getFullYear();
@@ -6917,7 +6820,6 @@ class CalendarField extends BaseField {
         return next;
     }
     
-    // API methods
     async fetchWorkingDays(scheduleId) {
         if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
         
@@ -7114,14 +7016,12 @@ class CalendarField extends BaseField {
     renderCalendarData() {
         if (!this.element) return;
         
-        // Update current date display
         const currentDateEl = this.element.querySelector('.current-date');
         if (currentDateEl) {
             const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
             currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
         }
         
-        // Render weekdays
         const weekdaysEl = this.element.querySelector('.weekdays');
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
@@ -7133,10 +7033,7 @@ class CalendarField extends BaseField {
             });
         }
         
-        // Render calendar days
         this.renderDays();
-        
-        // Render time slots
         this.renderTimeSlots();
     }
     
@@ -7151,20 +7048,17 @@ class CalendarField extends BaseField {
         const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
         
-        // Previous month days
         for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
             const day = new Date(firstDay);
             day.setDate(day.getDate() - i - 1);
             daysToShow.push({ date: day, inactive: true });
         }
         
-        // Current month days
         for (let i = 1; i <= totalDays; i++) {
             const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
             daysToShow.push({ date: day, inactive: false });
         }
         
-        // Next month days
         const remainingDays = 42 - daysToShow.length;
         for (let i = 1; i <= remainingDays; i++) {
             const day = new Date(lastDay);
@@ -7294,7 +7188,6 @@ class CalendarField extends BaseField {
     attachCalendarEvents() {
         if (!this.element) return;
         
-        // Navigation buttons
         const prevBtn = this.element.querySelector('.prev-btn');
         const nextBtn = this.element.querySelector('.next-btn');
         
@@ -7327,8 +7220,7 @@ class CalendarField extends BaseField {
             }).format(new Date(this.state.selectedTime)) : null
         };
         
-        this.factory.updateFieldValue(this.config.name, value);
-        this.factory.validateField(this);
+        this.handleChange();
     }
     
     getValue() {
@@ -7352,10 +7244,7 @@ class CalendarField extends BaseField {
     
     validate() {
         const isValid = !!(this.state.selectedDate && this.state.selectedTime);
-        return {
-            isValid,
-            errorMessage: isValid ? null : (this.factory.texts.dateTimeRequired || 'Please select a date and time')
-        };
+        return isValid;
     }
     
     reset() {
@@ -7365,14 +7254,6 @@ class CalendarField extends BaseField {
         if (this.element) this.renderCalendarData();
     }
 }
-
-// Add to FormFieldFactory class registry
-if (typeof FormFieldFactory !== 'undefined') {
-    FormFieldFactory.prototype.createCalendarField = function(config) {
-        return new CalendarField(config, this);
-    };
-}
-    
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
