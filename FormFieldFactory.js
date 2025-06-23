@@ -1042,6 +1042,10 @@ class FormStep {
 				return this.factory.createSliderField(config);
 			case 'options-slider':
 				return this.factory.createOptionsSliderField(config);
+			case 'serviceCard':
+				return this.factory.createServiceCardField(fieldConfig);
+			case 'calendarField':
+				return this.factory.CalendarField(fieldConfig);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
                 return null;
