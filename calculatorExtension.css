@@ -5,7 +5,7 @@
  */
 
 /* ========================================
-   MAIN CALCULATOR CONTAINER
+   CALCULATOR EXTENSION LAYOUT
 ======================================== */
 
 .calculator-extension {
@@ -57,7 +57,7 @@
 ======================================== */
 
 .calculator-form-container {
-    padding: 30px;
+    padding: 0;
 }
 
 /* ========================================
@@ -65,16 +65,16 @@
 ======================================== */
 
 .results-container {
+    padding: 20px 0;
     margin-top: 30px;
     border-radius: 12px;
-    padding: 0;
 }
 
 .result-card {
     background: #ffffff;
     border: 2px solid rgba(247, 184, 153, 0.4);
     border-radius: 16px;
-    padding: 20px;
+    padding: 10px;
     box-shadow: 0 4px 20px rgba(2, 48, 71, 0.08);
     transition: all 0.3s ease;
     margin: 0 auto;
@@ -92,15 +92,14 @@
     font-size: 18px;
     font-weight: 600;
     color: #e95d2c;
-    margin-bottom: 20px;
     text-align: center;
+    margin-bottom: 20px;
 }
 
 .result-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
     border-bottom: 1px solid rgba(233, 93, 44, 0.1);
 }
 
@@ -134,10 +133,7 @@
     font-style: italic;
 }
 
-/* ========================================
-   SUMMARY SECTIONS
-======================================== */
-
+/* Summary Sections */
 .summary-container {
     border: 2px solid rgba(2, 48, 71, 0.1);
     border-radius: 12px;
@@ -148,10 +144,6 @@
 
 .summary-section {
     margin-bottom: 20px;
-}
-
-.summary-section:last-child {
-    margin-bottom: 0;
 }
 
 .summary-heading {
@@ -168,10 +160,8 @@
 
 .summary-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
     border-bottom: 1px solid rgba(2, 48, 71, 0.1);
+    align-items: center;
     transition: all 0.3s ease;
 }
 
@@ -189,13 +179,10 @@
 .summary-label {
     font-weight: 600;
     width: 30%;
-    color: #333;
 }
 
 .summary-value {
     flex: 1;
-    text-align: right;
-    color: #555;
 }
 
 /* Auto Summary Specific Styles */
@@ -203,21 +190,14 @@
     font-style: italic;
     color: #999;
     padding: 10px 0;
-    text-align: center;
 }
 
-.auto-summary .summary-section {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.auto-summary .summary-section:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+.auto-summary .summary-row {
+    margin-bottom: 8px;
 }
 
 .auto-summary .summary-label {
+    font-weight: 600;
     width: 35%;
     display: inline-block;
     vertical-align: top;
@@ -227,7 +207,15 @@
     width: 65%;
     display: inline-block;
     word-wrap: break-word;
-    text-align: left;
+}
+
+.auto-summary .summary-section {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.auto-summary .summary-section:last-child {
+    border-bottom: none;
 }
 
 /* ========================================
@@ -241,7 +229,7 @@
     }
     
     .calculator-form-container {
-        padding: 20px;
+        padding: 0;
     }
     
     .tab-button {
@@ -261,7 +249,7 @@
     }
     
     .calculator-form-container {
-        padding: 15px;
+        padding: 0;
     }
     
     .tab-button {
@@ -289,23 +277,10 @@
         flex-direction: column;
         text-align: center;
         gap: 5px;
-        padding: 8px 0;
     }
     
     .result-label,
     .result-value {
         width: 100%;
-    }
-    
-    .summary-label,
-    .auto-summary .summary-label {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    
-    .summary-value,
-    .auto-summary .summary-value {
-        width: 100%;
-        text-align: left;
     }
 }
