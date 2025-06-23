@@ -1,0 +1,183 @@
+/**
+ * Calculator Extension CSS - Specific styles for Combined Calculators Extension
+ * @version 1.0.0
+ * @description Calculator-specific header, tabs, and result card styles
+ */
+
+/* ========================================
+   CALCULATOR EXTENSION LAYOUT
+======================================== */
+
+.calculator-extension {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(2, 48, 71, 0.12);
+    overflow: hidden;
+}
+
+/* ========================================
+   CALCULATOR TABS
+======================================== */
+
+.calculator-tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 15px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tab-button:hover {
+    background: rgba(233, 93, 44, 0.05);
+    color: #e95d2c;
+}
+
+.tab-button.active {
+    background: white;
+    color: #e95d2c;
+    border-bottom: 3px solid #e95d2c;
+}
+
+/* ========================================
+   CALCULATOR FORM CONTAINER
+======================================== */
+
+.calculator-form-container {
+    padding: 30px;
+}
+
+/* ========================================
+   CALCULATOR RESULTS OVERRIDE
+======================================== */
+
+.calculator-extension .results-container {
+    margin-top: 30px;
+    border-radius: 12px;
+	padding:0;
+}
+
+.calculator-extension .result-card {
+    text-align: center;
+	max-width: 100%;
+}
+
+.calculator-extension .result-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e95d2c;
+    margin-bottom: 20px;
+}
+
+.calculator-extension .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(233, 93, 44, 0.1);
+}
+
+.calculator-extension .result-row:last-of-type {
+    border-bottom: none;
+    margin-bottom: 20px;
+}
+
+.calculator-extension .result-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.calculator-extension .result-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.calculator-extension .result-value.highlighted {
+    color: #e95d2c;
+    font-size: 22px;
+}
+
+.calculator-extension .result-hint {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN FOR CALCULATOR
+======================================== */
+
+@media (max-width: 768px) {
+    .calculator-extension {
+        margin: 10px;
+        max-width: none;
+    }
+    
+    .calculator-form-container {
+        padding: 20px;
+    }
+    
+    .tab-button {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+    
+    .calculator-extension .result-value.highlighted {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    
+    .calculator-form-container {
+        padding: 15px;
+    }
+    
+    .tab-button {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    
+    .calculator-extension .results-container {
+        margin-top: 20px;
+    }
+    
+    .calculator-extension .result-title {
+        font-size: 16px;
+    }
+    
+    .calculator-extension .result-value {
+        font-size: 16px;
+    }
+    
+    .calculator-extension .result-value.highlighted {
+        font-size: 18px;
+    }
+    
+    .calculator-extension .result-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+    
+    .calculator-extension .result-label,
+    .calculator-extension .result-value {
+        width: 100%;
+    }
+}

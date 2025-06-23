@@ -1,0 +1,6442 @@
+/**
+ * Complete FormFieldFactory System - Merged Enhanced Version
+ * @version 3.2.0
+ * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
+ */
+
+class FormFieldFactory {
+    constructor(options = {}) {
+        
+		this.container = options.container || document.body;
+		this.formValues = options.formValues || {};
+		this.onChangeCallback = options.onChange || null;
+		this.currentMultiStepForm = null;
+		this.fieldRegistry = {};
+		
+		// Add global click management
+		this.openDropdowns = new Set();
+		this.openInfoPanels = new Set();
+		this.globalClickHandlerAttached = false;
+		
+		// Enhanced texts with summary support
+		this.texts = {
+			required: options.texts?.required || "required",
+			selectPlaceholder: options.texts?.selectPlaceholder || "-- Select --",
+			selectMultiplePlaceholder: options.texts?.selectMultiplePlaceholder || "-- Multiple selection --",
+			selectSubsectionPlaceholder: options.texts?.selectSubsectionPlaceholder || "-- Select from categories --",
+			yes: options.texts?.yes || "Yes",
+			no: options.texts?.no || "No",
+			other: options.texts?.other || "Other",
+			fieldRequired: options.texts?.fieldRequired || "This field is required",
+			emailInvalid: options.texts?.emailInvalid || "Invalid email format",
+			phoneInvalid: options.texts?.phoneInvalid || "Invalid phone format",
+			urlInvalid: options.texts?.urlInvalid || "Invalid URL format",
+			selectAtLeastOne: options.texts?.selectAtLeastOne || "Please select at least one option",
+			selectAll: options.texts?.selectAll || "Select All",
+			selected: options.texts?.selected || "selected",
+			next: options.texts?.next || "Next",
+			previous: options.texts?.previous || "Previous",
+			submit: options.texts?.submit || "Submit",
+			step: options.texts?.step || "Step",
+			of: options.texts?.of || "of",
+			edit: options.texts?.edit || "Edit",
+			noDataEntered: options.texts?.noDataEntered || "No data entered",
+			multilingual: options.texts?.multilingual || "Multilingual",
+			unilingual: options.texts?.unilingual || "Unilingual"
+		};
+        
+        // SVG Icons
+        this.SVG_ICONS = {
+            CHECK: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
+                <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+            </svg>`,
+            CHEVRON: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+                <g transform="translate(75, 75)">
+                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                </g>
+            </svg>`,
+            INFO: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
+                <path class="info-bg" fill="#f8e8f8" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"/>
+                <path class="info-icon" fill="#9C27B0" d="M216 336l24 0 0-64-24 0 c-13.3 0-24-10.7-24-24s10.7-24 24-24 l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24 l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208 a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+            </svg>`,
+            CLOSE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="8px" height="8px">
+                <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+            </svg>`,
+            PLUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
+                <path fill="currentColor" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
+            </svg>`,
+            MINUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
+                <path fill="currentColor" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
+            </svg>`,
+            CALCULATOR: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24px" height="24px">
+                <path fill="currentColor" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/>
+            </svg>`
+        };
+
+        // Initialize global click handler
+        this.initGlobalClickHandler();
+    }
+
+    // ===== GLOBAL CLICK MANAGEMENT =====
+    initGlobalClickHandler() {
+        if (!this.globalClickHandlerAttached) {
+            this.globalClickHandler = this.handleGlobalClick.bind(this);
+            document.addEventListener('click', this.globalClickHandler, true);
+            this.globalClickHandlerAttached = true;
+        }
+    }
+
+    handleGlobalClick(event) {
+        // Close all open dropdowns that don't contain the clicked element
+        this.openDropdowns.forEach(dropdown => {
+            if (!dropdown.element.contains(event.target)) {
+                dropdown.close();
+            }
+        });
+
+        // Close all open info panels that don't contain the clicked element
+        this.openInfoPanels.forEach(infoPanel => {
+            if (!infoPanel.element.contains(event.target) && 
+                !infoPanel.button.contains(event.target)) {
+                infoPanel.close();
+            }
+        });
+    }
+
+    registerDropdown(dropdownInstance) {
+        this.openDropdowns.add(dropdownInstance);
+    }
+
+    unregisterDropdown(dropdownInstance) {
+        this.openDropdowns.delete(dropdownInstance);
+    }
+
+    registerInfoPanel(infoPanelInstance) {
+        this.openInfoPanels.add(infoPanelInstance);
+    }
+
+    unregisterInfoPanel(infoPanelInstance) {
+        this.openInfoPanels.delete(infoPanelInstance);
+    }
+
+    closeAllDropdowns() {
+        this.openDropdowns.forEach(dropdown => dropdown.close());
+    }
+
+    closeAllInfoPanels() {
+        this.openInfoPanels.forEach(infoPanel => infoPanel.close());
+    }
+
+    // ===== UNIVERSAL DATA PROCESSING METHODS =====
+
+    /**
+     * Universal data processor - works with ANY form structure
+     * @param {Object} rawFormData - Raw data from any multi-step form
+     * @returns {Object} Processed data ready for submission
+     */
+    processAnyFormData(rawFormData) {
+        if (!this.currentMultiStepForm) {
+            console.warn('No multi-step form available for processing');
+            return rawFormData;
+        }
+        
+        // Step 1: Flatten complex structures
+        const flattened = this.universalFlatten(rawFormData);
+        
+        // Step 2: Convert IDs to names
+        const converted = this.universalConvertIds(flattened);
+        
+        // Step 3: Apply universal transformations
+        const processed = this.universalTransform(converted);
+        
+        return processed;
+    }
+
+    /**
+     * Universal flattening - works with any field structure
+     */
+    universalFlatten(formData) {
+        const flattened = { ...formData };
+        const allFieldConfigs = this.getAllFieldConfigs();
+        
+        Object.keys(formData).forEach(fieldName => {
+            const fieldValue = formData[fieldName];
+            const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
+            
+            if (!fieldConfig || !fieldValue || typeof fieldValue !== 'object') return;
+            
+            // Handle yesno-with-options fields
+            if (fieldConfig.type === 'yesno-with-options' && fieldValue.main) {
+                flattened[fieldName] = fieldValue.main;
+                
+                // Extract yesValues
+                if (fieldValue.yesValues) {
+                    Object.keys(fieldValue.yesValues).forEach(key => {
+                        flattened[key] = fieldValue.yesValues[key];
+                    });
+                }
+                
+                // Extract noValues
+                if (fieldValue.noValues) {
+                    Object.keys(fieldValue.noValues).forEach(key => {
+                        flattened[key] = fieldValue.noValues[key];
+                    });
+                }
+            }
+            
+            // Handle select-with-other and multiselect-with-other fields
+            else if ((fieldConfig.type === 'select-with-other' || 
+                      fieldConfig.type === 'multiselect-with-other') && 
+                     fieldValue.main !== undefined) {
+                
+                flattened[fieldName] = fieldValue.main;
+                
+                if (fieldValue.other) {
+                    const otherFieldName = this.generateOtherFieldName(fieldName);
+                    flattened[otherFieldName] = fieldValue.other;
+                }
+            }
+        });
+        
+        return flattened;
+    }
+
+    /**
+     * Universal ID to name conversion
+     */
+    // FIND this function and REPLACE the entire function:
+	universalConvertIds(flatData) {
+		const converted = { ...flatData };
+		const allFieldConfigs = this.getAllFieldConfigs();
+		
+		Object.keys(flatData).forEach(fieldName => {
+			const fieldValue = flatData[fieldName];
+			const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
+			
+			if (!fieldConfig || !fieldValue) return;
+			
+			// Handle fields with options
+			if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
+				
+				// Single select fields
+				if (typeof fieldValue === 'string') {
+					if (fieldValue !== 'other') {
+						const option = fieldConfig.options.find(opt => opt.id === fieldValue);
+						if (option) {
+							converted[fieldName] = option.name;
+						}
+					} else {
+						// Handle "other"
+						const otherFieldName = this.generateOtherFieldName(fieldName);
+						if (converted[otherFieldName]) {
+							converted[fieldName] = converted[otherFieldName];
+							// Remove the separate other field since we merged it
+							delete converted[otherFieldName];
+						}
+					}
+				}
+				
+				// Multiple select fields
+				else if (Array.isArray(fieldValue)) {
+					const convertedValues = fieldValue.map(id => {
+						if (id === 'other') {
+							const otherFieldName = this.generateOtherFieldName(fieldName);
+							return converted[otherFieldName] || this.getText('other');
+						}
+						const option = fieldConfig.options.find(opt => opt.id === id);
+						return option ? option.name : id;
+					}).filter(val => val && val.trim() !== ''); // Remove empty values
+					
+					converted[fieldName] = convertedValues;
+					converted[`${fieldName}Array`] = convertedValues;
+					converted[`${fieldName}String`] = convertedValues.join(', ');
+					
+					// Remove the separate other field if it exists
+					const otherFieldName = this.generateOtherFieldName(fieldName);
+					if (converted[otherFieldName]) {
+						delete converted[otherFieldName];
+					}
+				}
+			}
+			
+			// Handle subsection fields
+			if (fieldConfig.subsectionOptions && Array.isArray(fieldConfig.subsectionOptions)) {
+				if (typeof fieldValue === 'string') {
+					// Find option in subsections
+					for (const group of fieldConfig.subsectionOptions) {
+						const option = group.subcategories.find(opt => opt.id === fieldValue);
+						if (option) {
+							converted[fieldName] = option.name;
+							break;
+						}
+					}
+				} else if (Array.isArray(fieldValue)) {
+					const convertedValues = fieldValue.map(id => {
+						for (const group of fieldConfig.subsectionOptions) {
+							const option = group.subcategories.find(opt => opt.id === id);
+							if (option) return option.name;
+						}
+						return id;
+					}).filter(val => val && val.trim() !== ''); // Remove empty values
+					
+					converted[fieldName] = convertedValues;
+					converted[`${fieldName}Array`] = convertedValues;
+					converted[`${fieldName}String`] = convertedValues.join(', ');
+				}
+			}
+			
+			// Handle select-with-other fields
+			if (fieldConfig.type === 'select-with-other' && typeof fieldValue === 'object') {
+				if (fieldValue.main === 'other' && fieldValue.other) {
+					converted[fieldName] = fieldValue.other;
+				} else if (fieldValue.main && fieldConfig.options) {
+					const option = fieldConfig.options.find(opt => opt.id === fieldValue.main);
+					converted[fieldName] = option ? option.name : fieldValue.main;
+				}
+			}
+			
+			// Handle multiselect-with-other fields
+			if (fieldConfig.type === 'multiselect-with-other' && typeof fieldValue === 'object') {
+				const allValues = [];
+				
+				if (fieldValue.main && Array.isArray(fieldValue.main)) {
+					const convertedMain = fieldValue.main.map(id => {
+						const option = fieldConfig.options.find(opt => opt.id === id);
+						return option ? option.name : id;
+					});
+					allValues.push(...convertedMain);
+				}
+				
+				if (fieldValue.other && fieldValue.other.trim() !== '') {
+					allValues.push(fieldValue.other);
+				}
+				
+				converted[fieldName] = allValues;
+				converted[`${fieldName}Array`] = allValues;
+				converted[`${fieldName}String`] = allValues.join(', ');
+			}
+		});
+		
+		return converted;
+	}
+
+    /**
+     * Universal transformations
+     */
+    universalTransform(data) {
+        const transformed = { ...data };
+        const allFieldConfigs = this.getAllFieldConfigs();
+        
+        // Transform based on field types
+        Object.keys(data).forEach(fieldName => {
+            const fieldValue = data[fieldName];
+            const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
+            
+            if (!fieldConfig) return;
+            
+            // Convert yes/no to boolean
+            if (fieldConfig.type === 'yesno' || 
+                (fieldConfig.type === 'yesno-with-options' && typeof fieldValue === 'string')) {
+                
+                if (fieldValue === 'yes') {
+                    transformed[fieldName] = true;
+                } else if (fieldValue === 'no') {
+                    transformed[fieldName] = false;
+                }
+            }
+            
+            // Clean text fields
+            if (['text', 'email', 'phone', 'url', 'textarea'].includes(fieldConfig.type)) {
+                if (!fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '')) {
+                    transformed[fieldName] = "";
+                }
+            }
+            
+            // Handle number fields
+            if (['number', 'percentage'].includes(fieldConfig.type)) {
+                transformed[fieldName] = parseFloat(fieldValue) || 0;
+            }
+            
+            // Ensure arrays for multiselect fields
+            if (['multiselect', 'multiselect-with-other', 'multiselect-subsections'].includes(fieldConfig.type)) {
+                if (!Array.isArray(fieldValue)) {
+                    transformed[fieldName] = fieldValue ? [fieldValue] : [];
+                }
+                
+                if (!transformed[`${fieldName}Array`]) {
+                    transformed[`${fieldName}Array`] = transformed[fieldName];
+                }
+                if (!transformed[`${fieldName}String`]) {
+                    transformed[`${fieldName}String`] = Array.isArray(transformed[fieldName]) 
+                        ? transformed[fieldName].join(', ') 
+                        : '';
+                }
+            }
+        });
+        
+		// Clean up any remaining other fields and ensure proper formatting
+		Object.keys(transformed).forEach(fieldName => {
+			const fieldValue = transformed[fieldName];
+			
+			// Clean up empty arrays and strings
+			if (Array.isArray(fieldValue) && fieldValue.length === 0) {
+				delete transformed[fieldName];
+				delete transformed[`${fieldName}Array`];
+				delete transformed[`${fieldName}String`];
+			} else if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
+				delete transformed[fieldName];
+			}
+			
+			// Remove any remaining otherXXX fields that weren't properly merged
+			if (fieldName.startsWith('other') && fieldName.length > 5) {
+				const baseFieldName = fieldName.replace(/^other/, '').toLowerCase();
+				const baseFieldNamePlural = baseFieldName + 's';
+				
+				// Check if the base field exists and has incorporated this other value
+				if (transformed[baseFieldName] || transformed[baseFieldNamePlural]) {
+					delete transformed[fieldName];
+				}
+			}
+		});
+
+		this.setUniversalDefaults(transformed, allFieldConfigs);
+			
+			this.setUniversalDefaults(transformed, allFieldConfigs);
+			return transformed;
+    }
+
+    getAllFieldConfigs() {
+        if (!this.currentMultiStepForm || !this.currentMultiStepForm.steps) {
+            return [];
+        }
+        
+        return this.currentMultiStepForm.steps.flatMap(step => step.fields || []);
+    }
+
+    findFieldConfig(fieldName, fieldConfigs) {
+        return fieldConfigs.find(config => 
+            (config.name === fieldName) || 
+            (config.id === fieldName) ||
+            (config.yesFields && config.yesFields.some(yf => (yf.name || yf.id) === fieldName)) ||
+            (config.noFields && config.noFields.some(nf => (nf.name || nf.id) === fieldName)) ||
+            (config.yesField && ((config.yesField.name || config.yesField.id) === fieldName))
+        ) || null;
+    }
+
+    generateOtherFieldName(fieldName) {
+        if (fieldName.endsWith('s')) {
+            return `other${fieldName.charAt(0).toUpperCase() + fieldName.slice(1, -1)}`;
+        }
+        return `other${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`;
+    }
+
+    setUniversalDefaults(data, fieldConfigs) {
+        const defaultText = "Not specified";
+        
+        fieldConfigs.forEach(config => {
+            const fieldName = config.name || config.id;
+            
+            if (config.required && !data[fieldName]) {
+                if (['text', 'email', 'phone', 'url', 'textarea'].includes(config.type)) {
+                    data[fieldName] = "";
+                }
+                else if (['select', 'select-with-other', 'select-subsections'].includes(config.type)) {
+                    data[fieldName] = defaultText;
+                }
+                else if (['multiselect', 'multiselect-with-other', 'multiselect-subsections'].includes(config.type)) {
+                    data[fieldName] = [];
+                    data[`${fieldName}Array`] = [];
+                    data[`${fieldName}String`] = "";
+                }
+                else if (config.type === 'yesno') {
+                    data[fieldName] = false;
+                }
+                else if (['number', 'percentage'].includes(config.type)) {
+                    data[fieldName] = 0;
+                }
+            }
+        });
+    }
+
+    getProcessingSummary(originalData, processedData) {
+        const allFieldConfigs = this.getAllFieldConfigs();
+        
+        return {
+            totalFields: Object.keys(originalData).length,
+            processedFields: Object.keys(processedData).length,
+            fieldTypes: allFieldConfigs.reduce((acc, config) => {
+                acc[config.type] = (acc[config.type] || 0) + 1;
+                return acc;
+            }, {}),
+            transformations: {
+                flattened: Object.keys(originalData).filter(key => 
+                    originalData[key] && typeof originalData[key] === 'object' && 
+                    !(processedData[key] && typeof processedData[key] === 'object')
+                ),
+                converted: Object.keys(processedData).filter(key => 
+                    originalData[key] !== processedData[key]
+                )
+            }
+        };
+    }
+
+    // ===== STANDARD METHODS =====
+    getText(key, customMessages = {}) {
+        return customMessages[key] || this.texts[key] || key;
+    }
+
+    createYesNoField(config) {
+        return new YesNoField(this, config);
+    }
+
+    createTextField(config) {
+        return new TextField(this, config);
+    }
+
+    createTextAreaField(config) {
+        return new TextAreaField(this, config);
+    }
+
+    createEmailField(config) {
+        return new EmailField(this, config);
+    }
+
+    createPhoneField(config) {
+        return new PhoneField(this, config);
+    }
+
+    createUrlField(config) {
+        return new UrlField(this, config);
+    }
+
+    createNumberField(config) {
+        return new NumberField(this, config);
+    }
+
+    createPercentageField(config) {
+        return new PercentageField(this, config);
+    }
+
+    createOptionsStepperField(config) {
+        return new OptionsStepperField(this, config);
+    }
+
+    createSingleSelectField(config) {
+        return new SingleSelectField(this, config);
+    }
+
+    createMultiSelectField(config) {
+        return new MultiSelectField(this, config);
+    }
+
+    createSingleSelectSubsectionsField(config) {
+        return new SingleSelectSubsectionsField(this, config);
+    }
+
+    createMultiSelectSubsectionsField(config) {
+        return new MultiSelectSubsectionsField(this, config);
+    }
+
+    createYesNoWithOptionsField(config) {
+        return new YesNoWithOptionsField(this, config);
+    }
+
+    createSingleSelectWithOtherField(config) {
+        return new SingleSelectWithOtherField(this, config);
+    }
+
+    createMultiSelectWithOtherField(config) {
+        return new MultiSelectWithOtherField(this, config);
+    }
+
+    createMultiStepForm(config) {
+        return new MultiStepForm(this, config);
+    }
+	createSlidingWindowRangeField(config) {
+		return new SlidingWindowRangeField(this, config);
+	}
+
+	createDualRangeField(config) {
+		return new DualRangeField(this, config);
+	}
+
+	createSliderField(config) {
+		return new SliderField(this, config);
+	}
+
+	createOptionsSliderField(config) {
+		return new OptionsSliderField(this, config);
+	}
+	
+	// Add this method to FormFieldFactory class
+	createSlidingWindowSliderField(config) {
+		return new SlidingWindowSliderField(this, config);
+	}
+
+    // Cleanup method
+    destroy() {
+        if (this.globalClickHandlerAttached) {
+            document.removeEventListener('click', this.globalClickHandler, true);
+            this.globalClickHandlerAttached = false;
+        }
+        this.openDropdowns.clear();
+        this.openInfoPanels.clear();
+    }
+
+    static ValidationUtils = {
+        isValidEmail(email) {
+            const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+            return emailPattern.test(email);
+        },
+
+        isValidPhoneNumber(phoneNumber) {
+            const phonePattern = /^(\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}$/;
+            return phonePattern.test(phoneNumber);
+        },
+
+        isValidUrl(url) {
+            if (!url || url.trim() === '') return false;
+            let testUrl = url.trim();
+            if (!testUrl.match(/^https?:\/\//)) {
+                testUrl = 'https://' + testUrl;
+            }
+            try {
+                new URL(testUrl);
+                const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=%]*)?$/;
+                return urlPattern.test(url.trim());
+            } catch (e) {
+                return false;
+            }
+        },
+
+        formatPhoneNumber(phoneNumber) {
+            const cleaned = phoneNumber.replace(/\D/g, '');
+            if (cleaned.length === 10) {
+                return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+            }
+            return phoneNumber;
+        },
+
+        normalizeUrl(url) {
+            if (!url || url.trim() === '') return '';
+            let normalized = url.trim();
+            if (!normalized.match(/^https?:\/\//)) {
+                if (normalized.startsWith('www.') || normalized.split('.').length > 2) {
+                    normalized = 'https://' + normalized;
+                } else {
+                    normalized = 'https://www.' + normalized;
+                }
+            }
+            return normalized;
+        }
+    };
+}
+
+/**
+ * MultiStepForm - Enhanced main manager for multi-step forms
+ */
+class MultiStepForm {
+    constructor(factory, config) {
+        this.factory = factory;
+        this.config = config;
+        this.steps = config.steps || [];
+        this.currentStep = 0;
+        this.formData = config.initialData || {};
+        this.onSubmit = config.onSubmit || null;
+        this.onStepChange = config.onStepChange || null;
+        this.validateOnNext = config.validateOnNext !== false;
+        this.showProgress = config.showProgress !== false;
+        this.saveProgressEnabled = config.saveProgress !== false;
+        this.storageKey = config.storageKey || 'multistep_form_data';
+        
+        this.container = null;
+        this.stepInstances = [];
+        this.progressBar = null;
+        this.navigationButtons = null;
+        
+        this.init();
+    }
+
+    init() {
+        this.factory.currentMultiStepForm = this;
+        this.createContainer();
+        this.createProgressBar();
+        this.createSteps();
+        this.createNavigation();
+        this.loadSavedProgress();
+        this.showCurrentStep();
+    }
+
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.className = 'multistep-form';
+        this.factory.container.appendChild(this.container);
+    }
+
+    createProgressBar() {
+        if (!this.showProgress) return;
+        
+        this.progressBar = new ProgressBar(this, {
+            totalSteps: this.steps.length,
+            currentStep: this.currentStep
+        });
+        this.container.appendChild(this.progressBar.render());
+    }
+
+    createSteps() {
+        this.steps.forEach((stepConfig, index) => {
+            const step = new FormStep(this, {
+                ...stepConfig,
+                index: index,
+                isActive: index === this.currentStep
+            });
+            this.stepInstances.push(step);
+            this.container.appendChild(step.render());
+        });
+    }
+
+    createNavigation() {
+        this.navigationButtons = new NavigationButtons(this);
+        this.container.appendChild(this.navigationButtons.render());
+    }
+
+    showCurrentStep() {
+        this.stepInstances.forEach((step, index) => {
+            step.setActive(index === this.currentStep);
+        });
+        
+        if (this.progressBar) {
+            this.progressBar.updateProgress(this.currentStep);
+        }
+        
+        this.navigationButtons.updateButtons(this.currentStep, this.steps.length);
+        
+        if (this.onStepChange) {
+            this.onStepChange(this.currentStep, this.stepInstances[this.currentStep]);
+        }
+    }
+
+    nextStep() {
+        if (this.validateOnNext && !this.validateCurrentStep()) {
+            return false;
+        }
+        
+        if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    previousStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    goToStep(stepIndex) {
+        if (stepIndex >= 0 && stepIndex < this.steps.length) {
+            this.currentStep = stepIndex;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    validateCurrentStep() {
+        return this.stepInstances[this.currentStep].validate();
+    }
+
+    validateAllSteps() {
+        return this.stepInstances.every(step => step.validate());
+    }
+
+    getFormData() {
+        const data = {};
+        this.stepInstances.forEach(step => {
+            Object.assign(data, step.getStepData());
+        });
+        return data;
+    }
+
+    setFormData(data) {
+        this.formData = { ...this.formData, ...data };
+        this.stepInstances.forEach(step => {
+            step.setStepData(this.formData);
+        });
+    }
+
+    saveProgress() {
+        if (!this.saveProgressEnabled) return;
+        
+        const progressData = {
+            currentStep: this.currentStep,
+            formData: this.getFormData(),
+            timestamp: Date.now()
+        };
+        
+        localStorage.setItem(this.storageKey, JSON.stringify(progressData));
+    }
+
+    loadSavedProgress() {
+        if (!this.saveProgressEnabled) return;
+        
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (saved) {
+                const progressData = JSON.parse(saved);
+                this.currentStep = progressData.currentStep || 0;
+                this.setFormData(progressData.formData || {});
+            }
+        } catch (e) {
+            console.warn('Failed to load saved progress:', e);
+        }
+    }
+
+    clearSavedProgress() {
+        localStorage.removeItem(this.storageKey);
+    }
+
+    reset() {
+    // Reset step and form data
+    this.currentStep = 0;
+    this.formData = {};
+    
+    // Reset all field instances
+    this.stepInstances.forEach(step => {
+        step.reset();
+        // Also clear any error states
+        step.fieldInstances.forEach(field => {
+            field.hideError();
+            field.setValue('');
+        });
+    });
+    
+    // Clear factory form values
+    this.factory.formValues = {};
+    
+    // Close any open dropdowns and info panels
+    this.factory.closeAllDropdowns();
+    this.factory.closeAllInfoPanels();
+    
+    // Clear saved progress
+    this.clearSavedProgress();
+    
+    // Reset UI state
+    this.showCurrentStep();
+    
+    // Reset any custom field content (like summaries)
+    this.stepInstances.forEach(step => {
+        step.fieldInstances.forEach(field => {
+            if (field.autoSummary && field.updateContent) {
+                setTimeout(() => field.updateContent(), 100);
+            }
+        });
+    });
+    
+    console.log('Form completely reset');
+}
+
+    submit() {
+        if (!this.validateAllSteps()) {
+            return false;
+        }
+        
+        const formData = this.getFormData();
+        
+        if (this.onSubmit) {
+            const result = this.onSubmit(formData);
+            if (result !== false) {
+                this.clearSavedProgress();
+            }
+            return result;
+        }
+        
+        this.clearSavedProgress();
+        return formData;
+    }
+}
+
+/**
+ * FormStep - Enhanced with subsection field support and row layout
+ */
+class FormStep {
+    constructor(multiStepForm, config) {
+        this.multiStepForm = multiStepForm;
+        this.factory = multiStepForm.factory;
+        this.config = config;
+        this.index = config.index;
+        this.title = config.title || `Step ${this.index + 1}`;
+        this.description = config.description || '';
+        this.fields = config.fields || [];
+        this.validationRules = config.validation || {};
+        this.conditionalLogic = config.conditionalLogic || {};
+        
+        this.container = null;
+        this.fieldInstances = [];
+        this.isActive = config.isActive || false;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = `form-step ${this.isActive ? 'active' : 'hidden'}`;
+        this.container.setAttribute('data-step', this.index);
+
+        if (this.title) {
+            const titleElement = document.createElement('h2');
+            titleElement.className = 'step-title';
+            titleElement.textContent = this.title;
+            this.container.appendChild(titleElement);
+        }
+
+        
+
+        const fieldsContainer = document.createElement('div');
+        fieldsContainer.className = 'step-fields';
+        
+        // Group fields by row
+        const fieldGroups = this.groupFields(this.fields);
+        
+        fieldGroups.forEach(group => {
+            if (group.isRow) {
+                // Create row container
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'field-row';
+                
+                group.fields.forEach(fieldConfig => {
+                    const colContainer = document.createElement('div');
+                    colContainer.className = 'field-col';
+                    
+                    const field = this.createField(fieldConfig);
+                    if (field) {
+                        this.fieldInstances.push(field);
+                        colContainer.appendChild(field.render());
+                    }
+                    rowContainer.appendChild(colContainer);
+                });
+                
+                fieldsContainer.appendChild(rowContainer);
+            } else {
+                // Single field
+                const field = this.createField(group.fields[0]);
+                if (field) {
+                    this.fieldInstances.push(field);
+                    fieldsContainer.appendChild(field.render());
+                }
+            }
+        });
+
+        this.container.appendChild(fieldsContainer);
+        this.setupConditionalLogic();
+        
+        return this.container;
+    }
+
+    groupFields(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            // Check if current field should be in a row with the next field
+            if (currentField.row && i + 1 < fields.length) {
+                const nextField = fields[i + 1];
+                if (nextField.row === currentField.row) {
+                    // Find all fields with the same row identifier
+                    const rowFields = [];
+                    let j = i;
+                    while (j < fields.length && fields[j].row === currentField.row) {
+                        rowFields.push(fields[j]);
+                        j++;
+                    }
+                    
+                    groups.push({
+                        isRow: true,
+                        fields: rowFields
+                    });
+                    
+                    i = j; // Skip the grouped fields
+                    continue;
+                }
+            }
+            
+            // Single field
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
+        }
+        
+        return groups;
+    }
+
+    createField(config) {
+        const fieldType = config.type;
+        const fieldConfig = {
+            ...config,
+            onChange: (value) => {
+                this.handleFieldChange(config.name, value);
+                if (config.onChange) {
+                    config.onChange(value);
+                }
+            }
+        };
+
+        switch (fieldType) {
+            case 'text':
+                return this.factory.createTextField(fieldConfig);
+            case 'email':
+                return this.factory.createEmailField(fieldConfig);
+            case 'phone':
+                return this.factory.createPhoneField(fieldConfig);
+            case 'url':
+                return this.factory.createUrlField(fieldConfig);
+            case 'textarea':
+                return this.factory.createTextAreaField(fieldConfig);
+            case 'number':
+                return this.factory.createNumberField(fieldConfig);
+            case 'percentage':
+                return this.factory.createPercentageField(fieldConfig);
+            case 'options-stepper':
+                return this.factory.createOptionsStepperField(fieldConfig);
+            case 'yesno':
+                return this.factory.createYesNoField(fieldConfig);
+            case 'select':
+                return this.factory.createSingleSelectField(fieldConfig);
+            case 'multiselect':
+                return this.factory.createMultiSelectField(fieldConfig);
+            case 'select-subsections':
+                return this.factory.createSingleSelectSubsectionsField(fieldConfig);
+            case 'multiselect-subsections':
+                return this.factory.createMultiSelectSubsectionsField(fieldConfig);
+            case 'yesno-with-options':
+                return this.factory.createYesNoWithOptionsField(fieldConfig);
+            case 'select-with-other':
+                return this.factory.createSingleSelectWithOtherField(fieldConfig);
+            case 'multiselect-with-other':
+                return this.factory.createMultiSelectWithOtherField(fieldConfig);
+            case 'custom':
+                return new CustomField(this.factory, fieldConfig);
+			case 'sliding-window-range':
+				return this.factory.createSlidingWindowRangeField(config);
+			case 'dual-range':
+				return this.factory.createDualRangeField(config);
+			case 'slider':
+				return this.factory.createSliderField(config);
+			case 'options-slider':
+				return this.factory.createOptionsSliderField(config);
+            default:
+                console.warn(`Unknown field type: ${fieldType}`);
+                return null;
+        }
+    }
+
+    handleFieldChange(fieldName, value) {
+        this.multiStepForm.formData[fieldName] = value;
+        this.executeConditionalLogic(fieldName, value);
+        this.multiStepForm.saveProgress();
+    }
+
+    setupConditionalLogic() {
+        Object.keys(this.conditionalLogic).forEach(fieldName => {
+            const currentValue = this.multiStepForm.formData[fieldName];
+            if (currentValue !== undefined) {
+                this.executeConditionalLogic(fieldName, currentValue);
+            }
+        });
+    }
+
+    executeConditionalLogic(fieldName, value) {
+        const logic = this.conditionalLogic[fieldName];
+        if (!logic) return;
+
+        logic.forEach(rule => {
+            const { condition, target, action } = rule;
+            const shouldExecute = this.evaluateCondition(condition, value);
+            
+            if (shouldExecute) {
+                this.executeAction(target, action);
+            }
+        });
+    }
+
+    evaluateCondition(condition, value) {
+        if (typeof condition === 'function') {
+            return condition(value);
+        }
+        
+        if (typeof condition === 'object') {
+            const { equals, notEquals, includes, notIncludes } = condition;
+            
+            if (equals !== undefined) {
+                return value === equals;
+            }
+            if (notEquals !== undefined) {
+                return value !== notEquals;
+            }
+            if (includes !== undefined) {
+                return Array.isArray(value) ? value.includes(includes) : value === includes;
+            }
+            if (notIncludes !== undefined) {
+                return Array.isArray(value) ? !value.includes(notIncludes) : value !== notIncludes;
+            }
+        }
+        
+        return value === condition;
+    }
+
+    executeAction(target, action) {
+        const field = this.fieldInstances.find(f => f.name === target);
+        if (!field) return;
+
+        switch (action.type) {
+            case 'show':
+                field.show();
+                break;
+            case 'hide':
+                field.hide();
+                break;
+            case 'enable':
+                field.enable();
+                break;
+            case 'disable':
+                field.disable();
+                break;
+            case 'setValue':
+                field.setValue(action.value);
+                break;
+            case 'setOptions':
+                if (field.setOptions) {
+                    field.setOptions(action.options);
+                }
+                break;
+        }
+    }
+
+    setActive(active) {
+        this.isActive = active;
+        if (this.container) {
+            this.container.classList.toggle('active', active);
+            this.container.classList.toggle('hidden', !active);
+        }
+    }
+
+    validate() {
+        let isValid = true;
+        
+        this.fieldInstances.forEach(field => {
+            if (!field.validate()) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+
+    getStepData() {
+        const data = {};
+        this.fieldInstances.forEach(field => {
+            data[field.name] = field.getValue();
+        });
+        return data;
+    }
+
+    setStepData(data) {
+        this.fieldInstances.forEach(field => {
+            if (data[field.name] !== undefined) {
+                field.setValue(data[field.name]);
+            }
+        });
+    }
+
+    reset() {
+        this.fieldInstances.forEach(field => {
+            field.setValue('');
+        });
+    }
+}
+
+/**
+ * ProgressBar - Progress bar for multi-step forms
+ */
+class ProgressBar {
+    constructor(multiStepForm, config) {
+        this.multiStepForm = multiStepForm;
+        this.config = config;
+        this.totalSteps = config.totalSteps;
+        this.currentStep = config.currentStep || 0;
+        this.showStepNumbers = config.showStepNumbers !== false;
+        this.showStepTitles = config.showStepTitles !== false;
+        
+        this.container = null;
+        this.progressFill = null;
+        this.stepInfo = null;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'progress-container';
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        
+        this.progressFill = document.createElement('div');
+        this.progressFill.className = 'progress-fill';
+        progressBar.appendChild(this.progressFill);
+        
+        this.container.appendChild(progressBar);
+
+        if (this.showStepNumbers || this.showStepTitles) {
+            this.stepInfo = document.createElement('div');
+            this.stepInfo.className = 'step-info';
+            this.container.appendChild(this.stepInfo);
+        }
+
+        this.updateProgress(this.currentStep);
+        
+        return this.container;
+    }
+
+    updateProgress(currentStep) {
+        this.currentStep = currentStep;
+        
+        if (this.progressFill) {
+            const progress = (currentStep / (this.totalSteps - 1)) * 100;
+            this.progressFill.style.width = `${Math.min(progress, 100)}%`;
+        }
+        
+        if (this.stepInfo) {
+            let infoText = '';
+            
+            if (this.showStepNumbers) {
+                infoText += `${this.multiStepForm.factory.getText('step')} ${currentStep + 1} ${this.multiStepForm.factory.getText('of')} ${this.totalSteps}`;
+            }
+            
+            if (this.showStepTitles && this.multiStepForm.steps[currentStep]) {
+                const stepTitle = this.multiStepForm.steps[currentStep].title;
+                if (stepTitle) {
+                    if (infoText) infoText += ' - ';
+                    infoText += stepTitle;
+                }
+            }
+            
+            this.stepInfo.textContent = infoText;
+        }
+    }
+}
+
+/**
+ * NavigationButtons - Navigation buttons for multi-step forms
+ */
+class NavigationButtons {
+    constructor(multiStepForm) {
+        this.multiStepForm = multiStepForm;
+        this.factory = multiStepForm.factory;
+        
+        this.container = null;
+        this.prevButton = null;
+        this.nextButton = null;
+        this.submitButton = null;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'form-navigation';
+
+        this.prevButton = document.createElement('button');
+        this.prevButton.type = 'button';
+        this.prevButton.className = 'btn btn-prev';
+        this.prevButton.textContent = this.factory.getText('previous');
+        this.prevButton.addEventListener('click', () => {
+            this.multiStepForm.previousStep();
+        });
+
+        this.nextButton = document.createElement('button');
+        this.nextButton.type = 'button';
+        this.nextButton.className = 'btn btn-next';
+        this.nextButton.textContent = this.factory.getText('next');
+        this.nextButton.addEventListener('click', () => {
+            this.multiStepForm.nextStep();
+        });
+
+        this.submitButton = document.createElement('button');
+        this.submitButton.type = 'button';
+        this.submitButton.className = 'btn btn-submit';
+        this.submitButton.textContent = this.factory.getText('submit');
+        this.submitButton.addEventListener('click', () => {
+            this.multiStepForm.submit();
+        });
+
+        this.container.appendChild(this.prevButton);
+        this.container.appendChild(this.nextButton);
+        this.container.appendChild(this.submitButton);
+
+        return this.container;
+    }
+
+    updateButtons(currentStep, totalSteps) {
+        this.prevButton.style.display = currentStep > 0 ? 'inline-block' : 'none';
+        
+        if (currentStep === totalSteps - 1) {
+            this.nextButton.style.display = 'none';
+            this.submitButton.style.display = 'inline-block';
+        } else {
+            this.nextButton.style.display = 'inline-block';
+            this.submitButton.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * BaseField - Enhanced base class for all fields
+ */
+class BaseField {
+    constructor(factory, config) {
+        this.factory = factory;
+        this.id = config.id;
+        this.name = config.name || config.id;
+        this.label = config.label || '';
+        this.required = config.required || false;
+        this.placeholder = config.placeholder || '';
+        this.value = config.value || config.defaultValue || '';
+        this.containerClass = config.containerClass || 'form-group';
+        this.onChange = config.onChange || null;
+        this.customValidation = config.customValidation || null;
+        
+        this.infoButton = config.infoButton || null;
+        
+        this.element = null;
+        this.errorElement = null;
+        this.container = null;
+        this.infoPanel = null;
+        this.infoPanelInstance = null;
+    }
+
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.className = this.containerClass;
+        return this.container;
+    }
+
+    createLabel() {
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'label-container';
+        
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.setAttribute('for', this.id);
+        label.textContent = this.label;
+        
+        if (this.required) {
+            label.classList.add('required');
+            const requiredSpan = document.createElement('span');
+            //requiredSpan.textContent = ' *';
+            requiredSpan.className = 'required-indicator';
+            label.appendChild(requiredSpan);
+        }
+        
+        if (this.infoButton) {
+            const infoBtn = document.createElement('button');
+            infoBtn.className = 'info-button';
+            infoBtn.type = 'button';
+            infoBtn.setAttribute('aria-label', 'Plus d\'informations');
+            infoBtn.innerHTML = this.factory.SVG_ICONS.INFO;
+            
+            infoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleInfoPanel();
+            });
+            
+            label.appendChild(infoBtn);
+            
+            const infoPanel = this.createInfoPanel();
+            if (infoPanel) {
+                labelContainer.appendChild(label);
+                labelContainer.appendChild(infoPanel);
+                return labelContainer;
+            }
+        }
+        
+        labelContainer.appendChild(label);
+        return labelContainer;
+    }
+
+    createQuestionLabel() {
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'label-container';
+        
+        const label = document.createElement('label');
+        label.className = 'question-label';
+        label.textContent = this.label;
+        
+        if (this.required) {
+            label.classList.add('required');
+        }
+        
+        if (this.infoButton) {
+            const infoBtn = document.createElement('button');
+            infoBtn.className = 'info-button';
+            infoBtn.type = 'button';
+            infoBtn.setAttribute('aria-label', 'Plus d\'informations');
+            infoBtn.innerHTML = this.factory.SVG_ICONS.INFO;
+            
+            infoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleInfoPanel();
+            });
+            
+            label.appendChild(infoBtn);
+            
+            const infoPanel = this.createInfoPanel();
+            if (infoPanel) {
+                labelContainer.appendChild(label);
+                labelContainer.appendChild(infoPanel);
+                return labelContainer;
+            }
+        }
+        
+        labelContainer.appendChild(label);
+        return labelContainer;
+    }
+
+    createInfoPanel() {
+        if (!this.infoButton) return null;
+        
+        this.infoPanel = document.createElement('div');
+        this.infoPanel.className = 'info-panel';
+        this.infoPanel.id = `${this.id}-info`;
+        
+        if (this.infoButton.title) {
+            const titleEl = document.createElement('div');
+            titleEl.className = 'info-title';
+            titleEl.textContent = this.infoButton.title;
+            this.infoPanel.appendChild(titleEl);
+        }
+        
+        const contentEl = document.createElement('div');
+        contentEl.innerHTML = this.infoButton.content;
+        this.infoPanel.appendChild(contentEl);
+        
+        const closeButton = document.createElement('button');
+        closeButton.className = 'close-info';
+        closeButton.type = 'button';
+        closeButton.setAttribute('aria-label', 'Fermer');
+        closeButton.innerHTML = this.factory.SVG_ICONS.CLOSE;
+        closeButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.hideInfoPanel();
+        });
+        this.infoPanel.appendChild(closeButton);
+        
+        return this.infoPanel;
+    }
+
+    toggleInfoPanel() {
+        if (!this.infoPanel) return;
+        
+        const isCurrentlyShown = this.infoPanel.classList.contains('show');
+        
+        if (isCurrentlyShown) {
+            this.hideInfoPanel();
+        } else {
+            this.showInfoPanel();
+        }
+    }
+
+    showInfoPanel() {
+        if (!this.infoPanel) return;
+        
+        this.factory.closeAllInfoPanels();
+        
+        this.infoPanel.classList.add('show');
+        
+        this.infoPanelInstance = {
+            element: this.infoPanel,
+            button: this.container.querySelector('.info-button'),
+            close: () => this.hideInfoPanel()
+        };
+        
+        this.factory.registerInfoPanel(this.infoPanelInstance);
+    }
+
+    hideInfoPanel() {
+        if (this.infoPanel) {
+            this.infoPanel.classList.remove('show');
+            
+            if (this.infoPanelInstance) {
+                this.factory.unregisterInfoPanel(this.infoPanelInstance);
+                this.infoPanelInstance = null;
+            }
+        }
+    }
+
+    createErrorElement() {
+        this.errorElement = document.createElement('div');
+        this.errorElement.className = 'error-message';
+        this.errorElement.id = `error-${this.id}`;
+        this.errorElement.innerHTML = `
+            <div class="error-icon">!</div>
+            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+        `;
+        return this.errorElement;
+    }
+
+    showError(message) {
+        if (this.errorElement) {
+            const errorText = this.errorElement.querySelector('.error-text');
+            if (errorText) {
+                errorText.textContent = message || this.factory.getText('fieldRequired');
+            }
+            this.errorElement.classList.add('show');
+        }
+    }
+
+    hideError() {
+        if (this.errorElement) {
+            this.errorElement.classList.remove('show');
+        }
+    }
+
+    validate() {
+        if (this.required && !this.getValue()) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+
+        if (this.customValidation) {
+            const result = this.customValidation(this.getValue());
+            if (result !== true) {
+                this.showError(result);
+                return false;
+            }
+        }
+
+        this.hideError();
+        return true;
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.element) {
+            this.element.value = value;
+        }
+    }
+
+    handleChange() {
+        if (this.onChange) {
+            this.onChange(this.getValue());
+        }
+        if (this.factory.onChangeCallback) {
+            this.factory.onChangeCallback(this.name, this.getValue());
+        }
+        this.factory.formValues[this.name] = this.getValue();
+    }
+
+    show() {
+        if (this.container) {
+            this.container.style.display = 'block';
+        }
+    }
+
+    hide() {
+        if (this.container) {
+            this.container.style.display = 'none';
+        }
+    }
+
+    enable() {
+        if (this.container) {
+            const inputs = this.container.querySelectorAll('input, select, button');
+            inputs.forEach(input => input.disabled = false);
+        }
+    }
+
+    disable() {
+        if (this.container) {
+            const inputs = this.container.querySelectorAll('input, select, button');
+            inputs.forEach(input => input.disabled = true);
+        }
+    }
+
+    cleanup() {
+        this.hideInfoPanel();
+    }
+
+    render() {
+        throw new Error('render() method must be implemented by subclass');
+    }
+    // ADD these methods to the BaseField class:
+
+/**
+ * Reset field to initial state
+ */
+resetToInitial() {
+    this.value = this.defaultValue || '';
+    this.hideError();
+    
+    if (this.element) {
+        if (this.element.type === 'checkbox' || this.element.type === 'radio') {
+            this.element.checked = false;
+        } else {
+            this.element.value = '';
+        }
+    }
+}
+
+/**
+ * Clear all visual states
+ */
+clearVisualState() {
+    this.hideError();
+    this.hideInfoPanel();
+}
+}
+
+/**
+ * YesNoField - Yes/No field
+ */
+class YesNoField extends BaseField {
+    render() {
+        const container = this.createContainer();
+        
+        const labelContainer = this.createQuestionLabel();
+        
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'options-group';
+        
+        const yesOption = document.createElement('label');
+        yesOption.className = 'radio-option';
+        yesOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="yes" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${this.factory.getText('yes')}</span>
+        `;
+        
+        const noOption = document.createElement('label');
+        noOption.className = 'radio-option';
+        noOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="no" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${this.factory.getText('no')}</span>
+        `;
+        
+        optionsGroup.appendChild(yesOption);
+        optionsGroup.appendChild(noOption);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(labelContainer);
+        container.appendChild(optionsGroup);
+        container.appendChild(errorElement);
+        
+        const radioInputs = container.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.value = radio.value;
+                this.hideError();
+                this.handleChange();
+            });
+        });
+        
+        this.container = container;
+        return container;
+    }
+
+    getValue() {
+        if (this.container) {
+            const checkedRadio = this.container.querySelector('input[type="radio"]:checked');
+            return checkedRadio ? checkedRadio.value : '';
+        }
+        return this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.container) {
+            const radio = this.container.querySelector(`input[value="${value}"]`);
+            if (radio) radio.checked = true;
+        }
+    }
+}
+
+/**
+ * Enhanced NumberField with support for linked constraints
+ */
+class NumberField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 1000000;
+        this.step = config.step || 1;
+        this.prefix = config.prefix || '';
+        this.suffix = config.suffix || '';
+        this.customValidation = config.customValidation || null;
+        this.linkedField = config.linkedField || null;
+        this.value = config.value || config.defaultValue || 0;
+        this.errorElement = null;
+    }
+
+    validateValue(newValue) {
+        if (this.customValidation) {
+            const validationResult = this.customValidation(newValue, this.factory.formValues);
+            if (validationResult !== true) {
+                if (typeof validationResult === 'object') {
+                    this.showError(validationResult.message);
+                    return validationResult.adjustedValue !== undefined ? validationResult.adjustedValue : this.value;
+                } else if (typeof validationResult === 'string') {
+                    this.showError(validationResult);
+                    return this.value;
+                }
+                return this.value;
+            }
+        }
+        this.hideError();
+        return newValue;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'form-group';
+
+        const label = this.createLabel();
+        this.container.appendChild(label);
+
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'input-group';
+
+        const decrementBtn = document.createElement('button');
+        decrementBtn.type = 'button';
+        decrementBtn.className = 'decrement-btn';
+        decrementBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
+
+        this.element = document.createElement('input');
+        this.element.type = 'number';
+        this.element.id = this.id;
+        this.element.value = this.formatValue(this.value);
+
+        const incrementBtn = document.createElement('button');
+        incrementBtn.type = 'button';
+        incrementBtn.className = 'increment-btn';
+        incrementBtn.innerHTML = this.factory.SVG_ICONS.PLUS;
+
+        inputGroup.appendChild(decrementBtn);
+        inputGroup.appendChild(this.element);
+        inputGroup.appendChild(incrementBtn);
+        this.container.appendChild(inputGroup);
+
+        // Add error element
+        const errorEl = this.createErrorElement();
+        this.container.appendChild(errorEl);
+
+        // Event listeners
+        this.element.addEventListener('input', () => {
+            const newValue = this.parseValue(this.element.value);
+            const validatedValue = this.validateValue(newValue);
+            this.value = validatedValue;
+            this.element.value = this.formatValue(this.value);
+            this.handleChange();
+        });
+
+        decrementBtn.addEventListener('click', () => {
+            const newValue = Math.max(this.min, this.value - this.step);
+            const validatedValue = this.validateValue(newValue);
+            this.value = validatedValue;
+            this.element.value = this.formatValue(this.value);
+            this.handleChange();
+        });
+
+        incrementBtn.addEventListener('click', () => {
+            const newValue = Math.min(this.max, this.value + this.step);
+            const validatedValue = this.validateValue(newValue);
+            this.value = validatedValue;
+            this.element.value = this.formatValue(this.value);
+            this.handleChange();
+        });
+
+        return this.container;
+    }
+
+    formatValue(value) {
+        return value.toString();
+    }
+
+    parseValue(value) {
+        return parseFloat((value || '').toString().replace(/\s/g, '')) || 0;
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        this.value = this.parseValue(value);
+        if (this.element) {
+            this.element.value = this.formatValue(this.value);
+        }
+    }
+
+    // Method to trigger validation from external sources
+    revalidate() {
+        const validatedValue = this.validateValue(this.value);
+        if (validatedValue !== this.value) {
+            this.value = validatedValue;
+            this.element.value = this.formatValue(this.value);
+            this.handleChange();
+        }
+    }
+}
+
+class PercentageField extends NumberField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 20;
+        this.step = config.step || 0.05;
+        this.decimalPlaces = config.decimalPlaces || 2;
+    }
+
+    formatValue(value) {
+        return parseFloat(value).toFixed(this.decimalPlaces);
+    }
+
+    parseValue(value) {
+        return parseFloat(value) || 0;
+    }
+}
+
+class OptionsStepperField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.currentIndex = config.defaultIndex || 0;
+        this.displayFormatter = config.displayFormatter || null;
+        this.fieldStyle = config.fieldStyle || 'default';
+        this.value = this.getCurrentValue();
+    }
+
+    getCurrentValue() {
+        const option = this.options[this.currentIndex];
+        return typeof option === 'object' ? option.value : option;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'form-group';
+        
+        if (this.fieldStyle === 'stepper') {
+            this.container.classList.add('stepper-field');
+        }
+
+        const label = this.createLabel();
+        this.container.appendChild(label);
+
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'input-group';
+
+        const decrementBtn = document.createElement('button');
+        decrementBtn.type = 'button';
+        decrementBtn.className = 'decrement-btn';
+        decrementBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
+
+        this.element = document.createElement('input');
+        this.element.type = 'text';
+        this.element.id = this.id;
+        this.element.className = 'stepper-display-input';
+        this.element.readOnly = true;
+        this.element.value = this.getDisplayText();
+
+        const incrementBtn = document.createElement('button');
+        incrementBtn.type = 'button';
+        incrementBtn.className = 'increment-btn';
+        incrementBtn.innerHTML = this.factory.SVG_ICONS.PLUS;
+
+        inputGroup.appendChild(decrementBtn);
+        inputGroup.appendChild(this.element);
+        inputGroup.appendChild(incrementBtn);
+        this.container.appendChild(inputGroup);
+
+        // Update initial value
+        this.updateValue();
+
+        // Event listeners
+        decrementBtn.addEventListener('click', () => {
+            if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.updateValue();
+                this.updateDisplay();
+                this.handleChange();
+            }
+        });
+
+        incrementBtn.addEventListener('click', () => {
+            if (this.currentIndex < this.options.length - 1) {
+                this.currentIndex++;
+                this.updateValue();
+                this.updateDisplay();
+                this.handleChange();
+            }
+        });
+
+        return this.container;
+    }
+
+    updateValue() {
+        const option = this.options[this.currentIndex];
+        this.value = typeof option === 'object' ? option.value : option;
+    }
+
+    updateDisplay() {
+        this.element.value = this.getDisplayText();
+    }
+
+    getDisplayText() {
+        const option = this.options[this.currentIndex];
+        if (this.displayFormatter) {
+            return this.displayFormatter(option);
+        }
+        return typeof option === 'object' ? option.display || option.label || option.value : option;
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        const index = this.options.findIndex(opt => 
+            (typeof opt === 'object' ? opt.value : opt) === value
+        );
+        if (index !== -1) {
+            this.currentIndex = index;
+            this.updateValue();
+            this.updateDisplay();
+        }
+    }
+
+    validate() {
+        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
+            return false;
+        }
+        return true;
+    }
+}
+
+/**
+ * TextField - Simple text field
+ */
+class TextField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.maxLength = config.maxLength || null;
+        this.minLength = config.minLength || null;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const labelContainer = this.createLabel();
+        
+        this.element = document.createElement('input');
+        this.element.type = 'text';
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.placeholder = this.placeholder;
+        this.element.value = this.value;
+        
+        if (this.maxLength) {
+            this.element.maxLength = this.maxLength;
+        }
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(labelContainer);
+        container.appendChild(this.element);
+        container.appendChild(errorElement);
+        
+        this.element.addEventListener('input', () => {
+            this.value = this.element.value.trim();
+            if (this.value) this.hideError();
+            this.handleChange();
+        });
+        
+        this.container = container;
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (this.minLength && value.length < this.minLength) {
+            this.showError(`Minimum ${this.minLength} caractères requis`);
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * TextAreaField - Multiple text field
+ */
+class TextAreaField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.rows = config.rows || 4;
+        this.maxLength = config.maxLength || 500;
+        this.showCounter = config.showCounter !== false;
+        this.minHeight = config.minHeight || 120;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const textareaWrapper = document.createElement('div');
+        textareaWrapper.className = 'textarea-wrapper';
+        
+        this.element = document.createElement('div');
+        this.element.id = this.id;
+        this.element.className = 'custom-textarea';
+        this.element.setAttribute('contenteditable', 'true');
+        this.element.setAttribute('data-placeholder', this.placeholder);
+        this.element.style.minHeight = `${this.minHeight}px`;
+        
+        const lineHeight = 20;
+        this.element.style.height = `${Math.max(this.minHeight, this.rows * lineHeight + 24)}px`;
+        
+        if (this.value) {
+            this.element.textContent = this.value;
+        }
+        
+        textareaWrapper.appendChild(this.element);
+        
+        if (this.showCounter) {
+            this.counterElement = document.createElement('div');
+            this.counterElement.className = 'char-counter';
+            this.counterElement.innerHTML = `<span id="${this.id}-counter">${this.value.length}</span>/${this.maxLength}`;
+            textareaWrapper.appendChild(this.counterElement);
+        }
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(textareaWrapper);
+        container.appendChild(errorElement);
+        
+        this.element.addEventListener('input', () => {
+            let text = this.element.textContent || '';
+            
+            if (this.maxLength && text.length > this.maxLength) {
+                text = text.substring(0, this.maxLength);
+                this.element.textContent = text;
+                
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(this.element);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            
+            this.value = text.trim();
+            if (this.value) this.hideError();
+            
+            if (this.showCounter) {
+                const counter = container.querySelector(`#${this.id}-counter`);
+                if (counter) counter.textContent = text.length;
+            }
+            
+            this.handleChange();
+        });
+        
+        this.element.addEventListener('focus', () => {
+            if (this.element.textContent === '') {
+                this.element.classList.add('focused');
+            }
+        });
+        
+        this.element.addEventListener('blur', () => {
+            this.element.classList.remove('focused');
+        });
+        
+        this.element.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            const maxLength = this.maxLength || text.length;
+            const finalText = text.substring(0, maxLength);
+            
+            document.execCommand('insertText', false, finalText);
+        });
+        
+        this.container = container;
+        return container;
+    }
+
+    getValue() {
+        return this.element ? (this.element.textContent || '').trim() : this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.element) {
+            this.element.textContent = value;
+            
+            if (this.showCounter && this.counterElement) {
+                const counter = this.counterElement.querySelector(`#${this.id}-counter`);
+                if (counter) counter.textContent = value.length;
+            }
+        }
+    }
+}
+
+/**
+ * EmailField - Email field
+ */
+class EmailField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'email';
+        
+        // REPLACE with this:
+		this.element.addEventListener('input', () => {
+			this.value = this.element.value.trim();
+			if (this.value) {
+				this.hideError(); // Only hide error, don't show it
+			}
+			this.handleChange();
+		});
+
+		// ADD this new blur event listener:
+		this.element.addEventListener('blur', () => {
+			const value = this.element.value.trim();
+			if (value) {
+				if (FormFieldFactory.ValidationUtils.isValidEmail(value)) {
+					this.hideError();
+				} else {
+					this.showError(this.factory.getText('emailInvalid'));
+				}
+			}
+			this.handleChange();
+		});
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidEmail(value)) {
+            this.showError(this.factory.getText('emailInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * PhoneField - Phone field
+ */
+class PhoneField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'tel';
+        
+        // REPLACE with this:
+		this.element.addEventListener('input', () => {
+			this.value = this.element.value.trim();
+			if (this.value) {
+				this.hideError(); // Only hide error, don't show it
+			}
+			this.handleChange();
+		});
+
+		// ADD this new blur event listener:
+		this.element.addEventListener('blur', () => {
+			const value = this.element.value.trim();
+			if (value) {
+				if (FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
+					this.hideError();
+				} else {
+					this.showError(this.factory.getText('phoneInvalid'));
+				}
+			}
+			this.handleChange();
+		});
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
+            this.showError(this.factory.getText('phoneInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
+    getValue() {
+        const value = this.element ? this.element.value.trim() : this.value;
+        return FormFieldFactory.ValidationUtils.formatPhoneNumber(value);
+    }
+}
+
+/**
+ * UrlField - URL field
+ */
+class UrlField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'url';
+        
+        this.element.addEventListener('blur', () => {
+            const value = this.element.value.trim();
+            if (value) {
+                if (FormFieldFactory.ValidationUtils.isValidUrl(value)) {
+                    const normalized = FormFieldFactory.ValidationUtils.normalizeUrl(value);
+                    this.element.value = normalized;
+                    this.value = normalized;
+                    this.hideError();
+                } else {
+                    this.showError(this.factory.getText('urlInvalid'));
+                }
+            }
+            this.handleChange();
+        });
+        
+        this.element.addEventListener('input', () => {
+            this.value = this.element.value.trim();
+            if (this.value && FormFieldFactory.ValidationUtils.isValidUrl(this.value)) {
+                this.hideError();
+            }
+            this.handleChange();
+        });
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidUrl(value)) {
+            this.showError(this.factory.getText('urlInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * YesNoWithOptionsField - Enhanced with subsection field support
+ */
+class YesNoWithOptionsField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        this.yesFieldConfig = config.yesField || null;
+        this.noFieldConfig = config.noField || null;
+        
+        this.yesFieldsConfig = config.yesFields || (config.yesField ? [config.yesField] : []);
+        this.noFieldsConfig = config.noFields || (config.noField ? [config.noField] : []);
+        
+        this.layout = config.layout || 'below';
+        this.customOptions = config.customOptions || null;
+        
+        this.yesFieldInstances = [];
+        this.noFieldInstances = [];
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        const label = this.createQuestionLabel();
+        
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'options-group';
+        
+        let yesText, noText, yesValue, noValue;
+        if (this.customOptions) {
+            const yesOption = this.customOptions.find(opt => opt.value === 'yes') || 
+                             this.customOptions.find(opt => opt.value === 'multilingual');
+            const noOption = this.customOptions.find(opt => opt.value === 'no') || 
+                            this.customOptions.find(opt => opt.value === 'unilingual');
+            
+            yesText = yesOption ? yesOption.label : this.factory.getText('yes');
+            noText = noOption ? noOption.label : this.factory.getText('no');
+            yesValue = yesOption ? yesOption.value : 'yes';
+            noValue = noOption ? noOption.value : 'no';
+        } else {
+            yesText = this.factory.getText('yes');
+            noText = this.factory.getText('no');
+            yesValue = 'yes';
+            noValue = 'no';
+        }
+        
+        const yesOption = document.createElement('label');
+        yesOption.className = 'radio-option';
+        yesOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${yesValue}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${yesText}</span>
+        `;
+        
+        const noOption = document.createElement('label');
+        noOption.className = 'radio-option';
+        noOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${noValue}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${noText}</span>
+        `;
+        
+        optionsGroup.appendChild(yesOption);
+        optionsGroup.appendChild(noOption);
+        
+        let conditionalContainer;
+        if (this.layout === 'side-by-side' && this.yesFieldsConfig.length > 0 && this.noFieldsConfig.length > 0) {
+            conditionalContainer = document.createElement('div');
+            conditionalContainer.className = 'conditional-side-by-side';
+        } else {
+            conditionalContainer = document.createElement('div');
+        }
+        
+        let yesContainer = null;
+        if (this.yesFieldsConfig.length > 0) {
+            yesContainer = document.createElement('div');
+            yesContainer.className = 'conditional-field-wrapper';
+            yesContainer.id = `${this.id}-yes-options`;
+            yesContainer.style.display = 'none';
+            
+            // Group yesFields by row (same logic as FormStep)
+            const yesFieldGroups = this.groupFields(this.yesFieldsConfig);
+
+            yesFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `yes-${this.yesFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.yesFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    
+                    yesContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `yes-${this.yesFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.yesFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        yesContainer.appendChild(fieldElement);
+                    }
+                }
+            });
+        }
+        
+        let noContainer = null;
+        if (this.noFieldsConfig.length > 0) {
+            noContainer = document.createElement('div');
+            noContainer.className = 'conditional-field-wrapper';
+            noContainer.id = `${this.id}-no-options`;
+            noContainer.style.display = 'none';
+            
+            // Group noFields by row (same logic as FormStep)
+            const noFieldGroups = this.groupFields(this.noFieldsConfig);
+
+            noFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `no-${this.noFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.noFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    
+                    noContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `no-${this.noFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.noFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        noContainer.appendChild(fieldElement);
+                    }
+                }
+            });
+        }
+        
+        if (yesContainer) conditionalContainer.appendChild(yesContainer);
+        if (noContainer) conditionalContainer.appendChild(noContainer);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(optionsGroup);
+        if (yesContainer || noContainer) {
+            container.appendChild(conditionalContainer);
+        }
+        container.appendChild(errorElement);
+        
+        const radioInputs = container.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.value = radio.value;
+                this.hideError();
+                
+                const isYesValue = radio.value === yesValue || radio.value === 'multilingual';
+                const isNoValue = radio.value === noValue || radio.value === 'unilingual';
+                
+                if (isYesValue) {
+                    if (yesContainer) yesContainer.style.display = 'block';
+                    if (noContainer) noContainer.style.display = 'none';
+                } else if (isNoValue) {
+                    if (yesContainer) yesContainer.style.display = 'none';
+                    if (noContainer) noContainer.style.display = 'block';
+                }
+                
+                this.handleChange();
+            });
+        });
+        
+        this.container = container;
+        this.yesContainer = yesContainer;
+        this.noContainer = noContainer;
+        this.yesValue = yesValue;
+        this.noValue = noValue;
+        
+        return container;
+    }
+
+    createFieldInstance(fieldConfig, suffix) {
+        const fieldType = fieldConfig.type;
+        const config = {
+            ...fieldConfig,
+            id: `${this.id}-${suffix}-${fieldConfig.id}`,
+            name: fieldConfig.name || fieldConfig.id,
+            onChange: (value) => {
+                if (fieldConfig.onChange) {
+                    fieldConfig.onChange(value);
+                }
+                this.handleChange();
+            }
+        };
+
+        switch (fieldType) {
+            case 'text':
+                return this.factory.createTextField(config);
+            case 'email':
+                return this.factory.createEmailField(config);
+            case 'phone':
+                return this.factory.createPhoneField(config);
+            case 'url':
+                return this.factory.createUrlField(config);
+            case 'textarea':
+                return this.factory.createTextAreaField(config);
+            case 'number':
+                return this.factory.createNumberField(config);
+            case 'percentage':
+                return this.factory.createPercentageField(config);
+            case 'options-stepper':
+                return this.factory.createOptionsStepperField(config);
+            case 'yesno':
+                return this.factory.createYesNoField(config);
+            case 'select':
+                return this.factory.createSingleSelectField(config);
+            case 'multiselect':
+                return this.factory.createMultiSelectField(config);
+            case 'select-subsections':
+                return this.factory.createSingleSelectSubsectionsField(config);
+            case 'multiselect-subsections':
+                return this.factory.createMultiSelectSubsectionsField(config);
+            case 'yesno-with-options':
+                return this.factory.createYesNoWithOptionsField(config);
+            case 'select-with-other':
+                return this.factory.createSingleSelectWithOtherField(config);
+            case 'multiselect-with-other':
+                return this.factory.createMultiSelectWithOtherField(config);
+            default:
+                console.warn(`Unknown field type: ${fieldType}`);
+                return null;
+        }
+    }
+
+    getValue() {
+        const mainValue = this.container ? 
+            this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
+            this.value;
+            
+        const result = { main: mainValue };
+        
+        if ((mainValue === this.yesValue || mainValue === 'multilingual') && this.yesFieldInstances.length > 0) {
+            result.yesValues = {};
+            this.yesFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.yesFieldsConfig[index];
+                result.yesValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+            });
+        }
+        
+        if ((mainValue === this.noValue || mainValue === 'unilingual') && this.noFieldInstances.length > 0) {
+            result.noValues = {};
+            this.noFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.noFieldsConfig[index];
+                result.noValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+            });
+        }
+        
+        return result;
+    }
+
+    setValue(value) {
+        let mainValue = value;
+        
+        if (typeof value === 'object' && value.main) {
+            mainValue = value.main;
+            
+            if (value.yesValues && this.yesFieldInstances.length > 0) {
+                this.yesFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.yesFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.yesValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.yesValues[fieldName]);
+                    }
+                });
+            }
+            
+            if (value.noValues && this.noFieldInstances.length > 0) {
+                this.noFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.noFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.noValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.noValues[fieldName]);
+                    }
+                });
+            }
+        }
+        
+        this.value = mainValue;
+        
+        if (this.container) {
+            const radio = this.container.querySelector(`input[value="${mainValue}"]`);
+            if (radio) {
+                radio.checked = true;
+                
+                if (mainValue === this.yesValue || mainValue === 'multilingual') {
+                    if (this.yesContainer) this.yesContainer.style.display = 'block';
+                    if (this.noContainer) this.noContainer.style.display = 'none';
+                } else if (mainValue === this.noValue || mainValue === 'unilingual') {
+                    if (this.yesContainer) this.yesContainer.style.display = 'none';
+                    if (this.noContainer) this.noContainer.style.display = 'block';
+                }
+            }
+        }
+    }
+
+    validate() {
+        if (this.required && !this.getValue().main) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+
+        let isValid = true;
+        const currentValue = this.getValue();
+        
+        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
+            this.yesContainer && this.yesContainer.style.display === 'block') {
+            this.yesFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+        
+        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
+            this.noContainer && this.noContainer.style.display === 'block') {
+            this.noFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+
+        if (isValid) {
+            this.hideError();
+        }
+
+        return isValid;
+    }
+    
+    groupFields(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            // Check if current field should be in a row with the next field
+            if (currentField.row && i + 1 < fields.length) {
+                const nextField = fields[i + 1];
+                if (nextField.row === currentField.row) {
+                    // Find all fields with the same row identifier
+                    const rowFields = [];
+                    let j = i;
+                    while (j < fields.length && fields[j].row === currentField.row) {
+                        rowFields.push(fields[j]);
+                        j++;
+                    }
+                    
+                    groups.push({
+                        isRow: true,
+                        fields: rowFields
+                    });
+                    
+                    i = j; // Skip the grouped fields
+                    continue;
+                }
+            }
+            
+            // Single field
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
+        }
+        
+        return groups;
+    }
+}
+
+/**
+ * SingleSelectField - Simple dropdown
+ */
+class SingleSelectField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.placeholder = config.placeholder || factory.getText('selectPlaceholder');
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.style.display = 'none';
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = this.placeholder;
+        this.element.appendChild(defaultOption);
+        
+        this.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = option.name;
+            this.element.appendChild(optionElement);
+        });
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options';
+        
+        this.options.forEach(option => {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.setAttribute('data-value', option.id);
+            customOption.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${option.name}</span>
+            `;
+            
+            customOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectOption(option);
+            });
+            
+            this.customOptionsElement.appendChild(customOption);
+        });
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    selectOption(option) {
+        this.customOptionsElement.querySelectorAll('.custom-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        const optionElement = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
+        if (optionElement) {
+            optionElement.classList.add('selected');
+        }
+        
+        this.selectDisplayElement.querySelector('span').textContent = option.name;
+        this.selectDisplayElement.classList.remove('placeholder');
+        
+        this.element.value = option.id;
+        this.value = option.id;
+        
+        this.closeDropdown();
+        
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        return this.element ? this.element.value : this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.element) {
+            this.element.value = value;
+            
+            const option = this.options.find(opt => opt.id === value);
+            if (option && this.selectDisplayElement) {
+                this.selectDisplayElement.querySelector('span').textContent = option.name;
+                this.selectDisplayElement.classList.remove('placeholder');
+                
+                if (this.customOptionsElement) {
+                    this.customOptionsElement.querySelectorAll('.custom-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    const optionElement = this.customOptionsElement.querySelector(`[data-value="${value}"]`);
+                    if (optionElement) {
+                        optionElement.classList.add('selected');
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * MultiSelectField - Multiple dropdown
+ */
+class MultiSelectField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
+        this.selectedValues = [];
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.multiple = true;
+        this.element.style.display = 'none';
+        
+        this.options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = option.name;
+            this.element.appendChild(optionElement);
+        });
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper multi-select';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options multi-select';
+        
+        const selectAllOption = document.createElement('div');
+        selectAllOption.className = 'custom-option select-all-option';
+        selectAllOption.innerHTML = `
+            <div class="option-checkbox">
+                ${this.factory.SVG_ICONS.CHECK}
+            </div>
+            <span>${this.factory.getText('selectAll')}</span>
+        `;
+        
+        selectAllOption.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSelectAll();
+        });
+        
+        this.customOptionsElement.appendChild(selectAllOption);
+        
+        this.options.forEach(option => {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.setAttribute('data-value', option.id);
+            customOption.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${option.name}</span>
+            `;
+            
+            customOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleOption(option, customOption);
+            });
+            
+            this.customOptionsElement.appendChild(customOption);
+        });
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    toggleOption(option, customOption) {
+        const isSelected = customOption.classList.contains('selected');
+        const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+        
+        if (isSelected) {
+            customOption.classList.remove('selected');
+            if (optElement) optElement.selected = false;
+            this.selectedValues = this.selectedValues.filter(val => val !== option.id);
+        } else {
+            customOption.classList.add('selected');
+            if (optElement) optElement.selected = true;
+            this.selectedValues.push(option.id);
+        }
+        
+        this.updateDisplayText();
+        this.updateSelectAllState();
+        this.value = this.selectedValues;
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleSelectAll() {
+        const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+        
+        allOptions.forEach(opt => {
+            const optValue = opt.dataset.value;
+            const optElement = this.element.querySelector(`option[value="${optValue}"]`);
+            
+            if (allSelected) {
+                opt.classList.remove('selected');
+                if (optElement) optElement.selected = false;
+            } else {
+                opt.classList.add('selected');
+                if (optElement) optElement.selected = true;
+            }
+        });
+        
+        if (allSelected) {
+            selectAllOption.classList.remove('selected');
+            this.selectedValues = [];
+        } else {
+            selectAllOption.classList.add('selected');
+            this.selectedValues = this.options.map(opt => opt.id);
+        }
+        
+        this.updateDisplayText();
+        this.value = this.selectedValues;
+        this.handleChange();
+    }
+
+    updateSelectAllState() {
+        const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+        
+        if (allSelected && this.selectedValues.length > 0) {
+            selectAllOption.classList.add('selected');
+        } else {
+            selectAllOption.classList.remove('selected');
+        }
+    }
+
+    updateDisplayText() {
+        const span = this.selectDisplayElement.querySelector('span');
+        
+        if (this.selectedValues.length === 0) {
+            span.textContent = this.placeholder;
+            this.selectDisplayElement.classList.add('placeholder');
+        } else if (this.selectedValues.length === 1) {
+            const option = this.options.find(opt => opt.id === this.selectedValues[0]);
+            span.textContent = option ? option.name : this.selectedValues[0];
+            this.selectDisplayElement.classList.remove('placeholder');
+        } else {
+            span.textContent = `${this.selectedValues.length} ${this.factory.getText('selected')}`;
+            this.selectDisplayElement.classList.remove('placeholder');
+        }
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        return this.selectedValues;
+    }
+
+    setValue(values) {
+        this.selectedValues = Array.isArray(values) ? values : [];
+        this.value = this.selectedValues;
+        
+        if (this.element) {
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+            
+            if (this.customOptionsElement) {
+                this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)').forEach(opt => {
+                    if (this.selectedValues.includes(opt.dataset.value)) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+                
+                this.updateSelectAllState();
+            }
+            
+            if (this.selectDisplayElement) {
+                this.updateDisplayText();
+            }
+        }
+    }
+
+    validate() {
+        if (this.required && this.selectedValues.length === 0) {
+            this.showError(this.factory.getText('selectAtLeastOne'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * SingleSelectSubsectionsField - Single select dropdown with nested subsections
+ */
+class SingleSelectSubsectionsField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.subsectionOptions = config.subsectionOptions || [];
+        this.placeholder = config.placeholder || factory.getText('selectSubsectionPlaceholder');
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.style.display = 'none';
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = this.placeholder;
+        this.element.appendChild(defaultOption);
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options';
+        
+        this.buildSubsectionOptions();
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    buildSubsectionOptions() {
+        this.subsectionOptions.forEach(group => {
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'custom-option category-option';
+            mainDiv.dataset.value = group.id;
+            mainDiv.innerHTML = `
+                <span>${group.name}</span>
+                <div class="main-arrow">
+                    <div class="arrow-icon">${this.factory.SVG_ICONS.CHEVRON}</div>
+                </div>
+            `;
+            
+            mainDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                if (mainDiv.classList.contains('expanded')) {
+                    this.collapseSection(mainDiv);
+                } else {
+                    this.expandSection(mainDiv, group);
+                }
+            });
+            
+            this.customOptionsElement.appendChild(mainDiv);
+        });
+    }
+
+    expandSection(mainDiv, group) {
+        // Close other expanded sections
+        this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
+            this.collapseSection(opt);
+        });
+        
+        mainDiv.classList.add('expanded');
+        mainDiv.querySelector('.arrow-icon').classList.add('rotate');
+        
+        const subWrapper = document.createElement('div');
+        subWrapper.className = 'sub-options';
+        
+        group.subcategories.forEach(item => {
+            const subDiv = document.createElement('div');
+            subDiv.className = 'custom-option';
+            subDiv.dataset.value = item.id;
+            const checkboxDiv = document.createElement('div');
+            checkboxDiv.className = 'option-checkbox';
+            checkboxDiv.innerHTML = this.factory.SVG_ICONS.CHECK;
+            const itemSpan = document.createElement('span');
+            itemSpan.textContent = item.name;
+            subDiv.appendChild(checkboxDiv);
+            subDiv.appendChild(itemSpan);
+            
+            // Check if already selected
+            if (this.value === item.id) {
+                subDiv.classList.add('selected');
+            }
+            
+            subDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectOption(item);
+            });
+            
+            subWrapper.appendChild(subDiv);
+        });
+        
+        mainDiv.insertAdjacentElement('afterend', subWrapper);
+    }
+
+    collapseSection(mainDiv) {
+        mainDiv.classList.remove('expanded');
+        if (mainDiv.nextElementSibling && mainDiv.nextElementSibling.classList.contains('sub-options')) {
+            mainDiv.nextElementSibling.remove();
+        }
+        const arrow = mainDiv.querySelector('.arrow-icon');
+        if (arrow) arrow.classList.remove('rotate');
+    }
+
+    selectOption(option) {
+        // Clear all selections
+        this.customOptionsElement.querySelectorAll('.custom-option.selected').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        // Select the clicked option
+        const optionElement = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
+        if (optionElement) {
+            optionElement.classList.add('selected');
+        }
+        
+        this.selectDisplayElement.querySelector('span').textContent = option.name;
+        this.selectDisplayElement.classList.remove('placeholder');
+        
+        this.element.value = option.id;
+        this.value = option.id;
+        
+        this.closeDropdown();
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        // Collapse all expanded sections
+        this.customOptionsElement.querySelectorAll('.sub-options').forEach(sw => sw.remove());
+        this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
+            this.collapseSection(opt);
+        });
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        return this.element ? this.element.value : this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.element) {
+            this.element.value = value;
+            
+            // Find the option in subsections
+            for (const group of this.subsectionOptions) {
+                const option = group.subcategories.find(opt => opt.id === value);
+                if (option && this.selectDisplayElement) {
+                    this.selectDisplayElement.querySelector('span').textContent = option.name;
+                    this.selectDisplayElement.classList.remove('placeholder');
+                    break;
+                }
+            }
+        }
+    }
+
+    cleanup() {
+        this.closeDropdown();
+        super.cleanup();
+    }
+}
+
+/**
+ * MultiSelectSubsectionsField - Multi-select dropdown with nested subsections
+ */
+class MultiSelectSubsectionsField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.subsectionOptions = config.subsectionOptions || [];
+        this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
+        this.selectedValues = [];
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.multiple = true;
+        this.element.style.display = 'none';
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper multi-select';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options multi-select';
+        
+        this.buildSubsectionOptions();
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    buildSubsectionOptions() {
+        // Add Select All option
+        const selectAllDiv = document.createElement('div');
+        selectAllDiv.className = 'custom-option select-all-option';
+        selectAllDiv.dataset.value = 'select_all';
+        const allCheckbox = document.createElement('div');
+        allCheckbox.className = 'option-checkbox';
+        allCheckbox.innerHTML = this.factory.SVG_ICONS.CHECK;
+        const allText = document.createElement('span');
+        allText.textContent = this.factory.getText('selectAll');
+        selectAllDiv.appendChild(allCheckbox);
+        selectAllDiv.appendChild(allText);
+        
+        selectAllDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSelectAll();
+        });
+        
+        this.customOptionsElement.appendChild(selectAllDiv);
+        
+        // Add subsection groups
+        this.subsectionOptions.forEach(group => {
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'custom-option category-option';
+            mainDiv.dataset.value = group.id;
+            mainDiv.innerHTML = `
+                <span>${group.name}</span>
+                <div class="main-arrow">
+                    <div class="arrow-icon">${this.factory.SVG_ICONS.CHEVRON}</div>
+                </div>
+            `;
+            
+            mainDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                if (mainDiv.classList.contains('expanded')) {
+                    this.collapseSection(mainDiv);
+                } else {
+                    this.expandSection(mainDiv, group);
+                }
+            });
+            
+            this.customOptionsElement.appendChild(mainDiv);
+        });
+    }
+
+    expandSection(mainDiv, group) {
+        // Close other expanded sections
+        this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
+            this.collapseSection(opt);
+        });
+        
+        mainDiv.classList.add('expanded');
+        mainDiv.querySelector('.arrow-icon').classList.add('rotate');
+        
+        const subWrapper = document.createElement('div');
+        subWrapper.className = 'sub-options';
+        
+        // Add Select All for this group
+        const selectAllDiv = document.createElement('div');
+        selectAllDiv.className = 'custom-option select-all-option';
+        selectAllDiv.dataset.value = `select_all_${group.id}`;
+        const allCheckbox = document.createElement('div');
+        allCheckbox.className = 'option-checkbox';
+        allCheckbox.innerHTML = this.factory.SVG_ICONS.CHECK;
+        const allSpan = document.createElement('span');
+        allSpan.textContent = this.factory.getText('selectAll');
+        selectAllDiv.appendChild(allCheckbox);
+        selectAllDiv.appendChild(allSpan);
+        
+        selectAllDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSelectAllInGroup(group, subWrapper);
+        });
+        
+        subWrapper.appendChild(selectAllDiv);
+        
+        group.subcategories.forEach(item => {
+            this.element.appendChild(new Option(item.name, item.id));
+            
+            const subDiv = document.createElement('div');
+            subDiv.className = 'custom-option';
+            subDiv.dataset.value = item.id;
+            const checkboxDiv = document.createElement('div');
+            checkboxDiv.className = 'option-checkbox';
+            checkboxDiv.innerHTML = this.factory.SVG_ICONS.CHECK;
+            const itemSpan = document.createElement('span');
+            itemSpan.textContent = item.name;
+            subDiv.appendChild(checkboxDiv);
+            subDiv.appendChild(itemSpan);
+            
+            // Check if already selected
+            if (this.selectedValues.includes(item.id)) {
+                subDiv.classList.add('selected');
+                const subOption = this.element.querySelector(`option[value="${item.id}"]`);
+                if (subOption) subOption.selected = true;
+            }
+            
+            subDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleOption(item, subDiv, subWrapper);
+            });
+            
+            subWrapper.appendChild(subDiv);
+        });
+        
+        // Update group select all state
+        this.updateGroupSelectAllState(group, subWrapper);
+        
+        mainDiv.insertAdjacentElement('afterend', subWrapper);
+    }
+
+    collapseSection(mainDiv) {
+        mainDiv.classList.remove('expanded');
+        if (mainDiv.nextElementSibling && mainDiv.nextElementSibling.classList.contains('sub-options')) {
+            mainDiv.nextElementSibling.remove();
+        }
+        const arrow = mainDiv.querySelector('.arrow-icon');
+        if (arrow) arrow.classList.remove('rotate');
+    }
+
+    toggleOption(option, customOption, subWrapper) {
+        const isSelected = customOption.classList.contains('selected');
+        const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+        
+        if (isSelected) {
+            customOption.classList.remove('selected');
+            if (optElement) optElement.selected = false;
+            this.selectedValues = this.selectedValues.filter(val => val !== option.id);
+        } else {
+            customOption.classList.add('selected');
+            if (optElement) optElement.selected = true;
+            this.selectedValues.push(option.id);
+        }
+        
+        this.updateDisplayText();
+        this.updateSelectAllStates(subWrapper);
+        this.value = this.selectedValues;
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleSelectAllInGroup(group, subWrapper) {
+        const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = subWrapper.querySelector('.select-all-option');
+        const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
+        
+        subOptions.forEach(opt => {
+            const optValue = opt.dataset.value;
+            const optElement = this.element.querySelector(`option[value="${optValue}"]`);
+            
+            if (allSelected) {
+                opt.classList.remove('selected');
+                if (optElement) optElement.selected = false;
+                this.selectedValues = this.selectedValues.filter(val => val !== optValue);
+            } else {
+                opt.classList.add('selected');
+                if (optElement) optElement.selected = true;
+                if (!this.selectedValues.includes(optValue)) {
+                    this.selectedValues.push(optValue);
+                }
+            }
+        });
+        
+        selectAllOption.classList.toggle('selected', !allSelected);
+        this.updateDisplayText();
+        this.updateGlobalSelectAllState();
+        this.value = this.selectedValues;
+        this.handleChange();
+    }
+
+    toggleSelectAll() {
+        const globalSelectAll = this.customOptionsElement.querySelector('.select-all-option[data-value="select_all"]');
+        const allSubOptions = [];
+        
+        // Collect all subcategory options
+        this.subsectionOptions.forEach(group => {
+            group.subcategories.forEach(item => {
+                allSubOptions.push(item.id);
+            });
+        });
+        
+        const allSelected = allSubOptions.every(id => this.selectedValues.includes(id));
+        
+        if (allSelected) {
+            // Deselect all
+            this.selectedValues = [];
+            globalSelectAll.classList.remove('selected');
+            
+            // Update all visible options
+            this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)').forEach(opt => {
+                opt.classList.remove('selected');
+                const optElement = this.element.querySelector(`option[value="${opt.dataset.value}"]`);
+                if (optElement) optElement.selected = false;
+            });
+        } else {
+            // Select all
+            this.selectedValues = [...allSubOptions];
+            globalSelectAll.classList.add('selected');
+            
+            // Update all visible options
+            this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)').forEach(opt => {
+                opt.classList.add('selected');
+                const optElement = this.element.querySelector(`option[value="${opt.dataset.value}"]`);
+                if (optElement) optElement.selected = true;
+            });
+        }
+        
+        this.updateDisplayText();
+        this.value = this.selectedValues;
+        this.handleChange();
+    }
+
+    updateGroupSelectAllState(group, subWrapper) {
+        const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = subWrapper.querySelector('.select-all-option');
+        const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
+        
+        if (allSelected && subOptions.length > 0) {
+            selectAllOption.classList.add('selected');
+        } else {
+            selectAllOption.classList.remove('selected');
+        }
+    }
+
+    updateSelectAllStates(subWrapper = null) {
+        if (subWrapper) {
+            // Update group select all
+            const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
+            const selectAllOption = subWrapper.querySelector('.select-all-option');
+            const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
+            selectAllOption.classList.toggle('selected', allSelected && subOptions.length > 0);
+        }
+        
+        this.updateGlobalSelectAllState();
+    }
+
+    updateGlobalSelectAllState() {
+        const globalSelectAll = this.customOptionsElement.querySelector('.select-all-option[data-value="select_all"]');
+        const allSubOptions = [];
+        
+        this.subsectionOptions.forEach(group => {
+            group.subcategories.forEach(item => {
+                allSubOptions.push(item.id);
+            });
+        });
+        
+        const allSelected = allSubOptions.length > 0 && allSubOptions.every(id => this.selectedValues.includes(id));
+        globalSelectAll.classList.toggle('selected', allSelected);
+    }
+
+    updateDisplayText() {
+        const span = this.selectDisplayElement.querySelector('span');
+        
+        if (this.selectedValues.length === 0) {
+            span.textContent = this.placeholder;
+            this.selectDisplayElement.classList.add('placeholder');
+        } else if (this.selectedValues.length === 1) {
+            // Find the option name
+            for (const group of this.subsectionOptions) {
+                const option = group.subcategories.find(opt => opt.id === this.selectedValues[0]);
+                if (option) {
+                    span.textContent = option.name;
+                    break;
+                }
+            }
+            this.selectDisplayElement.classList.remove('placeholder');
+        } else {
+            span.textContent = `${this.selectedValues.length} ${this.factory.getText('selected')}`;
+            this.selectDisplayElement.classList.remove('placeholder');
+        }
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        // Collapse all expanded sections
+        this.customOptionsElement.querySelectorAll('.sub-options').forEach(sw => sw.remove());
+        this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
+            this.collapseSection(opt);
+        });
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        return this.selectedValues;
+    }
+
+    setValue(values) {
+        this.selectedValues = Array.isArray(values) ? values : [];
+        this.value = this.selectedValues;
+        
+        if (this.element) {
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+            
+            this.updateDisplayText();
+        }
+    }
+
+    validate() {
+        if (this.required && this.selectedValues.length === 0) {
+            this.showError(this.factory.getText('selectAtLeastOne'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
+    cleanup() {
+        this.closeDropdown();
+        super.cleanup();
+    }
+}
+
+/**
+ * CustomField - For special content like summaries
+ */
+class CustomField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.renderFunction = config.render || null;
+        this.updateFunction = config.update || null;
+        this.autoSummary = config.autoSummary || false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        if (this.autoSummary) {
+            const summaryContent = this.createAutoSummary();
+            container.appendChild(summaryContent);
+        } else if (this.renderFunction) {
+            const customContent = this.renderFunction(this.factory, this.getFormData());
+            container.appendChild(customContent);
+        }
+        
+        this.container = container;
+        return container;
+    }
+
+    createAutoSummary() {
+        const multiStepForm = this.factory.currentMultiStepForm;
+        if (!multiStepForm) {
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = 'No multi-step form found';
+            return errorDiv;
+        }
+
+        const summaryContainer = document.createElement('div');
+        summaryContainer.className = 'summary-container auto-summary';
+
+        const currentStepIndex = multiStepForm.currentStep;
+        
+        multiStepForm.steps.forEach((step, stepIndex) => {
+            if (stepIndex === currentStepIndex) return;
+
+            const stepData = this.getStepData(multiStepForm, stepIndex);
+            if (this.hasVisibleData(stepData)) {
+                const stepSection = this.createStepSummarySection(step, stepData, stepIndex);
+                summaryContainer.appendChild(stepSection);
+            }
+        });
+
+        return summaryContainer;
+    }
+
+    createStepSummarySection(step, stepData, stepIndex) {
+        const section = document.createElement('div');
+        section.className = 'summary-section';
+        section.innerHTML = `
+            <div class="summary-heading">
+                <span>${step.title}</span>
+                <button type="button" class="edit-btn" data-step="${stepIndex}">
+                    ${this.factory.getText('edit') || 'Modifier'}
+                </button>
+            </div>
+            <div class="summary-content" id="step-${stepIndex}-summary"></div>
+        `;
+
+        const editBtn = section.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => {
+            if (this.factory.currentMultiStepForm) {
+                this.factory.currentMultiStepForm.goToStep(stepIndex);
+            }
+        });
+
+        const contentDiv = section.querySelector('.summary-content');
+        this.populateStepContent(contentDiv, step, stepData);
+
+        return section;
+    }
+
+    populateStepContent(contentDiv, step, stepData) {
+        let contentHtml = '';
+
+        step.fields.forEach(fieldConfig => {
+            const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
+            if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+                const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
+                if (displayValue) {
+                    contentHtml += `
+                        <div class="summary-row">
+                            <div class="summary-label">${fieldConfig.label}:</div>
+                            <div class="summary-value">${displayValue}</div>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    formatFieldValue(fieldConfig, value) {
+        const fieldType = fieldConfig.type;
+
+        switch (fieldType) {
+            case 'yesno':
+                return value === 'yes' ? 
+                    (this.factory.getText('yes') || 'Oui') : 
+                    (this.factory.getText('no') || 'Non');
+
+            case 'select':
+            case 'select-subsections':
+                return this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, value);
+
+            case 'multiselect':
+            case 'multiselect-subsections':
+                if (Array.isArray(value)) {
+                    return value.map(v => this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, v)).join(', ');
+                }
+                return value;
+
+            case 'select-with-other':
+                if (typeof value === 'object' && value.main) {
+                    if (value.main === 'other') {
+                        return value.other || this.factory.getText('other');
+                    }
+                    return this.getOptionDisplayName(fieldConfig.options, value.main);
+                }
+                return this.getOptionDisplayName(fieldConfig.options, value);
+
+            case 'multiselect-with-other':
+                if (typeof value === 'object' && value.main) {
+                    const mainValues = Array.isArray(value.main) ? 
+                        value.main.map(v => this.getOptionDisplayName(fieldConfig.options, v)) : [];
+                    if (value.other) {
+                        mainValues.push(value.other);
+                    }
+                    return mainValues.join(', ');
+                }
+                return Array.isArray(value) ? value.join(', ') : value;
+
+            case 'yesno-with-options':
+                if (typeof value === 'object' && value.main) {
+                    let result = value.main === 'yes' || value.main === 'multilingual' ? 
+                        (value.main === 'multilingual' ? (this.factory.getText('multilingual') || 'Multilingual') : (this.factory.getText('yes') || 'Oui')) : 
+                        (value.main === 'unilingual' ? (this.factory.getText('unilingual') || 'Unilingual') : (this.factory.getText('no') || 'Non'));
+                    
+                    if (value.yesValues) {
+                        const subValues = Object.entries(value.yesValues)
+                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
+                            .filter(v => v)
+                            .join(', ');
+                        if (subValues) result += ` (${subValues})`;
+                    }
+                    
+                    if (value.noValues) {
+                        const subValues = Object.entries(value.noValues)
+                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
+                            .filter(v => v)
+                            .join(', ');
+                        if (subValues) result += ` (${subValues})`;
+                    }
+                    
+                    return result;
+                }
+                return value;
+
+            case 'textarea':
+                if (typeof value === 'string' && value.length > 100) {
+                    return value.substring(0, 100) + '...';
+                }
+                return value;
+
+            case 'number':
+            case 'percentage':
+            case 'options-stepper':
+            case 'email':
+            case 'phone':
+            case 'url':
+            case 'text':
+            default:
+                return value;
+        }
+    }
+
+    formatSubValue(key, value, fieldConfig) {
+        // Handle language fields specifically using existing data
+        if (key === 'languages' || key === 'language') {
+            const currentLang = window.currentLanguage || 'fr';
+            const languageOptions = window.formDataOptions?.[currentLang]?.languages || [];
+            
+            if (Array.isArray(value)) {
+                return value.map(v => this.getOptionDisplayName(languageOptions, v)).join(', ');
+            } else {
+                return this.getOptionDisplayName(languageOptions, value);
+            }
+        }
+        
+        // Handle other fields
+        if (Array.isArray(value)) {
+            return value.join(', ');
+        }
+        
+        return value;
+    }
+
+    getOptionDisplayName(options, value) {
+        if (!options) return value;
+        
+        // Handle regular options array
+        if (Array.isArray(options)) {
+            const option = options.find(opt => opt.id === value);
+            return option ? option.name : value;
+        }
+        
+        // Handle subsection options
+        if (Array.isArray(options)) {
+            for (const group of options) {
+                if (group.subcategories) {
+                    const option = group.subcategories.find(opt => opt.id === value);
+                    if (option) return option.name;
+                }
+            }
+        }
+        
+        return value;
+    }
+
+    getStepData(multiStepForm, stepIndex) {
+        const stepInstance = multiStepForm.stepInstances[stepIndex];
+        if (!stepInstance) return {};
+        
+        return stepInstance.getStepData();
+    }
+
+    hasVisibleData(stepData) {
+        return Object.values(stepData).some(value => 
+            value !== undefined && 
+            value !== null && 
+            value !== '' && 
+            !(Array.isArray(value) && value.length === 0)
+        );
+    }
+
+    updateContent() {
+        if (this.autoSummary && this.container) {
+            this.container.innerHTML = '';
+            const summaryContent = this.createAutoSummary();
+            this.container.appendChild(summaryContent);
+        } else if (this.updateFunction && this.container) {
+            const formData = this.getFormData();
+            this.updateFunction(this.container, formData);
+        }
+    }
+
+    getFormData() {
+        if (this.factory.currentMultiStepForm) {
+            return this.factory.currentMultiStepForm.getFormData();
+        }
+        return {};
+    }
+
+    getValue() {
+        return null;
+    }
+
+    setValue(value) {
+        // Custom fields don't have settable values
+    }
+
+    validate() {
+        return true;
+    }
+    
+    setStepData(data) {
+        if (this.autoSummary) {
+            this.updateContent();
+        }
+    }
+}
+
+/**
+ * SingleSelectWithOtherField - Simple dropdown with "Other" option
+ */
+class SingleSelectWithOtherField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.placeholder = config.placeholder || factory.getText('selectPlaceholder');
+        this.otherLabel = config.otherLabel || factory.getText('other');
+        this.otherPlaceholder = config.otherPlaceholder || `${factory.getText('other')}...`;
+        this.otherValue = '';
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const optionsWithOther = [...this.options, { id: 'other', name: this.otherLabel }];
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.style.display = 'none';
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = this.placeholder;
+        this.element.appendChild(defaultOption);
+        
+        optionsWithOther.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = option.name;
+            this.element.appendChild(optionElement);
+        });
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options';
+        
+        optionsWithOther.forEach(option => {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.setAttribute('data-value', option.id);
+            customOption.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${option.name}</span>
+            `;
+            
+            customOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectMainOption(option);
+            });
+            
+            this.customOptionsElement.appendChild(customOption);
+        });
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        this.otherContainer = document.createElement('div');
+        this.otherContainer.className = 'conditional-field-wrapper';
+        this.otherContainer.id = `${this.id}-other-group`;
+        this.otherContainer.style.display = 'none';
+        
+        const otherLabel = document.createElement('label');
+        otherLabel.className = 'form-label';
+        otherLabel.textContent = this.otherLabel;
+        
+        this.otherInput = document.createElement('input');
+        this.otherInput.type = 'text';
+        this.otherInput.id = `${this.id}-other`;
+        this.otherInput.placeholder = this.otherPlaceholder;
+        
+        this.otherError = document.createElement('div');
+        this.otherError.className = 'error-message';
+        this.otherError.id = `error-${this.id}-other`;
+        this.otherError.innerHTML = `
+            <div class="error-icon">!</div>
+            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+        `;
+        
+        this.otherContainer.appendChild(otherLabel);
+        this.otherContainer.appendChild(this.otherInput);
+        this.otherContainer.appendChild(this.otherError);
+        
+        this.otherInput.addEventListener('input', () => {
+            this.otherValue = this.otherInput.value.trim();
+            this.value = { main: 'other', other: this.otherValue };
+            
+            if (this.otherValue) {
+                this.otherError.classList.remove('show');
+            }
+            
+            this.handleChange();
+        });
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(this.otherContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    selectMainOption(option) {
+        this.customOptionsElement.querySelectorAll('.custom-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        const optionElement = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
+        if (optionElement) {
+            optionElement.classList.add('selected');
+        }
+        
+        this.selectDisplayElement.querySelector('span').textContent = option.name;
+        this.selectDisplayElement.classList.remove('placeholder');
+        
+        this.element.value = option.id;
+        
+        this.closeDropdown();
+        
+        if (option.id === 'other') {
+            this.otherContainer.style.display = 'block';
+            this.value = { main: option.id, other: this.otherValue };
+        } else {
+            this.otherContainer.style.display = 'none';
+            this.value = { main: option.id, other: '' };
+            this.otherValue = '';
+            if (this.otherInput) this.otherInput.value = '';
+        }
+        
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        if (this.value && typeof this.value === 'object') {
+            if (this.value.main === 'other' && this.value.other) {
+                return this.value.other;
+            } else if (this.value.main !== 'other') {
+                return this.value.main;
+            }
+        }
+        return this.element ? this.element.value : '';
+    }
+
+    setValue(value) {
+        const existingOption = this.options.find(opt => opt.id === value);
+        
+        if (existingOption) {
+            this.selectMainOption(existingOption);
+        } else if (value) {
+            const otherOption = { id: 'other', name: this.otherLabel };
+            this.selectMainOption(otherOption);
+            this.otherValue = value;
+            if (this.otherInput) {
+                this.otherInput.value = value;
+            }
+            this.value = { main: 'other', other: value };
+        }
+    }
+
+    validate() {
+        if (this.required) {
+            const mainValue = this.element ? this.element.value : '';
+            
+            if (!mainValue) {
+                this.showError(this.factory.getText('fieldRequired'));
+                return false;
+            }
+            
+            if (mainValue === 'other' && !this.otherValue) {
+                if (this.otherError) {
+                    this.otherError.classList.add('show');
+                }
+                return false;
+            }
+        }
+        
+        this.hideError();
+        if (this.otherError) {
+            this.otherError.classList.remove('show');
+        }
+        return true;
+    }
+
+    setOptions(newOptions) {
+        this.options = newOptions || [];
+        
+        if (this.container) {
+            const currentValue = this.getValue();
+            
+            const mainContainer = this.container.querySelector('.main-container');
+            if (mainContainer) {
+                this.element.innerHTML = '';
+                this.customOptionsElement.innerHTML = '';
+                
+                const optionsWithOther = [...this.options, { id: 'other', name: this.otherLabel }];
+                
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = this.placeholder;
+                this.element.appendChild(defaultOption);
+                
+                optionsWithOther.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.id;
+                    optionElement.textContent = option.name;
+                    this.element.appendChild(optionElement);
+                    
+                    const customOption = document.createElement('div');
+                    customOption.className = 'custom-option';
+                    customOption.setAttribute('data-value', option.id);
+                    customOption.innerHTML = `
+                        <div class="option-checkbox">
+                            ${this.factory.SVG_ICONS.CHECK}
+                        </div>
+                        <span>${option.name}</span>
+                    `;
+                    
+                    customOption.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.selectMainOption(option);
+                    });
+                    
+                    this.customOptionsElement.appendChild(customOption);
+                });
+                
+                if (currentValue) {
+                    this.setValue(currentValue);
+                }
+            }
+        }
+    }
+
+    cleanup() {
+        this.closeDropdown();
+        super.cleanup();
+    }
+}
+
+/**
+ * MultiSelectWithOtherField - Multiple dropdown with "Other" option
+ */
+class MultiSelectWithOtherField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
+        this.otherLabel = config.otherLabel || factory.getText('other');
+        this.otherPlaceholder = config.otherPlaceholder || `${factory.getText('other')}...`;
+        this.otherValue = '';
+        this.selectedValues = [];
+        this.dropdownInstance = null;
+        this.isOpen = false;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const optionsWithOther = [...this.options, { id: 'other', name: this.otherLabel }];
+        
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'main-container';
+        
+        this.element = document.createElement('select');
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.multiple = true;
+        this.element.style.display = 'none';
+        
+        optionsWithOther.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.id;
+            optionElement.textContent = option.name;
+            this.element.appendChild(optionElement);
+        });
+        
+        const selectWrapper = document.createElement('div');
+        selectWrapper.className = 'select-wrapper multi-select';
+        
+        this.selectDisplayElement = document.createElement('div');
+        this.selectDisplayElement.className = 'select-display placeholder';
+        this.selectDisplayElement.innerHTML = `
+            <span>${this.placeholder}</span>
+            <div class="dropdown-icon">
+                ${this.factory.SVG_ICONS.CHEVRON}
+            </div>
+        `;
+        
+        this.customOptionsElement = document.createElement('div');
+        this.customOptionsElement.className = 'custom-options multi-select';
+        
+        const selectAllOption = document.createElement('div');
+        selectAllOption.className = 'custom-option select-all-option';
+        selectAllOption.innerHTML = `
+            <div class="option-checkbox">
+                ${this.factory.SVG_ICONS.CHECK}
+            </div>
+            <span>${this.factory.getText('selectAll')}</span>
+        `;
+        
+        selectAllOption.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleSelectAll();
+        });
+        
+        this.customOptionsElement.appendChild(selectAllOption);
+        
+        optionsWithOther.forEach(option => {
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.setAttribute('data-value', option.id);
+            customOption.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${option.name}</span>
+            `;
+            
+            customOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMainOption(option, customOption);
+            });
+            
+            this.customOptionsElement.appendChild(customOption);
+        });
+        
+        selectWrapper.appendChild(this.selectDisplayElement);
+        selectWrapper.appendChild(this.customOptionsElement);
+        
+        this.selectDisplayElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleDropdown();
+        });
+        
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(selectWrapper);
+        
+        this.otherContainer = document.createElement('div');
+        this.otherContainer.className = 'conditional-field-wrapper';
+        this.otherContainer.id = `${this.id}-other-group`;
+        this.otherContainer.style.display = 'none';
+        
+        const otherLabel = document.createElement('label');
+        otherLabel.className = 'form-label';
+        otherLabel.textContent = this.otherLabel;
+        
+        this.otherInput = document.createElement('input');
+        this.otherInput.type = 'text';
+        this.otherInput.id = `${this.id}-other`;
+        this.otherInput.placeholder = this.otherPlaceholder;
+        
+        this.otherError = document.createElement('div');
+        this.otherError.className = 'error-message';
+        this.otherError.id = `error-${this.id}-other`;
+        this.otherError.innerHTML = `
+            <div class="error-icon">!</div>
+            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+        `;
+        
+        this.otherContainer.appendChild(otherLabel);
+        this.otherContainer.appendChild(this.otherInput);
+        this.otherContainer.appendChild(this.otherError);
+        
+        this.otherInput.addEventListener('input', () => {
+            this.otherValue = this.otherInput.value.trim();
+            this.value = {
+                main: this.selectedValues.filter(v => v !== 'other'),
+                other: this.otherValue
+            };
+            
+            if (this.otherValue) {
+                this.otherError.classList.remove('show');
+            }
+            
+            this.handleChange();
+        });
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        container.appendChild(this.otherContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.selectWrapper = selectWrapper;
+        
+        return container;
+    }
+
+    toggleMainOption(option, customOption) {
+        const isSelected = customOption.classList.contains('selected');
+        const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+        
+        if (isSelected) {
+            customOption.classList.remove('selected');
+            if (optElement) optElement.selected = false;
+            this.selectedValues = this.selectedValues.filter(val => val !== option.id);
+        } else {
+            customOption.classList.add('selected');
+            if (optElement) optElement.selected = true;
+            this.selectedValues.push(option.id);
+        }
+        
+        if (this.selectedValues.includes('other')) {
+            this.otherContainer.style.display = 'block';
+        } else {
+            this.otherContainer.style.display = 'none';
+            this.otherValue = '';
+            this.otherInput.value = '';
+        }
+        
+        this.updateDisplayText();
+        this.updateSelectAllState();
+        this.value = {
+            main: this.selectedValues.filter(v => v !== 'other'),
+            other: this.selectedValues.includes('other') ? this.otherValue : ''
+        };
+        
+        this.hideError();
+        this.handleChange();
+    }
+
+    toggleSelectAll() {
+        const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+        
+        allOptions.forEach(opt => {
+            const optValue = opt.dataset.value;
+            const optElement = this.element.querySelector(`option[value="${optValue}"]`);
+            
+            if (allSelected) {
+                opt.classList.remove('selected');
+                if (optElement) optElement.selected = false;
+            } else {
+                opt.classList.add('selected');
+                if (optElement) optElement.selected = true;
+            }
+        });
+        
+        if (allSelected) {
+            selectAllOption.classList.remove('selected');
+            this.selectedValues = [];
+            this.otherContainer.style.display = 'none';
+            this.otherValue = '';
+            this.otherInput.value = '';
+        } else {
+            selectAllOption.classList.add('selected');
+            this.selectedValues = [...this.options.map(opt => opt.id), 'other'];
+            this.otherContainer.style.display = 'block';
+        }
+        
+        this.updateDisplayText();
+        this.value = {
+            main: this.selectedValues.filter(v => v !== 'other'),
+            other: this.selectedValues.includes('other') ? this.otherValue : ''
+        };
+        
+        this.handleChange();
+    }
+
+    updateSelectAllState() {
+        const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
+        const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+        
+        if (allSelected && this.selectedValues.length > 0) {
+            selectAllOption.classList.add('selected');
+        } else {
+            selectAllOption.classList.remove('selected');
+        }
+    }
+
+    updateDisplayText() {
+        const span = this.selectDisplayElement.querySelector('span');
+        
+        if (this.selectedValues.length === 0) {
+            span.textContent = this.placeholder;
+            this.selectDisplayElement.classList.add('placeholder');
+        } else if (this.selectedValues.length === 1) {
+            const value = this.selectedValues[0];
+            if (value === 'other') {
+                span.textContent = this.otherLabel;
+            } else {
+                const option = this.options.find(opt => opt.id === value);
+                span.textContent = option ? option.name : value;
+            }
+            this.selectDisplayElement.classList.remove('placeholder');
+        } else {
+            span.textContent = `${this.selectedValues.length} ${this.factory.getText('selected')}`;
+            this.selectDisplayElement.classList.remove('placeholder');
+        }
+    }
+
+    toggleDropdown() {
+        if (this.isOpen) {
+            this.closeDropdown();
+        } else {
+            this.openDropdown();
+        }
+    }
+
+    openDropdown() {
+        if (this.isOpen) return;
+        
+        this.factory.closeAllDropdowns();
+        
+        this.customOptionsElement.classList.add('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
+        this.isOpen = true;
+        
+        this.dropdownInstance = {
+            element: this.selectWrapper,
+            close: () => this.closeDropdown()
+        };
+        
+        this.factory.registerDropdown(this.dropdownInstance);
+    }
+
+    closeDropdown() {
+        if (!this.isOpen) return;
+        
+        this.customOptionsElement.classList.remove('show-options');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
+        this.isOpen = false;
+        
+        if (this.dropdownInstance) {
+            this.factory.unregisterDropdown(this.dropdownInstance);
+            this.dropdownInstance = null;
+        }
+    }
+
+    getValue() {
+        const result = [];
+        
+        if (this.value && typeof this.value === 'object') {
+            if (this.value.main && Array.isArray(this.value.main)) {
+                result.push(...this.value.main);
+            }
+            
+            if (this.value.other) {
+                result.push(this.value.other);
+            }
+        }
+        
+        return result;
+    }
+
+    setValue(values) {
+        if (!Array.isArray(values)) {
+            values = values ? [values] : [];
+        }
+        
+        const existingValues = [];
+        let otherValue = '';
+        
+        values.forEach(value => {
+            const existingOption = this.options.find(opt => opt.id === value);
+            if (existingOption) {
+                existingValues.push(value);
+            } else if (value) {
+                otherValue = value;
+            }
+        });
+        
+        this.selectedValues = [...existingValues];
+        if (otherValue) {
+            this.selectedValues.push('other');
+        }
+        
+        if (this.element) {
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+        }
+        
+        if (this.customOptionsElement) {
+            this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)').forEach(opt => {
+                if (this.selectedValues.includes(opt.dataset.value)) {
+                    opt.classList.add('selected');
+                } else {
+                    opt.classList.remove('selected');
+                }
+            });
+            this.updateSelectAllState();
+        }
+        
+        if (otherValue) {
+            this.otherValue = otherValue;
+            this.otherInput.value = otherValue;
+            this.otherContainer.style.display = 'block';
+        } else {
+            this.otherContainer.style.display = 'none';
+        }
+        
+        this.value = {
+            main: existingValues,
+            other: otherValue
+        };
+        
+        if (this.selectDisplayElement) {
+            this.updateDisplayText();
+        }
+    }
+
+    validate() {
+        if (this.required) {
+            const hasMainSelection = this.selectedValues.length > 0;
+            
+            if (!hasMainSelection) {
+                this.showError(this.factory.getText('selectAtLeastOne'));
+                return false;
+            }
+            
+            if (this.selectedValues.includes('other') && !this.otherValue) {
+                this.otherError.classList.add('show');
+                return false;
+            }
+        }
+        
+        this.hideError();
+        this.otherError.classList.remove('show');
+        return true;
+    }
+
+    cleanup() {
+        this.closeDropdown();
+        super.cleanup();
+    }
+}
+
+/**
+ * SlidingWindowRangeField - Dual range slider with sliding window controls and validation
+ */
+class SlidingWindowRangeField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.rangeWindow = config.rangeWindow || 1000;
+        this.windowStep = config.windowStep || 1000;
+        this.minGap = config.minGap || 100;
+        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        
+        this.currentMin = config.currentMin || this.min;
+        this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
+        this.selectedMin = config.defaultMin || this.currentMin + 200;
+        this.selectedMax = config.defaultMax || this.currentMax - 200;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
+    }
+
+    // Validation method
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
+                    this.selectedMin = result.adjustedValue;
+                    this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
+                    
+                    if (this.minRange && this.maxRange) {
+                        this.minRange.value = this.selectedMin;
+                        this.maxRange.value = this.selectedMax;
+                        this.updateUI();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    // Update constraints method
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            this.currentMin = Math.max(this.currentMin, newConstraints.min);
+            
+            // Update slider attributes if they exist
+            if (this.minRange) {
+                this.minRange.min = this.currentMin;
+                this.maxRange.min = this.currentMin;
+                
+                // Ensure current values respect new minimum
+                if (this.selectedMin < this.currentMin) {
+                    this.selectedMin = this.currentMin;
+                    this.minRange.value = this.selectedMin;
+                }
+                if (this.selectedMax < this.currentMin + this.minGap) {
+                    this.selectedMax = this.currentMin + this.minGap;
+                    this.maxRange.value = this.selectedMax;
+                }
+                
+                this.updateUI();
+            }
+        }
+        
+        if (newConstraints.rangeWindow !== undefined) {
+            this.rangeWindow = newConstraints.rangeWindow;
+        }
+        
+        if (newConstraints.windowStep !== undefined) {
+            this.windowStep = newConstraints.windowStep;
+        }
+    }
+
+    // Helper method for boundary checking
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const container = this.container.querySelector('.range-container');
+        if (!container) return percent;
+        
+        const containerWidth = container.offsetWidth;
+        const labelWidth = labelElement.offsetWidth || 100;
+        
+        // Calculate boundaries (in percentage)
+        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        // Constrain to boundaries
+        if (percent < leftBoundary) {
+            return leftBoundary;
+        } else if (percent > rightBoundary) {
+            return rightBoundary;
+        }
+        
+        return percent;
+    }
+
+    // Helper method for collision detection
+    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
+        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+        
+        const minWidth = minLabel.offsetWidth || 100;
+        const maxWidth = maxLabel.offsetWidth || 100;
+        const container = this.container.querySelector('.range-container');
+        
+        if (!container) return { minPercent, maxPercent };
+        
+        const containerWidth = container.offsetWidth;
+        
+        // Calculate minimum distance needed (in percentage)
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
+        
+        const currentDistance = maxPercent - minPercent;
+        
+        if (currentDistance < minDistance) {
+            // Labels would overlap, adjust positions
+            const center = (minPercent + maxPercent) / 2;
+            const halfDistance = minDistance / 2;
+            
+            let adjustedMinPercent = center - halfDistance;
+            let adjustedMaxPercent = center + halfDistance;
+            
+            // Make sure they don't go out of bounds
+            if (adjustedMinPercent < 0) {
+                adjustedMinPercent = 0;
+                adjustedMaxPercent = minDistance;
+            } else if (adjustedMaxPercent > 100) {
+                adjustedMaxPercent = 100;
+                adjustedMinPercent = 100 - minDistance;
+            }
+            
+            return { 
+                minPercent: adjustedMinPercent, 
+                maxPercent: adjustedMaxPercent 
+            };
+        }
+        
+        return { minPercent, maxPercent };
+    }
+
+    // Helper method for triangle positioning with strict constraints
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        // Calculate pixel positions
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
+        const trianglePosition = 50 + triangleOffset;
+        
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
+        
+        // Convert pixel constraints to percentage of label width
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    // Method to update triangle position
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.range-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        
+        // Apply the triangle position using CSS custom property
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const slidingLayout = document.createElement('div');
+        slidingLayout.className = 'sliding-window-layout';
+        
+        // Decrease button
+        this.decreaseBtn = document.createElement('button');
+        this.decreaseBtn.type = 'button';
+        this.decreaseBtn.className = 'slider-control-btn';
+        this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
+        
+        // Range container
+        const rangeContainer = document.createElement('div');
+        rangeContainer.className = 'range-container';
+        
+        // Track background
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        // Track (selected range)
+        this.track = document.createElement('div');
+        this.track.className = 'slider-track';
+        trackBg.appendChild(this.track);
+        
+        // Min range input
+        this.minRange = document.createElement('input');
+        this.minRange.type = 'range';
+        this.minRange.className = 'range-input';
+        this.minRange.min = this.currentMin;
+        this.minRange.max = this.currentMax;
+        this.minRange.value = this.selectedMin;
+        this.minRange.step = this.step;
+        
+        // Max range input
+        this.maxRange = document.createElement('input');
+        this.maxRange.type = 'range';
+        this.maxRange.className = 'range-input';
+        this.maxRange.min = this.currentMin;
+        this.maxRange.max = this.currentMax;
+        this.maxRange.value = this.selectedMax;
+        this.maxRange.step = this.step;
+        
+        // Value labels
+        this.minLabel = document.createElement('div');
+        this.minLabel.className = 'slider-value-label';
+        
+        this.maxLabel = document.createElement('div');
+        this.maxLabel.className = 'slider-value-label';
+        
+        rangeContainer.appendChild(trackBg);
+        rangeContainer.appendChild(this.minRange);
+        rangeContainer.appendChild(this.maxRange);
+        rangeContainer.appendChild(this.minLabel);
+        rangeContainer.appendChild(this.maxLabel);
+        
+        // Increase button
+        this.increaseBtn = document.createElement('button');
+        this.increaseBtn.type = 'button';
+        this.increaseBtn.className = 'slider-control-btn';
+        this.increaseBtn.innerHTML = this.factory.SVG_ICONS.PLUS;
+        
+        slidingLayout.appendChild(this.decreaseBtn);
+        slidingLayout.appendChild(rangeContainer);
+        slidingLayout.appendChild(this.increaseBtn);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(slidingLayout);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.minRange.addEventListener('input', () => this.handleMinChange());
+        this.maxRange.addEventListener('input', () => this.handleMaxChange());
+        this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
+        this.increaseBtn.addEventListener('click', () => this.increaseRange());
+    }
+
+    handleMinChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.minRange.value = maxVal - this.minGap;
+        }
+        
+        this.selectedMin = parseInt(this.minRange.value);
+        this.selectedMax = parseInt(this.maxRange.value);
+        
+        // Validate constraints
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax,
+            currentMin: this.currentMin,
+            currentMax: this.currentMax
+        });
+        
+        if (validatedValue !== false) {
+            this.updateUI();
+            this.handleChange();
+        }
+    }
+
+    handleMaxChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.maxRange.value = minVal + this.minGap;
+        }
+        
+        this.selectedMin = parseInt(this.minRange.value);
+        this.selectedMax = parseInt(this.maxRange.value);
+        
+        // Validate constraints
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax,
+            currentMin: this.currentMin,
+            currentMax: this.currentMax
+        });
+        
+        if (validatedValue !== false) {
+            this.updateUI();
+            this.handleChange();
+        }
+    }
+
+    increaseRange() {
+        if (this.currentMax < this.max) {
+            this.currentMin = Math.min(this.currentMin + this.windowStep, this.max - this.rangeWindow);
+            this.currentMax = Math.min(this.currentMax + this.windowStep, this.max);
+            this.updateSliderAttributes();
+            this.updateUI();
+        }
+    }
+
+    decreaseRange() {
+        if (this.currentMin > this.min) {
+            this.currentMin = Math.max(this.currentMin - this.windowStep, this.min);
+            this.currentMax = Math.max(this.currentMax - this.windowStep, this.min + this.rangeWindow);
+            this.updateSliderAttributes();
+            this.updateUI();
+        }
+    }
+
+    updateSliderAttributes() {
+        this.minRange.min = this.currentMin;
+        this.minRange.max = this.currentMax;
+        this.maxRange.min = this.currentMin;
+        this.maxRange.max = this.currentMax;
+        
+        // Adjust values if they're outside the new range
+        if (this.selectedMin < this.currentMin) this.selectedMin = this.currentMin;
+        if (this.selectedMin > this.currentMax) this.selectedMin = this.currentMax - this.minGap;
+        if (this.selectedMax > this.currentMax) this.selectedMax = this.currentMax;
+        if (this.selectedMax < this.currentMin + this.minGap) this.selectedMax = this.currentMin + this.minGap;
+        
+        this.minRange.value = this.selectedMin;
+        this.maxRange.value = this.selectedMax;
+    }
+
+    updateUI() {
+        // Calculate percentages
+        let minPercent = ((this.selectedMin - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
+        let maxPercent = ((this.selectedMax - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
+        
+        // Store original positions for triangle calculation
+        const originalMinPercent = minPercent;
+        const originalMaxPercent = maxPercent;
+        
+        // Update track position and width
+        this.track.style.left = minPercent + '%';
+        this.track.style.width = (maxPercent - minPercent) + '%';
+        
+        // Apply boundary checking and collision detection
+        setTimeout(() => {
+            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
+            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
+            
+            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
+                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
+            
+            // Update labels with collision-free positions
+            this.minLabel.style.left = finalMinPercent + '%';
+            this.maxLabel.style.left = finalMaxPercent + '%';
+            this.minLabel.textContent = this.formatValue(this.selectedMin);
+            this.maxLabel.textContent = this.formatValue(this.selectedMax);
+            
+            // Update triangle positions to point to actual handles
+            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
+            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
+        }, 0);
+        
+        // Update button states
+        this.decreaseBtn.disabled = this.currentMin <= this.min;
+        this.increaseBtn.disabled = this.currentMax >= this.max;
+    }
+
+    getValue() {
+        return {
+            min: this.selectedMin,
+            max: this.selectedMax,
+            currentMin: this.currentMin,
+            currentMax: this.currentMax
+        };
+    }
+
+    setValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            this.selectedMin = value.min || this.selectedMin;
+            this.selectedMax = value.max || this.selectedMax;
+            this.currentMin = value.currentMin || this.currentMin;
+            this.currentMax = value.currentMax || this.currentMax;
+            
+            if (this.minRange) {
+                this.updateSliderAttributes();
+                this.updateUI();
+            }
+        }
+    }
+}
+
+/**
+ * DualRangeField - Standard dual range slider with validation
+ */
+class DualRangeField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.minGap = config.minGap || 500;
+        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        this.selectedMin = config.defaultMin || this.min + 1000;
+        this.selectedMax = config.defaultMax || this.max - 1000;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
+    }
+
+    // Validation method
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
+                    this.selectedMin = result.adjustedValue;
+                    this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
+                    
+                    if (this.minRange && this.maxRange) {
+                        this.minRange.value = this.selectedMin;
+                        this.maxRange.value = this.selectedMax;
+                        this.updateUI();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    // Update constraints method
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            
+            // Update slider attributes if they exist
+            if (this.minRange) {
+                this.minRange.min = this.min;
+                this.maxRange.min = this.min;
+                
+                // Ensure current values respect new minimum
+                if (this.selectedMin < this.min) {
+                    this.selectedMin = this.min;
+                    this.minRange.value = this.selectedMin;
+                }
+                if (this.selectedMax < this.min + this.minGap) {
+                    this.selectedMax = this.min + this.minGap;
+                    this.maxRange.value = this.selectedMax;
+                }
+                
+                this.updateUI();
+            }
+        }
+        
+        if (newConstraints.max !== undefined) {
+            this.max = newConstraints.max;
+            if (this.minRange) {
+                this.minRange.max = this.max;
+                this.maxRange.max = this.max;
+                this.updateUI();
+            }
+        }
+    }
+
+    // Helper method for boundary checking
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return percent;
+        
+        const containerWidth = container.offsetWidth;
+        const labelWidth = labelElement.offsetWidth || 100;
+        
+        // Calculate boundaries (in percentage)
+        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        // Constrain to boundaries
+        if (percent < leftBoundary) {
+            return leftBoundary;
+        } else if (percent > rightBoundary) {
+            return rightBoundary;
+        }
+        
+        return percent;
+    }
+
+    // Helper method for collision detection
+    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
+        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+        
+        const minWidth = minLabel.offsetWidth || 100;
+        const maxWidth = maxLabel.offsetWidth || 100;
+        const container = this.container.querySelector('.slider-container');
+        
+        if (!container) return { minPercent, maxPercent };
+        
+        const containerWidth = container.offsetWidth;
+        
+        // Calculate minimum distance needed (in percentage)
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
+        
+        const currentDistance = maxPercent - minPercent;
+        
+        if (currentDistance < minDistance) {
+            // Labels would overlap, adjust positions
+            const center = (minPercent + maxPercent) / 2;
+            const halfDistance = minDistance / 2;
+            
+            let adjustedMinPercent = center - halfDistance;
+            let adjustedMaxPercent = center + halfDistance;
+            
+            // Make sure they don't go out of bounds
+            if (adjustedMinPercent < 0) {
+                adjustedMinPercent = 0;
+                adjustedMaxPercent = minDistance;
+            } else if (adjustedMaxPercent > 100) {
+                adjustedMaxPercent = 100;
+                adjustedMinPercent = 100 - minDistance;
+            }
+            
+            return { 
+                minPercent: adjustedMinPercent, 
+                maxPercent: adjustedMaxPercent 
+            };
+        }
+        
+        return { minPercent, maxPercent };
+    }
+
+    // Helper method for triangle positioning with strict constraints
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        // Calculate pixel positions
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
+        const trianglePosition = 50 + triangleOffset;
+        
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
+        
+        // Convert pixel constraints to percentage of label width
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    // Method to update triangle position
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        
+        // Apply the triangle position using CSS custom property
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        // Track background
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        // Progress track
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        // Range inputs
+        this.minRange = document.createElement('input');
+        this.minRange.type = 'range';
+        this.minRange.className = 'range-input';
+        this.minRange.min = this.min;
+        this.minRange.max = this.max;
+        this.minRange.value = this.selectedMin;
+        this.minRange.step = this.step;
+        
+        this.maxRange = document.createElement('input');
+        this.maxRange.type = 'range';
+        this.maxRange.className = 'range-input';
+        this.maxRange.min = this.min;
+        this.maxRange.max = this.max;
+        this.maxRange.value = this.selectedMax;
+        this.maxRange.step = this.step;
+        
+        // Value labels
+        this.minLabel = document.createElement('div');
+        this.minLabel.className = 'slider-value-label';
+        
+        this.maxLabel = document.createElement('div');
+        this.maxLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.minRange);
+        sliderContainer.appendChild(this.maxRange);
+        sliderContainer.appendChild(this.minLabel);
+        sliderContainer.appendChild(this.maxLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.minRange.addEventListener('input', () => this.handleMinChange());
+        this.maxRange.addEventListener('input', () => this.handleMaxChange());
+    }
+
+    handleMinChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.minRange.value = maxVal - this.minGap;
+        }
+        
+        this.selectedMin = parseInt(this.minRange.value);
+        
+        // Validate constraints
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax
+        });
+        
+        if (validatedValue !== false) {
+            this.updateUI();
+            this.handleChange();
+        }
+    }
+
+    handleMaxChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.maxRange.value = minVal + this.minGap;
+        }
+        
+        this.selectedMax = parseInt(this.maxRange.value);
+        
+        // Validate constraints  
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax
+        });
+        
+        if (validatedValue !== false) {
+            this.updateUI();
+            this.handleChange();
+        }
+    }
+
+    updateUI() {
+        let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
+        let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
+        
+        // Store original positions for triangle calculation
+        const originalMinPercent = minPercent;
+        const originalMaxPercent = maxPercent;
+        
+        this.progress.style.left = minPercent + '%';
+        this.progress.style.width = (maxPercent - minPercent) + '%';
+        
+        // Apply boundary checking and collision detection
+        setTimeout(() => {
+            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
+            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
+            
+            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
+                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
+            
+            this.minLabel.style.left = finalMinPercent + '%';
+            this.maxLabel.style.left = finalMaxPercent + '%';
+            this.minLabel.textContent = this.formatValue(this.selectedMin);
+            this.maxLabel.textContent = this.formatValue(this.selectedMax);
+            
+            // Update triangle positions to point to actual handles
+            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
+            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
+        }, 0);
+    }
+
+    getValue() {
+        return {
+            min: this.selectedMin,
+            max: this.selectedMax
+        };
+    }
+
+    setValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            this.selectedMin = value.min || this.selectedMin;
+            this.selectedMax = value.max || this.selectedMax;
+            
+            if (this.minRange && this.maxRange) {
+                this.minRange.value = this.selectedMin;
+                this.maxRange.value = this.selectedMax;
+                this.updateUI();
+            }
+        }
+    }
+}
+
+/**
+ * SliderField - Single value slider with progress and validation
+ */
+class SliderField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.sliderType = config.sliderType || 'currency'; // 'currency', 'percentage', 'number'
+        this.formatValue = config.formatValue || this.getDefaultFormatter();
+        this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
+    }
+
+    getDefaultFormatter() {
+        switch (this.sliderType) {
+            case 'currency':
+                return (val) => `$${parseInt(val).toLocaleString()}`;
+            case 'percentage':
+                return (val) => `${parseFloat(val).toFixed(1)}%`;
+            case 'number':
+            default:
+                return (val) => val.toString();
+        }
+    }
+
+    // Validation method
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
+                    this.value = result.adjustedValue;
+                    
+                    if (this.slider) {
+                        this.slider.value = this.value;
+                        this.updateUI();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    // Update constraints method
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            
+            // Update slider attributes if they exist
+            if (this.slider) {
+                this.slider.min = this.min;
+                
+                // Ensure current value respects new minimum
+                if (this.value < this.min) {
+                    this.value = this.min;
+                    this.slider.value = this.value;
+                }
+                
+                this.updateUI();
+            }
+        }
+        
+        if (newConstraints.max !== undefined) {
+            this.max = newConstraints.max;
+            if (this.slider) {
+                this.slider.max = this.max;
+                
+                // Ensure current value respects new maximum
+                if (this.value > this.max) {
+                    this.value = this.max;
+                    this.slider.value = this.value;
+                }
+                
+                this.updateUI();
+            }
+        }
+    }
+
+    // Helper method for boundary checking
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return percent;
+        
+        const containerWidth = container.offsetWidth;
+        const labelWidth = labelElement.offsetWidth || 100;
+        
+        // Calculate boundaries (in percentage)
+        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        // Constrain to boundaries
+        if (percent < leftBoundary) {
+            return leftBoundary;
+        } else if (percent > rightBoundary) {
+            return rightBoundary;
+        }
+        
+        return percent;
+    }
+
+    // Helper method for triangle positioning with strict constraints
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        // Calculate pixel positions
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
+        const trianglePosition = 50 + triangleOffset;
+        
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
+        
+        // Convert pixel constraints to percentage of label width
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    // Method to update triangle position
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        
+        // Apply the triangle position using CSS custom property
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        // Track background
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        // Progress
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        // Slider input
+        this.slider = document.createElement('input');
+        this.slider.type = 'range';
+        this.slider.className = 'range-input';
+        this.slider.id = this.id;
+        this.slider.min = this.min;
+        this.slider.max = this.max;
+        this.slider.value = this.value;
+        this.slider.step = this.step;
+        
+        // Value label
+        this.valueLabel = document.createElement('div');
+        this.valueLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.slider);
+        sliderContainer.appendChild(this.valueLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.slider.addEventListener('input', () => {
+            const newValue = parseFloat(this.slider.value);
+            
+            // Validate constraints
+            const validatedValue = this.validateConstraints(newValue);
+            
+            if (validatedValue !== false) {
+                this.value = validatedValue;
+                this.updateUI();
+                this.handleChange();
+            }
+        });
+    }
+
+    updateUI() {
+        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
+        
+        // Store original position for triangle calculation
+        const originalPercent = percent;
+        
+        this.progress.style.width = percent + '%';
+        
+        // Apply boundary checking
+        setTimeout(() => {
+            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
+            this.valueLabel.style.left = finalPercent + '%';
+            this.valueLabel.textContent = this.formatValue(this.value);
+            
+            // Update triangle position to point to actual handle
+            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+        }, 0);
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        this.value = parseFloat(value) || this.min;
+        if (this.slider) {
+            this.slider.value = this.value;
+            this.updateUI();
+        }
+    }
+}
+
+/**
+ * OptionsSliderField - Slider with predefined options, markers and validation
+ */
+class OptionsSliderField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.showMarkers = config.showMarkers !== false;
+        this.currentIndex = config.defaultIndex || Math.floor(this.options.length / 2);
+        this.value = this.getCurrentValue();
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
+    }
+
+    getCurrentValue() {
+        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
+            const option = this.options[this.currentIndex];
+            return typeof option === 'object' ? option.value : option;
+        }
+        return '';
+    }
+
+    getCurrentDisplay() {
+        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
+            const option = this.options[this.currentIndex];
+            return typeof option === 'object' ? (option.display || option.label || option.value) : option;
+        }
+        return '';
+    }
+
+    // Validation method
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Find the index of the adjusted value
+                    const adjustedIndex = this.options.findIndex(opt => 
+                        (typeof opt === 'object' ? opt.value : opt) === result.adjustedValue
+                    );
+                    
+                    if (adjustedIndex !== -1) {
+                        this.currentIndex = adjustedIndex;
+                        this.value = result.adjustedValue;
+                        
+                        if (this.slider) {
+                            this.slider.value = this.currentIndex;
+                            this.updateUI();
+                        }
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    // Update constraints method
+    updateConstraints(newConstraints) {
+        if (newConstraints.options !== undefined) {
+            this.options = newConstraints.options;
+            
+            // Ensure current index is still valid
+            if (this.currentIndex >= this.options.length) {
+                this.currentIndex = this.options.length - 1;
+            }
+            
+            // Rebuild UI if slider exists
+            if (this.slider) {
+                this.slider.max = this.options.length - 1;
+                this.slider.value = this.currentIndex;
+                this.value = this.getCurrentValue();
+                
+                if (this.showMarkers && this.markersContainer) {
+                    this.createMarkers();
+                }
+                
+                this.updateUI();
+            }
+        }
+    }
+
+    // Helper method for boundary checking
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return percent;
+        
+        const containerWidth = container.offsetWidth;
+        const labelWidth = labelElement.offsetWidth || 100;
+        
+        // Calculate boundaries (in percentage)
+        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        // Constrain to boundaries
+        if (percent < leftBoundary) {
+            return leftBoundary;
+        } else if (percent > rightBoundary) {
+            return rightBoundary;
+        }
+        
+        return percent;
+    }
+
+    // Helper method for triangle positioning with strict constraints
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        // Calculate pixel positions
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
+        const trianglePosition = 50 + triangleOffset;
+        
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
+        
+        // Convert pixel constraints to percentage of label width
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    // Method to update triangle position
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        
+        // Apply the triangle position using CSS custom property
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        // Markers
+        if (this.showMarkers) {
+            this.markersContainer = document.createElement('div');
+            this.markersContainer.className = 'slider-markers';
+            this.createMarkers();
+            sliderContainer.appendChild(this.markersContainer);
+        }
+        
+        // Track background
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        // Progress
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        // Slider input
+        this.slider = document.createElement('input');
+        this.slider.type = 'range';
+        this.slider.className = 'range-input';
+        this.slider.id = this.id;
+        this.slider.min = 0;
+        this.slider.max = this.options.length - 1;
+        this.slider.value = this.currentIndex;
+        this.slider.step = 1;
+        
+        // Value label
+        this.valueLabel = document.createElement('div');
+        this.valueLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.slider);
+        sliderContainer.appendChild(this.valueLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    createMarkers() {
+        this.markersContainer.innerHTML = '';
+        this.options.forEach((option, index) => {
+            const marker = document.createElement('div');
+            marker.className = 'slider-marker';
+            marker.dataset.index = index;
+            
+            const display = typeof option === 'object' ? (option.display || option.label || option.value) : option;
+            marker.textContent = display;
+            
+            marker.addEventListener('click', () => {
+                const newValue = typeof option === 'object' ? option.value : option;
+                
+                // Validate constraints
+                const validatedValue = this.validateConstraints(newValue);
+                
+                if (validatedValue !== false) {
+                    this.currentIndex = index;
+                    this.value = this.getCurrentValue();
+                    this.slider.value = index;
+                    this.updateUI();
+                    this.handleChange();
+                }
+            });
+            
+            this.markersContainer.appendChild(marker);
+        });
+    }
+
+    setupEventListeners() {
+        this.slider.addEventListener('input', () => {
+            this.currentIndex = parseInt(this.slider.value);
+            const newValue = this.getCurrentValue();
+            
+            // Validate constraints
+            const validatedValue = this.validateConstraints(newValue);
+            
+            if (validatedValue !== false) {
+                this.value = validatedValue;
+                this.updateUI();
+                this.handleChange();
+            }
+        });
+    }
+
+    updateUI() {
+        const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
+        
+        // Store original position for triangle calculation
+        const originalPercent = percent;
+        
+        this.progress.style.width = percent + '%';
+        
+        // Apply boundary checking
+        setTimeout(() => {
+            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
+            this.valueLabel.style.left = finalPercent + '%';
+            this.valueLabel.textContent = this.getCurrentDisplay();
+            
+            // Update triangle position to point to actual handle
+            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+        }, 0);
+        
+        if (this.showMarkers && this.markersContainer) {
+            this.markersContainer.querySelectorAll('.slider-marker').forEach((marker, index) => {
+                marker.classList.toggle('active', index === this.currentIndex);
+            });
+        }
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        const index = this.options.findIndex(opt => 
+            (typeof opt === 'object' ? opt.value : opt) === value
+        );
+        
+        if (index !== -1) {
+            this.currentIndex = index;
+            this.value = value;
+            
+            if (this.slider) {
+                this.slider.value = index;
+                this.updateUI();
+            }
+        }
+    }
+}
+
+
+/**
+ * SlidingWindowSliderField - Single value slider with sliding window controls and validation
+ */
+class SlidingWindowSliderField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.rangeWindow = config.rangeWindow || 1000;
+        this.windowStep = config.windowStep || 1000;
+        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        
+        this.currentMin = config.currentMin || this.min;
+        this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
+        this.selectedValue = config.defaultValue || config.value || ((this.currentMin + this.currentMax) / 2);
+        
+        // Ensure selected value is within current window
+        if (this.selectedValue < this.currentMin) {
+            this.selectedValue = this.currentMin;
+        } else if (this.selectedValue > this.currentMax) {
+            this.selectedValue = this.currentMax;
+        }
+        
+        this.value = this.selectedValue;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
+    }
+
+    // Validation method
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
+                    this.selectedValue = result.adjustedValue;
+                    this.value = result.adjustedValue;
+                    
+                    if (this.slider) {
+                        this.slider.value = this.selectedValue;
+                        this.updateUI();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    // Update constraints method
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            this.currentMin = Math.max(this.currentMin, newConstraints.min);
+            
+            // Update slider attributes if they exist
+            if (this.slider) {
+                this.slider.min = this.currentMin;
+                
+                // Ensure current value respects new minimum
+                if (this.selectedValue < this.currentMin) {
+                    this.selectedValue = this.currentMin;
+                    this.value = this.selectedValue;
+                    this.slider.value = this.selectedValue;
+                }
+                
+                this.updateUI();
+            }
+        }
+        
+        if (newConstraints.rangeWindow !== undefined) {
+            this.rangeWindow = newConstraints.rangeWindow;
+        }
+        
+        if (newConstraints.windowStep !== undefined) {
+            this.windowStep = newConstraints.windowStep;
+        }
+    }
+
+    // Helper method for boundary checking
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return percent;
+        
+        const containerWidth = container.offsetWidth;
+        const labelWidth = labelElement.offsetWidth || 100;
+        
+        // Calculate boundaries (in percentage)
+        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        // Constrain to boundaries
+        if (percent < leftBoundary) {
+            return leftBoundary;
+        } else if (percent > rightBoundary) {
+            return rightBoundary;
+        }
+        
+        return percent;
+    }
+
+    // Helper method for triangle positioning with strict constraints
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        // Calculate pixel positions
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
+        const trianglePosition = 50 + triangleOffset;
+        
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
+        
+        // Convert pixel constraints to percentage of label width
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    // Method to update triangle position
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        
+        // Apply the triangle position using CSS custom property
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const slidingLayout = document.createElement('div');
+        slidingLayout.className = 'sliding-window-layout';
+        
+        // Decrease button
+        this.decreaseBtn = document.createElement('button');
+        this.decreaseBtn.type = 'button';
+        this.decreaseBtn.className = 'slider-control-btn';
+        this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
+        
+        // Slider container
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        // Track background
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        // Progress track
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        // Slider input
+        this.slider = document.createElement('input');
+        this.slider.type = 'range';
+        this.slider.className = 'range-input';
+        this.slider.id = this.id;
+        this.slider.min = this.currentMin;
+        this.slider.max = this.currentMax;
+        this.slider.value = this.selectedValue;
+        this.slider.step = this.step;
+        
+        // Value label
+        this.valueLabel = document.createElement('div');
+        this.valueLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.slider);
+        sliderContainer.appendChild(this.valueLabel);
+        
+        // Increase button
+        this.increaseBtn = document.createElement('button');
+        this.increaseBtn.type = 'button';
+        this.increaseBtn.className = 'slider-control-btn';
+        this.increaseBtn.innerHTML = this.factory.SVG_ICONS.PLUS;
+        
+        slidingLayout.appendChild(this.decreaseBtn);
+        slidingLayout.appendChild(sliderContainer);
+        slidingLayout.appendChild(this.increaseBtn);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(slidingLayout);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.slider.addEventListener('input', () => this.handleValueChange());
+        this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
+        this.increaseBtn.addEventListener('click', () => this.increaseRange());
+    }
+
+    handleValueChange() {
+        const newValue = parseFloat(this.slider.value);
+        
+        // Validate constraints
+        const validatedValue = this.validateConstraints(newValue);
+        
+        if (validatedValue !== false) {
+            this.selectedValue = validatedValue;
+            this.value = validatedValue;
+            this.updateUI();
+            this.handleChange();
+        }
+    }
+
+    increaseRange() {
+        if (this.currentMax < this.max) {
+            this.currentMin = Math.min(this.currentMin + this.windowStep, this.max - this.rangeWindow);
+            this.currentMax = Math.min(this.currentMax + this.windowStep, this.max);
+            this.updateSliderAttributes();
+            this.updateUI();
+        }
+    }
+
+    decreaseRange() {
+        if (this.currentMin > this.min) {
+            this.currentMin = Math.max(this.currentMin - this.windowStep, this.min);
+            this.currentMax = Math.max(this.currentMax - this.windowStep, this.min + this.rangeWindow);
+            this.updateSliderAttributes();
+            this.updateUI();
+        }
+    }
+
+    updateSliderAttributes() {
+        this.slider.min = this.currentMin;
+        this.slider.max = this.currentMax;
+        
+        // Adjust value if it's outside the new range
+        if (this.selectedValue < this.currentMin) {
+            this.selectedValue = this.currentMin;
+        } else if (this.selectedValue > this.currentMax) {
+            this.selectedValue = this.currentMax;
+        }
+        
+        this.slider.value = this.selectedValue;
+        this.value = this.selectedValue;
+    }
+
+    updateUI() {
+        // Calculate percentage
+        const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
+        
+        // Store original position for triangle calculation
+        const originalPercent = percent;
+        
+        // Update progress width
+        this.progress.style.width = percent + '%';
+        
+        // Apply boundary checking
+        setTimeout(() => {
+            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
+            this.valueLabel.style.left = finalPercent + '%';
+            this.valueLabel.textContent = this.formatValue(this.selectedValue);
+            
+            // Update triangle position to point to actual handle
+            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+        }, 0);
+        
+        // Update button states
+        this.decreaseBtn.disabled = this.currentMin <= this.min;
+        this.increaseBtn.disabled = this.currentMax >= this.max;
+    }
+
+    getValue() {
+        return this.selectedValue;
+    }
+
+    setValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            // Handle object input (for compatibility)
+            this.selectedValue = value.value || value.selectedValue || value.min || this.selectedValue;
+            this.currentMin = value.currentMin || this.currentMin;
+            this.currentMax = value.currentMax || this.currentMax;
+        } else {
+            this.selectedValue = parseFloat(value) || this.selectedValue;
+        }
+        
+        this.value = this.selectedValue;
+        
+        if (this.slider) {
+            this.updateSliderAttributes();
+            this.updateUI();
+        }
+    }
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = FormFieldFactory;
+}
+
+// Export to window
+window.FormFieldFactory = FormFieldFactory;
+window.MultiStepForm = MultiStepForm;
