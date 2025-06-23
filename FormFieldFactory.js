@@ -6432,6 +6432,937 @@ class SlidingWindowSliderField extends BaseField {
     }
 }
 
+
+        // ============================================================================
+// SERVICE CARD FIELD CLASS - Add this to FormFieldFactory.js
+// ============================================================================
+
+class ServiceCardField extends BaseField {
+    constructor(config, factory) {
+        super(config, factory);
+        
+        // Service card specific config
+        this.services = config.services || [];
+        this.layout = config.layout || 'grid'; // 'grid', 'list', 'compact'
+        this.columns = config.columns || 'auto'; // 'auto', 1, 2, 3, 4
+        this.showDuration = config.showDuration !== false;
+        this.showDescription = config.showDescription !== false;
+        this.allowDeselect = config.allowDeselect || false;
+        this.selectionMode = config.selectionMode || 'single'; // 'single', 'multiple'
+        
+        // State
+        this.selectedServices = [];
+        this.selectedService = null;
+        
+        // Bind methods
+        this.handleCardClick = this.handleCardClick.bind(this);
+        this.renderServiceCard = this.renderServiceCard.bind(this);
+        this.updateSelection = this.updateSelection.bind(this);
+    }
+    
+    render() {
+        this.element = document.createElement('div');
+        this.element.className = `form-field service-card-field layout-${this.layout}`;
+        
+        if (this.config.label) {
+            this.element.innerHTML = `
+                <label class="form-label ${this.config.required ? 'required' : ''}" for="${this.config.id}">
+                    ${this.config.label}
+                </label>
+            `;
+        }
+        
+        const container = document.createElement('div');
+        container.className = `service-cards-container columns-${this.columns}`;
+        container.id = this.config.id;
+        
+        // Render each service card
+        this.services.forEach((service, index) => {
+            const card = this.renderServiceCard(service, index);
+            container.appendChild(card);
+        });
+        
+        this.element.appendChild(container);
+        
+        // Add error container
+        if (this.config.required) {
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'error-container';
+            errorContainer.innerHTML = `
+                <div class="error-message" id="${this.config.id}-error">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">${this.factory.texts.fieldRequired || 'This field is required'}</span>
+                </div>
+            `;
+            this.element.appendChild(errorContainer);
+        }
+        
+        return this.element;
+    }
+    
+    renderServiceCard(service, index) {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.dataset.serviceId = service.id || index;
+        card.dataset.serviceIndex = index;
+        
+        // Add accessibility attributes
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-pressed', 'false');
+        card.setAttribute('aria-describedby', `service-description-${index}`);
+        
+        const cardContent = `
+            <div class="service-card-inner">
+                ${this.renderCheckmark()}
+                ${this.renderCardHeader(service)}
+                ${this.renderCardBody(service, index)}
+                ${this.renderCardFooter(service)}
+            </div>
+        `;
+        
+        card.innerHTML = cardContent;
+        
+        // Add event listeners
+        card.addEventListener('click', () => this.handleCardClick(card, service));
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.handleCardClick(card, service);
+            }
+        });
+        
+        return card;
+    }
+    
+    renderCheckmark() {
+        return `
+            <div class="checkmark-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                    <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+                </svg>
+            </div>
+        `;
+    }
+    
+    renderCardHeader(service) {
+        const titleElement = service.title || service.name || service.eventName || 'Unnamed Service';
+        const durationElement = this.showDuration && service.duration ? 
+            `<div class="service-duration">${service.duration}</div>` : '';
+            
+        return `
+            <div class="service-card-header">
+                <div class="service-title">${titleElement}</div>
+                ${durationElement}
+            </div>
+        `;
+    }
+    
+    renderCardBody(service, index) {
+        const description = this.showDescription && service.description ? 
+            `<div class="service-description" id="service-description-${index}">${service.description}</div>` : '';
+            
+        const price = service.price ? 
+            `<div class="service-price">${service.price}</div>` : '';
+            
+        const features = service.features && Array.isArray(service.features) ? 
+            `<ul class="service-features">
+                ${service.features.map(feature => `<li>${feature}</li>`).join('')}
+            </ul>` : '';
+            
+        return `
+            <div class="service-card-body">
+                ${description}
+                ${features}
+                ${price}
+            </div>
+        `;
+    }
+    
+    renderCardFooter(service) {
+        if (!service.badge && !service.popular && !service.recommended) {
+            return '';
+        }
+        
+        let badgeContent = '';
+        
+        if (service.popular) {
+            badgeContent = '<div class="service-badge popular">Populaire</div>';
+        } else if (service.recommended) {
+            badgeContent = '<div class="service-badge recommended">Recommandé</div>';
+        } else if (service.badge) {
+            badgeContent = `<div class="service-badge custom">${service.badge}</div>`;
+        }
+        
+        return badgeContent ? `<div class="service-card-footer">${badgeContent}</div>` : '';
+    }
+    
+    handleCardClick(cardElement, service) {
+        if (this.selectionMode === 'single') {
+            this.handleSingleSelection(cardElement, service);
+        } else {
+            this.handleMultipleSelection(cardElement, service);
+        }
+        
+        this.updateValue();
+        this.hideError();
+    }
+    
+    handleSingleSelection(cardElement, service) {
+        // Remove selection from all cards
+        const allCards = this.element.querySelectorAll('.service-card');
+        allCards.forEach(card => {
+            card.classList.remove('selected');
+            card.setAttribute('aria-pressed', 'false');
+        });
+        
+        // Handle deselection if allowed
+        if (this.allowDeselect && this.selectedService && this.selectedService.id === service.id) {
+            this.selectedService = null;
+            this.selectedServices = [];
+            return;
+        }
+        
+        // Select the clicked card
+        cardElement.classList.add('selected');
+        cardElement.setAttribute('aria-pressed', 'true');
+        this.selectedService = service;
+        this.selectedServices = [service];
+    }
+    
+    handleMultipleSelection(cardElement, service) {
+        const isSelected = cardElement.classList.contains('selected');
+        
+        if (isSelected) {
+            // Deselect
+            cardElement.classList.remove('selected');
+            cardElement.setAttribute('aria-pressed', 'false');
+            this.selectedServices = this.selectedServices.filter(s => s.id !== service.id);
+        } else {
+            // Select
+            cardElement.classList.add('selected');
+            cardElement.setAttribute('aria-pressed', 'true');
+            this.selectedServices.push(service);
+        }
+        
+        // Update single selection for compatibility
+        this.selectedService = this.selectedServices.length > 0 ? this.selectedServices[0] : null;
+    }
+    
+    updateValue() {
+        const value = this.selectionMode === 'single' ? 
+            this.selectedService : 
+            this.selectedServices;
+            
+        this.factory.updateFieldValue(this.config.name, value);
+        this.factory.validateField(this);
+    }
+    
+    getValue() {
+        return this.selectionMode === 'single' ? 
+            this.selectedService : 
+            this.selectedServices;
+    }
+    
+    setValue(value) {
+        // Clear current selection
+        this.selectedService = null;
+        this.selectedServices = [];
+        
+        const allCards = this.element.querySelectorAll('.service-card');
+        allCards.forEach(card => {
+            card.classList.remove('selected');
+            card.setAttribute('aria-pressed', 'false');
+        });
+        
+        if (!value) return;
+        
+        if (this.selectionMode === 'single') {
+            // Single selection mode
+            if (typeof value === 'object' && value.id) {
+                this.selectedService = value;
+                this.selectedServices = [value];
+                const card = this.element.querySelector(`[data-service-id="${value.id}"]`);
+                if (card) {
+                    card.classList.add('selected');
+                    card.setAttribute('aria-pressed', 'true');
+                }
+            }
+        } else {
+            // Multiple selection mode
+            if (Array.isArray(value)) {
+                this.selectedServices = [...value];
+                this.selectedService = value.length > 0 ? value[0] : null;
+                
+                value.forEach(service => {
+                    const card = this.element.querySelector(`[data-service-id="${service.id}"]`);
+                    if (card) {
+                        card.classList.add('selected');
+                        card.setAttribute('aria-pressed', 'true');
+                    }
+                });
+            }
+        }
+    }
+    
+    validate() {
+        const hasSelection = this.selectionMode === 'single' ? 
+            this.selectedService !== null : 
+            this.selectedServices.length > 0;
+            
+        const isValid = !this.config.required || hasSelection;
+        
+        return {
+            isValid,
+            errorMessage: isValid ? null : (this.factory.texts.serviceRequired || 'Please select a service')
+        };
+    }
+    
+    showError(message) {
+        const errorElement = this.element.querySelector(`#${this.config.id}-error`);
+        if (errorElement) {
+            const errorText = errorElement.querySelector('.error-text');
+            if (errorText) {
+                errorText.textContent = message;
+            }
+            errorElement.classList.add('show');
+        }
+    }
+    
+    hideError() {
+        const errorElement = this.element.querySelector(`#${this.config.id}-error`);
+        if (errorElement) {
+            errorElement.classList.remove('show');
+        }
+    }
+    
+    reset() {
+        this.selectedService = null;
+        this.selectedServices = [];
+        
+        const allCards = this.element.querySelectorAll('.service-card');
+        allCards.forEach(card => {
+            card.classList.remove('selected');
+            card.setAttribute('aria-pressed', 'false');
+        });
+        
+        this.hideError();
+    }
+    
+    disable() {
+        const allCards = this.element.querySelectorAll('.service-card');
+        allCards.forEach(card => {
+            card.style.pointerEvents = 'none';
+            card.style.opacity = '0.5';
+            card.setAttribute('tabindex', '-1');
+        });
+    }
+    
+    enable() {
+        const allCards = this.element.querySelectorAll('.service-card');
+        allCards.forEach(card => {
+            card.style.pointerEvents = '';
+            card.style.opacity = '';
+            card.setAttribute('tabindex', '0');
+        });
+    }
+    
+    // Additional utility methods
+    getSelectedCount() {
+        return this.selectedServices.length;
+    }
+    
+    getSelectedIds() {
+        return this.selectedServices.map(service => service.id);
+    }
+    
+    selectById(serviceId) {
+        const service = this.services.find(s => s.id === serviceId);
+        if (service) {
+            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
+            if (card) {
+                this.handleCardClick(card, service);
+            }
+        }
+    }
+    
+    deselectById(serviceId) {
+        if (this.selectionMode === 'single' && this.selectedService?.id === serviceId) {
+            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
+            if (card) {
+                card.classList.remove('selected');
+                card.setAttribute('aria-pressed', 'false');
+                this.selectedService = null;
+                this.selectedServices = [];
+                this.updateValue();
+            }
+        } else if (this.selectionMode === 'multiple') {
+            const card = this.element.querySelector(`[data-service-id="${serviceId}"]`);
+            if (card && card.classList.contains('selected')) {
+                this.handleCardClick(card, this.services.find(s => s.id === serviceId));
+            }
+        }
+    }
+    
+    updateServices(newServices) {
+        this.services = newServices;
+        this.reset();
+        
+        // Re-render the cards
+        const container = this.element.querySelector('.service-cards-container');
+        if (container) {
+            container.innerHTML = '';
+            this.services.forEach((service, index) => {
+                const card = this.renderServiceCard(service, index);
+                container.appendChild(card);
+            });
+        }
+    }
+}
+
+// Add to FormFieldFactory class registry
+if (typeof FormFieldFactory !== 'undefined') {
+    FormFieldFactory.prototype.createServiceCardField = function(config) {
+        return new ServiceCardField(config, this);
+    };
+}
+
+// ============================================================================
+// CALENDAR FIELD CLASS - Add this to FormFieldFactory.js
+// ============================================================================
+
+class CalendarField extends BaseField {
+    constructor(config, factory) {
+        super(config, factory);
+        
+        // Calendar specific config
+        this.apiKey = config.apiKey || '';
+        this.timezone = config.timezone || 'America/Toronto';
+        this.eventTypeId = config.eventTypeId;
+        this.eventTypeSlug = config.eventTypeSlug;
+        this.scheduleId = config.scheduleId;
+        this.eventName = config.eventName || 'Appointment';
+        this.language = config.language || 'en';
+        
+        // State
+        this.state = {
+            currentDate: new Date(),
+            selectedDate: null,
+            selectedTime: null,
+            availableSlots: {},
+            workingDays: [1, 2, 3, 4, 5], // Mon-Fri default
+            isConfirmed: false,
+            isLoading: false
+        };
+        
+        // Bind methods
+        this.fetchWorkingDays = this.fetchWorkingDays.bind(this);
+        this.fetchAvailableSlots = this.fetchAvailableSlots.bind(this);
+        this.createBooking = this.createBooking.bind(this);
+        this.renderCalendar = this.renderCalendar.bind(this);
+        this.attachCalendarEvents = this.attachCalendarEvents.bind(this);
+        
+        // Initialize
+        this.init();
+    }
+    
+    async init() {
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            if (!this.state.selectedDate) {
+                this.state.selectedDate = this.getDefaultActiveDay();
+                const dayKey = this.formatDate(this.state.selectedDate);
+                const slots = await this.fetchAvailableSlots(dayKey);
+                this.state.availableSlots[dayKey] = slots;
+            }
+        }
+    }
+    
+    // Utility methods
+    formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    
+    isSameDay(date1, date2) {
+        if (!date1 || !date2) return false;
+        return this.formatDate(date1) === this.formatDate(date2);
+    }
+    
+    getDefaultActiveDay() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (this.state.workingDays.includes(today.getDay())) return today;
+        
+        const next = new Date(today);
+        let daysChecked = 0;
+        while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
+            next.setDate(next.getDate() + 1);
+            daysChecked++;
+        }
+        return next;
+    }
+    
+    // API methods
+    async fetchWorkingDays(scheduleId) {
+        if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+        
+        try {
+            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-06-11",
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            
+            const data = await res.json();
+            const availability = data.data?.availability || [];
+            const dayNameToNumber = {
+                "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3,
+                "Thursday": 4, "Friday": 5, "Saturday": 6
+            };
+            
+            const workingDaysSet = new Set();
+            availability.forEach(item => {
+                if (Array.isArray(item.days)) {
+                    item.days.forEach(dayName => {
+                        const dayNum = dayNameToNumber[dayName];
+                        if (dayNum !== undefined) {
+                            workingDaysSet.add(dayNum);
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(workingDaysSet);
+        } catch (err) {
+            console.error("Error fetching schedule:", err);
+            return [1, 2, 3, 4, 5];
+        }
+    }
+    
+    async fetchAvailableSlots(selectedDateISO) {
+        if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
+        
+        const start = new Date(selectedDateISO);
+        start.setUTCHours(0, 0, 0, 0);
+        const end = new Date(selectedDateISO);
+        end.setUTCHours(23, 59, 59, 999);
+        
+        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
+        
+        try {
+            const res = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            
+            const responseBody = await res.json();
+            if (responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            const slotsObj = responseBody.data?.slots || {};
+            const slotsForDate = slotsObj[selectedDateISO] || [];
+            return slotsForDate.map(slot => slot.time);
+        } catch (err) {
+            console.error("Error fetching available slots:", err);
+            return [];
+        }
+    }
+    
+    async createBooking(startTimeISO, fullName, email) {
+        if (!this.apiKey || !this.eventTypeId) {
+            throw new Error('Missing API key or event type ID');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings`;
+            const body = {
+                start: startTimeISO,
+                attendee: { 
+                    name: fullName, 
+                    email: email, 
+                    timeZone: this.timezone 
+                },
+                eventTypeId: Number(this.eventTypeId)
+            };
+            
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Booking error:", err);
+            return null;
+        }
+    }
+    
+    getText(key) {
+        const translations = {
+            en: {
+                selectDate: "Select a date to view available times",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                pleaseSelectDate: "Please select a date first",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            },
+            fr: {
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                availableTimesFor: "Disponibilités pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+            }
+        };
+        return translations[this.language]?.[key] || key;
+    }
+    
+    render() {
+        this.element = document.createElement('div');
+        this.element.className = 'form-field calendar-field';
+        this.element.innerHTML = `
+            <div class="calendar-container ${this.state.isConfirmed ? 'confirmed' : ''}">
+                <div class="calendar-header">
+                    <div class="calendar-title">
+                        <div class="service-provider">
+                            <span class="provider-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24">
+                                    <path fill="#ffffff" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+                                </svg>
+                            </span>
+                            <span>${this.eventName}</span>
+                        </div>
+                    </div>
+                    <div class="calendar-nav">
+                        <button class="nav-btn prev-btn" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(90deg)">
+                                <g transform="translate(75, 75)">
+                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                                </g>
+                            </svg>
+                        </button>
+                        <div class="current-date"></div>
+                        <button class="nav-btn next-btn" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(-90deg)">
+                                <g transform="translate(75, 75)">
+                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                                </g>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-body">
+                    <div class="days-container">
+                        <div class="weekdays"></div>
+                        <div class="days"></div>
+                    </div>
+                    <div class="times-container">
+                        <div class="time-header"></div>
+                        <div class="time-slots"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        this.renderCalendarData();
+        this.attachCalendarEvents();
+        
+        return this.element;
+    }
+    
+    renderCalendarData() {
+        if (!this.element) return;
+        
+        // Update current date display
+        const currentDateEl = this.element.querySelector('.current-date');
+        if (currentDateEl) {
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
+            currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
+        }
+        
+        // Render weekdays
+        const weekdaysEl = this.element.querySelector('.weekdays');
+        if (weekdaysEl) {
+            weekdaysEl.innerHTML = '';
+            const weekdays = this.getText('weekdays');
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysEl.appendChild(dayEl);
+            });
+        }
+        
+        // Render calendar days
+        this.renderDays();
+        
+        // Render time slots
+        this.renderTimeSlots();
+    }
+    
+    renderDays() {
+        const daysEl = this.element.querySelector('.days');
+        if (!daysEl) return;
+        
+        daysEl.innerHTML = '';
+        let daysToShow = [];
+        const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
+        const daysFromPrevMonth = firstDay.getDay();
+        const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
+        const totalDays = lastDay.getDate();
+        
+        // Previous month days
+        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
+        // Current month days
+        for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
+            daysToShow.push({ date: day, inactive: false });
+        }
+        
+        // Next month days
+        const remainingDays = 42 - daysToShow.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
+        const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
+        
+        daysToShow.forEach(({ date, inactive }) => {
+            const dayEl = document.createElement("div");
+            dayEl.className = "day";
+            dayEl.textContent = date.getDate();
+            
+            if (inactive) {
+                dayEl.classList.add("inactive");
+            } else {
+                const dayOfWeek = date.getDay();
+                if (!this.state.workingDays.includes(dayOfWeek)) {
+                    dayEl.classList.add("inactive");
+                } else {
+                    const todayMidnight = new Date();
+                    todayMidnight.setHours(0, 0, 0, 0);
+                    if (date < todayMidnight) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        if (this.formatDate(date) === this.formatDate(highlightDay)) {
+                            dayEl.classList.add("today");
+                        }
+                        if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                            dayEl.classList.add("active");
+                        }
+                        dayEl.classList.add("available");
+                        dayEl.addEventListener("click", async () => {
+                            this.state.selectedDate = new Date(date);
+                            this.state.selectedTime = null;
+                            const dateKey = this.formatDate(date);
+                            const slots = await this.fetchAvailableSlots(dateKey);
+                            this.state.availableSlots[dateKey] = slots;
+                            this.renderCalendarData();
+                            this.updateValue();
+                        });
+                    }
+                }
+            }
+            daysEl.appendChild(dayEl);
+        });
+    }
+    
+    renderTimeSlots() {
+        const timeHeaderEl = this.element.querySelector('.time-header');
+        const timeSlotsEl = this.element.querySelector('.time-slots');
+        
+        if (!timeHeaderEl || !timeSlotsEl) return;
+        
+        if (this.state.selectedDate) {
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                weekday: "long", month: "long", day: "numeric" 
+            });
+            timeHeaderEl.textContent = `${this.getText('availableTimesFor')} ${dateFormatter.format(this.state.selectedDate)}`;
+            
+            const dateKey = this.formatDate(this.state.selectedDate);
+            const timeSlots = this.state.availableSlots[dateKey] || [];
+            
+            if (timeSlots.length === 0) {
+                timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('noAvailableSlots')}</div>`;
+            } else {
+                const columnsContainer = document.createElement("div");
+                columnsContainer.className = "time-slots-columns";
+                
+                const amColumn = document.createElement("div");
+                amColumn.className = "time-slots-column";
+                const pmColumn = document.createElement("div");
+                pmColumn.className = "time-slots-column";
+                
+                const amHeader = document.createElement("div");
+                amHeader.className = "time-column-header";
+                amHeader.textContent = "AM";
+                amColumn.appendChild(amHeader);
+                
+                const pmHeader = document.createElement("div");
+                pmHeader.className = "time-column-header";
+                pmHeader.textContent = "PM";
+                pmColumn.appendChild(pmHeader);
+                
+                timeSlots.forEach((timeISO) => {
+                    const dateTime = new Date(timeISO);
+                    const hours = dateTime.getHours();
+                    const timeSlot = document.createElement("div");
+                    timeSlot.className = "time-slot available";
+                    
+                    if (this.state.selectedTime === timeISO) {
+                        timeSlot.classList.add("selected");
+                    }
+                    
+                    const timeFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                        hour: "numeric", minute: "2-digit", hour12: true 
+                    });
+                    timeSlot.textContent = timeFormatter.format(dateTime);
+                    
+                    timeSlot.addEventListener("click", () => {
+                        if (!this.state.isConfirmed) {
+                            this.state.selectedTime = timeISO;
+                            this.renderTimeSlots();
+                            this.updateValue();
+                        }
+                    });
+                    
+                    if (hours < 12) {
+                        amColumn.appendChild(timeSlot);
+                    } else {
+                        pmColumn.appendChild(timeSlot);
+                    }
+                });
+                
+                columnsContainer.appendChild(amColumn);
+                columnsContainer.appendChild(pmColumn);
+                timeSlotsEl.innerHTML = '';
+                timeSlotsEl.appendChild(columnsContainer);
+            }
+        } else {
+            timeHeaderEl.innerHTML = `<span class="pulse-text">${this.getText('selectDate')}</span>`;
+            timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('pleaseSelectDate')}</div>`;
+        }
+    }
+    
+    attachCalendarEvents() {
+        if (!this.element) return;
+        
+        // Navigation buttons
+        const prevBtn = this.element.querySelector('.prev-btn');
+        const nextBtn = this.element.querySelector('.next-btn');
+        
+        if (prevBtn) {
+            prevBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
+                    this.renderCalendarData();
+                }
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
+                    this.renderCalendarData();
+                }
+            });
+        }
+    }
+    
+    updateValue() {
+        const value = {
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+        
+        this.factory.updateFieldValue(this.config.name, value);
+        this.factory.validateField(this);
+    }
+    
+    getValue() {
+        return {
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+    }
+    
+    setValue(value) {
+        if (value && typeof value === 'object') {
+            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
+            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
+            if (this.element) this.renderCalendarData();
+        }
+    }
+    
+    validate() {
+        const isValid = !!(this.state.selectedDate && this.state.selectedTime);
+        return {
+            isValid,
+            errorMessage: isValid ? null : (this.factory.texts.dateTimeRequired || 'Please select a date and time')
+        };
+    }
+    
+    reset() {
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+        if (this.element) this.renderCalendarData();
+    }
+}
+
+// Add to FormFieldFactory class registry
+if (typeof FormFieldFactory !== 'undefined') {
+    FormFieldFactory.prototype.createCalendarField = function(config) {
+        return new CalendarField(config, this);
+    };
+}
+    
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FormFieldFactory;
