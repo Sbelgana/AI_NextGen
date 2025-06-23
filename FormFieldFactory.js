@@ -573,6 +573,13 @@ class FormFieldFactory {
 		return new SlidingWindowSliderField(this, config);
 	}
 
+	createServiceCardField(config) {
+    return new ServiceCardField(this, config);  // ✅ Factory first, config second
+}
+	createCalendarField(config) {
+    return new CalendarField(this, config);  // ✅ Factory first, config second
+}
+
     // Cleanup method
     destroy() {
         if (this.globalClickHandlerAttached) {
@@ -6438,8 +6445,8 @@ class SlidingWindowSliderField extends BaseField {
 // ============================================================================
 
 class ServiceCardField extends BaseField {
-    constructor(config, factory) {
-        super(config, factory);
+    constructor(factory, config) {  // ✅ Fixed parameter order
+        super(factory, config);
         
         // Service card specific config
         this.services = config.services || [];
@@ -6832,8 +6839,8 @@ if (typeof FormFieldFactory !== 'undefined') {
 // ============================================================================
 
 class CalendarField extends BaseField {
-    constructor(config, factory) {
-        super(config, factory);
+    constructor(factory, config) {  // ✅ Fixed parameter order
+        super(factory, config);
         
         // Calendar specific config
         this.apiKey = config.apiKey || '';
