@@ -981,7 +981,7 @@ input[type="number"]:hover:not(:focus) {
 .sliding-window-layout {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
 }
 
 .slider-control-btn {
@@ -1660,7 +1660,7 @@ select:focus-visible,
     }
 
     .sliding-window-layout {
-        gap: 15px;
+        gap: 5px;
     }
 
     .slider-control-btn {
@@ -1787,7 +1787,7 @@ select:focus-visible,
 
     .sliding-window-layout {
         flex-direction: column;
-        gap: 10px;
+        gap: 5px;
     }
 
     .slider-control-btn {
