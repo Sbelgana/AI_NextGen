@@ -7030,7 +7030,7 @@ class CalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
-    // Enhanced header generation with correct provider/service order
+    // Enhanced header generation with date directly under service name for reschedule mode
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -7042,11 +7042,8 @@ class CalendarField extends BaseField {
                         <div class="appointment-details">
                             <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
                             ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
+                            <div class="current-appointment-date">${this.formatCurrentAppointment()}</div>
                         </div>
-                    </div>
-                    <div class="current-appointment-info">
-                        <div class="appointment-label">${this.getText('currentAppointment')}:</div>
-                        <div class="appointment-datetime">${this.formatCurrentAppointment()}</div>
                     </div>
                 </div>
             `;
@@ -7374,6 +7371,7 @@ class CalendarField extends BaseField {
         // Calendar specific cleanup if needed
     }
 }
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FormFieldFactory;
