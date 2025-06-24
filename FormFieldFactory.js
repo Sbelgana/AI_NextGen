@@ -7836,12 +7836,6 @@ class FormStep {
                 this.container.appendChild(titleElement);
             }
 
-            if (this.description) {
-                const descriptionElement = document.createElement('p');
-                descriptionElement.className = 'step-description';
-                descriptionElement.textContent = this.description;
-                this.container.appendChild(descriptionElement);
-            }
 
             const fieldsContainer = document.createElement('div');
             fieldsContainer.className = 'step-fields';
