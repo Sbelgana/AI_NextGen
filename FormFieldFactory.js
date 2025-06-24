@@ -1,759 +1,94 @@
 /**
- * Enhanced FormFieldFactory System - Complete Version with All Improvements
- * @version 4.0.0
- * @description Complete form system with performance optimizations, better state management,
- *              enhanced validation, error handling, accessibility, and memory leak prevention
+ * Complete FormFieldFactory System - Merged Enhanced Version
+ * @version 3.2.0
+ * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
  */
-
-/**
- * ErrorManager - Centralized error handling and reporting
- */
-class ErrorManager {
-    constructor() {
-        this.errors = new Map();
-        this.errorSubscribers = new Set();
-        this.setupGlobalErrorHandling();
-    }
-    
-    setupGlobalErrorHandling() {
-        if (typeof window !== 'undefined') {
-            window.addEventListener('error', (event) => {
-                this.addError('global', {
-                    message: event.error?.message || 'Unknown error',
-                    type: 'javascript',
-                    stack: event.error?.stack,
-                    timestamp: Date.now()
-                });
-            });
-            
-            window.addEventListener('unhandledrejection', (event) => {
-                this.addError('global', {
-                    message: event.reason?.message || event.reason || 'Unhandled promise rejection',
-                    type: 'promise',
-                    timestamp: Date.now()
-                });
-            });
-        }
-    }
-    
-    addError(fieldId, error) {
-        if (!this.errors.has(fieldId)) {
-            this.errors.set(fieldId, []);
-        }
-        
-        const errorObj = {
-            message: error.message || error,
-            type: error.type || 'validation',
-            timestamp: Date.now(),
-            stack: error.stack
-        };
-        
-        this.errors.get(fieldId).push(errorObj);
-        this.notifySubscribers('error-added', fieldId, errorObj);
-    }
-    
-    clearErrors(fieldId) {
-        this.errors.delete(fieldId);
-        this.notifySubscribers('errors-cleared', fieldId);
-    }
-    
-    hasErrors(fieldId = null) {
-        if (fieldId) {
-            return this.errors.has(fieldId) && this.errors.get(fieldId).length > 0;
-        }
-        return this.errors.size > 0;
-    }
-    
-    getAllErrors() {
-        const allErrors = {};
-        this.errors.forEach((errors, fieldId) => {
-            allErrors[fieldId] = errors;
-        });
-        return allErrors;
-    }
-    
-    subscribe(callback) {
-        this.errorSubscribers.add(callback);
-        return () => this.errorSubscribers.delete(callback);
-    }
-    
-    notifySubscribers(event, ...args) {
-        this.errorSubscribers.forEach(callback => {
-            try {
-                callback(event, ...args);
-            } catch (error) {
-                console.error('Error in error subscriber:', error);
-            }
-        });
-    }
-}
-
-/**
- * ValidationEngine - Enhanced validation system with async support
- */
-class ValidationEngine {
-    constructor(options = {}) {
-        this.rules = new Map();
-        this.asyncRules = new Map();
-        this.schemas = new Map();
-        this.setupDefaultRules();
-    }
-    
-    setupDefaultRules() {
-        this.addRule('required', (value) => {
-            const isEmpty = value === null || value === undefined || 
-                           value === '' || (Array.isArray(value) && value.length === 0);
-            return !isEmpty || 'This field is required';
-        });
-        
-        this.addRule('email', (value) => {
-            if (!value) return true;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(value) || 'Please enter a valid email address';
-        });
-        
-        this.addRule('phone', (value) => {
-            if (!value) return true;
-            const phoneRegex = /^(\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}$/;
-            return phoneRegex.test(value) || 'Please enter a valid phone number';
-        });
-        
-        this.addRule('url', (value) => {
-            if (!value) return true;
-            try {
-                let testUrl = value.trim();
-                if (!testUrl.match(/^https?:\/\//)) {
-                    testUrl = 'https://' + testUrl;
-                }
-                new URL(testUrl);
-                const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}/;
-                return urlPattern.test(value.trim()) || 'Please enter a valid URL';
-            } catch {
-                return 'Please enter a valid URL';
-            }
-        });
-        
-        this.addRule('minLength', (minLength) => (value) => {
-            if (!value) return true;
-            return value.length >= minLength || `Minimum length is ${minLength} characters`;
-        });
-        
-        this.addRule('maxLength', (maxLength) => (value) => {
-            if (!value) return true;
-            return value.length <= maxLength || `Maximum length is ${maxLength} characters`;
-        });
-        
-        this.addRule('pattern', (pattern, message = 'Invalid format') => (value) => {
-            if (!value) return true;
-            const regex = new RegExp(pattern);
-            return regex.test(value) || message;
-        });
-    }
-    
-    addRule(name, rule) {
-        if (typeof rule === 'function') {
-            this.rules.set(name, rule);
-        } else if (rule && typeof rule.validate === 'function') {
-            if (rule.async) {
-                this.asyncRules.set(name, rule);
-            } else {
-                this.rules.set(name, rule);
-            }
-        }
-    }
-    
-    async validateValue(value, rules) {
-        if (!Array.isArray(rules)) {
-            rules = [rules];
-        }
-        
-        const errors = [];
-        
-        // Synchronous validation
-        for (const ruleSpec of rules) {
-            let ruleName = ruleSpec;
-            let ruleParams = [];
-            
-            if (typeof ruleSpec === 'string' && ruleSpec.includes(':')) {
-                [ruleName, ...ruleParams] = ruleSpec.split(':');
-                ruleParams = ruleParams.map(param => {
-                    const num = Number(param);
-                    return isNaN(num) ? param : num;
-                });
-            } else if (typeof ruleSpec === 'object' && ruleSpec.rule) {
-                ruleName = ruleSpec.rule;
-                ruleParams = ruleSpec.params || [];
-            }
-            
-            if (this.rules.has(ruleName)) {
-                try {
-                    const rule = this.rules.get(ruleName);
-                    let validator = rule;
-                    
-                    if (ruleParams.length > 0) {
-                        validator = rule(...ruleParams);
-                    }
-                    
-                    const result = validator(value);
-                    if (result !== true) {
-                        errors.push(result);
-                    }
-                } catch (error) {
-                    errors.push(`Validation error: ${error.message}`);
-                }
-            }
-        }
-        
-        // Asynchronous validation
-        const asyncPromises = [];
-        for (const ruleSpec of rules) {
-            const ruleName = typeof ruleSpec === 'string' ? ruleSpec.split(':')[0] : ruleSpec.rule;
-            if (this.asyncRules.has(ruleName)) {
-                asyncPromises.push(this.asyncRules.get(ruleName).validate(value));
-            }
-        }
-        
-        if (asyncPromises.length > 0) {
-            try {
-                const asyncResults = await Promise.allSettled(asyncPromises);
-                asyncResults.forEach(result => {
-                    if (result.status === 'rejected' || result.value !== true) {
-                        errors.push(result.reason || result.value);
-                    }
-                });
-            } catch (error) {
-                errors.push(`Async validation error: ${error.message}`);
-            }
-        }
-        
-        return {
-            isValid: errors.length === 0,
-            errors
-        };
-    }
-}
-
-/**
- * FormStateManager - Enhanced state management with history and subscriptions
- */
-class FormStateManager {
-    constructor(options = {}) {
-        this.state = {};
-        this.subscribers = new Map();
-        this.history = [];
-        this.maxHistorySize = options.maxHistorySize || 50;
-        this.fields = new Map();
-    }
-    
-    registerField(field) {
-        this.fields.set(field.name, field);
-        
-        if (this.state[field.name] !== undefined) {
-            field.setValue(this.state[field.name]);
-        }
-    }
-    
-    unregisterField(fieldName) {
-        this.fields.delete(fieldName);
-        this.unsubscribeAll(fieldName);
-    }
-    
-    setState(path, value) {
-        const oldValue = this.getState(path);
-        
-        if (oldValue === value) return;
-        
-        this.saveToHistory();
-        this.setNestedValue(this.state, path, value);
-        
-        if (this.fields.has(path)) {
-            const field = this.fields.get(path);
-            if (field.getValue() !== value) {
-                field.setValue(value);
-            }
-        }
-        
-        this.notifySubscribers(path, value, oldValue);
-    }
-    
-    getState(path) {
-        if (!path) return { ...this.state };
-        return this.getNestedValue(this.state, path);
-    }
-    
-    getAllFieldValues() {
-        const values = {};
-        this.fields.forEach((field, name) => {
-            values[name] = field.getValue();
-        });
-        return values;
-    }
-    
-    subscribe(path, callback) {
-        if (!this.subscribers.has(path)) {
-            this.subscribers.set(path, new Set());
-        }
-        this.subscribers.get(path).add(callback);
-        
-        return () => {
-            this.subscribers.get(path)?.delete(callback);
-            if (this.subscribers.get(path)?.size === 0) {
-                this.subscribers.delete(path);
-            }
-        };
-    }
-    
-    unsubscribeAll(path) {
-        this.subscribers.delete(path);
-    }
-    
-    notifySubscribers(path, value, oldValue) {
-        if (this.subscribers.has(path)) {
-            this.subscribers.get(path).forEach(callback => {
-                try {
-                    callback(value, oldValue, path);
-                } catch (error) {
-                    console.error('Error in state subscriber:', error);
-                }
-            });
-        }
-        
-        this.subscribers.forEach((callbacks, subscriberPath) => {
-            if (subscriberPath.includes('*') && this.pathMatches(path, subscriberPath)) {
-                callbacks.forEach(callback => {
-                    try {
-                        callback(value, oldValue, path);
-                    } catch (error) {
-                        console.error('Error in wildcard subscriber:', error);
-                    }
-                });
-            }
-        });
-    }
-    
-    pathMatches(actualPath, patternPath) {
-        const actualParts = actualPath.split('.');
-        const patternParts = patternPath.split('.');
-        
-        if (patternParts.length !== actualParts.length) return false;
-        
-        return patternParts.every((part, index) => {
-            return part === '*' || part === actualParts[index];
-        });
-    }
-    
-    setNestedValue(obj, path, value) {
-        const keys = path.split('.');
-        let current = obj;
-        
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!(keys[i] in current)) {
-                current[keys[i]] = {};
-            }
-            current = current[keys[i]];
-        }
-        
-        current[keys[keys.length - 1]] = value;
-    }
-    
-    getNestedValue(obj, path) {
-        return path.split('.').reduce((current, key) => {
-            return current && current[key] !== undefined ? current[key] : undefined;
-        }, obj);
-    }
-    
-    saveToHistory() {
-        this.history.push(JSON.parse(JSON.stringify(this.state)));
-        if (this.history.length > this.maxHistorySize) {
-            this.history.shift();
-        }
-    }
-    
-    undo() {
-        if (this.history.length > 0) {
-            this.state = this.history.pop();
-            
-            this.fields.forEach((field, name) => {
-                if (this.state[name] !== undefined) {
-                    field.setValue(this.state[name]);
-                }
-            });
-            
-            this.notifySubscribers('*', this.state, null);
-        }
-    }
-    
-    reset() {
-        this.state = {};
-        this.history = [];
-        this.fields.forEach(field => field.setValue(''));
-        this.notifySubscribers('*', this.state, null);
-    }
-}
-
-/**
- * AccessibilityManager - Enhanced accessibility features
- */
-class AccessibilityManager {
-    constructor(factory) {
-        this.factory = factory;
-        this.announcer = this.createScreenReaderAnnouncer();
-        this.keyboardTraps = new Set();
-    }
-    
-    createScreenReaderAnnouncer() {
-        const announcer = document.createElement('div');
-        announcer.setAttribute('aria-live', 'polite');
-        announcer.setAttribute('aria-atomic', 'true');
-        announcer.style.cssText = 'position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;';
-        document.body.appendChild(announcer);
-        return announcer;
-    }
-    
-    announce(message, priority = 'polite') {
-        this.announcer.setAttribute('aria-live', priority);
-        this.announcer.textContent = message;
-        setTimeout(() => {
-            this.announcer.textContent = '';
-        }, 1000);
-    }
-    
-    enhanceField(field) {
-        if (!field.element) return;
-        
-        this.addKeyboardNavigation(field.element, {
-            onEnter: (e) => {
-                if (field.element.type === 'button' || field.element.tagName === 'BUTTON') {
-                    field.element.click();
-                }
-            },
-            onEscape: (e) => {
-                if (field.closeDropdown) {
-                    field.closeDropdown();
-                }
-            }
-        });
-        
-        this.validateA11y(field.element);
-    }
-    
-    addKeyboardNavigation(element, options = {}) {
-        element.addEventListener('keydown', (e) => {
-            switch (e.key) {
-                case 'Enter':
-                    if (options.onEnter) {
-                        options.onEnter(e);
-                    }
-                    break;
-                case ' ':
-                    if (options.onSpace) {
-                        e.preventDefault();
-                        options.onSpace(e);
-                    }
-                    break;
-                case 'Escape':
-                    if (options.onEscape) {
-                        options.onEscape(e);
-                    }
-                    break;
-                case 'ArrowDown':
-                case 'ArrowUp':
-                    if (options.onArrowKey) {
-                        e.preventDefault();
-                        options.onArrowKey(e, e.key);
-                    }
-                    break;
-            }
-        });
-    }
-    
-    validateA11y(element) {
-        const violations = [];
-        
-        const inputs = element.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            if (!this.hasProperLabel(input)) {
-                violations.push({
-                    element: input,
-                    message: 'Input missing proper label',
-                    severity: 'error'
-                });
-            }
-        });
-        
-        const interactiveElements = element.querySelectorAll('[role="button"], [tabindex]');
-        interactiveElements.forEach(el => {
-            if (!el.hasAttribute('aria-label') && !el.textContent.trim()) {
-                violations.push({
-                    element: el,
-                    message: 'Interactive element missing accessible name',
-                    severity: 'warning'
-                });
-            }
-        });
-        
-        if (violations.length > 0 && process?.env?.NODE_ENV === 'development') {
-            console.warn('Accessibility violations found:', violations);
-        }
-        
-        return violations;
-    }
-    
-    hasProperLabel(input) {
-        if (input.labels && input.labels.length > 0) return true;
-        if (input.hasAttribute('aria-label')) return true;
-        if (input.hasAttribute('aria-labelledby')) {
-            const labelId = input.getAttribute('aria-labelledby');
-            return document.getElementById(labelId) !== null;
-        }
-        return false;
-    }
-    
-    destroy() {
-        if (this.announcer && this.announcer.parentNode) {
-            this.announcer.parentNode.removeChild(this.announcer);
-        }
-    }
-}
-
-/**
- * PerformanceManager - Performance monitoring and optimization
- */
-class PerformanceManager {
-    constructor() {
-        this.metrics = {
-            renderTimes: new Map(),
-            validationTimes: new Map(),
-            updateTimes: new Map()
-        };
-        this.observers = new Map();
-    }
-    
-    measurePerformance(operation, identifier, fn) {
-        if (typeof fn !== 'function') return fn;
-        
-        const start = performance.now();
-        let result;
-        
-        try {
-            result = fn();
-        } catch (error) {
-            console.error(`Performance measurement failed for ${operation}:${identifier}`, error);
-            throw error;
-        }
-        
-        const end = performance.now();
-        const duration = end - start;
-        
-        if (!this.metrics[operation]) {
-            this.metrics[operation] = new Map();
-        }
-        
-        if (!this.metrics[operation].has(identifier)) {
-            this.metrics[operation].set(identifier, []);
-        }
-        
-        this.metrics[operation].get(identifier).push(duration);
-        
-        if (duration > 100) {
-            console.warn(`Slow ${operation} detected for ${identifier}: ${duration.toFixed(2)}ms`);
-        }
-        
-        return result;
-    }
-    
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func.apply(this, args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-    
-    setupIntersectionObserver(callback, options = {}) {
-        if (!('IntersectionObserver' in window)) return null;
-        
-        const observer = new IntersectionObserver(callback, {
-            rootMargin: '50px',
-            threshold: 0.1,
-            ...options
-        });
-        
-        return observer;
-    }
-    
-    getPerformanceReport() {
-        const report = {
-            renderTimes: {},
-            validationTimes: {},
-            updateTimes: {},
-            averages: {},
-            warnings: []
-        };
-        
-        Object.keys(this.metrics).forEach(operation => {
-            report[operation] = {};
-            this.metrics[operation].forEach((times, identifier) => {
-                report[operation][identifier] = times;
-                
-                if (!report.averages[identifier]) {
-                    report.averages[identifier] = {};
-                }
-                
-                const average = times.reduce((a, b) => a + b, 0) / times.length;
-                report.averages[identifier][operation] = average;
-                
-                if (average > 50) {
-                    report.warnings.push(`Slow ${operation} for ${identifier}: ${average.toFixed(2)}ms average`);
-                }
-            });
-        });
-        
-        return report;
-    }
-    
-    destroy() {
-        this.observers.forEach(observer => observer.disconnect());
-        this.observers.clear();
-    }
-}
-
-// ============================================================================
-// MAIN FORM FIELD FACTORY - Enhanced with all improvements
-// ============================================================================
-
 class FormFieldFactory {
     constructor(options = {}) {
-        this.container = options.container || document.body;
-        this.formValues = options.formValues || {};
-        this.onChangeCallback = options.onChange || null;
-        this.currentMultiStepForm = null;
-        this.fieldRegistry = {};
         
-        // Enhanced managers
-        this.errorManager = new ErrorManager();
-        this.validationEngine = new ValidationEngine(options.validation);
-        this.stateManager = new FormStateManager(options.state);
-        this.accessibilityManager = new AccessibilityManager(this);
-        this.performanceManager = new PerformanceManager();
-        
-        // Global click management
-        this.openDropdowns = new Set();
-        this.openInfoPanels = new Set();
-        this.globalClickHandlerAttached = false;
-        
-        // Enhanced texts with summary support
-        this.texts = {
-            required: options.texts?.required || "required",
-            selectPlaceholder: options.texts?.selectPlaceholder || "-- Select --",
-            selectMultiplePlaceholder: options.texts?.selectMultiplePlaceholder || "-- Multiple selection --",
-            selectSubsectionPlaceholder: options.texts?.selectSubsectionPlaceholder || "-- Select from categories --",
-            yes: options.texts?.yes || "Yes",
-            no: options.texts?.no || "No",
-            other: options.texts?.other || "Other",
-            fieldRequired: options.texts?.fieldRequired || "This field is required",
-            emailInvalid: options.texts?.emailInvalid || "Invalid email format",
-            phoneInvalid: options.texts?.phoneInvalid || "Invalid phone format",
-            urlInvalid: options.texts?.urlInvalid || "Invalid URL format",
-            selectAtLeastOne: options.texts?.selectAtLeastOne || "Please select at least one option",
-            selectAll: options.texts?.selectAll || "Select All",
-            selected: options.texts?.selected || "selected",
-            next: options.texts?.next || "Next",
-            previous: options.texts?.previous || "Previous",
-            submit: options.texts?.submit || "Submit",
-            step: options.texts?.step || "Step",
-            of: options.texts?.of || "of",
-            edit: options.texts?.edit || "Edit",
-            noDataEntered: options.texts?.noDataEntered || "No data entered",
-            multilingual: options.texts?.multilingual || "Multilingual",
-            unilingual: options.texts?.unilingual || "Unilingual",
-            serviceRequired: options.texts?.serviceRequired || "Please select a service",
-            dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
-        };
+		this.container = options.container || document.body;
+		this.formValues = options.formValues || {};
+		this.onChangeCallback = options.onChange || null;
+		this.currentMultiStepForm = null;
+		this.fieldRegistry = {};
+		
+		// Add global click management
+		this.openDropdowns = new Set();
+		this.openInfoPanels = new Set();
+		this.globalClickHandlerAttached = false;
+		
+		// Enhanced texts with summary support
+		this.texts = {
+			required: options.texts?.required || "required",
+			selectPlaceholder: options.texts?.selectPlaceholder || "-- Select --",
+			selectMultiplePlaceholder: options.texts?.selectMultiplePlaceholder || "-- Multiple selection --",
+			selectSubsectionPlaceholder: options.texts?.selectSubsectionPlaceholder || "-- Select from categories --",
+			yes: options.texts?.yes || "Yes",
+			no: options.texts?.no || "No",
+			other: options.texts?.other || "Other",
+			fieldRequired: options.texts?.fieldRequired || "This field is required",
+			emailInvalid: options.texts?.emailInvalid || "Invalid email format",
+			phoneInvalid: options.texts?.phoneInvalid || "Invalid phone format",
+			urlInvalid: options.texts?.urlInvalid || "Invalid URL format",
+			selectAtLeastOne: options.texts?.selectAtLeastOne || "Please select at least one option",
+			selectAll: options.texts?.selectAll || "Select All",
+			selected: options.texts?.selected || "selected",
+			next: options.texts?.next || "Next",
+			previous: options.texts?.previous || "Previous",
+			submit: options.texts?.submit || "Submit",
+			step: options.texts?.step || "Step",
+			of: options.texts?.of || "of",
+			edit: options.texts?.edit || "Edit",
+			noDataEntered: options.texts?.noDataEntered || "No data entered",
+			multilingual: options.texts?.multilingual || "Multilingual",
+			unilingual: options.texts?.unilingual || "Unilingual",
+			serviceRequired: options.texts?.serviceRequired || "Please select a service",
+			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
+		};
         
         // SVG Icons
-        this.SVG_ICONS = {
-            CHECK: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
-                <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-            </svg>`,
-            CHEVRON: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
-                <g transform="translate(75, 75)">
-                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-                </g>
-            </svg>`,
-            INFO: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
-                <path class="info-bg" fill="#f8e8f8" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"/>
-                <path class="info-icon" fill="#9C27B0" d="M216 336l24 0 0-64-24 0 c-13.3 0-24-10.7-24-24s10.7-24 24-24 l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24 l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208 a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
-            </svg>`,
-            CLOSE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="8px" height="8px">
-                <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
-            </svg>`,
-            PLUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
-                <path fill="currentColor" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
-            </svg>`,
-            MINUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
-                <path fill="currentColor" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
-            </svg>`,
-            CALCULATOR: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24px" height="24px">
-                <path fill="currentColor" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/>
-            </svg>`,
-            CALENDAR: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24px" height="24px">
-                <path fill="currentColor" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
-            </svg>`,
-            RESCHEDULE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24px" height="24px">
-                <path fill="currentColor" d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H336c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5c0 0 0 0 0 0h.4c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32s-32 14.3-32 32v51.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V448c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-17.6-17.5H176c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-2.2 0-4.2 .5-6.1 1.3z"/>
-            </svg>`,
-            SERVICE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
-                <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
-            </svg>`,
-            MEDICAL: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
-                <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
-            </svg>`
-        };
+       // SVG Icons
+this.SVG_ICONS = {
+    CHECK: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
+        <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+    </svg>`,
+    CHEVRON: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+        <g transform="translate(75, 75)">
+            <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+        </g>
+    </svg>`,
+    INFO: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px">
+        <path class="info-bg" fill="#f8e8f8" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"/>
+        <path class="info-icon" fill="#9C27B0" d="M216 336l24 0 0-64-24 0 c-13.3 0-24-10.7-24-24s10.7-24 24-24 l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24 l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208 a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+    </svg>`,
+    CLOSE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="8px" height="8px">
+        <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+    </svg>`,
+    PLUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
+        <path fill="currentColor" d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/>
+    </svg>`,
+    MINUS: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 400" width="15px" height="15px"> 
+        <path fill="currentColor" d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/>
+    </svg>`,
+    CALCULATOR: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24px" height="24px">
+        <path fill="currentColor" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM96 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zM64 416c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0c-17.7 0-32-14.3-32-32zM192 256a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm64-64a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm32 64a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zM288 448a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/>
+    </svg>`,
+    CALENDAR: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24px" height="24px">
+        <path fill="currentColor" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
+    </svg>`,
+    RESCHEDULE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24px" height="24px">
+        <path fill="currentColor" d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H336c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5c0 0 0 0 0 0h.4c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32s-32 14.3-32 32v51.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V448c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-17.6-17.5H176c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-2.2 0-4.2 .5-6.1 1.3z"/>
+    </svg>`,
+    SERVICE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+        <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
+    </svg>`,
+    MEDICAL: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+        <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
+    </svg>`
+};
 
         // Initialize global click handler
         this.initGlobalClickHandler();
-        
-        // Setup performance monitoring
-        this.setupPerformanceMonitoring();
-        
-        // Add debounced validation
-        this.debouncedValidation = this.performanceManager.debounce(this.validateForm.bind(this), 300);
-    }
-
-    setupPerformanceMonitoring() {
-        // Monitor long tasks
-        if ('PerformanceObserver' in window) {
-            try {
-                const observer = new PerformanceObserver((list) => {
-                    list.getEntries().forEach((entry) => {
-                        if (entry.duration > 50) {
-                            console.warn(`Long task detected: ${entry.duration.toFixed(2)}ms`);
-                        }
-                    });
-                });
-                observer.observe({entryTypes: ['longtask']});
-            } catch (e) {
-                // PerformanceObserver not supported for longtask
-            }
-        }
     }
 
     // ===== GLOBAL CLICK MANAGEMENT =====
@@ -766,12 +101,14 @@ class FormFieldFactory {
     }
 
     handleGlobalClick(event) {
+        // Close all open dropdowns that don't contain the clicked element
         this.openDropdowns.forEach(dropdown => {
             if (!dropdown.element.contains(event.target)) {
                 dropdown.close();
             }
         });
 
+        // Close all open info panels that don't contain the clicked element
         this.openInfoPanels.forEach(infoPanel => {
             if (!infoPanel.element.contains(event.target) && 
                 !infoPanel.button.contains(event.target)) {
@@ -804,162 +141,34 @@ class FormFieldFactory {
         this.openInfoPanels.forEach(infoPanel => infoPanel.close());
     }
 
-    // ===== ENHANCED FIELD CREATION =====
-    createField(type, config) {
-        try {
-            return this.performanceManager.measurePerformance('render', type, () => {
-                let field = null;
-                
-                switch (type) {
-                    case 'text':
-                        field = new TextField(this, config);
-                        break;
-                    case 'email':
-                        field = new EmailField(this, config);
-                        break;
-                    case 'phone':
-                        field = new PhoneField(this, config);
-                        break;
-                    case 'url':
-                        field = new UrlField(this, config);
-                        break;
-                    case 'textarea':
-                        field = new TextAreaField(this, config);
-                        break;
-                    case 'number':
-                        field = new NumberField(this, config);
-                        break;
-                    case 'percentage':
-                        field = new PercentageField(this, config);
-                        break;
-                    case 'options-stepper':
-                        field = new OptionsStepperField(this, config);
-                        break;
-                    case 'yesno':
-                        field = new YesNoField(this, config);
-                        break;
-                    case 'select':
-                        field = new SingleSelectField(this, config);
-                        break;
-                    case 'multiselect':
-                        field = new MultiSelectField(this, config);
-                        break;
-                    case 'select-subsections':
-                        field = new SingleSelectSubsectionsField(this, config);
-                        break;
-                    case 'multiselect-subsections':
-                        field = new MultiSelectSubsectionsField(this, config);
-                        break;
-                    case 'yesno-with-options':
-                        field = new YesNoWithOptionsField(this, config);
-                        break;
-                    case 'select-with-other':
-                        field = new SingleSelectWithOtherField(this, config);
-                        break;
-                    case 'multiselect-with-other':
-                        field = new MultiSelectWithOtherField(this, config);
-                        break;
-                    case 'custom':
-                        field = new CustomField(this, config);
-                        break;
-                    case 'sliding-window-range':
-                        field = new SlidingWindowRangeField(this, config);
-                        break;
-                    case 'dual-range':
-                        field = new DualRangeField(this, config);
-                        break;
-                    case 'slider':
-                        field = new SliderField(this, config);
-                        break;
-                    case 'options-slider':
-                        field = new OptionsSliderField(this, config);
-                        break;
-                    case 'serviceCard':
-                        field = new ServiceCardField(this, config);
-                        break;
-                    case 'calendar':
-                        field = new CalendarField(this, config);
-                        break;
-                    default:
-                        throw new Error(`Unknown field type: ${type}`);
-                }
-                
-                if (field) {
-                    // Register with managers
-                    this.stateManager.registerField(field);
-                    this.accessibilityManager.enhanceField(field);
-                    
-                    // Store reference
-                    this.fieldRegistry[config.name || config.id] = field;
-                }
-                
-                return field;
-            });
-        } catch (error) {
-            this.errorManager.addError(config.name || 'unknown', error);
-            console.error(`Failed to create field of type ${type}:`, error);
-            return null;
-        }
-    }
-
-    // ===== ENHANCED UTILITY METHODS =====
-    getText(key, customMessages = {}) {
-        return customMessages[key] || this.texts[key] || key;
-    }
-
-    getField(fieldName) {
-        return this.fieldRegistry[fieldName] || null;
-    }
-
-    getAllFields() {
-        return { ...this.fieldRegistry };
-    }
-
-    removeField(fieldName) {
-        const field = this.fieldRegistry[fieldName];
-        if (field) {
-            field.destroy();
-            this.stateManager.unregisterField(fieldName);
-            delete this.fieldRegistry[fieldName];
-        }
-    }
-
-    // ===== ENHANCED VALIDATION =====
-    async validateForm() {
-        const results = await Promise.all(
-            Object.values(this.fieldRegistry).map(field => field.validate())
-        );
-        
-        return results.every(result => result);
-    }
-
-    async validateField(fieldName) {
-        const field = this.getField(fieldName);
-        if (field) {
-            return await field.validate();
-        }
-        return true;
-    }
-
-    // ===== PERFORMANCE METHODS =====
-    getPerformanceReport() {
-        return this.performanceManager.getPerformanceReport();
-    }
-
     // ===== UNIVERSAL DATA PROCESSING METHODS =====
+
+    /**
+     * Universal data processor - works with ANY form structure
+     * @param {Object} rawFormData - Raw data from any multi-step form
+     * @returns {Object} Processed data ready for submission
+     */
     processAnyFormData(rawFormData) {
         if (!this.currentMultiStepForm) {
             console.warn('No multi-step form available for processing');
             return rawFormData;
         }
         
+        // Step 1: Flatten complex structures
         const flattened = this.universalFlatten(rawFormData);
+        
+        // Step 2: Convert IDs to names
         const converted = this.universalConvertIds(flattened);
+        
+        // Step 3: Apply universal transformations
         const processed = this.universalTransform(converted);
         
         return processed;
     }
 
+    /**
+     * Universal flattening - works with any field structure
+     */
     universalFlatten(formData) {
         const flattened = { ...formData };
         const allFieldConfigs = this.getAllFieldConfigs();
@@ -970,15 +179,18 @@ class FormFieldFactory {
             
             if (!fieldConfig || !fieldValue || typeof fieldValue !== 'object') return;
             
+            // Handle yesno-with-options fields
             if (fieldConfig.type === 'yesno-with-options' && fieldValue.main) {
                 flattened[fieldName] = fieldValue.main;
                 
+                // Extract yesValues
                 if (fieldValue.yesValues) {
                     Object.keys(fieldValue.yesValues).forEach(key => {
                         flattened[key] = fieldValue.yesValues[key];
                     });
                 }
                 
+                // Extract noValues
                 if (fieldValue.noValues) {
                     Object.keys(fieldValue.noValues).forEach(key => {
                         flattened[key] = fieldValue.noValues[key];
@@ -986,6 +198,7 @@ class FormFieldFactory {
                 }
             }
             
+            // Handle select-with-other and multiselect-with-other fields
             else if ((fieldConfig.type === 'select-with-other' || 
                       fieldConfig.type === 'multiselect-with-other') && 
                      fieldValue.main !== undefined) {
@@ -1002,121 +215,139 @@ class FormFieldFactory {
         return flattened;
     }
 
+    /**
+     * Universal ID to name conversion
+     */
     universalConvertIds(flatData) {
-        const converted = { ...flatData };
-        const allFieldConfigs = this.getAllFieldConfigs();
-        
-        Object.keys(flatData).forEach(fieldName => {
-            const fieldValue = flatData[fieldName];
-            const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
-            
-            if (!fieldConfig || !fieldValue) return;
-            
-            if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
-                
-                if (typeof fieldValue === 'string') {
-                    if (fieldValue !== 'other') {
-                        const option = fieldConfig.options.find(opt => opt.id === fieldValue);
-                        if (option) {
-                            converted[fieldName] = option.name;
-                        }
-                    } else {
-                        const otherFieldName = this.generateOtherFieldName(fieldName);
-                        if (converted[otherFieldName]) {
-                            converted[fieldName] = converted[otherFieldName];
-                            delete converted[otherFieldName];
-                        }
-                    }
-                }
-                
-                else if (Array.isArray(fieldValue)) {
-                    const convertedValues = fieldValue.map(id => {
-                        if (id === 'other') {
-                            const otherFieldName = this.generateOtherFieldName(fieldName);
-                            return converted[otherFieldName] || this.getText('other');
-                        }
-                        const option = fieldConfig.options.find(opt => opt.id === id);
-                        return option ? option.name : id;
-                    }).filter(val => val && val.trim() !== '');
-                    
-                    converted[fieldName] = convertedValues;
-                    converted[`${fieldName}Array`] = convertedValues;
-                    converted[`${fieldName}String`] = convertedValues.join(', ');
-                    
-                    const otherFieldName = this.generateOtherFieldName(fieldName);
-                    if (converted[otherFieldName]) {
-                        delete converted[otherFieldName];
-                    }
-                }
-            }
-            
-            if (fieldConfig.subsectionOptions && Array.isArray(fieldConfig.subsectionOptions)) {
-                if (typeof fieldValue === 'string') {
-                    for (const group of fieldConfig.subsectionOptions) {
-                        const option = group.subcategories.find(opt => opt.id === fieldValue);
-                        if (option) {
-                            converted[fieldName] = option.name;
-                            break;
-                        }
-                    }
-                } else if (Array.isArray(fieldValue)) {
-                    const convertedValues = fieldValue.map(id => {
-                        for (const group of fieldConfig.subsectionOptions) {
-                            const option = group.subcategories.find(opt => opt.id === id);
-                            if (option) return option.name;
-                        }
-                        return id;
-                    }).filter(val => val && val.trim() !== '');
-                    
-                    converted[fieldName] = convertedValues;
-                    converted[`${fieldName}Array`] = convertedValues;
-                    converted[`${fieldName}String`] = convertedValues.join(', ');
-                }
-            }
-            
-            if (fieldConfig.type === 'select-with-other' && typeof fieldValue === 'object') {
-                if (fieldValue.main === 'other' && fieldValue.other) {
-                    converted[fieldName] = fieldValue.other;
-                } else if (fieldValue.main && fieldConfig.options) {
-                    const option = fieldConfig.options.find(opt => opt.id === fieldValue.main);
-                    converted[fieldName] = option ? option.name : fieldValue.main;
-                }
-            }
-            
-            if (fieldConfig.type === 'multiselect-with-other' && typeof fieldValue === 'object') {
-                const allValues = [];
-                
-                if (fieldValue.main && Array.isArray(fieldValue.main)) {
-                    const convertedMain = fieldValue.main.map(id => {
-                        const option = fieldConfig.options.find(opt => opt.id === id);
-                        return option ? option.name : id;
-                    });
-                    allValues.push(...convertedMain);
-                }
-                
-                if (fieldValue.other && fieldValue.other.trim() !== '') {
-                    allValues.push(fieldValue.other);
-                }
-                
-                converted[fieldName] = allValues;
-                converted[`${fieldName}Array`] = allValues;
-                converted[`${fieldName}String`] = allValues.join(', ');
-            }
-        });
-        
-        return converted;
-    }
+		const converted = { ...flatData };
+		const allFieldConfigs = this.getAllFieldConfigs();
+		
+		Object.keys(flatData).forEach(fieldName => {
+			const fieldValue = flatData[fieldName];
+			const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
+			
+			if (!fieldConfig || !fieldValue) return;
+			
+			// Handle fields with options
+			if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
+				
+				// Single select fields
+				if (typeof fieldValue === 'string') {
+					if (fieldValue !== 'other') {
+						const option = fieldConfig.options.find(opt => opt.id === fieldValue);
+						if (option) {
+							converted[fieldName] = option.name;
+						}
+					} else {
+						// Handle "other"
+						const otherFieldName = this.generateOtherFieldName(fieldName);
+						if (converted[otherFieldName]) {
+							converted[fieldName] = converted[otherFieldName];
+							// Remove the separate other field since we merged it
+							delete converted[otherFieldName];
+						}
+					}
+				}
+				
+				// Multiple select fields
+				else if (Array.isArray(fieldValue)) {
+					const convertedValues = fieldValue.map(id => {
+						if (id === 'other') {
+							const otherFieldName = this.generateOtherFieldName(fieldName);
+							return converted[otherFieldName] || this.getText('other');
+						}
+						const option = fieldConfig.options.find(opt => opt.id === id);
+						return option ? option.name : id;
+					}).filter(val => val && val.trim() !== ''); // Remove empty values
+					
+					converted[fieldName] = convertedValues;
+					converted[`${fieldName}Array`] = convertedValues;
+					converted[`${fieldName}String`] = convertedValues.join(', ');
+					
+					// Remove the separate other field if it exists
+					const otherFieldName = this.generateOtherFieldName(fieldName);
+					if (converted[otherFieldName]) {
+						delete converted[otherFieldName];
+					}
+				}
+			}
+			
+			// Handle subsection fields
+			if (fieldConfig.subsectionOptions && Array.isArray(fieldConfig.subsectionOptions)) {
+				if (typeof fieldValue === 'string') {
+					// Find option in subsections
+					for (const group of fieldConfig.subsectionOptions) {
+						const option = group.subcategories.find(opt => opt.id === fieldValue);
+						if (option) {
+							converted[fieldName] = option.name;
+							break;
+						}
+					}
+				} else if (Array.isArray(fieldValue)) {
+					const convertedValues = fieldValue.map(id => {
+						for (const group of fieldConfig.subsectionOptions) {
+							const option = group.subcategories.find(opt => opt.id === id);
+							if (option) return option.name;
+						}
+						return id;
+					}).filter(val => val && val.trim() !== ''); // Remove empty values
+					
+					converted[fieldName] = convertedValues;
+					converted[`${fieldName}Array`] = convertedValues;
+					converted[`${fieldName}String`] = convertedValues.join(', ');
+				}
+			}
+			
+			// Handle select-with-other fields
+			if (fieldConfig.type === 'select-with-other' && typeof fieldValue === 'object') {
+				if (fieldValue.main === 'other' && fieldValue.other) {
+					converted[fieldName] = fieldValue.other;
+				} else if (fieldValue.main && fieldConfig.options) {
+					const option = fieldConfig.options.find(opt => opt.id === fieldValue.main);
+					converted[fieldName] = option ? option.name : fieldValue.main;
+				}
+			}
+			
+			// Handle multiselect-with-other fields
+			if (fieldConfig.type === 'multiselect-with-other' && typeof fieldValue === 'object') {
+				const allValues = [];
+				
+				if (fieldValue.main && Array.isArray(fieldValue.main)) {
+					const convertedMain = fieldValue.main.map(id => {
+						const option = fieldConfig.options.find(opt => opt.id === id);
+						return option ? option.name : id;
+					});
+					allValues.push(...convertedMain);
+				}
+				
+				if (fieldValue.other && fieldValue.other.trim() !== '') {
+					allValues.push(fieldValue.other);
+				}
+				
+				converted[fieldName] = allValues;
+				converted[`${fieldName}Array`] = allValues;
+				converted[`${fieldName}String`] = allValues.join(', ');
+			}
+		});
+		
+		return converted;
+	}
 
+    /**
+     * Universal transformations
+     */
     universalTransform(data) {
         const transformed = { ...data };
         const allFieldConfigs = this.getAllFieldConfigs();
         
+        // Transform based on field types
         Object.keys(data).forEach(fieldName => {
             const fieldValue = data[fieldName];
             const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
             
             if (!fieldConfig) return;
             
+            // Convert yes/no to boolean
             if (fieldConfig.type === 'yesno' || 
                 (fieldConfig.type === 'yesno-with-options' && typeof fieldValue === 'string')) {
                 
@@ -1127,16 +358,19 @@ class FormFieldFactory {
                 }
             }
             
+            // Clean text fields
             if (['text', 'email', 'phone', 'url', 'textarea'].includes(fieldConfig.type)) {
                 if (!fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '')) {
                     transformed[fieldName] = "";
                 }
             }
             
+            // Handle number fields
             if (['number', 'percentage'].includes(fieldConfig.type)) {
                 transformed[fieldName] = parseFloat(fieldValue) || 0;
             }
             
+            // Ensure arrays for multiselect fields
             if (['multiselect', 'multiselect-with-other', 'multiselect-subsections'].includes(fieldConfig.type)) {
                 if (!Array.isArray(fieldValue)) {
                     transformed[fieldName] = fieldValue ? [fieldValue] : [];
@@ -1153,29 +387,35 @@ class FormFieldFactory {
             }
         });
         
-        Object.keys(transformed).forEach(fieldName => {
-            const fieldValue = transformed[fieldName];
-            
-            if (Array.isArray(fieldValue) && fieldValue.length === 0) {
-                delete transformed[fieldName];
-                delete transformed[`${fieldName}Array`];
-                delete transformed[`${fieldName}String`];
-            } else if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
-                delete transformed[fieldName];
-            }
-            
-            if (fieldName.startsWith('other') && fieldName.length > 5) {
-                const baseFieldName = fieldName.replace(/^other/, '').toLowerCase();
-                const baseFieldNamePlural = baseFieldName + 's';
-                
-                if (transformed[baseFieldName] || transformed[baseFieldNamePlural]) {
-                    delete transformed[fieldName];
-                }
-            }
-        });
+		// Clean up any remaining other fields and ensure proper formatting
+		Object.keys(transformed).forEach(fieldName => {
+			const fieldValue = transformed[fieldName];
+			
+			// Clean up empty arrays and strings
+			if (Array.isArray(fieldValue) && fieldValue.length === 0) {
+				delete transformed[fieldName];
+				delete transformed[`${fieldName}Array`];
+				delete transformed[`${fieldName}String`];
+			} else if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
+				delete transformed[fieldName];
+			}
+			
+			// Remove any remaining otherXXX fields that weren't properly merged
+			if (fieldName.startsWith('other') && fieldName.length > 5) {
+				const baseFieldName = fieldName.replace(/^other/, '').toLowerCase();
+				const baseFieldNamePlural = baseFieldName + 's';
+				
+				// Check if the base field exists and has incorporated this other value
+				if (transformed[baseFieldName] || transformed[baseFieldNamePlural]) {
+					delete transformed[fieldName];
+				}
+			}
+		});
 
-        this.setUniversalDefaults(transformed, allFieldConfigs);
-        return transformed;
+		this.setUniversalDefaults(transformed, allFieldConfigs);
+			
+		this.setUniversalDefaults(transformed, allFieldConfigs);
+		return transformed;
     }
 
     getAllFieldConfigs() {
@@ -1231,37 +471,139 @@ class FormFieldFactory {
         });
     }
 
-    // ===== MULTISTEP FORM CREATION =====
+    getProcessingSummary(originalData, processedData) {
+        const allFieldConfigs = this.getAllFieldConfigs();
+        
+        return {
+            totalFields: Object.keys(originalData).length,
+            processedFields: Object.keys(processedData).length,
+            fieldTypes: allFieldConfigs.reduce((acc, config) => {
+                acc[config.type] = (acc[config.type] || 0) + 1;
+                return acc;
+            }, {}),
+            transformations: {
+                flattened: Object.keys(originalData).filter(key => 
+                    originalData[key] && typeof originalData[key] === 'object' && 
+                    !(processedData[key] && typeof processedData[key] === 'object')
+                ),
+                converted: Object.keys(processedData).filter(key => 
+                    originalData[key] !== processedData[key]
+                )
+            }
+        };
+    }
+
+    // ===== STANDARD METHODS =====
+    getText(key, customMessages = {}) {
+        return customMessages[key] || this.texts[key] || key;
+    }
+
+    createYesNoField(config) {
+        return new YesNoField(this, config);
+    }
+
+    createTextField(config) {
+        return new TextField(this, config);
+    }
+
+    createTextAreaField(config) {
+        return new TextAreaField(this, config);
+    }
+
+    createEmailField(config) {
+        return new EmailField(this, config);
+    }
+
+    createPhoneField(config) {
+        return new PhoneField(this, config);
+    }
+
+    createUrlField(config) {
+        return new UrlField(this, config);
+    }
+
+    createNumberField(config) {
+        return new NumberField(this, config);
+    }
+
+    createPercentageField(config) {
+        return new PercentageField(this, config);
+    }
+
+    createOptionsStepperField(config) {
+        return new OptionsStepperField(this, config);
+    }
+
+    createSingleSelectField(config) {
+        return new SingleSelectField(this, config);
+    }
+
+    createMultiSelectField(config) {
+        return new MultiSelectField(this, config);
+    }
+
+    createSingleSelectSubsectionsField(config) {
+        return new SingleSelectSubsectionsField(this, config);
+    }
+
+    createMultiSelectSubsectionsField(config) {
+        return new MultiSelectSubsectionsField(this, config);
+    }
+
+    createYesNoWithOptionsField(config) {
+        return new YesNoWithOptionsField(this, config);
+    }
+
+    createSingleSelectWithOtherField(config) {
+        return new SingleSelectWithOtherField(this, config);
+    }
+
+    createMultiSelectWithOtherField(config) {
+        return new MultiSelectWithOtherField(this, config);
+    }
+
     createMultiStepForm(config) {
         return new MultiStepForm(this, config);
     }
+	
+	createSlidingWindowRangeField(config) {
+		return new SlidingWindowRangeField(this, config);
+	}
 
-    // ===== CLEANUP METHODS =====
+	createDualRangeField(config) {
+		return new DualRangeField(this, config);
+	}
+
+	createSliderField(config) {
+		return new SliderField(this, config);
+	}
+
+	createOptionsSliderField(config) {
+		return new OptionsSliderField(this, config);
+	}
+	
+	createSlidingWindowSliderField(config) {
+		return new SlidingWindowSliderField(this, config);
+	}
+
+	createServiceCardField(config) {
+        return new ServiceCardField(this, config);
+    }
+	
+	createCalendarField(config) {
+        return new CalendarField(this, config);
+    }
+
+    // Cleanup method
     destroy() {
-        // Cleanup all fields
-        Object.values(this.fieldRegistry).forEach(field => {
-            if (field.destroy) {
-                field.destroy();
-            }
-        });
-        
-        // Cleanup managers
-        this.performanceManager.destroy();
-        this.accessibilityManager.destroy();
-        
-        // Remove global event listeners
         if (this.globalClickHandlerAttached) {
             document.removeEventListener('click', this.globalClickHandler, true);
             this.globalClickHandlerAttached = false;
         }
-        
-        // Clear collections
         this.openDropdowns.clear();
         this.openInfoPanels.clear();
-        this.fieldRegistry = {};
     }
 
-    // ===== VALIDATION UTILITIES =====
     static ValidationUtils = {
         isValidEmail(email) {
             const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
@@ -1310,11 +652,685 @@ class FormFieldFactory {
         }
     };
 }
+/**
+ * MultiStepForm - Enhanced main manager for multi-step forms
+ */
+class MultiStepForm {
+    constructor(factory, config) {
+        this.factory = factory;
+        this.config = config;
+        this.steps = config.steps || [];
+        this.currentStep = 0;
+        this.formData = config.initialData || {};
+        this.onSubmit = config.onSubmit || null;
+        this.onStepChange = config.onStepChange || null;
+        this.validateOnNext = config.validateOnNext !== false;
+        this.showProgress = config.showProgress !== false;
+        this.saveProgressEnabled = config.saveProgress !== false;
+        this.storageKey = config.storageKey || 'multistep_form_data';
+        
+        this.container = null;
+        this.stepInstances = [];
+        this.progressBar = null;
+        this.navigationButtons = null;
+        
+        this.init();
+    }
 
-// ============================================================================
-// ENHANCED BASE FIELD CLASS - With memory leak prevention and performance
-// ============================================================================
+    init() {
+        this.factory.currentMultiStepForm = this;
+        this.createContainer();
+        this.createProgressBar();
+        this.createSteps();
+        this.createNavigation();
+        this.loadSavedProgress();
+        this.showCurrentStep();
+    }
 
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.className = 'multistep-form';
+        this.factory.container.appendChild(this.container);
+    }
+
+    createProgressBar() {
+        if (!this.showProgress) return;
+        
+        this.progressBar = new ProgressBar(this, {
+            totalSteps: this.steps.length,
+            currentStep: this.currentStep
+        });
+        this.container.appendChild(this.progressBar.render());
+    }
+
+    createSteps() {
+        this.steps.forEach((stepConfig, index) => {
+            const step = new FormStep(this, {
+                ...stepConfig,
+                index: index,
+                isActive: index === this.currentStep
+            });
+            this.stepInstances.push(step);
+            this.container.appendChild(step.render());
+        });
+    }
+
+    createNavigation() {
+        this.navigationButtons = new NavigationButtons(this);
+        this.container.appendChild(this.navigationButtons.render());
+    }
+
+    showCurrentStep() {
+        this.stepInstances.forEach((step, index) => {
+            step.setActive(index === this.currentStep);
+        });
+        
+        if (this.progressBar) {
+            this.progressBar.updateProgress(this.currentStep);
+        }
+        
+        this.navigationButtons.updateButtons(this.currentStep, this.steps.length);
+        
+        if (this.onStepChange) {
+            this.onStepChange(this.currentStep, this.stepInstances[this.currentStep]);
+        }
+    }
+
+    nextStep() {
+        if (this.validateOnNext && !this.validateCurrentStep()) {
+            return false;
+        }
+        
+        if (this.currentStep < this.steps.length - 1) {
+            this.currentStep++;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    previousStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    goToStep(stepIndex) {
+        if (stepIndex >= 0 && stepIndex < this.steps.length) {
+            this.currentStep = stepIndex;
+            this.showCurrentStep();
+            this.saveProgress();
+            return true;
+        }
+        return false;
+    }
+
+    validateCurrentStep() {
+        return this.stepInstances[this.currentStep].validate();
+    }
+
+    validateAllSteps() {
+        return this.stepInstances.every(step => step.validate());
+    }
+
+    getFormData() {
+        const data = {};
+        this.stepInstances.forEach(step => {
+            Object.assign(data, step.getStepData());
+        });
+        return data;
+    }
+
+    setFormData(data) {
+        this.formData = { ...this.formData, ...data };
+        this.stepInstances.forEach(step => {
+            step.setStepData(this.formData);
+        });
+    }
+
+    saveProgress() {
+        if (!this.saveProgressEnabled) return;
+        
+        const progressData = {
+            currentStep: this.currentStep,
+            formData: this.getFormData(),
+            timestamp: Date.now()
+        };
+        
+        localStorage.setItem(this.storageKey, JSON.stringify(progressData));
+    }
+
+    loadSavedProgress() {
+        if (!this.saveProgressEnabled) return;
+        
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            if (saved) {
+                const progressData = JSON.parse(saved);
+                this.currentStep = progressData.currentStep || 0;
+                this.setFormData(progressData.formData || {});
+            }
+        } catch (e) {
+            console.warn('Failed to load saved progress:', e);
+        }
+    }
+
+    clearSavedProgress() {
+        localStorage.removeItem(this.storageKey);
+    }
+
+    reset() {
+    // Reset step and form data
+    this.currentStep = 0;
+    this.formData = {};
+    
+    // Reset all field instances
+    this.stepInstances.forEach(step => {
+        step.reset();
+        // Also clear any error states
+        step.fieldInstances.forEach(field => {
+            field.hideError();
+            field.setValue('');
+        });
+    });
+    
+    // Clear factory form values
+    this.factory.formValues = {};
+    
+    // Close any open dropdowns and info panels
+    this.factory.closeAllDropdowns();
+    this.factory.closeAllInfoPanels();
+    
+    // Clear saved progress
+    this.clearSavedProgress();
+    
+    // Reset UI state
+    this.showCurrentStep();
+    
+    // Reset any custom field content (like summaries)
+    this.stepInstances.forEach(step => {
+        step.fieldInstances.forEach(field => {
+            if (field.autoSummary && field.updateContent) {
+                setTimeout(() => field.updateContent(), 100);
+            }
+        });
+    });
+    
+    console.log('Form completely reset');
+}
+
+    submit() {
+        if (!this.validateAllSteps()) {
+            return false;
+        }
+        
+        const formData = this.getFormData();
+        
+        if (this.onSubmit) {
+            const result = this.onSubmit(formData);
+            if (result !== false) {
+                this.clearSavedProgress();
+            }
+            return result;
+        }
+        
+        this.clearSavedProgress();
+        return formData;
+    }
+}
+
+/**
+ * FormStep - Enhanced with subsection field support and row layout
+ */
+/**
+ * FormStep - Enhanced with subsection field support and row layout
+ */
+class FormStep {
+    constructor(multiStepForm, config) {
+        this.multiStepForm = multiStepForm;
+        this.factory = multiStepForm.factory;
+        this.config = config;
+        this.index = config.index;
+        this.title = config.title || `Step ${this.index + 1}`;
+        this.description = config.description || '';
+        this.fields = config.fields || [];
+        this.validationRules = config.validation || {};
+        this.conditionalLogic = config.conditionalLogic || {};
+        
+        this.container = null;
+        this.fieldInstances = [];
+        this.isActive = config.isActive || false;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = `form-step ${this.isActive ? 'active' : 'hidden'}`;
+        this.container.setAttribute('data-step', this.index);
+
+        if (this.title) {
+            const titleElement = document.createElement('h2');
+            titleElement.className = 'step-title';
+            titleElement.textContent = this.title;
+            this.container.appendChild(titleElement);
+        }
+
+        if (this.description) {
+            const descriptionElement = document.createElement('p');
+            descriptionElement.className = 'step-description';
+            descriptionElement.textContent = this.description;
+            this.container.appendChild(descriptionElement);
+        }
+
+        const fieldsContainer = document.createElement('div');
+        fieldsContainer.className = 'step-fields';
+        
+        // Group fields by row
+        const fieldGroups = this.groupFields(this.fields);
+        
+        fieldGroups.forEach(group => {
+            if (group.isRow) {
+                // Create row container
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'field-row';
+                
+                group.fields.forEach(fieldConfig => {
+                    const colContainer = document.createElement('div');
+                    colContainer.className = 'field-col';
+                    
+                    const field = this.createField(fieldConfig);
+                    if (field) {
+                        this.fieldInstances.push(field);
+                        colContainer.appendChild(field.render());
+                    }
+                    rowContainer.appendChild(colContainer);
+                });
+                
+                fieldsContainer.appendChild(rowContainer);
+            } else {
+                // Single field
+                const field = this.createField(group.fields[0]);
+                if (field) {
+                    this.fieldInstances.push(field);
+                    fieldsContainer.appendChild(field.render());
+                }
+            }
+        });
+
+        this.container.appendChild(fieldsContainer);
+        this.setupConditionalLogic();
+        
+        return this.container;
+    }
+
+    groupFields(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            // Check if current field should be in a row with the next field
+            if (currentField.row && i + 1 < fields.length) {
+                const nextField = fields[i + 1];
+                if (nextField.row === currentField.row) {
+                    // Find all fields with the same row identifier
+                    const rowFields = [];
+                    let j = i;
+                    while (j < fields.length && fields[j].row === currentField.row) {
+                        rowFields.push(fields[j]);
+                        j++;
+                    }
+                    
+                    groups.push({
+                        isRow: true,
+                        fields: rowFields
+                    });
+                    
+                    i = j; // Skip the grouped fields
+                    continue;
+                }
+            }
+            
+            // Single field
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
+        }
+        
+        return groups;
+    }
+
+    createField(config) {
+        const fieldType = config.type;
+        const fieldConfig = {
+            ...config,
+            onChange: (value) => {
+                this.handleFieldChange(config.name, value);
+                if (config.onChange) {
+                    config.onChange(value);
+                }
+            }
+        };
+
+        switch (fieldType) {
+            case 'text':
+                return this.factory.createTextField(fieldConfig);
+            case 'email':
+                return this.factory.createEmailField(fieldConfig);
+            case 'phone':
+                return this.factory.createPhoneField(fieldConfig);
+            case 'url':
+                return this.factory.createUrlField(fieldConfig);
+            case 'textarea':
+                return this.factory.createTextAreaField(fieldConfig);
+            case 'number':
+                return this.factory.createNumberField(fieldConfig);
+            case 'percentage':
+                return this.factory.createPercentageField(fieldConfig);
+            case 'options-stepper':
+                return this.factory.createOptionsStepperField(fieldConfig);
+            case 'yesno':
+                return this.factory.createYesNoField(fieldConfig);
+            case 'select':
+                return this.factory.createSingleSelectField(fieldConfig);
+            case 'multiselect':
+                return this.factory.createMultiSelectField(fieldConfig);
+            case 'select-subsections':
+                return this.factory.createSingleSelectSubsectionsField(fieldConfig);
+            case 'multiselect-subsections':
+                return this.factory.createMultiSelectSubsectionsField(fieldConfig);
+            case 'yesno-with-options':
+                return this.factory.createYesNoWithOptionsField(fieldConfig);
+            case 'select-with-other':
+                return this.factory.createSingleSelectWithOtherField(fieldConfig);
+            case 'multiselect-with-other':
+                return this.factory.createMultiSelectWithOtherField(fieldConfig);
+            case 'custom':
+                return new CustomField(this.factory, fieldConfig);
+			case 'sliding-window-range':
+				return this.factory.createSlidingWindowRangeField(fieldConfig);
+			case 'dual-range':
+				return this.factory.createDualRangeField(fieldConfig);
+			case 'slider':
+				return this.factory.createSliderField(fieldConfig);
+			case 'options-slider':
+				return this.factory.createOptionsSliderField(fieldConfig);
+			case 'serviceCard':
+				return this.factory.createServiceCardField(fieldConfig);
+			case 'calendar':
+				return this.factory.createCalendarField(fieldConfig);
+            default:
+                console.warn(`Unknown field type: ${fieldType}`);
+                return null;
+        }
+    }
+
+    handleFieldChange(fieldName, value) {
+        this.multiStepForm.formData[fieldName] = value;
+        this.executeConditionalLogic(fieldName, value);
+        this.multiStepForm.saveProgress();
+    }
+
+    setupConditionalLogic() {
+        Object.keys(this.conditionalLogic).forEach(fieldName => {
+            const currentValue = this.multiStepForm.formData[fieldName];
+            if (currentValue !== undefined) {
+                this.executeConditionalLogic(fieldName, currentValue);
+            }
+        });
+    }
+
+    executeConditionalLogic(fieldName, value) {
+        const logic = this.conditionalLogic[fieldName];
+        if (!logic) return;
+
+        logic.forEach(rule => {
+            const { condition, target, action } = rule;
+            const shouldExecute = this.evaluateCondition(condition, value);
+            
+            if (shouldExecute) {
+                this.executeAction(target, action);
+            }
+        });
+    }
+
+    evaluateCondition(condition, value) {
+        if (typeof condition === 'function') {
+            return condition(value);
+        }
+        
+        if (typeof condition === 'object') {
+            const { equals, notEquals, includes, notIncludes } = condition;
+            
+            if (equals !== undefined) {
+                return value === equals;
+            }
+            if (notEquals !== undefined) {
+                return value !== notEquals;
+            }
+            if (includes !== undefined) {
+                return Array.isArray(value) ? value.includes(includes) : value === includes;
+            }
+            if (notIncludes !== undefined) {
+                return Array.isArray(value) ? !value.includes(notIncludes) : value !== notIncludes;
+            }
+        }
+        
+        return value === condition;
+    }
+
+    executeAction(target, action) {
+        const field = this.fieldInstances.find(f => f.name === target);
+        if (!field) return;
+
+        switch (action.type) {
+            case 'show':
+                field.show();
+                break;
+            case 'hide':
+                field.hide();
+                break;
+            case 'enable':
+                field.enable();
+                break;
+            case 'disable':
+                field.disable();
+                break;
+            case 'setValue':
+                field.setValue(action.value);
+                break;
+            case 'setOptions':
+                if (field.setOptions) {
+                    field.setOptions(action.options);
+                }
+                break;
+        }
+    }
+
+    setActive(active) {
+        this.isActive = active;
+        if (this.container) {
+            this.container.classList.toggle('active', active);
+            this.container.classList.toggle('hidden', !active);
+        }
+    }
+
+    validate() {
+        let isValid = true;
+        
+        this.fieldInstances.forEach(field => {
+            if (!field.validate()) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+
+    getStepData() {
+        const data = {};
+        this.fieldInstances.forEach(field => {
+            data[field.name] = field.getValue();
+        });
+        return data;
+    }
+
+    setStepData(data) {
+        this.fieldInstances.forEach(field => {
+            if (data[field.name] !== undefined) {
+                field.setValue(data[field.name]);
+            }
+        });
+    }
+
+    reset() {
+        this.fieldInstances.forEach(field => {
+            field.setValue('');
+        });
+    }
+}
+/**
+ * ProgressBar - Progress bar for multi-step forms
+ */
+class ProgressBar {
+    constructor(multiStepForm, config) {
+        this.multiStepForm = multiStepForm;
+        this.config = config;
+        this.totalSteps = config.totalSteps;
+        this.currentStep = config.currentStep || 0;
+        this.showStepNumbers = config.showStepNumbers !== false;
+        this.showStepTitles = config.showStepTitles !== false;
+        
+        this.container = null;
+        this.progressFill = null;
+        this.stepInfo = null;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'progress-container';
+
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        
+        this.progressFill = document.createElement('div');
+        this.progressFill.className = 'progress-fill';
+        progressBar.appendChild(this.progressFill);
+        
+        this.container.appendChild(progressBar);
+
+        if (this.showStepNumbers || this.showStepTitles) {
+            this.stepInfo = document.createElement('div');
+            this.stepInfo.className = 'step-info';
+            this.container.appendChild(this.stepInfo);
+        }
+
+        this.updateProgress(this.currentStep);
+        
+        return this.container;
+    }
+
+    updateProgress(currentStep) {
+        this.currentStep = currentStep;
+        
+        if (this.progressFill) {
+            const progress = (currentStep / (this.totalSteps - 1)) * 100;
+            this.progressFill.style.width = `${Math.min(progress, 100)}%`;
+        }
+        
+        if (this.stepInfo) {
+            let infoText = '';
+            
+            if (this.showStepNumbers) {
+                infoText += `${this.multiStepForm.factory.getText('step')} ${currentStep + 1} ${this.multiStepForm.factory.getText('of')} ${this.totalSteps}`;
+            }
+            
+            if (this.showStepTitles && this.multiStepForm.steps[currentStep]) {
+                const stepTitle = this.multiStepForm.steps[currentStep].title;
+                if (stepTitle) {
+                    if (infoText) infoText += ' - ';
+                    infoText += stepTitle;
+                }
+            }
+            
+            this.stepInfo.textContent = infoText;
+        }
+    }
+}
+
+/**
+ * NavigationButtons - Navigation buttons for multi-step forms
+ */
+class NavigationButtons {
+    constructor(multiStepForm) {
+        this.multiStepForm = multiStepForm;
+        this.factory = multiStepForm.factory;
+        
+        this.container = null;
+        this.prevButton = null;
+        this.nextButton = null;
+        this.submitButton = null;
+    }
+
+    render() {
+        this.container = document.createElement('div');
+        this.container.className = 'form-navigation';
+
+        this.prevButton = document.createElement('button');
+        this.prevButton.type = 'button';
+        this.prevButton.className = 'btn btn-prev';
+        this.prevButton.textContent = this.factory.getText('previous');
+        this.prevButton.addEventListener('click', () => {
+            this.multiStepForm.previousStep();
+        });
+
+        this.nextButton = document.createElement('button');
+        this.nextButton.type = 'button';
+        this.nextButton.className = 'btn btn-next';
+        this.nextButton.textContent = this.factory.getText('next');
+        this.nextButton.addEventListener('click', () => {
+            this.multiStepForm.nextStep();
+        });
+
+        this.submitButton = document.createElement('button');
+        this.submitButton.type = 'button';
+        this.submitButton.className = 'btn btn-submit';
+        this.submitButton.textContent = this.factory.getText('submit');
+        this.submitButton.addEventListener('click', () => {
+            this.multiStepForm.submit();
+        });
+
+        this.container.appendChild(this.prevButton);
+        this.container.appendChild(this.nextButton);
+        this.container.appendChild(this.submitButton);
+
+        return this.container;
+    }
+
+    updateButtons(currentStep, totalSteps) {
+        this.prevButton.style.display = currentStep > 0 ? 'inline-block' : 'none';
+        
+        if (currentStep === totalSteps - 1) {
+            this.nextButton.style.display = 'none';
+            this.submitButton.style.display = 'inline-block';
+        } else {
+            this.nextButton.style.display = 'inline-block';
+            this.submitButton.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * BaseField - Enhanced base class for all fields
+ */
 class BaseField {
     constructor(factory, config) {
         this.factory = factory;
@@ -1335,50 +1351,6 @@ class BaseField {
         this.container = null;
         this.infoPanel = null;
         this.infoPanelInstance = null;
-        
-        // Enhanced event listener management
-        this.eventListeners = new Set();
-        this.observers = new Map();
-        
-        // Validation setup
-        this.validators = config.validators || [];
-        this.setupValidation();
-        
-        // Debounced validation
-        this.debouncedValidate = this.factory.performanceManager.debounce(
-            this.validate.bind(this), 
-            300
-        );
-    }
-
-    setupValidation() {
-        if (this.required) {
-            this.validators.unshift('required');
-        }
-        
-        // Add type-specific validators based on field type
-        if (this.constructor.name === 'EmailField') {
-            this.validators.push('email');
-        } else if (this.constructor.name === 'PhoneField') {
-            this.validators.push('phone');
-        } else if (this.constructor.name === 'UrlField') {
-            this.validators.push('url');
-        }
-    }
-
-    // Enhanced event listener management
-    addEventListener(element, event, handler, options = {}) {
-        const boundHandler = handler.bind(this);
-        element.addEventListener(event, boundHandler, options);
-        
-        this.eventListeners.add({
-            element,
-            event,
-            handler: boundHandler,
-            options
-        });
-        
-        return boundHandler;
     }
 
     createContainer() {
@@ -1399,6 +1371,7 @@ class BaseField {
         if (this.required) {
             label.classList.add('required');
             const requiredSpan = document.createElement('span');
+            //requiredSpan.textContent = ' *';
             requiredSpan.className = 'required-indicator';
             label.appendChild(requiredSpan);
         }
@@ -1410,7 +1383,7 @@ class BaseField {
             infoBtn.setAttribute('aria-label', 'Plus d\'informations');
             infoBtn.innerHTML = this.factory.SVG_ICONS.INFO;
             
-            this.addEventListener(infoBtn, 'click', (e) => {
+            infoBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this.toggleInfoPanel();
@@ -1449,7 +1422,7 @@ class BaseField {
             infoBtn.setAttribute('aria-label', 'Plus d\'informations');
             infoBtn.innerHTML = this.factory.SVG_ICONS.INFO;
             
-            this.addEventListener(infoBtn, 'click', (e) => {
+            infoBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this.toggleInfoPanel();
@@ -1492,7 +1465,7 @@ class BaseField {
         closeButton.type = 'button';
         closeButton.setAttribute('aria-label', 'Fermer');
         closeButton.innerHTML = this.factory.SVG_ICONS.CLOSE;
-        this.addEventListener(closeButton, 'click', (e) => {
+        closeButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.hideInfoPanel();
@@ -1560,9 +1533,6 @@ class BaseField {
             }
             this.errorElement.classList.add('show');
         }
-        
-        // Announce error to screen readers
-        this.factory.accessibilityManager.announce(`Error: ${message}`, 'assertive');
     }
 
     hideError() {
@@ -1571,27 +1541,22 @@ class BaseField {
         }
     }
 
-    async validate() {
-        return this.factory.performanceManager.measurePerformance('validation', this.constructor.name, async () => {
-            try {
-                const result = await this.factory.validationEngine.validateValue(
-                    this.getValue(), 
-                    this.validators
-                );
-                
-                if (result.isValid) {
-                    this.hideError();
-                } else {
-                    this.showError(result.errors[0]);
-                }
-                
-                return result.isValid;
-            } catch (error) {
-                this.factory.errorManager.addError(this.name, error);
-                this.showError('Validation error occurred');
+    validate() {
+        if (this.required && !this.getValue()) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+
+        if (this.customValidation) {
+            const result = this.customValidation(this.getValue());
+            if (result !== true) {
+                this.showError(result);
                 return false;
             }
-        });
+        }
+
+        this.hideError();
+        return true;
     }
 
     getValue() {
@@ -1601,20 +1566,11 @@ class BaseField {
     setValue(value) {
         this.value = value;
         if (this.element) {
-            this.updateElementValue(value);
-        }
-    }
-
-    updateElementValue(value) {
-        if (this.element && this.element.value !== undefined) {
             this.element.value = value;
         }
     }
 
     handleChange() {
-        // Update state manager
-        this.factory.stateManager.setState(this.name, this.getValue());
-        
         if (this.onChange) {
             this.onChange(this.getValue());
         }
@@ -1650,199 +1606,47 @@ class BaseField {
         }
     }
 
-    resetToInitial() {
-        this.value = this.defaultValue || '';
-        this.hideError();
-        
-        if (this.element) {
-            if (this.element.type === 'checkbox' || this.element.type === 'radio') {
-                this.element.checked = false;
-            } else {
-                this.element.value = '';
-            }
-        }
-    }
-
-    clearVisualState() {
-        this.hideError();
+    cleanup() {
         this.hideInfoPanel();
-    }
-
-    destroy() {
-        // Remove all event listeners
-        this.eventListeners.forEach(({ element, event, handler, options }) => {
-            element.removeEventListener(event, handler, options);
-        });
-        this.eventListeners.clear();
-        
-        // Cleanup observers
-        this.observers.forEach(observer => observer.disconnect());
-        this.observers.clear();
-        
-        // Cleanup info panel
-        this.hideInfoPanel();
-        
-        // Clear references
-        this.factory = null;
-        this.element = null;
-        this.container = null;
-        this.errorElement = null;
-        this.infoPanel = null;
     }
 
     render() {
         throw new Error('render() method must be implemented by subclass');
     }
-}
-
+    // ADD these methods to the BaseField class:
 
 /**
- * Enhanced TextField with debounced validation
+ * Reset field to initial state
  */
-class TextField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.maxLength = config.maxLength || null;
-        this.minLength = config.minLength || null;
-        
-        if (this.minLength) {
-            this.validators.push(`minLength:${this.minLength}`);
-        }
-        if (this.maxLength) {
-            this.validators.push(`maxLength:${this.maxLength}`);
+resetToInitial() {
+    this.value = this.defaultValue || '';
+    this.hideError();
+    
+    if (this.element) {
+        if (this.element.type === 'checkbox' || this.element.type === 'radio') {
+            this.element.checked = false;
+        } else {
+            this.element.value = '';
         }
     }
-
-    render() {
-        const container = this.createContainer();
-        const labelContainer = this.createLabel();
-        
-        this.element = document.createElement('input');
-        this.element.type = 'text';
-        this.element.id = this.id;
-        this.element.name = this.name;
-        this.element.placeholder = this.placeholder;
-        this.element.value = this.value;
-        
-        if (this.maxLength) {
-            this.element.maxLength = this.maxLength;
-        }
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(labelContainer);
-        container.appendChild(this.element);
-        container.appendChild(errorElement);
-        
-        this.addEventListener(this.element, 'input', () => {
-            this.value = this.element.value.trim();
-            if (this.value) this.hideError();
-            this.handleChange();
-        });
-        
-        this.addEventListener(this.element, 'blur', () => {
-            this.debouncedValidate();
-        });
-        
-        this.container = container;
-        return container;
-    }
 }
 
 /**
- * Enhanced EmailField with proper validation timing
+ * Clear all visual states
  */
-class EmailField extends TextField {
-    render() {
-        const container = super.render();
-        this.element.type = 'email';
-        
-        this.addEventListener(this.element, 'input', () => {
-            this.value = this.element.value.trim();
-            if (this.value) {
-                this.hideError();
-            }
-            this.handleChange();
-        });
-
-        this.addEventListener(this.element, 'blur', () => {
-            this.debouncedValidate();
-        });
-        
-        return container;
-    }
+clearVisualState() {
+    this.hideError();
+    this.hideInfoPanel();
+}
 }
 
 /**
- * Enhanced PhoneField with proper validation timing
- */
-class PhoneField extends TextField {
-    render() {
-        const container = super.render();
-        this.element.type = 'tel';
-        
-        this.addEventListener(this.element, 'input', () => {
-            this.value = this.element.value.trim();
-            if (this.value) {
-                this.hideError();
-            }
-            this.handleChange();
-        });
-
-        this.addEventListener(this.element, 'blur', () => {
-            this.debouncedValidate();
-        });
-        
-        return container;
-    }
-
-    getValue() {
-        const value = this.element ? this.element.value.trim() : this.value;
-        return FormFieldFactory.ValidationUtils.formatPhoneNumber(value);
-    }
-}
-
-/**
- * Enhanced UrlField with proper validation timing
- */
-class UrlField extends TextField {
-    render() {
-        const container = super.render();
-        this.element.type = 'url';
-        
-        this.addEventListener(this.element, 'blur', () => {
-            const value = this.element.value.trim();
-            if (value) {
-                if (FormFieldFactory.ValidationUtils.isValidUrl(value)) {
-                    const normalized = FormFieldFactory.ValidationUtils.normalizeUrl(value);
-                    this.element.value = normalized;
-                    this.value = normalized;
-                    this.hideError();
-                } else {
-                    this.showError(this.factory.getText('urlInvalid'));
-                }
-            }
-            this.handleChange();
-        });
-        
-        this.addEventListener(this.element, 'input', () => {
-            this.value = this.element.value.trim();
-            if (this.value && FormFieldFactory.ValidationUtils.isValidUrl(this.value)) {
-                this.hideError();
-            }
-            this.handleChange();
-        });
-        
-        return container;
-    }
-}
-
-/**
- * Enhanced YesNoField
+ * YesNoField - Yes/No field
  */
 class YesNoField extends BaseField {
     render() {
         const container = this.createContainer();
+        
         const labelContainer = this.createQuestionLabel();
         
         const optionsGroup = document.createElement('div');
@@ -1875,7 +1679,7 @@ class YesNoField extends BaseField {
         
         const radioInputs = container.querySelectorAll('input[type="radio"]');
         radioInputs.forEach(radio => {
-            this.addEventListener(radio, 'change', () => {
+            radio.addEventListener('change', () => {
                 this.value = radio.value;
                 this.hideError();
                 this.handleChange();
@@ -1904,128 +1708,6 @@ class YesNoField extends BaseField {
 }
 
 /**
- * Enhanced TextAreaField
- */
-class TextAreaField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.rows = config.rows || 4;
-        this.maxLength = config.maxLength || 500;
-        this.showCounter = config.showCounter !== false;
-        this.minHeight = config.minHeight || 120;
-        
-        if (config.minLength) {
-            this.validators.push(`minLength:${config.minLength}`);
-        }
-        if (this.maxLength) {
-            this.validators.push(`maxLength:${this.maxLength}`);
-        }
-    }
-
-    render() {
-        const container = this.createContainer();
-        const label = this.createLabel();
-        
-        const textareaWrapper = document.createElement('div');
-        textareaWrapper.className = 'textarea-wrapper';
-        
-        this.element = document.createElement('div');
-        this.element.id = this.id;
-        this.element.className = 'custom-textarea';
-        this.element.setAttribute('contenteditable', 'true');
-        this.element.setAttribute('data-placeholder', this.placeholder);
-        this.element.style.minHeight = `${this.minHeight}px`;
-        
-        const lineHeight = 20;
-        this.element.style.height = `${Math.max(this.minHeight, this.rows * lineHeight + 24)}px`;
-        
-        if (this.value) {
-            this.element.textContent = this.value;
-        }
-        
-        textareaWrapper.appendChild(this.element);
-        
-        if (this.showCounter) {
-            this.counterElement = document.createElement('div');
-            this.counterElement.className = 'char-counter';
-            this.counterElement.innerHTML = `<span id="${this.id}-counter">${this.value.length}</span>/${this.maxLength}`;
-            textareaWrapper.appendChild(this.counterElement);
-        }
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(label);
-        container.appendChild(textareaWrapper);
-        container.appendChild(errorElement);
-        
-        this.addEventListener(this.element, 'input', () => {
-            let text = this.element.textContent || '';
-            
-            if (this.maxLength && text.length > this.maxLength) {
-                text = text.substring(0, this.maxLength);
-                this.element.textContent = text;
-                
-                const range = document.createRange();
-                const sel = window.getSelection();
-                range.selectNodeContents(this.element);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-            
-            this.value = text.trim();
-            if (this.value) this.hideError();
-            
-            if (this.showCounter) {
-                const counter = container.querySelector(`#${this.id}-counter`);
-                if (counter) counter.textContent = text.length;
-            }
-            
-            this.handleChange();
-        });
-        
-        this.addEventListener(this.element, 'focus', () => {
-            if (this.element.textContent === '') {
-                this.element.classList.add('focused');
-            }
-        });
-        
-        this.addEventListener(this.element, 'blur', () => {
-            this.element.classList.remove('focused');
-            this.debouncedValidate();
-        });
-        
-        this.addEventListener(this.element, 'paste', (e) => {
-            e.preventDefault();
-            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-            const maxLength = this.maxLength || text.length;
-            const finalText = text.substring(0, maxLength);
-            
-            document.execCommand('insertText', false, finalText);
-        });
-        
-        this.container = container;
-        return container;
-    }
-
-    getValue() {
-        return this.element ? (this.element.textContent || '').trim() : this.value;
-    }
-
-    setValue(value) {
-        this.value = value;
-        if (this.element) {
-            this.element.textContent = value;
-            
-            if (this.showCounter && this.counterElement) {
-                const counter = this.counterElement.querySelector(`#${this.id}-counter`);
-                if (counter) counter.textContent = value.length;
-            }
-        }
-    }
-}
-
-/**
  * Enhanced NumberField with support for linked constraints
  */
 class NumberField extends BaseField {
@@ -2036,8 +1718,10 @@ class NumberField extends BaseField {
         this.step = config.step || 1;
         this.prefix = config.prefix || '';
         this.suffix = config.suffix || '';
+        this.customValidation = config.customValidation || null;
         this.linkedField = config.linkedField || null;
         this.value = config.value || config.defaultValue || 0;
+        this.errorElement = null;
     }
 
     validateValue(newValue) {
@@ -2088,10 +1772,12 @@ class NumberField extends BaseField {
         inputGroup.appendChild(incrementBtn);
         this.container.appendChild(inputGroup);
 
+        // Add error element
         const errorEl = this.createErrorElement();
         this.container.appendChild(errorEl);
 
-        this.addEventListener(this.element, 'input', () => {
+        // Event listeners
+        this.element.addEventListener('input', () => {
             const newValue = this.parseValue(this.element.value);
             const validatedValue = this.validateValue(newValue);
             this.value = validatedValue;
@@ -2099,7 +1785,7 @@ class NumberField extends BaseField {
             this.handleChange();
         });
 
-        this.addEventListener(decrementBtn, 'click', () => {
+        decrementBtn.addEventListener('click', () => {
             const newValue = Math.max(this.min, this.value - this.step);
             const validatedValue = this.validateValue(newValue);
             this.value = validatedValue;
@@ -2107,7 +1793,7 @@ class NumberField extends BaseField {
             this.handleChange();
         });
 
-        this.addEventListener(incrementBtn, 'click', () => {
+        incrementBtn.addEventListener('click', () => {
             const newValue = Math.min(this.max, this.value + this.step);
             const validatedValue = this.validateValue(newValue);
             this.value = validatedValue;
@@ -2137,6 +1823,7 @@ class NumberField extends BaseField {
         }
     }
 
+    // Method to trigger validation from external sources
     revalidate() {
         const validatedValue = this.validateValue(this.value);
         if (validatedValue !== this.value) {
@@ -2147,9 +1834,6 @@ class NumberField extends BaseField {
     }
 }
 
-/**
- * Enhanced PercentageField
- */
 class PercentageField extends NumberField {
     constructor(factory, config) {
         super(factory, config);
@@ -2168,9 +1852,6 @@ class PercentageField extends NumberField {
     }
 }
 
-/**
- * Enhanced OptionsStepperField
- */
 class OptionsStepperField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -2222,9 +1903,11 @@ class OptionsStepperField extends BaseField {
         inputGroup.appendChild(incrementBtn);
         this.container.appendChild(inputGroup);
 
+        // Update initial value
         this.updateValue();
 
-        this.addEventListener(decrementBtn, 'click', () => {
+        // Event listeners
+        decrementBtn.addEventListener('click', () => {
             if (this.currentIndex > 0) {
                 this.currentIndex--;
                 this.updateValue();
@@ -2233,7 +1916,7 @@ class OptionsStepperField extends BaseField {
             }
         });
 
-        this.addEventListener(incrementBtn, 'click', () => {
+        incrementBtn.addEventListener('click', () => {
             if (this.currentIndex < this.options.length - 1) {
                 this.currentIndex++;
                 this.updateValue();
@@ -2279,16 +1962,739 @@ class OptionsStepperField extends BaseField {
 
     validate() {
         if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
-            this.showError(this.factory.getText('fieldRequired'));
             return false;
         }
-        this.hideError();
         return true;
     }
 }
 
 /**
- * Enhanced SingleSelectField
+ * TextField - Simple text field
+ */
+class TextField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.maxLength = config.maxLength || null;
+        this.minLength = config.minLength || null;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const labelContainer = this.createLabel();
+        
+        this.element = document.createElement('input');
+        this.element.type = 'text';
+        this.element.id = this.id;
+        this.element.name = this.name;
+        this.element.placeholder = this.placeholder;
+        this.element.value = this.value;
+        
+        if (this.maxLength) {
+            this.element.maxLength = this.maxLength;
+        }
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(labelContainer);
+        container.appendChild(this.element);
+        container.appendChild(errorElement);
+        
+        this.element.addEventListener('input', () => {
+            this.value = this.element.value.trim();
+            if (this.value) this.hideError();
+            this.handleChange();
+        });
+        
+        this.container = container;
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (this.minLength && value.length < this.minLength) {
+            this.showError(`Minimum ${this.minLength} caractères requis`);
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * TextAreaField - Multiple text field
+ */
+class TextAreaField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.rows = config.rows || 4;
+        this.maxLength = config.maxLength || 500;
+        this.showCounter = config.showCounter !== false;
+        this.minHeight = config.minHeight || 120;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const textareaWrapper = document.createElement('div');
+        textareaWrapper.className = 'textarea-wrapper';
+        
+        this.element = document.createElement('div');
+        this.element.id = this.id;
+        this.element.className = 'custom-textarea';
+        this.element.setAttribute('contenteditable', 'true');
+        this.element.setAttribute('data-placeholder', this.placeholder);
+        this.element.style.minHeight = `${this.minHeight}px`;
+        
+        const lineHeight = 20;
+        this.element.style.height = `${Math.max(this.minHeight, this.rows * lineHeight + 24)}px`;
+        
+        if (this.value) {
+            this.element.textContent = this.value;
+        }
+        
+        textareaWrapper.appendChild(this.element);
+        
+        if (this.showCounter) {
+            this.counterElement = document.createElement('div');
+            this.counterElement.className = 'char-counter';
+            this.counterElement.innerHTML = `<span id="${this.id}-counter">${this.value.length}</span>/${this.maxLength}`;
+            textareaWrapper.appendChild(this.counterElement);
+        }
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(textareaWrapper);
+        container.appendChild(errorElement);
+        
+        this.element.addEventListener('input', () => {
+            let text = this.element.textContent || '';
+            
+            if (this.maxLength && text.length > this.maxLength) {
+                text = text.substring(0, this.maxLength);
+                this.element.textContent = text;
+                
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(this.element);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+            
+            this.value = text.trim();
+            if (this.value) this.hideError();
+            
+            if (this.showCounter) {
+                const counter = container.querySelector(`#${this.id}-counter`);
+                if (counter) counter.textContent = text.length;
+            }
+            
+            this.handleChange();
+        });
+        
+        this.element.addEventListener('focus', () => {
+            if (this.element.textContent === '') {
+                this.element.classList.add('focused');
+            }
+        });
+        
+        this.element.addEventListener('blur', () => {
+            this.element.classList.remove('focused');
+        });
+        
+        this.element.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            const maxLength = this.maxLength || text.length;
+            const finalText = text.substring(0, maxLength);
+            
+            document.execCommand('insertText', false, finalText);
+        });
+        
+        this.container = container;
+        return container;
+    }
+
+    getValue() {
+        return this.element ? (this.element.textContent || '').trim() : this.value;
+    }
+
+    setValue(value) {
+        this.value = value;
+        if (this.element) {
+            this.element.textContent = value;
+            
+            if (this.showCounter && this.counterElement) {
+                const counter = this.counterElement.querySelector(`#${this.id}-counter`);
+                if (counter) counter.textContent = value.length;
+            }
+        }
+    }
+}
+
+/**
+ * EmailField - Email field
+ */
+class EmailField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'email';
+        
+        // REPLACE with this:
+		this.element.addEventListener('input', () => {
+			this.value = this.element.value.trim();
+			if (this.value) {
+				this.hideError(); // Only hide error, don't show it
+			}
+			this.handleChange();
+		});
+
+		// ADD this new blur event listener:
+		this.element.addEventListener('blur', () => {
+			const value = this.element.value.trim();
+			if (value) {
+				if (FormFieldFactory.ValidationUtils.isValidEmail(value)) {
+					this.hideError();
+				} else {
+					this.showError(this.factory.getText('emailInvalid'));
+				}
+			}
+			this.handleChange();
+		});
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidEmail(value)) {
+            this.showError(this.factory.getText('emailInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * PhoneField - Phone field
+ */
+class PhoneField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'tel';
+        
+        // REPLACE with this:
+		this.element.addEventListener('input', () => {
+			this.value = this.element.value.trim();
+			if (this.value) {
+				this.hideError(); // Only hide error, don't show it
+			}
+			this.handleChange();
+		});
+
+		// ADD this new blur event listener:
+		this.element.addEventListener('blur', () => {
+			const value = this.element.value.trim();
+			if (value) {
+				if (FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
+					this.hideError();
+				} else {
+					this.showError(this.factory.getText('phoneInvalid'));
+				}
+			}
+			this.handleChange();
+		});
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
+            this.showError(this.factory.getText('phoneInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
+    getValue() {
+        const value = this.element ? this.element.value.trim() : this.value;
+        return FormFieldFactory.ValidationUtils.formatPhoneNumber(value);
+    }
+}
+
+/**
+ * UrlField - URL field
+ */
+class UrlField extends TextField {
+    render() {
+        const container = super.render();
+        this.element.type = 'url';
+        
+        this.element.addEventListener('blur', () => {
+            const value = this.element.value.trim();
+            if (value) {
+                if (FormFieldFactory.ValidationUtils.isValidUrl(value)) {
+                    const normalized = FormFieldFactory.ValidationUtils.normalizeUrl(value);
+                    this.element.value = normalized;
+                    this.value = normalized;
+                    this.hideError();
+                } else {
+                    this.showError(this.factory.getText('urlInvalid'));
+                }
+            }
+            this.handleChange();
+        });
+        
+        this.element.addEventListener('input', () => {
+            this.value = this.element.value.trim();
+            if (this.value && FormFieldFactory.ValidationUtils.isValidUrl(this.value)) {
+                this.hideError();
+            }
+            this.handleChange();
+        });
+        
+        return container;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidUrl(value)) {
+            this.showError(this.factory.getText('urlInvalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+}
+
+/**
+ * YesNoWithOptionsField - Enhanced with subsection field support
+ */
+class YesNoWithOptionsField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        this.yesFieldConfig = config.yesField || null;
+        this.noFieldConfig = config.noField || null;
+        
+        this.yesFieldsConfig = config.yesFields || (config.yesField ? [config.yesField] : []);
+        this.noFieldsConfig = config.noFields || (config.noField ? [config.noField] : []);
+        
+        this.layout = config.layout || 'below';
+        this.customOptions = config.customOptions || null;
+        
+        this.yesFieldInstances = [];
+        this.noFieldInstances = [];
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        const label = this.createQuestionLabel();
+        
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'options-group';
+        
+        let yesText, noText, yesValue, noValue;
+        if (this.customOptions) {
+            const yesOption = this.customOptions.find(opt => opt.value === 'yes') || 
+                             this.customOptions.find(opt => opt.value === 'multilingual');
+            const noOption = this.customOptions.find(opt => opt.value === 'no') || 
+                            this.customOptions.find(opt => opt.value === 'unilingual');
+            
+            yesText = yesOption ? yesOption.label : this.factory.getText('yes');
+            noText = noOption ? noOption.label : this.factory.getText('no');
+            yesValue = yesOption ? yesOption.value : 'yes';
+            noValue = noOption ? noOption.value : 'no';
+        } else {
+            yesText = this.factory.getText('yes');
+            noText = this.factory.getText('no');
+            yesValue = 'yes';
+            noValue = 'no';
+        }
+        
+        const yesOption = document.createElement('label');
+        yesOption.className = 'radio-option';
+        yesOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${yesValue}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${yesText}</span>
+        `;
+        
+        const noOption = document.createElement('label');
+        noOption.className = 'radio-option';
+        noOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${noValue}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${noText}</span>
+        `;
+        
+        optionsGroup.appendChild(yesOption);
+        optionsGroup.appendChild(noOption);
+        
+        let conditionalContainer;
+        if (this.layout === 'side-by-side' && this.yesFieldsConfig.length > 0 && this.noFieldsConfig.length > 0) {
+            conditionalContainer = document.createElement('div');
+            conditionalContainer.className = 'conditional-side-by-side';
+        } else {
+            conditionalContainer = document.createElement('div');
+        }
+        
+        let yesContainer = null;
+        if (this.yesFieldsConfig.length > 0) {
+            yesContainer = document.createElement('div');
+            yesContainer.className = 'conditional-field-wrapper';
+            yesContainer.id = `${this.id}-yes-options`;
+            yesContainer.style.display = 'none';
+            
+            // Group yesFields by row (same logic as FormStep)
+            const yesFieldGroups = this.groupFields(this.yesFieldsConfig);
+
+            yesFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `yes-${this.yesFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.yesFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    
+                    yesContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `yes-${this.yesFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.yesFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        yesContainer.appendChild(fieldElement);
+                    }
+                }
+            });
+        }
+        
+        let noContainer = null;
+        if (this.noFieldsConfig.length > 0) {
+            noContainer = document.createElement('div');
+            noContainer.className = 'conditional-field-wrapper';
+            noContainer.id = `${this.id}-no-options`;
+            noContainer.style.display = 'none';
+            
+            // Group noFields by row (same logic as FormStep)
+            const noFieldGroups = this.groupFields(this.noFieldsConfig);
+
+            noFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `no-${this.noFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.noFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    
+                    noContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `no-${this.noFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.noFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        noContainer.appendChild(fieldElement);
+                    }
+                }
+            });
+        }
+        
+        if (yesContainer) conditionalContainer.appendChild(yesContainer);
+        if (noContainer) conditionalContainer.appendChild(noContainer);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(optionsGroup);
+        if (yesContainer || noContainer) {
+            container.appendChild(conditionalContainer);
+        }
+        container.appendChild(errorElement);
+        
+        const radioInputs = container.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.value = radio.value;
+                this.hideError();
+                
+                const isYesValue = radio.value === yesValue || radio.value === 'multilingual';
+                const isNoValue = radio.value === noValue || radio.value === 'unilingual';
+                
+                if (isYesValue) {
+                    if (yesContainer) yesContainer.style.display = 'block';
+                    if (noContainer) noContainer.style.display = 'none';
+                } else if (isNoValue) {
+                    if (yesContainer) yesContainer.style.display = 'none';
+                    if (noContainer) noContainer.style.display = 'block';
+                }
+                
+                this.handleChange();
+            });
+        });
+        
+        this.container = container;
+        this.yesContainer = yesContainer;
+        this.noContainer = noContainer;
+        this.yesValue = yesValue;
+        this.noValue = noValue;
+        
+        return container;
+    }
+
+    createFieldInstance(fieldConfig, suffix) {
+        const fieldType = fieldConfig.type;
+        const config = {
+            ...fieldConfig,
+            id: `${this.id}-${suffix}-${fieldConfig.id}`,
+            name: fieldConfig.name || fieldConfig.id,
+            onChange: (value) => {
+                if (fieldConfig.onChange) {
+                    fieldConfig.onChange(value);
+                }
+                this.handleChange();
+            }
+        };
+
+        switch (fieldType) {
+            case 'text':
+                return this.factory.createTextField(config);
+            case 'email':
+                return this.factory.createEmailField(config);
+            case 'phone':
+                return this.factory.createPhoneField(config);
+            case 'url':
+                return this.factory.createUrlField(config);
+            case 'textarea':
+                return this.factory.createTextAreaField(config);
+            case 'number':
+                return this.factory.createNumberField(config);
+            case 'percentage':
+                return this.factory.createPercentageField(config);
+            case 'options-stepper':
+                return this.factory.createOptionsStepperField(config);
+            case 'yesno':
+                return this.factory.createYesNoField(config);
+            case 'select':
+                return this.factory.createSingleSelectField(config);
+            case 'multiselect':
+                return this.factory.createMultiSelectField(config);
+            case 'select-subsections':
+                return this.factory.createSingleSelectSubsectionsField(config);
+            case 'multiselect-subsections':
+                return this.factory.createMultiSelectSubsectionsField(config);
+            case 'yesno-with-options':
+                return this.factory.createYesNoWithOptionsField(config);
+            case 'select-with-other':
+                return this.factory.createSingleSelectWithOtherField(config);
+            case 'multiselect-with-other':
+                return this.factory.createMultiSelectWithOtherField(config);
+            default:
+                console.warn(`Unknown field type: ${fieldType}`);
+                return null;
+        }
+    }
+
+    getValue() {
+        const mainValue = this.container ? 
+            this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
+            this.value;
+            
+        const result = { main: mainValue };
+        
+        if ((mainValue === this.yesValue || mainValue === 'multilingual') && this.yesFieldInstances.length > 0) {
+            result.yesValues = {};
+            this.yesFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.yesFieldsConfig[index];
+                result.yesValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+            });
+        }
+        
+        if ((mainValue === this.noValue || mainValue === 'unilingual') && this.noFieldInstances.length > 0) {
+            result.noValues = {};
+            this.noFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.noFieldsConfig[index];
+                result.noValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+            });
+        }
+        
+        return result;
+    }
+
+    setValue(value) {
+        let mainValue = value;
+        
+        if (typeof value === 'object' && value.main) {
+            mainValue = value.main;
+            
+            if (value.yesValues && this.yesFieldInstances.length > 0) {
+                this.yesFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.yesFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.yesValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.yesValues[fieldName]);
+                    }
+                });
+            }
+            
+            if (value.noValues && this.noFieldInstances.length > 0) {
+                this.noFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.noFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.noValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.noValues[fieldName]);
+                    }
+                });
+            }
+        }
+        
+        this.value = mainValue;
+        
+        if (this.container) {
+            const radio = this.container.querySelector(`input[value="${mainValue}"]`);
+            if (radio) {
+                radio.checked = true;
+                
+                if (mainValue === this.yesValue || mainValue === 'multilingual') {
+                    if (this.yesContainer) this.yesContainer.style.display = 'block';
+                    if (this.noContainer) this.noContainer.style.display = 'none';
+                } else if (mainValue === this.noValue || mainValue === 'unilingual') {
+                    if (this.yesContainer) this.yesContainer.style.display = 'none';
+                    if (this.noContainer) this.noContainer.style.display = 'block';
+                }
+            }
+        }
+    }
+
+    validate() {
+        if (this.required && !this.getValue().main) {
+            this.showError(this.factory.getText('fieldRequired'));
+            return false;
+        }
+
+        let isValid = true;
+        const currentValue = this.getValue();
+        
+        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
+            this.yesContainer && this.yesContainer.style.display === 'block') {
+            this.yesFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+        
+        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
+            this.noContainer && this.noContainer.style.display === 'block') {
+            this.noFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+
+        if (isValid) {
+            this.hideError();
+        }
+
+        return isValid;
+    }
+    
+    groupFields(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            // Check if current field should be in a row with the next field
+            if (currentField.row && i + 1 < fields.length) {
+                const nextField = fields[i + 1];
+                if (nextField.row === currentField.row) {
+                    // Find all fields with the same row identifier
+                    const rowFields = [];
+                    let j = i;
+                    while (j < fields.length && fields[j].row === currentField.row) {
+                        rowFields.push(fields[j]);
+                        j++;
+                    }
+                    
+                    groups.push({
+                        isRow: true,
+                        fields: rowFields
+                    });
+                    
+                    i = j; // Skip the grouped fields
+                    continue;
+                }
+            }
+            
+            // Single field
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
+        }
+        
+        return groups;
+    }
+}
+
+/**
+ * SingleSelectField - Simple dropdown
  */
 class SingleSelectField extends BaseField {
     constructor(factory, config) {
@@ -2349,7 +2755,7 @@ class SingleSelectField extends BaseField {
                 <span>${option.name}</span>
             `;
             
-            this.addEventListener(customOption, 'click', (e) => {
+            customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectOption(option);
             });
@@ -2360,7 +2766,7 @@ class SingleSelectField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -2466,15 +2872,10 @@ class SingleSelectField extends BaseField {
             }
         }
     }
-
-    destroy() {
-        this.closeDropdown();
-        super.destroy();
-    }
 }
 
 /**
- * Enhanced MultiSelectField
+ * MultiSelectField - Multiple dropdown
  */
 class MultiSelectField extends BaseField {
     constructor(factory, config) {
@@ -2530,7 +2931,7 @@ class MultiSelectField extends BaseField {
             <span>${this.factory.getText('selectAll')}</span>
         `;
         
-        this.addEventListener(selectAllOption, 'click', (e) => {
+        selectAllOption.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleSelectAll();
         });
@@ -2548,7 +2949,7 @@ class MultiSelectField extends BaseField {
                 <span>${option.name}</span>
             `;
             
-            this.addEventListener(customOption, 'click', (e) => {
+            customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleOption(option, customOption);
             });
@@ -2559,7 +2960,7 @@ class MultiSelectField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -2734,18 +3135,12 @@ class MultiSelectField extends BaseField {
             return false;
         }
         
-        this.hideError();
-        return true;
-    }
-
-    destroy() {
-        this.closeDropdown();
-        super.destroy();
+        return super.validate();
     }
 }
 
 /**
- * Enhanced SingleSelectSubsectionsField
+ * SingleSelectSubsectionsField - Single select dropdown with nested subsections
  */
 class SingleSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
@@ -2793,7 +3188,7 @@ class SingleSelectSubsectionsField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -2825,7 +3220,7 @@ class SingleSelectSubsectionsField extends BaseField {
                 </div>
             `;
             
-            this.addEventListener(mainDiv, 'click', (e) => {
+            mainDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
                 if (mainDiv.classList.contains('expanded')) {
@@ -2840,6 +3235,7 @@ class SingleSelectSubsectionsField extends BaseField {
     }
 
     expandSection(mainDiv, group) {
+        // Close other expanded sections
         this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
             this.collapseSection(opt);
         });
@@ -2862,11 +3258,12 @@ class SingleSelectSubsectionsField extends BaseField {
             subDiv.appendChild(checkboxDiv);
             subDiv.appendChild(itemSpan);
             
+            // Check if already selected
             if (this.value === item.id) {
                 subDiv.classList.add('selected');
             }
             
-            this.addEventListener(subDiv, 'click', (e) => {
+            subDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectOption(item);
             });
@@ -2887,10 +3284,12 @@ class SingleSelectSubsectionsField extends BaseField {
     }
 
     selectOption(option) {
+        // Clear all selections
         this.customOptionsElement.querySelectorAll('.custom-option.selected').forEach(opt => {
             opt.classList.remove('selected');
         });
         
+        // Select the clicked option
         const optionElement = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
         if (optionElement) {
             optionElement.classList.add('selected');
@@ -2939,6 +3338,7 @@ class SingleSelectSubsectionsField extends BaseField {
         this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
         this.isOpen = false;
         
+        // Collapse all expanded sections
         this.customOptionsElement.querySelectorAll('.sub-options').forEach(sw => sw.remove());
         this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
             this.collapseSection(opt);
@@ -2959,6 +3359,7 @@ class SingleSelectSubsectionsField extends BaseField {
         if (this.element) {
             this.element.value = value;
             
+            // Find the option in subsections
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === value);
                 if (option && this.selectDisplayElement) {
@@ -2970,14 +3371,14 @@ class SingleSelectSubsectionsField extends BaseField {
         }
     }
 
-    destroy() {
+    cleanup() {
         this.closeDropdown();
-        super.destroy();
+        super.cleanup();
     }
 }
 
 /**
- * Enhanced MultiSelectSubsectionsField
+ * MultiSelectSubsectionsField - Multi-select dropdown with nested subsections
  */
 class MultiSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
@@ -3022,7 +3423,7 @@ class MultiSelectSubsectionsField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -3043,6 +3444,7 @@ class MultiSelectSubsectionsField extends BaseField {
     }
 
     buildSubsectionOptions() {
+        // Add Select All option
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
         selectAllDiv.dataset.value = 'select_all';
@@ -3054,13 +3456,14 @@ class MultiSelectSubsectionsField extends BaseField {
         selectAllDiv.appendChild(allCheckbox);
         selectAllDiv.appendChild(allText);
         
-        this.addEventListener(selectAllDiv, 'click', (e) => {
+        selectAllDiv.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleSelectAll();
         });
         
         this.customOptionsElement.appendChild(selectAllDiv);
         
+        // Add subsection groups
         this.subsectionOptions.forEach(group => {
             const mainDiv = document.createElement('div');
             mainDiv.className = 'custom-option category-option';
@@ -3072,7 +3475,7 @@ class MultiSelectSubsectionsField extends BaseField {
                 </div>
             `;
             
-            this.addEventListener(mainDiv, 'click', (e) => {
+            mainDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 
                 if (mainDiv.classList.contains('expanded')) {
@@ -3087,6 +3490,7 @@ class MultiSelectSubsectionsField extends BaseField {
     }
 
     expandSection(mainDiv, group) {
+        // Close other expanded sections
         this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
             this.collapseSection(opt);
         });
@@ -3097,6 +3501,7 @@ class MultiSelectSubsectionsField extends BaseField {
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
         
+        // Add Select All for this group
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
         selectAllDiv.dataset.value = `select_all_${group.id}`;
@@ -3108,7 +3513,7 @@ class MultiSelectSubsectionsField extends BaseField {
         selectAllDiv.appendChild(allCheckbox);
         selectAllDiv.appendChild(allSpan);
         
-        this.addEventListener(selectAllDiv, 'click', (e) => {
+        selectAllDiv.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleSelectAllInGroup(group, subWrapper);
         });
@@ -3129,13 +3534,14 @@ class MultiSelectSubsectionsField extends BaseField {
             subDiv.appendChild(checkboxDiv);
             subDiv.appendChild(itemSpan);
             
+            // Check if already selected
             if (this.selectedValues.includes(item.id)) {
                 subDiv.classList.add('selected');
                 const subOption = this.element.querySelector(`option[value="${item.id}"]`);
                 if (subOption) subOption.selected = true;
             }
             
-            this.addEventListener(subDiv, 'click', (e) => {
+            subDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleOption(item, subDiv, subWrapper);
             });
@@ -3143,6 +3549,7 @@ class MultiSelectSubsectionsField extends BaseField {
             subWrapper.appendChild(subDiv);
         });
         
+        // Update group select all state
         this.updateGroupSelectAllState(group, subWrapper);
         
         mainDiv.insertAdjacentElement('afterend', subWrapper);
@@ -3211,6 +3618,7 @@ class MultiSelectSubsectionsField extends BaseField {
         const globalSelectAll = this.customOptionsElement.querySelector('.select-all-option[data-value="select_all"]');
         const allSubOptions = [];
         
+        // Collect all subcategory options
         this.subsectionOptions.forEach(group => {
             group.subcategories.forEach(item => {
                 allSubOptions.push(item.id);
@@ -3220,18 +3628,22 @@ class MultiSelectSubsectionsField extends BaseField {
         const allSelected = allSubOptions.every(id => this.selectedValues.includes(id));
         
         if (allSelected) {
+            // Deselect all
             this.selectedValues = [];
             globalSelectAll.classList.remove('selected');
             
+            // Update all visible options
             this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)').forEach(opt => {
                 opt.classList.remove('selected');
                 const optElement = this.element.querySelector(`option[value="${opt.dataset.value}"]`);
                 if (optElement) optElement.selected = false;
             });
         } else {
+            // Select all
             this.selectedValues = [...allSubOptions];
             globalSelectAll.classList.add('selected');
             
+            // Update all visible options
             this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)').forEach(opt => {
                 opt.classList.add('selected');
                 const optElement = this.element.querySelector(`option[value="${opt.dataset.value}"]`);
@@ -3258,6 +3670,7 @@ class MultiSelectSubsectionsField extends BaseField {
 
     updateSelectAllStates(subWrapper = null) {
         if (subWrapper) {
+            // Update group select all
             const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
             const selectAllOption = subWrapper.querySelector('.select-all-option');
             const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
@@ -3288,6 +3701,7 @@ class MultiSelectSubsectionsField extends BaseField {
             span.textContent = this.placeholder;
             this.selectDisplayElement.classList.add('placeholder');
         } else if (this.selectedValues.length === 1) {
+            // Find the option name
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === this.selectedValues[0]);
                 if (option) {
@@ -3334,6 +3748,7 @@ class MultiSelectSubsectionsField extends BaseField {
         this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
         this.isOpen = false;
         
+        // Collapse all expanded sections
         this.customOptionsElement.querySelectorAll('.sub-options').forEach(sw => sw.remove());
         this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded').forEach(opt => {
             this.collapseSection(opt);
@@ -3368,378 +3783,296 @@ class MultiSelectSubsectionsField extends BaseField {
             return false;
         }
         
-        this.hideError();
-        return true;
+        return super.validate();
     }
 
-    destroy() {
+    cleanup() {
         this.closeDropdown();
-        super.destroy();
+        super.cleanup();
     }
 }
 
 /**
- * Enhanced YesNoWithOptionsField - Complete with nested field management
+ * CustomField - For special content like summaries
  */
-class YesNoWithOptionsField extends BaseField {
+class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
-        
-        this.yesFieldConfig = config.yesField || null;
-        this.noFieldConfig = config.noField || null;
-        
-        this.yesFieldsConfig = config.yesFields || (config.yesField ? [config.yesField] : []);
-        this.noFieldsConfig = config.noFields || (config.noField ? [config.noField] : []);
-        
-        this.layout = config.layout || 'below';
-        this.customOptions = config.customOptions || null;
-        
-        this.yesFieldInstances = [];
-        this.noFieldInstances = [];
+        this.renderFunction = config.render || null;
+        this.updateFunction = config.update || null;
+        this.autoSummary = config.autoSummary || false;
     }
 
     render() {
         const container = this.createContainer();
         
-        const label = this.createQuestionLabel();
-        
-        const optionsGroup = document.createElement('div');
-        optionsGroup.className = 'options-group';
-        
-        let yesText, noText, yesValue, noValue;
-        if (this.customOptions) {
-            const yesOption = this.customOptions.find(opt => opt.value === 'yes') || 
-                             this.customOptions.find(opt => opt.value === 'multilingual');
-            const noOption = this.customOptions.find(opt => opt.value === 'no') || 
-                            this.customOptions.find(opt => opt.value === 'unilingual');
-            
-            yesText = yesOption ? yesOption.label : this.factory.getText('yes');
-            noText = noOption ? noOption.label : this.factory.getText('no');
-            yesValue = yesOption ? yesOption.value : 'yes';
-            noValue = noOption ? noOption.value : 'no';
-        } else {
-            yesText = this.factory.getText('yes');
-            noText = this.factory.getText('no');
-            yesValue = 'yes';
-            noValue = 'no';
+        if (this.autoSummary) {
+            const summaryContent = this.createAutoSummary();
+            container.appendChild(summaryContent);
+        } else if (this.renderFunction) {
+            const customContent = this.renderFunction(this.factory, this.getFormData());
+            container.appendChild(customContent);
         }
-        
-        const yesOption = document.createElement('label');
-        yesOption.className = 'radio-option';
-        yesOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${yesValue}" />
-            <span class="radio-icon"></span>
-            <span class="radio-label">${yesText}</span>
-        `;
-        
-        const noOption = document.createElement('label');
-        noOption.className = 'radio-option';
-        noOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${noValue}" />
-            <span class="radio-icon"></span>
-            <span class="radio-label">${noText}</span>
-        `;
-        
-        optionsGroup.appendChild(yesOption);
-        optionsGroup.appendChild(noOption);
-        
-        let conditionalContainer;
-        if (this.layout === 'side-by-side' && this.yesFieldsConfig.length > 0 && this.noFieldsConfig.length > 0) {
-            conditionalContainer = document.createElement('div');
-            conditionalContainer.className = 'conditional-side-by-side';
-        } else {
-            conditionalContainer = document.createElement('div');
-        }
-        
-        let yesContainer = null;
-        if (this.yesFieldsConfig.length > 0) {
-            yesContainer = document.createElement('div');
-            yesContainer.className = 'conditional-field-wrapper';
-            yesContainer.id = `${this.id}-yes-options`;
-            yesContainer.style.display = 'none';
-            
-            const yesFieldGroups = this.groupFields(this.yesFieldsConfig);
-
-            yesFieldGroups.forEach(group => {
-                if (group.isRow) {
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'field-row';
-                    
-                    group.fields.forEach((fieldConfig, index) => {
-                        const colContainer = document.createElement('div');
-                        colContainer.className = 'field-col';
-                        
-                        const fieldInstance = this.createFieldInstance(fieldConfig, `yes-${this.yesFieldInstances.length}`);
-                        if (fieldInstance) {
-                            this.yesFieldInstances.push(fieldInstance);
-                            colContainer.appendChild(fieldInstance.render());
-                        }
-                        rowContainer.appendChild(colContainer);
-                    });
-                    
-                    yesContainer.appendChild(rowContainer);
-                } else {
-                    const fieldInstance = this.createFieldInstance(group.fields[0], `yes-${this.yesFieldInstances.length}`);
-                    if (fieldInstance) {
-                        this.yesFieldInstances.push(fieldInstance);
-                        const fieldElement = fieldInstance.render();
-                        yesContainer.appendChild(fieldElement);
-                    }
-                }
-            });
-        }
-        
-        let noContainer = null;
-        if (this.noFieldsConfig.length > 0) {
-            noContainer = document.createElement('div');
-            noContainer.className = 'conditional-field-wrapper';
-            noContainer.id = `${this.id}-no-options`;
-            noContainer.style.display = 'none';
-            
-            const noFieldGroups = this.groupFields(this.noFieldsConfig);
-
-            noFieldGroups.forEach(group => {
-                if (group.isRow) {
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'field-row';
-                    
-                    group.fields.forEach((fieldConfig, index) => {
-                        const colContainer = document.createElement('div');
-                        colContainer.className = 'field-col';
-                        
-                        const fieldInstance = this.createFieldInstance(fieldConfig, `no-${this.noFieldInstances.length}`);
-                        if (fieldInstance) {
-                            this.noFieldInstances.push(fieldInstance);
-                            colContainer.appendChild(fieldInstance.render());
-                        }
-                        rowContainer.appendChild(colContainer);
-                    });
-                    
-                    noContainer.appendChild(rowContainer);
-                } else {
-                    const fieldInstance = this.createFieldInstance(group.fields[0], `no-${this.noFieldInstances.length}`);
-                    if (fieldInstance) {
-                        this.noFieldInstances.push(fieldInstance);
-                        const fieldElement = fieldInstance.render();
-                        noContainer.appendChild(fieldElement);
-                    }
-                }
-            });
-        }
-        
-        if (yesContainer) conditionalContainer.appendChild(yesContainer);
-        if (noContainer) conditionalContainer.appendChild(noContainer);
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(label);
-        container.appendChild(optionsGroup);
-        if (yesContainer || noContainer) {
-            container.appendChild(conditionalContainer);
-        }
-        container.appendChild(errorElement);
-        
-        const radioInputs = container.querySelectorAll('input[type="radio"]');
-        radioInputs.forEach(radio => {
-            this.addEventListener(radio, 'change', () => {
-                this.value = radio.value;
-                this.hideError();
-                
-                const isYesValue = radio.value === yesValue || radio.value === 'multilingual';
-                const isNoValue = radio.value === noValue || radio.value === 'unilingual';
-                
-                if (isYesValue) {
-                    if (yesContainer) yesContainer.style.display = 'block';
-                    if (noContainer) noContainer.style.display = 'none';
-                } else if (isNoValue) {
-                    if (yesContainer) yesContainer.style.display = 'none';
-                    if (noContainer) noContainer.style.display = 'block';
-                }
-                
-                this.handleChange();
-            });
-        });
         
         this.container = container;
-        this.yesContainer = yesContainer;
-        this.noContainer = noContainer;
-        this.yesValue = yesValue;
-        this.noValue = noValue;
-        
         return container;
     }
 
-    createFieldInstance(fieldConfig, suffix) {
-        const fieldType = fieldConfig.type;
-        const config = {
-            ...fieldConfig,
-            id: `${this.id}-${suffix}-${fieldConfig.id}`,
-            name: fieldConfig.name || fieldConfig.id,
-            onChange: (value) => {
-                if (fieldConfig.onChange) {
-                    fieldConfig.onChange(value);
-                }
-                this.handleChange();
-            }
-        };
+    createAutoSummary() {
+        const multiStepForm = this.factory.currentMultiStepForm;
+        if (!multiStepForm) {
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = 'No multi-step form found';
+            return errorDiv;
+        }
 
-        return this.factory.createField(fieldType, config);
+        const summaryContainer = document.createElement('div');
+        summaryContainer.className = 'summary-container auto-summary';
+
+        const currentStepIndex = multiStepForm.currentStep;
+        
+        multiStepForm.steps.forEach((step, stepIndex) => {
+            if (stepIndex === currentStepIndex) return;
+
+            const stepData = this.getStepData(multiStepForm, stepIndex);
+            if (this.hasVisibleData(stepData)) {
+                const stepSection = this.createStepSummarySection(step, stepData, stepIndex);
+                summaryContainer.appendChild(stepSection);
+            }
+        });
+
+        return summaryContainer;
+    }
+
+    createStepSummarySection(step, stepData, stepIndex) {
+        const section = document.createElement('div');
+        section.className = 'summary-section';
+        section.innerHTML = `
+            <div class="summary-heading">
+                <span>${step.title}</span>
+                <button type="button" class="edit-btn" data-step="${stepIndex}">
+                    ${this.factory.getText('edit') || 'Modifier'}
+                </button>
+            </div>
+            <div class="summary-content" id="step-${stepIndex}-summary"></div>
+        `;
+
+        const editBtn = section.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => {
+            if (this.factory.currentMultiStepForm) {
+                this.factory.currentMultiStepForm.goToStep(stepIndex);
+            }
+        });
+
+        const contentDiv = section.querySelector('.summary-content');
+        this.populateStepContent(contentDiv, step, stepData);
+
+        return section;
+    }
+
+    populateStepContent(contentDiv, step, stepData) {
+        let contentHtml = '';
+
+        step.fields.forEach(fieldConfig => {
+            const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
+            if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+                const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
+                if (displayValue) {
+                    contentHtml += `
+                        <div class="summary-row">
+                            <div class="summary-label">${fieldConfig.label}:</div>
+                            <div class="summary-value">${displayValue}</div>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    formatFieldValue(fieldConfig, value) {
+        const fieldType = fieldConfig.type;
+
+        switch (fieldType) {
+            case 'yesno':
+                return value === 'yes' ? 
+                    (this.factory.getText('yes') || 'Oui') : 
+                    (this.factory.getText('no') || 'Non');
+
+            case 'select':
+            case 'select-subsections':
+                return this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, value);
+
+            case 'multiselect':
+            case 'multiselect-subsections':
+                if (Array.isArray(value)) {
+                    return value.map(v => this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, v)).join(', ');
+                }
+                return value;
+
+            case 'select-with-other':
+                if (typeof value === 'object' && value.main) {
+                    if (value.main === 'other') {
+                        return value.other || this.factory.getText('other');
+                    }
+                    return this.getOptionDisplayName(fieldConfig.options, value.main);
+                }
+                return this.getOptionDisplayName(fieldConfig.options, value);
+
+            case 'multiselect-with-other':
+                if (typeof value === 'object' && value.main) {
+                    const mainValues = Array.isArray(value.main) ? 
+                        value.main.map(v => this.getOptionDisplayName(fieldConfig.options, v)) : [];
+                    if (value.other) {
+                        mainValues.push(value.other);
+                    }
+                    return mainValues.join(', ');
+                }
+                return Array.isArray(value) ? value.join(', ') : value;
+
+            case 'yesno-with-options':
+                if (typeof value === 'object' && value.main) {
+                    let result = value.main === 'yes' || value.main === 'multilingual' ? 
+                        (value.main === 'multilingual' ? (this.factory.getText('multilingual') || 'Multilingual') : (this.factory.getText('yes') || 'Oui')) : 
+                        (value.main === 'unilingual' ? (this.factory.getText('unilingual') || 'Unilingual') : (this.factory.getText('no') || 'Non'));
+                    
+                    if (value.yesValues) {
+                        const subValues = Object.entries(value.yesValues)
+                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
+                            .filter(v => v)
+                            .join(', ');
+                        if (subValues) result += ` (${subValues})`;
+                    }
+                    
+                    if (value.noValues) {
+                        const subValues = Object.entries(value.noValues)
+                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
+                            .filter(v => v)
+                            .join(', ');
+                        if (subValues) result += ` (${subValues})`;
+                    }
+                    
+                    return result;
+                }
+                return value;
+
+            case 'textarea':
+                if (typeof value === 'string' && value.length > 100) {
+                    return value.substring(0, 100) + '...';
+                }
+                return value;
+
+            case 'number':
+            case 'percentage':
+            case 'options-stepper':
+            case 'email':
+            case 'phone':
+            case 'url':
+            case 'text':
+            default:
+                return value;
+        }
+    }
+
+    formatSubValue(key, value, fieldConfig) {
+        // Handle language fields specifically using existing data
+        if (key === 'languages' || key === 'language') {
+            const currentLang = window.currentLanguage || 'fr';
+            const languageOptions = window.formDataOptions?.[currentLang]?.languages || [];
+            
+            if (Array.isArray(value)) {
+                return value.map(v => this.getOptionDisplayName(languageOptions, v)).join(', ');
+            } else {
+                return this.getOptionDisplayName(languageOptions, value);
+            }
+        }
+        
+        // Handle other fields
+        if (Array.isArray(value)) {
+            return value.join(', ');
+        }
+        
+        return value;
+    }
+
+    getOptionDisplayName(options, value) {
+        if (!options) return value;
+        
+        // Handle regular options array
+        if (Array.isArray(options)) {
+            const option = options.find(opt => opt.id === value);
+            return option ? option.name : value;
+        }
+        
+        // Handle subsection options
+        if (Array.isArray(options)) {
+            for (const group of options) {
+                if (group.subcategories) {
+                    const option = group.subcategories.find(opt => opt.id === value);
+                    if (option) return option.name;
+                }
+            }
+        }
+        
+        return value;
+    }
+
+    getStepData(multiStepForm, stepIndex) {
+        const stepInstance = multiStepForm.stepInstances[stepIndex];
+        if (!stepInstance) return {};
+        
+        return stepInstance.getStepData();
+    }
+
+    hasVisibleData(stepData) {
+        return Object.values(stepData).some(value => 
+            value !== undefined && 
+            value !== null && 
+            value !== '' && 
+            !(Array.isArray(value) && value.length === 0)
+        );
+    }
+
+    updateContent() {
+        if (this.autoSummary && this.container) {
+            this.container.innerHTML = '';
+            const summaryContent = this.createAutoSummary();
+            this.container.appendChild(summaryContent);
+        } else if (this.updateFunction && this.container) {
+            const formData = this.getFormData();
+            this.updateFunction(this.container, formData);
+        }
+    }
+
+    getFormData() {
+        if (this.factory.currentMultiStepForm) {
+            return this.factory.currentMultiStepForm.getFormData();
+        }
+        return {};
     }
 
     getValue() {
-        const mainValue = this.container ? 
-            this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
-            this.value;
-            
-        const result = { main: mainValue };
-        
-        if ((mainValue === this.yesValue || mainValue === 'multilingual') && this.yesFieldInstances.length > 0) {
-            result.yesValues = {};
-            this.yesFieldInstances.forEach((fieldInstance, index) => {
-                const fieldConfig = this.yesFieldsConfig[index];
-                result.yesValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
-            });
-        }
-        
-        if ((mainValue === this.noValue || mainValue === 'unilingual') && this.noFieldInstances.length > 0) {
-            result.noValues = {};
-            this.noFieldInstances.forEach((fieldInstance, index) => {
-                const fieldConfig = this.noFieldsConfig[index];
-                result.noValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
-            });
-        }
-        
-        return result;
+        return null;
     }
 
     setValue(value) {
-        let mainValue = value;
-        
-        if (typeof value === 'object' && value.main) {
-            mainValue = value.main;
-            
-            if (value.yesValues && this.yesFieldInstances.length > 0) {
-                this.yesFieldInstances.forEach((fieldInstance, index) => {
-                    const fieldConfig = this.yesFieldsConfig[index];
-                    const fieldName = fieldConfig.name || fieldConfig.id;
-                    if (value.yesValues[fieldName] !== undefined) {
-                        fieldInstance.setValue(value.yesValues[fieldName]);
-                    }
-                });
-            }
-            
-            if (value.noValues && this.noFieldInstances.length > 0) {
-                this.noFieldInstances.forEach((fieldInstance, index) => {
-                    const fieldConfig = this.noFieldsConfig[index];
-                    const fieldName = fieldConfig.name || fieldConfig.id;
-                    if (value.noValues[fieldName] !== undefined) {
-                        fieldInstance.setValue(value.noValues[fieldName]);
-                    }
-                });
-            }
-        }
-        
-        this.value = mainValue;
-        
-        if (this.container) {
-            const radio = this.container.querySelector(`input[value="${mainValue}"]`);
-            if (radio) {
-                radio.checked = true;
-                
-                if (mainValue === this.yesValue || mainValue === 'multilingual') {
-                    if (this.yesContainer) this.yesContainer.style.display = 'block';
-                    if (this.noContainer) this.noContainer.style.display = 'none';
-                } else if (mainValue === this.noValue || mainValue === 'unilingual') {
-                    if (this.yesContainer) this.yesContainer.style.display = 'none';
-                    if (this.noContainer) this.noContainer.style.display = 'block';
-                }
-            }
-        }
+        // Custom fields don't have settable values
     }
 
     validate() {
-        if (this.required && !this.getValue().main) {
-            this.showError(this.factory.getText('fieldRequired'));
-            return false;
-        }
-
-        let isValid = true;
-        const currentValue = this.getValue();
-        
-        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
-            this.yesContainer && this.yesContainer.style.display === 'block') {
-            this.yesFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
-                }
-            });
-        }
-        
-        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
-            this.noContainer && this.noContainer.style.display === 'block') {
-            this.noFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
-                }
-            });
-        }
-
-        if (isValid) {
-            this.hideError();
-        }
-
-        return isValid;
+        return true;
     }
     
-    groupFields(fields) {
-        const groups = [];
-        let i = 0;
-        
-        while (i < fields.length) {
-            const currentField = fields[i];
-            
-            if (currentField.row && i + 1 < fields.length) {
-                const nextField = fields[i + 1];
-                if (nextField.row === currentField.row) {
-                    const rowFields = [];
-                    let j = i;
-                    while (j < fields.length && fields[j].row === currentField.row) {
-                        rowFields.push(fields[j]);
-                        j++;
-                    }
-                    
-                    groups.push({
-                        isRow: true,
-                        fields: rowFields
-                    });
-                    
-                    i = j;
-                    continue;
-                }
-            }
-            
-            groups.push({
-                isRow: false,
-                fields: [currentField]
-            });
-            
-            i++;
+    setStepData(data) {
+        if (this.autoSummary) {
+            this.updateContent();
         }
-        
-        return groups;
-    }
-
-    destroy() {
-        this.yesFieldInstances.forEach(field => field.destroy());
-        this.noFieldInstances.forEach(field => field.destroy());
-        this.yesFieldInstances = [];
-        this.noFieldInstances = [];
-        super.destroy();
     }
 }
 
 /**
- * Enhanced SingleSelectWithOtherField
+ * SingleSelectWithOtherField - Simple dropdown with "Other" option
  */
 class SingleSelectWithOtherField extends BaseField {
     constructor(factory, config) {
@@ -3805,7 +4138,7 @@ class SingleSelectWithOtherField extends BaseField {
                 <span>${option.name}</span>
             `;
             
-            this.addEventListener(customOption, 'click', (e) => {
+            customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectMainOption(option);
             });
@@ -3816,7 +4149,7 @@ class SingleSelectWithOtherField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -3850,7 +4183,7 @@ class SingleSelectWithOtherField extends BaseField {
         this.otherContainer.appendChild(this.otherInput);
         this.otherContainer.appendChild(this.otherError);
         
-        this.addEventListener(this.otherInput, 'input', () => {
+        this.otherInput.addEventListener('input', () => {
             this.otherValue = this.otherInput.value.trim();
             this.value = { main: 'other', other: this.otherValue };
             
@@ -4028,7 +4361,7 @@ class SingleSelectWithOtherField extends BaseField {
                         <span>${option.name}</span>
                     `;
                     
-                    this.addEventListener(customOption, 'click', (e) => {
+                    customOption.addEventListener('click', (e) => {
                         e.stopPropagation();
                         this.selectMainOption(option);
                     });
@@ -4043,14 +4376,14 @@ class SingleSelectWithOtherField extends BaseField {
         }
     }
 
-    destroy() {
+    cleanup() {
         this.closeDropdown();
-        super.destroy();
+        super.cleanup();
     }
 }
 
 /**
- * Enhanced MultiSelectWithOtherField
+ * MultiSelectWithOtherField - Multiple dropdown with "Other" option
  */
 class MultiSelectWithOtherField extends BaseField {
     constructor(factory, config) {
@@ -4111,7 +4444,7 @@ class MultiSelectWithOtherField extends BaseField {
             <span>${this.factory.getText('selectAll')}</span>
         `;
         
-        this.addEventListener(selectAllOption, 'click', (e) => {
+        selectAllOption.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleSelectAll();
         });
@@ -4129,7 +4462,7 @@ class MultiSelectWithOtherField extends BaseField {
                 <span>${option.name}</span>
             `;
             
-            this.addEventListener(customOption, 'click', (e) => {
+            customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleMainOption(option, customOption);
             });
@@ -4140,7 +4473,7 @@ class MultiSelectWithOtherField extends BaseField {
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
         
-        this.addEventListener(this.selectDisplayElement, 'click', (e) => {
+        this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
@@ -4174,7 +4507,7 @@ class MultiSelectWithOtherField extends BaseField {
         this.otherContainer.appendChild(this.otherInput);
         this.otherContainer.appendChild(this.otherError);
         
-        this.addEventListener(this.otherInput, 'input', () => {
+        this.otherInput.addEventListener('input', () => {
             this.otherValue = this.otherInput.value.trim();
             this.value = {
                 main: this.selectedValues.filter(v => v !== 'other'),
@@ -4437,14 +4770,14 @@ class MultiSelectWithOtherField extends BaseField {
         return true;
     }
 
-    destroy() {
+    cleanup() {
         this.closeDropdown();
-        super.destroy();
+        super.cleanup();
     }
 }
 
 /**
- * Enhanced SlidingWindowRangeField - Dual range slider with sliding window controls and validation
+ * SlidingWindowRangeField - Dual range slider with sliding window controls and validation
  */
 class SlidingWindowRangeField extends BaseField {
     constructor(factory, config) {
@@ -4461,13 +4794,18 @@ class SlidingWindowRangeField extends BaseField {
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
         this.selectedMin = config.defaultMin || this.currentMin + 200;
         this.selectedMax = config.defaultMax || this.currentMax - 200;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
     }
 
+    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
                     this.selectedMin = result.adjustedValue;
                     this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
                     
@@ -4490,15 +4828,18 @@ class SlidingWindowRangeField extends BaseField {
         return newValue;
     }
 
+    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             this.currentMin = Math.max(this.currentMin, newConstraints.min);
             
+            // Update slider attributes if they exist
             if (this.minRange) {
                 this.minRange.min = this.currentMin;
                 this.maxRange.min = this.currentMin;
                 
+                // Ensure current values respect new minimum
                 if (this.selectedMin < this.currentMin) {
                     this.selectedMin = this.currentMin;
                     this.minRange.value = this.selectedMin;
@@ -4521,6 +4862,7 @@ class SlidingWindowRangeField extends BaseField {
         }
     }
 
+    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -4530,9 +4872,11 @@ class SlidingWindowRangeField extends BaseField {
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
         
+        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
+        // Constrain to boundaries
         if (percent < leftBoundary) {
             return leftBoundary;
         } else if (percent > rightBoundary) {
@@ -4542,6 +4886,7 @@ class SlidingWindowRangeField extends BaseField {
         return percent;
     }
 
+    // Helper method for collision detection
     checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
         if (!minLabel || !maxLabel) return { minPercent, maxPercent };
         
@@ -4552,16 +4897,21 @@ class SlidingWindowRangeField extends BaseField {
         if (!container) return { minPercent, maxPercent };
         
         const containerWidth = container.offsetWidth;
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100;
+        
+        // Calculate minimum distance needed (in percentage)
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
+        
         const currentDistance = maxPercent - minPercent;
         
         if (currentDistance < minDistance) {
+            // Labels would overlap, adjust positions
             const center = (minPercent + maxPercent) / 2;
             const halfDistance = minDistance / 2;
             
             let adjustedMinPercent = center - halfDistance;
             let adjustedMaxPercent = center + halfDistance;
             
+            // Make sure they don't go out of bounds
             if (adjustedMinPercent < 0) {
                 adjustedMinPercent = 0;
                 adjustedMaxPercent = minDistance;
@@ -4579,6 +4929,7 @@ class SlidingWindowRangeField extends BaseField {
         return { minPercent, maxPercent };
     }
 
+    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -4587,31 +4938,43 @@ class SlidingWindowRangeField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
+        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
         
+        // Convert pixel constraints to percentage of label width
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
         
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
+    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.range-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
         
+        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -4622,21 +4985,26 @@ class SlidingWindowRangeField extends BaseField {
         const slidingLayout = document.createElement('div');
         slidingLayout.className = 'sliding-window-layout';
         
+        // Decrease button
         this.decreaseBtn = document.createElement('button');
         this.decreaseBtn.type = 'button';
         this.decreaseBtn.className = 'slider-control-btn';
         this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
         
+        // Range container
         const rangeContainer = document.createElement('div');
         rangeContainer.className = 'range-container';
         
+        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
+        // Track (selected range)
         this.track = document.createElement('div');
         this.track.className = 'slider-track';
         trackBg.appendChild(this.track);
         
+        // Min range input
         this.minRange = document.createElement('input');
         this.minRange.type = 'range';
         this.minRange.className = 'range-input';
@@ -4645,6 +5013,7 @@ class SlidingWindowRangeField extends BaseField {
         this.minRange.value = this.selectedMin;
         this.minRange.step = this.step;
         
+        // Max range input
         this.maxRange = document.createElement('input');
         this.maxRange.type = 'range';
         this.maxRange.className = 'range-input';
@@ -4653,6 +5022,7 @@ class SlidingWindowRangeField extends BaseField {
         this.maxRange.value = this.selectedMax;
         this.maxRange.step = this.step;
         
+        // Value labels
         this.minLabel = document.createElement('div');
         this.minLabel.className = 'slider-value-label';
         
@@ -4665,6 +5035,7 @@ class SlidingWindowRangeField extends BaseField {
         rangeContainer.appendChild(this.minLabel);
         rangeContainer.appendChild(this.maxLabel);
         
+        // Increase button
         this.increaseBtn = document.createElement('button');
         this.increaseBtn.type = 'button';
         this.increaseBtn.className = 'slider-control-btn';
@@ -4688,10 +5059,10 @@ class SlidingWindowRangeField extends BaseField {
     }
 
     setupEventListeners() {
-        this.addEventListener(this.minRange, 'input', () => this.handleMinChange());
-        this.addEventListener(this.maxRange, 'input', () => this.handleMaxChange());
-        this.addEventListener(this.decreaseBtn, 'click', () => this.decreaseRange());
-        this.addEventListener(this.increaseBtn, 'click', () => this.increaseRange());
+        this.minRange.addEventListener('input', () => this.handleMinChange());
+        this.maxRange.addEventListener('input', () => this.handleMaxChange());
+        this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
+        this.increaseBtn.addEventListener('click', () => this.increaseRange());
     }
 
     handleMinChange() {
@@ -4705,6 +5076,7 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = parseInt(this.minRange.value);
         this.selectedMax = parseInt(this.maxRange.value);
         
+        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax,
@@ -4729,6 +5101,7 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = parseInt(this.minRange.value);
         this.selectedMax = parseInt(this.maxRange.value);
         
+        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax,
@@ -4766,6 +5139,7 @@ class SlidingWindowRangeField extends BaseField {
         this.maxRange.min = this.currentMin;
         this.maxRange.max = this.currentMax;
         
+        // Adjust values if they're outside the new range
         if (this.selectedMin < this.currentMin) this.selectedMin = this.currentMin;
         if (this.selectedMin > this.currentMax) this.selectedMin = this.currentMax - this.minGap;
         if (this.selectedMax > this.currentMax) this.selectedMax = this.currentMax;
@@ -4776,15 +5150,19 @@ class SlidingWindowRangeField extends BaseField {
     }
 
     updateUI() {
+        // Calculate percentages
         let minPercent = ((this.selectedMin - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         let maxPercent = ((this.selectedMax - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         
+        // Store original positions for triangle calculation
         const originalMinPercent = minPercent;
         const originalMaxPercent = maxPercent;
         
+        // Update track position and width
         this.track.style.left = minPercent + '%';
         this.track.style.width = (maxPercent - minPercent) + '%';
         
+        // Apply boundary checking and collision detection
         setTimeout(() => {
             const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
             const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
@@ -4792,15 +5170,18 @@ class SlidingWindowRangeField extends BaseField {
             const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
                 this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
             
+            // Update labels with collision-free positions
             this.minLabel.style.left = finalMinPercent + '%';
             this.maxLabel.style.left = finalMaxPercent + '%';
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
+            // Update triangle positions to point to actual handles
             this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
             this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
         }, 0);
         
+        // Update button states
         this.decreaseBtn.disabled = this.currentMin <= this.min;
         this.increaseBtn.disabled = this.currentMax >= this.max;
     }
@@ -4830,7 +5211,7 @@ class SlidingWindowRangeField extends BaseField {
 }
 
 /**
- * Enhanced DualRangeField - Standard dual range slider with validation
+ * DualRangeField - Standard dual range slider with validation
  */
 class DualRangeField extends BaseField {
     constructor(factory, config) {
@@ -4842,13 +5223,18 @@ class DualRangeField extends BaseField {
         this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
         this.selectedMin = config.defaultMin || this.min + 1000;
         this.selectedMax = config.defaultMax || this.max - 1000;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
     }
 
+    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
                     this.selectedMin = result.adjustedValue;
                     this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
                     
@@ -4871,14 +5257,17 @@ class DualRangeField extends BaseField {
         return newValue;
     }
 
+    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             
+            // Update slider attributes if they exist
             if (this.minRange) {
                 this.minRange.min = this.min;
                 this.maxRange.min = this.min;
                 
+                // Ensure current values respect new minimum
                 if (this.selectedMin < this.min) {
                     this.selectedMin = this.min;
                     this.minRange.value = this.selectedMin;
@@ -4902,6 +5291,7 @@ class DualRangeField extends BaseField {
         }
     }
 
+    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -4911,9 +5301,11 @@ class DualRangeField extends BaseField {
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
         
+        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
+        // Constrain to boundaries
         if (percent < leftBoundary) {
             return leftBoundary;
         } else if (percent > rightBoundary) {
@@ -4923,6 +5315,7 @@ class DualRangeField extends BaseField {
         return percent;
     }
 
+    // Helper method for collision detection
     checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
         if (!minLabel || !maxLabel) return { minPercent, maxPercent };
         
@@ -4933,17 +5326,21 @@ class DualRangeField extends BaseField {
         if (!container) return { minPercent, maxPercent };
         
         const containerWidth = container.offsetWidth;
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100;
+        
+        // Calculate minimum distance needed (in percentage)
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
         
         const currentDistance = maxPercent - minPercent;
         
         if (currentDistance < minDistance) {
+            // Labels would overlap, adjust positions
             const center = (minPercent + maxPercent) / 2;
             const halfDistance = minDistance / 2;
             
             let adjustedMinPercent = center - halfDistance;
             let adjustedMaxPercent = center + halfDistance;
             
+            // Make sure they don't go out of bounds
             if (adjustedMinPercent < 0) {
                 adjustedMinPercent = 0;
                 adjustedMaxPercent = minDistance;
@@ -4961,6 +5358,7 @@ class DualRangeField extends BaseField {
         return { minPercent, maxPercent };
     }
 
+    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -4969,31 +5367,43 @@ class DualRangeField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
+        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
         
+        // Convert pixel constraints to percentage of label width
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
         
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
+    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
         
+        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5004,13 +5414,16 @@ class DualRangeField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
+        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
+        // Progress track
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
+        // Range inputs
         this.minRange = document.createElement('input');
         this.minRange.type = 'range';
         this.minRange.className = 'range-input';
@@ -5027,6 +5440,7 @@ class DualRangeField extends BaseField {
         this.maxRange.value = this.selectedMax;
         this.maxRange.step = this.step;
         
+        // Value labels
         this.minLabel = document.createElement('div');
         this.minLabel.className = 'slider-value-label';
         
@@ -5053,8 +5467,8 @@ class DualRangeField extends BaseField {
     }
 
     setupEventListeners() {
-        this.addEventListener(this.minRange, 'input', () => this.handleMinChange());
-        this.addEventListener(this.maxRange, 'input', () => this.handleMaxChange());
+        this.minRange.addEventListener('input', () => this.handleMinChange());
+        this.maxRange.addEventListener('input', () => this.handleMaxChange());
     }
 
     handleMinChange() {
@@ -5067,6 +5481,7 @@ class DualRangeField extends BaseField {
         
         this.selectedMin = parseInt(this.minRange.value);
         
+        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax
@@ -5088,6 +5503,7 @@ class DualRangeField extends BaseField {
         
         this.selectedMax = parseInt(this.maxRange.value);
         
+        // Validate constraints  
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax
@@ -5103,12 +5519,14 @@ class DualRangeField extends BaseField {
         let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
         let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
         
+        // Store original positions for triangle calculation
         const originalMinPercent = minPercent;
         const originalMaxPercent = maxPercent;
         
         this.progress.style.left = minPercent + '%';
         this.progress.style.width = (maxPercent - minPercent) + '%';
         
+        // Apply boundary checking and collision detection
         setTimeout(() => {
             const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
             const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
@@ -5121,6 +5539,7 @@ class DualRangeField extends BaseField {
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
+            // Update triangle positions to point to actual handles
             this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
             this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
         }, 0);
@@ -5148,7 +5567,7 @@ class DualRangeField extends BaseField {
 }
 
 /**
- * Enhanced SliderField - Single value slider with progress and validation
+ * SliderField - Single value slider with progress and validation
  */
 class SliderField extends BaseField {
     constructor(factory, config) {
@@ -5156,9 +5575,12 @@ class SliderField extends BaseField {
         this.min = config.min || 0;
         this.max = config.max || 10000;
         this.step = config.step || 100;
-        this.sliderType = config.sliderType || 'currency';
+        this.sliderType = config.sliderType || 'currency'; // 'currency', 'percentage', 'number'
         this.formatValue = config.formatValue || this.getDefaultFormatter();
         this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
     }
 
     getDefaultFormatter() {
@@ -5173,11 +5595,13 @@ class SliderField extends BaseField {
         }
     }
 
+    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
                     this.value = result.adjustedValue;
                     
                     if (this.slider) {
@@ -5198,13 +5622,16 @@ class SliderField extends BaseField {
         return newValue;
     }
 
+    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             
+            // Update slider attributes if they exist
             if (this.slider) {
                 this.slider.min = this.min;
                 
+                // Ensure current value respects new minimum
                 if (this.value < this.min) {
                     this.value = this.min;
                     this.slider.value = this.value;
@@ -5219,6 +5646,7 @@ class SliderField extends BaseField {
             if (this.slider) {
                 this.slider.max = this.max;
                 
+                // Ensure current value respects new maximum
                 if (this.value > this.max) {
                     this.value = this.max;
                     this.slider.value = this.value;
@@ -5229,6 +5657,7 @@ class SliderField extends BaseField {
         }
     }
 
+    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -5238,9 +5667,11 @@ class SliderField extends BaseField {
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
         
+        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
+        // Constrain to boundaries
         if (percent < leftBoundary) {
             return leftBoundary;
         } else if (percent > rightBoundary) {
@@ -5250,6 +5681,7 @@ class SliderField extends BaseField {
         return percent;
     }
 
+    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -5258,31 +5690,43 @@ class SliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
+        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
         
+        // Convert pixel constraints to percentage of label width
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
         
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
+    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
         
+        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5293,13 +5737,16 @@ class SliderField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
+        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
+        // Progress
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
+        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -5309,6 +5756,7 @@ class SliderField extends BaseField {
         this.slider.value = this.value;
         this.slider.step = this.step;
         
+        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -5330,9 +5778,10 @@ class SliderField extends BaseField {
     }
 
     setupEventListeners() {
-        this.addEventListener(this.slider, 'input', () => {
+        this.slider.addEventListener('input', () => {
             const newValue = parseFloat(this.slider.value);
             
+            // Validate constraints
             const validatedValue = this.validateConstraints(newValue);
             
             if (validatedValue !== false) {
@@ -5346,15 +5795,18 @@ class SliderField extends BaseField {
     updateUI() {
         const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
         
+        // Store original position for triangle calculation
         const originalPercent = percent;
         
         this.progress.style.width = percent + '%';
         
+        // Apply boundary checking
         setTimeout(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.formatValue(this.value);
             
+            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
         }, 0);
     }
@@ -5373,7 +5825,7 @@ class SliderField extends BaseField {
 }
 
 /**
- * Enhanced OptionsSliderField - Slider with predefined options, markers and validation
+ * OptionsSliderField - Slider with predefined options, markers and validation
  */
 class OptionsSliderField extends BaseField {
     constructor(factory, config) {
@@ -5382,6 +5834,9 @@ class OptionsSliderField extends BaseField {
         this.showMarkers = config.showMarkers !== false;
         this.currentIndex = config.defaultIndex || Math.floor(this.options.length / 2);
         this.value = this.getCurrentValue();
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
     }
 
     getCurrentValue() {
@@ -5400,11 +5855,13 @@ class OptionsSliderField extends BaseField {
         return '';
     }
 
+    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Find the index of the adjusted value
                     const adjustedIndex = this.options.findIndex(opt => 
                         (typeof opt === 'object' ? opt.value : opt) === result.adjustedValue
                     );
@@ -5432,14 +5889,17 @@ class OptionsSliderField extends BaseField {
         return newValue;
     }
 
+    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.options !== undefined) {
             this.options = newConstraints.options;
             
+            // Ensure current index is still valid
             if (this.currentIndex >= this.options.length) {
                 this.currentIndex = this.options.length - 1;
             }
             
+            // Rebuild UI if slider exists
             if (this.slider) {
                 this.slider.max = this.options.length - 1;
                 this.slider.value = this.currentIndex;
@@ -5454,6 +5914,7 @@ class OptionsSliderField extends BaseField {
         }
     }
 
+    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -5463,9 +5924,11 @@ class OptionsSliderField extends BaseField {
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
         
+        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
+        // Constrain to boundaries
         if (percent < leftBoundary) {
             return leftBoundary;
         } else if (percent > rightBoundary) {
@@ -5475,6 +5938,7 @@ class OptionsSliderField extends BaseField {
         return percent;
     }
 
+    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -5483,31 +5947,43 @@ class OptionsSliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
+        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
         
+        // Convert pixel constraints to percentage of label width
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
         
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
+    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
         
+        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5518,6 +5994,7 @@ class OptionsSliderField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
+        // Markers
         if (this.showMarkers) {
             this.markersContainer = document.createElement('div');
             this.markersContainer.className = 'slider-markers';
@@ -5525,13 +6002,16 @@ class OptionsSliderField extends BaseField {
             sliderContainer.appendChild(this.markersContainer);
         }
         
+        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
+        // Progress
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
+        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -5541,6 +6021,7 @@ class OptionsSliderField extends BaseField {
         this.slider.value = this.currentIndex;
         this.slider.step = 1;
         
+        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -5571,9 +6052,10 @@ class OptionsSliderField extends BaseField {
             const display = typeof option === 'object' ? (option.display || option.label || option.value) : option;
             marker.textContent = display;
             
-            this.addEventListener(marker, 'click', () => {
+            marker.addEventListener('click', () => {
                 const newValue = typeof option === 'object' ? option.value : option;
                 
+                // Validate constraints
                 const validatedValue = this.validateConstraints(newValue);
                 
                 if (validatedValue !== false) {
@@ -5590,10 +6072,11 @@ class OptionsSliderField extends BaseField {
     }
 
     setupEventListeners() {
-        this.addEventListener(this.slider, 'input', () => {
+        this.slider.addEventListener('input', () => {
             this.currentIndex = parseInt(this.slider.value);
             const newValue = this.getCurrentValue();
             
+            // Validate constraints
             const validatedValue = this.validateConstraints(newValue);
             
             if (validatedValue !== false) {
@@ -5607,15 +6090,18 @@ class OptionsSliderField extends BaseField {
     updateUI() {
         const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
         
+        // Store original position for triangle calculation
         const originalPercent = percent;
         
         this.progress.style.width = percent + '%';
         
+        // Apply boundary checking
         setTimeout(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.getCurrentDisplay();
             
+            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
         }, 0);
         
@@ -5647,8 +6133,9 @@ class OptionsSliderField extends BaseField {
     }
 }
 
+
 /**
- * Enhanced SlidingWindowSliderField - Single value slider with sliding window controls and validation
+ * SlidingWindowSliderField - Single value slider with sliding window controls and validation
  */
 class SlidingWindowSliderField extends BaseField {
     constructor(factory, config) {
@@ -5664,6 +6151,7 @@ class SlidingWindowSliderField extends BaseField {
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
         this.selectedValue = config.defaultValue || config.value || ((this.currentMin + this.currentMax) / 2);
         
+        // Ensure selected value is within current window
         if (this.selectedValue < this.currentMin) {
             this.selectedValue = this.currentMin;
         } else if (this.selectedValue > this.currentMax) {
@@ -5671,13 +6159,18 @@ class SlidingWindowSliderField extends BaseField {
         }
         
         this.value = this.selectedValue;
+        
+        // Validation properties
+        this.customValidation = config.customValidation || null;
     }
 
+    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    // Auto-adjust the value
                     this.selectedValue = result.adjustedValue;
                     this.value = result.adjustedValue;
                     
@@ -5699,14 +6192,17 @@ class SlidingWindowSliderField extends BaseField {
         return newValue;
     }
 
+    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             this.currentMin = Math.max(this.currentMin, newConstraints.min);
             
+            // Update slider attributes if they exist
             if (this.slider) {
                 this.slider.min = this.currentMin;
                 
+                // Ensure current value respects new minimum
                 if (this.selectedValue < this.currentMin) {
                     this.selectedValue = this.currentMin;
                     this.value = this.selectedValue;
@@ -5726,6 +6222,7 @@ class SlidingWindowSliderField extends BaseField {
         }
     }
 
+    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -5735,9 +6232,11 @@ class SlidingWindowSliderField extends BaseField {
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
         
+        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
+        // Constrain to boundaries
         if (percent < leftBoundary) {
             return leftBoundary;
         } else if (percent > rightBoundary) {
@@ -5747,6 +6246,7 @@ class SlidingWindowSliderField extends BaseField {
         return percent;
     }
 
+    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -5755,31 +6255,43 @@ class SlidingWindowSliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
+        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        
+        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        
+        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        
+        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        // More restrictive constraints to keep triangle inside label
+        const triangleHalfWidth = 5; // Half of triangle width in pixels
+        const safetyMargin = 4; // Extra safety margin
+        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
         
+        // Convert pixel constraints to percentage of label width
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
         
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        // Ensure minimum constraints (fallback if calculations result in very small label)
+        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
+    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
         
+        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5790,21 +6302,26 @@ class SlidingWindowSliderField extends BaseField {
         const slidingLayout = document.createElement('div');
         slidingLayout.className = 'sliding-window-layout';
         
+        // Decrease button
         this.decreaseBtn = document.createElement('button');
         this.decreaseBtn.type = 'button';
         this.decreaseBtn.className = 'slider-control-btn';
         this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
         
+        // Slider container
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
+        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
+        // Progress track
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
+        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -5814,6 +6331,7 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.value = this.selectedValue;
         this.slider.step = this.step;
         
+        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -5821,6 +6339,7 @@ class SlidingWindowSliderField extends BaseField {
         sliderContainer.appendChild(this.slider);
         sliderContainer.appendChild(this.valueLabel);
         
+        // Increase button
         this.increaseBtn = document.createElement('button');
         this.increaseBtn.type = 'button';
         this.increaseBtn.className = 'slider-control-btn';
@@ -5844,14 +6363,15 @@ class SlidingWindowSliderField extends BaseField {
     }
 
     setupEventListeners() {
-        this.addEventListener(this.slider, 'input', () => this.handleValueChange());
-        this.addEventListener(this.decreaseBtn, 'click', () => this.decreaseRange());
-        this.addEventListener(this.increaseBtn, 'click', () => this.increaseRange());
+        this.slider.addEventListener('input', () => this.handleValueChange());
+        this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
+        this.increaseBtn.addEventListener('click', () => this.increaseRange());
     }
 
     handleValueChange() {
         const newValue = parseFloat(this.slider.value);
         
+        // Validate constraints
         const validatedValue = this.validateConstraints(newValue);
         
         if (validatedValue !== false) {
@@ -5884,6 +6404,7 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.min = this.currentMin;
         this.slider.max = this.currentMax;
         
+        // Adjust value if it's outside the new range
         if (this.selectedValue < this.currentMin) {
             this.selectedValue = this.currentMin;
         } else if (this.selectedValue > this.currentMax) {
@@ -5895,20 +6416,26 @@ class SlidingWindowSliderField extends BaseField {
     }
 
     updateUI() {
+        // Calculate percentage
         const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         
+        // Store original position for triangle calculation
         const originalPercent = percent;
         
+        // Update progress width
         this.progress.style.width = percent + '%';
         
+        // Apply boundary checking
         setTimeout(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.formatValue(this.selectedValue);
             
+            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
         }, 0);
         
+        // Update button states
         this.decreaseBtn.disabled = this.currentMin <= this.min;
         this.increaseBtn.disabled = this.currentMax >= this.max;
     }
@@ -5919,6 +6446,7 @@ class SlidingWindowSliderField extends BaseField {
 
     setValue(value) {
         if (typeof value === 'object' && value !== null) {
+            // Handle object input (for compatibility)
             this.selectedValue = value.value || value.selectedValue || value.min || this.selectedValue;
             this.currentMin = value.currentMin || this.currentMin;
             this.currentMax = value.currentMax || this.currentMax;
@@ -5935,13 +6463,19 @@ class SlidingWindowSliderField extends BaseField {
     }
 }
 
-/**
- * Enhanced ServiceCardField - Service card selection with enhanced features
- */
+
+// ============================================================================
+// SERVICE CARD FIELD CLASS 
+// ============================================================================
+
 class ServiceCardField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
+        // Store config for later use
+        this.config = config;
+        
+        // Service card specific config
         this.services = config.services || [];
         this.layout = config.layout || 'grid';
         this.columns = config.columns || 'auto';
@@ -5950,6 +6484,7 @@ class ServiceCardField extends BaseField {
         this.allowDeselect = config.allowDeselect || false;
         this.selectionMode = config.selectionMode || 'single';
         
+        // State
         this.selectedServices = [];
         this.selectedService = null;
     }
@@ -5958,6 +6493,7 @@ class ServiceCardField extends BaseField {
         this.element = document.createElement('div');
         this.element.className = `form-field service-card-field layout-${this.layout}`;
         
+        // Use this.label instead of this.config.label (BaseField already stores it)
         if (this.label) {
             this.element.innerHTML = `
                 <label class="form-label ${this.required ? 'required' : ''}" for="${this.id}">
@@ -5970,6 +6506,7 @@ class ServiceCardField extends BaseField {
         container.className = `service-cards-container columns-${this.columns}`;
         container.id = this.id;
         
+        // Render each service card
         this.services.forEach((service, index) => {
             const card = this.renderServiceCard(service, index);
             container.appendChild(card);
@@ -5977,6 +6514,7 @@ class ServiceCardField extends BaseField {
         
         this.element.appendChild(container);
         
+        // Add error container
         if (this.required) {
             const errorContainer = document.createElement('div');
             errorContainer.className = 'error-container';
@@ -6014,8 +6552,9 @@ class ServiceCardField extends BaseField {
         
         card.innerHTML = cardContent;
         
-        this.addEventListener(card, 'click', () => this.handleCardClick(card, service));
-        this.addEventListener(card, 'keydown', (e) => {
+        // Add event listeners
+        card.addEventListener('click', () => this.handleCardClick(card, service));
+        card.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 this.handleCardClick(card, service);
@@ -6028,7 +6567,9 @@ class ServiceCardField extends BaseField {
     renderCheckmark() {
         return `
             <div class="checkmark-icon" aria-hidden="true">
-                ${this.factory.SVG_ICONS.CHECK}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
+                    <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+                </svg>
             </div>
         `;
     }
@@ -6218,13 +6759,25 @@ class ServiceCardField extends BaseField {
     }
 }
 
+// ============================================================================
+// CALENDAR FIELD CLASS - Add this to FormFieldFactory.js
+// ============================================================================
+
 /**
- * Enhanced CalendarField - Complete calendar with booking capabilities
+ * Enhanced CalendarField - Supports both booking and rescheduling modes
+ * Replace the existing CalendarField in FormFieldFactory.js with this version
  */
+
+/**
+ * Enhanced CalendarField - Supports both booking and rescheduling modes
+ * Complete updated version with proper header display
+ */
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
+        // Calendar specific config
         this.apiKey = config.apiKey || '';
         this.timezone = config.timezone || 'America/Toronto';
         this.eventTypeId = config.eventTypeId;
@@ -6233,12 +6786,14 @@ class CalendarField extends BaseField {
         this.eventName = config.eventName || 'Appointment';
         this.language = config.language || 'en';
         
-        this.mode = config.mode || 'booking';
+        // Enhanced header configuration
+        this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
         this.serviceProvider = config.serviceProvider || '';
         this.serviceName = config.serviceName || config.eventName || 'Appointment';
-        this.currentAppointment = config.currentAppointment || null;
+        this.currentAppointment = config.currentAppointment || null; // For reschedule mode
         this.headerIcon = config.headerIcon || 'CALENDAR';
         
+        // State
         this.state = {
             currentDate: new Date(),
             selectedDate: null,
@@ -6246,65 +6801,285 @@ class CalendarField extends BaseField {
             availableSlots: {},
             workingDays: [1, 2, 3, 4, 5],
             isConfirmed: false,
-            isLoading: false,
-            isInitialized: false // Add initialization flag
+            isLoading: false
         };
         
-        // FIX: Don't call init in constructor, call it in render
-        this.initPromise = null;
+        // Initialize
+        this.init();
     }
     
-    // FIX: Make init more robust with error handling
     async init() {
-        if (this.state.isInitialized || this.initPromise) {
-            return this.initPromise;
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            if (!this.state.selectedDate) {
+                this.state.selectedDate = this.getDefaultActiveDay();
+                const dayKey = this.formatDate(this.state.selectedDate);
+                const slots = await this.fetchAvailableSlots(dayKey);
+                this.state.availableSlots[dayKey] = slots;
+            }
         }
-        
-        console.log('Initializing calendar field...', {
-            scheduleId: this.scheduleId,
-            apiKey: this.apiKey ? 'present' : 'missing',
-            eventTypeId: this.eventTypeId
-        });
-        
-        this.initPromise = this.performInit();
-        return this.initPromise;
     }
     
-    async performInit() {
+    formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    
+    isSameDay(date1, date2) {
+        if (!date1 || !date2) return false;
+        return this.formatDate(date1) === this.formatDate(date2);
+    }
+    
+    getDefaultActiveDay() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (this.state.workingDays.includes(today.getDay())) return today;
+        
+        const next = new Date(today);
+        let daysChecked = 0;
+        while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
+            next.setDate(next.getDate() + 1);
+            daysChecked++;
+        }
+        return next;
+    }
+
+    async fetchWorkingDays(scheduleId) {
+        if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+        
         try {
-            if (this.scheduleId && this.apiKey) {
-                this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
-                console.log('Fetched working days:', this.state.workingDays);
-                
-                if (!this.state.selectedDate) {
-                    this.state.selectedDate = this.getDefaultActiveDay();
-                    const dayKey = this.formatDate(this.state.selectedDate);
-                    console.log('Getting initial slots for:', dayKey);
-                    const slots = await this.fetchAvailableSlots(dayKey);
-                    this.state.availableSlots[dayKey] = slots;
-                    console.log('Initial slots loaded:', slots.length);
+            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-06-11",
+                    "Content-Type": "application/json"
                 }
-            } else {
-                console.warn('Calendar missing required config:', {
-                    scheduleId: this.scheduleId,
-                    apiKey: !!this.apiKey
-                });
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            
+            const data = await res.json();
+            const availability = data.data?.availability || [];
+            const dayNameToNumber = {
+                "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3,
+                "Thursday": 4, "Friday": 5, "Saturday": 6
+            };
+            
+            const workingDaysSet = new Set();
+            availability.forEach(item => {
+                if (Array.isArray(item.days)) {
+                    item.days.forEach(dayName => {
+                        const dayNum = dayNameToNumber[dayName];
+                        if (dayNum !== undefined) {
+                            workingDaysSet.add(dayNum);
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(workingDaysSet);
+        } catch (err) {
+            console.error("Error fetching schedule:", err);
+            return [1, 2, 3, 4, 5];
+        }
+    }
+    
+    async fetchAvailableSlots(selectedDateISO) {
+        if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
+        
+        const start = new Date(selectedDateISO);
+        start.setUTCHours(0, 0, 0, 0);
+        const end = new Date(selectedDateISO);
+        end.setUTCHours(23, 59, 59, 999);
+        
+        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
+        
+        try {
+            const res = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            
+            const responseBody = await res.json();
+            if (responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
             }
             
-            this.state.isInitialized = true;
-            console.log('Calendar initialization complete');
-        } catch (error) {
-            console.error('Calendar initialization failed:', error);
-            // Set default working days as fallback
-            this.state.workingDays = [1, 2, 3, 4, 5];
-            this.state.isInitialized = true;
+            const slotsObj = responseBody.data?.slots || {};
+            const slotsForDate = slotsObj[selectedDateISO] || [];
+            return slotsForDate.map(slot => slot.time);
+        } catch (err) {
+            console.error("Error fetching available slots:", err);
+            return [];
+        }
+    }
+
+    async createBooking(startTimeISO, fullName, email) {
+        if (!this.apiKey || !this.eventTypeId) {
+            throw new Error('Missing API key or event type ID');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings`;
+            const body = {
+                start: startTimeISO,
+                attendee: { 
+                    name: fullName, 
+                    email: email, 
+                    timeZone: this.timezone 
+                },
+                eventTypeId: Number(this.eventTypeId)
+            };
+            
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Booking error:", err);
+            return null;
+        }
+    }
+
+    async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
+        if (!this.apiKey || !uid) {
+            throw new Error('Missing API key or booking UID');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
+            const body = {
+                rescheduledBy: rescheduledBy,
+                reschedulingReason: reason,
+                start: startTimeISO
+            };
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Error rescheduling booking:", err);
+            return null;
         }
     }
     
-    // FIX: Enhanced render method with proper async handling
-    async render() {
-        console.log('Rendering calendar field...');
+    getText(key) {
+        const translations = {
+            en: {
+                selectDate: "Select a date to view available times",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                pleaseSelectDate: "Please select a date first",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                currentAppointment: "Current Appointment",
+                newAppointment: "New Appointment"
+            },
+            fr: {
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                availableTimesFor: "Disponibilités pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                currentAppointment: "Rendez-vous Actuel",
+                newAppointment: "Nouveau Rendez-vous"
+            }
+        };
+        return translations[this.language]?.[key] || key;
+    }
+
+    // Enhanced header generation with date directly under service name for reschedule mode
+    generateCalendarHeader() {
+        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
+        if (this.mode === 'reschedule' && this.currentAppointment) {
+            return `
+                <div class="calendar-title-content">
+                    <div class="service-provider">
+                        <span class="provider-icon">${iconSvg}</span>
+                        <div class="appointment-details">
+                            <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                            ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
+                            <div class="current-appointment-date">${this.formatCurrentAppointment()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Enhanced booking mode header
+            return `
+                <div class="service-provider">
+                    <span class="provider-icon">${iconSvg}</span>
+                    <div class="appointment-details">
+                        <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                        ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    formatCurrentAppointment() {
+        if (!this.currentAppointment) return '';
+        
+        const date = new Date(this.currentAppointment);
+        const formatOptions = { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        };
+        
+        let locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+        const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+        return formatter.format(date);
+    }
+    
+    render() {
         this.element = document.createElement('div');
         this.element.className = 'form-field calendar-field';
         this.element.innerHTML = `
@@ -6315,11 +7090,19 @@ class CalendarField extends BaseField {
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                            ${this.factory.SVG_ICONS.CHEVRON}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(90deg)">
+                                <g transform="translate(75, 75)">
+                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                                </g>
+                            </svg>
                         </button>
                         <div class="current-date"></div>
                         <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                            ${this.factory.SVG_ICONS.CHEVRON}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(-90deg)">
+                                <g transform="translate(75, 75)">
+                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                                </g>
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -6336,80 +7119,39 @@ class CalendarField extends BaseField {
             </div>
         `;
         
-        // FIX: Initialize calendar data asynchronously
-        await this.init();
-        
-        // FIX: Ensure DOM is ready before attaching events
-        setTimeout(() => {
-            this.renderCalendarData();
-            this.attachCalendarEvents();
-            console.log('Calendar events attached');
-        }, 50);
+        this.renderCalendarData();
+        this.attachCalendarEvents();
         
         return this.element;
     }
     
-    // FIX: Enhanced event attachment with better error handling
-    attachCalendarEvents() {
-        if (!this.element) {
-            console.error('Calendar element not found when attaching events');
-            return;
+    renderCalendarData() {
+        if (!this.element) return;
+        
+        const currentDateEl = this.element.querySelector('.current-date');
+        if (currentDateEl) {
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
+            currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
         }
         
-        const prevBtn = this.element.querySelector('.prev-btn');
-        const nextBtn = this.element.querySelector('.next-btn');
-        
-        console.log('Attaching calendar navigation events', {
-            prevBtn: !!prevBtn,
-            nextBtn: !!nextBtn
-        });
-        
-        if (prevBtn) {
-            // FIX: Remove any existing listeners first
-            prevBtn.removeEventListener('click', this.prevClickHandler);
-            this.prevClickHandler = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Previous month clicked');
-                if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(
-                        this.state.currentDate.getFullYear(), 
-                        this.state.currentDate.getMonth() - 1, 
-                        1
-                    );
-                    this.renderCalendarData();
-                }
-            };
-            prevBtn.addEventListener('click', this.prevClickHandler);
+        const weekdaysEl = this.element.querySelector('.weekdays');
+        if (weekdaysEl) {
+            weekdaysEl.innerHTML = '';
+            const weekdays = this.getText('weekdays');
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysEl.appendChild(dayEl);
+            });
         }
         
-        if (nextBtn) {
-            // FIX: Remove any existing listeners first
-            nextBtn.removeEventListener('click', this.nextClickHandler);
-            this.nextClickHandler = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Next month clicked');
-                if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(
-                        this.state.currentDate.getFullYear(), 
-                        this.state.currentDate.getMonth() + 1, 
-                        1
-                    );
-                    this.renderCalendarData();
-                }
-            };
-            nextBtn.addEventListener('click', this.nextClickHandler);
-        }
+        this.renderDays();
+        this.renderTimeSlots();
     }
     
-    // FIX: Enhanced renderDays with better event handling
     renderDays() {
         const daysEl = this.element.querySelector('.days');
-        if (!daysEl) {
-            console.error('Days container not found');
-            return;
-        }
+        if (!daysEl) return;
         
         daysEl.innerHTML = '';
         let daysToShow = [];
@@ -6418,20 +7160,17 @@ class CalendarField extends BaseField {
         const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
         
-        // Previous month days
         for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
             const day = new Date(firstDay);
             day.setDate(day.getDate() - i - 1);
             daysToShow.push({ date: day, inactive: true });
         }
         
-        // Current month days
         for (let i = 1; i <= totalDays; i++) {
             const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
             daysToShow.push({ date: day, inactive: false });
         }
         
-        // Next month days
         const remainingDays = 42 - daysToShow.length;
         for (let i = 1; i <= remainingDays; i++) {
             const day = new Date(lastDay);
@@ -6465,33 +7204,14 @@ class CalendarField extends BaseField {
                             dayEl.classList.add("active");
                         }
                         dayEl.classList.add("available");
-                        
-                        // FIX: Better event handling for day clicks
-                        dayEl.addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Day clicked:', date);
-                            
-                            try {
-                                this.state.selectedDate = new Date(date);
-                                this.state.selectedTime = null;
-                                const dateKey = this.formatDate(date);
-                                
-                                // Show loading state
-                                const timeSlotsEl = this.element.querySelector('.time-slots');
-                                if (timeSlotsEl) {
-                                    timeSlotsEl.innerHTML = '<div class="loading">Loading...</div>';
-                                }
-                                
-                                const slots = await this.fetchAvailableSlots(dateKey);
-                                this.state.availableSlots[dateKey] = slots;
-                                console.log('Slots loaded for', dateKey, ':', slots.length);
-                                
-                                this.renderCalendarData();
-                                this.updateValue();
-                            } catch (error) {
-                                console.error('Error selecting date:', error);
-                            }
+                        dayEl.addEventListener("click", async () => {
+                            this.state.selectedDate = new Date(date);
+                            this.state.selectedTime = null;
+                            const dateKey = this.formatDate(date);
+                            const slots = await this.fetchAvailableSlots(dateKey);
+                            this.state.availableSlots[dateKey] = slots;
+                            this.renderCalendarData();
+                            this.updateValue();
                         });
                     }
                 }
@@ -6500,15 +7220,11 @@ class CalendarField extends BaseField {
         });
     }
     
-    // FIX: Enhanced renderTimeSlots with better event handling
     renderTimeSlots() {
         const timeHeaderEl = this.element.querySelector('.time-header');
         const timeSlotsEl = this.element.querySelector('.time-slots');
         
-        if (!timeHeaderEl || !timeSlotsEl) {
-            console.error('Time slots container not found');
-            return;
-        }
+        if (!timeHeaderEl || !timeSlotsEl) return;
         
         if (this.state.selectedDate) {
             const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
@@ -6555,12 +7271,7 @@ class CalendarField extends BaseField {
                     });
                     timeSlot.textContent = timeFormatter.format(dateTime);
                     
-                    // FIX: Better event handling for time slot clicks
-                    timeSlot.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Time slot clicked:', timeISO);
-                        
+                    timeSlot.addEventListener("click", () => {
                         if (!this.state.isConfirmed) {
                             this.state.selectedTime = timeISO;
                             this.renderTimeSlots();
@@ -6586,1745 +7297,78 @@ class CalendarField extends BaseField {
         }
     }
     
-    // FIX: Ensure proper cleanup
-    destroy() {
-        if (this.prevClickHandler && this.element) {
-            const prevBtn = this.element.querySelector('.prev-btn');
-            if (prevBtn) {
-                prevBtn.removeEventListener('click', this.prevClickHandler);
-            }
-        }
+    attachCalendarEvents() {
+        if (!this.element) return;
         
-        if (this.nextClickHandler && this.element) {
-            const nextBtn = this.element.querySelector('.next-btn');
-            if (nextBtn) {
-                nextBtn.removeEventListener('click', this.nextClickHandler);
-            }
-        }
+        const prevBtn = this.element.querySelector('.prev-btn');
+        const nextBtn = this.element.querySelector('.next-btn');
         
-        super.destroy();
-    }
-}
-
-/**
- * CustomField - Enhanced for special content like summaries with performance optimization
- */
-class CustomField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.renderFunction = config.render || null;
-        this.updateFunction = config.update || null;
-        this.autoSummary = config.autoSummary || false;
-        this.isStatic = config.isStatic || false; // For performance - static fields don't need frequent updates
-        
-        // Performance optimization for auto-summary
-        this.updateThrottled = this.factory.performanceManager.throttle(
-            this.updateContent.bind(this), 
-            500
-        );
-        
-        // Subscribe to state changes if auto-summary
-        if (this.autoSummary) {
-            this.setupAutoSummarySubscription();
-        }
-    }
-
-    setupAutoSummarySubscription() {
-        // Subscribe to all form changes for auto-summary updates
-        this.stateUnsubscribe = this.factory.stateManager.subscribe('*', (value, oldValue, path) => {
-            // Don't update for our own changes
-            if (path !== this.name && !this.isStatic) {
-                this.updateThrottled();
-            }
-        });
-    }
-
-    render() {
-        return this.factory.performanceManager.measurePerformance('render', 'CustomField', () => {
-            const container = this.createContainer();
-            
-            try {
-                if (this.autoSummary) {
-                    const summaryContent = this.createAutoSummary();
-                    container.appendChild(summaryContent);
-                } else if (this.renderFunction) {
-                    const customContent = this.renderFunction(this.factory, this.getFormData());
-                    container.appendChild(customContent);
-                } else {
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'custom-field-placeholder';
-                    placeholder.textContent = 'Custom field content';
-                    container.appendChild(placeholder);
+        if (prevBtn) {
+            prevBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
+                    this.renderCalendarData();
                 }
-            } catch (error) {
-                this.factory.errorManager.addError(this.name, {
-                    message: 'Failed to render custom field',
-                    type: 'render',
-                    originalError: error
-                });
-                
-                // Fallback content
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'custom-field-error';
-                errorDiv.textContent = 'Error rendering field content';
-                container.appendChild(errorDiv);
-            }
-            
-            this.container = container;
-            return container;
-        });
-    }
-
-    createAutoSummary() {
-        const multiStepForm = this.factory.currentMultiStepForm;
-        if (!multiStepForm) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'summary-error';
-            errorDiv.textContent = 'No multi-step form found';
-            return errorDiv;
-        }
-
-        const summaryContainer = document.createElement('div');
-        summaryContainer.className = 'summary-container auto-summary';
-
-        const currentStepIndex = multiStepForm.currentStep;
-        
-        multiStepForm.steps.forEach((step, stepIndex) => {
-            if (stepIndex === currentStepIndex) return;
-
-            const stepData = this.getStepData(multiStepForm, stepIndex);
-            if (this.hasVisibleData(stepData)) {
-                const stepSection = this.createStepSummarySection(step, stepData, stepIndex);
-                summaryContainer.appendChild(stepSection);
-            }
-        });
-
-        // Add accessibility
-        summaryContainer.setAttribute('aria-label', 'Form progress summary');
-        summaryContainer.setAttribute('role', 'region');
-
-        return summaryContainer;
-    }
-
-    createStepSummarySection(step, stepData, stepIndex) {
-        const section = document.createElement('div');
-        section.className = 'summary-section';
-        section.setAttribute('data-step-index', stepIndex);
-        
-        section.innerHTML = `
-            <div class="summary-heading">
-                <span class="step-title">${this.escapeHtml(step.title || `Step ${stepIndex + 1}`)}</span>
-                <button type="button" class="edit-btn" data-step="${stepIndex}" aria-label="Edit ${step.title || `Step ${stepIndex + 1}`}">
-                    ${this.factory.getText('edit') || 'Edit'}
-                </button>
-            </div>
-            <div class="summary-content" id="step-${stepIndex}-summary"></div>
-        `;
-
-        const editBtn = section.querySelector('.edit-btn');
-        this.addEventListener(editBtn, 'click', () => {
-            if (this.factory.currentMultiStepForm) {
-                this.factory.currentMultiStepForm.goToStep(stepIndex);
-                this.factory.accessibilityManager.announce(`Navigated to ${step.title || `Step ${stepIndex + 1}`}`);
-            }
-        });
-
-        const contentDiv = section.querySelector('.summary-content');
-        this.populateStepContent(contentDiv, step, stepData);
-
-        return section;
-    }
-
-    populateStepContent(contentDiv, step, stepData) {
-        let contentHtml = '';
-        let fieldsProcessed = 0;
-
-        step.fields.forEach(fieldConfig => {
-            const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
-            if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
-                const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
-                if (displayValue) {
-                    contentHtml += `
-                        <div class="summary-row" data-field="${fieldConfig.name || fieldConfig.id}">
-                            <div class="summary-label">${this.escapeHtml(fieldConfig.label)}:</div>
-                            <div class="summary-value">${this.escapeHtml(displayValue)}</div>
-                        </div>
-                    `;
-                    fieldsProcessed++;
-                }
-            }
-        });
-
-        if (fieldsProcessed === 0) {
-            contentHtml = '<div class="summary-empty">No data entered</div>';
-        }
-
-        contentDiv.innerHTML = contentHtml;
-        
-        // Add accessibility
-        contentDiv.setAttribute('aria-live', 'polite');
-        contentDiv.setAttribute('aria-label', `Summary for ${step.title || 'step'}, ${fieldsProcessed} fields completed`);
-    }
-
-    formatFieldValue(fieldConfig, value) {
-        const fieldType = fieldConfig.type;
-
-        try {
-            switch (fieldType) {
-                case 'yesno':
-                    return value === 'yes' ? 
-                        (this.factory.getText('yes') || 'Yes') : 
-                        (this.factory.getText('no') || 'No');
-
-                case 'select':
-                case 'select-subsections':
-                    return this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, value);
-
-                case 'multiselect':
-                case 'multiselect-subsections':
-                    if (Array.isArray(value)) {
-                        return value.map(v => this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, v)).join(', ');
-                    }
-                    return value;
-
-                case 'select-with-other':
-                    if (typeof value === 'object' && value.main) {
-                        if (value.main === 'other') {
-                            return value.other || this.factory.getText('other');
-                        }
-                        return this.getOptionDisplayName(fieldConfig.options, value.main);
-                    }
-                    return this.getOptionDisplayName(fieldConfig.options, value);
-
-                case 'multiselect-with-other':
-                    if (typeof value === 'object' && value.main) {
-                        const mainValues = Array.isArray(value.main) ? 
-                            value.main.map(v => this.getOptionDisplayName(fieldConfig.options, v)) : [];
-                        if (value.other) {
-                            mainValues.push(value.other);
-                        }
-                        return mainValues.join(', ');
-                    }
-                    return Array.isArray(value) ? value.join(', ') : value;
-
-                case 'yesno-with-options':
-                    if (typeof value === 'object' && value.main) {
-                        let result = value.main === 'yes' || value.main === 'multilingual' ? 
-                            (value.main === 'multilingual' ? (this.factory.getText('multilingual') || 'Multilingual') : (this.factory.getText('yes') || 'Yes')) : 
-                            (value.main === 'unilingual' ? (this.factory.getText('unilingual') || 'Unilingual') : (this.factory.getText('no') || 'No'));
-                        
-                        if (value.yesValues) {
-                            const subValues = Object.entries(value.yesValues)
-                                .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
-                                .filter(v => v)
-                                .join(', ');
-                            if (subValues) result += ` (${subValues})`;
-                        }
-                        
-                        if (value.noValues) {
-                            const subValues = Object.entries(value.noValues)
-                                .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
-                                .filter(v => v)
-                                .join(', ');
-                            if (subValues) result += ` (${subValues})`;
-                        }
-                        
-                        return result;
-                    }
-                    return value;
-
-                case 'textarea':
-                    if (typeof value === 'string' && value.length > 100) {
-                        return value.substring(0, 100) + '...';
-                    }
-                    return value;
-
-                case 'serviceCard':
-                    if (typeof value === 'object' && value.title) {
-                        return value.title;
-                    } else if (Array.isArray(value)) {
-                        return value.map(v => v.title || v.name || 'Service').join(', ');
-                    }
-                    return value;
-
-                case 'calendar':
-                    if (typeof value === 'object' && value.formattedDate && value.formattedTime) {
-                        return `${value.formattedDate} at ${value.formattedTime}`;
-                    }
-                    return value;
-
-                case 'slider':
-                case 'options-slider':
-                case 'dual-range':
-                case 'sliding-window-range':
-                    if (typeof value === 'object') {
-                        if (value.min !== undefined && value.max !== undefined) {
-                            return `${value.min} - ${value.max}`;
-                        } else if (value.selectedValue !== undefined) {
-                            return value.selectedValue;
-                        }
-                    }
-                    return value;
-
-                case 'number':
-                case 'percentage':
-                case 'options-stepper':
-                case 'email':
-                case 'phone':
-                case 'url':
-                case 'text':
-                default:
-                    return value;
-            }
-        } catch (error) {
-            this.factory.errorManager.addError(this.name, {
-                message: `Error formatting field value for ${fieldConfig.name}`,
-                type: 'formatting',
-                originalError: error
-            });
-            return value; // Fallback to original value
-        }
-    }
-
-    formatSubValue(key, value, fieldConfig) {
-        if (key === 'languages' || key === 'language') {
-            const currentLang = window.currentLanguage || 'fr';
-            const languageOptions = window.formDataOptions?.[currentLang]?.languages || [];
-            
-            if (Array.isArray(value)) {
-                return value.map(v => this.getOptionDisplayName(languageOptions, v)).join(', ');
-            } else {
-                return this.getOptionDisplayName(languageOptions, value);
-            }
-        }
-        
-        if (Array.isArray(value)) {
-            return value.join(', ');
-        }
-        
-        return value;
-    }
-
-    getOptionDisplayName(options, value) {
-        if (!options || !value) return value;
-        
-        if (Array.isArray(options)) {
-            const option = options.find(opt => opt.id === value);
-            return option ? option.name : value;
-        }
-        
-        if (Array.isArray(options)) {
-            for (const group of options) {
-                if (group.subcategories) {
-                    const option = group.subcategories.find(opt => opt.id === value);
-                    if (option) return option.name;
-                }
-            }
-        }
-        
-        return value;
-    }
-
-    getStepData(multiStepForm, stepIndex) {
-        const stepInstance = multiStepForm.stepInstances[stepIndex];
-        if (!stepInstance) return {};
-        
-        try {
-            return stepInstance.getStepData();
-        } catch (error) {
-            this.factory.errorManager.addError(this.name, {
-                message: `Error getting step data for step ${stepIndex}`,
-                type: 'data',
-                originalError: error
-            });
-            return {};
-        }
-    }
-
-    hasVisibleData(stepData) {
-        return Object.values(stepData).some(value => 
-            value !== undefined && 
-            value !== null && 
-            value !== '' && 
-            !(Array.isArray(value) && value.length === 0)
-        );
-    }
-
-    updateContent() {
-        if (!this.container) return;
-        
-        try {
-            if (this.autoSummary) {
-                this.container.innerHTML = '';
-                const summaryContent = this.createAutoSummary();
-                this.container.appendChild(summaryContent);
-            } else if (this.updateFunction) {
-                const formData = this.getFormData();
-                this.updateFunction(this.container, formData);
-            }
-        } catch (error) {
-            this.factory.errorManager.addError(this.name, {
-                message: 'Error updating custom field content',
-                type: 'update',
-                originalError: error
             });
         }
-    }
-
-    getFormData() {
-        if (this.factory.currentMultiStepForm) {
-            return this.factory.currentMultiStepForm.getFormData();
+        
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
+                    this.renderCalendarData();
+                }
+            });
         }
-        return this.factory.stateManager.getAllFieldValues();
-    }
-
-    escapeHtml(text) {
-        const map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    getValue() {
-        return null; // Custom fields typically don't have values
-    }
-
-    setValue(value) {
-        // Custom fields don't have settable values typically
-    }
-
-    async validate() {
-        return true; // Custom fields are typically always valid
     }
     
-    setStepData(data) {
-        if (this.autoSummary && !this.isStatic) {
-            this.updateThrottled();
+    updateValue() {
+        const value = {
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+        
+        this.handleChange();
+    }
+    
+    getValue() {
+        return {
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+    }
+    
+    setValue(value) {
+        if (value && typeof value === 'object') {
+            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
+            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
+            if (this.element) this.renderCalendarData();
         }
     }
-
+    
+    validate() {
+        const isValid = !!(this.state.selectedDate && this.state.selectedTime);
+        return isValid;
+    }
+    
+    reset() {
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+        if (this.element) this.renderCalendarData();
+    }
+    
     destroy() {
-        // Unsubscribe from state changes
-        if (this.stateUnsubscribe) {
-            this.stateUnsubscribe();
-        }
-        
         super.destroy();
-    }
-}
-
-/**
- * MultiStepForm - Enhanced main manager for multi-step forms
- */
-class MultiStepForm {
-    constructor(factory, config) {
-        this.factory = factory;
-        this.config = config;
-        this.steps = config.steps || [];
-        this.currentStep = 0;
-        this.formData = config.initialData || {};
-        this.onSubmit = config.onSubmit || null;
-        this.onStepChange = config.onStepChange || null;
-        this.validateOnNext = config.validateOnNext !== false;
-        this.showProgress = config.showProgress !== false;
-        this.saveProgressEnabled = config.saveProgress !== false;
-        this.storageKey = config.storageKey || 'multistep_form_data';
-        
-        this.container = null;
-        this.stepInstances = [];
-        this.progressBar = null;
-        this.navigationButtons = null;
-        
-        // Performance tracking
-        this.performanceMetrics = {
-            stepRenderTimes: [],
-            validationTimes: [],
-            navigationTimes: []
-        };
-        
-        // Enhanced error tracking
-        this.stepErrors = new Map();
-        
-        this.init();
-    }
-
-    init() {
-        try {
-            this.factory.currentMultiStepForm = this;
-            this.createContainer();
-            this.createProgressBar();
-            this.createSteps();
-            this.createNavigation();
-            this.loadSavedProgress();
-            this.showCurrentStep();
-            
-            // Setup accessibility
-            this.setupAccessibility();
-        } catch (error) {
-            this.factory.errorManager.addError('multistep-form', {
-                message: 'Failed to initialize multi-step form',
-                type: 'initialization',
-                originalError: error
-            });
-        }
-    }
-
-    setupAccessibility() {
-        if (this.container) {
-            this.container.setAttribute('role', 'form');
-            this.container.setAttribute('aria-label', 'Multi-step form');
-            this.container.setAttribute('aria-live', 'polite');
-        }
-    }
-
-    createContainer() {
-        this.container = document.createElement('div');
-        this.container.className = 'multistep-form';
-        this.container.id = this.config.id || 'multistep-form';
-        this.factory.container.appendChild(this.container);
-    }
-
-    createProgressBar() {
-        if (!this.showProgress) return;
-        
-        this.progressBar = new ProgressBar(this, {
-            totalSteps: this.steps.length,
-            currentStep: this.currentStep
-        });
-        this.container.appendChild(this.progressBar.render());
-    }
-
-    createSteps() {
-        this.steps.forEach((stepConfig, index) => {
-            const startTime = performance.now();
-            
-            try {
-                const step = new FormStep(this, {
-                    ...stepConfig,
-                    index: index,
-                    isActive: index === this.currentStep
-                });
-                this.stepInstances.push(step);
-                this.container.appendChild(step.render());
-                
-                const endTime = performance.now();
-                this.performanceMetrics.stepRenderTimes.push({
-                    stepIndex: index,
-                    duration: endTime - startTime
-                });
-                
-            } catch (error) {
-                this.factory.errorManager.addError(`step-${index}`, {
-                    message: `Failed to create step ${index}`,
-                    type: 'step-creation',
-                    originalError: error
-                });
-                
-                // Create fallback step
-                const fallbackStep = this.createFallbackStep(stepConfig, index);
-                this.stepInstances.push(fallbackStep);
-                this.container.appendChild(fallbackStep.render());
-            }
-        });
-    }
-
-    createFallbackStep(stepConfig, index) {
-        return {
-            index,
-            title: stepConfig.title || `Step ${index + 1}`,
-            setActive: (active) => {},
-            validate: () => true,
-            getStepData: () => ({}),
-            setStepData: () => {},
-            reset: () => {},
-            render: () => {
-                const div = document.createElement('div');
-                div.className = 'form-step fallback-step';
-                div.innerHTML = `
-                    <div class="step-error">
-                        <h3>Error Loading Step</h3>
-                        <p>There was an error loading step "${stepConfig.title || index + 1}". Please refresh the page.</p>
-                    </div>
-                `;
-                return div;
-            }
-        };
-    }
-
-    createNavigation() {
-        this.navigationButtons = new NavigationButtons(this);
-        this.container.appendChild(this.navigationButtons.render());
-    }
-
-    showCurrentStep() {
-        const startTime = performance.now();
-        
-        try {
-            this.stepInstances.forEach((step, index) => {
-                step.setActive(index === this.currentStep);
-            });
-            
-            if (this.progressBar) {
-                this.progressBar.updateProgress(this.currentStep);
-            }
-            
-            this.navigationButtons.updateButtons(this.currentStep, this.steps.length);
-            
-            // Announce step change to screen readers
-            const currentStepTitle = this.steps[this.currentStep]?.title || `Step ${this.currentStep + 1}`;
-            this.factory.accessibilityManager.announce(
-                `Now on ${currentStepTitle}, step ${this.currentStep + 1} of ${this.steps.length}`
-            );
-            
-            if (this.onStepChange) {
-                this.onStepChange(this.currentStep, this.stepInstances[this.currentStep]);
-            }
-            
-            const endTime = performance.now();
-            this.performanceMetrics.navigationTimes.push({
-                step: this.currentStep,
-                duration: endTime - startTime
-            });
-            
-        } catch (error) {
-            this.factory.errorManager.addError('step-navigation', {
-                message: 'Error showing current step',
-                type: 'navigation',
-                originalError: error
-            });
-        }
-    }
-
-    async nextStep() {
-        const startTime = performance.now();
-        
-        try {
-            if (this.validateOnNext && !(await this.validateCurrentStep())) {
-                return false;
-            }
-            
-            if (this.currentStep < this.steps.length - 1) {
-                this.currentStep++;
-                this.showCurrentStep();
-                this.saveProgress();
-                
-                const endTime = performance.now();
-                this.performanceMetrics.validationTimes.push({
-                    step: this.currentStep - 1,
-                    duration: endTime - startTime
-                });
-                
-                return true;
-            }
-            return false;
-        } catch (error) {
-            this.factory.errorManager.addError('step-navigation', {
-                message: 'Error navigating to next step',
-                type: 'navigation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    previousStep() {
-        try {
-            if (this.currentStep > 0) {
-                this.currentStep--;
-                this.showCurrentStep();
-                this.saveProgress();
-                return true;
-            }
-            return false;
-        } catch (error) {
-            this.factory.errorManager.addError('step-navigation', {
-                message: 'Error navigating to previous step',
-                type: 'navigation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    goToStep(stepIndex) {
-        try {
-            if (stepIndex >= 0 && stepIndex < this.steps.length) {
-                this.currentStep = stepIndex;
-                this.showCurrentStep();
-                this.saveProgress();
-                return true;
-            }
-            return false;
-        } catch (error) {
-            this.factory.errorManager.addError('step-navigation', {
-                message: `Error navigating to step ${stepIndex}`,
-                type: 'navigation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    async validateCurrentStep() {
-        const startTime = performance.now();
-        
-        try {
-            const currentStepInstance = this.stepInstances[this.currentStep];
-            if (!currentStepInstance || !currentStepInstance.validate) {
-                return true; // If no validation available, consider valid
-            }
-            
-            const isValid = await currentStepInstance.validate();
-            
-            const endTime = performance.now();
-            this.performanceMetrics.validationTimes.push({
-                step: this.currentStep,
-                duration: endTime - startTime,
-                result: isValid
-            });
-            
-            if (!isValid) {
-                this.stepErrors.set(this.currentStep, 'Validation failed');
-                this.factory.accessibilityManager.announce('Please correct the errors before continuing', 'assertive');
-            } else {
-                this.stepErrors.delete(this.currentStep);
-            }
-            
-            return isValid;
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.currentStep}`, {
-                message: 'Error validating current step',
-                type: 'validation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    async validateAllSteps() {
-        try {
-            const results = await Promise.all(
-                this.stepInstances.map(async (step, index) => {
-                    try {
-                        return step.validate ? await step.validate() : true;
-                    } catch (error) {
-                        this.factory.errorManager.addError(`step-${index}`, {
-                            message: `Validation error in step ${index}`,
-                            type: 'validation',
-                            originalError: error
-                        });
-                        return false;
-                    }
-                })
-            );
-            
-            return results.every(result => result);
-        } catch (error) {
-            this.factory.errorManager.addError('form-validation', {
-                message: 'Error validating all steps',
-                type: 'validation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    getFormData() {
-        try {
-            const data = {};
-            this.stepInstances.forEach((step, index) => {
-                try {
-                    Object.assign(data, step.getStepData());
-                } catch (error) {
-                    this.factory.errorManager.addError(`step-${index}`, {
-                        message: `Error getting data from step ${index}`,
-                        type: 'data-collection',
-                        originalError: error
-                    });
-                }
-            });
-            return data;
-        } catch (error) {
-            this.factory.errorManager.addError('form-data', {
-                message: 'Error collecting form data',
-                type: 'data-collection',
-                originalError: error
-            });
-            return {};
-        }
-    }
-
-    setFormData(data) {
-        try {
-            this.formData = { ...this.formData, ...data };
-            this.stepInstances.forEach((step, index) => {
-                try {
-                    step.setStepData(this.formData);
-                } catch (error) {
-                    this.factory.errorManager.addError(`step-${index}`, {
-                        message: `Error setting data for step ${index}`,
-                        type: 'data-setting',
-                        originalError: error
-                    });
-                }
-            });
-        } catch (error) {
-            this.factory.errorManager.addError('form-data', {
-                message: 'Error setting form data',
-                type: 'data-setting',
-                originalError: error
-            });
-        }
-    }
-
-    saveProgress() {
-        if (!this.saveProgressEnabled) return;
-        
-        try {
-            const progressData = {
-                currentStep: this.currentStep,
-                formData: this.getFormData(),
-                timestamp: Date.now(),
-                version: this.config.version || '1.0'
-            };
-            
-            localStorage.setItem(this.storageKey, JSON.stringify(progressData));
-        } catch (error) {
-            this.factory.errorManager.addError('progress-save', {
-                message: 'Failed to save progress',
-                type: 'storage',
-                originalError: error
-            });
-        }
-    }
-
-    loadSavedProgress() {
-        if (!this.saveProgressEnabled) return;
-        
-        try {
-            const saved = localStorage.getItem(this.storageKey);
-            if (saved) {
-                const progressData = JSON.parse(saved);
-                
-                // Check version compatibility
-                const savedVersion = progressData.version || '1.0';
-                const currentVersion = this.config.version || '1.0';
-                
-                if (savedVersion !== currentVersion) {
-                    console.warn('Saved progress version mismatch. Clearing saved data.');
-                    this.clearSavedProgress();
-                    return;
-                }
-                
-                this.currentStep = Math.min(progressData.currentStep || 0, this.steps.length - 1);
-                this.setFormData(progressData.formData || {});
-                
-                this.factory.accessibilityManager.announce('Previous form progress restored');
-            }
-        } catch (error) {
-            this.factory.errorManager.addError('progress-load', {
-                message: 'Failed to load saved progress',
-                type: 'storage',
-                originalError: error
-            });
-            this.clearSavedProgress(); // Clear corrupted data
-        }
-    }
-
-    clearSavedProgress() {
-        try {
-            localStorage.removeItem(this.storageKey);
-        } catch (error) {
-            this.factory.errorManager.addError('progress-clear', {
-                message: 'Failed to clear saved progress',
-                type: 'storage',
-                originalError: error
-            });
-        }
-    }
-
-    reset() {
-        try {
-            this.currentStep = 0;
-            this.formData = {};
-            
-            this.stepInstances.forEach((step, index) => {
-                try {
-                    step.reset();
-                    if (step.fieldInstances) {
-                        step.fieldInstances.forEach(field => {
-                            if (field.hideError) field.hideError();
-                            if (field.setValue) field.setValue('');
-                        });
-                    }
-                } catch (error) {
-                    this.factory.errorManager.addError(`step-${index}`, {
-                        message: `Error resetting step ${index}`,
-                        type: 'reset',
-                        originalError: error
-                    });
-                }
-            });
-            
-            this.factory.formValues = {};
-            this.factory.closeAllDropdowns();
-            this.factory.closeAllInfoPanels();
-            this.clearSavedProgress();
-            this.showCurrentStep();
-            
-            // Reset step errors
-            this.stepErrors.clear();
-            
-            // Reset performance metrics
-            this.performanceMetrics = {
-                stepRenderTimes: [],
-                validationTimes: [],
-                navigationTimes: []
-            };
-            
-            this.stepInstances.forEach(step => {
-                if (step.fieldInstances) {
-                    step.fieldInstances.forEach(field => {
-                        if (field.autoSummary && field.updateContent) {
-                            setTimeout(() => field.updateContent(), 100);
-                        }
-                    });
-                }
-            });
-            
-            this.factory.accessibilityManager.announce('Form has been reset');
-            console.log('Form completely reset');
-            
-        } catch (error) {
-            this.factory.errorManager.addError('form-reset', {
-                message: 'Error resetting form',
-                type: 'reset',
-                originalError: error
-            });
-        }
-    }
-
-    async submit() {
-        try {
-            if (!(await this.validateAllSteps())) {
-                this.factory.accessibilityManager.announce('Please correct all errors before submitting', 'assertive');
-                return false;
-            }
-            
-            const formData = this.getFormData();
-            
-            if (this.onSubmit) {
-                const result = await this.onSubmit(formData);
-                if (result !== false) {
-                    this.clearSavedProgress();
-                    this.factory.accessibilityManager.announce('Form submitted successfully');
-                }
-                return result;
-            }
-            
-            this.clearSavedProgress();
-            this.factory.accessibilityManager.announce('Form data collected successfully');
-            return formData;
-            
-        } catch (error) {
-            this.factory.errorManager.addError('form-submit', {
-                message: 'Error submitting form',
-                type: 'submission',
-                originalError: error
-            });
-            this.factory.accessibilityManager.announce('Error submitting form. Please try again.', 'assertive');
-            return false;
-        }
-    }
-
-    getPerformanceReport() {
-        return {
-            stepRenderTimes: this.performanceMetrics.stepRenderTimes,
-            validationTimes: this.performanceMetrics.validationTimes,
-            navigationTimes: this.performanceMetrics.navigationTimes,
-            averages: {
-                stepRender: this.performanceMetrics.stepRenderTimes.reduce((sum, metric) => sum + metric.duration, 0) / this.performanceMetrics.stepRenderTimes.length || 0,
-                validation: this.performanceMetrics.validationTimes.reduce((sum, metric) => sum + metric.duration, 0) / this.performanceMetrics.validationTimes.length || 0,
-                navigation: this.performanceMetrics.navigationTimes.reduce((sum, metric) => sum + metric.duration, 0) / this.performanceMetrics.navigationTimes.length || 0
-            },
-            errors: Array.from(this.stepErrors.entries())
-        };
-    }
-
-    destroy() {
-        try {
-            // Cleanup step instances
-            this.stepInstances.forEach((step, index) => {
-                try {
-                    if (step.destroy) {
-                        step.destroy();
-                    }
-                } catch (error) {
-                    console.error(`Error destroying step ${index}:`, error);
-                }
-            });
-            
-            // Cleanup DOM
-            if (this.container && this.container.parentNode) {
-                this.container.parentNode.removeChild(this.container);
-            }
-            
-            // Clear references
-            this.factory.currentMultiStepForm = null;
-            this.stepInstances = [];
-            this.container = null;
-            this.progressBar = null;
-            this.navigationButtons = null;
-            
-        } catch (error) {
-            this.factory.errorManager.addError('form-destroy', {
-                message: 'Error destroying multi-step form',
-                type: 'cleanup',
-                originalError: error
-            });
-        }
-    }
-}
-
-/**
- * FormStep - Enhanced with subsection field support and row layout
- */
-class FormStep {
-    constructor(multiStepForm, config) {
-        this.multiStepForm = multiStepForm;
-        this.factory = multiStepForm.factory;
-        this.config = config;
-        this.index = config.index;
-        this.title = config.title || `Step ${this.index + 1}`;
-        this.description = config.description || '';
-        this.fields = config.fields || [];
-        this.validationRules = config.validation || {};
-        this.conditionalLogic = config.conditionalLogic || {};
-        
-        this.container = null;
-        this.fieldInstances = [];
-        this.isActive = config.isActive || false;
-        
-        // Performance tracking
-        this.renderStartTime = null;
-    }
-
-    render() {
-        this.renderStartTime = performance.now();
-        
-        try {
-            this.container = document.createElement('div');
-            this.container.className = `form-step ${this.isActive ? 'active' : 'hidden'}`;
-            this.container.setAttribute('data-step', this.index);
-            this.container.setAttribute('role', 'tabpanel');
-            this.container.setAttribute('aria-labelledby', `step-${this.index}-title`);
-
-            if (this.title) {
-                const titleElement = document.createElement('h2');
-                titleElement.className = 'step-title';
-                titleElement.id = `step-${this.index}-title`;
-                titleElement.textContent = this.title;
-                this.container.appendChild(titleElement);
-            }
-
-
-            const fieldsContainer = document.createElement('div');
-            fieldsContainer.className = 'step-fields';
-            
-            const fieldGroups = this.groupFields(this.fields);
-            
-            fieldGroups.forEach((group, groupIndex) => {
-                try {
-                    if (group.isRow) {
-                        const rowContainer = document.createElement('div');
-                        rowContainer.className = 'field-row';
-                        rowContainer.setAttribute('data-row-group', groupIndex);
-                        
-                        group.fields.forEach((fieldConfig, fieldIndex) => {
-                            const colContainer = document.createElement('div');
-                            colContainer.className = 'field-col';
-                            
-                            const field = this.createField(fieldConfig);
-                            if (field) {
-                                this.fieldInstances.push(field);
-                                const fieldElement = field.render();
-                                if (fieldElement) {
-                                    colContainer.appendChild(fieldElement);
-                                }
-                            }
-                            rowContainer.appendChild(colContainer);
-                        });
-                        
-                        fieldsContainer.appendChild(rowContainer);
-                    } else {
-                        const field = this.createField(group.fields[0]);
-                        if (field) {
-                            this.fieldInstances.push(field);
-                            const fieldElement = field.render();
-                            if (fieldElement) {
-                                fieldsContainer.appendChild(fieldElement);
-                            }
-                        }
-                    }
-                } catch (error) {
-                    this.factory.errorManager.addError(`step-${this.index}-group-${groupIndex}`, {
-                        message: `Error rendering field group ${groupIndex} in step ${this.index}`,
-                        type: 'field-render',
-                        originalError: error
-                    });
-                    
-                    // Create error placeholder
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'field-error';
-                    errorDiv.textContent = 'Error loading field';
-                    fieldsContainer.appendChild(errorDiv);
-                }
-            });
-
-            this.container.appendChild(fieldsContainer);
-            this.setupConditionalLogic();
-            
-            const renderTime = performance.now() - this.renderStartTime;
-            if (renderTime > 100) {
-                console.warn(`Slow step render detected: Step ${this.index} took ${renderTime.toFixed(2)}ms`);
-            }
-            
-            return this.container;
-            
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}`, {
-                message: `Error rendering step ${this.index}`,
-                type: 'step-render',
-                originalError: error
-            });
-            
-            // Return fallback container
-            const fallbackContainer = document.createElement('div');
-            fallbackContainer.className = 'form-step error-step';
-            fallbackContainer.innerHTML = `
-                <div class="step-error">
-                    <h3>Error Loading Step</h3>
-                    <p>There was an error loading this step. Please refresh the page.</p>
-                </div>
-            `;
-            return fallbackContainer;
-        }
-    }
-
-    groupFields(fields) {
-        const groups = [];
-        let i = 0;
-        
-        while (i < fields.length) {
-            const currentField = fields[i];
-            
-            if (currentField.row && i + 1 < fields.length) {
-                const nextField = fields[i + 1];
-                if (nextField.row === currentField.row) {
-                    const rowFields = [];
-                    let j = i;
-                    while (j < fields.length && fields[j].row === currentField.row) {
-                        rowFields.push(fields[j]);
-                        j++;
-                    }
-                    
-                    groups.push({
-                        isRow: true,
-                        fields: rowFields
-                    });
-                    
-                    i = j;
-                    continue;
-                }
-            }
-            
-            groups.push({
-                isRow: false,
-                fields: [currentField]
-            });
-            
-            i++;
-        }
-        
-        return groups;
-    }
-
-    createField(config) {
-        try {
-            const fieldType = config.type;
-            const fieldConfig = {
-                ...config,
-                onChange: (value) => {
-                    this.handleFieldChange(config.name, value);
-                    if (config.onChange) {
-                        config.onChange(value);
-                    }
-                }
-            };
-
-            return this.factory.createField(fieldType, fieldConfig);
-            
-        } catch (error) {
-            this.factory.errorManager.addError(`field-${config.name || config.id}`, {
-                message: `Error creating field ${config.name || config.id}`,
-                type: 'field-creation',
-                originalError: error
-            });
-            return null;
-        }
-    }
-
-    handleFieldChange(fieldName, value) {
-        try {
-            this.multiStepForm.formData[fieldName] = value;
-            this.executeConditionalLogic(fieldName, value);
-            this.multiStepForm.saveProgress();
-        } catch (error) {
-            this.factory.errorManager.addError(`field-change-${fieldName}`, {
-                message: `Error handling field change for ${fieldName}`,
-                type: 'field-change',
-                originalError: error
-            });
-        }
-    }
-
-    setupConditionalLogic() {
-        try {
-            Object.keys(this.conditionalLogic).forEach(fieldName => {
-                const currentValue = this.multiStepForm.formData[fieldName];
-                if (currentValue !== undefined) {
-                    this.executeConditionalLogic(fieldName, currentValue);
-                }
-            });
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-conditional-setup`, {
-                message: 'Error setting up conditional logic',
-                type: 'conditional-logic',
-                originalError: error
-            });
-        }
-    }
-
-    executeConditionalLogic(fieldName, value) {
-        try {
-            const logic = this.conditionalLogic[fieldName];
-            if (!logic) return;
-
-            logic.forEach((rule, ruleIndex) => {
-                try {
-                    const { condition, target, action } = rule;
-                    const shouldExecute = this.evaluateCondition(condition, value);
-                    
-                    if (shouldExecute) {
-                        this.executeAction(target, action);
-                    }
-                } catch (error) {
-                    this.factory.errorManager.addError(`conditional-rule-${fieldName}-${ruleIndex}`, {
-                        message: `Error executing conditional rule for ${fieldName}`,
-                        type: 'conditional-logic',
-                        originalError: error
-                    });
-                }
-            });
-        } catch (error) {
-            this.factory.errorManager.addError(`conditional-logic-${fieldName}`, {
-                message: `Error in conditional logic for ${fieldName}`,
-                type: 'conditional-logic',
-                originalError: error
-            });
-        }
-    }
-
-    evaluateCondition(condition, value) {
-        try {
-            if (typeof condition === 'function') {
-                return condition(value);
-            }
-            
-            if (typeof condition === 'object') {
-                const { equals, notEquals, includes, notIncludes } = condition;
-                
-                if (equals !== undefined) {
-                    return value === equals;
-                }
-                if (notEquals !== undefined) {
-                    return value !== notEquals;
-                }
-                if (includes !== undefined) {
-                    return Array.isArray(value) ? value.includes(includes) : value === includes;
-                }
-                if (notIncludes !== undefined) {
-                    return Array.isArray(value) ? !value.includes(notIncludes) : value !== notIncludes;
-                }
-            }
-            
-            return value === condition;
-        } catch (error) {
-            this.factory.errorManager.addError('condition-evaluation', {
-                message: 'Error evaluating condition',
-                type: 'conditional-logic',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    executeAction(target, action) {
-        try {
-            const field = this.fieldInstances.find(f => f.name === target);
-            if (!field) return;
-
-            switch (action.type) {
-                case 'show':
-                    if (field.show) field.show();
-                    break;
-                case 'hide':
-                    if (field.hide) field.hide();
-                    break;
-                case 'enable':
-                    if (field.enable) field.enable();
-                    break;
-                case 'disable':
-                    if (field.disable) field.disable();
-                    break;
-                case 'setValue':
-                    if (field.setValue) field.setValue(action.value);
-                    break;
-                case 'setOptions':
-                    if (field.setOptions) field.setOptions(action.options);
-                    break;
-            }
-        } catch (error) {
-            this.factory.errorManager.addError(`action-execution-${target}`, {
-                message: `Error executing action for ${target}`,
-                type: 'conditional-logic',
-                originalError: error
-            });
-        }
-    }
-
-    setActive(active) {
-        this.isActive = active;
-        if (this.container) {
-            this.container.classList.toggle('active', active);
-            this.container.classList.toggle('hidden', !active);
-            this.container.setAttribute('aria-hidden', !active);
-        }
-    }
-
-    async validate() {
-        try {
-            let isValid = true;
-            const validationPromises = [];
-            
-            this.fieldInstances.forEach(field => {
-                if (field.validate) {
-                    validationPromises.push(field.validate());
-                }
-            });
-            
-            const results = await Promise.all(validationPromises);
-            isValid = results.every(result => result);
-            
-            return isValid;
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-validation`, {
-                message: `Error validating step ${this.index}`,
-                type: 'step-validation',
-                originalError: error
-            });
-            return false;
-        }
-    }
-
-    getStepData() {
-        try {
-            const data = {};
-            this.fieldInstances.forEach(field => {
-                if (field.name && field.getValue) {
-                    data[field.name] = field.getValue();
-                }
-            });
-            return data;
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-data`, {
-                message: `Error getting data from step ${this.index}`,
-                type: 'data-collection',
-                originalError: error
-            });
-            return {};
-        }
-    }
-
-    setStepData(data) {
-        try {
-            this.fieldInstances.forEach(field => {
-                if (field.name && field.setValue && data[field.name] !== undefined) {
-                    field.setValue(data[field.name]);
-                }
-            });
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-set-data`, {
-                message: `Error setting data for step ${this.index}`,
-                type: 'data-setting',
-                originalError: error
-            });
-        }
-    }
-
-    reset() {
-        try {
-            this.fieldInstances.forEach(field => {
-                if (field.setValue) {
-                    field.setValue('');
-                }
-                if (field.hideError) {
-                    field.hideError();
-                }
-            });
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-reset`, {
-                message: `Error resetting step ${this.index}`,
-                type: 'step-reset',
-                originalError: error
-            });
-        }
-    }
-
-    destroy() {
-        try {
-            this.fieldInstances.forEach(field => {
-                if (field.destroy) {
-                    field.destroy();
-                }
-            });
-            this.fieldInstances = [];
-            this.container = null;
-        } catch (error) {
-            this.factory.errorManager.addError(`step-${this.index}-destroy`, {
-                message: `Error destroying step ${this.index}`,
-                type: 'cleanup',
-                originalError: error
-            });
-        }
-    }
-}
-
-/**
- * ProgressBar - Enhanced progress bar for multi-step forms
- */
-class ProgressBar {
-    constructor(multiStepForm, config) {
-        this.multiStepForm = multiStepForm;
-        this.config = config;
-        this.totalSteps = config.totalSteps;
-        this.currentStep = config.currentStep || 0;
-        this.showStepNumbers = config.showStepNumbers !== false;
-        this.showStepTitles = config.showStepTitles !== false;
-        this.animated = config.animated !== false;
-        
-        this.container = null;
-        this.progressFill = null;
-        this.stepInfo = null;
-    }
-
-    render() {
-        try {
-            this.container = document.createElement('div');
-            this.container.className = 'progress-container';
-            this.container.setAttribute('role', 'progressbar');
-            this.container.setAttribute('aria-valuemin', '0');
-            this.container.setAttribute('aria-valuemax', this.totalSteps - 1);
-            this.container.setAttribute('aria-valuenow', this.currentStep);
-
-            const progressBar = document.createElement('div');
-            progressBar.className = 'progress-bar';
-            
-            this.progressFill = document.createElement('div');
-            this.progressFill.className = `progress-fill ${this.animated ? 'animated' : ''}`;
-            progressBar.appendChild(this.progressFill);
-            
-            this.container.appendChild(progressBar);
-
-            if (this.showStepNumbers || this.showStepTitles) {
-                this.stepInfo = document.createElement('div');
-                this.stepInfo.className = 'step-info';
-                this.stepInfo.setAttribute('aria-live', 'polite');
-                this.container.appendChild(this.stepInfo);
-            }
-
-            this.updateProgress(this.currentStep);
-            
-            return this.container;
-        } catch (error) {
-            this.multiStepForm.factory.errorManager.addError('progress-bar', {
-                message: 'Error rendering progress bar',
-                type: 'progress-bar',
-                originalError: error
-            });
-            
-            // Return minimal fallback
-            const fallback = document.createElement('div');
-            fallback.className = 'progress-container fallback';
-            fallback.textContent = `Step ${this.currentStep + 1} of ${this.totalSteps}`;
-            return fallback;
-        }
-    }
-
-    updateProgress(currentStep) {
-        try {
-            this.currentStep = currentStep;
-            
-            if (this.progressFill) {
-                const progress = (currentStep / (this.totalSteps - 1)) * 100;
-                const clampedProgress = Math.min(Math.max(progress, 0), 100);
-                
-                this.progressFill.style.width = `${clampedProgress}%`;
-                this.container.setAttribute('aria-valuenow', currentStep);
-                
-                // Update aria-valuetext for better screen reader support
-                const progressText = `Step ${currentStep + 1} of ${this.totalSteps}`;
-                this.container.setAttribute('aria-valuetext', progressText);
-            }
-            
-            if (this.stepInfo) {
-                this.updateStepInfo();
-            }
-        } catch (error) {
-            this.multiStepForm.factory.errorManager.addError('progress-update', {
-                message: 'Error updating progress bar',
-                type: 'progress-bar',
-                originalError: error
-            });
-        }
-    }
-
-    updateStepInfo() {
-        let infoText = '';
-        
-        if (this.showStepNumbers) {
-            infoText += `${this.multiStepForm.factory.getText('step')} ${this.currentStep + 1} ${this.multiStepForm.factory.getText('of')} ${this.totalSteps}`;
-        }
-        
-        if (this.showStepTitles && this.multiStepForm.steps[this.currentStep]) {
-            const stepTitle = this.multiStepForm.steps[this.currentStep].title;
-            if (stepTitle) {
-                if (infoText) infoText += ' - ';
-                infoText += stepTitle;
-            }
-        }
-        
-        this.stepInfo.textContent = infoText;
-    }
-
-    setError() {
-        if (this.progressFill) {
-            this.progressFill.classList.add('error');
-        }
-    }
-
-    clearError() {
-        if (this.progressFill) {
-            this.progressFill.classList.remove('error');
-        }
-    }
-
-    destroy() {
-        this.container = null;
-        this.progressFill = null;
-        this.stepInfo = null;
-    }
-}
-
-/**
- * NavigationButtons - Enhanced navigation buttons for multi-step forms
- */
-class NavigationButtons {
-    constructor(multiStepForm) {
-        this.multiStepForm = multiStepForm;
-        this.factory = multiStepForm.factory;
-        
-        this.container = null;
-        this.prevButton = null;
-        this.nextButton = null;
-        this.submitButton = null;
-        
-        this.isLoading = false;
-    }
-
-    render() {
-        try {
-            this.container = document.createElement('div');
-            this.container.className = 'form-navigation';
-            this.container.setAttribute('role', 'navigation');
-            this.container.setAttribute('aria-label', 'Form navigation');
-
-            this.prevButton = this.createButton('prev', this.factory.getText('previous'), () => {
-                this.multiStepForm.previousStep();
-            });
-
-            this.nextButton = this.createButton('next', this.factory.getText('next'), async () => {
-                await this.handleNext();
-            });
-
-            this.submitButton = this.createButton('submit', this.factory.getText('submit'), async () => {
-                await this.handleSubmit();
-            });
-
-            this.container.appendChild(this.prevButton);
-            this.container.appendChild(this.nextButton);
-            this.container.appendChild(this.submitButton);
-
-            return this.container;
-        } catch (error) {
-            this.factory.errorManager.addError('navigation-buttons', {
-                message: 'Error rendering navigation buttons',
-                type: 'navigation',
-                originalError: error
-            });
-            
-            // Return minimal fallback
-            const fallback = document.createElement('div');
-            fallback.className = 'form-navigation fallback';
-            fallback.innerHTML = '<p>Navigation error. Please refresh the page.</p>';
-            return fallback;
-        }
-    }
-
-    createButton(type, text, clickHandler) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `btn btn-${type}`;
-        button.textContent = text;
-        
-        // Add accessibility attributes
-        button.setAttribute('aria-describedby', `btn-${type}-description`);
-        
-        // Add click handler with error handling
-        button.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            if (this.isLoading) return;
-            
-            try {
-                this.setLoading(button, true);
-                await clickHandler();
-            } catch (error) {
-                this.factory.errorManager.addError(`navigation-${type}`, {
-                    message: `Error in ${type} button handler`,
-                    type: 'navigation',
-                    originalError: error
-                });
-                this.factory.accessibilityManager.announce(`Error: ${error.message}`, 'assertive');
-            } finally {
-                this.setLoading(button, false);
-            }
-        });
-
-        // Add keyboard support
-        button.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                button.click();
-            }
-        });
-
-        return button;
-    }
-
-    async handleNext() {
-        const result = await this.multiStepForm.nextStep();
-        if (!result) {
-            // If validation failed, focus on first error
-            const firstError = this.container.parentElement.querySelector('.error-message.show');
-            if (firstError) {
-                const field = firstError.closest('.form-group')?.querySelector('input, select, textarea');
-                if (field) {
-                    field.focus();
-                }
-            }
-        }
-    }
-
-    async handleSubmit() {
-        const result = await this.multiStepForm.submit();
-        if (result === false) {
-            // If submission failed, focus on first error
-            const firstError = this.container.parentElement.querySelector('.error-message.show');
-            if (firstError) {
-                const field = firstError.closest('.form-group')?.querySelector('input, select, textarea');
-                if (field) {
-                    field.focus();
-                }
-            }
-        }
-    }
-
-    setLoading(button, isLoading) {
-        this.isLoading = isLoading;
-        
-        if (isLoading) {
-            button.disabled = true;
-            button.classList.add('loading');
-            const originalText = button.textContent;
-            button.dataset.originalText = originalText;
-            button.innerHTML = `
-                <span class="loading-spinner"></span>
-                <span>${originalText}...</span>
-            `;
-            button.setAttribute('aria-busy', 'true');
-        } else {
-            button.disabled = false;
-            button.classList.remove('loading');
-            button.textContent = button.dataset.originalText || button.textContent;
-            button.removeAttribute('aria-busy');
-        }
-    }
-
-    updateButtons(currentStep, totalSteps) {
-        try {
-            // Previous button
-            this.prevButton.style.display = currentStep > 0 ? 'inline-block' : 'none';
-            this.prevButton.disabled = currentStep === 0 || this.isLoading;
-            
-            // Next/Submit buttons
-            if (currentStep === totalSteps - 1) {
-                this.nextButton.style.display = 'none';
-                this.submitButton.style.display = 'inline-block';
-                this.submitButton.disabled = this.isLoading;
-            } else {
-                this.nextButton.style.display = 'inline-block';
-                this.nextButton.disabled = this.isLoading;
-                this.submitButton.style.display = 'none';
-            }
-
-            // Update aria-labels for context
-            this.prevButton.setAttribute('aria-label', `Go to previous step (${currentStep} of ${totalSteps})`);
-            
-            if (currentStep === totalSteps - 1) {
-                this.submitButton.setAttribute('aria-label', `Submit form (final step)`);
-            } else {
-                this.nextButton.setAttribute('aria-label', `Go to next step (${currentStep + 2} of ${totalSteps})`);
-            }
-            
-        } catch (error) {
-            this.factory.errorManager.addError('navigation-update', {
-                message: 'Error updating navigation buttons',
-                type: 'navigation',
-                originalError: error
-            });
-        }
-    }
-
-    destroy() {
-        this.container = null;
-        this.prevButton = null;
-        this.nextButton = null;
-        this.submitButton = null;
+        // Calendar specific cleanup if needed
     }
 }
 
