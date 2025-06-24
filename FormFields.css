@@ -2904,3 +2904,10 @@ select:focus-visible,
     white-space: nowrap;
     border: 0;
 }
+.nav-btn.prev-btn svg {
+    transform: rotate(90deg);
+}
+
+.nav-btn.next-btn svg {
+    transform: rotate(-90deg);
+}
