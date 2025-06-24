@@ -6750,6 +6750,10 @@ class ServiceCardField extends BaseField {
 // CALENDAR FIELD CLASS - Add this to FormFieldFactory.js
 // ============================================================================
 
+/**
+ * Enhanced CalendarField - Supports both booking and rescheduling modes
+ * Replace the existing CalendarField in FormFieldFactory.js with this version
+ */
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -6762,6 +6766,12 @@ class CalendarField extends BaseField {
         this.scheduleId = config.scheduleId;
         this.eventName = config.eventName || 'Appointment';
         this.language = config.language || 'en';
+        
+        // Enhanced header configuration
+        this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
+        this.serviceProvider = config.serviceProvider || '';
+        this.currentAppointment = config.currentAppointment || null; // For reschedule mode
+        this.headerIcon = config.headerIcon || 'CALENDAR';
         
         // State
         this.state = {
@@ -6816,7 +6826,7 @@ class CalendarField extends BaseField {
         }
         return next;
     }
-    
+
     async fetchWorkingDays(scheduleId) {
         if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
         
@@ -6893,7 +6903,7 @@ class CalendarField extends BaseField {
             return [];
         }
     }
-    
+
     async createBooking(startTimeISO, fullName, email) {
         if (!this.apiKey || !this.eventTypeId) {
             throw new Error('Missing API key or event type ID');
@@ -6936,6 +6946,45 @@ class CalendarField extends BaseField {
             return null;
         }
     }
+
+    async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
+        if (!this.apiKey || !uid) {
+            throw new Error('Missing API key or booking UID');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
+            const body = {
+                rescheduledBy: rescheduledBy,
+                reschedulingReason: reason,
+                start: startTimeISO
+            };
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Error rescheduling booking:", err);
+            return null;
+        }
+    }
     
     getText(key) {
         const translations = {
@@ -6944,17 +6993,72 @@ class CalendarField extends BaseField {
                 availableTimesFor: "Available times for",
                 noAvailableSlots: "No available time slots for this date",
                 pleaseSelectDate: "Please select a date first",
-                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                currentAppointment: "Current Appointment",
+                newAppointment: "New Appointment"
             },
             fr: {
                 selectDate: "Sélectionnez une date pour voir les horaires disponibles",
                 availableTimesFor: "Disponibilités pour",
                 noAvailableSlots: "Aucun horaire disponible pour cette date",
                 pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                currentAppointment: "Rendez-vous Actuel",
+                newAppointment: "Nouveau Rendez-vous"
             }
         };
         return translations[this.language]?.[key] || key;
+    }
+
+    generateCalendarHeader() {
+        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
+        
+        if (this.mode === 'reschedule' && this.currentAppointment) {
+            return `
+                <div class="calendar-title-content">
+                    <div class="service-provider">
+                        <span class="provider-icon">${iconSvg}</span>
+                        <div class="appointment-details">
+                            <div class="service-name">${this.eventName}</div>
+                            ${this.serviceProvider ? `<div class="provider-name">${this.serviceProvider}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="current-appointment-info">
+                        <div class="appointment-label">${this.getText('currentAppointment')}:</div>
+                        <div class="appointment-datetime">${this.formatCurrentAppointment()}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Booking mode
+            return `
+                <div class="service-provider">
+                    <span class="provider-icon">${iconSvg}</span>
+                    <div class="appointment-details">
+                        <div class="service-name">${this.eventName}</div>
+                        ${this.serviceProvider ? `<div class="provider-name">${this.serviceProvider}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    formatCurrentAppointment() {
+        if (!this.currentAppointment) return '';
+        
+        const date = new Date(this.currentAppointment);
+        const formatOptions = { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        };
+        
+        let locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+        const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+        return formatter.format(date);
     }
     
     render() {
@@ -6964,14 +7068,7 @@ class CalendarField extends BaseField {
             <div class="calendar-container ${this.state.isConfirmed ? 'confirmed' : ''}">
                 <div class="calendar-header">
                     <div class="calendar-title">
-                        <div class="service-provider">
-                            <span class="provider-icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24">
-                                    <path fill="#ffffff" d="M128 0c17.7 0 32 14.3 32 32l0 32 128 0 0-32c0-17.7 14.3-32 32-32s32 14.3 32 32l0 32 48 0c26.5 0 48 21.5 48 48l0 48H0l0-48c0-26.5 21.5-48 48-48l48 0 0-32c0-17.7 14.3-32 32-32zM0 192l448 0 0 272c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 192zm64 80l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm128 0l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zM64 400l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm144-16c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0zm112 16l0 32c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/>
-                                </svg>
-                            </span>
-                            <span>${this.eventName}</span>
-                        </div>
+                        ${this.generateCalendarHeader()}
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button">
