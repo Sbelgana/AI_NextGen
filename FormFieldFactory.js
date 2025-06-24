@@ -6755,6 +6755,11 @@ class ServiceCardField extends BaseField {
  * Replace the existing CalendarField in FormFieldFactory.js with this version
  */
 
+/**
+ * Enhanced CalendarField - Supports both booking and rescheduling modes
+ * Complete updated version with proper header display
+ */
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -6771,6 +6776,7 @@ class CalendarField extends BaseField {
         // Enhanced header configuration
         this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
         this.serviceProvider = config.serviceProvider || '';
+        this.serviceName = config.serviceName || config.eventName || 'Appointment';
         this.currentAppointment = config.currentAppointment || null; // For reschedule mode
         this.headerIcon = config.headerIcon || 'CALENDAR';
         
@@ -7011,7 +7017,7 @@ class CalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
-    // Enhanced header generation with better styling and layout
+    // Enhanced header generation with correct provider/service order
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -7021,8 +7027,8 @@ class CalendarField extends BaseField {
                     <div class="service-provider">
                         <span class="provider-icon">${iconSvg}</span>
                         <div class="appointment-details">
-                            <div class="service-name">${this.eventName}</div>
-                            ${this.serviceProvider ? `<div class="provider-name">${this.serviceProvider}</div>` : ''}
+                            <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                            ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                         </div>
                     </div>
                     <div class="current-appointment-info">
@@ -7037,8 +7043,8 @@ class CalendarField extends BaseField {
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
-                        <div class="service-name">${this.eventName}</div>
-                        ${this.serviceProvider ? `<div class="provider-name">${this.serviceProvider}</div>` : ''}
+                        <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                        ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -7355,7 +7361,6 @@ class CalendarField extends BaseField {
         // Calendar specific cleanup if needed
     }
 }
-
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FormFieldFactory;
