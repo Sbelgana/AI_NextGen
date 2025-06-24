@@ -6754,6 +6754,7 @@ class ServiceCardField extends BaseField {
  * Enhanced CalendarField - Supports both booking and rescheduling modes
  * Replace the existing CalendarField in FormFieldFactory.js with this version
  */
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -7010,6 +7011,7 @@ class CalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
+    // Enhanced header generation with better styling and layout
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -7030,7 +7032,7 @@ class CalendarField extends BaseField {
                 </div>
             `;
         } else {
-            // Booking mode
+            // Enhanced booking mode header
             return `
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
@@ -7071,7 +7073,7 @@ class CalendarField extends BaseField {
                         ${this.generateCalendarHeader()}
                     </div>
                     <div class="calendar-nav">
-                        <button class="nav-btn prev-btn" type="button">
+                        <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(90deg)">
                                 <g transform="translate(75, 75)">
                                     <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
@@ -7079,7 +7081,7 @@ class CalendarField extends BaseField {
                             </svg>
                         </button>
                         <div class="current-date"></div>
-                        <button class="nav-btn next-btn" type="button">
+                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(-90deg)">
                                 <g transform="translate(75, 75)">
                                     <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
@@ -7346,6 +7348,11 @@ class CalendarField extends BaseField {
         this.state.selectedTime = null;
         this.state.availableSlots = {};
         if (this.element) this.renderCalendarData();
+    }
+    
+    destroy() {
+        super.destroy();
+        // Calendar specific cleanup if needed
     }
 }
 
