@@ -6246,282 +6246,65 @@ class CalendarField extends BaseField {
             availableSlots: {},
             workingDays: [1, 2, 3, 4, 5],
             isConfirmed: false,
-            isLoading: false
+            isLoading: false,
+            isInitialized: false // Add initialization flag
         };
         
-        this.init();
+        // FIX: Don't call init in constructor, call it in render
+        this.initPromise = null;
     }
     
+    // FIX: Make init more robust with error handling
     async init() {
-        if (this.scheduleId && this.apiKey) {
-            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
-            if (!this.state.selectedDate) {
-                this.state.selectedDate = this.getDefaultActiveDay();
-                const dayKey = this.formatDate(this.state.selectedDate);
-                const slots = await this.fetchAvailableSlots(dayKey);
-                this.state.availableSlots[dayKey] = slots;
-            }
+        if (this.state.isInitialized || this.initPromise) {
+            return this.initPromise;
         }
-    }
-    
-    formatDate(date) {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    }
-    
-    isSameDay(date1, date2) {
-        if (!date1 || !date2) return false;
-        return this.formatDate(date1) === this.formatDate(date2);
-    }
-    
-    getDefaultActiveDay() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (this.state.workingDays.includes(today.getDay())) return today;
         
-        const next = new Date(today);
-        let daysChecked = 0;
-        while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
-            next.setDate(next.getDate() + 1);
-            daysChecked++;
-        }
-        return next;
-    }
-
-    async fetchWorkingDays(scheduleId) {
-        if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+        console.log('Initializing calendar field...', {
+            scheduleId: this.scheduleId,
+            apiKey: this.apiKey ? 'present' : 'missing',
+            eventTypeId: this.eventTypeId
+        });
         
+        this.initPromise = this.performInit();
+        return this.initPromise;
+    }
+    
+    async performInit() {
         try {
-            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "cal-api-version": "2024-06-11",
-                    "Content-Type": "application/json"
+            if (this.scheduleId && this.apiKey) {
+                this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+                console.log('Fetched working days:', this.state.workingDays);
+                
+                if (!this.state.selectedDate) {
+                    this.state.selectedDate = this.getDefaultActiveDay();
+                    const dayKey = this.formatDate(this.state.selectedDate);
+                    console.log('Getting initial slots for:', dayKey);
+                    const slots = await this.fetchAvailableSlots(dayKey);
+                    this.state.availableSlots[dayKey] = slots;
+                    console.log('Initial slots loaded:', slots.length);
                 }
-            });
+            } else {
+                console.warn('Calendar missing required config:', {
+                    scheduleId: this.scheduleId,
+                    apiKey: !!this.apiKey
+                });
+            }
             
-            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-            
-            const data = await res.json();
-            const availability = data.data?.availability || [];
-            const dayNameToNumber = {
-                "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3,
-                "Thursday": 4, "Friday": 5, "Saturday": 6
-            };
-            
-            const workingDaysSet = new Set();
-            availability.forEach(item => {
-                if (Array.isArray(item.days)) {
-                    item.days.forEach(dayName => {
-                        const dayNum = dayNameToNumber[dayName];
-                        if (dayNum !== undefined) {
-                            workingDaysSet.add(dayNum);
-                        }
-                    });
-                }
-            });
-            
-            return Array.from(workingDaysSet);
-        } catch (err) {
-            console.error("Error fetching schedule:", err);
-            return [1, 2, 3, 4, 5];
+            this.state.isInitialized = true;
+            console.log('Calendar initialization complete');
+        } catch (error) {
+            console.error('Calendar initialization failed:', error);
+            // Set default working days as fallback
+            this.state.workingDays = [1, 2, 3, 4, 5];
+            this.state.isInitialized = true;
         }
     }
     
-    async fetchAvailableSlots(selectedDateISO) {
-        if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
+    // FIX: Enhanced render method with proper async handling
+    async render() {
+        console.log('Rendering calendar field...');
         
-        const start = new Date(selectedDateISO);
-        start.setUTCHours(0, 0, 0, 0);
-        const end = new Date(selectedDateISO);
-        end.setUTCHours(23, 59, 59, 999);
-        
-        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
-        
-        try {
-            const res = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "cal-api-version": "2024-08-13",
-                    "Content-Type": "application/json"
-                }
-            });
-            
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            
-            const responseBody = await res.json();
-            if (responseBody.status !== "success") {
-                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            
-            const slotsObj = responseBody.data?.slots || {};
-            const slotsForDate = slotsObj[selectedDateISO] || [];
-            return slotsForDate.map(slot => slot.time);
-        } catch (err) {
-            console.error("Error fetching available slots:", err);
-            return [];
-        }
-    }
-
-    async createBooking(startTimeISO, fullName, email) {
-        if (!this.apiKey || !this.eventTypeId) {
-            throw new Error('Missing API key or event type ID');
-        }
-        
-        try {
-            const url = `https://api.cal.com/v2/bookings`;
-            const body = {
-                start: startTimeISO,
-                attendee: { 
-                    name: fullName, 
-                    email: email, 
-                    timeZone: this.timezone 
-                },
-                eventTypeId: Number(this.eventTypeId)
-            };
-            
-            const res = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "cal-api-version": "2024-08-13",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(body)
-            });
-            
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            
-            const responseBody = await res.json();
-            if (responseBody.status && responseBody.status !== "success") {
-                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            
-            return responseBody;
-        } catch (err) {
-            console.error("Booking error:", err);
-            return null;
-        }
-    }
-
-    async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
-        if (!this.apiKey || !uid) {
-            throw new Error('Missing API key or booking UID');
-        }
-        
-        try {
-            const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
-            const body = {
-                rescheduledBy: rescheduledBy,
-                reschedulingReason: reason,
-                start: startTimeISO
-            };
-            
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "cal-api-version": "2024-08-13",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(body)
-            });
-            
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            
-            const responseBody = await res.json();
-            if (responseBody.status && responseBody.status !== "success") {
-                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            
-            return responseBody;
-        } catch (err) {
-            console.error("Error rescheduling booking:", err);
-            return null;
-        }
-    }
-    
-    getText(key) {
-        const translations = {
-            en: {
-                selectDate: "Select a date to view available times",
-                availableTimesFor: "Available times for",
-                noAvailableSlots: "No available time slots for this date",
-                pleaseSelectDate: "Please select a date first",
-                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                currentAppointment: "Current Appointment",
-                newAppointment: "New Appointment"
-            },
-            fr: {
-                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-                availableTimesFor: "Disponibilités pour",
-                noAvailableSlots: "Aucun horaire disponible pour cette date",
-                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-                currentAppointment: "Rendez-vous Actuel",
-                newAppointment: "Nouveau Rendez-vous"
-            }
-        };
-        return translations[this.language]?.[key] || key;
-    }
-
-    generateCalendarHeader() {
-        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
-        
-        if (this.mode === 'reschedule' && this.currentAppointment) {
-            return `
-                <div class="calendar-title-content">
-                    <div class="service-provider">
-                        <span class="provider-icon">${iconSvg}</span>
-                        <div class="appointment-details">
-                            <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
-                            ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
-                            <div class="service-name">${this.formatCurrentAppointment()}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="service-provider">
-                    <span class="provider-icon">${iconSvg}</span>
-                    <div class="appointment-details">
-                        <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
-                        ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    formatCurrentAppointment() {
-        if (!this.currentAppointment) return '';
-        
-        const date = new Date(this.currentAppointment);
-        const formatOptions = { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-        };
-        
-        let locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
-        const formatter = new Intl.DateTimeFormat(locale, formatOptions);
-        return formatter.format(date);
-    }
-    
-    render() {
         this.element = document.createElement('div');
         this.element.className = 'form-field calendar-field';
         this.element.innerHTML = `
@@ -6532,12 +6315,12 @@ class CalendarField extends BaseField {
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-							${this.factory.SVG_ICONS.CHEVRON}
-						</button>
-						<div class="current-date"></div>
-						<button class="nav-btn next-btn" type="button" aria-label="Next month">
-							${this.factory.SVG_ICONS.CHEVRON}
-						</button>
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
+                        <div class="current-date"></div>
+                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
                     </div>
                 </div>
                 <div class="calendar-body">
@@ -6553,39 +6336,80 @@ class CalendarField extends BaseField {
             </div>
         `;
         
-        this.renderCalendarData();
-        this.attachCalendarEvents();
+        // FIX: Initialize calendar data asynchronously
+        await this.init();
+        
+        // FIX: Ensure DOM is ready before attaching events
+        setTimeout(() => {
+            this.renderCalendarData();
+            this.attachCalendarEvents();
+            console.log('Calendar events attached');
+        }, 50);
         
         return this.element;
     }
     
-    renderCalendarData() {
-        if (!this.element) return;
-        
-        const currentDateEl = this.element.querySelector('.current-date');
-        if (currentDateEl) {
-            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { month: "long", year: "numeric" });
-            currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
+    // FIX: Enhanced event attachment with better error handling
+    attachCalendarEvents() {
+        if (!this.element) {
+            console.error('Calendar element not found when attaching events');
+            return;
         }
         
-        const weekdaysEl = this.element.querySelector('.weekdays');
-        if (weekdaysEl) {
-            weekdaysEl.innerHTML = '';
-            const weekdays = this.getText('weekdays');
-            weekdays.forEach(day => {
-                const dayEl = document.createElement("div");
-                dayEl.textContent = day;
-                weekdaysEl.appendChild(dayEl);
-            });
+        const prevBtn = this.element.querySelector('.prev-btn');
+        const nextBtn = this.element.querySelector('.next-btn');
+        
+        console.log('Attaching calendar navigation events', {
+            prevBtn: !!prevBtn,
+            nextBtn: !!nextBtn
+        });
+        
+        if (prevBtn) {
+            // FIX: Remove any existing listeners first
+            prevBtn.removeEventListener('click', this.prevClickHandler);
+            this.prevClickHandler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Previous month clicked');
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(
+                        this.state.currentDate.getFullYear(), 
+                        this.state.currentDate.getMonth() - 1, 
+                        1
+                    );
+                    this.renderCalendarData();
+                }
+            };
+            prevBtn.addEventListener('click', this.prevClickHandler);
         }
         
-        this.renderDays();
-        this.renderTimeSlots();
+        if (nextBtn) {
+            // FIX: Remove any existing listeners first
+            nextBtn.removeEventListener('click', this.nextClickHandler);
+            this.nextClickHandler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Next month clicked');
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(
+                        this.state.currentDate.getFullYear(), 
+                        this.state.currentDate.getMonth() + 1, 
+                        1
+                    );
+                    this.renderCalendarData();
+                }
+            };
+            nextBtn.addEventListener('click', this.nextClickHandler);
+        }
     }
     
+    // FIX: Enhanced renderDays with better event handling
     renderDays() {
         const daysEl = this.element.querySelector('.days');
-        if (!daysEl) return;
+        if (!daysEl) {
+            console.error('Days container not found');
+            return;
+        }
         
         daysEl.innerHTML = '';
         let daysToShow = [];
@@ -6594,17 +6418,20 @@ class CalendarField extends BaseField {
         const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
         
+        // Previous month days
         for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
             const day = new Date(firstDay);
             day.setDate(day.getDate() - i - 1);
             daysToShow.push({ date: day, inactive: true });
         }
         
+        // Current month days
         for (let i = 1; i <= totalDays; i++) {
             const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
             daysToShow.push({ date: day, inactive: false });
         }
         
+        // Next month days
         const remainingDays = 42 - daysToShow.length;
         for (let i = 1; i <= remainingDays; i++) {
             const day = new Date(lastDay);
@@ -6638,14 +6465,33 @@ class CalendarField extends BaseField {
                             dayEl.classList.add("active");
                         }
                         dayEl.classList.add("available");
-                        this.addEventListener(dayEl, 'click', async () => {
-                            this.state.selectedDate = new Date(date);
-                            this.state.selectedTime = null;
-                            const dateKey = this.formatDate(date);
-                            const slots = await this.fetchAvailableSlots(dateKey);
-                            this.state.availableSlots[dateKey] = slots;
-                            this.renderCalendarData();
-                            this.updateValue();
+                        
+                        // FIX: Better event handling for day clicks
+                        dayEl.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Day clicked:', date);
+                            
+                            try {
+                                this.state.selectedDate = new Date(date);
+                                this.state.selectedTime = null;
+                                const dateKey = this.formatDate(date);
+                                
+                                // Show loading state
+                                const timeSlotsEl = this.element.querySelector('.time-slots');
+                                if (timeSlotsEl) {
+                                    timeSlotsEl.innerHTML = '<div class="loading">Loading...</div>';
+                                }
+                                
+                                const slots = await this.fetchAvailableSlots(dateKey);
+                                this.state.availableSlots[dateKey] = slots;
+                                console.log('Slots loaded for', dateKey, ':', slots.length);
+                                
+                                this.renderCalendarData();
+                                this.updateValue();
+                            } catch (error) {
+                                console.error('Error selecting date:', error);
+                            }
                         });
                     }
                 }
@@ -6654,11 +6500,15 @@ class CalendarField extends BaseField {
         });
     }
     
+    // FIX: Enhanced renderTimeSlots with better event handling
     renderTimeSlots() {
         const timeHeaderEl = this.element.querySelector('.time-header');
         const timeSlotsEl = this.element.querySelector('.time-slots');
         
-        if (!timeHeaderEl || !timeSlotsEl) return;
+        if (!timeHeaderEl || !timeSlotsEl) {
+            console.error('Time slots container not found');
+            return;
+        }
         
         if (this.state.selectedDate) {
             const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
@@ -6705,7 +6555,12 @@ class CalendarField extends BaseField {
                     });
                     timeSlot.textContent = timeFormatter.format(dateTime);
                     
-                    this.addEventListener(timeSlot, 'click', () => {
+                    // FIX: Better event handling for time slot clicks
+                    timeSlot.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Time slot clicked:', timeISO);
+                        
                         if (!this.state.isConfirmed) {
                             this.state.selectedTime = timeISO;
                             this.renderTimeSlots();
@@ -6731,83 +6586,23 @@ class CalendarField extends BaseField {
         }
     }
     
-    attachCalendarEvents() {
-        if (!this.element) return;
-        
-        const prevBtn = this.element.querySelector('.prev-btn');
-        const nextBtn = this.element.querySelector('.next-btn');
-        
-        if (prevBtn) {
-            this.addEventListener(prevBtn, 'click', () => {
-                if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
-                    this.renderCalendarData();
-                }
-            });
-        }
-        
-        if (nextBtn) {
-            this.addEventListener(nextBtn, 'click', () => {
-                if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
-                    this.renderCalendarData();
-                }
-            });
-        }
-    }
-    
-    updateValue() {
-        const value = {
-            selectedDate: this.state.selectedDate,
-            selectedTime: this.state.selectedTime,
-            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
-                hour: "numeric", minute: "2-digit", hour12: true 
-            }).format(new Date(this.state.selectedTime)) : null
-        };
-        
-        this.handleChange();
-    }
-    
-    getValue() {
-        return {
-            selectedDate: this.state.selectedDate,
-            selectedTime: this.state.selectedTime,
-            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
-                hour: "numeric", minute: "2-digit", hour12: true 
-            }).format(new Date(this.state.selectedTime)) : null
-        };
-    }
-    
-    setValue(value) {
-        if (value && typeof value === 'object') {
-            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
-            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
-            if (this.element) this.renderCalendarData();
-        }
-    }
-    
-    validate() {
-        const isValid = !!(this.state.selectedDate && this.state.selectedTime);
-        if (!isValid && this.required) {
-            this.showError(this.factory.getText('dateTimeRequired'));
-        } else {
-            this.hideError();
-        }
-        return isValid;
-    }
-    
-    reset() {
-        this.state.selectedDate = null;
-        this.state.selectedTime = null;
-        this.state.availableSlots = {};
-        if (this.element) this.renderCalendarData();
-    }
-    
+    // FIX: Ensure proper cleanup
     destroy() {
+        if (this.prevClickHandler && this.element) {
+            const prevBtn = this.element.querySelector('.prev-btn');
+            if (prevBtn) {
+                prevBtn.removeEventListener('click', this.prevClickHandler);
+            }
+        }
+        
+        if (this.nextClickHandler && this.element) {
+            const nextBtn = this.element.querySelector('.next-btn');
+            if (nextBtn) {
+                nextBtn.removeEventListener('click', this.nextClickHandler);
+            }
+        }
+        
         super.destroy();
-        // Calendar specific cleanup if needed
     }
 }
 
