@@ -143,7 +143,7 @@ body {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 10px;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 8px 25px rgba(233, 93, 44, 0.15);
@@ -241,7 +241,7 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   animation: fadeIn 0.6s;
 }
 
@@ -300,7 +300,6 @@ body {
   font-weight: 600;
   color: #1a2730;
   font-size: 15px;
-  margin-bottom: 8px;
 }
 
 .question-label {
@@ -1775,8 +1774,7 @@ input[type="number"]:hover:not(:focus) {
 
 /* Days Container */
 .days-container {
-  width: 47%;
-  padding: 24px;
+  padding: 5px;
   background: #fff;
   border-right: 2px solid #e0e0e0;
 }
@@ -1789,7 +1787,6 @@ input[type="number"]:hover:not(:focus) {
   font-size: 12px;
   color: #e95d2c;
   text-transform: uppercase;
-  margin-bottom: 16px;
 }
 
 .weekdays > div {
@@ -1813,7 +1810,7 @@ input[type="number"]:hover:not(:focus) {
   font-size: 15px;
   font-weight: 600;
   transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  margin: 16px auto auto auto;
+  margin: 0px auto auto auto;
   border: 3px solid transparent;
   border-radius: 16px;
   color: #1a2730;
@@ -1870,8 +1867,8 @@ input[type="number"]:hover:not(:focus) {
 
 /* Times Container */
 .times-container {
-  width: 53%;
-  padding: 16px;
+   width: 60%;
+  padding: 5px;
   background: #fafafa;
   overflow-y: auto;
   max-height: 400px;
@@ -2098,7 +2095,6 @@ input:disabled,
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-  margin-top: 32px;
 }
 
 /* ========================================
@@ -2153,7 +2149,6 @@ select:focus-visible,
 @media (min-width: 1200px) {
   .multistep-form {
     max-width: 1000px;
-    padding: 40px;
   }
   
   .step-title {
@@ -2173,7 +2168,6 @@ select:focus-visible,
 @media (max-width: 1199px) and (min-width: 1000px) {
   .multistep-form {
     max-width: 95%;
-    padding: 32px;
   }
   
   .service-cards-container.columns-4 {
@@ -2203,7 +2197,7 @@ select:focus-visible,
   }
   
   .field-col .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
   
   /* Force two columns override */
@@ -2301,7 +2295,6 @@ select:focus-visible,
 /* Mobile Landscape / Small Tablet (481px - 767px) */
 @media (max-width: 767px) and (min-width: 481px) {
   .multistep-form {
-    padding: 15px;
     margin: 16px;
     border-radius: 8px;
   }
@@ -2335,7 +2328,7 @@ select:focus-visible,
   }
   
   .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
   
   /* Force two columns override */
@@ -2512,7 +2505,6 @@ select:focus-visible,
 @media (max-width: 480px) {
   .multistep-form {
     margin: 4px;
-    padding: 12px;
     border-radius: 8px;
   }
   
@@ -2745,7 +2737,7 @@ select:focus-visible,
     border: 1px solid #000;
     max-width: none;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
   }
   
   .form-navigation,
