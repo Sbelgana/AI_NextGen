@@ -2987,3 +2987,84 @@ select:focus-visible,
 .summary-container::-webkit-scrollbar-thumb:hover {
 	background: #a63e1b;
 }
+
+
+submission-form-extension {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* INFO BUTTON CUSTOM STYLING */
+    .info-button .info-bg {
+        fill: rgba(247, 184, 153, 0.1) !important;
+    }
+    
+    .info-button .info-icon {
+        fill: #e95d2c !important;
+    }
+    
+    .info-button:hover .info-bg {
+        fill: #e95d2c !important;
+    }
+    
+    .info-button:hover .info-icon {
+        fill: white !important;
+    }
+    
+    /* Optional: Add transition for smooth hover effect */
+    .info-button .info-bg,
+    .info-button .info-icon {
+        transition: fill 0.2s ease;
+    }
+    
+    .success-state, .error-state {
+        text-align: center;
+        padding: 40px;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+    
+    .success-state {
+        background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+        color: white;
+    }
+    
+    .error-state {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        color: #333;
+    }
+    
+    .session-warning {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff9800, #f57c00);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        z-index: 10000;
+        max-width: 300px;
+        animation: slideInRight 0.3s ease-out;
+    }
+    
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .timeout-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
