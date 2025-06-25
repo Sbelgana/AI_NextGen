@@ -7524,10 +7524,169 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
+    // FIXED: Enhanced extractValue method to handle complex objects properly
     extractValue(value) {
-        if (value == null) return '';
-        if (typeof value === 'object' && value !== null) return value.selectedValue ?? value.value ?? '';
-        return value;
+        if (value == null || value === undefined) return '';
+        
+        // Handle arrays (multi-select)
+        if (Array.isArray(value)) {
+            return value.map(item => this.extractValue(item)).filter(Boolean).join(', ');
+        }
+        
+        // Handle objects with specific properties
+        if (typeof value === 'object' && value !== null) {
+            // Handle objects with selectedValue (conditional fields)
+            if (value.selectedValue !== undefined) {
+                return this.extractValue(value.selectedValue);
+            }
+            
+            // Handle objects with value property
+            if (value.value !== undefined) {
+                return this.extractValue(value.value);
+            }
+            
+            // Handle objects with name property (option objects)
+            if (value.name !== undefined) {
+                return typeof value.name === 'object' ? 
+                       value.name[this.config.language] || value.name.en || JSON.stringify(value.name) :
+                       value.name;
+            }
+            
+            // Handle objects with id property
+            if (value.id !== undefined) {
+                return value.id;
+            }
+            
+            // For other objects, try to stringify meaningfully
+            const keys = Object.keys(value);
+            if (keys.length === 1) {
+                return this.extractValue(value[keys[0]]);
+            }
+            
+            // As last resort, create a meaningful string representation
+            return keys.map(key => `${key}: ${this.extractValue(value[key])}`).join(', ');
+        }
+        
+        // Handle boolean values
+        if (typeof value === 'boolean') {
+            return value ? this.getText('common.yes') : this.getText('common.no');
+        }
+        
+        // Handle primitive values
+        return String(value);
+    }
+
+    // NEW: Method to format values for display in summary
+    formatValueForDisplay(fieldId, value, fieldConfig = null) {
+        const extractedValue = this.extractValue(value);
+        
+        if (!extractedValue || extractedValue === '') {
+            return this.getText('common.notSpecified') || 'Non spécifié';
+        }
+        
+        // Handle specific field types
+        switch (fieldConfig?.type) {
+            case 'yesno':
+                return typeof value === 'boolean' ? 
+                       (value ? this.getText('common.yes') : this.getText('common.no')) :
+                       extractedValue;
+                       
+            case 'multiselect':
+            case 'multiselect-with-other':
+                if (Array.isArray(value)) {
+                    return value.map(item => this.formatSingleValue(item, fieldConfig)).join(', ');
+                }
+                return this.formatSingleValue(value, fieldConfig);
+                
+            case 'select':
+            case 'select-with-other':
+                return this.formatSingleValue(value, fieldConfig);
+                
+            default:
+                return extractedValue;
+        }
+    }
+    
+    // NEW: Helper method to format single values based on field options
+    formatSingleValue(value, fieldConfig) {
+        if (!fieldConfig?.options) return this.extractValue(value);
+        
+        const options = typeof fieldConfig.options === 'string' ? 
+                       this.getData(fieldConfig.options) : 
+                       fieldConfig.options;
+        
+        const valueId = typeof value === 'object' ? value.id || value.value : value;
+        const option = options.find(opt => opt.id === valueId);
+        
+        return option ? 
+               (typeof option.name === 'object' ? option.name[this.config.language] || option.name.en : option.name) :
+               this.extractValue(value);
+    }
+
+    // NEW: Method to generate formatted summary data
+    generateSummaryData() {
+        const summaryData = {};
+        
+        this.formConfig.steps.forEach((stepConfig, stepIndex) => {
+            if (stepIndex === this.formConfig.steps.length - 1) return; // Skip summary step itself
+            
+            const stepData = {};
+            stepConfig.fields.forEach(fieldConfig => {
+                const value = this.formValues[fieldConfig.id];
+                if (value !== undefined && value !== null && value !== '') {
+                    stepData[fieldConfig.id] = {
+                        label: this.getText(`fields.${fieldConfig.id}`),
+                        value: this.formatValueForDisplay(fieldConfig.id, value, fieldConfig),
+                        rawValue: value
+                    };
+                    
+                    // Handle conditional fields
+                    if (fieldConfig.yesFields && value === true) {
+                        fieldConfig.yesFields.forEach(subField => {
+                            const subValue = this.formValues[subField.id];
+                            if (subValue !== undefined && subValue !== null && subValue !== '') {
+                                stepData[subField.id] = {
+                                    label: this.getText(`fields.${subField.id}`),
+                                    value: this.formatValueForDisplay(subField.id, subValue, subField),
+                                    rawValue: subValue
+                                };
+                            }
+                        });
+                    }
+                    
+                    if (fieldConfig.yesField && value === true) {
+                        const subValue = this.formValues[fieldConfig.yesField.id];
+                        if (subValue !== undefined && subValue !== null && subValue !== '') {
+                            stepData[fieldConfig.yesField.id] = {
+                                label: this.getText(`fields.${fieldConfig.yesField.id}`),
+                                value: this.formatValueForDisplay(fieldConfig.yesField.id, subValue, fieldConfig.yesField),
+                                rawValue: subValue
+                            };
+                        }
+                    }
+                    
+                    if (fieldConfig.noField && value === false) {
+                        const subValue = this.formValues[fieldConfig.noField.id];
+                        if (subValue !== undefined && subValue !== null && subValue !== '') {
+                            stepData[fieldConfig.noField.id] = {
+                                label: this.getText(`fields.${fieldConfig.noField.id}`),
+                                value: this.formatValueForDisplay(fieldConfig.noField.id, subValue, fieldConfig.noField),
+                                rawValue: subValue
+                            };
+                        }
+                    }
+                }
+            });
+            
+            if (Object.keys(stepData).length > 0) {
+                summaryData[`step_${stepIndex}`] = {
+                    title: this.getText(`steps.${stepIndex}.title`),
+                    data: stepData
+                };
+            }
+        });
+        
+        return summaryData;
     }
 
     // CSS Management
@@ -7570,11 +7729,27 @@ class CreatForm {
 
     // Form Creation - Configuration-driven approach
     createFormSteps() {
-        return this.formConfig.steps.map((stepConfig, index) => ({
-            title: this.getText(`steps.${index}.title`),
-            description: this.getText(`steps.${index}.desc`),
-            fields: this.createFields(stepConfig.fields)
-        }));
+        return this.formConfig.steps.map((stepConfig, index) => {
+            // Special handling for summary step
+            if (stepConfig.fields.length === 1 && stepConfig.fields[0].type === 'custom' && stepConfig.fields[0].autoSummary) {
+                return {
+                    title: this.getText(`steps.${index}.title`),
+                    description: this.getText(`steps.${index}.desc`),
+                    fields: [{
+                        type: 'custom',
+                        id: 'summary',
+                        autoSummary: true,
+                        getSummaryData: () => this.generateSummaryData()
+                    }]
+                };
+            }
+            
+            return {
+                title: this.getText(`steps.${index}.title`),
+                description: this.getText(`steps.${index}.desc`),
+                fields: this.createFields(stepConfig.fields)
+            };
+        });
     }
 
     createFields(fieldsConfig) {
@@ -7610,7 +7785,11 @@ class CreatForm {
 
     // Event Handlers
     handleFieldChange = (name, value) => {
-        this.formValues[name] = this.extractValue(value);
+        // Store the raw value, let formatValueForDisplay handle the formatting
+        this.formValues[name] = value;
+        
+        // Debug log to see what we're storing
+        console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
     };
 
     handleSubmission = async (formData) => {
@@ -7650,13 +7829,20 @@ class CreatForm {
     };
 
     prepareDataForSubmission(formValues) {
-        const processedData = this.factory.processAnyFormData(formValues);
+        // Process all form values for submission
+        const processedData = {};
+        
+        Object.keys(formValues).forEach(key => {
+            processedData[key] = this.extractValue(formValues[key]);
+        });
+        
         return {
             ...processedData,
             formLanguage: this.config.language,
             submissionTimestamp: new Date().toISOString(),
             formVersion: this.defaultConfig.FORM_VERSION,
-            userAgent: navigator.userAgent
+            userAgent: navigator.userAgent,
+            summaryData: this.generateSummaryData()
         };
     }
 
@@ -7773,7 +7959,13 @@ class CreatForm {
                 validateOnNext: true,
                 steps: this.createFormSteps(),
                 onSubmit: this.handleSubmission,
-                onStepChange: (stepIndex) => { this.state.currentStep = stepIndex; }
+                onStepChange: (stepIndex) => { 
+                    this.state.currentStep = stepIndex;
+                    // Refresh summary when entering the summary step
+                    if (stepIndex === this.formConfig.steps.length - 1) {
+                        this.refreshSummary();
+                    }
+                }
             };
 
             this.multiStepForm = this.factory.createMultiStepForm(formConfig);
@@ -7789,14 +7981,23 @@ class CreatForm {
         }
     }
 
+    // NEW: Method to refresh the summary display
+    refreshSummary() {
+        if (this.factory && this.factory.refreshSummary) {
+            this.factory.refreshSummary(this.generateSummaryData());
+        }
+    }
+
     createPublicAPI() {
         return {
             destroy: () => this.destroy(),
             getCurrentStep: () => this.state.currentStep,
             getFormData: () => this.multiStepForm?.getFormData() || {},
+            getSummaryData: () => this.generateSummaryData(),
             isInitialized: () => this.state.initialized,
             isSubmitted: () => this.state.formSubmitted,
-            reset: () => this.reset()
+            reset: () => this.reset(),
+            refreshSummary: () => this.refreshSummary()
         };
     }
 
