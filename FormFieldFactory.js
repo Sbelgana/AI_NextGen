@@ -7109,10 +7109,6 @@ class ServiceCardField extends BaseField {
 /**
  * Enhanced CalendarField - Supports both booking and rescheduling modes with personalized error messages
  */
-
-/**
- * Enhanced CalendarField - Supports both booking and rescheduling modes with factory-provided translations
- */
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -7358,19 +7354,28 @@ class CalendarField extends BaseField {
         }
     }
     
-    // Updated getText method to use factory translations from FORM_DATA
     getText(key) {
-        // Try to get from factory first (from FORM_DATA)
-        if (this.factory && this.factory.getText) {
-            const calendarKey = `calendar.${key}`;
-            const factoryText = this.factory.getText(calendarKey);
-            if (factoryText && factoryText !== calendarKey) {
-                return factoryText;
+        const translations = {
+            en: {
+                selectDate: "Select a date to view available times",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                pleaseSelectDate: "Please select a date first",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                currentAppointment: "Current Appointment",
+                newAppointment: "New Appointment"
+            },
+            fr: {
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                availableTimesFor: "Disponibilités pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                currentAppointment: "Rendez-vous Actuel",
+                newAppointment: "Nouveau Rendez-vous"
             }
-        }
-        
-        // Fallback to key if not found
-        return key;
+        };
+        return translations[this.language]?.[key] || key;
     }
 
     // Enhanced header generation with date directly under service name for reschedule mode
@@ -7473,13 +7478,11 @@ class CalendarField extends BaseField {
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
             const weekdays = this.getText('weekdays');
-            if (Array.isArray(weekdays)) {
-                weekdays.forEach(day => {
-                    const dayEl = document.createElement("div");
-                    dayEl.textContent = day;
-                    weekdaysEl.appendChild(dayEl);
-                });
-            }
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysEl.appendChild(dayEl);
+            });
         }
         
         this.renderDays();
@@ -7710,10 +7713,6 @@ class CalendarField extends BaseField {
 /**
  * CreatForm - Main form creation and management class
  */
-
-/**
- * CreatForm - Enhanced version with Calendar and Booking support
- */
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
         this.config = {
@@ -7724,12 +7723,7 @@ class CreatForm {
             enableSessionTimeout: config.enableSessionTimeout !== false,
             sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
             sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
-            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
-            
-            // Enhanced: Add booking-specific config
-            formType: config.formType || 'submission', // 'submission' or 'booking'
-            apiKey: config.apiKey || '',
-            timezone: config.timezone || 'America/Toronto'
+            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY
         };
         
         // Store the passed data
@@ -7751,13 +7745,6 @@ class CreatForm {
     }
 
     getData(path) {
-        // Enhanced: Handle language-specific data for services
-        if (path === 'services') {
-            const services = this.getNestedValue(this.formData.options, `services.${this.config.language}`) || 
-                           this.getNestedValue(this.formData.options, 'services') || [];
-            return Array.isArray(services) ? services : [];
-        }
-        
         const data = this.getNestedValue(this.formData.options, path) || [];
         return Array.isArray(data) ? data.map(item => ({
             ...item,
@@ -8016,7 +8003,6 @@ class CreatForm {
         });
     }
 
-    // Enhanced createFields to handle calendar fields
     createFields(fieldsConfig) {
         return fieldsConfig.map(fieldConfig => {
             const field = {
@@ -8039,23 +8025,6 @@ class CreatForm {
                 }
             }
 
-            // Handle services for serviceCard fields
-            if (fieldConfig.services) {
-                if (typeof fieldConfig.services === 'string') {
-                    field.services = this.getData(fieldConfig.services);
-                } else {
-                    field.services = fieldConfig.services;
-                }
-            }
-
-            // Enhanced: Handle calendar field configuration
-            if (fieldConfig.type === 'calendar') {
-                field.apiKey = this.config.apiKey;
-                field.timezone = this.config.timezone;
-                field.language = this.config.language;
-                field.serviceProvider = field.serviceProvider || "AI NextGen";
-            }
-
             // Handle custom options for yes/no fields
             if (fieldConfig.customOptions) {
                 field.customOptions = fieldConfig.customOptions.map(opt => ({
@@ -8073,76 +8042,14 @@ class CreatForm {
         });
     }
 
-    // Enhanced Event Handlers
+    // Event Handlers
     handleFieldChange = (name, value) => {
         // Store the raw value - let extractValue handle formatting when needed
         this.formValues[name] = value;
         console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
-        
-        // Enhanced: Handle service selection for booking forms
-        if (this.config.formType === 'booking' && name === 'selectedService' && value) {
-            console.log('Service selected:', value);
-            this.updateCalendarConfiguration(value);
-        }
     };
 
-    // Enhanced: Calendar configuration update method for booking forms
-    updateCalendarConfiguration(selectedService) {
-        if (!selectedService || !this.multiStepForm) return;
-        
-        console.log('Updating calendar configuration with service:', selectedService);
-        
-        const calendarField = this.getCalendarFieldInstance();
-        
-        if (calendarField) {
-            console.log('Found calendar field, updating configuration...');
-            
-            calendarField.eventTypeId = selectedService.eventTypeId;
-            calendarField.eventTypeSlug = selectedService.eventTypeSlug;
-            calendarField.scheduleId = selectedService.scheduleId;
-            calendarField.eventName = selectedService.eventName || selectedService.title;
-            calendarField.serviceProvider = selectedService.provider || "AI NextGen";
-            calendarField.serviceName = selectedService.title;
-            calendarField.mode = 'booking';
-            
-            // Reset calendar state
-            calendarField.state.selectedDate = null;
-            calendarField.state.selectedTime = null;
-            calendarField.state.availableSlots = {};
-            
-            // Reinitialize calendar
-            calendarField.init().then(() => {
-                if (calendarField.element) {
-                    calendarField.renderCalendarData();
-                }
-                console.log('Calendar reinitialized with new service configuration');
-            }).catch(error => {
-                console.error('Error reinitializing calendar:', error);
-            });
-        } else {
-            console.log('Calendar field not found, will be configured when step 3 is reached');
-        }
-    }
-
-    // Enhanced: Get calendar field instance
-    getCalendarFieldInstance() {
-        if (this.multiStepForm && this.multiStepForm.stepInstances && this.multiStepForm.stepInstances[2]) {
-            const step3Instance = this.multiStepForm.stepInstances[2];
-            if (step3Instance.fieldInstances) {
-                return step3Instance.fieldInstances.find(field => field.constructor.name === 'CalendarField');
-            }
-        }
-        return null;
-    }
-
-    // Enhanced handleSubmission for different form types
     handleSubmission = async (formData) => {
-        // Check if this is a booking form
-        if (this.config.formType === 'booking') {
-            return this.handleBookingSubmission(formData);
-        }
-        
-        // Original submission logic for regular forms
         const submitButton = document.querySelector('.btn-submit');
         if (submitButton) {
             submitButton.disabled = true;
@@ -8176,113 +8083,6 @@ class CreatForm {
             }
             throw error;
         }
-    };
-
-    // Enhanced: Booking-specific submission handler
-    handleBookingSubmission = async (formData) => {
-        const submitButton = document.querySelector('.btn-submit');
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent = this.getText('nav.processing');
-        }
-
-        try {
-            // Get calendar field and create booking
-            const calendarField = this.getCalendarFieldInstance();
-            if (!calendarField) {
-                throw new Error('Calendar field not found');
-            }
-
-            console.log('Creating booking with data:', formData);
-
-            const bookingResponse = await calendarField.createBooking(
-                formData.appointment.selectedTime,
-                `${formData.firstName} ${formData.lastName}`,
-                formData.email
-            );
-
-            if (!bookingResponse) {
-                throw new Error('Booking creation failed');
-            }
-
-            console.log('Booking created successfully:', bookingResponse);
-
-            this.clearSessionTimers();
-            this.state.formSubmitted = true;
-
-            // Prepare submission data
-            const submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
-
-            // Voiceflow integration
-            if (this.config.voiceflowEnabled && window.voiceflow) {
-                window.voiceflow.chat.interact({
-                    type: "success",
-                    payload: submissionData
-                });
-            }
-
-            this.showSuccessScreen();
-            
-            return submissionData;
-        } catch (error) {
-            console.error('Booking error:', error);
-            if (submitButton) {
-                submitButton.textContent = 'Erreur lors de la réservation. Veuillez réessayer.';
-                submitButton.disabled = false;
-            }
-            throw error;
-        }
-    };
-
-    // Enhanced: Booking data preparation method
-    prepareBookingDataForSubmission(formValues, bookingResponse) {
-        const appointment = formValues.appointment || {};
-        const selectedService = formValues.selectedService || {};
-        
-        const formattedDate = appointment.selectedDate ? 
-            new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            }).format(new Date(appointment.selectedDate)) : '';
-        
-        const formattedTime = appointment.selectedTime ? 
-            new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", { 
-                hour: 'numeric', minute: '2-digit', hour12: true 
-            }).format(new Date(appointment.selectedTime)) : '';
-
-        return {
-            // Contact Information
-            firstName: formValues.firstName || '',
-            lastName: formValues.lastName || '',
-            fullName: `${formValues.firstName || ''} ${formValues.lastName || ''}`.trim(),
-            email: formValues.email || '',
-            
-            // Service Information
-            service: selectedService.eventName || '',
-            serviceTitle: selectedService.title || '',
-            serviceDuration: selectedService.duration || '',
-            serviceId: selectedService.id || '',
-            
-            // Appointment Information
-            appointmentDate: appointment.formattedDate || '',
-            appointmentTime: appointment.formattedTime || '',
-            appointmentDateTime: appointment.selectedTime || '',
-            formattedDate,
-            formattedTime,
-            formattedDateTime: `${formattedDate} ${this.config.language === "fr" ? "à" : "at"} ${formattedTime}`,
-            
-            // Booking Information
-            bookingId: bookingResponse?.data?.id || null,
-            bookingUid: bookingResponse?.data?.uid || null,
-            bookingStatus: bookingResponse?.data?.status || null,
-            
-            // System Information
-            formLanguage: this.config.language,
-            submissionTimestamp: new Date().toISOString(),
-            formVersion: this.defaultConfig.FORM_VERSION,
-            userAgent: navigator.userAgent,
-            formType: "booking_form",
-            timezone: this.config.timezone
-        };
     };
 
     prepareDataForSubmission(formValues) {
@@ -8409,7 +8209,7 @@ class CreatForm {
                     no: this.getText('common.no'),
                     other: this.getText('common.other'),
                     selectAtLeastOne: this.getText('errors.selectAtLeastOne'),
-                    edit: this.getText('summary.editStep') || this.getText('common.edit'),
+                    edit: this.getText('summary.editStep'),
                     language: this.config.language
                 }
             });
@@ -8423,21 +8223,6 @@ class CreatForm {
                 onStepChange: (stepIndex, stepInstance) => { 
                     this.state.currentStep = stepIndex;
                     console.log(`Step changed to ${stepIndex + 1}`);
-                    
-                    // Enhanced: Handle calendar configuration for booking forms
-                    if (this.config.formType === 'booking' && stepIndex === 2) {
-                        console.log('Reached calendar step, checking service selection...');
-                        
-                        if (this.formValues.selectedService) {
-                            console.log('Service already selected, configuring calendar...');
-                            
-                            setTimeout(() => {
-                                this.updateCalendarConfiguration(this.formValues.selectedService);
-                            }, 100);
-                        } else {
-                            console.warn('No service selected when reaching calendar step');
-                        }
-                    }
                     
                     // Update custom fields with autoSummary when entering summary step
                     if (stepInstance && stepInstance.fieldInstances) {
@@ -8473,10 +8258,7 @@ class CreatForm {
             getSummaryData: () => this.generateSummaryData(),
             isInitialized: () => this.state.initialized,
             isSubmitted: () => this.state.formSubmitted,
-            reset: () => this.reset(),
-            // Enhanced: Booking-specific API methods
-            getSelectedService: () => this.formValues.selectedService,
-            getCalendarField: () => this.getCalendarFieldInstance()
+            reset: () => this.reset()
         };
     }
 
