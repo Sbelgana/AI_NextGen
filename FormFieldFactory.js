@@ -7477,7 +7477,7 @@ class CalendarField extends BaseField {
                     <div class="service-provider">
                         <span class="provider-icon">${iconSvg}</span>
                         <div class="appointment-details">
-                            <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                            <div class="provider-name">${this.serviceProvider || 'SkaLean'}</div>
                             ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                             <div class="service-name">${this.formatCurrentAppointment()}</div>
                         </div>
@@ -8182,7 +8182,7 @@ class CreatForm {
             calendarField.eventTypeSlug = selectedService.eventTypeSlug;
             calendarField.scheduleId = selectedService.scheduleId;
             calendarField.eventName = selectedService.eventName || selectedService.title;
-            calendarField.serviceProvider = selectedService.provider || "AI NextGen";
+            calendarField.serviceProvider = selectedService.provider || "SkaLean";
             calendarField.serviceName = selectedService.title;
             calendarField.mode = 'booking';
             
