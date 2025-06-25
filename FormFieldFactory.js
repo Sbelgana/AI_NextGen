@@ -7701,59 +7701,103 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
-    // FIXED: Enhanced extractValue method to handle complex objects properly
+    // FIXED: Enhanced extractValue method to handle nested field values properly
     extractValue(value) {
         if (value == null || value === undefined) return '';
+        
+        // Handle numbers
+        if (typeof value === 'number' && !isNaN(value)) return value;
+        
+        // Handle boolean values - BUT skip if it's already a display string
+        if (typeof value === 'boolean') {
+            return value ? this.getText('common.yes') : this.getText('common.no');
+        }
+        
+        // FIXED: Handle string values that might already be translated
+        if (typeof value === 'string') {
+            // Check if it's already a translated yes/no value to prevent double translation
+            const yesText = this.getText('common.yes');
+            const noText = this.getText('common.no');
+            if (value === yesText || value === noText) {
+                return value; // Already translated, return as-is
+            }
+            // For other strings, return as-is
+            return value;
+        }
         
         // Handle arrays (multi-select)
         if (Array.isArray(value)) {
             return value.map(item => this.extractValue(item)).filter(Boolean).join(', ');
         }
         
-        // Handle objects with specific properties
+        // Handle objects
         if (typeof value === 'object' && value !== null) {
-            // Handle objects with selectedValue (conditional fields)
+            // FIXED: Handle complex objects from YesNoWithOptionsField
+            if (value.main !== undefined) {
+                let result = [];
+                
+                // Add main value
+                const mainDisplay = value.main === 'multilingual' ? this.getText('common.multilingual') :
+                                   value.main === 'unilingual' ? this.getText('common.unilingual') :
+                                   value.main === true ? this.getText('common.yes') :
+                                   value.main === false ? this.getText('common.no') :
+                                   value.main;
+                result.push(mainDisplay);
+                
+                // Add yesValues if present
+                if (value.yesValues && Object.keys(value.yesValues).length > 0) {
+                    Object.values(value.yesValues).forEach(subValue => {
+                        const extracted = this.extractValue(subValue);
+                        if (extracted && extracted !== '') {
+                            result.push(extracted);
+                        }
+                    });
+                }
+                
+                // Add noValues if present
+                if (value.noValues && Object.keys(value.noValues).length > 0) {
+                    Object.values(value.noValues).forEach(subValue => {
+                        const extracted = this.extractValue(subValue);
+                        if (extracted && extracted !== '') {
+                            result.push(extracted);
+                        }
+                    });
+                }
+                
+                return result.filter(Boolean).join(', ');
+            }
+            
+            // Check for selectedValue first (conditional fields)
             if (value.selectedValue !== undefined) {
                 return this.extractValue(value.selectedValue);
             }
             
-            // Handle objects with value property
+            // Check for value property
             if (value.value !== undefined) {
                 return this.extractValue(value.value);
             }
             
-            // Handle objects with name property (option objects)
+            // Check for name property (option objects)
             if (value.name !== undefined) {
                 return typeof value.name === 'object' ? 
-                       value.name[this.config.language] || value.name.en || JSON.stringify(value.name) :
+                       (value.name[this.config.language] || value.name.en || value.name) :
                        value.name;
             }
             
-            // Handle objects with id property
+            // Check for id property
             if (value.id !== undefined) {
                 return value.id;
             }
             
-            // For other objects, try to stringify meaningfully
-            const keys = Object.keys(value);
-            if (keys.length === 1) {
-                return this.extractValue(value[keys[0]]);
-            }
-            
-            // As last resort, create a meaningful string representation
-            return keys.map(key => `${key}: ${this.extractValue(value[key])}`).join(', ');
-        }
-        
-        // Handle boolean values
-        if (typeof value === 'boolean') {
-            return value ? this.getText('common.yes') : this.getText('common.no');
+            // Default fallback - return empty string instead of [object Object]
+            return '';
         }
         
         // Handle primitive values
         return String(value);
     }
 
-    // NEW: Method to format values for display in summary
+    // FIXED: Enhanced formatValueForDisplay method
     formatValueForDisplay(fieldId, value, fieldConfig = null) {
         const extractedValue = this.extractValue(value);
         
@@ -7761,46 +7805,10 @@ class CreatForm {
             return this.getText('common.notSpecified') || 'Non spécifié';
         }
         
-        // Handle specific field types
-        switch (fieldConfig?.type) {
-            case 'yesno':
-                return typeof value === 'boolean' ? 
-                       (value ? this.getText('common.yes') : this.getText('common.no')) :
-                       extractedValue;
-                       
-            case 'multiselect':
-            case 'multiselect-with-other':
-                if (Array.isArray(value)) {
-                    return value.map(item => this.formatSingleValue(item, fieldConfig)).join(', ');
-                }
-                return this.formatSingleValue(value, fieldConfig);
-                
-            case 'select':
-            case 'select-with-other':
-                return this.formatSingleValue(value, fieldConfig);
-                
-            default:
-                return extractedValue;
-        }
+        return extractedValue;
     }
     
-    // NEW: Helper method to format single values based on field options
-    formatSingleValue(value, fieldConfig) {
-        if (!fieldConfig?.options) return this.extractValue(value);
-        
-        const options = typeof fieldConfig.options === 'string' ? 
-                       this.getData(fieldConfig.options) : 
-                       fieldConfig.options;
-        
-        const valueId = typeof value === 'object' ? value.id || value.value : value;
-        const option = options.find(opt => opt.id === valueId);
-        
-        return option ? 
-               (typeof option.name === 'object' ? option.name[this.config.language] || option.name.en : option.name) :
-               this.extractValue(value);
-    }
-
-    // NEW: Method to generate formatted summary data
+    // FIXED: Enhanced summary generation based on working code pattern
     generateSummaryData() {
         const summaryData = {};
         
@@ -7808,51 +7816,42 @@ class CreatForm {
             if (stepIndex === this.formConfig.steps.length - 1) return; // Skip summary step itself
             
             const stepData = {};
-            stepConfig.fields.forEach(fieldConfig => {
-                const value = this.formValues[fieldConfig.id];
-                if (value !== undefined && value !== null && value !== '') {
+            
+            const processField = (fieldConfig, parentValue = null) => {
+                const fieldValue = this.formValues[fieldConfig.id];
+                
+                if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
                     stepData[fieldConfig.id] = {
                         label: this.getText(`fields.${fieldConfig.id}`),
-                        value: this.formatValueForDisplay(fieldConfig.id, value, fieldConfig),
-                        rawValue: value
+                        value: this.formatValueForDisplay(fieldConfig.id, fieldValue, fieldConfig),
+                        rawValue: fieldValue
                     };
                     
-                    // Handle conditional fields
-                    if (fieldConfig.yesFields && value === true) {
-                        fieldConfig.yesFields.forEach(subField => {
-                            const subValue = this.formValues[subField.id];
-                            if (subValue !== undefined && subValue !== null && subValue !== '') {
-                                stepData[subField.id] = {
-                                    label: this.getText(`fields.${subField.id}`),
-                                    value: this.formatValueForDisplay(subField.id, subValue, subField),
-                                    rawValue: subValue
-                                };
+                    // Handle conditional fields for yesno-with-options
+                    if (fieldConfig.type === 'yesno-with-options') {
+                        if (fieldValue === true || fieldValue === 'multilingual') {
+                            // Handle yesFields (array)
+                            if (fieldConfig.yesFields) {
+                                fieldConfig.yesFields.forEach(subField => {
+                                    processField(subField, true);
+                                });
                             }
-                        });
-                    }
-                    
-                    if (fieldConfig.yesField && value === true) {
-                        const subValue = this.formValues[fieldConfig.yesField.id];
-                        if (subValue !== undefined && subValue !== null && subValue !== '') {
-                            stepData[fieldConfig.yesField.id] = {
-                                label: this.getText(`fields.${fieldConfig.yesField.id}`),
-                                value: this.formatValueForDisplay(fieldConfig.yesField.id, subValue, fieldConfig.yesField),
-                                rawValue: subValue
-                            };
-                        }
-                    }
-                    
-                    if (fieldConfig.noField && value === false) {
-                        const subValue = this.formValues[fieldConfig.noField.id];
-                        if (subValue !== undefined && subValue !== null && subValue !== '') {
-                            stepData[fieldConfig.noField.id] = {
-                                label: this.getText(`fields.${fieldConfig.noField.id}`),
-                                value: this.formatValueForDisplay(fieldConfig.noField.id, subValue, fieldConfig.noField),
-                                rawValue: subValue
-                            };
+                            // Handle yesField (single)
+                            if (fieldConfig.yesField) {
+                                processField(fieldConfig.yesField, true);
+                            }
+                        } else if (fieldValue === false || fieldValue === 'unilingual') {
+                            // Handle noField
+                            if (fieldConfig.noField) {
+                                processField(fieldConfig.noField, false);
+                            }
                         }
                     }
                 }
+            };
+            
+            stepConfig.fields.forEach(fieldConfig => {
+                processField(fieldConfig);
             });
             
             if (Object.keys(stepData).length > 0) {
@@ -7907,16 +7906,19 @@ class CreatForm {
     // Form Creation - Configuration-driven approach
     createFormSteps() {
         return this.formConfig.steps.map((stepConfig, index) => {
-            // Special handling for summary step
-            if (stepConfig.fields.length === 1 && stepConfig.fields[0].type === 'custom' && stepConfig.fields[0].autoSummary) {
+            // FIXED: Special handling for summary step - use custom type like working code
+            if (stepConfig.fields.length === 1 && 
+                (stepConfig.fields[0].type === 'summary' || stepConfig.fields[0].autoGenerate || stepConfig.fields[0].type === 'custom')) {
                 return {
                     title: this.getText(`steps.${index}.title`),
                     description: this.getText(`steps.${index}.desc`),
                     fields: [{
                         type: 'custom',
                         id: 'summary',
+                        name: 'summary',
                         autoSummary: true,
-                        getSummaryData: () => this.generateSummaryData()
+                        getSummaryData: () => this.generateSummaryData(),
+                        label: ''
                     }]
                 };
             }
@@ -7962,10 +7964,8 @@ class CreatForm {
 
     // Event Handlers
     handleFieldChange = (name, value) => {
-        // Store the raw value, let formatValueForDisplay handle the formatting
+        // Store the raw value - let extractValue handle formatting when needed
         this.formValues[name] = value;
-        
-        // Debug log to see what we're storing
         console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
     };
 
@@ -8006,11 +8006,12 @@ class CreatForm {
     };
 
     prepareDataForSubmission(formValues) {
-        // Process all form values for submission
+        // Process all form values for submission using the working code approach
         const processedData = {};
         
         Object.keys(formValues).forEach(key => {
-            processedData[key] = this.extractValue(formValues[key]);
+            const value = formValues[key];
+            processedData[key] = this.extractValue(value);
         });
         
         return {
@@ -8113,6 +8114,7 @@ class CreatForm {
             this.container.className = 'submission-form-extension';
             this.container.id = 'submission-form-root';
 
+            // FIXED: Enhanced FormFieldFactory configuration with edit button text
             this.factory = new FormFieldFactory({
                 container: this.container,
                 formValues: this.formValues,
@@ -8127,9 +8129,10 @@ class CreatForm {
                     no: this.getText('common.no'),
                     other: this.getText('common.other'),
                     selectAtLeastOne: this.getText('errors.selectAtLeastOne'),
+                    edit: this.getText('summary.editStep'), // FIXED: Add edit button text
     multilingual: this.getText('common.multilingual'),  // Add this
     unilingual: this.getText('common.unilingual'),      // Add this
-			language: this.config.language
+                    language: this.config.language // FIXED: Pass current language
                 }
             });
 
@@ -8139,11 +8142,19 @@ class CreatForm {
                 validateOnNext: true,
                 steps: this.createFormSteps(),
                 onSubmit: this.handleSubmission,
-                onStepChange: (stepIndex) => { 
+                onStepChange: (stepIndex, stepInstance) => { 
                     this.state.currentStep = stepIndex;
-                    // Refresh summary when entering the summary step
-                    if (stepIndex === this.formConfig.steps.length - 1) {
-                        this.refreshSummary();
+                    console.log(`Step changed to ${stepIndex + 1}`);
+                    
+                    // FIXED: Update custom fields with autoSummary when entering summary step
+                    if (stepInstance && stepInstance.fieldInstances) {
+                        stepInstance.fieldInstances.forEach(fieldInstance => {
+                            if (fieldInstance.autoSummary && fieldInstance.updateContent) {
+                                setTimeout(() => {
+                                    fieldInstance.updateContent();
+                                }, 100);
+                            }
+                        });
                     }
                 }
             };
@@ -8161,13 +8172,6 @@ class CreatForm {
         }
     }
 
-    // NEW: Method to refresh the summary display
-    refreshSummary() {
-        if (this.factory && this.factory.refreshSummary) {
-            this.factory.refreshSummary(this.generateSummaryData());
-        }
-    }
-
     createPublicAPI() {
         return {
             destroy: () => this.destroy(),
@@ -8176,8 +8180,7 @@ class CreatForm {
             getSummaryData: () => this.generateSummaryData(),
             isInitialized: () => this.state.initialized,
             isSubmitted: () => this.state.formSubmitted,
-            reset: () => this.reset(),
-            refreshSummary: () => this.refreshSummary()
+            reset: () => this.reset()
         };
     }
 
