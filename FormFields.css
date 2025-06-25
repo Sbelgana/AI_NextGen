@@ -2800,3 +2800,191 @@ select:focus-visible,
     color: #333;
   }
 }
+
+/* ---------- CUSTOM FIELD SUMMARY STYLES ---------- */
+.summary-container {
+	background: linear-gradient(135deg, #b0cee2 0%, #ffffff 100%);
+	border: 2px solid rgba(2, 48, 71, 0.1);
+	border-radius: 12px;
+	padding: 10px 15px;
+	box-shadow: 0 4px 15px rgba(2, 48, 71, 0.1);
+	margin-bottom: 20px;
+}
+
+.summary-container.auto-summary {
+	background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+	border: 2px solid rgba(233, 93, 44, 0.1);
+	box-shadow: 0 4px 15px rgba(233, 93, 44, 0.1);
+}
+
+.summary-section {
+	margin-bottom: 20px;
+}
+
+.summary-section:last-child {
+	margin-bottom: 0;
+}
+
+.summary-heading {
+	font-size: 16px;
+	font-weight: 600;
+	color: #e95d2c;
+	margin-bottom: 10px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #e0e0e0;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.edit-btn {
+	background: none;
+	border: 1px solid #e95d2c;
+	color: #e95d2c;
+	cursor: pointer;
+	padding: 6px 12px;
+	font-size: 14px;
+	border-radius: 6px;
+	transition: all 0.3s ease;
+	font-weight: 500;
+}
+
+.edit-btn:hover {
+	background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+	color: white;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(233, 93, 44, 0.3);
+}
+
+.summary-content {
+	padding: 0;
+}
+
+.summary-row {
+	display: flex;
+	padding: 6px 0;
+	border-bottom: 1px solid rgba(2, 48, 71, 0.1);
+	align-items: flex-start;
+	transition: all 0.3s ease;
+	margin-bottom: 4px;
+}
+
+.summary-row:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
+.summary-row:hover {
+	background-color: rgba(233, 93, 44, 0.05);
+	border-radius: 8px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.summary-label {
+	font-weight: 600;
+	width: 30%;
+	color: #a63e1b;
+	margin-right: 10px;
+	flex-shrink: 0;
+}
+
+.summary-value {
+	flex: 1;
+	color: #e95d2c;
+	word-wrap: break-word;
+	line-height: 1.4;
+}
+
+.summary-empty {
+	color: #999;
+	font-style: italic;
+	text-align: center;
+	padding: 20px 0;
+	border: 1px dashed #ddd;
+	border-radius: 8px;
+	background-color: #f9f9f9;
+}
+
+/* Responsive adjustments for CustomField */
+@media (max-width: 768px) {
+	.summary-container {
+		padding: 15px;
+		margin-bottom: 15px;
+	}
+	
+	.summary-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	
+	.summary-label {
+		width: 100%;
+		margin-bottom: 4px;
+		margin-right: 0;
+	}
+	
+	.summary-value {
+		width: 100%;
+		padding-left: 10px;
+	}
+	
+	.edit-btn {
+		padding: 8px 12px;
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 480px) {
+	.summary-container {
+		padding: 12px;
+	}
+	
+	.summary-heading {
+		font-size: 14px;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+	
+	.edit-btn {
+		align-self: flex-end;
+		padding: 6px 10px;
+		font-size: 12px;
+	}
+}
+
+/* Animation for summary updates */
+.summary-content {
+	transition: opacity 0.3s ease;
+}
+
+.summary-content.updating {
+	opacity: 0.6;
+}
+
+/* Custom scroll for long summary content */
+.summary-container {
+	max-height: 70vh;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #e95d2c #f1f1f1;
+}
+
+.summary-container::-webkit-scrollbar {
+	width: 6px;
+}
+
+.summary-container::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+
+.summary-container::-webkit-scrollbar-thumb {
+	background: #e95d2c;
+	border-radius: 10px;
+}
+
+.summary-container::-webkit-scrollbar-thumb:hover {
+	background: #a63e1b;
+}
