@@ -1,7 +1,7 @@
 /**
- * Complete FormFieldFactory System - Merged Enhanced Version
- * @version 3.2.0
- * @description Complete form system with multi-step capability, universal data processing, linked fields, and subsections support
+ * Complete FormFieldFactory System - Enhanced with Personalized Error Messages
+ * @version 3.3.0
+ * @description Complete form system with multi-step capability, universal data processing, linked fields, subsections support, and personalized error messages
  */
 class FormFieldFactory {
     constructor(options = {}) {
@@ -652,6 +652,7 @@ this.SVG_ICONS = {
         }
     };
 }
+
 /**
  * MultiStepForm - Enhanced main manager for multi-step forms
  */
@@ -884,9 +885,6 @@ class MultiStepForm {
     }
 }
 
-/**
- * FormStep - Enhanced with subsection field support and row layout
- */
 /**
  * FormStep - Enhanced with subsection field support and row layout
  */
@@ -1190,6 +1188,7 @@ class FormStep {
         });
     }
 }
+
 /**
  * ProgressBar - Progress bar for multi-step forms
  */
@@ -1322,7 +1321,7 @@ class NavigationButtons {
 }
 
 /**
- * BaseField - Enhanced base class for all fields
+ * BaseField - Enhanced base class for all fields with personalized error messages
  */
 class BaseField {
     constructor(factory, config) {
@@ -1337,6 +1336,10 @@ class BaseField {
         this.onChange = config.onChange || null;
         this.customValidation = config.customValidation || null;
         
+        // Custom error messages support
+        this.customErrorMessage = config.customErrorMessage || null;
+        this.customErrorMessages = config.customErrorMessages || {};
+        
         this.infoButton = config.infoButton || null;
         
         this.element = null;
@@ -1344,6 +1347,39 @@ class BaseField {
         this.container = null;
         this.infoPanel = null;
         this.infoPanelInstance = null;
+    }
+
+    // Get field-specific error message
+    getFieldErrorMessage(errorType = 'required') {
+        // Priority: 1. Custom message for specific error type, 2. General custom message, 3. Factory default
+        if (this.customErrorMessages[errorType]) {
+            return this.customErrorMessages[errorType];
+        }
+        
+        if (errorType === 'required' && this.customErrorMessage) {
+            return this.customErrorMessage;
+        }
+        
+        // Fallback to factory defaults based on error type
+        switch (errorType) {
+            case 'required':
+                return this.factory.getText('fieldRequired');
+            case 'invalid':
+            case 'email':
+                return this.factory.getText('emailInvalid');
+            case 'phone':
+                return this.factory.getText('phoneInvalid');
+            case 'url':
+                return this.factory.getText('urlInvalid');
+            case 'selectAtLeastOne':
+                return this.factory.getText('selectAtLeastOne');
+            case 'serviceRequired':
+                return this.factory.getText('serviceRequired');
+            case 'dateTimeRequired':
+                return this.factory.getText('dateTimeRequired');
+            default:
+                return this.factory.getText('fieldRequired');
+        }
     }
 
     createContainer() {
@@ -1513,7 +1549,7 @@ class BaseField {
         this.errorElement.id = `error-${this.id}`;
         this.errorElement.innerHTML = `
             <div class="error-icon">!</div>
-            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+            <span class="error-text">${this.getFieldErrorMessage('required')}</span>
         `;
         return this.errorElement;
     }
@@ -1522,7 +1558,7 @@ class BaseField {
         if (this.errorElement) {
             const errorText = this.errorElement.querySelector('.error-text');
             if (errorText) {
-                errorText.textContent = message || this.factory.getText('fieldRequired');
+                errorText.textContent = message || this.getFieldErrorMessage('required');
             }
             this.errorElement.classList.add('show');
         }
@@ -1536,7 +1572,7 @@ class BaseField {
 
     validate() {
         if (this.required && !this.getValue()) {
-            this.showError(this.factory.getText('fieldRequired'));
+            this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
 
@@ -1606,35 +1642,28 @@ class BaseField {
     render() {
         throw new Error('render() method must be implemented by subclass');
     }
-    // ADD these methods to the BaseField class:
 
-/**
- * Reset field to initial state
- */
-resetToInitial() {
-    this.value = this.defaultValue || '';
-    this.hideError();
-    
-    if (this.element) {
-        if (this.element.type === 'checkbox' || this.element.type === 'radio') {
-            this.element.checked = false;
-        } else {
-            this.element.value = '';
+    resetToInitial() {
+        this.value = this.defaultValue || '';
+        this.hideError();
+        
+        if (this.element) {
+            if (this.element.type === 'checkbox' || this.element.type === 'radio') {
+                this.element.checked = false;
+            } else {
+                this.element.value = '';
+            }
         }
+    }
+
+    clearVisualState() {
+        this.hideError();
+        this.hideInfoPanel();
     }
 }
 
 /**
- * Clear all visual states
- */
-clearVisualState() {
-    this.hideError();
-    this.hideInfoPanel();
-}
-}
-
-/**
- * YesNoField - Yes/No field
+ * YesNoField - Yes/No field with personalized error messages
  */
 class YesNoField extends BaseField {
     render() {
@@ -1683,6 +1712,15 @@ class YesNoField extends BaseField {
         return container;
     }
 
+    validate() {
+        if (this.required && !this.getValue()) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
     getValue() {
         if (this.container) {
             const checkedRadio = this.container.querySelector('input[type="radio"]:checked');
@@ -1701,7 +1739,7 @@ class YesNoField extends BaseField {
 }
 
 /**
- * Enhanced NumberField with support for linked constraints
+ * Enhanced NumberField with support for linked constraints and personalized error messages
  */
 class NumberField extends BaseField {
     constructor(factory, config) {
@@ -1733,6 +1771,15 @@ class NumberField extends BaseField {
         }
         this.hideError();
         return newValue;
+    }
+
+    validate() {
+        if (this.required && (this.value === null || this.value === undefined || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -1860,6 +1907,15 @@ class OptionsStepperField extends BaseField {
         return typeof option === 'object' ? option.value : option;
     }
 
+    validate() {
+        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
     render() {
         this.container = document.createElement('div');
         this.container.className = 'form-group';
@@ -1952,23 +2008,34 @@ class OptionsStepperField extends BaseField {
             this.updateDisplay();
         }
     }
-
-    validate() {
-        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
-            return false;
-        }
-        return true;
-    }
 }
 
 /**
- * TextField - Simple text field
+ * TextField - Simple text field with personalized error messages
  */
 class TextField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         this.maxLength = config.maxLength || null;
         this.minLength = config.minLength || null;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        if (this.minLength && value.length < this.minLength) {
+            const message = this.getFieldErrorMessage('minLength') || 
+                `Minimum ${this.minLength} characters required`;
+            this.showError(message);
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -2001,26 +2068,10 @@ class TextField extends BaseField {
         this.container = container;
         return container;
     }
-
-    validate() {
-        const value = this.getValue();
-        
-        if (this.required && !value) {
-            this.showError(this.factory.getText('fieldRequired'));
-            return false;
-        }
-        
-        if (this.minLength && value.length < this.minLength) {
-            this.showError(`Minimum ${this.minLength} caractères requis`);
-            return false;
-        }
-        
-        return super.validate();
-    }
 }
 
 /**
- * TextAreaField - Multiple text field
+ * TextAreaField - Multiple text field with personalized error messages
  */
 class TextAreaField extends BaseField {
     constructor(factory, config) {
@@ -2029,6 +2080,17 @@ class TextAreaField extends BaseField {
         this.maxLength = config.maxLength || 500;
         this.showCounter = config.showCounter !== false;
         this.minHeight = config.minHeight || 120;
+    }
+
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -2134,9 +2196,25 @@ class TextAreaField extends BaseField {
 }
 
 /**
- * EmailField - Email field
+ * EmailField - Email field with personalized error messages
  */
 class EmailField extends TextField {
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidEmail(value)) {
+            this.showError(this.getFieldErrorMessage('invalid'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
     render() {
         const container = super.render();
         this.element.type = 'email';
@@ -2157,7 +2235,7 @@ class EmailField extends TextField {
 				if (FormFieldFactory.ValidationUtils.isValidEmail(value)) {
 					this.hideError();
 				} else {
-					this.showError(this.factory.getText('emailInvalid'));
+					this.showError(this.getFieldErrorMessage('invalid'));
 				}
 			}
 			this.handleChange();
@@ -2165,28 +2243,28 @@ class EmailField extends TextField {
         
         return container;
     }
+}
 
+/**
+ * PhoneField - Phone field with personalized error messages
+ */
+class PhoneField extends TextField {
     validate() {
         const value = this.getValue();
         
         if (this.required && !value) {
-            this.showError(this.factory.getText('fieldRequired'));
+            this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
         
-        if (value && !FormFieldFactory.ValidationUtils.isValidEmail(value)) {
-            this.showError(this.factory.getText('emailInvalid'));
+        if (value && !FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
+            this.showError(this.getFieldErrorMessage('phone'));
             return false;
         }
         
         return super.validate();
     }
-}
 
-/**
- * PhoneField - Phone field
- */
-class PhoneField extends TextField {
     render() {
         const container = super.render();
         this.element.type = 'tel';
@@ -2207,29 +2285,13 @@ class PhoneField extends TextField {
 				if (FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
 					this.hideError();
 				} else {
-					this.showError(this.factory.getText('phoneInvalid'));
+					this.showError(this.getFieldErrorMessage('phone'));
 				}
 			}
 			this.handleChange();
 		});
         
         return container;
-    }
-
-    validate() {
-        const value = this.getValue();
-        
-        if (this.required && !value) {
-            this.showError(this.factory.getText('fieldRequired'));
-            return false;
-        }
-        
-        if (value && !FormFieldFactory.ValidationUtils.isValidPhoneNumber(value)) {
-            this.showError(this.factory.getText('phoneInvalid'));
-            return false;
-        }
-        
-        return super.validate();
     }
 
     getValue() {
@@ -2239,9 +2301,25 @@ class PhoneField extends TextField {
 }
 
 /**
- * UrlField - URL field
+ * UrlField - URL field with personalized error messages
  */
 class UrlField extends TextField {
+    validate() {
+        const value = this.getValue();
+        
+        if (this.required && !value) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        if (value && !FormFieldFactory.ValidationUtils.isValidUrl(value)) {
+            this.showError(this.getFieldErrorMessage('url'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
     render() {
         const container = super.render();
         this.element.type = 'url';
@@ -2255,7 +2333,7 @@ class UrlField extends TextField {
                     this.value = normalized;
                     this.hideError();
                 } else {
-                    this.showError(this.factory.getText('urlInvalid'));
+                    this.showError(this.getFieldErrorMessage('url'));
                 }
             }
             this.handleChange();
@@ -2271,26 +2349,10 @@ class UrlField extends TextField {
         
         return container;
     }
-
-    validate() {
-        const value = this.getValue();
-        
-        if (this.required && !value) {
-            this.showError(this.factory.getText('fieldRequired'));
-            return false;
-        }
-        
-        if (value && !FormFieldFactory.ValidationUtils.isValidUrl(value)) {
-            this.showError(this.factory.getText('urlInvalid'));
-            return false;
-        }
-        
-        return super.validate();
-    }
 }
 
 /**
- * YesNoWithOptionsField - Enhanced with subsection field support
+ * YesNoWithOptionsField - Enhanced with subsection field support and personalized error messages
  */
 class YesNoWithOptionsField extends BaseField {
     constructor(factory, config) {
@@ -2307,6 +2369,40 @@ class YesNoWithOptionsField extends BaseField {
         
         this.yesFieldInstances = [];
         this.noFieldInstances = [];
+    }
+
+    validate() {
+        if (this.required && !this.getValue().main) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+
+        let isValid = true;
+        const currentValue = this.getValue();
+        
+        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
+            this.yesContainer && this.yesContainer.style.display === 'block') {
+            this.yesFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+        
+        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
+            this.noContainer && this.noContainer.style.display === 'block') {
+            this.noFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
+                }
+            });
+        }
+
+        if (isValid) {
+            this.hideError();
+        }
+
+        return isValid;
     }
 
     render() {
@@ -2609,40 +2705,6 @@ class YesNoWithOptionsField extends BaseField {
             }
         }
     }
-
-    validate() {
-        if (this.required && !this.getValue().main) {
-            this.showError(this.factory.getText('fieldRequired'));
-            return false;
-        }
-
-        let isValid = true;
-        const currentValue = this.getValue();
-        
-        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
-            this.yesContainer && this.yesContainer.style.display === 'block') {
-            this.yesFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
-                }
-            });
-        }
-        
-        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
-            this.noContainer && this.noContainer.style.display === 'block') {
-            this.noFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
-                }
-            });
-        }
-
-        if (isValid) {
-            this.hideError();
-        }
-
-        return isValid;
-    }
     
     groupFields(fields) {
         const groups = [];
@@ -2687,7 +2749,7 @@ class YesNoWithOptionsField extends BaseField {
 }
 
 /**
- * SingleSelectField - Simple dropdown
+ * SingleSelectField - Simple dropdown with personalized error messages
  */
 class SingleSelectField extends BaseField {
     constructor(factory, config) {
@@ -2696,6 +2758,15 @@ class SingleSelectField extends BaseField {
         this.placeholder = config.placeholder || factory.getText('selectPlaceholder');
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required && !this.getValue()) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -2868,7 +2939,7 @@ class SingleSelectField extends BaseField {
 }
 
 /**
- * MultiSelectField - Multiple dropdown
+ * MultiSelectField - Multiple dropdown with personalized error messages
  */
 class MultiSelectField extends BaseField {
     constructor(factory, config) {
@@ -2878,6 +2949,15 @@ class MultiSelectField extends BaseField {
         this.selectedValues = [];
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required && this.selectedValues.length === 0) {
+            this.showError(this.getFieldErrorMessage('selectAtLeastOne'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -3121,19 +3201,10 @@ class MultiSelectField extends BaseField {
             }
         }
     }
-
-    validate() {
-        if (this.required && this.selectedValues.length === 0) {
-            this.showError(this.factory.getText('selectAtLeastOne'));
-            return false;
-        }
-        
-        return super.validate();
-    }
 }
 
 /**
- * SingleSelectSubsectionsField - Single select dropdown with nested subsections
+ * SingleSelectSubsectionsField - Single select dropdown with nested subsections and personalized error messages
  */
 class SingleSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
@@ -3142,6 +3213,15 @@ class SingleSelectSubsectionsField extends BaseField {
         this.placeholder = config.placeholder || factory.getText('selectSubsectionPlaceholder');
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required && !this.getValue()) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -3371,7 +3451,7 @@ class SingleSelectSubsectionsField extends BaseField {
 }
 
 /**
- * MultiSelectSubsectionsField - Multi-select dropdown with nested subsections
+ * MultiSelectSubsectionsField - Multi-select dropdown with nested subsections and personalized error messages
  */
 class MultiSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
@@ -3381,6 +3461,15 @@ class MultiSelectSubsectionsField extends BaseField {
         this.selectedValues = [];
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required && this.selectedValues.length === 0) {
+            this.showError(this.getFieldErrorMessage('selectAtLeastOne'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     render() {
@@ -3770,15 +3859,6 @@ class MultiSelectSubsectionsField extends BaseField {
         }
     }
 
-    validate() {
-        if (this.required && this.selectedValues.length === 0) {
-            this.showError(this.factory.getText('selectAtLeastOne'));
-            return false;
-        }
-        
-        return super.validate();
-    }
-
     cleanup() {
         this.closeDropdown();
         super.cleanup();
@@ -3786,7 +3866,7 @@ class MultiSelectSubsectionsField extends BaseField {
 }
 
 /**
- * CustomField - For special content like summaries
+ * CustomField - For special content like summaries with personalized error messages
  */
 class CustomField extends BaseField {
     constructor(factory, config) {
@@ -3794,6 +3874,11 @@ class CustomField extends BaseField {
         this.renderFunction = config.render || null;
         this.updateFunction = config.update || null;
         this.autoSummary = config.autoSummary || false;
+    }
+
+    validate() {
+        // Custom fields generally don't require validation
+        return super.validate();
     }
 
     render() {
@@ -4052,10 +4137,6 @@ class CustomField extends BaseField {
     setValue(value) {
         // Custom fields don't have settable values
     }
-
-    validate() {
-        return true;
-    }
     
     setStepData(data) {
         if (this.autoSummary) {
@@ -4065,7 +4146,7 @@ class CustomField extends BaseField {
 }
 
 /**
- * SingleSelectWithOtherField - Simple dropdown with "Other" option
+ * SingleSelectWithOtherField - Simple dropdown with "Other" option and personalized error messages
  */
 class SingleSelectWithOtherField extends BaseField {
     constructor(factory, config) {
@@ -4077,6 +4158,30 @@ class SingleSelectWithOtherField extends BaseField {
         this.otherValue = '';
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required) {
+            const mainValue = this.element ? this.element.value : '';
+            
+            if (!mainValue) {
+                this.showError(this.getFieldErrorMessage('required'));
+                return false;
+            }
+            
+            if (mainValue === 'other' && !this.otherValue) {
+                if (this.otherError) {
+                    this.otherError.classList.add('show');
+                }
+                return false;
+            }
+        }
+        
+        this.hideError();
+        if (this.otherError) {
+            this.otherError.classList.remove('show');
+        }
+        return true;
     }
 
     render() {
@@ -4169,7 +4274,7 @@ class SingleSelectWithOtherField extends BaseField {
         this.otherError.id = `error-${this.id}-other`;
         this.otherError.innerHTML = `
             <div class="error-icon">!</div>
-            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+            <span class="error-text">${this.getFieldErrorMessage('required')}</span>
         `;
         
         this.otherContainer.appendChild(otherLabel);
@@ -4296,30 +4401,6 @@ class SingleSelectWithOtherField extends BaseField {
         }
     }
 
-    validate() {
-        if (this.required) {
-            const mainValue = this.element ? this.element.value : '';
-            
-            if (!mainValue) {
-                this.showError(this.factory.getText('fieldRequired'));
-                return false;
-            }
-            
-            if (mainValue === 'other' && !this.otherValue) {
-                if (this.otherError) {
-                    this.otherError.classList.add('show');
-                }
-                return false;
-            }
-        }
-        
-        this.hideError();
-        if (this.otherError) {
-            this.otherError.classList.remove('show');
-        }
-        return true;
-    }
-
     setOptions(newOptions) {
         this.options = newOptions || [];
         
@@ -4376,7 +4457,7 @@ class SingleSelectWithOtherField extends BaseField {
 }
 
 /**
- * MultiSelectWithOtherField - Multiple dropdown with "Other" option
+ * MultiSelectWithOtherField - Multiple dropdown with "Other" option and personalized error messages
  */
 class MultiSelectWithOtherField extends BaseField {
     constructor(factory, config) {
@@ -4389,6 +4470,26 @@ class MultiSelectWithOtherField extends BaseField {
         this.selectedValues = [];
         this.dropdownInstance = null;
         this.isOpen = false;
+    }
+
+    validate() {
+        if (this.required) {
+            const hasMainSelection = this.selectedValues.length > 0;
+            
+            if (!hasMainSelection) {
+                this.showError(this.getFieldErrorMessage('selectAtLeastOne'));
+                return false;
+            }
+            
+            if (this.selectedValues.includes('other') && !this.otherValue) {
+                this.otherError.classList.add('show');
+                return false;
+            }
+        }
+        
+        this.hideError();
+        this.otherError.classList.remove('show');
+        return true;
     }
 
     render() {
@@ -4493,7 +4594,7 @@ class MultiSelectWithOtherField extends BaseField {
         this.otherError.id = `error-${this.id}-other`;
         this.otherError.innerHTML = `
             <div class="error-icon">!</div>
-            <span class="error-text">${this.factory.getText('fieldRequired')}</span>
+            <span class="error-text">${this.getFieldErrorMessage('required')}</span>
         `;
         
         this.otherContainer.appendChild(otherLabel);
@@ -4743,31 +4844,13 @@ class MultiSelectWithOtherField extends BaseField {
         }
     }
 
-    validate() {
-        if (this.required) {
-            const hasMainSelection = this.selectedValues.length > 0;
-            
-            if (!hasMainSelection) {
-                this.showError(this.factory.getText('selectAtLeastOne'));
-                return false;
-            }
-            
-            if (this.selectedValues.includes('other') && !this.otherValue) {
-                this.otherError.classList.add('show');
-                return false;
-            }
-        }
-        
-        this.hideError();
-        this.otherError.classList.remove('show');
-        return true;
-    }
-
     cleanup() {
         this.closeDropdown();
         super.cleanup();
     }
 }
+
+// Continue with additional field classes...
 
 /**
  * SlidingWindowRangeField - Dual range slider with sliding window controls and validation
@@ -4781,7 +4864,7 @@ class SlidingWindowRangeField extends BaseField {
         this.rangeWindow = config.rangeWindow || 1000;
         this.windowStep = config.windowStep || 1000;
         this.minGap = config.minGap || 100;
-        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        this.formatValue = config.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
         
         this.currentMin = config.currentMin || this.min;
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
@@ -4790,6 +4873,15 @@ class SlidingWindowRangeField extends BaseField {
         
         // Validation properties
         this.customValidation = config.customValidation || null;
+    }
+
+    validate() {
+        if (this.required && (!this.selectedMin && !this.selectedMax)) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     // Validation method
@@ -5204,7 +5296,7 @@ class SlidingWindowRangeField extends BaseField {
 }
 
 /**
- * DualRangeField - Standard dual range slider with validation
+ * DualRangeField - Standard dual range slider with validation and personalized error messages
  */
 class DualRangeField extends BaseField {
     constructor(factory, config) {
@@ -5213,12 +5305,21 @@ class DualRangeField extends BaseField {
         this.max = config.max || 10000;
         this.step = config.step || 100;
         this.minGap = config.minGap || 500;
-        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        this.formatValue = config.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
         this.selectedMin = config.defaultMin || this.min + 1000;
         this.selectedMax = config.defaultMax || this.max - 1000;
         
         // Validation properties
         this.customValidation = config.customValidation || null;
+    }
+
+    validate() {
+        if (this.required && (!this.selectedMin && !this.selectedMax)) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     // Validation method
@@ -5576,10 +5677,19 @@ class SliderField extends BaseField {
         this.customValidation = config.customValidation || null;
     }
 
+    validate() {
+        if (this.required && (this.value === null || this.value === undefined || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
+    }
+
     getDefaultFormatter() {
         switch (this.sliderType) {
             case 'currency':
-                return (val) => `$${parseInt(val).toLocaleString()}`;
+                return (val) => `${parseInt(val).toLocaleString()}`;
             case 'percentage':
                 return (val) => `${parseFloat(val).toFixed(1)}%`;
             case 'number':
@@ -5830,6 +5940,15 @@ class OptionsSliderField extends BaseField {
         
         // Validation properties
         this.customValidation = config.customValidation || null;
+    }
+
+    validate() {
+        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     getCurrentValue() {
@@ -6126,7 +6245,6 @@ class OptionsSliderField extends BaseField {
     }
 }
 
-
 /**
  * SlidingWindowSliderField - Single value slider with sliding window controls and validation
  */
@@ -6138,7 +6256,7 @@ class SlidingWindowSliderField extends BaseField {
         this.step = config.step || 100;
         this.rangeWindow = config.rangeWindow || 1000;
         this.windowStep = config.windowStep || 1000;
-        this.formatValue = config.formatValue || ((val) => `$${parseInt(val).toLocaleString()}`);
+        this.formatValue = config.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
         
         this.currentMin = config.currentMin || this.min;
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
@@ -6155,6 +6273,15 @@ class SlidingWindowSliderField extends BaseField {
         
         // Validation properties
         this.customValidation = config.customValidation || null;
+    }
+
+    validate() {
+        if (this.required && (this.selectedValue === null || this.selectedValue === undefined || this.selectedValue === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        return super.validate();
     }
 
     // Validation method
@@ -6456,9 +6583,8 @@ class SlidingWindowSliderField extends BaseField {
     }
 }
 
-
 // ============================================================================
-// SERVICE CARD FIELD CLASS 
+// SERVICE CARD FIELD CLASS WITH PERSONALIZED ERROR MESSAGES
 // ============================================================================
 
 class ServiceCardField extends BaseField {
@@ -6480,6 +6606,22 @@ class ServiceCardField extends BaseField {
         // State
         this.selectedServices = [];
         this.selectedService = null;
+    }
+
+    validate() {
+        const hasSelection = this.selectionMode === 'single' ? 
+            this.selectedService !== null : 
+            this.selectedServices.length > 0;
+            
+        const isValid = !this.required || hasSelection;
+        
+        if (!isValid) {
+            this.showError(this.getFieldErrorMessage('serviceRequired'));
+        } else {
+            this.hideError();
+        }
+        
+        return isValid;
     }
     
     render() {
@@ -6505,7 +6647,7 @@ class ServiceCardField extends BaseField {
             errorContainer.innerHTML = `
                 <div class="error-message" id="${this.id}-error">
                     <div class="error-icon">!</div>
-                    <span class="error-text">${this.factory.texts.fieldRequired || 'This field is required'}</span>
+                    <span class="error-text">${this.getFieldErrorMessage('serviceRequired')}</span>
                 </div>
             `;
             this.element.appendChild(errorContainer);
@@ -6706,22 +6848,6 @@ class ServiceCardField extends BaseField {
         }
     }
     
-    validate() {
-        const hasSelection = this.selectionMode === 'single' ? 
-            this.selectedService !== null : 
-            this.selectedServices.length > 0;
-            
-        const isValid = !this.required || hasSelection;
-        
-        if (!isValid) {
-            this.showError(this.factory.getText('serviceRequired') || 'Please select a service');
-        } else {
-            this.hideError();
-        }
-        
-        return isValid;
-    }
-    
     showError(message) {
         const errorElement = this.element.querySelector(`#${this.id}-error`);
         if (errorElement) {
@@ -6742,19 +6868,12 @@ class ServiceCardField extends BaseField {
 }
 
 // ============================================================================
-// CALENDAR FIELD CLASS - Add this to FormFieldFactory.js
+// CALENDAR FIELD CLASS WITH PERSONALIZED ERROR MESSAGES
 // ============================================================================
 
 /**
- * Enhanced CalendarField - Supports both booking and rescheduling modes
- * Replace the existing CalendarField in FormFieldFactory.js with this version
+ * Enhanced CalendarField - Supports both booking and rescheduling modes with personalized error messages
  */
-
-/**
- * Enhanced CalendarField - Supports both booking and rescheduling modes
- * Complete updated version with proper header display
- */
-
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -6788,6 +6907,18 @@ class CalendarField extends BaseField {
         
         // Initialize
         this.init();
+    }
+
+    validate() {
+        const isValid = !!(this.state.selectedDate && this.state.selectedTime);
+        
+        if (this.required && !isValid) {
+            this.showError(this.getFieldErrorMessage('dateTimeRequired'));
+            return false;
+        }
+        
+        this.hideError();
+        return isValid;
     }
     
     async init() {
@@ -7326,11 +7457,6 @@ class CalendarField extends BaseField {
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
             if (this.element) this.renderCalendarData();
         }
-    }
-    
-    validate() {
-        const isValid = !!(this.state.selectedDate && this.state.selectedTime);
-        return isValid;
     }
     
     reset() {
