@@ -1650,7 +1650,7 @@ input[type="number"]:hover:not(:focus) {
 /* Calendar Container */
 .calendar-field {
   width: 100%;
-  margin: 0;
+      margin-bottom: 10px;
 }
 
 .calendar-container {
