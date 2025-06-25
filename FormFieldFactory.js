@@ -3790,6 +3790,9 @@ class MultiSelectSubsectionsField extends BaseField {
             return;
         }
 
+        // Get language from factory with fallbacks
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+
         // Add Select All option
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
@@ -3815,10 +3818,11 @@ class MultiSelectSubsectionsField extends BaseField {
             mainDiv.className = 'custom-option category-option';
             mainDiv.dataset.value = group.id;
             
-            // Handle multilingual names
-            const groupName = typeof group.name === 'object' 
-                ? group.name[this.factory.config.language] || group.name.fr || group.name.en || group.name
-                : group.name;
+            // Handle multilingual names with better fallbacks
+            let groupName = group.name;
+            if (typeof group.name === 'object' && group.name !== null) {
+                groupName = group.name[language] || group.name.fr || group.name.en || Object.values(group.name)[0] || group.name;
+            }
             
             mainDiv.innerHTML = `
                 <span>${groupName}</span>
@@ -3853,6 +3857,9 @@ class MultiSelectSubsectionsField extends BaseField {
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
         
+        // Get language from factory with fallbacks
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+        
         // Add Select All for this group
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
@@ -3873,10 +3880,11 @@ class MultiSelectSubsectionsField extends BaseField {
         subWrapper.appendChild(selectAllDiv);
         
         group.subcategories.forEach(item => {
-            // Handle multilingual names for subcategories
-            const itemName = typeof item.name === 'object' 
-                ? item.name[this.factory.config.language] || item.name.fr || item.name.en || item.name
-                : item.name;
+            // Handle multilingual names for subcategories with better fallbacks
+            let itemName = item.name;
+            if (typeof item.name === 'object' && item.name !== null) {
+                itemName = item.name[language] || item.name.fr || item.name.en || Object.values(item.name)[0] || item.name;
+            }
                 
             this.element.appendChild(new Option(itemName, item.id));
             
@@ -4058,13 +4066,17 @@ class MultiSelectSubsectionsField extends BaseField {
             span.textContent = this.placeholder;
             this.selectDisplayElement.classList.add('placeholder');
         } else if (this.selectedValues.length === 1) {
+            // Get language from factory with fallbacks
+            const language = this.factory?.config?.language || this.factory?.language || 'fr';
+            
             // Find the option name
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === this.selectedValues[0]);
                 if (option) {
-                    const optionName = typeof option.name === 'object' 
-                        ? option.name[this.factory.config.language] || option.name.fr || option.name.en || option.name
-                        : option.name;
+                    let optionName = option.name;
+                    if (typeof option.name === 'object' && option.name !== null) {
+                        optionName = option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                    }
                     span.textContent = optionName;
                     break;
                 }
