@@ -4048,14 +4048,20 @@ class CustomField extends BaseField {
         step.fields.forEach(fieldConfig => {
             const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
             if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
-                const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
-                if (displayValue) {
-                    contentHtml += `
-                        <div class="summary-row">
-                            <div class="summary-label">${fieldConfig.label}:</div>
-                            <div class="summary-value">${displayValue}</div>
-                        </div>
-                    `;
+                
+                // Special handling for YesNoWithOptionsField
+                if (fieldConfig.type === 'yesno-with-options') {
+                    contentHtml += this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
+                } else {
+                    const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
+                    if (displayValue) {
+                        contentHtml += `
+                            <div class="summary-row">
+                                <div class="summary-label">${fieldConfig.label}:</div>
+                                <div class="summary-value">${displayValue}</div>
+                            </div>
+                        `;
+                    }
                 }
             }
         });
@@ -4063,12 +4069,107 @@ class CustomField extends BaseField {
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
     }
 
+    formatYesNoWithOptionsField(fieldConfig, value) {
+        let html = '';
+        
+        if (typeof value === 'object' && value.main !== undefined) {
+            // Display main field value
+            const mainDisplayValue = this.getMainDisplayValue(value.main);
+            html += `
+                <div class="summary-row">
+                    <div class="summary-label">${fieldConfig.label}:</div>
+                    <div class="summary-value">${mainDisplayValue}</div>
+                </div>
+            `;
+            
+            // Display sub-fields based on the main value
+            if (value.main === true || value.main === 'yes' || value.main === 'multilingual') {
+                // Handle yesFields (array) or yesField (single)
+                if (fieldConfig.yesFields && value.yesValues) {
+                    fieldConfig.yesFields.forEach(subField => {
+                        const subValue = value.yesValues[subField.id];
+                        if (subValue !== undefined && subValue !== null && subValue !== '') {
+                            const subDisplayValue = this.formatFieldValue(subField, subValue);
+                            if (subDisplayValue) {
+                                html += `
+                                    <div class="summary-row">
+                                        <div class="summary-label">${subField.label}:</div>
+                                        <div class="summary-value">${subDisplayValue}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    });
+                } else if (fieldConfig.yesField && value.yesValues) {
+                    const subValue = value.yesValues[fieldConfig.yesField.id];
+                    if (subValue !== undefined && subValue !== null && subValue !== '') {
+                        const subDisplayValue = this.formatFieldValue(fieldConfig.yesField, subValue);
+                        if (subDisplayValue) {
+                            html += `
+                                <div class="summary-row">
+                                    <div class="summary-label">${fieldConfig.yesField.label}:</div>
+                                    <div class="summary-value">${subDisplayValue}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            } else if (value.main === false || value.main === 'no' || value.main === 'unilingual') {
+                // Handle noField
+                if (fieldConfig.noField && value.noValues) {
+                    const subValue = value.noValues[fieldConfig.noField.id];
+                    if (subValue !== undefined && subValue !== null && subValue !== '') {
+                        const subDisplayValue = this.formatFieldValue(fieldConfig.noField, subValue);
+                        if (subDisplayValue) {
+                            html += `
+                                <div class="summary-row">
+                                    <div class="summary-label">${fieldConfig.noField.label}:</div>
+                                    <div class="summary-value">${subDisplayValue}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback for simple values
+            const displayValue = this.formatFieldValue(fieldConfig, value);
+            if (displayValue) {
+                html += `
+                    <div class="summary-row">
+                        <div class="summary-label">${fieldConfig.label}:</div>
+                        <div class="summary-value">${displayValue}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        return html;
+    }
+
+    getMainDisplayValue(mainValue) {
+        switch (mainValue) {
+            case true:
+            case 'yes':
+                return this.factory.getText('yes') || 'Oui';
+            case false:
+            case 'no':
+                return this.factory.getText('no') || 'Non';
+            case 'multilingual':
+                return this.factory.getText('multilingual') || 'Support multilingue';
+            case 'unilingual':
+                return this.factory.getText('unilingual') || 'Langue unique';
+            default:
+                return mainValue;
+        }
+    }
+
     formatFieldValue(fieldConfig, value) {
         const fieldType = fieldConfig.type;
 
         switch (fieldType) {
             case 'yesno':
-                return value === 'yes' ? 
+                return value === 'yes' || value === true ? 
                     (this.factory.getText('yes') || 'Oui') : 
                     (this.factory.getText('no') || 'Non');
 
@@ -4104,28 +4205,10 @@ class CustomField extends BaseField {
                 return Array.isArray(value) ? value.join(', ') : value;
 
             case 'yesno-with-options':
+                // This should not be called anymore since we handle it separately
+                // But keeping as fallback
                 if (typeof value === 'object' && value.main) {
-                    let result = value.main === 'yes' || value.main === 'multilingual' ? 
-                        (value.main === 'multilingual' ? (this.factory.getText('multilingual') || 'Multilingual') : (this.factory.getText('yes') || 'Oui')) : 
-                        (value.main === 'unilingual' ? (this.factory.getText('unilingual') || 'Unilingual') : (this.factory.getText('no') || 'Non'));
-                    
-                    if (value.yesValues) {
-                        const subValues = Object.entries(value.yesValues)
-                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
-                            .filter(v => v)
-                            .join(', ');
-                        if (subValues) result += ` (${subValues})`;
-                    }
-                    
-                    if (value.noValues) {
-                        const subValues = Object.entries(value.noValues)
-                            .map(([key, val]) => this.formatSubValue(key, val, fieldConfig))
-                            .filter(v => v)
-                            .join(', ');
-                        if (subValues) result += ` (${subValues})`;
-                    }
-                    
-                    return result;
+                    return this.getMainDisplayValue(value.main);
                 }
                 return value;
 
@@ -4174,7 +4257,7 @@ class CustomField extends BaseField {
         // Handle regular options array
         if (Array.isArray(options)) {
             const option = options.find(opt => opt.id === value);
-            return option ? option.name : value;
+            return option ? (option.name || option.label) : value;
         }
         
         // Handle subsection options
@@ -4182,7 +4265,7 @@ class CustomField extends BaseField {
             for (const group of options) {
                 if (group.subcategories) {
                     const option = group.subcategories.find(opt => opt.id === value);
-                    if (option) return option.name;
+                    if (option) return option.name || option.label;
                 }
             }
         }
