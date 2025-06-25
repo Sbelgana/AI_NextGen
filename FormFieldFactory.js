@@ -8126,7 +8126,10 @@ class CreatForm {
                     yes: this.getText('common.yes'),
                     no: this.getText('common.no'),
                     other: this.getText('common.other'),
-                    selectAtLeastOne: this.getText('errors.selectAtLeastOne')
+                    selectAtLeastOne: this.getText('errors.selectAtLeastOne'),
+    multilingual: this.getText('common.multilingual'),  // Add this
+    unilingual: this.getText('common.unilingual'),      // Add this
+			language: this.config.language
                 }
             });
 
