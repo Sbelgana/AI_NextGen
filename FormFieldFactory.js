@@ -7713,6 +7713,7 @@ class CalendarField extends BaseField {
 /**
  * CreatForm - Main form creation and management class
  */
+
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
         this.config = {
@@ -7723,7 +7724,11 @@ class CreatForm {
             enableSessionTimeout: config.enableSessionTimeout !== false,
             sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
             sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
-            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY
+            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
+            // Booking-specific configuration
+            formType: config.formType || "submission", // "submission" or "booking"
+            apiKey: config.apiKey || "",
+            timezone: config.timezone || "America/Toronto"
         };
         
         // Store the passed data
@@ -7737,6 +7742,9 @@ class CreatForm {
         this.sessionTimer = null;
         this.warningTimer = null;
         this.cssCache = new Map();
+
+        // Determine if this is a booking form
+        this.isBookingForm = this.config.formType === "booking";
     }
 
     // Utility methods
@@ -7968,9 +7976,10 @@ class CreatForm {
     }
 
     injectCSS(css) {
-        document.querySelector('.submission-form-styles')?.remove();
+        const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
+        document.querySelector(`.${styleClass}`)?.remove();
         const styleElement = document.createElement('style');
-        styleElement.className = 'submission-form-styles';
+        styleElement.className = styleClass;
         styleElement.textContent = css;
         document.head.appendChild(styleElement);
     }
@@ -8017,6 +8026,10 @@ class CreatForm {
             if (fieldConfig.options) {
                 if (typeof fieldConfig.options === 'string') {
                     field.options = this.getData(fieldConfig.options);
+                    // For serviceCard, pass as services
+                    if (fieldConfig.type === 'serviceCard') {
+                        field.services = this.getData(fieldConfig.options);
+                    }
                 } else {
                     field.options = fieldConfig.options.map(opt => ({
                         ...opt,
@@ -8038,15 +8051,142 @@ class CreatForm {
             if (fieldConfig.yesField) field.yesField = this.createFields([fieldConfig.yesField])[0];
             if (fieldConfig.noField) field.noField = this.createFields([fieldConfig.noField])[0];
 
+            // Handle booking-specific calendar field configuration
+            if (fieldConfig.type === 'calendar' && this.isBookingForm) {
+                field.apiKey = this.config.apiKey;
+                field.timezone = this.config.timezone;
+                field.language = this.config.language;
+                // These will be updated when service is selected
+                field.eventTypeId = null;
+                field.eventTypeSlug = null;
+                field.scheduleId = null;
+                field.eventName = "Appointment";
+                field.serviceProvider = "";
+            }
+
             return field;
         });
     }
 
-    // Event Handlers
+    // ============================================================================
+    // BOOKING-SPECIFIC METHODS
+    // ============================================================================
+
+    // Method to update calendar configuration when service is selected (booking forms only)
+    updateCalendarConfiguration(selectedService) {
+        if (!this.isBookingForm || !selectedService || !this.multiStepForm) return;
+        
+        console.log('Updating calendar configuration with service:', selectedService);
+        
+        // Find the calendar field instance
+        const calendarField = this.getCalendarFieldInstance();
+        
+        if (calendarField) {
+            console.log('Found calendar field, updating configuration...');
+            
+            // Update calendar configuration
+            calendarField.apiKey = this.config.apiKey;
+            calendarField.timezone = this.config.timezone;
+            calendarField.eventTypeId = selectedService.eventTypeId;
+            calendarField.eventTypeSlug = selectedService.eventTypeSlug;
+            calendarField.scheduleId = selectedService.scheduleId;
+            calendarField.eventName = selectedService.eventName || selectedService.title;
+            calendarField.serviceProvider = selectedService.provider || "AI NextGen";
+            calendarField.serviceName = selectedService.title;
+            calendarField.mode = 'booking';
+            
+            // Reset calendar state
+            calendarField.state.selectedDate = null;
+            calendarField.state.selectedTime = null;
+            calendarField.state.availableSlots = {};
+            
+            // Reinitialize calendar with new configuration
+            calendarField.init().then(() => {
+                if (calendarField.element) {
+                    calendarField.renderCalendarData();
+                }
+                console.log('Calendar reinitialized with new service configuration');
+            }).catch(error => {
+                console.error('Error reinitializing calendar:', error);
+            });
+        } else {
+            console.log('Calendar field not found, will be configured when calendar step is reached');
+        }
+    }
+
+    // Method to get calendar field instance (booking forms only)
+    getCalendarFieldInstance() {
+        if (!this.isBookingForm || !this.multiStepForm) return null;
+        
+        // Find calendar field in any step
+        for (let stepIndex = 0; stepIndex < this.multiStepForm.stepInstances.length; stepIndex++) {
+            const stepInstance = this.multiStepForm.stepInstances[stepIndex];
+            if (stepInstance && stepInstance.fieldInstances) {
+                const calendarField = stepInstance.fieldInstances.find(field => 
+                    field.constructor.name === 'CalendarField'
+                );
+                if (calendarField) return calendarField;
+            }
+        }
+        return null;
+    }
+
+    // Booking-specific data preparation
+    prepareBookingDataForSubmission(formValues, bookingResponse) {
+        const appointment = formValues.appointment || {};
+        const formattedDate = appointment.selectedDate ? 
+            new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            }).format(new Date(appointment.selectedDate)) : '';
+        
+        const formattedTime = appointment.selectedTime ? 
+            new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: 'numeric', minute: '2-digit', hour12: true 
+            }).format(new Date(appointment.selectedTime)) : '';
+
+        return {
+            firstName: formValues.firstName || '',
+            lastName: formValues.lastName || '',
+            fullName: `${formValues.firstName || ''} ${formValues.lastName || ''}`.trim(),
+            email: formValues.email || '',
+            
+            service: formValues.serviceSelection?.eventName || '',
+            serviceTitle: formValues.serviceSelection?.title || '',
+            serviceDuration: formValues.serviceSelection?.duration || '',
+            
+            appointmentDate: appointment.formattedDate || '',
+            appointmentTime: appointment.formattedTime || '',
+            appointmentDateTime: appointment.selectedTime || '',
+            formattedDate,
+            formattedTime,
+            formattedDateTime: `${formattedDate} ${this.config.language === "fr" ? "à" : "at"} ${formattedTime}`,
+            
+            bookingId: bookingResponse?.data?.id || null,
+            bookingUid: bookingResponse?.data?.uid || null,
+            
+            formLanguage: this.config.language,
+            submissionTimestamp: new Date().toISOString(),
+            formVersion: this.defaultConfig.FORM_VERSION,
+            userAgent: navigator.userAgent,
+            formType: "booking_form",
+            timezone: this.config.timezone
+        };
+    }
+
+    // ============================================================================
+    // EVENT HANDLERS
+    // ============================================================================
+
     handleFieldChange = (name, value) => {
         // Store the raw value - let extractValue handle formatting when needed
         this.formValues[name] = value;
         console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
+        
+        // Handle service selection for booking forms
+        if (this.isBookingForm && name === 'serviceSelection' && value) {
+            console.log('Service selected:', value);
+            this.updateCalendarConfiguration(value);
+        }
     };
 
     handleSubmission = async (formData) => {
@@ -8057,14 +8197,39 @@ class CreatForm {
         }
 
         try {
-            const submissionData = this.prepareDataForSubmission(formData);
-            const response = await fetch(this.config.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(submissionData)
-            });
+            let submissionData;
+            
+            if (this.isBookingForm) {
+                // Booking form submission
+                const calendarField = this.getCalendarFieldInstance();
+                if (!calendarField) {
+                    throw new Error('Calendar field not found');
+                }
 
-            if (!response.ok) throw new Error('Network response was not ok');
+                // Create booking using calendar field
+                const bookingResponse = await calendarField.createBooking(
+                    formData.appointment.selectedTime,
+                    `${formData.firstName} ${formData.lastName}`,
+                    formData.email
+                );
+
+                if (!bookingResponse) {
+                    throw new Error('Booking creation failed');
+                }
+
+                submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
+            } else {
+                // Regular submission form
+                submissionData = this.prepareDataForSubmission(formData);
+                
+                const response = await fetch(this.config.webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submissionData)
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+            }
             
             this.clearSessionTimers();
             this.state.formSubmitted = true;
@@ -8074,11 +8239,14 @@ class CreatForm {
                 window.voiceflow.chat.interact({ type: "success", payload: submissionData });
             }
 
-            return await response.text();
+            return submissionData;
         } catch (error) {
             console.error('Submission error:', error);
             if (submitButton) {
-                submitButton.textContent = 'Erreur lors de la soumission. Veuillez réessayer.';
+                const errorMessage = this.isBookingForm ? 
+                    (this.getText('errors.bookingError') || 'Erreur lors de la réservation. Veuillez réessayer.') :
+                    'Erreur lors de la soumission. Veuillez réessayer.';
+                submitButton.textContent = errorMessage;
                 submitButton.disabled = false;
             }
             throw error;
@@ -8167,7 +8335,9 @@ class CreatForm {
             <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
             <h2>${this.getText('success.title')}</h2>
             <p style="margin: 20px 0;">${this.getText('success.message')}</p>
-            <button type="button" class="btn btn-next" onclick="location.reload()">Retour au formulaire</button>
+            <button type="button" class="btn btn-next" onclick="location.reload()">
+                ${this.isBookingForm ? 'Retour au formulaire' : 'Retour au formulaire'}
+            </button>
         `;
         this.container.appendChild(successScreen);
     }
@@ -8179,7 +8349,7 @@ class CreatForm {
             <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; margin: 20px;">
                 <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
                 <h3 style="color: #333; margin: 0 0 15px 0;">Session Expired</h3>
-                <p style="color: #666; margin: 0;">Your session has expired after 15 minutes of inactivity. The form is no longer available.</p>
+                <p style="color: #666; margin: 0;">Your session has expired after ${this.config.sessionTimeout / 60000} minutes of inactivity. The form is no longer available.</p>
             </div>
         `;
         this.container.appendChild(overlay);
@@ -8191,8 +8361,8 @@ class CreatForm {
             await this.loadCSS();
             
             this.container = document.createElement('div');
-            this.container.className = 'submission-form-extension';
-            this.container.id = 'submission-form-root';
+            this.container.className = this.isBookingForm ? 'booking-form-extension' : 'submission-form-extension';
+            this.container.id = this.isBookingForm ? 'booking-form-root' : 'submission-form-root';
 
             // Enhanced FormFieldFactory configuration with edit button text
             this.factory = new FormFieldFactory({
@@ -8209,7 +8379,7 @@ class CreatForm {
                     no: this.getText('common.no'),
                     other: this.getText('common.other'),
                     selectAtLeastOne: this.getText('errors.selectAtLeastOne'),
-                    edit: this.getText('summary.editStep'),
+                    edit: this.getText('summary.editStep') || this.getText('common.edit'),
                     language: this.config.language
                 }
             });
@@ -8223,6 +8393,21 @@ class CreatForm {
                 onStepChange: (stepIndex, stepInstance) => { 
                     this.state.currentStep = stepIndex;
                     console.log(`Step changed to ${stepIndex + 1}`);
+                    
+                    // Booking-specific: When reaching calendar step, ensure service configuration is applied
+                    if (this.isBookingForm && this.formValues.serviceSelection) {
+                        // Find calendar step (could be step 2 for booking forms)
+                        const calendarStepIndex = this.formConfig.steps.findIndex(step => 
+                            step.fields.some(field => field.type === 'calendar')
+                        );
+                        
+                        if (stepIndex === calendarStepIndex) {
+                            console.log('Reached calendar step, applying service configuration...');
+                            setTimeout(() => {
+                                this.updateCalendarConfiguration(this.formValues.serviceSelection);
+                            }, 100);
+                        }
+                    }
                     
                     // Update custom fields with autoSummary when entering summary step
                     if (stepInstance && stepInstance.fieldInstances) {
@@ -8244,8 +8429,9 @@ class CreatForm {
 
             return this.createPublicAPI();
         } catch (error) {
-            console.error('Failed to render submission form:', error);
-            element.innerHTML = '<div class="error-state">Failed to load submission form</div>';
+            console.error('Failed to render form:', error);
+            const errorMessage = this.isBookingForm ? 'Failed to load booking form' : 'Failed to load submission form';
+            element.innerHTML = `<div class="error-state">${errorMessage}</div>`;
             return { destroy: () => {} };
         }
     }
@@ -8258,7 +8444,11 @@ class CreatForm {
             getSummaryData: () => this.generateSummaryData(),
             isInitialized: () => this.state.initialized,
             isSubmitted: () => this.state.formSubmitted,
-            reset: () => this.reset()
+            isBookingForm: () => this.isBookingForm,
+            reset: () => this.reset(),
+            // Booking-specific API methods
+            getCalendarField: () => this.isBookingForm ? this.getCalendarFieldInstance() : null,
+            updateCalendar: (serviceData) => this.isBookingForm ? this.updateCalendarConfiguration(serviceData) : null
         };
     }
 
@@ -8275,7 +8465,8 @@ class CreatForm {
         this.multiStepForm?.clearSavedProgress();
         this.elements.clear();
         this.container?.remove();
-        document.querySelector('.submission-form-styles')?.remove();
+        const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
+        document.querySelector(`.${styleClass}`)?.remove();
     }
 }
 // Export for module usage
