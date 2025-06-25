@@ -7218,6 +7218,15 @@ class CalendarField extends BaseField {
         this.currentAppointment = config.currentAppointment || null; // For reschedule mode
         this.headerIcon = config.headerIcon || 'CALENDAR';
         
+        // ENHANCED: Store original serviceProvider to prevent loss during updates
+        this.originalServiceProvider = config.serviceProvider || '';
+        this.availableServices = config.availableServices || [];
+        this.dynamicServiceUpdate = config.dynamicServiceUpdate || false;
+        this.onServiceChange = config.onServiceChange || null;
+        
+        // Store full config for reference
+        this.fullConfig = config;
+        
         // State
         this.state = {
             currentDate: new Date(),
@@ -7229,8 +7238,78 @@ class CalendarField extends BaseField {
             isLoading: false
         };
         
+        console.log('CalendarField initialized with serviceProvider:', this.serviceProvider);
+        
         // Initialize
         this.init();
+    }
+
+    // ENHANCED: Method to update calendar configuration while preserving serviceProvider
+    async updateServiceConfiguration(serviceConfig) {
+        console.log('CalendarField: Updating service configuration:', serviceConfig);
+        console.log('CalendarField: Current serviceProvider before update:', this.serviceProvider);
+        
+        // Store original serviceProvider before any updates
+        const preservedServiceProvider = this.originalServiceProvider || this.serviceProvider;
+        
+        // Update calendar properties
+        if (serviceConfig.eventTypeId) this.eventTypeId = serviceConfig.eventTypeId;
+        if (serviceConfig.eventTypeSlug) this.eventTypeSlug = serviceConfig.eventTypeSlug;
+        if (serviceConfig.scheduleId) this.scheduleId = serviceConfig.scheduleId;
+        if (serviceConfig.serviceName) this.serviceName = serviceConfig.serviceName;
+        if (serviceConfig.eventName) this.eventName = serviceConfig.eventName;
+        
+        // CRITICAL: Always preserve the original serviceProvider
+        this.serviceProvider = preservedServiceProvider;
+        
+        console.log('CalendarField: ServiceProvider preserved as:', this.serviceProvider);
+        
+        // Clear current selection and slots since service changed
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+        
+        // Fetch new working days for the new service
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            this.state.selectedDate = this.getDefaultActiveDay();
+            const dayKey = this.formatDate(this.state.selectedDate);
+            const slots = await this.fetchAvailableSlots(dayKey);
+            this.state.availableSlots[dayKey] = slots;
+        }
+        
+        // CRITICAL: Re-render the header with preserved serviceProvider
+        this.updateCalendarHeader();
+        
+        // Re-render the calendar with new configuration
+        if (this.element) {
+            this.renderCalendarData();
+        }
+        
+        // Update form value
+        this.updateValue();
+        
+        console.log('CalendarField: Service configuration updated, final serviceProvider:', this.serviceProvider);
+    }
+
+    // ENHANCED: Method to specifically update calendar header
+    updateCalendarHeader() {
+        if (this.element) {
+            const headerElement = this.element.querySelector('.calendar-title');
+            if (headerElement) {
+                console.log('CalendarField: Updating header with serviceProvider:', this.serviceProvider);
+                headerElement.innerHTML = this.generateCalendarHeader();
+            }
+        }
+    }
+
+    // ENHANCED: Method to preserve serviceProvider during any updates
+    preserveServiceProvider() {
+        if (this.originalServiceProvider && !this.serviceProvider) {
+            this.serviceProvider = this.originalServiceProvider;
+            console.log('CalendarField: ServiceProvider restored to:', this.serviceProvider);
+            this.updateCalendarHeader();
+        }
     }
 
     validate() {
@@ -7255,6 +7334,9 @@ class CalendarField extends BaseField {
                 this.state.availableSlots[dayKey] = slots;
             }
         }
+        
+        // Ensure serviceProvider is preserved after init
+        this.preserveServiceProvider();
     }
     
     formatDate(date) {
@@ -7467,17 +7549,25 @@ class CalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
-    // Enhanced header generation with date directly under service name for reschedule mode
+    // ENHANCED: Header generation with improved serviceProvider handling
     generateCalendarHeader() {
-        //const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         const iconSvg = this.factory.SVG_ICONS.CALENDAR;
+        
+        // FORCE the correct serviceProvider - use multiple fallbacks to ensure it's never empty
+        const displayProvider = this.serviceProvider || 
+                               this.originalServiceProvider || 
+                               this.fullConfig?.serviceProvider || 
+                               'Service Provider';
+        
+        console.log('CalendarField: Generating header with serviceProvider:', displayProvider);
+        
         if (this.mode === 'reschedule' && this.currentAppointment) {
             return `
                 <div class="calendar-title-content">
                     <div class="service-provider">
                         <span class="provider-icon">${iconSvg}</span>
                         <div class="appointment-details">
-                            <div class="provider-name">${this.serviceProvider || 'SkaLean'}</div>
+                            <div class="provider-name">${displayProvider}</div>
                             ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                             <div class="service-name">${this.formatCurrentAppointment()}</div>
                         </div>
@@ -7490,7 +7580,7 @@ class CalendarField extends BaseField {
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
-                        <div class="provider-name">${this.serviceProvider || 'SKaLean'}</div>
+                        <div class="provider-name">${displayProvider}</div>
                         ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                     </div>
                 </div>
@@ -7527,12 +7617,12 @@ class CalendarField extends BaseField {
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-			    ${this.factory.SVG_ICONS.CHEVRON}
-			</button>
-			<div class="current-date"></div>
-			<button class="nav-btn next-btn" type="button" aria-label="Next month">
-			    ${this.factory.SVG_ICONS.CHEVRON}
-			</button>
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
+                        <div class="current-date"></div>
+                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
                     </div>
                 </div>
                 <div class="calendar-body">
@@ -7548,6 +7638,9 @@ class CalendarField extends BaseField {
             </div>
         `;
         
+        // Store reference to this field instance on the element for debugging
+        this.element.fieldInstance = this;
+        
         this.renderCalendarData();
         this.attachCalendarEvents();
         
@@ -7556,6 +7649,9 @@ class CalendarField extends BaseField {
     
     renderCalendarData() {
         if (!this.element) return;
+        
+        // Ensure serviceProvider is preserved
+        this.preserveServiceProvider();
         
         const currentDateEl = this.element.querySelector('.current-date');
         if (currentDateEl) {
