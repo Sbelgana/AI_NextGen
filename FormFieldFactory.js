@@ -2358,6 +2358,9 @@ class YesNoWithOptionsField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
+        // FIXED: Ensure factory is properly stored for text access
+        this.factory = factory;
+        
         this.yesFieldConfig = config.yesField || null;
         this.noFieldConfig = config.noField || null;
         
@@ -2369,6 +2372,12 @@ class YesNoWithOptionsField extends BaseField {
         
         this.yesFieldInstances = [];
         this.noFieldInstances = [];
+    }
+
+    // FIXED: Add a helper method to safely get text
+    getText(key) {
+        return this.factory.getText ? this.factory.getText(key) : 
+               this.factory.texts ? this.factory.texts[key] : key;
     }
 
     validate() {
@@ -2420,13 +2429,13 @@ class YesNoWithOptionsField extends BaseField {
             const noOption = this.customOptions.find(opt => opt.value === 'no') || 
                             this.customOptions.find(opt => opt.value === 'unilingual');
             
-            yesText = yesOption ? yesOption.label : this.factory.getText('yes');
-            noText = noOption ? noOption.label : this.factory.getText('no');
+            yesText = yesOption ? yesOption.label : this.getText('yes');
+            noText = noOption ? noOption.label : this.getText('no');
             yesValue = yesOption ? yesOption.value : 'yes';
             noValue = noOption ? noOption.value : 'no';
         } else {
-            yesText = this.factory.getText('yes');
-            noText = this.factory.getText('no');
+            yesText = this.getText('yes');
+            noText = this.getText('no');
             yesValue = 'yes';
             noValue = 'no';
         }
@@ -2666,8 +2675,23 @@ class YesNoWithOptionsField extends BaseField {
         return result;
     }
 
-    // NEW: Method to extract display values for select/multi-select fields
+    // FIXED: Method to extract display values for select/multi-select fields
     extractDisplayValue(value, fieldInstance, fieldConfig) {
+        // FIXED: Handle yes/no fields specifically to prevent double processing
+        if (fieldConfig.type === 'yesno') {
+            if (typeof value === 'boolean') {
+                return value ? this.getText('yes') : this.getText('no');
+            }
+            if (value === 'yes' || value === 'no') {
+                return value === 'yes' ? this.getText('yes') : this.getText('no');
+            }
+            // Handle true/false string values
+            if (value === 'true' || value === 'false') {
+                return value === 'true' ? this.getText('yes') : this.getText('no');
+            }
+            return value; // fallback
+        }
+
         // For select and multi-select fields, get display names instead of IDs
         if (fieldConfig.type === 'select' || fieldConfig.type === 'multiselect' ||
             fieldConfig.type === 'select-with-other' || fieldConfig.type === 'multiselect-with-other') {
@@ -2708,7 +2732,7 @@ class YesNoWithOptionsField extends BaseField {
         return value;
     }
 
-    // NEW: Helper method to get display name for an option ID
+    // Helper method to get display name for an option ID
     getOptionDisplayName(optionId, fieldConfig) {
         if (!optionId || !fieldConfig.options) return optionId;
         
@@ -2817,7 +2841,6 @@ class YesNoWithOptionsField extends BaseField {
         return groups;
     }
 }
-
 
 /**
  * SingleSelectField - Simple dropdown with personalized error messages
