@@ -262,8 +262,8 @@ body {
 .field-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .field-col {
@@ -1376,12 +1376,12 @@ input[type="number"]:hover:not(:focus) {
 /* Service Card Field Container */
 .service-card-field {
   width: 100%;
-  margin: 24px 0;
+  margin-bottom: 10px;
 }
 
 .service-cards-container {
   display: grid;
-  gap: 24px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -1398,12 +1398,10 @@ input[type="number"]:hover:not(:focus) {
 /* Layout Variations */
 .service-card-field.layout-list .service-cards-container {
   grid-template-columns: 1fr;
-  gap: 16px;
 }
 
 .service-card-field.layout-compact .service-cards-container {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
 }
 
 /* Service Card Base */
@@ -1422,7 +1420,7 @@ input[type="number"]:hover:not(:focus) {
 
 /* Card Inner Content */
 .service-card-inner {
-  padding: 24px;
+  padding: 10px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -2307,7 +2305,7 @@ select:focus-visible,
   /* Force two columns override */
   .force-two-columns .field-row {
     flex-direction: row !important;
-    gap: 16px !important;
+    gap: 10px !important;
   }
   
   .force-two-columns .field-col {
