@@ -2884,14 +2884,12 @@ select:focus-visible,
 .summary-label {
 	font-weight: 600;
 	width: 30%;
-	color: #a63e1b;
 	margin-right: 10px;
 	flex-shrink: 0;
 }
 
 .summary-value {
 	flex: 1;
-	color: #e95d2c;
 	word-wrap: break-word;
 	line-height: 1.4;
 }
