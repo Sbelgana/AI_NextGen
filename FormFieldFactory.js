@@ -7805,6 +7805,10 @@ class CalendarField extends BaseField {
  * CreatForm - Main form creation and management class
  */
 
+
+/**
+ * CreatForm - Main form creation and management class
+ */
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
         this.config = {
@@ -8191,6 +8195,11 @@ class CreatForm {
             calendarField.state.selectedTime = null;
             calendarField.state.availableSlots = {};
             
+            // Update the header immediately
+            if (calendarField.updateCalendarHeader) {
+                calendarField.updateCalendarHeader();
+            }
+            
             // Reinitialize calendar with new configuration
             calendarField.init().then(() => {
                 if (calendarField.element) {
@@ -8560,6 +8569,7 @@ class CreatForm {
         document.querySelector(`.${styleClass}`)?.remove();
     }
 }
+
 
 class CurrentAppointmentCardField extends BaseField {
     constructor(factory, config) {
