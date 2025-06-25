@@ -5347,120 +5347,75 @@ class SlidingWindowRangeField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const container = this.container.querySelector('.range-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
-        }
-        
-        return percent;
+    // Helper method to get slider handle pixel position
+    getSliderHandlePosition(value, minValue, maxValue, containerWidth) {
+        if (maxValue === minValue) return 0;
+        const percent = (value - minValue) / (maxValue - minValue);
+        return percent * containerWidth;
     }
 
-    // Helper method for collision detection
-    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
-        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+    // Helper method to calculate label position (centered on handle)
+    calculateLabelCenterPosition(handlePixelPos, containerWidth, labelWidth) {
+        // Calculate where the label center should be to align with handle
+        const labelCenterPercent = (handlePixelPos / containerWidth) * 100;
+        
+        // Calculate label left position (accounting for label width)
+        const halfLabelPercent = (labelWidth / 2 / containerWidth) * 100;
+        let labelLeftPercent = labelCenterPercent - halfLabelPercent;
+        
+        // Apply boundary constraints
+        const maxLeftPercent = 100 - (labelWidth / containerWidth) * 100;
+        labelLeftPercent = Math.max(0, Math.min(maxLeftPercent, labelLeftPercent));
+        
+        return {
+            labelLeft: labelLeftPercent,
+            labelCenter: labelCenterPercent,
+            handlePosition: (handlePixelPos / containerWidth) * 100
+        };
+    }
+
+    // Helper method for triangle positioning
+    calculateTrianglePosition(handlePercent, labelLeftPercent, labelWidth, containerWidth) {
+        if (!labelWidth || !containerWidth) return '50%';
+        
+        // Calculate where the handle is relative to the label
+        const labelCenterPercent = labelLeftPercent + (labelWidth / containerWidth) * 50;
+        const offsetPercent = handlePercent - labelCenterPercent;
+        const offsetPixels = (offsetPercent / 100) * containerWidth;
+        
+        // Convert to percentage of label width
+        const triangleOffsetPercent = (offsetPixels / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffsetPercent;
+        
+        // Constrain triangle to stay within label bounds
+        return `${Math.max(15, Math.min(85, trianglePosition))}%`;
+    }
+
+    // Check for label collision and adjust if necessary
+    checkAndResolveCollision(minPos, maxPos, minLabel, maxLabel, containerWidth) {
+        if (!minLabel || !maxLabel || !containerWidth) {
+            return { minLeft: minPos.labelLeft, maxLeft: maxPos.labelLeft };
+        }
         
         const minWidth = minLabel.offsetWidth || 100;
         const maxWidth = maxLabel.offsetWidth || 100;
-        const container = this.container.querySelector('.range-container');
         
-        if (!container) return { minPercent, maxPercent };
+        const minRightPercent = minPos.labelLeft + (minWidth / containerWidth) * 100;
+        const maxLeftPercent = maxPos.labelLeft;
         
-        const containerWidth = container.offsetWidth;
+        // Check if labels overlap
+        const overlap = minRightPercent - maxLeftPercent + 2; // 2% buffer
         
-        // Calculate minimum distance needed (in percentage)
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
-        
-        const currentDistance = maxPercent - minPercent;
-        
-        if (currentDistance < minDistance) {
-            // Labels would overlap, adjust positions
-            const center = (minPercent + maxPercent) / 2;
-            const halfDistance = minDistance / 2;
+        if (overlap > 0) {
+            // Adjust positions equally
+            const adjustment = overlap / 2;
+            const newMinLeft = Math.max(0, minPos.labelLeft - adjustment);
+            const newMaxLeft = Math.min(100 - (maxWidth / containerWidth) * 100, maxPos.labelLeft + adjustment);
             
-            let adjustedMinPercent = center - halfDistance;
-            let adjustedMaxPercent = center + halfDistance;
-            
-            // Make sure they don't go out of bounds
-            if (adjustedMinPercent < 0) {
-                adjustedMinPercent = 0;
-                adjustedMaxPercent = minDistance;
-            } else if (adjustedMaxPercent > 100) {
-                adjustedMaxPercent = 100;
-                adjustedMinPercent = 100 - minDistance;
-            }
-            
-            return { 
-                minPercent: adjustedMinPercent, 
-                maxPercent: adjustedMaxPercent 
-            };
+            return { minLeft: newMinLeft, maxLeft: newMaxLeft };
         }
         
-        return { minPercent, maxPercent };
-    }
-
-    // Helper method for triangle positioning with strict constraints
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
-        
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
-        
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
-        
-        // Calculate pixel positions
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
-        const trianglePosition = 50 + triangleOffset;
-        
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
-    }
-
-    // Method to update triangle position
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
-        
-        const container = this.container.querySelector('.range-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
-        labelElement.style.setProperty('--triangle-left', trianglePos);
+        return { minLeft: minPos.labelLeft, maxLeft: maxPos.labelLeft };
     }
 
     render() {
@@ -5635,35 +5590,53 @@ class SlidingWindowRangeField extends BaseField {
     }
 
     updateUI() {
-        // Calculate percentages
+        // Calculate track position and width
         let minPercent = ((this.selectedMin - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         let maxPercent = ((this.selectedMax - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
-        
-        // Store original positions for triangle calculation
-        const originalMinPercent = minPercent;
-        const originalMaxPercent = maxPercent;
         
         // Update track position and width
         this.track.style.left = minPercent + '%';
         this.track.style.width = (maxPercent - minPercent) + '%';
         
-        // Apply boundary checking and collision detection
+        // Update labels with proper positioning
         setTimeout(() => {
-            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
-            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
+            const container = this.container.querySelector('.range-container');
+            if (!container) return;
             
-            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
-                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
+            const containerWidth = container.offsetWidth;
+            if (!containerWidth) return;
             
-            // Update labels with collision-free positions
-            this.minLabel.style.left = finalMinPercent + '%';
-            this.maxLabel.style.left = finalMaxPercent + '%';
+            // Get actual slider handle positions
+            const minHandlePos = this.getSliderHandlePosition(this.selectedMin, this.currentMin, this.currentMax, containerWidth);
+            const maxHandlePos = this.getSliderHandlePosition(this.selectedMax, this.currentMin, this.currentMax, containerWidth);
+            
+            // Get label dimensions
+            const minLabelWidth = this.minLabel.offsetWidth || 100;
+            const maxLabelWidth = this.maxLabel.offsetWidth || 100;
+            
+            // Calculate ideal label positions (centered on handles)
+            const minPos = this.calculateLabelCenterPosition(minHandlePos, containerWidth, minLabelWidth);
+            const maxPos = this.calculateLabelCenterPosition(maxHandlePos, containerWidth, maxLabelWidth);
+            
+            // Check for collisions and adjust if necessary
+            const finalPositions = this.checkAndResolveCollision(minPos, maxPos, this.minLabel, this.maxLabel, containerWidth);
+            
+            // Apply final positions
+            this.minLabel.style.left = finalPositions.minLeft + '%';
+            this.maxLabel.style.left = finalPositions.maxLeft + '%';
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
             // Update triangle positions to point to actual handles
-            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
-            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
+            const minTrianglePos = this.calculateTrianglePosition(
+                minPos.handlePosition, finalPositions.minLeft, minLabelWidth, containerWidth
+            );
+            const maxTrianglePos = this.calculateTrianglePosition(
+                maxPos.handlePosition, finalPositions.maxLeft, maxLabelWidth, containerWidth
+            );
+            
+            this.minLabel.style.setProperty('--triangle-left', minTrianglePos);
+            this.maxLabel.style.setProperty('--triangle-left', maxTrianglePos);
         }, 0);
         
         // Update button states
@@ -5785,120 +5758,75 @@ class DualRangeField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
-        }
-        
-        return percent;
+    // Helper method to get slider handle pixel position
+    getSliderHandlePosition(value, minValue, maxValue, containerWidth) {
+        if (maxValue === minValue) return 0;
+        const percent = (value - minValue) / (maxValue - minValue);
+        return percent * containerWidth;
     }
 
-    // Helper method for collision detection
-    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
-        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+    // Helper method to calculate label position (centered on handle)
+    calculateLabelCenterPosition(handlePixelPos, containerWidth, labelWidth) {
+        // Calculate where the label center should be to align with handle
+        const labelCenterPercent = (handlePixelPos / containerWidth) * 100;
+        
+        // Calculate label left position (accounting for label width)
+        const halfLabelPercent = (labelWidth / 2 / containerWidth) * 100;
+        let labelLeftPercent = labelCenterPercent - halfLabelPercent;
+        
+        // Apply boundary constraints
+        const maxLeftPercent = 100 - (labelWidth / containerWidth) * 100;
+        labelLeftPercent = Math.max(0, Math.min(maxLeftPercent, labelLeftPercent));
+        
+        return {
+            labelLeft: labelLeftPercent,
+            labelCenter: labelCenterPercent,
+            handlePosition: (handlePixelPos / containerWidth) * 100
+        };
+    }
+
+    // Helper method for triangle positioning
+    calculateTrianglePosition(handlePercent, labelLeftPercent, labelWidth, containerWidth) {
+        if (!labelWidth || !containerWidth) return '50%';
+        
+        // Calculate where the handle is relative to the label
+        const labelCenterPercent = labelLeftPercent + (labelWidth / containerWidth) * 50;
+        const offsetPercent = handlePercent - labelCenterPercent;
+        const offsetPixels = (offsetPercent / 100) * containerWidth;
+        
+        // Convert to percentage of label width
+        const triangleOffsetPercent = (offsetPixels / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffsetPercent;
+        
+        // Constrain triangle to stay within label bounds
+        return `${Math.max(15, Math.min(85, trianglePosition))}%`;
+    }
+
+    // Check for label collision and adjust if necessary
+    checkAndResolveCollision(minPos, maxPos, minLabel, maxLabel, containerWidth) {
+        if (!minLabel || !maxLabel || !containerWidth) {
+            return { minLeft: minPos.labelLeft, maxLeft: maxPos.labelLeft };
+        }
         
         const minWidth = minLabel.offsetWidth || 100;
         const maxWidth = maxLabel.offsetWidth || 100;
-        const container = this.container.querySelector('.slider-container');
         
-        if (!container) return { minPercent, maxPercent };
+        const minRightPercent = minPos.labelLeft + (minWidth / containerWidth) * 100;
+        const maxLeftPercent = maxPos.labelLeft;
         
-        const containerWidth = container.offsetWidth;
+        // Check if labels overlap
+        const overlap = minRightPercent - maxLeftPercent + 2; // 2% buffer
         
-        // Calculate minimum distance needed (in percentage)
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
-        
-        const currentDistance = maxPercent - minPercent;
-        
-        if (currentDistance < minDistance) {
-            // Labels would overlap, adjust positions
-            const center = (minPercent + maxPercent) / 2;
-            const halfDistance = minDistance / 2;
+        if (overlap > 0) {
+            // Adjust positions equally
+            const adjustment = overlap / 2;
+            const newMinLeft = Math.max(0, minPos.labelLeft - adjustment);
+            const newMaxLeft = Math.min(100 - (maxWidth / containerWidth) * 100, maxPos.labelLeft + adjustment);
             
-            let adjustedMinPercent = center - halfDistance;
-            let adjustedMaxPercent = center + halfDistance;
-            
-            // Make sure they don't go out of bounds
-            if (adjustedMinPercent < 0) {
-                adjustedMinPercent = 0;
-                adjustedMaxPercent = minDistance;
-            } else if (adjustedMaxPercent > 100) {
-                adjustedMaxPercent = 100;
-                adjustedMinPercent = 100 - minDistance;
-            }
-            
-            return { 
-                minPercent: adjustedMinPercent, 
-                maxPercent: adjustedMaxPercent 
-            };
+            return { minLeft: newMinLeft, maxLeft: newMaxLeft };
         }
         
-        return { minPercent, maxPercent };
-    }
-
-    // Helper method for triangle positioning with strict constraints
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
-        
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
-        
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
-        
-        // Calculate pixel positions
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
-        const trianglePosition = 50 + triangleOffset;
-        
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
-    }
-
-    // Method to update triangle position
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
-        
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
-        labelElement.style.setProperty('--triangle-left', trianglePos);
+        return { minLeft: minPos.labelLeft, maxLeft: maxPos.labelLeft };
     }
 
     render() {
@@ -6013,29 +5941,48 @@ class DualRangeField extends BaseField {
         let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
         let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
         
-        // Store original positions for triangle calculation
-        const originalMinPercent = minPercent;
-        const originalMaxPercent = maxPercent;
-        
         this.progress.style.left = minPercent + '%';
         this.progress.style.width = (maxPercent - minPercent) + '%';
         
-        // Apply boundary checking and collision detection
+        // Update labels with proper positioning
         setTimeout(() => {
-            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
-            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
+            const container = this.container.querySelector('.slider-container');
+            if (!container) return;
             
-            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
-                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
+            const containerWidth = container.offsetWidth;
+            if (!containerWidth) return;
             
-            this.minLabel.style.left = finalMinPercent + '%';
-            this.maxLabel.style.left = finalMaxPercent + '%';
+            // Get actual slider handle positions
+            const minHandlePos = this.getSliderHandlePosition(this.selectedMin, this.min, this.max, containerWidth);
+            const maxHandlePos = this.getSliderHandlePosition(this.selectedMax, this.min, this.max, containerWidth);
+            
+            // Get label dimensions
+            const minLabelWidth = this.minLabel.offsetWidth || 100;
+            const maxLabelWidth = this.maxLabel.offsetWidth || 100;
+            
+            // Calculate ideal label positions (centered on handles)
+            const minPos = this.calculateLabelCenterPosition(minHandlePos, containerWidth, minLabelWidth);
+            const maxPos = this.calculateLabelCenterPosition(maxHandlePos, containerWidth, maxLabelWidth);
+            
+            // Check for collisions and adjust if necessary
+            const finalPositions = this.checkAndResolveCollision(minPos, maxPos, this.minLabel, this.maxLabel, containerWidth);
+            
+            // Apply final positions
+            this.minLabel.style.left = finalPositions.minLeft + '%';
+            this.maxLabel.style.left = finalPositions.maxLeft + '%';
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
             // Update triangle positions to point to actual handles
-            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
-            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
+            const minTrianglePos = this.calculateTrianglePosition(
+                minPos.handlePosition, finalPositions.minLeft, minLabelWidth, containerWidth
+            );
+            const maxTrianglePos = this.calculateTrianglePosition(
+                maxPos.handlePosition, finalPositions.maxLeft, maxLabelWidth, containerWidth
+            );
+            
+            this.minLabel.style.setProperty('--triangle-left', minTrianglePos);
+            this.maxLabel.style.setProperty('--triangle-left', maxTrianglePos);
         }, 0);
     }
 
@@ -6160,77 +6107,48 @@ class SliderField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
-        }
-        
-        return percent;
+    // Helper method to get slider handle pixel position
+    getSliderHandlePosition(value, minValue, maxValue, containerWidth) {
+        if (maxValue === minValue) return 0;
+        const percent = (value - minValue) / (maxValue - minValue);
+        return percent * containerWidth;
     }
 
-    // Helper method for triangle positioning with strict constraints
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
+    // Helper method to calculate label position (centered on handle)
+    calculateLabelCenterPosition(handlePixelPos, containerWidth, labelWidth) {
+        // Calculate where the label center should be to align with handle
+        const labelCenterPercent = (handlePixelPos / containerWidth) * 100;
         
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
+        // Calculate label left position (accounting for label width)
+        const halfLabelPercent = (labelWidth / 2 / containerWidth) * 100;
+        let labelLeftPercent = labelCenterPercent - halfLabelPercent;
         
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        // Apply boundary constraints
+        const maxLeftPercent = 100 - (labelWidth / containerWidth) * 100;
+        labelLeftPercent = Math.max(0, Math.min(maxLeftPercent, labelLeftPercent));
         
-        // Calculate pixel positions
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
-        const trianglePosition = 50 + triangleOffset;
-        
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+        return {
+            labelLeft: labelLeftPercent,
+            labelCenter: labelCenterPercent,
+            handlePosition: (handlePixelPos / containerWidth) * 100
+        };
     }
 
-    // Method to update triangle position
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
+    // Helper method for triangle positioning
+    calculateTrianglePosition(handlePercent, labelLeftPercent, labelWidth, containerWidth) {
+        if (!labelWidth || !containerWidth) return '50%';
         
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        // Calculate where the handle is relative to the label
+        const labelCenterPercent = labelLeftPercent + (labelWidth / containerWidth) * 50;
+        const offsetPercent = handlePercent - labelCenterPercent;
+        const offsetPixels = (offsetPercent / 100) * containerWidth;
         
-        // Apply the triangle position using CSS custom property
-        labelElement.style.setProperty('--triangle-left', trianglePos);
+        // Convert to percentage of label width
+        const triangleOffsetPercent = (offsetPixels / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffsetPercent;
+        
+        // Constrain triangle to stay within label bounds
+        return `${Math.max(15, Math.min(85, trianglePosition))}%`;
     }
 
     render() {
@@ -6298,19 +6216,35 @@ class SliderField extends BaseField {
     updateUI() {
         const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
         
-        // Store original position for triangle calculation
-        const originalPercent = percent;
-        
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
+        // Update label with proper positioning
         setTimeout(() => {
-            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
-            this.valueLabel.style.left = finalPercent + '%';
+            const container = this.container.querySelector('.slider-container');
+            if (!container) return;
+            
+            const containerWidth = container.offsetWidth;
+            if (!containerWidth) return;
+            
+            // Get actual slider handle position
+            const handlePos = this.getSliderHandlePosition(this.value, this.min, this.max, containerWidth);
+            
+            // Get label dimensions
+            const labelWidth = this.valueLabel.offsetWidth || 100;
+            
+            // Calculate ideal label position (centered on handle)
+            const pos = this.calculateLabelCenterPosition(handlePos, containerWidth, labelWidth);
+            
+            // Apply final position
+            this.valueLabel.style.left = pos.labelLeft + '%';
             this.valueLabel.textContent = this.formatValue(this.value);
             
             // Update triangle position to point to actual handle
-            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+            const trianglePos = this.calculateTrianglePosition(
+                pos.handlePosition, pos.labelLeft, labelWidth, containerWidth
+            );
+            
+            this.valueLabel.style.setProperty('--triangle-left', trianglePos);
         }, 0);
     }
 
@@ -6426,77 +6360,48 @@ class OptionsSliderField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
-        }
-        
-        return percent;
+    // Helper method to get slider handle pixel position
+    getSliderHandlePosition(index, maxIndex, containerWidth) {
+        if (maxIndex === 0) return 0;
+        const percent = index / maxIndex;
+        return percent * containerWidth;
     }
 
-    // Helper method for triangle positioning with strict constraints
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
+    // Helper method to calculate label position (centered on handle)
+    calculateLabelCenterPosition(handlePixelPos, containerWidth, labelWidth) {
+        // Calculate where the label center should be to align with handle
+        const labelCenterPercent = (handlePixelPos / containerWidth) * 100;
         
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
+        // Calculate label left position (accounting for label width)
+        const halfLabelPercent = (labelWidth / 2 / containerWidth) * 100;
+        let labelLeftPercent = labelCenterPercent - halfLabelPercent;
         
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        // Apply boundary constraints
+        const maxLeftPercent = 100 - (labelWidth / containerWidth) * 100;
+        labelLeftPercent = Math.max(0, Math.min(maxLeftPercent, labelLeftPercent));
         
-        // Calculate pixel positions
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
-        const trianglePosition = 50 + triangleOffset;
-        
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+        return {
+            labelLeft: labelLeftPercent,
+            labelCenter: labelCenterPercent,
+            handlePosition: (handlePixelPos / containerWidth) * 100
+        };
     }
 
-    // Method to update triangle position
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
+    // Helper method for triangle positioning
+    calculateTrianglePosition(handlePercent, labelLeftPercent, labelWidth, containerWidth) {
+        if (!labelWidth || !containerWidth) return '50%';
         
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        // Calculate where the handle is relative to the label
+        const labelCenterPercent = labelLeftPercent + (labelWidth / containerWidth) * 50;
+        const offsetPercent = handlePercent - labelCenterPercent;
+        const offsetPixels = (offsetPercent / 100) * containerWidth;
         
-        // Apply the triangle position using CSS custom property
-        labelElement.style.setProperty('--triangle-left', trianglePos);
+        // Convert to percentage of label width
+        const triangleOffsetPercent = (offsetPixels / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffsetPercent;
+        
+        // Constrain triangle to stay within label bounds
+        return `${Math.max(15, Math.min(85, trianglePosition))}%`;
     }
 
     render() {
@@ -6602,19 +6507,35 @@ class OptionsSliderField extends BaseField {
     updateUI() {
         const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
         
-        // Store original position for triangle calculation
-        const originalPercent = percent;
-        
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
+        // Update label with proper positioning
         setTimeout(() => {
-            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
-            this.valueLabel.style.left = finalPercent + '%';
+            const container = this.container.querySelector('.slider-container');
+            if (!container) return;
+            
+            const containerWidth = container.offsetWidth;
+            if (!containerWidth) return;
+            
+            // Get actual slider handle position
+            const handlePos = this.getSliderHandlePosition(this.currentIndex, this.options.length - 1, containerWidth);
+            
+            // Get label dimensions
+            const labelWidth = this.valueLabel.offsetWidth || 100;
+            
+            // Calculate ideal label position (centered on handle)
+            const pos = this.calculateLabelCenterPosition(handlePos, containerWidth, labelWidth);
+            
+            // Apply final position
+            this.valueLabel.style.left = pos.labelLeft + '%';
             this.valueLabel.textContent = this.getCurrentDisplay();
             
             // Update triangle position to point to actual handle
-            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+            const trianglePos = this.calculateTrianglePosition(
+                pos.handlePosition, pos.labelLeft, labelWidth, containerWidth
+            );
+            
+            this.valueLabel.style.setProperty('--triangle-left', trianglePos);
         }, 0);
         
         if (this.showMarkers && this.markersContainer) {
@@ -6742,77 +6663,48 @@ class SlidingWindowSliderField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
-        }
-        
-        return percent;
+    // Helper method to get slider handle pixel position
+    getSliderHandlePosition(value, minValue, maxValue, containerWidth) {
+        if (maxValue === minValue) return 0;
+        const percent = (value - minValue) / (maxValue - minValue);
+        return percent * containerWidth;
     }
 
-    // Helper method for triangle positioning with strict constraints
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
+    // Helper method to calculate label position (centered on handle)
+    calculateLabelCenterPosition(handlePixelPos, containerWidth, labelWidth) {
+        // Calculate where the label center should be to align with handle
+        const labelCenterPercent = (handlePixelPos / containerWidth) * 100;
         
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
+        // Calculate label left position (accounting for label width)
+        const halfLabelPercent = (labelWidth / 2 / containerWidth) * 100;
+        let labelLeftPercent = labelCenterPercent - halfLabelPercent;
         
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        // Apply boundary constraints
+        const maxLeftPercent = 100 - (labelWidth / containerWidth) * 100;
+        labelLeftPercent = Math.max(0, Math.min(maxLeftPercent, labelLeftPercent));
         
-        // Calculate pixel positions
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
-        const trianglePosition = 50 + triangleOffset;
-        
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+        return {
+            labelLeft: labelLeftPercent,
+            labelCenter: labelCenterPercent,
+            handlePosition: (handlePixelPos / containerWidth) * 100
+        };
     }
 
-    // Method to update triangle position
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
+    // Helper method for triangle positioning
+    calculateTrianglePosition(handlePercent, labelLeftPercent, labelWidth, containerWidth) {
+        if (!labelWidth || !containerWidth) return '50%';
         
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        // Calculate where the handle is relative to the label
+        const labelCenterPercent = labelLeftPercent + (labelWidth / containerWidth) * 50;
+        const offsetPercent = handlePercent - labelCenterPercent;
+        const offsetPixels = (offsetPercent / 100) * containerWidth;
         
-        // Apply the triangle position using CSS custom property
-        labelElement.style.setProperty('--triangle-left', trianglePos);
+        // Convert to percentage of label width
+        const triangleOffsetPercent = (offsetPixels / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffsetPercent;
+        
+        // Constrain triangle to stay within label bounds
+        return `${Math.max(15, Math.min(85, trianglePosition))}%`;
     }
 
     render() {
@@ -6939,20 +6831,36 @@ class SlidingWindowSliderField extends BaseField {
         // Calculate percentage
         const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         
-        // Store original position for triangle calculation
-        const originalPercent = percent;
-        
         // Update progress width
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
+        // Update label with proper positioning
         setTimeout(() => {
-            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
-            this.valueLabel.style.left = finalPercent + '%';
+            const container = this.container.querySelector('.slider-container');
+            if (!container) return;
+            
+            const containerWidth = container.offsetWidth;
+            if (!containerWidth) return;
+            
+            // Get actual slider handle position
+            const handlePos = this.getSliderHandlePosition(this.selectedValue, this.currentMin, this.currentMax, containerWidth);
+            
+            // Get label dimensions
+            const labelWidth = this.valueLabel.offsetWidth || 100;
+            
+            // Calculate ideal label position (centered on handle)
+            const pos = this.calculateLabelCenterPosition(handlePos, containerWidth, labelWidth);
+            
+            // Apply final position
+            this.valueLabel.style.left = pos.labelLeft + '%';
             this.valueLabel.textContent = this.formatValue(this.selectedValue);
             
             // Update triangle position to point to actual handle
-            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+            const trianglePos = this.calculateTrianglePosition(
+                pos.handlePosition, pos.labelLeft, labelWidth, containerWidth
+            );
+            
+            this.valueLabel.style.setProperty('--triangle-left', trianglePos);
         }, 0);
         
         // Update button states
