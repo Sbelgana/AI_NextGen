@@ -2998,7 +2998,7 @@ submission-form-extension {
     
     /* INFO BUTTON CUSTOM STYLING */
     .info-button .info-bg {
-        fill: rgba(247, 184, 153, 0.1) !important;
+        fill: rgba(247, 184, 153, 0.7) !important;
     }
     
     .info-button .info-icon {
