@@ -6485,16 +6485,7 @@ class ServiceCardField extends BaseField {
     render() {
         this.element = document.createElement('div');
         this.element.className = `form-field service-card-field layout-${this.layout}`;
-        
-        // Use this.label instead of this.config.label (BaseField already stores it)
-        if (this.label) {
-            this.element.innerHTML = `
-                <label class="form-label ${this.required ? 'required' : ''}" for="${this.id}">
-                    ${this.label}
-                </label>
-            `;
-        }
-        
+               
         const container = document.createElement('div');
         container.className = `service-cards-container columns-${this.columns}`;
         container.id = this.id;
