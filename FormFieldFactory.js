@@ -7490,7 +7490,7 @@ class CalendarField extends BaseField {
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
-                        <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
+                        <div class="provider-name">${this.serviceProvider || 'SKaLean'}</div>
                         ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
                     </div>
                 </div>
