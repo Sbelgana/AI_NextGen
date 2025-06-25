@@ -3673,9 +3673,46 @@ class MultiSelectSubsectionsField extends BaseField {
         
         // Resolve subsectionOptions from string reference to actual data
         if (typeof config.subsectionOptions === 'string') {
-            this.subsectionOptions = factory.formData.options[config.subsectionOptions] || [];
+            // Try multiple ways to access the form data
+            let optionsData = null;
+            
+            // Method 1: From factory
+            if (factory.formData && factory.formData.options) {
+                optionsData = factory.formData.options;
+            }
+            // Method 2: From factory.data
+            else if (factory.data && factory.data.options) {
+                optionsData = factory.data.options;
+            }
+            // Method 3: Direct from factory
+            else if (factory.options) {
+                optionsData = factory.options;
+            }
+            // Method 4: From global PropertySearchFormExtension
+            else if (typeof window !== 'undefined' && window.PropertySearchFormExtension && window.PropertySearchFormExtension.FORM_DATA) {
+                optionsData = window.PropertySearchFormExtension.FORM_DATA.options;
+            }
+            // Method 5: From config itself
+            else if (config.formData && config.formData.options) {
+                optionsData = config.formData.options;
+            }
+            
+            this.subsectionOptions = (optionsData && optionsData[config.subsectionOptions]) || [];
+            
+            // Log for debugging
+            console.log('Resolving subsectionOptions:', config.subsectionOptions);
+            console.log('Factory formData:', factory.formData);
+            console.log('Factory data:', factory.data);
+            console.log('Options data found:', optionsData);
+            console.log('Resolved subsectionOptions:', this.subsectionOptions);
         } else {
             this.subsectionOptions = config.subsectionOptions || [];
+        }
+        
+        // Ensure we have an array
+        if (!Array.isArray(this.subsectionOptions)) {
+            console.warn('subsectionOptions is not an array, using empty array');
+            this.subsectionOptions = [];
         }
         
         this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
@@ -4105,6 +4142,7 @@ class MultiSelectSubsectionsField extends BaseField {
         super.cleanup();
     }
 }
+
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
