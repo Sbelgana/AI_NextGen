@@ -919,13 +919,6 @@ class FormStep {
             this.container.appendChild(titleElement);
         }
 
-        if (this.description) {
-            const descriptionElement = document.createElement('p');
-            descriptionElement.className = 'step-description';
-            descriptionElement.textContent = this.description;
-            this.container.appendChild(descriptionElement);
-        }
-
         const fieldsContainer = document.createElement('div');
         fieldsContainer.className = 'step-fields';
         
@@ -6567,9 +6560,7 @@ class ServiceCardField extends BaseField {
     renderCheckmark() {
         return `
             <div class="checkmark-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12" height="12">
-                    <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-                </svg>
+                ${this.factory.SVG_ICONS.CHECK}
             </div>
         `;
     }
@@ -7090,20 +7081,12 @@ class CalendarField extends BaseField {
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(90deg)">
-                                <g transform="translate(75, 75)">
-                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-                                </g>
-                            </svg>
-                        </button>
-                        <div class="current-date"></div>
-                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px" style="transform: rotate(-90deg)">
-                                <g transform="translate(75, 75)">
-                                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-                                </g>
-                            </svg>
-                        </button>
+			    ${this.factory.SVG_ICONS.CHEVRON}
+			</button>
+			<div class="current-date"></div>
+			<button class="nav-btn next-btn" type="button" aria-label="Next month">
+			    ${this.factory.SVG_ICONS.CHEVRON}
+			</button>
                     </div>
                 </div>
                 <div class="calendar-body">
