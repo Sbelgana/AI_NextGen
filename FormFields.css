@@ -1686,12 +1686,15 @@ input[type="number"]:hover:not(:focus) {
 }
 
 .provider-icon {
-  width: 32px;
-  height: 32px;
-  margin-right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 42px;
+    height: 42px;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(247, 184, 153, 0.6);
+    border-radius: 50%;
+    padding: 10px;
 }
 
 .provider-icon svg {
@@ -2236,9 +2239,11 @@ select:focus-visible,
   }
   
   .provider-icon {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     margin-right: 8px;
+	  
+    padding: 8px;
   }
   
   /* Form navigation */
@@ -2629,9 +2634,11 @@ select:focus-visible,
   }
   
   .provider-icon {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     margin-right: 8px;
+	  
+    padding: 6px;
   }
   
   .current-date {
