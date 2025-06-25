@@ -40,8 +40,6 @@ class FormFieldFactory {
 			of: options.texts?.of || "of",
 			edit: options.texts?.edit || "Edit",
 			noDataEntered: options.texts?.noDataEntered || "No data entered",
-			multilingual: options.texts?.multilingual || "Multilingual",
-			unilingual: options.texts?.unilingual || "Unilingual",
 			serviceRequired: options.texts?.serviceRequired || "Please select a service",
 			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
 		};
@@ -1665,7 +1663,26 @@ class BaseField {
 /**
  * YesNoField - Yes/No field with personalized error messages
  */
+/**
+ * YesNoField - Generalized Yes/No field with custom options support
+ */
 class YesNoField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Support for custom options
+        this.customOptions = config.customOptions || null;
+        
+        // If customOptions provided, use them, otherwise default to yes/no
+        if (this.customOptions && Array.isArray(this.customOptions) && this.customOptions.length === 2) {
+            this.yesOption = this.customOptions[0];
+            this.noOption = this.customOptions[1];
+        } else {
+            this.yesOption = { value: 'yes', label: factory.getText('yes') };
+            this.noOption = { value: 'no', label: factory.getText('no') };
+        }
+    }
+
     render() {
         const container = this.createContainer();
         
@@ -1677,17 +1694,17 @@ class YesNoField extends BaseField {
         const yesOption = document.createElement('label');
         yesOption.className = 'radio-option';
         yesOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="yes" />
+            <input type="radio" name="${this.name}" value="${this.yesOption.value}" />
             <span class="radio-icon"></span>
-            <span class="radio-label">${this.factory.getText('yes')}</span>
+            <span class="radio-label">${this.yesOption.label}</span>
         `;
         
         const noOption = document.createElement('label');
         noOption.className = 'radio-option';
         noOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="no" />
+            <input type="radio" name="${this.name}" value="${this.noOption.value}" />
             <span class="radio-icon"></span>
-            <span class="radio-label">${this.factory.getText('no')}</span>
+            <span class="radio-label">${this.noOption.label}</span>
         `;
         
         optionsGroup.appendChild(yesOption);
@@ -1735,6 +1752,17 @@ class YesNoField extends BaseField {
             const radio = this.container.querySelector(`input[value="${value}"]`);
             if (radio) radio.checked = true;
         }
+    }
+
+    // Get display value for the current selection
+    getDisplayValue() {
+        const currentValue = this.getValue();
+        if (currentValue === this.yesOption.value) {
+            return this.yesOption.label;
+        } else if (currentValue === this.noOption.value) {
+            return this.noOption.label;
+        }
+        return currentValue;
     }
 }
 
@@ -2354,6 +2382,9 @@ class UrlField extends TextField {
 /**
  * YesNoWithOptionsField - Enhanced with subsection field support and personalized error messages
  */
+/**
+ * YesNoWithOptionsField - Enhanced with generalized option support
+ */
 class YesNoWithOptionsField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -2369,6 +2400,15 @@ class YesNoWithOptionsField extends BaseField {
         
         this.layout = config.layout || 'below';
         this.customOptions = config.customOptions || null;
+        
+        // Set up option values and labels
+        if (this.customOptions && Array.isArray(this.customOptions) && this.customOptions.length === 2) {
+            this.yesOption = this.customOptions[0];
+            this.noOption = this.customOptions[1];
+        } else {
+            this.yesOption = { value: 'yes', label: this.getText('yes') };
+            this.noOption = { value: 'no', label: this.getText('no') };
+        }
         
         this.yesFieldInstances = [];
         this.noFieldInstances = [];
@@ -2389,7 +2429,7 @@ class YesNoWithOptionsField extends BaseField {
         let isValid = true;
         const currentValue = this.getValue();
         
-        if ((currentValue.main === this.yesValue || currentValue.main === 'multilingual') && 
+        if (currentValue.main === this.yesOption.value && 
             this.yesContainer && this.yesContainer.style.display === 'block') {
             this.yesFieldInstances.forEach(fieldInstance => {
                 if (!fieldInstance.validate()) {
@@ -2398,7 +2438,7 @@ class YesNoWithOptionsField extends BaseField {
             });
         }
         
-        if ((currentValue.main === this.noValue || currentValue.main === 'unilingual') && 
+        if (currentValue.main === this.noOption.value && 
             this.noContainer && this.noContainer.style.display === 'block') {
             this.noFieldInstances.forEach(fieldInstance => {
                 if (!fieldInstance.validate()) {
@@ -2422,38 +2462,20 @@ class YesNoWithOptionsField extends BaseField {
         const optionsGroup = document.createElement('div');
         optionsGroup.className = 'options-group';
         
-        let yesText, noText, yesValue, noValue;
-        if (this.customOptions) {
-            const yesOption = this.customOptions.find(opt => opt.value === 'yes') || 
-                             this.customOptions.find(opt => opt.value === 'multilingual');
-            const noOption = this.customOptions.find(opt => opt.value === 'no') || 
-                            this.customOptions.find(opt => opt.value === 'unilingual');
-            
-            yesText = yesOption ? yesOption.label : this.getText('yes');
-            noText = noOption ? noOption.label : this.getText('no');
-            yesValue = yesOption ? yesOption.value : 'yes';
-            noValue = noOption ? noOption.value : 'no';
-        } else {
-            yesText = this.getText('yes');
-            noText = this.getText('no');
-            yesValue = 'yes';
-            noValue = 'no';
-        }
-        
         const yesOption = document.createElement('label');
         yesOption.className = 'radio-option';
         yesOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${yesValue}" />
+            <input type="radio" name="${this.name}" value="${this.yesOption.value}" />
             <span class="radio-icon"></span>
-            <span class="radio-label">${yesText}</span>
+            <span class="radio-label">${this.yesOption.label}</span>
         `;
         
         const noOption = document.createElement('label');
         noOption.className = 'radio-option';
         noOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${noValue}" />
+            <input type="radio" name="${this.name}" value="${this.noOption.value}" />
             <span class="radio-icon"></span>
-            <span class="radio-label">${noText}</span>
+            <span class="radio-label">${this.noOption.label}</span>
         `;
         
         optionsGroup.appendChild(yesOption);
@@ -2567,8 +2589,8 @@ class YesNoWithOptionsField extends BaseField {
                 this.value = radio.value;
                 this.hideError();
                 
-                const isYesValue = radio.value === yesValue || radio.value === 'multilingual';
-                const isNoValue = radio.value === noValue || radio.value === 'unilingual';
+                const isYesValue = radio.value === this.yesOption.value;
+                const isNoValue = radio.value === this.noOption.value;
                 
                 if (isYesValue) {
                     if (yesContainer) yesContainer.style.display = 'block';
@@ -2585,8 +2607,6 @@ class YesNoWithOptionsField extends BaseField {
         this.container = container;
         this.yesContainer = yesContainer;
         this.noContainer = noContainer;
-        this.yesValue = yesValue;
-        this.noValue = noValue;
         
         return container;
     }
@@ -2644,7 +2664,7 @@ class YesNoWithOptionsField extends BaseField {
         }
     }
 
-    // FIXED: Enhanced getValue method to properly extract display names
+    // Enhanced getValue method to properly extract display names
     getValue() {
         const mainValue = this.container ? 
             this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
@@ -2652,7 +2672,7 @@ class YesNoWithOptionsField extends BaseField {
             
         const result = { main: mainValue };
         
-        if ((mainValue === this.yesValue || mainValue === 'multilingual') && this.yesFieldInstances.length > 0) {
+        if (mainValue === this.yesOption.value && this.yesFieldInstances.length > 0) {
             result.yesValues = {};
             this.yesFieldInstances.forEach((fieldInstance, index) => {
                 const fieldConfig = this.yesFieldsConfig[index];
@@ -2662,7 +2682,7 @@ class YesNoWithOptionsField extends BaseField {
             });
         }
         
-        if ((mainValue === this.noValue || mainValue === 'unilingual') && this.noFieldInstances.length > 0) {
+        if (mainValue === this.noOption.value && this.noFieldInstances.length > 0) {
             result.noValues = {};
             this.noFieldInstances.forEach((fieldInstance, index) => {
                 const fieldConfig = this.noFieldsConfig[index];
@@ -2675,9 +2695,9 @@ class YesNoWithOptionsField extends BaseField {
         return result;
     }
 
-    // FIXED: Method to extract display values for select/multi-select fields
+    // Method to extract display values for select/multi-select fields
     extractDisplayValue(value, fieldInstance, fieldConfig) {
-        // FIXED: Handle yes/no fields specifically to prevent double processing
+        // Handle yes/no fields specifically to prevent double processing
         if (fieldConfig.type === 'yesno') {
             if (typeof value === 'boolean') {
                 return value ? this.getText('yes') : this.getText('no');
@@ -2789,10 +2809,10 @@ class YesNoWithOptionsField extends BaseField {
             if (radio) {
                 radio.checked = true;
                 
-                if (mainValue === this.yesValue || mainValue === 'multilingual') {
+                if (mainValue === this.yesOption.value) {
                     if (this.yesContainer) this.yesContainer.style.display = 'block';
                     if (this.noContainer) this.noContainer.style.display = 'none';
-                } else if (mainValue === this.noValue || mainValue === 'unilingual') {
+                } else if (mainValue === this.noOption.value) {
                     if (this.yesContainer) this.yesContainer.style.display = 'none';
                     if (this.noContainer) this.noContainer.style.display = 'block';
                 }
@@ -2839,6 +2859,17 @@ class YesNoWithOptionsField extends BaseField {
         }
         
         return groups;
+    }
+
+    // Get display value for the main selection
+    getMainDisplayValue() {
+        const currentValue = this.getValue().main;
+        if (currentValue === this.yesOption.value) {
+            return this.yesOption.label;
+        } else if (currentValue === this.noOption.value) {
+            return this.noOption.label;
+        }
+        return currentValue;
     }
 }
 
@@ -3962,6 +3993,9 @@ class MultiSelectSubsectionsField extends BaseField {
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
+/**
+ * CustomField - For special content like summaries with personalized error messages
+ */
 class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -4073,8 +4107,24 @@ class CustomField extends BaseField {
         let html = '';
         
         if (typeof value === 'object' && value.main !== undefined) {
+            // Get the custom options for this field if available
+            const customOptions = fieldConfig.customOptions;
+            let mainDisplayValue = value.main;
+            
+            // If we have custom options, try to find the display label
+            if (customOptions && Array.isArray(customOptions)) {
+                const selectedOption = customOptions.find(opt => opt.value === value.main);
+                if (selectedOption) {
+                    mainDisplayValue = selectedOption.label;
+                }
+            } else {
+                // Fallback to standard yes/no translation
+                mainDisplayValue = value.main === true || value.main === 'yes' ? this.factory.getText('yes') :
+                                  value.main === false || value.main === 'no' ? this.factory.getText('no') :
+                                  value.main;
+            }
+            
             // Display main field value
-            const mainDisplayValue = this.getMainDisplayValue(value.main);
             html += `
                 <div class="summary-row">
                     <div class="summary-label">${fieldConfig.label}:</div>
@@ -4082,8 +4132,20 @@ class CustomField extends BaseField {
                 </div>
             `;
             
-            // Display sub-fields based on the main value
-            if (value.main === true || value.main === 'yes' || value.main === 'multilingual') {
+            // Determine which conditional fields to show based on custom options or default yes/no
+            let showYesFields = false;
+            let showNoFields = false;
+            
+            if (customOptions && Array.isArray(customOptions)) {
+                showYesFields = value.main === customOptions[0].value;
+                showNoFields = value.main === customOptions[1].value;
+            } else {
+                showYesFields = value.main === true || value.main === 'yes';
+                showNoFields = value.main === false || value.main === 'no';
+            }
+            
+            // Display sub-fields based on selection
+            if (showYesFields) {
                 // Handle yesFields (array) or yesField (single)
                 if (fieldConfig.yesFields && value.yesValues) {
                     fieldConfig.yesFields.forEach(subField => {
@@ -4114,7 +4176,7 @@ class CustomField extends BaseField {
                         }
                     }
                 }
-            } else if (value.main === false || value.main === 'no' || value.main === 'unilingual') {
+            } else if (showNoFields) {
                 // Handle noField
                 if (fieldConfig.noField && value.noValues) {
                     const subValue = value.noValues[fieldConfig.noField.id];
@@ -4147,28 +4209,17 @@ class CustomField extends BaseField {
         return html;
     }
 
-    getMainDisplayValue(mainValue) {
-        switch (mainValue) {
-            case true:
-            case 'yes':
-                return this.factory.getText('yes') || 'Oui';
-            case false:
-            case 'no':
-                return this.factory.getText('no') || 'Non';
-            case 'multilingual':
-                return this.factory.getText('multilingual') || 'Support multilingue';
-            case 'unilingual':
-                return this.factory.getText('unilingual') || 'Langue unique';
-            default:
-                return mainValue;
-        }
-    }
-
     formatFieldValue(fieldConfig, value) {
         const fieldType = fieldConfig.type;
 
         switch (fieldType) {
             case 'yesno':
+                // Check for custom options first
+                if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                    const option = fieldConfig.customOptions.find(opt => opt.value === value);
+                    if (option) return option.label;
+                }
+                // Fallback to standard yes/no
                 return value === 'yes' || value === true ? 
                     (this.factory.getText('yes') || 'Oui') : 
                     (this.factory.getText('no') || 'Non');
@@ -4205,10 +4256,16 @@ class CustomField extends BaseField {
                 return Array.isArray(value) ? value.join(', ') : value;
 
             case 'yesno-with-options':
-                // This should not be called anymore since we handle it separately
-                // But keeping as fallback
+                // Handle the main value display with custom options
                 if (typeof value === 'object' && value.main) {
-                    return this.getMainDisplayValue(value.main);
+                    if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                        const option = fieldConfig.customOptions.find(opt => opt.value === value.main);
+                        if (option) return option.label;
+                    }
+                    // Fallback to standard yes/no
+                    return value.main === true || value.main === 'yes' ? 
+                        (this.factory.getText('yes') || 'Oui') :
+                        (this.factory.getText('no') || 'Non');
                 }
                 return value;
 
@@ -4321,6 +4378,7 @@ class CustomField extends BaseField {
         }
     }
 }
+
 
 /**
  * SingleSelectWithOtherField - Simple dropdown with "Other" option and personalized error messages
@@ -7652,6 +7710,9 @@ class CalendarField extends BaseField {
 /**
  * CreatForm - Main form creation and management class
  */
+/**
+ * CreatForm - Main form creation and management class
+ */
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
         this.config = {
@@ -7701,7 +7762,7 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
-    // FIXED: Enhanced extractValue method to handle nested field values properly
+    // Enhanced extractValue method with generalized option handling
     extractValue(value) {
         if (value == null || value === undefined) return '';
         
@@ -7713,7 +7774,7 @@ class CreatForm {
             return value ? this.getText('common.yes') : this.getText('common.no');
         }
         
-        // FIXED: Handle string values that might already be translated
+        // Handle string values that might already be translated
         if (typeof value === 'string') {
             // Check if it's already a translated yes/no value to prevent double translation
             const yesText = this.getText('common.yes');
@@ -7732,16 +7793,14 @@ class CreatForm {
         
         // Handle objects
         if (typeof value === 'object' && value !== null) {
-            // FIXED: Handle complex objects from YesNoWithOptionsField
+            // Handle complex objects from YesNoWithOptionsField
             if (value.main !== undefined) {
                 let result = [];
                 
-                // Add main value
-                const mainDisplay = value.main === 'multilingual' ? this.getText('common.multilingual') :
-                                   value.main === 'unilingual' ? this.getText('common.unilingual') :
-                                   value.main === true ? this.getText('common.yes') :
+                // Add main value 
+                const mainDisplay = value.main === true ? this.getText('common.yes') :
                                    value.main === false ? this.getText('common.no') :
-                                   value.main;
+                                   value.main; // Just use the value as-is for custom options
                 result.push(mainDisplay);
                 
                 // Add yesValues if present
@@ -7797,7 +7856,7 @@ class CreatForm {
         return String(value);
     }
 
-    // FIXED: Enhanced formatValueForDisplay method
+    // Enhanced formatValueForDisplay method
     formatValueForDisplay(fieldId, value, fieldConfig = null) {
         const extractedValue = this.extractValue(value);
         
@@ -7808,7 +7867,7 @@ class CreatForm {
         return extractedValue;
     }
     
-    // FIXED: Enhanced summary generation based on working code pattern
+    // Enhanced summary generation with generalized handling
     generateSummaryData() {
         const summaryData = {};
         
@@ -7829,7 +7888,20 @@ class CreatForm {
                     
                     // Handle conditional fields for yesno-with-options
                     if (fieldConfig.type === 'yesno-with-options') {
-                        if (fieldValue === true || fieldValue === 'multilingual') {
+                        // Determine which option was selected based on custom options or default
+                        let isFirstOption = false;
+                        let isSecondOption = false;
+                        
+                        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                            isFirstOption = fieldValue === fieldConfig.customOptions[0].value;
+                            isSecondOption = fieldValue === fieldConfig.customOptions[1].value;
+                        } else {
+                            // Default yes/no behavior
+                            isFirstOption = fieldValue === true || fieldValue === 'yes';
+                            isSecondOption = fieldValue === false || fieldValue === 'no';
+                        }
+                        
+                        if (isFirstOption) {
                             // Handle yesFields (array)
                             if (fieldConfig.yesFields) {
                                 fieldConfig.yesFields.forEach(subField => {
@@ -7840,7 +7912,7 @@ class CreatForm {
                             if (fieldConfig.yesField) {
                                 processField(fieldConfig.yesField, true);
                             }
-                        } else if (fieldValue === false || fieldValue === 'unilingual') {
+                        } else if (isSecondOption) {
                             // Handle noField
                             if (fieldConfig.noField) {
                                 processField(fieldConfig.noField, false);
@@ -7906,7 +7978,7 @@ class CreatForm {
     // Form Creation - Configuration-driven approach
     createFormSteps() {
         return this.formConfig.steps.map((stepConfig, index) => {
-            // FIXED: Special handling for summary step - use custom type like working code
+            // Special handling for summary step - use custom type like working code
             if (stepConfig.fields.length === 1 && 
                 (stepConfig.fields[0].type === 'summary' || stepConfig.fields[0].autoGenerate || stepConfig.fields[0].type === 'custom')) {
                 return {
@@ -7951,6 +8023,14 @@ class CreatForm {
                         name: typeof opt.name === 'object' ? opt.name[this.config.language] : opt.name
                     }));
                 }
+            }
+
+            // Handle custom options for yes/no fields
+            if (fieldConfig.customOptions) {
+                field.customOptions = fieldConfig.customOptions.map(opt => ({
+                    ...opt,
+                    label: typeof opt.label === 'object' ? opt.label[this.config.language] || opt.label.en : opt.label
+                }));
             }
 
             // Handle nested fields
@@ -8114,7 +8194,7 @@ class CreatForm {
             this.container.className = 'submission-form-extension';
             this.container.id = 'submission-form-root';
 
-            // FIXED: Enhanced FormFieldFactory configuration with edit button text
+            // Enhanced FormFieldFactory configuration with edit button text
             this.factory = new FormFieldFactory({
                 container: this.container,
                 formValues: this.formValues,
@@ -8129,10 +8209,8 @@ class CreatForm {
                     no: this.getText('common.no'),
                     other: this.getText('common.other'),
                     selectAtLeastOne: this.getText('errors.selectAtLeastOne'),
-                    edit: this.getText('summary.editStep'), // FIXED: Add edit button text
-    multilingual: this.getText('common.multilingual'),  // Add this
-    unilingual: this.getText('common.unilingual'),      // Add this
-                    language: this.config.language // FIXED: Pass current language
+                    edit: this.getText('summary.editStep'),
+                    language: this.config.language
                 }
             });
 
@@ -8146,7 +8224,7 @@ class CreatForm {
                     this.state.currentStep = stepIndex;
                     console.log(`Step changed to ${stepIndex + 1}`);
                     
-                    // FIXED: Update custom fields with autoSummary when entering summary step
+                    // Update custom fields with autoSummary when entering summary step
                     if (stepInstance && stepInstance.fieldInstances) {
                         stepInstance.fieldInstances.forEach(fieldInstance => {
                             if (fieldInstance.autoSummary && fieldInstance.updateContent) {
@@ -8200,7 +8278,6 @@ class CreatForm {
         document.querySelector('.submission-form-styles')?.remove();
     }
 }
-
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { FormFieldFactory, CreatForm };
