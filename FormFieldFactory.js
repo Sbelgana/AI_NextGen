@@ -2635,6 +2635,7 @@ class YesNoWithOptionsField extends BaseField {
         }
     }
 
+    // FIXED: Enhanced getValue method to properly extract display names
     getValue() {
         const mainValue = this.container ? 
             this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
@@ -2646,7 +2647,9 @@ class YesNoWithOptionsField extends BaseField {
             result.yesValues = {};
             this.yesFieldInstances.forEach((fieldInstance, index) => {
                 const fieldConfig = this.yesFieldsConfig[index];
-                result.yesValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+                const fieldValue = fieldInstance.getValue();
+                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
+                result.yesValues[fieldConfig.name || fieldConfig.id] = displayValue;
             });
         }
         
@@ -2654,11 +2657,78 @@ class YesNoWithOptionsField extends BaseField {
             result.noValues = {};
             this.noFieldInstances.forEach((fieldInstance, index) => {
                 const fieldConfig = this.noFieldsConfig[index];
-                result.noValues[fieldConfig.name || fieldConfig.id] = fieldInstance.getValue();
+                const fieldValue = fieldInstance.getValue();
+                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
+                result.noValues[fieldConfig.name || fieldConfig.id] = displayValue;
             });
         }
         
         return result;
+    }
+
+    // NEW: Method to extract display values for select/multi-select fields
+    extractDisplayValue(value, fieldInstance, fieldConfig) {
+        // For select and multi-select fields, get display names instead of IDs
+        if (fieldConfig.type === 'select' || fieldConfig.type === 'multiselect' ||
+            fieldConfig.type === 'select-with-other' || fieldConfig.type === 'multiselect-with-other') {
+            
+            if (Array.isArray(value)) {
+                // Multi-select case
+                return value.map(item => {
+                    if (typeof item === 'object' && item.name) {
+                        return typeof item.name === 'object' ? 
+                               (item.name[this.factory.texts?.language || 'fr'] || item.name.en || item.name.fr) :
+                               item.name;
+                    }
+                    return this.getOptionDisplayName(item, fieldConfig);
+                }).filter(Boolean).join(', ');
+            } else if (typeof value === 'object' && value !== null) {
+                // Single select with object value
+                if (value.name) {
+                    return typeof value.name === 'object' ? 
+                           (value.name[this.factory.texts?.language || 'fr'] || value.name.en || value.name.fr) :
+                           value.name;
+                }
+                if (value.selectedValue) {
+                    return this.extractDisplayValue(value.selectedValue, fieldInstance, fieldConfig);
+                }
+                if (value.value) {
+                    return this.getOptionDisplayName(value.value, fieldConfig);
+                }
+                if (value.id) {
+                    return this.getOptionDisplayName(value.id, fieldConfig);
+                }
+            } else {
+                // Simple value - look up display name
+                return this.getOptionDisplayName(value, fieldConfig);
+            }
+        }
+        
+        // For other field types, return the value as-is
+        return value;
+    }
+
+    // NEW: Helper method to get display name for an option ID
+    getOptionDisplayName(optionId, fieldConfig) {
+        if (!optionId || !fieldConfig.options) return optionId;
+        
+        let options = fieldConfig.options;
+        
+        // If options is a string (data path), try to get it from factory
+        if (typeof options === 'string' && this.factory.getData) {
+            options = this.factory.getData(options);
+        }
+        
+        if (Array.isArray(options)) {
+            const option = options.find(opt => opt.id === optionId);
+            if (option && option.name) {
+                return typeof option.name === 'object' ? 
+                       (option.name[this.factory.texts?.language || 'fr'] || option.name.en || option.name.fr) :
+                       option.name;
+            }
+        }
+        
+        return optionId; // Fallback to ID if display name not found
     }
 
     setValue(value) {
@@ -2747,6 +2817,7 @@ class YesNoWithOptionsField extends BaseField {
         return groups;
     }
 }
+
 
 /**
  * SingleSelectField - Simple dropdown with personalized error messages
