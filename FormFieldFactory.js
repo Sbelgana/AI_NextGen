@@ -3670,7 +3670,14 @@ class SingleSelectSubsectionsField extends BaseField {
 class MultiSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
-        this.subsectionOptions = config.subsectionOptions || [];
+        
+        // Resolve subsectionOptions from string reference to actual data
+        if (typeof config.subsectionOptions === 'string') {
+            this.subsectionOptions = factory.formData.options[config.subsectionOptions] || [];
+        } else {
+            this.subsectionOptions = config.subsectionOptions || [];
+        }
+        
         this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
         this.selectedValues = [];
         this.dropdownInstance = null;
@@ -3740,6 +3747,12 @@ class MultiSelectSubsectionsField extends BaseField {
     }
 
     buildSubsectionOptions() {
+        // Ensure subsectionOptions is an array
+        if (!Array.isArray(this.subsectionOptions)) {
+            console.error('subsectionOptions is not an array:', this.subsectionOptions);
+            return;
+        }
+
         // Add Select All option
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
@@ -3764,8 +3777,14 @@ class MultiSelectSubsectionsField extends BaseField {
             const mainDiv = document.createElement('div');
             mainDiv.className = 'custom-option category-option';
             mainDiv.dataset.value = group.id;
+            
+            // Handle multilingual names
+            const groupName = typeof group.name === 'object' 
+                ? group.name[this.factory.config.language] || group.name.fr || group.name.en || group.name
+                : group.name;
+            
             mainDiv.innerHTML = `
-                <span>${group.name}</span>
+                <span>${groupName}</span>
                 <div class="main-arrow">
                     <div class="arrow-icon">${this.factory.SVG_ICONS.CHEVRON}</div>
                 </div>
@@ -3817,7 +3836,12 @@ class MultiSelectSubsectionsField extends BaseField {
         subWrapper.appendChild(selectAllDiv);
         
         group.subcategories.forEach(item => {
-            this.element.appendChild(new Option(item.name, item.id));
+            // Handle multilingual names for subcategories
+            const itemName = typeof item.name === 'object' 
+                ? item.name[this.factory.config.language] || item.name.fr || item.name.en || item.name
+                : item.name;
+                
+            this.element.appendChild(new Option(itemName, item.id));
             
             const subDiv = document.createElement('div');
             subDiv.className = 'custom-option';
@@ -3826,7 +3850,7 @@ class MultiSelectSubsectionsField extends BaseField {
             checkboxDiv.className = 'option-checkbox';
             checkboxDiv.innerHTML = this.factory.SVG_ICONS.CHECK;
             const itemSpan = document.createElement('span');
-            itemSpan.textContent = item.name;
+            itemSpan.textContent = itemName;
             subDiv.appendChild(checkboxDiv);
             subDiv.appendChild(itemSpan);
             
@@ -4001,7 +4025,10 @@ class MultiSelectSubsectionsField extends BaseField {
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === this.selectedValues[0]);
                 if (option) {
-                    span.textContent = option.name;
+                    const optionName = typeof option.name === 'object' 
+                        ? option.name[this.factory.config.language] || option.name.fr || option.name.en || option.name
+                        : option.name;
+                    span.textContent = optionName;
                     break;
                 }
             }
@@ -4078,7 +4105,6 @@ class MultiSelectSubsectionsField extends BaseField {
         super.cleanup();
     }
 }
-
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
