@@ -44,8 +44,7 @@ class FormFieldFactory {
 			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
 		};
         
-        // SVG Icons
-       // SVG Icons
+        // SVG Icons - All icons used by fields should be defined here
 this.SVG_ICONS = {
     CHECK: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
         <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
@@ -77,10 +76,10 @@ this.SVG_ICONS = {
     RESCHEDULE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24px" height="24px">
         <path fill="currentColor" d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160H336c-17.7 0-32 14.3-32 32s14.3 32 32 32H463.5c0 0 0 0 0 0h.4c17.7 0 32-14.3 32-32V64c0-17.7-14.3-32-32-32s-32 14.3-32 32v51.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1V448c0 17.7 14.3 32 32 32s32-14.3 32-32V396.9l17.6 17.5 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-17.6-17.5H176c17.7 0 32-14.3 32-32s-14.3-32-32-32H48.4c-2.2 0-4.2 .5-6.1 1.3z"/>
     </svg>`,
-    SERVICE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
-        <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
+    APPOINTMENT: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24px" height="24px">
+        <path fill="currentColor" d="M14 2.2C22.5-1.7 32.5-.3 39.6 5.8L80 40.4 120.4 5.8c9-7.7 22.3-7.7 31.2 0L192 40.4 232.4 5.8c9-7.7 22.3-7.7 31.2 0L304 40.4 344.4 5.8c7.1-6.1 17.1-7.5 25.6-3.6s14 12.4 14 21.8V488c0 9.4-5.5 17.9-14 21.8s-18.5 2.5-25.6-3.6L304 471.6 263.6 506.2c-9 7.7-22.3 7.7-31.2 0L192 471.6 151.6 506.2c-9 7.7-22.3 7.7-31.2 0L80 471.6 39.6 506.2c-7.1 6.1-17.1 7.5-25.6 3.6S0 497.4 0 488V24C0 14.6 5.5 6.1 14 2.2zM96 144c-8.8 0-16 7.2-16 16s7.2 16 16 16H288c8.8 0 16-7.2 16-16s-7.2-16-16-16H96zM80 208c0-8.8 7.2-16 16-16H288c8.8 0 16 7.2 16 16s-7.2 16-16 16H96c-8.8 0-16-7.2-16-16zM96 304c-8.8 0-16 7.2-16 16s7.2 16 16 16H288c8.8 0 16-7.2 16-16s-7.2-16-16-16H96z"/>
     </svg>`,
-    MEDICAL: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
+    SERVICE: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" width="24px" height="24px">
         <path fill="currentColor" d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1V192c0 53 43 96 96 96s96-43 96-96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1V192c0 70.7-57.3 128-128 128s-128-57.3-128-128V71.1L8.7 56.5C-2.9 53-9.2 40.8-5.7 29.1S18.4.7 30.1 4.2L57.4 12.8C65.3 15.4 70.7 22.5 71.3 31.1s-4.6 16.6-12.1 20.2L32 71.1V192c0 70.7 57.3 128 128 128v64c0 17.7-14.3 32-32 32H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192c-17.7 0-32-14.3-32-32V320c70.7 0 128-57.3 128-128V71.1l-26.1 8.7c-7.5 2.5-11.7 10.5-11.1 18.9.6 8.4 6 15.9 13.9 18.5l27.3 9.1c11.7 3.9 18 16.7 14.1 28.4s-16.7 18-28.4 14.1L250.5 160c-7.9-2.6-13.3-9.7-13.9-18.3s4.6-16.6 12.1-20.2L288 96V71.1l-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2L309.5 18c7.9 2.6 13.3 9.7 13.9 18.3s-4.6 16.6-12.1 20.2L288 71.1"/>
     </svg>`
 };
@@ -137,6 +136,91 @@ this.SVG_ICONS = {
 
     closeAllInfoPanels() {
         this.openInfoPanels.forEach(infoPanel => infoPanel.close());
+    }
+
+    // ===== FIELD CREATION METHOD =====
+    createField(config) {
+        let field;
+        
+        switch (config.type) {
+            case 'text':
+                field = new TextField(this, config);
+                break;
+            case 'email':
+                field = new EmailField(this, config);
+                break;
+            case 'phone':
+                field = new PhoneField(this, config);
+                break;
+            case 'url':
+                field = new UrlField(this, config);
+                break;
+            case 'textarea':
+                field = new TextAreaField(this, config);
+                break;
+            case 'number':
+                field = new NumberField(this, config);
+                break;
+            case 'percentage':
+                field = new PercentageField(this, config);
+                break;
+            case 'options-stepper':
+                field = new OptionsStepperField(this, config);
+                break;
+            case 'yesno':
+                field = new YesNoField(this, config);
+                break;
+            case 'select':
+                field = new SingleSelectField(this, config);
+                break;
+            case 'multiselect':
+                field = new MultiSelectField(this, config);
+                break;
+            case 'select-subsections':
+                field = new SingleSelectSubsectionsField(this, config);
+                break;
+            case 'multiselect-subsections':
+                field = new MultiSelectSubsectionsField(this, config);
+                break;
+            case 'yesno-with-options':
+                field = new YesNoWithOptionsField(this, config);
+                break;
+            case 'select-with-other':
+                field = new SingleSelectWithOtherField(this, config);
+                break;
+            case 'multiselect-with-other':
+                field = new MultiSelectWithOtherField(this, config);
+                break;
+            case 'sliding-window-range':
+                field = new SlidingWindowRangeField(this, config);
+                break;
+            case 'dual-range':
+                field = new DualRangeField(this, config);
+                break;
+            case 'slider':
+                field = new SliderField(this, config);
+                break;
+            case 'options-slider':
+                field = new OptionsSliderField(this, config);
+                break;
+            case 'serviceCard':
+                field = new ServiceCardField(this, config);
+                break;
+            case 'calendar':
+                field = new CalendarField(this, config);
+                break;
+            case 'currentAppointmentCard':
+                field = new CurrentAppointmentCardField(this, config);
+                break;
+            case 'custom':
+                field = new CustomField(this, config);
+                break;
+            default:
+                console.warn(`Unknown field type: ${config.type}`);
+                field = new TextField(this, config);
+        }
+        
+        return field;
     }
 
     // ===== UNIVERSAL DATA PROCESSING METHODS =====
@@ -592,6 +676,10 @@ this.SVG_ICONS = {
         return new CalendarField(this, config);
     }
 
+    createCurrentAppointmentCardField(config) {
+        return new CurrentAppointmentCardField(this, config);
+    }
+
     // Cleanup method
     destroy() {
         if (this.globalClickHandlerAttached) {
@@ -1042,20 +1130,22 @@ class FormStep {
                 return this.factory.createSingleSelectWithOtherField(fieldConfig);
             case 'multiselect-with-other':
                 return this.factory.createMultiSelectWithOtherField(fieldConfig);
+            case 'sliding-window-range':
+                return this.factory.createSlidingWindowRangeField(fieldConfig);
+            case 'dual-range':
+                return this.factory.createDualRangeField(fieldConfig);
+            case 'slider':
+                return this.factory.createSliderField(fieldConfig);
+            case 'options-slider':
+                return this.factory.createOptionsSliderField(fieldConfig);
+            case 'serviceCard':
+                return this.factory.createServiceCardField(fieldConfig);
+            case 'calendar':
+                return this.factory.createCalendarField(fieldConfig);
+            case 'currentAppointmentCard':
+                return this.factory.createCurrentAppointmentCardField(fieldConfig);
             case 'custom':
                 return new CustomField(this.factory, fieldConfig);
-			case 'sliding-window-range':
-				return this.factory.createSlidingWindowRangeField(fieldConfig);
-			case 'dual-range':
-				return this.factory.createDualRangeField(fieldConfig);
-			case 'slider':
-				return this.factory.createSliderField(fieldConfig);
-			case 'options-slider':
-				return this.factory.createOptionsSliderField(fieldConfig);
-			case 'serviceCard':
-				return this.factory.createServiceCardField(fieldConfig);
-			case 'calendar':
-				return this.factory.createCalendarField(fieldConfig);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
                 return null;
@@ -1186,7 +1276,6 @@ class FormStep {
         });
     }
 }
-
 /**
  * ProgressBar - Progress bar for multi-step forms
  */
@@ -7707,6 +7796,8 @@ class CalendarField extends BaseField {
     }
 }
 
+
+
 /**
  * CreatForm - Main form creation and management class
  */
@@ -8467,6 +8558,295 @@ class CreatForm {
         this.container?.remove();
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
+    }
+}
+
+class CurrentAppointmentCardField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Store config for later use
+        this.config = config;
+        
+        // Validate required configuration
+        if (!config.translations) {
+            console.error('CurrentAppointmentCardField: translations are required in config');
+        }
+        if (!config.serviceMapping) {
+            console.error('CurrentAppointmentCardField: serviceMapping is required in config');
+        }
+        
+        // Current appointment specific config
+        this.meetingName = config.meetingName || config.serviceProvider || "Provider";
+        this.startTime = config.startTime || config.currentAppointment || new Date().toISOString();
+        this.serviceName = config.serviceName || config.eventName || this.getServiceNameFromSlug(config.eventTypeSlug, this.meetingName);
+        this.language = config.language || 'en';
+        this.showServiceName = config.showServiceName !== false;
+        this.showDateTime = config.showDateTime !== false;
+        this.showProvider = config.showProvider !== false;
+        this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'reschedule'
+        this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
+        
+        // Translations and service mapping - MUST be provided from extension
+        this.translations = config.translations || {};
+        this.serviceMapping = config.serviceMapping || {};
+    }
+
+    getText(key) {
+        return this.translations[this.language]?.[key] || key;
+    }
+
+    getServiceNameFromSlug(eventTypeSlug, fallback) {
+        if (!eventTypeSlug) {
+            return fallback || 'Appointment';
+        }
+        
+        // Check if service mapping is provided
+        const serviceName = this.serviceMapping[eventTypeSlug];
+        if (serviceName) {
+            return serviceName;
+        }
+        
+        // Fallback: convert eventTypeSlug to readable format
+        return eventTypeSlug
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    formatAppointmentDate(dateTimeString) {
+        try {
+            const date = new Date(dateTimeString);
+            const formatOptions = { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            };
+            
+            const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+            const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+            return formatter.format(date);
+        } catch (error) {
+            console.warn('Error formatting date:', error);
+            return dateTimeString;
+        }
+    }
+
+    getIcon() {
+        const iconKey = this.iconType.toUpperCase();
+        
+        // Get icon from factory - factory is responsible for all icons
+        if (this.factory.SVG_ICONS[iconKey]) {
+            return this.factory.SVG_ICONS[iconKey];
+        }
+        
+        // Fallback to CALENDAR if specific icon not found
+        return this.factory.SVG_ICONS.CALENDAR || '';
+    }
+
+    validate() {
+        // Current appointment card is typically read-only, so it's always valid
+        // But we can validate that required appointment data is present
+        if (this.required) {
+            const hasRequiredData = this.meetingName && this.startTime;
+            if (!hasRequiredData) {
+                this.showError("Appointment information is required");
+                return false;
+            }
+        }
+        
+        this.hideError();
+        return true;
+    }
+    
+    render() {
+        this.element = document.createElement('div');
+        this.element.className = `form-field current-appointment-card-field card-style-${this.cardStyle}`;
+        this.element.id = this.id;
+        
+        const appointmentDate = this.formatAppointmentDate(this.startTime);
+        
+        let cardContent = '';
+        
+        if (this.cardStyle === 'compact') {
+            cardContent = this.renderCompactCard(appointmentDate);
+        } else if (this.cardStyle === 'detailed') {
+            cardContent = this.renderDetailedCard(appointmentDate);
+        } else {
+            cardContent = this.renderDefaultCard(appointmentDate);
+        }
+        
+        this.element.innerHTML = cardContent;
+        
+        // Add error container if required
+        if (this.required) {
+            const errorContainer = document.createElement('div');
+            errorContainer.className = 'error-container';
+            errorContainer.innerHTML = `
+                <div class="error-message" id="${this.id}-error">
+                    <div class="error-icon">!</div>
+                    <span class="error-text">Appointment information is required</span>
+                </div>
+            `;
+            this.element.appendChild(errorContainer);
+        }
+        
+        return this.element;
+    }
+    
+    renderDefaultCard(appointmentDate) {
+        return `
+            <div class="current-appointment-card">
+                <div class="appointment-header">
+                    <div class="appointment-icon">
+                        ${this.getIcon()}
+                    </div>
+                    <div class="appointment-info">
+                        <div class="appointment-info-title">${this.getText('currentAppointment')}</div>
+                        ${this.showProvider ? `<p><strong>${this.getText('scheduledWith')}:</strong> ${this.meetingName}</p>` : ''}
+                        ${this.showServiceName && this.serviceName ? `<p><strong>${this.getText('serviceName')}:</strong> ${this.serviceName}</p>` : ''}
+                        ${this.showDateTime ? `<p><strong>${this.getText('currentDateTime')}:</strong> ${appointmentDate}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderCompactCard(appointmentDate) {
+        return `
+            <div class="current-appointment-card compact">
+                <div class="appointment-header-compact">
+                    <div class="appointment-icon-small">
+                        ${this.getIcon()}
+                    </div>
+                    <div class="appointment-summary">
+                        <div class="appointment-title-compact">${this.meetingName}</div>
+                        <div class="appointment-date-compact">${appointmentDate}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    renderDetailedCard(appointmentDate) {
+        return `
+            <div class="current-appointment-card detailed">
+                <div class="appointment-header-detailed">
+                    <div class="appointment-icon-large">
+                        ${this.getIcon()}
+                    </div>
+                    <div class="appointment-details-full">
+                        <div class="appointment-title-large">${this.getText('currentAppointment')}</div>
+                        <div class="appointment-meta">
+                            ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
+                            ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
+                            ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getValue() {
+        // Return the appointment information as an object
+        return {
+            meetingName: this.meetingName,
+            startTime: this.startTime,
+            serviceName: this.serviceName,
+            formattedDate: this.formatAppointmentDate(this.startTime),
+            language: this.language
+        };
+    }
+    
+    setValue(value) {
+        // Update appointment information if provided
+        if (value && typeof value === 'object') {
+            if (value.meetingName) this.meetingName = value.meetingName;
+            if (value.startTime) this.startTime = value.startTime;
+            if (value.serviceName) this.serviceName = value.serviceName;
+            if (value.language) this.language = value.language;
+            
+            // Re-render the card with new values
+            if (this.element) {
+                const appointmentDate = this.formatAppointmentDate(this.startTime);
+                let cardContent = '';
+                
+                if (this.cardStyle === 'compact') {
+                    cardContent = this.renderCompactCard(appointmentDate);
+                } else if (this.cardStyle === 'detailed') {
+                    cardContent = this.renderDetailedCard(appointmentDate);
+                } else {
+                    cardContent = this.renderDefaultCard(appointmentDate);
+                }
+                
+                const cardContainer = this.element.querySelector('.current-appointment-card');
+                if (cardContainer) {
+                    cardContainer.outerHTML = cardContent;
+                }
+            }
+        }
+    }
+    
+    showError(message) {
+        const errorElement = this.element.querySelector(`#${this.id}-error`);
+        if (errorElement) {
+            const errorText = errorElement.querySelector('.error-text');
+            if (errorText) {
+                errorText.textContent = message;
+            }
+            errorElement.classList.add('show');
+        }
+    }
+    
+    hideError() {
+        const errorElement = this.element.querySelector(`#${this.id}-error`);
+        if (errorElement) {
+            errorElement.classList.remove('show');
+        }
+    }
+    
+    destroy() {
+        // Clean up any event listeners or resources
+        if (this.element) {
+            this.element.remove();
+        }
+    }
+
+    // Update configuration method for dynamic updates
+    updateConfig(newConfig) {
+        if (newConfig.meetingName) this.meetingName = newConfig.meetingName;
+        if (newConfig.startTime) this.startTime = newConfig.startTime;
+        if (newConfig.serviceName) this.serviceName = newConfig.serviceName;
+        if (newConfig.language) this.language = newConfig.language;
+        if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
+        if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
+        
+        // Update service name if eventTypeSlug changed
+        if (newConfig.eventTypeSlug) {
+            this.serviceName = this.getServiceNameFromSlug(newConfig.eventTypeSlug, this.meetingName);
+        }
+        
+        // Re-render if element exists
+        if (this.element) {
+            const appointmentDate = this.formatAppointmentDate(this.startTime);
+            let cardContent = '';
+            
+            if (this.cardStyle === 'compact') {
+                cardContent = this.renderCompactCard(appointmentDate);
+            } else if (this.cardStyle === 'detailed') {
+                cardContent = this.renderDetailedCard(appointmentDate);
+            } else {
+                cardContent = this.renderDefaultCard(appointmentDate);
+            }
+            
+            const cardContainer = this.element.querySelector('.current-appointment-card');
+            if (cardContainer) {
+                cardContainer.outerHTML = cardContent;
+            }
+        }
     }
 }
 // Export for module usage
