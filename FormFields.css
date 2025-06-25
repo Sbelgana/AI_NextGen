@@ -1678,7 +1678,7 @@ input[type="number"]:hover:not(:focus) {
 
 /* Calendar Header */
 .calendar-header {
-  padding: 24px;
+  padding: 10px;
   background: linear-gradient(90deg, #e95d2c, #b0cee2);
   display: flex;
   justify-content: space-between;
@@ -2431,7 +2431,6 @@ select:focus-visible,
   
   /* Calendar */
   .calendar-header {
-    padding: 15px;
     flex-direction: column;
     gap: 15px;
   }
