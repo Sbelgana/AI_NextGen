@@ -7033,7 +7033,7 @@ class CalendarField extends BaseField {
                         <div class="appointment-details">
                             <div class="provider-name">${this.serviceProvider || 'Healthcare Provider'}</div>
                             ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
-                            <div class="current-appointment-date">${this.formatCurrentAppointment()}</div>
+                            <div class="service-name">${this.formatCurrentAppointment()}</div>
                         </div>
                     </div>
                 </div>
