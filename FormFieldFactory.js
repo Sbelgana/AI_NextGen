@@ -7469,8 +7469,8 @@ class CalendarField extends BaseField {
 
     // Enhanced header generation with date directly under service name for reschedule mode
     generateCalendarHeader() {
-        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
-        
+        //const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
+        const iconSvg = this.factory.SVG_ICONS.CALENDAR;
         if (this.mode === 'reschedule' && this.currentAppointment) {
             return `
                 <div class="calendar-title-content">
