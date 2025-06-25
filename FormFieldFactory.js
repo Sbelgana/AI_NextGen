@@ -7472,11 +7472,357 @@ class CalendarField extends BaseField {
     }
 }
 
+/**
+ * CreatForm - Main form creation and management class
+ */
+class CreatForm {
+    constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
+        this.config = {
+            language: config.language || "fr",
+            webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
+            voiceflowEnabled: config.voiceflowEnabled || false,
+            cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
+            enableSessionTimeout: config.enableSessionTimeout !== false,
+            sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
+            sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
+            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY
+        };
+        
+        // Store the passed data
+        this.formData = formData;
+        this.formConfig = formConfig;
+        this.defaultConfig = defaultConfig;
+        
+        this.state = { cssLoaded: false, initialized: false, formSubmitted: false, sessionExpired: false, currentStep: 0 };
+        this.elements = new Map();
+        this.formValues = {};
+        this.sessionTimer = null;
+        this.warningTimer = null;
+        this.cssCache = new Map();
+    }
+
+    // Utility methods
+    getText(path) {
+        return this.getNestedValue(this.formData.translations[this.config.language], path) || path;
+    }
+
+    getData(path) {
+        const data = this.getNestedValue(this.formData.options, path) || [];
+        return Array.isArray(data) ? data.map(item => ({
+            ...item,
+            name: typeof item.name === 'object' ? item.name[this.config.language] || item.name.en : item.name
+        })) : data;
+    }
+
+    getNestedValue(obj, path) {
+        return path.split('.').reduce((curr, key) => curr?.[key], obj);
+    }
+
+    getErrorMessage(fieldId, errorType = 'required') {
+        return this.getText(`errors.${fieldId}${errorType !== 'required' ? '_' + errorType : ''}`) || 
+               this.getText(`errors.${errorType}`) || 
+               this.getText('common.fieldRequired');
+    }
+
+    extractValue(value) {
+        if (value == null) return '';
+        if (typeof value === 'object' && value !== null) return value.selectedValue ?? value.value ?? '';
+        return value;
+    }
+
+    // CSS Management
+    async loadCSS() {
+        if (this.state.cssLoaded) return;
+        try {
+            const cssPromises = this.config.cssUrls.map(url => this.fetchCSS(url));
+            const cssTexts = await Promise.allSettled(cssPromises);
+            const validCSS = cssTexts
+                .filter(result => result.status === 'fulfilled' && result.value)
+                .map(result => result.value).join('\n');
+            
+            if (validCSS.trim()) this.injectCSS(validCSS);
+            this.state.cssLoaded = true;
+        } catch (error) {
+            console.warn('Failed to load CSS:', error);
+        }
+    }
+
+    async fetchCSS(url) {
+        if (this.cssCache.has(url)) return this.cssCache.get(url);
+        try {
+            const response = await fetch(url);
+            const css = response.ok ? await response.text() : '';
+            this.cssCache.set(url, css);
+            return css;
+        } catch (error) {
+            console.warn(`Failed to fetch CSS from ${url}:`, error);
+            return '';
+        }
+    }
+
+    injectCSS(css) {
+        document.querySelector('.submission-form-styles')?.remove();
+        const styleElement = document.createElement('style');
+        styleElement.className = 'submission-form-styles';
+        styleElement.textContent = css;
+        document.head.appendChild(styleElement);
+    }
+
+    // Form Creation - Configuration-driven approach
+    createFormSteps() {
+        return this.formConfig.steps.map((stepConfig, index) => ({
+            title: this.getText(`steps.${index}.title`),
+            description: this.getText(`steps.${index}.desc`),
+            fields: this.createFields(stepConfig.fields)
+        }));
+    }
+
+    createFields(fieldsConfig) {
+        return fieldsConfig.map(fieldConfig => {
+            const field = {
+                ...fieldConfig,
+                name: fieldConfig.id,
+                label: this.getText(`fields.${fieldConfig.id}`),
+                placeholder: fieldConfig.placeholder || this.getText(`fields.${fieldConfig.id}`) + '...',
+                customErrorMessage: this.getErrorMessage(fieldConfig.id)
+            };
+
+            // Handle options
+            if (fieldConfig.options) {
+                if (typeof fieldConfig.options === 'string') {
+                    field.options = this.getData(fieldConfig.options);
+                } else {
+                    field.options = fieldConfig.options.map(opt => ({
+                        ...opt,
+                        name: typeof opt.name === 'object' ? opt.name[this.config.language] : opt.name
+                    }));
+                }
+            }
+
+            // Handle nested fields
+            if (fieldConfig.yesFields) field.yesFields = this.createFields(fieldConfig.yesFields);
+            if (fieldConfig.yesField) field.yesField = this.createFields([fieldConfig.yesField])[0];
+            if (fieldConfig.noField) field.noField = this.createFields([fieldConfig.noField])[0];
+
+            return field;
+        });
+    }
+
+    // Event Handlers
+    handleFieldChange = (name, value) => {
+        this.formValues[name] = this.extractValue(value);
+    };
+
+    handleSubmission = async (formData) => {
+        const submitButton = document.querySelector('.btn-submit');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = this.getText('nav.processing');
+        }
+
+        try {
+            const submissionData = this.prepareDataForSubmission(formData);
+            const response = await fetch(this.config.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submissionData)
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            this.clearSessionTimers();
+            this.state.formSubmitted = true;
+            this.showSuccessScreen();
+            
+            if (this.config.voiceflowEnabled && window.voiceflow) {
+                window.voiceflow.chat.interact({ type: "success", payload: submissionData });
+            }
+
+            return await response.text();
+        } catch (error) {
+            console.error('Submission error:', error);
+            if (submitButton) {
+                submitButton.textContent = 'Erreur lors de la soumission. Veuillez réessayer.';
+                submitButton.disabled = false;
+            }
+            throw error;
+        }
+    };
+
+    prepareDataForSubmission(formValues) {
+        const processedData = this.factory.processAnyFormData(formValues);
+        return {
+            ...processedData,
+            formLanguage: this.config.language,
+            submissionTimestamp: new Date().toISOString(),
+            formVersion: this.defaultConfig.FORM_VERSION,
+            userAgent: navigator.userAgent
+        };
+    }
+
+    // Session Management
+    setupSessionManagement() {
+        if (!this.config.enableSessionTimeout) {
+            console.log('Session timeout disabled');
+            return;
+        }
+        
+        console.log('Setting up session management:', {
+            warningTime: this.config.sessionWarning,
+            timeoutTime: this.config.sessionTimeout
+        });
+        
+        this.warningTimer = setTimeout(() => this.showSessionWarning(), this.config.sessionWarning);
+        this.sessionTimer = setTimeout(() => this.disableFormOnTimeout(), this.config.sessionTimeout);
+    }
+
+    showSessionWarning() {
+        if (this.state.formSubmitted || this.state.sessionExpired) return;
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'session-warning';
+        warningDiv.innerHTML = `<div style="display: flex; align-items: center; margin-bottom: 10px;"><span style="font-size: 20px; margin-right: 10px;">⚠️</span><strong>Session Warning</strong></div><p style="margin: 0; font-size: 14px;">Your session will expire in 2 minutes.</p>`;
+        document.body.appendChild(warningDiv);
+        setTimeout(() => warningDiv.remove(), 30000);
+    }
+
+    disableFormOnTimeout() {
+        if (this.state.formSubmitted || this.state.sessionExpired) return;
+        this.state.sessionExpired = true;
+        
+        if (this.multiStepForm?.container) {
+            this.multiStepForm.container.querySelectorAll('input, select, button, textarea, [contenteditable]')
+                .forEach(el => {
+                    el.disabled = true;
+                    el.style.opacity = '0.5';
+                    el.style.pointerEvents = 'none';
+                });
+            this.showTimeoutOverlay();
+        }
+    }
+
+    clearSessionTimers() {
+        console.log('Clearing session timers');
+        if (this.sessionTimer) {
+            clearTimeout(this.sessionTimer);
+            this.sessionTimer = null;
+        }
+        if (this.warningTimer) {
+            clearTimeout(this.warningTimer);
+            this.warningTimer = null;
+        }
+        document.querySelector('.session-warning')?.remove();
+    }
+
+    // UI States
+    showSuccessScreen() {
+        if (this.multiStepForm?.container) this.multiStepForm.container.style.display = 'none';
+        
+        const successScreen = document.createElement('div');
+        successScreen.className = 'success-state';
+        successScreen.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+            <h2>${this.getText('success.title')}</h2>
+            <p style="margin: 20px 0;">${this.getText('success.message')}</p>
+            <button type="button" class="btn btn-next" onclick="location.reload()">Retour au formulaire</button>
+        `;
+        this.container.appendChild(successScreen);
+    }
+
+    showTimeoutOverlay() {
+        const overlay = document.createElement('div');
+        overlay.className = 'timeout-overlay';
+        overlay.innerHTML = `
+            <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; margin: 20px;">
+                <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
+                <h3 style="color: #333; margin: 0 0 15px 0;">Session Expired</h3>
+                <p style="color: #666; margin: 0;">Your session has expired after 15 minutes of inactivity. The form is no longer available.</p>
+            </div>
+        `;
+        this.container.appendChild(overlay);
+    }
+
+    // Main Render Method
+    async render(element) {
+        try {
+            await this.loadCSS();
+            
+            this.container = document.createElement('div');
+            this.container.className = 'submission-form-extension';
+            this.container.id = 'submission-form-root';
+
+            this.factory = new FormFieldFactory({
+                container: this.container,
+                formValues: this.formValues,
+                onChange: this.handleFieldChange,
+                texts: {
+                    next: this.getText('nav.next'),
+                    previous: this.getText('nav.previous'),
+                    submit: this.getText('nav.submit'),
+                    required: this.getText('common.required'),
+                    fieldRequired: this.getText('common.fieldRequired'),
+                    yes: this.getText('common.yes'),
+                    no: this.getText('common.no'),
+                    other: this.getText('common.other'),
+                    selectAtLeastOne: this.getText('errors.selectAtLeastOne')
+                }
+            });
+
+            const formConfig = {
+                showProgress: true,
+                saveProgress: false,
+                validateOnNext: true,
+                steps: this.createFormSteps(),
+                onSubmit: this.handleSubmission,
+                onStepChange: (stepIndex) => { this.state.currentStep = stepIndex; }
+            };
+
+            this.multiStepForm = this.factory.createMultiStepForm(formConfig);
+            element.appendChild(this.container);
+            this.setupSessionManagement();
+            this.state.initialized = true;
+
+            return this.createPublicAPI();
+        } catch (error) {
+            console.error('Failed to render submission form:', error);
+            element.innerHTML = '<div class="error-state">Failed to load submission form</div>';
+            return { destroy: () => {} };
+        }
+    }
+
+    createPublicAPI() {
+        return {
+            destroy: () => this.destroy(),
+            getCurrentStep: () => this.state.currentStep,
+            getFormData: () => this.multiStepForm?.getFormData() || {},
+            isInitialized: () => this.state.initialized,
+            isSubmitted: () => this.state.formSubmitted,
+            reset: () => this.reset()
+        };
+    }
+
+    reset() {
+        this.clearSessionTimers();
+        this.state = { ...this.state, initialized: false, formSubmitted: false, sessionExpired: false, currentStep: 0 };
+        this.multiStepForm?.reset();
+        this.setupSessionManagement();
+    }
+
+    destroy() {
+        this.clearSessionTimers();
+        this.factory?.destroy();
+        this.multiStepForm?.clearSavedProgress();
+        this.elements.clear();
+        this.container?.remove();
+        document.querySelector('.submission-form-styles')?.remove();
+    }
+}
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = FormFieldFactory;
+    module.exports = { FormFieldFactory, CreatForm };
 }
 
 // Export to window
 window.FormFieldFactory = FormFieldFactory;
+window.CreatForm = CreatForm;
 window.MultiStepForm = MultiStepForm;
