@@ -644,13 +644,14 @@ input[type="number"]:hover:not(:focus) {
   cursor: pointer;
   padding: 8px 24px;
   border: 2px solid #ddd;
-  border-radius: 16px;
+  border-radius: 8px;
   transition: 0.2s;
   flex: 1;
   min-width: 200px;
   position: relative;
   overflow: hidden;
   background-color: #fff;
+	height: 52px;
 }
 
 .radio-option:hover {
