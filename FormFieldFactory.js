@@ -5255,6 +5255,13 @@ class MultiSelectWithOtherField extends BaseField {
 /**
  * SlidingWindowRangeField - Dual range slider with sliding window controls and validation
  */
+/**
+ * OPTIMIZED FIELD CLASSES WITH PERFORMANCE ENHANCEMENTS
+ */
+
+/**
+ * SlidingWindowRangeField - Optimized with debouncing, caching, and memoization
+ */
 class SlidingWindowRangeField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5271,8 +5278,23 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = config.defaultMin || this.currentMin + 200;
         this.selectedMax = config.defaultMax || this.currentMax - 200;
         
+        // Optimization: Debouncing and caching
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        this.dimensionCache = new Map();
+        
         // Validation properties
         this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
     validate() {
@@ -5280,24 +5302,21 @@ class SlidingWindowRangeField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        
         return super.validate();
     }
 
-    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    // Auto-adjust the value
                     this.selectedMin = result.adjustedValue;
                     this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
                     
                     if (this.minRange && this.maxRange) {
                         this.minRange.value = this.selectedMin;
                         this.maxRange.value = this.selectedMax;
-                        this.updateUI();
+                        this.debouncedUpdate();
                     }
                     
                     this.showError(result.message);
@@ -5313,18 +5332,15 @@ class SlidingWindowRangeField extends BaseField {
         return newValue;
     }
 
-    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             this.currentMin = Math.max(this.currentMin, newConstraints.min);
             
-            // Update slider attributes if they exist
             if (this.minRange) {
                 this.minRange.min = this.currentMin;
                 this.maxRange.min = this.currentMin;
                 
-                // Ensure current values respect new minimum
                 if (this.selectedMin < this.currentMin) {
                     this.selectedMin = this.currentMin;
                     this.minRange.value = this.selectedMin;
@@ -5334,7 +5350,8 @@ class SlidingWindowRangeField extends BaseField {
                     this.maxRange.value = this.selectedMax;
                 }
                 
-                this.updateUI();
+                this.clearCache();
+                this.debouncedUpdate();
             }
         }
         
@@ -5347,56 +5364,81 @@ class SlidingWindowRangeField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear();
+    }
+
+    getContainerDimensions() {
+        const container = this.container.querySelector('.range-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
-        const container = this.container.querySelector('.range-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        // Constrain to boundaries
-        if (percent < leftBoundary) {
-            return leftBoundary;
-        } else if (percent > rightBoundary) {
-            return rightBoundary;
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
         }
         
-        return percent;
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
+        
+        const labelWidth = labelElement.offsetWidth || 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        let result = percent;
+        if (percent < leftBoundary) {
+            result = leftBoundary;
+        } else if (percent > rightBoundary) {
+            result = rightBoundary;
+        }
+        
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for collision detection
     checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
         if (!minLabel || !maxLabel) return { minPercent, maxPercent };
         
+        const cacheKey = `collision-${minPercent}-${maxPercent}-${minLabel.offsetWidth}-${maxLabel.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
+        
         const minWidth = minLabel.offsetWidth || 100;
         const maxWidth = maxLabel.offsetWidth || 100;
-        const container = this.container.querySelector('.range-container');
+        const containerDimensions = this.getContainerDimensions();
         
-        if (!container) return { minPercent, maxPercent };
+        if (containerDimensions.width === 0) return { minPercent, maxPercent };
         
-        const containerWidth = container.offsetWidth;
-        
-        // Calculate minimum distance needed (in percentage)
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
-        
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerDimensions.width * 100;
         const currentDistance = maxPercent - minPercent;
         
+        let result = { minPercent, maxPercent };
+        
         if (currentDistance < minDistance) {
-            // Labels would overlap, adjust positions
             const center = (minPercent + maxPercent) / 2;
             const halfDistance = minDistance / 2;
             
             let adjustedMinPercent = center - halfDistance;
             let adjustedMaxPercent = center + halfDistance;
             
-            // Make sure they don't go out of bounds
             if (adjustedMinPercent < 0) {
                 adjustedMinPercent = 0;
                 adjustedMaxPercent = minDistance;
@@ -5405,16 +5447,16 @@ class SlidingWindowRangeField extends BaseField {
                 adjustedMinPercent = 100 - minDistance;
             }
             
-            return { 
+            result = { 
                 minPercent: adjustedMinPercent, 
                 maxPercent: adjustedMaxPercent 
             };
         }
         
-        return { minPercent, maxPercent };
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -5423,43 +5465,28 @@ class SlidingWindowRangeField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
-        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
-    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.range-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5470,26 +5497,21 @@ class SlidingWindowRangeField extends BaseField {
         const slidingLayout = document.createElement('div');
         slidingLayout.className = 'sliding-window-layout';
         
-        // Decrease button
         this.decreaseBtn = document.createElement('button');
         this.decreaseBtn.type = 'button';
         this.decreaseBtn.className = 'slider-control-btn';
         this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
         
-        // Range container
         const rangeContainer = document.createElement('div');
         rangeContainer.className = 'range-container';
         
-        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
-        // Track (selected range)
         this.track = document.createElement('div');
         this.track.className = 'slider-track';
         trackBg.appendChild(this.track);
         
-        // Min range input
         this.minRange = document.createElement('input');
         this.minRange.type = 'range';
         this.minRange.className = 'range-input';
@@ -5498,7 +5520,6 @@ class SlidingWindowRangeField extends BaseField {
         this.minRange.value = this.selectedMin;
         this.minRange.step = this.step;
         
-        // Max range input
         this.maxRange = document.createElement('input');
         this.maxRange.type = 'range';
         this.maxRange.className = 'range-input';
@@ -5507,7 +5528,6 @@ class SlidingWindowRangeField extends BaseField {
         this.maxRange.value = this.selectedMax;
         this.maxRange.step = this.step;
         
-        // Value labels
         this.minLabel = document.createElement('div');
         this.minLabel.className = 'slider-value-label';
         
@@ -5520,7 +5540,6 @@ class SlidingWindowRangeField extends BaseField {
         rangeContainer.appendChild(this.minLabel);
         rangeContainer.appendChild(this.maxLabel);
         
-        // Increase button
         this.increaseBtn = document.createElement('button');
         this.increaseBtn.type = 'button';
         this.increaseBtn.className = 'slider-control-btn';
@@ -5548,6 +5567,9 @@ class SlidingWindowRangeField extends BaseField {
         this.maxRange.addEventListener('input', () => this.handleMaxChange());
         this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
         this.increaseBtn.addEventListener('click', () => this.increaseRange());
+        
+        // Optimize: Clear cache on window resize
+        window.addEventListener('resize', () => this.clearCache());
     }
 
     handleMinChange() {
@@ -5561,7 +5583,6 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = parseInt(this.minRange.value);
         this.selectedMax = parseInt(this.maxRange.value);
         
-        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax,
@@ -5570,8 +5591,8 @@ class SlidingWindowRangeField extends BaseField {
         });
         
         if (validatedValue !== false) {
-            this.updateUI();
-            this.handleChange();
+            this.debouncedUpdate();
+            this.debouncedChange();
         }
     }
 
@@ -5586,7 +5607,6 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = parseInt(this.minRange.value);
         this.selectedMax = parseInt(this.maxRange.value);
         
-        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax,
@@ -5595,8 +5615,8 @@ class SlidingWindowRangeField extends BaseField {
         });
         
         if (validatedValue !== false) {
-            this.updateUI();
-            this.handleChange();
+            this.debouncedUpdate();
+            this.debouncedChange();
         }
     }
 
@@ -5605,6 +5625,7 @@ class SlidingWindowRangeField extends BaseField {
             this.currentMin = Math.min(this.currentMin + this.windowStep, this.max - this.rangeWindow);
             this.currentMax = Math.min(this.currentMax + this.windowStep, this.max);
             this.updateSliderAttributes();
+            this.clearCache();
             this.updateUI();
         }
     }
@@ -5614,6 +5635,7 @@ class SlidingWindowRangeField extends BaseField {
             this.currentMin = Math.max(this.currentMin - this.windowStep, this.min);
             this.currentMax = Math.max(this.currentMax - this.windowStep, this.min + this.rangeWindow);
             this.updateSliderAttributes();
+            this.clearCache();
             this.updateUI();
         }
     }
@@ -5624,7 +5646,6 @@ class SlidingWindowRangeField extends BaseField {
         this.maxRange.min = this.currentMin;
         this.maxRange.max = this.currentMax;
         
-        // Adjust values if they're outside the new range
         if (this.selectedMin < this.currentMin) this.selectedMin = this.currentMin;
         if (this.selectedMin > this.currentMax) this.selectedMin = this.currentMax - this.minGap;
         if (this.selectedMax > this.currentMax) this.selectedMax = this.currentMax;
@@ -5635,38 +5656,31 @@ class SlidingWindowRangeField extends BaseField {
     }
 
     updateUI() {
-        // Calculate percentages
         let minPercent = ((this.selectedMin - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         let maxPercent = ((this.selectedMax - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         
-        // Store original positions for triangle calculation
         const originalMinPercent = minPercent;
         const originalMaxPercent = maxPercent;
         
-        // Update track position and width
         this.track.style.left = minPercent + '%';
         this.track.style.width = (maxPercent - minPercent) + '%';
         
-        // Apply boundary checking and collision detection
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
             const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
             
             const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
                 this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
             
-            // Update labels with collision-free positions
             this.minLabel.style.left = finalMinPercent + '%';
             this.maxLabel.style.left = finalMaxPercent + '%';
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
-            // Update triangle positions to point to actual handles
             this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
             this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
-        }, 0);
+        });
         
-        // Update button states
         this.decreaseBtn.disabled = this.currentMin <= this.min;
         this.increaseBtn.disabled = this.currentMax >= this.max;
     }
@@ -5689,6 +5703,7 @@ class SlidingWindowRangeField extends BaseField {
             
             if (this.minRange) {
                 this.updateSliderAttributes();
+                this.clearCache();
                 this.updateUI();
             }
         }
@@ -5696,7 +5711,7 @@ class SlidingWindowRangeField extends BaseField {
 }
 
 /**
- * DualRangeField - Standard dual range slider with validation and personalized error messages
+ * DualRangeField - Optimized standard dual range slider
  */
 class DualRangeField extends BaseField {
     constructor(factory, config) {
@@ -5709,8 +5724,22 @@ class DualRangeField extends BaseField {
         this.selectedMin = config.defaultMin || this.min + 1000;
         this.selectedMax = config.defaultMax || this.max - 1000;
         
-        // Validation properties
+        // Optimization: Debouncing and caching
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        this.dimensionCache = new Map();
+        
         this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
     validate() {
@@ -5718,24 +5747,21 @@ class DualRangeField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        
         return super.validate();
     }
 
-    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    // Auto-adjust the value
                     this.selectedMin = result.adjustedValue;
                     this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
                     
                     if (this.minRange && this.maxRange) {
                         this.minRange.value = this.selectedMin;
                         this.maxRange.value = this.selectedMax;
-                        this.updateUI();
+                        this.debouncedUpdate();
                     }
                     
                     this.showError(result.message);
@@ -5751,17 +5777,14 @@ class DualRangeField extends BaseField {
         return newValue;
     }
 
-    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             
-            // Update slider attributes if they exist
             if (this.minRange) {
                 this.minRange.min = this.min;
                 this.maxRange.min = this.min;
                 
-                // Ensure current values respect new minimum
                 if (this.selectedMin < this.min) {
                     this.selectedMin = this.min;
                     this.minRange.value = this.selectedMin;
@@ -5771,7 +5794,8 @@ class DualRangeField extends BaseField {
                     this.maxRange.value = this.selectedMax;
                 }
                 
-                this.updateUI();
+                this.clearCache();
+                this.debouncedUpdate();
             }
         }
         
@@ -5780,38 +5804,51 @@ class DualRangeField extends BaseField {
             if (this.minRange) {
                 this.minRange.max = this.max;
                 this.maxRange.max = this.max;
-                this.updateUI();
+                this.clearCache();
+                this.debouncedUpdate();
             }
         }
     }
 
-    // Helper method for boundary checking
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear();
+    }
+
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
         
         const container = this.container.querySelector('.slider-container');
         if (!container) return percent;
         
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
-        // Constrain to boundaries
+        let result = percent;
         if (percent < leftBoundary) {
-            return leftBoundary;
+            result = leftBoundary;
         } else if (percent > rightBoundary) {
-            return rightBoundary;
+            result = rightBoundary;
         }
         
-        return percent;
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for collision detection
     checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
         if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+        
+        const cacheKey = `collision-${minPercent}-${maxPercent}-${minLabel.offsetWidth}-${maxLabel.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
         
         const minWidth = minLabel.offsetWidth || 100;
         const maxWidth = maxLabel.offsetWidth || 100;
@@ -5820,21 +5857,18 @@ class DualRangeField extends BaseField {
         if (!container) return { minPercent, maxPercent };
         
         const containerWidth = container.offsetWidth;
-        
-        // Calculate minimum distance needed (in percentage)
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100; // 10px gap
-        
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100;
         const currentDistance = maxPercent - minPercent;
         
+        let result = { minPercent, maxPercent };
+        
         if (currentDistance < minDistance) {
-            // Labels would overlap, adjust positions
             const center = (minPercent + maxPercent) / 2;
             const halfDistance = minDistance / 2;
             
             let adjustedMinPercent = center - halfDistance;
             let adjustedMaxPercent = center + halfDistance;
             
-            // Make sure they don't go out of bounds
             if (adjustedMinPercent < 0) {
                 adjustedMinPercent = 0;
                 adjustedMaxPercent = minDistance;
@@ -5843,16 +5877,16 @@ class DualRangeField extends BaseField {
                 adjustedMinPercent = 100 - minDistance;
             }
             
-            return { 
+            result = { 
                 minPercent: adjustedMinPercent, 
                 maxPercent: adjustedMaxPercent 
             };
         }
         
-        return { minPercent, maxPercent };
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -5861,43 +5895,28 @@ class DualRangeField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
-        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
-    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -5908,16 +5927,13 @@ class DualRangeField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
-        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
-        // Progress track
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
-        // Range inputs
         this.minRange = document.createElement('input');
         this.minRange.type = 'range';
         this.minRange.className = 'range-input';
@@ -5934,7 +5950,6 @@ class DualRangeField extends BaseField {
         this.maxRange.value = this.selectedMax;
         this.maxRange.step = this.step;
         
-        // Value labels
         this.minLabel = document.createElement('div');
         this.minLabel.className = 'slider-value-label';
         
@@ -5963,6 +5978,7 @@ class DualRangeField extends BaseField {
     setupEventListeners() {
         this.minRange.addEventListener('input', () => this.handleMinChange());
         this.maxRange.addEventListener('input', () => this.handleMaxChange());
+        window.addEventListener('resize', () => this.clearCache());
     }
 
     handleMinChange() {
@@ -5975,15 +5991,14 @@ class DualRangeField extends BaseField {
         
         this.selectedMin = parseInt(this.minRange.value);
         
-        // Validate constraints
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax
         });
         
         if (validatedValue !== false) {
-            this.updateUI();
-            this.handleChange();
+            this.debouncedUpdate();
+            this.debouncedChange();
         }
     }
 
@@ -5997,15 +6012,14 @@ class DualRangeField extends BaseField {
         
         this.selectedMax = parseInt(this.maxRange.value);
         
-        // Validate constraints  
         const validatedValue = this.validateConstraints({
             min: this.selectedMin,
             max: this.selectedMax
         });
         
         if (validatedValue !== false) {
-            this.updateUI();
-            this.handleChange();
+            this.debouncedUpdate();
+            this.debouncedChange();
         }
     }
 
@@ -6013,15 +6027,13 @@ class DualRangeField extends BaseField {
         let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
         let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
         
-        // Store original positions for triangle calculation
         const originalMinPercent = minPercent;
         const originalMaxPercent = maxPercent;
         
         this.progress.style.left = minPercent + '%';
         this.progress.style.width = (maxPercent - minPercent) + '%';
         
-        // Apply boundary checking and collision detection
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
             const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
             
@@ -6033,10 +6045,9 @@ class DualRangeField extends BaseField {
             this.minLabel.textContent = this.formatValue(this.selectedMin);
             this.maxLabel.textContent = this.formatValue(this.selectedMax);
             
-            // Update triangle positions to point to actual handles
             this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
             this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
-        }, 0);
+        });
     }
 
     getValue() {
@@ -6054,6 +6065,7 @@ class DualRangeField extends BaseField {
             if (this.minRange && this.maxRange) {
                 this.minRange.value = this.selectedMin;
                 this.maxRange.value = this.selectedMax;
+                this.clearCache();
                 this.updateUI();
             }
         }
@@ -6061,7 +6073,7 @@ class DualRangeField extends BaseField {
 }
 
 /**
- * SliderField - Single value slider with progress and validation
+ * SliderField - Optimized single value slider with progress
  */
 class SliderField extends BaseField {
     constructor(factory, config) {
@@ -6069,12 +6081,25 @@ class SliderField extends BaseField {
         this.min = config.min || 0;
         this.max = config.max || 10000;
         this.step = config.step || 100;
-        this.sliderType = config.sliderType || 'currency'; // 'currency', 'percentage', 'number'
+        this.sliderType = config.sliderType || 'currency';
         this.formatValue = config.formatValue || this.getDefaultFormatter();
         this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
         
-        // Validation properties
+        // Optimization: Debouncing and caching
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        
         this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
     validate() {
@@ -6082,7 +6107,6 @@ class SliderField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        
         return super.validate();
     }
 
@@ -6098,18 +6122,16 @@ class SliderField extends BaseField {
         }
     }
 
-    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    // Auto-adjust the value
                     this.value = result.adjustedValue;
                     
                     if (this.slider) {
                         this.slider.value = this.value;
-                        this.updateUI();
+                        this.debouncedUpdate();
                     }
                     
                     this.showError(result.message);
@@ -6125,22 +6147,20 @@ class SliderField extends BaseField {
         return newValue;
     }
 
-    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             
-            // Update slider attributes if they exist
             if (this.slider) {
                 this.slider.min = this.min;
                 
-                // Ensure current value respects new minimum
                 if (this.value < this.min) {
                     this.value = this.min;
                     this.slider.value = this.value;
                 }
                 
-                this.updateUI();
+                this.positionCache.clear();
+                this.debouncedUpdate();
             }
         }
         
@@ -6149,42 +6169,44 @@ class SliderField extends BaseField {
             if (this.slider) {
                 this.slider.max = this.max;
                 
-                // Ensure current value respects new maximum
                 if (this.value > this.max) {
                     this.value = this.max;
                     this.slider.value = this.value;
                 }
                 
-                this.updateUI();
+                this.positionCache.clear();
+                this.debouncedUpdate();
             }
         }
     }
 
-    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
         
         const container = this.container.querySelector('.slider-container');
         if (!container) return percent;
         
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
-        // Constrain to boundaries
+        let result = percent;
         if (percent < leftBoundary) {
-            return leftBoundary;
+            result = leftBoundary;
         } else if (percent > rightBoundary) {
-            return rightBoundary;
+            result = rightBoundary;
         }
         
-        return percent;
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -6193,43 +6215,28 @@ class SliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
-        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
-    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -6240,16 +6247,13 @@ class SliderField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
-        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
-        // Progress
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
-        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -6259,7 +6263,6 @@ class SliderField extends BaseField {
         this.slider.value = this.value;
         this.slider.step = this.step;
         
-        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -6284,34 +6287,31 @@ class SliderField extends BaseField {
         this.slider.addEventListener('input', () => {
             const newValue = parseFloat(this.slider.value);
             
-            // Validate constraints
             const validatedValue = this.validateConstraints(newValue);
             
             if (validatedValue !== false) {
                 this.value = validatedValue;
-                this.updateUI();
-                this.handleChange();
+                this.debouncedUpdate();
+                this.debouncedChange();
             }
         });
+        
+        window.addEventListener('resize', () => this.positionCache.clear());
     }
 
     updateUI() {
         const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
-        
-        // Store original position for triangle calculation
         const originalPercent = percent;
         
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.formatValue(this.value);
             
-            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
-        }, 0);
+        });
     }
 
     getValue() {
@@ -6322,13 +6322,14 @@ class SliderField extends BaseField {
         this.value = parseFloat(value) || this.min;
         if (this.slider) {
             this.slider.value = this.value;
+            this.positionCache.clear();
             this.updateUI();
         }
     }
 }
 
 /**
- * OptionsSliderField - Slider with predefined options, markers and validation
+ * OptionsSliderField - Optimized slider with predefined options
  */
 class OptionsSliderField extends BaseField {
     constructor(factory, config) {
@@ -6338,8 +6339,21 @@ class OptionsSliderField extends BaseField {
         this.currentIndex = config.defaultIndex || Math.floor(this.options.length / 2);
         this.value = this.getCurrentValue();
         
-        // Validation properties
+        // Optimization: Debouncing and caching
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        
         this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
     validate() {
@@ -6347,7 +6361,6 @@ class OptionsSliderField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        
         return super.validate();
     }
 
@@ -6367,13 +6380,11 @@ class OptionsSliderField extends BaseField {
         return '';
     }
 
-    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    // Find the index of the adjusted value
                     const adjustedIndex = this.options.findIndex(opt => 
                         (typeof opt === 'object' ? opt.value : opt) === result.adjustedValue
                     );
@@ -6384,7 +6395,7 @@ class OptionsSliderField extends BaseField {
                         
                         if (this.slider) {
                             this.slider.value = this.currentIndex;
-                            this.updateUI();
+                            this.debouncedUpdate();
                         }
                     }
                     
@@ -6401,17 +6412,14 @@ class OptionsSliderField extends BaseField {
         return newValue;
     }
 
-    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.options !== undefined) {
             this.options = newConstraints.options;
             
-            // Ensure current index is still valid
             if (this.currentIndex >= this.options.length) {
                 this.currentIndex = this.options.length - 1;
             }
             
-            // Rebuild UI if slider exists
             if (this.slider) {
                 this.slider.max = this.options.length - 1;
                 this.slider.value = this.currentIndex;
@@ -6421,36 +6429,39 @@ class OptionsSliderField extends BaseField {
                     this.createMarkers();
                 }
                 
-                this.updateUI();
+                this.positionCache.clear();
+                this.debouncedUpdate();
             }
         }
     }
 
-    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
         
         const container = this.container.querySelector('.slider-container');
         if (!container) return percent;
         
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
-        // Constrain to boundaries
+        let result = percent;
         if (percent < leftBoundary) {
-            return leftBoundary;
+            result = leftBoundary;
         } else if (percent > rightBoundary) {
-            return rightBoundary;
+            result = rightBoundary;
         }
         
-        return percent;
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -6459,43 +6470,28 @@ class OptionsSliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
-        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
-    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -6506,7 +6502,6 @@ class OptionsSliderField extends BaseField {
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
-        // Markers
         if (this.showMarkers) {
             this.markersContainer = document.createElement('div');
             this.markersContainer.className = 'slider-markers';
@@ -6514,16 +6509,13 @@ class OptionsSliderField extends BaseField {
             sliderContainer.appendChild(this.markersContainer);
         }
         
-        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
-        // Progress
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
-        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -6533,7 +6525,6 @@ class OptionsSliderField extends BaseField {
         this.slider.value = this.currentIndex;
         this.slider.step = 1;
         
-        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -6567,15 +6558,14 @@ class OptionsSliderField extends BaseField {
             marker.addEventListener('click', () => {
                 const newValue = typeof option === 'object' ? option.value : option;
                 
-                // Validate constraints
                 const validatedValue = this.validateConstraints(newValue);
                 
                 if (validatedValue !== false) {
                     this.currentIndex = index;
                     this.value = this.getCurrentValue();
                     this.slider.value = index;
-                    this.updateUI();
-                    this.handleChange();
+                    this.debouncedUpdate();
+                    this.debouncedChange();
                 }
             });
             
@@ -6588,34 +6578,31 @@ class OptionsSliderField extends BaseField {
             this.currentIndex = parseInt(this.slider.value);
             const newValue = this.getCurrentValue();
             
-            // Validate constraints
             const validatedValue = this.validateConstraints(newValue);
             
             if (validatedValue !== false) {
                 this.value = validatedValue;
-                this.updateUI();
-                this.handleChange();
+                this.debouncedUpdate();
+                this.debouncedChange();
             }
         });
+        
+        window.addEventListener('resize', () => this.positionCache.clear());
     }
 
     updateUI() {
         const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
-        
-        // Store original position for triangle calculation
         const originalPercent = percent;
         
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.getCurrentDisplay();
             
-            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
-        }, 0);
+        });
         
         if (this.showMarkers && this.markersContainer) {
             this.markersContainer.querySelectorAll('.slider-marker').forEach((marker, index) => {
@@ -6639,6 +6626,7 @@ class OptionsSliderField extends BaseField {
             
             if (this.slider) {
                 this.slider.value = index;
+                this.positionCache.clear();
                 this.updateUI();
             }
         }
@@ -6646,7 +6634,7 @@ class OptionsSliderField extends BaseField {
 }
 
 /**
- * SlidingWindowSliderField - Single value slider with sliding window controls and validation
+ * SlidingWindowSliderField - Optimized single value slider with sliding window controls
  */
 class SlidingWindowSliderField extends BaseField {
     constructor(factory, config) {
@@ -6662,7 +6650,6 @@ class SlidingWindowSliderField extends BaseField {
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
         this.selectedValue = config.defaultValue || config.value || ((this.currentMin + this.currentMax) / 2);
         
-        // Ensure selected value is within current window
         if (this.selectedValue < this.currentMin) {
             this.selectedValue = this.currentMin;
         } else if (this.selectedValue > this.currentMax) {
@@ -6671,8 +6658,21 @@ class SlidingWindowSliderField extends BaseField {
         
         this.value = this.selectedValue;
         
-        // Validation properties
+        // Optimization: Debouncing and caching
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        
         this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
     }
 
     validate() {
@@ -6680,23 +6680,20 @@ class SlidingWindowSliderField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        
         return super.validate();
     }
 
-    // Validation method
     validateConstraints(newValue) {
         if (this.customValidation) {
             const result = this.customValidation(newValue, this.factory.formValues);
             if (result !== true) {
                 if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    // Auto-adjust the value
                     this.selectedValue = result.adjustedValue;
                     this.value = result.adjustedValue;
                     
                     if (this.slider) {
                         this.slider.value = this.selectedValue;
-                        this.updateUI();
+                        this.debouncedUpdate();
                     }
                     
                     this.showError(result.message);
@@ -6712,24 +6709,22 @@ class SlidingWindowSliderField extends BaseField {
         return newValue;
     }
 
-    // Update constraints method
     updateConstraints(newConstraints) {
         if (newConstraints.min !== undefined) {
             this.min = newConstraints.min;
             this.currentMin = Math.max(this.currentMin, newConstraints.min);
             
-            // Update slider attributes if they exist
             if (this.slider) {
                 this.slider.min = this.currentMin;
                 
-                // Ensure current value respects new minimum
                 if (this.selectedValue < this.currentMin) {
                     this.selectedValue = this.currentMin;
                     this.value = this.selectedValue;
                     this.slider.value = this.selectedValue;
                 }
                 
-                this.updateUI();
+                this.positionCache.clear();
+                this.debouncedUpdate();
             }
         }
         
@@ -6742,31 +6737,33 @@ class SlidingWindowSliderField extends BaseField {
         }
     }
 
-    // Helper method for boundary checking
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
         
         const container = this.container.querySelector('.slider-container');
         if (!container) return percent;
         
         const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        
-        // Calculate boundaries (in percentage)
         const leftBoundary = (labelWidth / 2) / containerWidth * 100;
         const rightBoundary = 100 - leftBoundary;
         
-        // Constrain to boundaries
+        let result = percent;
         if (percent < leftBoundary) {
-            return leftBoundary;
+            result = leftBoundary;
         } else if (percent > rightBoundary) {
-            return rightBoundary;
+            result = rightBoundary;
         }
         
-        return percent;
+        this.positionCache.set(cacheKey, result);
+        return result;
     }
 
-    // Helper method for triangle positioning with strict constraints
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
         if (!labelElement || !containerElement) return '50%';
         
@@ -6775,43 +6772,28 @@ class SlidingWindowSliderField extends BaseField {
         
         if (containerWidth === 0 || labelWidth === 0) return '50%';
         
-        // Calculate pixel positions
         const originalHandlePosition = (originalPercent / 100) * containerWidth;
         const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        
-        // Calculate the offset from label center to handle position
         const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        
-        // Convert offset to percentage of label width
         const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        
-        // Add to the default center position (50%)
         const trianglePosition = 50 + triangleOffset;
         
-        // More restrictive constraints to keep triangle inside label
-        const triangleHalfWidth = 5; // Half of triangle width in pixels
-        const safetyMargin = 4; // Extra safety margin
-        const minSafeDistance = triangleHalfWidth + safetyMargin; // 9px from edge
-        
-        // Convert pixel constraints to percentage of label width
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
         const minTrianglePos = (minSafeDistance / labelWidth) * 100;
         const maxTrianglePos = 100 - minTrianglePos;
-        
-        // Ensure minimum constraints (fallback if calculations result in very small label)
-        const absoluteMinPos = Math.max(minTrianglePos, 15); // Never less than 15%
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85); // Never more than 85%
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
         
         return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
     }
 
-    // Method to update triangle position
     updateTrianglePosition(labelElement, originalPercent, finalPercent) {
         if (!labelElement) return;
         
         const container = this.container.querySelector('.slider-container');
         const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        
-        // Apply the triangle position using CSS custom property
         labelElement.style.setProperty('--triangle-left', trianglePos);
     }
 
@@ -6822,26 +6804,21 @@ class SlidingWindowSliderField extends BaseField {
         const slidingLayout = document.createElement('div');
         slidingLayout.className = 'sliding-window-layout';
         
-        // Decrease button
         this.decreaseBtn = document.createElement('button');
         this.decreaseBtn.type = 'button';
         this.decreaseBtn.className = 'slider-control-btn';
         this.decreaseBtn.innerHTML = this.factory.SVG_ICONS.MINUS;
         
-        // Slider container
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         
-        // Track background
         const trackBg = document.createElement('div');
         trackBg.className = 'slider-track-bg';
         
-        // Progress track
         this.progress = document.createElement('div');
         this.progress.className = 'slider-progress';
         trackBg.appendChild(this.progress);
         
-        // Slider input
         this.slider = document.createElement('input');
         this.slider.type = 'range';
         this.slider.className = 'range-input';
@@ -6851,7 +6828,6 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.value = this.selectedValue;
         this.slider.step = this.step;
         
-        // Value label
         this.valueLabel = document.createElement('div');
         this.valueLabel.className = 'slider-value-label';
         
@@ -6859,7 +6835,6 @@ class SlidingWindowSliderField extends BaseField {
         sliderContainer.appendChild(this.slider);
         sliderContainer.appendChild(this.valueLabel);
         
-        // Increase button
         this.increaseBtn = document.createElement('button');
         this.increaseBtn.type = 'button';
         this.increaseBtn.className = 'slider-control-btn';
@@ -6886,19 +6861,19 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.addEventListener('input', () => this.handleValueChange());
         this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
         this.increaseBtn.addEventListener('click', () => this.increaseRange());
+        window.addEventListener('resize', () => this.positionCache.clear());
     }
 
     handleValueChange() {
         const newValue = parseFloat(this.slider.value);
         
-        // Validate constraints
         const validatedValue = this.validateConstraints(newValue);
         
         if (validatedValue !== false) {
             this.selectedValue = validatedValue;
             this.value = validatedValue;
-            this.updateUI();
-            this.handleChange();
+            this.debouncedUpdate();
+            this.debouncedChange();
         }
     }
 
@@ -6907,6 +6882,7 @@ class SlidingWindowSliderField extends BaseField {
             this.currentMin = Math.min(this.currentMin + this.windowStep, this.max - this.rangeWindow);
             this.currentMax = Math.min(this.currentMax + this.windowStep, this.max);
             this.updateSliderAttributes();
+            this.positionCache.clear();
             this.updateUI();
         }
     }
@@ -6916,6 +6892,7 @@ class SlidingWindowSliderField extends BaseField {
             this.currentMin = Math.max(this.currentMin - this.windowStep, this.min);
             this.currentMax = Math.max(this.currentMax - this.windowStep, this.min + this.rangeWindow);
             this.updateSliderAttributes();
+            this.positionCache.clear();
             this.updateUI();
         }
     }
@@ -6924,7 +6901,6 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.min = this.currentMin;
         this.slider.max = this.currentMax;
         
-        // Adjust value if it's outside the new range
         if (this.selectedValue < this.currentMin) {
             this.selectedValue = this.currentMin;
         } else if (this.selectedValue > this.currentMax) {
@@ -6936,26 +6912,19 @@ class SlidingWindowSliderField extends BaseField {
     }
 
     updateUI() {
-        // Calculate percentage
         const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
-        
-        // Store original position for triangle calculation
         const originalPercent = percent;
         
-        // Update progress width
         this.progress.style.width = percent + '%';
         
-        // Apply boundary checking
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.formatValue(this.selectedValue);
             
-            // Update triangle position to point to actual handle
             this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
-        }, 0);
+        });
         
-        // Update button states
         this.decreaseBtn.disabled = this.currentMin <= this.min;
         this.increaseBtn.disabled = this.currentMax >= this.max;
     }
@@ -6966,7 +6935,6 @@ class SlidingWindowSliderField extends BaseField {
 
     setValue(value) {
         if (typeof value === 'object' && value !== null) {
-            // Handle object input (for compatibility)
             this.selectedValue = value.value || value.selectedValue || value.min || this.selectedValue;
             this.currentMin = value.currentMin || this.currentMin;
             this.currentMax = value.currentMax || this.currentMax;
@@ -6978,6 +6946,7 @@ class SlidingWindowSliderField extends BaseField {
         
         if (this.slider) {
             this.updateSliderAttributes();
+            this.positionCache.clear();
             this.updateUI();
         }
     }
