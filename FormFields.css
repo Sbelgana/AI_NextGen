@@ -1299,7 +1299,6 @@ input[type="number"]:hover:not(:focus) {
 /* Conditional Fields */
 .conditional-field-wrapper {
   display: none;
-  margin-top: 10px;
   animation: slideDown 0.3s;
 }
 
@@ -1307,9 +1306,7 @@ input[type="number"]:hover:not(:focus) {
   display: block !important;
 }
 
-.form-col .conditional-field-wrapper {
-  margin-top: 10px;
-}
+
 
 .conditional-side-by-side {
   display: flex;
