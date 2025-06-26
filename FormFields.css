@@ -3377,6 +3377,7 @@ submission-form-extension {
 .calendar-flex-container {
   display: flex;
   min-height: 500px;
+        flex-direction: column;
 }
 
 /* Calendar Column (Left Side) */
@@ -4155,6 +4156,7 @@ submission-form-extension {
   .calendar-flex-container {
     flex-direction: column;
     min-height: auto;
+	  
   }
   
   .calendar-column,
@@ -4304,6 +4306,7 @@ submission-form-extension {
   
   .calendar-flex-container {
     min-height: 400px;
+        flex-direction: column;
   }
   
   .service-calendar-container .calendar-header {
