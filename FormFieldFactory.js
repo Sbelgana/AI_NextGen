@@ -10170,6 +10170,11 @@ class ProviderCalendarField extends BaseField {
  * First selects service, then shows providers who offer that service
  * Based on ProviderCalendarField structure and patterns
  */
+/**
+ * ServiceAndProviderCalendarField - Enhanced Calendar with Service and Provider Selection
+ * First selects service, then shows providers who offer that service
+ * Based on ProviderCalendarField structure and patterns
+ */
 class ServiceAndProviderCalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -10378,8 +10383,6 @@ class ServiceAndProviderCalendarField extends BaseField {
 
     // FIXED: Update provider options by recreating the field
     updateProviderOptions() {
-        if (!this.providerSelectField) return;
-
         // Get the provider container
         const providerContainer = this.element.querySelector('.provider-select-container');
         if (!providerContainer) return;
@@ -10387,8 +10390,8 @@ class ServiceAndProviderCalendarField extends BaseField {
         // Store current value
         const currentValue = this.selectedProviderId;
 
-        // Remove old field
-        this.providerSelectField.destroy();
+        // Clear the container completely
+        providerContainer.innerHTML = '';
 
         // Create new field with updated options
         this.providerSelectField = new SingleSelectField(this.factory, {
@@ -10406,10 +10409,14 @@ class ServiceAndProviderCalendarField extends BaseField {
             }
         });
 
-        // Clear container and add new field
-        providerContainer.innerHTML = '';
+        // Render new field
         const newFieldElement = this.providerSelectField.render();
-        providerContainer.appendChild(newFieldElement);
+        
+        // Copy the container class to maintain styling
+        newFieldElement.className = 'provider-select-container';
+        
+        // Replace the container content
+        providerContainer.parentNode.replaceChild(newFieldElement, providerContainer);
 
         // Restore value if it exists in new options
         if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
@@ -11194,10 +11201,11 @@ class ServiceAndProviderCalendarField extends BaseField {
     }
     
     destroy() {
-        if (this.serviceSelectField) {
+        // Clean up field references without calling destroy if it doesn't exist
+        if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
             this.serviceSelectField.destroy();
         }
-        if (this.providerSelectField) {
+        if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
             this.providerSelectField.destroy();
         }
         super.destroy();
