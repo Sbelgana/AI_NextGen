@@ -6338,6 +6338,9 @@ class SliderField extends BaseField {
 /**
  * OptionsSliderField - Optimized slider with predefined options
  */
+/**
+ * Fixed OptionsSliderField - Added proper dimension caching and label positioning
+ */
 class OptionsSliderField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -6351,6 +6354,7 @@ class OptionsSliderField extends BaseField {
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
         this.positionCache = new Map();
+        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
         
         this.customValidation = config.customValidation || null;
     }
@@ -6436,12 +6440,37 @@ class OptionsSliderField extends BaseField {
                     this.createMarkers();
                 }
                 
-                this.positionCache.clear();
+                this.clearCache();
                 this.debouncedUpdate();
             }
         }
     }
 
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear();
+    }
+
+    // ADDED: Missing getContainerDimensions method
+    getContainerDimensions() {
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
+    // UPDATED: Fixed calculateLabelPosition method
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -6450,12 +6479,11 @@ class OptionsSliderField extends BaseField {
             return this.positionCache.get(cacheKey);
         }
         
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
         
-        const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
         const rightBoundary = 100 - leftBoundary;
         
         let result = percent;
@@ -6467,6 +6495,12 @@ class OptionsSliderField extends BaseField {
         
         this.positionCache.set(cacheKey, result);
         return result;
+    }
+
+    // ADDED: Missing checkLabelCollision method for consistency
+    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
+        // For single slider, just return the original position
+        return { minPercent, maxPercent };
     }
 
     calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
@@ -6594,9 +6628,11 @@ class OptionsSliderField extends BaseField {
             }
         });
         
-        window.addEventListener('resize', () => this.positionCache.clear());
+        // UPDATED: Clear cache on window resize
+        window.addEventListener('resize', () => this.clearCache());
     }
 
+    // UPDATED: Enhanced updateUI method with proper positioning
     updateUI() {
         const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
         const originalPercent = percent;
@@ -6604,6 +6640,9 @@ class OptionsSliderField extends BaseField {
         this.progress.style.width = percent + '%';
         
         requestAnimationFrame(() => {
+            // Force dimension recalculation
+            this.clearCache();
+            
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.getCurrentDisplay();
@@ -6633,7 +6672,7 @@ class OptionsSliderField extends BaseField {
             
             if (this.slider) {
                 this.slider.value = index;
-                this.positionCache.clear();
+                this.clearCache();
                 this.updateUI();
             }
         }
