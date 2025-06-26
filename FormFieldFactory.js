@@ -2968,45 +2968,41 @@ class YesNoWithOptionsField extends BaseField {
     }
     
     groupFields(fields) {
-        const groups = [];
-        let i = 0;
+    const groups = [];
+    let i = 0;
+    
+    while (i < fields.length) {
+        const currentField = fields[i];
         
-        while (i < fields.length) {
-            const currentField = fields[i];
-            
-            // Check if current field should be in a row with the next field
-            if (currentField.row && i + 1 < fields.length) {
-                const nextField = fields[i + 1];
-                if (nextField.row === currentField.row) {
-                    // Find all fields with the same row identifier
-                    const rowFields = [];
-                    let j = i;
-                    while (j < fields.length && fields[j].row === currentField.row) {
-                        rowFields.push(fields[j]);
-                        j++;
-                    }
-                    
-                    groups.push({
-                        isRow: true,
-                        fields: rowFields
-                    });
-                    
-                    i = j; // Skip the grouped fields
-                    continue;
-                }
+        if (currentField.row) {
+            // Find all fields with the same row identifier
+            const rowFields = [];
+            let j = i;
+            while (j < fields.length && fields[j].row === currentField.row) {
+                rowFields.push(fields[j]);
+                j++;
             }
             
-            // Single field
             groups.push({
-                isRow: false,
-                fields: [currentField]
+                isRow: true,
+                fields: rowFields
             });
             
-            i++;
+            i = j; // Skip the grouped fields
+            continue;
         }
         
-        return groups;
+        // Single field without row
+        groups.push({
+            isRow: false,
+            fields: [currentField]
+        });
+        
+        i++;
     }
+    
+    return groups;
+}
 
     // Get display value for the main selection
     getMainDisplayValue() {
