@@ -8557,13 +8557,474 @@ class CurrentAppointmentCardField extends BaseField {
     }
 }
 
+
 /**
- * Calendar API Service - Handles all Cal.com API interactions
+ * OPTIMIZED CALENDAR FIELDS - Unified approach using CalendarField as base
+ * Eliminates code duplication and provides consistent interface
  */
-class CalendarApiService {
-    constructor(apiKey, timezone = 'America/Toronto') {
-        this.apiKey = apiKey;
-        this.timezone = timezone;
+
+/**
+ * Enhanced CalendarField - Base class with optional service/provider selection
+ * Replaces the need for three separate classes with configuration-driven approach
+ */
+class CalendarField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Core calendar configuration
+        this.timezone = config.timezone || 'America/Toronto';
+        this.language = config.language || 'en';
+        this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
+        
+        // Selection mode determines what UI to show
+        this.selectionMode = config.selectionMode || 'none'; 
+        // Options: 'none', 'provider', 'service-provider'
+        
+        // Service and provider data
+        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
+        this.availableServices = [];
+        this.filteredProviders = [];
+        
+        // Selection state
+        this.selectedService = config.selectedService || config.serviceName || '';
+        this.selectedProviderId = config.selectedProviderId || '';
+        
+        // Current active configuration (what the calendar uses)
+        this.currentProvider = null;
+        this.currentServiceConfig = null;
+        this.apiKey = config.apiKey || '';
+        this.eventTypeId = config.eventTypeId || null;
+        this.eventTypeSlug = config.eventTypeSlug || '';
+        this.scheduleId = config.scheduleId || null;
+        this.eventName = config.eventName || '';
+        
+        // UI Configuration
+        this.headerIcon = config.headerIcon || 'CALENDAR';
+        this.showProviderInfo = config.showProviderInfo !== false;
+        this.placeholderText = config.placeholderText || '';
+        
+        // Selection fields (created as needed)
+        this.serviceSelectField = null;
+        this.providerSelectField = null;
+        
+        // Calendar state
+        this.state = {
+            currentDate: new Date(),
+            selectedDate: null,
+            selectedTime: null,
+            availableSlots: {},
+            workingDays: [1, 2, 3, 4, 5],
+            isConfirmed: false,
+            isLoading: false
+        };
+        
+        // Store full config for reference
+        this.fullConfig = config;
+        
+        console.log('CalendarField initialized with selectionMode:', this.selectionMode);
+        
+        this.init();
+    }
+
+    // Initialize based on selection mode
+    async init() {
+        if (this.selectionMode === 'none') {
+            // Direct calendar mode - provider config should already be set
+            await this.initializeCalendar();
+        } else if (this.selectionMode === 'provider') {
+            // Provider selection mode - extract services and filter providers
+            this.initializeProviderSelection();
+        } else if (this.selectionMode === 'service-provider') {
+            // Service + provider selection mode
+            this.initializeServiceAndProviderSelection();
+        }
+    }
+
+    // Direct calendar initialization (original CalendarField behavior)
+    async initializeCalendar() {
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            if (!this.state.selectedDate) {
+                this.state.selectedDate = this.getDefaultActiveDay();
+                const dayKey = this.formatDate(this.state.selectedDate);
+                const slots = await this.fetchAvailableSlots(dayKey);
+                this.state.availableSlots[dayKey] = slots;
+            }
+        }
+    }
+
+    // Provider selection initialization (ProviderCalendarField behavior)
+    initializeProviderSelection() {
+        if (!this.selectedService) {
+            console.error('Provider selection mode requires selectedService to be set');
+            return;
+        }
+        
+        this.filteredProviders = this.filterProvidersByService(this.selectedService);
+        
+        // Auto-select if only one provider offers the service
+        if (this.filteredProviders.length === 1) {
+            this.selectedProviderId = this.filteredProviders[0].id;
+            this.selectProvider(this.selectedProviderId, false);
+        } else if (this.selectedProviderId) {
+            this.selectProvider(this.selectedProviderId, false);
+        }
+    }
+
+    // Service + provider selection initialization (ServiceAndProviderCalendarField behavior)
+    initializeServiceAndProviderSelection() {
+        this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
+        
+        if (this.selectedService) {
+            this.filteredProviders = this.filterProvidersByService(this.selectedService);
+            if (this.selectedProviderId) {
+                this.selectProvider(this.selectedProviderId, false);
+            }
+        }
+    }
+
+    // ===============================
+    // SERVICE AND PROVIDER UTILITIES
+    // ===============================
+
+    // Extract all available services from providers data
+    extractAvailableServices(rawProviders) {
+        const serviceSet = new Set();
+        
+        try {
+            const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
+            
+            providersArray.forEach(([providerName, providerData]) => {
+                if (Array.isArray(rawProviders) && typeof providerName === 'object') {
+                    providerData = providerName;
+                    providerName = providerData.name || providerData.id;
+                }
+                
+                if (providerData && providerData.services) {
+                    Object.keys(providerData.services).forEach(service => {
+                        serviceSet.add(service);
+                    });
+                }
+            });
+        } catch (error) {
+            console.error('Error extracting services:', error);
+        }
+        
+        return Array.from(serviceSet).sort().map(service => ({
+            id: this.slugify(service),
+            name: service,
+            displayName: service
+        }));
+    }
+
+    // Filter providers that offer the specific service
+    filterProvidersByService(serviceName) {
+        if (!serviceName || !this.rawServiceProviders) {
+            return [];
+        }
+
+        const filteredProviders = [];
+        const providersArray = Array.isArray(this.rawServiceProviders) ? 
+            this.rawServiceProviders : Object.entries(this.rawServiceProviders);
+        
+        providersArray.forEach(([providerName, providerData]) => {
+            if (Array.isArray(this.rawServiceProviders) && typeof providerName === 'object') {
+                providerData = providerName;
+                providerName = providerData.name || providerData.id;
+            }
+            
+            if (providerData.services && providerData.services[serviceName]) {
+                const serviceConfig = providerData.services[serviceName];
+                
+                filteredProviders.push({
+                    id: this.slugify(providerName),
+                    name: providerName,
+                    displayName: providerName,
+                    description: providerData.description || providerData.specialty || "",
+                    apiKey: providerData.apiKey || "",
+                    scheduleId: providerData.scheduleId || "",
+                    eventTypeId: serviceConfig.eventId || "",
+                    eventTypeSlug: serviceConfig.eventSlug || "",
+                    eventName: serviceName,
+                    link: serviceConfig.link || "",
+                    serviceConfig: serviceConfig,
+                    allServices: providerData.services
+                });
+            }
+        });
+        
+        return filteredProviders;
+    }
+
+    // Helper to create URL-friendly slugs
+    slugify(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '') 
+            .replace(/[\s_-]+/g, '-') 
+            .replace(/^-+|-+$/g, '');
+    }
+
+    // ===============================
+    // SELECTION METHODS
+    // ===============================
+
+    // Select service (for service-provider mode)
+    selectService(serviceId) {
+        console.log('Selecting service:', serviceId);
+        
+        const service = this.availableServices.find(s => s.id === serviceId);
+        if (!service) {
+            console.error('Service not found:', serviceId);
+            return;
+        }
+        
+        this.selectedService = service.name;
+        this.filteredProviders = this.filterProvidersByService(service.name);
+        
+        // Update provider dropdown
+        this.updateProviderOptions();
+        this.showProviderSelection();
+        
+        // Reset provider and calendar state
+        this.resetProviderAndCalendar();
+        
+        // Auto-select if only one provider
+        if (this.filteredProviders.length === 1) {
+            this.selectProvider(this.filteredProviders[0].id);
+            if (this.providerSelectField) {
+                this.providerSelectField.setValue(this.filteredProviders[0].id);
+            }
+        }
+        
+        this.updateCalendarHeader();
+        this.renderCalendarData();
+    }
+
+    // Select provider
+    async selectProvider(providerId, shouldUpdateUI = true) {
+        console.log('Selecting provider:', providerId);
+        
+        const provider = this.filteredProviders.find(p => p.id === providerId);
+        if (!provider) {
+            console.error('Provider not found:', providerId);
+            return;
+        }
+        
+        // Update current configuration
+        this.selectedProviderId = providerId;
+        this.currentProvider = provider;
+        this.currentServiceConfig = provider.serviceConfig;
+        this.apiKey = provider.apiKey || '';
+        this.eventTypeId = provider.eventTypeId || null;
+        this.eventTypeSlug = provider.eventTypeSlug || '';
+        this.scheduleId = provider.scheduleId || null;
+        this.eventName = provider.eventName || this.selectedService || '';
+        
+        // Reset calendar state
+        this.resetCalendarState();
+        
+        if (shouldUpdateUI && this.element) {
+            this.showLoadingState();
+        }
+        
+        // Initialize calendar with new provider
+        await this.initializeCalendar();
+        
+        if (shouldUpdateUI && this.element) {
+            this.updateCalendarHeader();
+            this.renderCalendarData();
+        }
+        
+        this.updateValue();
+        
+        if (this.fullConfig.onProviderChange) {
+            this.fullConfig.onProviderChange(provider);
+        }
+    }
+
+    // ===============================
+    // UI CREATION METHODS
+    // ===============================
+
+    // Create service selection field
+    createServiceSelectField() {
+        if (this.selectionMode !== 'service-provider') return null;
+        
+        this.serviceSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-service`,
+            name: `${this.name}_service`,
+            label: this.getText('selectService'),
+            placeholder: this.getText('selectServicePlaceholder'),
+            options: this.availableServices,
+            required: true,
+            onChange: (value) => this.selectService(value)
+        });
+
+        if (this.selectedService) {
+            const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
+            if (serviceOption) {
+                this.serviceSelectField.setValue(serviceOption.id);
+            }
+        }
+
+        return this.serviceSelectField;
+    }
+
+    // Create provider selection field
+    createProviderSelectField() {
+        if (this.selectionMode === 'none') return null;
+        
+        this.providerSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-provider`,
+            name: `${this.name}_provider`,
+            label: this.getText('selectProvider'),
+            placeholder: this.getText('selectProviderPlaceholder'),
+            options: this.filteredProviders,
+            required: true,
+            onChange: (value) => this.selectProvider(value)
+        });
+
+        if (this.selectedProviderId) {
+            this.providerSelectField.setValue(this.selectedProviderId);
+        }
+
+        return this.providerSelectField;
+    }
+
+    // Update provider options dynamically
+    updateProviderOptions() {
+        if (!this.providerSelectField) return;
+
+        const providerContainer = this.element.querySelector('.provider-select-container');
+        if (!providerContainer) return;
+
+        const currentValue = this.selectedProviderId;
+        providerContainer.innerHTML = '';
+
+        this.providerSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-provider`,
+            name: `${this.name}_provider`,
+            label: this.getText('selectProvider'),
+            placeholder: this.getText('selectProviderPlaceholder'),
+            options: this.filteredProviders,
+            required: true,
+            onChange: (value) => this.selectProvider(value)
+        });
+
+        const newFieldElement = this.providerSelectField.render();
+        newFieldElement.className = 'provider-select-container';
+        providerContainer.parentNode.replaceChild(newFieldElement, providerContainer);
+
+        if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
+            this.providerSelectField.setValue(currentValue);
+        }
+    }
+
+    // Show provider selection container
+    showProviderSelection() {
+        const providerContainer = this.element.querySelector('.provider-select-container');
+        if (providerContainer) {
+            providerContainer.style.display = 'block';
+        }
+    }
+
+    // ===============================
+    // STATE MANAGEMENT
+    // ===============================
+
+    resetProviderAndCalendar() {
+        this.selectedProviderId = '';
+        this.currentProvider = null;
+        this.resetCalendarState();
+    }
+
+    resetCalendarState() {
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+    }
+
+    showLoadingState() {
+        const daysEl = this.element.querySelector('.days');
+        const timeSlotsEl = this.element.querySelector('.time-slots');
+        
+        if (daysEl) {
+            daysEl.innerHTML = '<div class="loading-message">Loading availability...</div>';
+        }
+        
+        if (timeSlotsEl) {
+            timeSlotsEl.innerHTML = '<div class="loading-message">Loading...</div>';
+        }
+    }
+
+    updateCalendarHeader() {
+        if (!this.element) return;
+        
+        const headerElement = this.element.querySelector('.calendar-title');
+        if (headerElement) {
+            headerElement.innerHTML = this.generateCalendarHeader();
+        }
+    }
+
+    // ===============================
+    // VALIDATION
+    // ===============================
+
+    validate() {
+        // Check service selection if required
+        if (this.selectionMode === 'service-provider' && !this.selectedService) {
+            this.showError(this.getFieldErrorMessage('serviceRequired') || 'Please select a service');
+            return false;
+        }
+        
+        // Check provider selection if required
+        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.selectedProviderId) {
+            this.showError(this.getFieldErrorMessage('providerRequired') || 'Please select a provider');
+            return false;
+        }
+        
+        // Check date and time selection
+        const isDateTimeValid = !!(this.state.selectedDate && this.state.selectedTime);
+        
+        if (this.required && !isDateTimeValid) {
+            this.showError(this.getFieldErrorMessage('dateTimeRequired') || 'Please select date and time');
+            return false;
+        }
+        
+        this.hideError();
+        return true;
+    }
+
+    // ===============================
+    // CALENDAR CORE METHODS (Original CalendarField logic)
+    // ===============================
+
+    formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    
+    isSameDay(date1, date2) {
+        if (!date1 || !date2) return false;
+        return this.formatDate(date1) === this.formatDate(date2);
+    }
+    
+    getDefaultActiveDay() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (this.state.workingDays.includes(today.getDay())) return today;
+        
+        const next = new Date(today);
+        let daysChecked = 0;
+        while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
+            next.setDate(next.getDate() + 1);
+            daysChecked++;
+        }
+        return next;
     }
 
     async fetchWorkingDays(scheduleId) {
@@ -8607,15 +9068,15 @@ class CalendarApiService {
         }
     }
     
-    async fetchAvailableSlots(selectedDateISO, eventTypeId, eventTypeSlug) {
-        if (!this.apiKey || !eventTypeId || !eventTypeSlug) return [];
+    async fetchAvailableSlots(selectedDateISO) {
+        if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
         
         const start = new Date(selectedDateISO);
         start.setUTCHours(0, 0, 0, 0);
         const end = new Date(selectedDateISO);
         end.setUTCHours(23, 59, 59, 999);
         
-        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${eventTypeId}&eventTypeSlug=${eventTypeSlug}`;
+        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
         
         try {
             const res = await fetch(url, {
@@ -8643,8 +9104,8 @@ class CalendarApiService {
         }
     }
 
-    async createBooking(startTimeISO, fullName, email, eventTypeId) {
-        if (!this.apiKey || !eventTypeId) {
+    async createBooking(startTimeISO, fullName, email) {
+        if (!this.apiKey || !this.eventTypeId) {
             throw new Error('Missing API key or event type ID');
         }
         
@@ -8657,7 +9118,7 @@ class CalendarApiService {
                     email: email, 
                     timeZone: this.timezone 
                 },
-                eventTypeId: Number(eventTypeId)
+                eventTypeId: Number(this.eventTypeId)
             };
             
             const res = await fetch(url, {
@@ -8686,186 +9147,12 @@ class CalendarApiService {
         }
     }
 
-    async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
-        if (!this.apiKey || !uid) {
-            throw new Error('Missing API key or booking UID');
-        }
-        
-        try {
-            const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
-            const body = {
-                rescheduledBy: rescheduledBy,
-                reschedulingReason: reason,
-                start: startTimeISO
-            };
-            
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    "Authorization": `Bearer ${this.apiKey}`,
-                    "cal-api-version": "2024-08-13",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(body)
-            });
-            
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
-            
-            const responseBody = await res.json();
-            if (responseBody.status && responseBody.status !== "success") {
-                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
-            }
-            
-            return responseBody;
-        } catch (err) {
-            console.error("Error rescheduling booking:", err);
-            return null;
-        }
-    }
-}
+    // ===============================
+    // LOCALIZATION
+    // ===============================
 
-/**
- * Calendar Utilities - Common date and formatting functions
- */
-class CalendarUtils {
-    static formatDate(date) {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    }
-    
-    static isSameDay(date1, date2) {
-        if (!date1 || !date2) return false;
-        return this.formatDate(date1) === this.formatDate(date2);
-    }
-    
-    static getDefaultActiveDay(workingDays) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (workingDays.includes(today.getDay())) return today;
-        
-        const next = new Date(today);
-        let daysChecked = 0;
-        while (!workingDays.includes(next.getDay()) && daysChecked < 14) {
-            next.setDate(next.getDate() + 1);
-            daysChecked++;
-        }
-        return next;
-    }
-
-    static slugify(text) {
-        return text
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    static formatTime(dateTime, language = 'en') {
-        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
-        return new Intl.DateTimeFormat(locale, { 
-            hour: "numeric", 
-            minute: "2-digit", 
-            hour12: true 
-        }).format(new Date(dateTime));
-    }
-
-    static formatLongDate(date, language = 'en') {
-        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
-        return new Intl.DateTimeFormat(locale, { 
-            weekday: "long", 
-            month: "long", 
-            day: "numeric" 
-        }).format(date);
-    }
-
-    static formatMonthYear(date, language = 'en') {
-        const locale = language === 'fr' ? 'fr-CA' : 'en-US';
-        return new Intl.DateTimeFormat(locale, { 
-            month: "long", 
-            year: "numeric" 
-        }).format(date);
-    }
-}
-
-/**
- * Provider Management Service - Handles provider filtering and selection
- */
-class ProviderService {
-    static extractServicesFromProviders(rawProviders) {
-        const serviceSet = new Set();
-        
-        try {
-            const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
-            
-            providersArray.forEach(([providerName, providerData]) => {
-                if (Array.isArray(rawProviders) && typeof providerName === 'object') {
-                    providerData = providerName;
-                }
-                
-                if (providerData && providerData.services) {
-                    Object.keys(providerData.services).forEach(service => {
-                        serviceSet.add(service);
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Error extracting services:', error);
-        }
-        
-        return Array.from(serviceSet).sort().map(service => ({
-            id: CalendarUtils.slugify(service),
-            name: service,
-            displayName: service
-        }));
-    }
-
-    static filterProvidersByService(rawProviders, serviceName) {
-        if (!serviceName || !rawProviders) return [];
-
-        const filteredProviders = [];
-        const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
-        
-        providersArray.forEach(([providerName, providerData]) => {
-            if (Array.isArray(rawProviders) && typeof providerName === 'object') {
-                providerData = providerName;
-                providerName = providerData.name || providerData.id;
-            }
-            
-            if (providerData.services && providerData.services[serviceName]) {
-                const serviceConfig = providerData.services[serviceName];
-                
-                filteredProviders.push({
-                    id: CalendarUtils.slugify(providerName),
-                    name: providerName,
-                    displayName: providerName,
-                    description: providerData.description || providerData.specialty || "",
-                    apiKey: providerData.apiKey || "",
-                    scheduleId: providerData.scheduleId || "",
-                    eventTypeId: serviceConfig.eventId || "",
-                    eventTypeSlug: serviceConfig.eventSlug || "",
-                    eventName: serviceName,
-                    link: serviceConfig.link || "",
-                    serviceConfig: serviceConfig,
-                    allServices: providerData.services
-                });
-            }
-        });
-        
-        return filteredProviders;
-    }
-}
-
-/**
- * Calendar Localization - Centralized translation management
- */
-class CalendarLocalization {
-    static getTranslations() {
-        return {
+    getText(key) {
+        const translations = {
             en: {
                 selectService: "Select a service",
                 selectServicePlaceholder: "-- Select a service --",
@@ -8877,14 +9164,7 @@ class CalendarLocalization {
                 pleaseSelectDate: "Please select a date first",
                 pleaseSelectService: "Please select a service first",
                 pleaseSelectProvider: "Please select a service provider first",
-                serviceRequired: "Please select a service",
-                providerRequired: "Please select a service provider",
-                dateTimeRequired: "Please select date and time",
-                loadingAvailability: "Loading availability...",
-                loading: "Loading...",
-                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                currentAppointment: "Current Appointment",
-                newAppointment: "New Appointment"
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
             },
             fr: {
                 selectService: "Sélectionner un service",
@@ -8897,155 +9177,132 @@ class CalendarLocalization {
                 pleaseSelectDate: "Veuillez d'abord sélectionner une date",
                 pleaseSelectService: "Veuillez d'abord sélectionner un service",
                 pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
-                serviceRequired: "Veuillez sélectionner un service",
-                providerRequired: "Veuillez sélectionner un fournisseur de services",
-                dateTimeRequired: "Veuillez sélectionner la date et l'heure",
-                loadingAvailability: "Chargement des disponibilités...",
-                loading: "Chargement...",
-                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-                currentAppointment: "Rendez-vous Actuel",
-                newAppointment: "Nouveau Rendez-vous"
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
             }
         };
+        return translations[this.language]?.[key] || key;
     }
 
-    static getText(key, language = 'en') {
-        const translations = this.getTranslations();
-        return translations[language]?.[key] || translations['en'][key] || key;
-    }
-}
-
-/**
- * Base Calendar Field - Common functionality for all calendar implementations
- */
-class BaseCalendarField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Core configuration
-        this.timezone = config.timezone || 'America/Toronto';
-        this.language = config.language || 'en';
-        this.mode = config.mode || 'booking';
-        this.headerIcon = config.headerIcon || 'CALENDAR';
-        this.showProviderInfo = config.showProviderInfo !== false;
-        
-        // Calendar state
-        this.state = {
-            currentDate: new Date(),
-            selectedDate: null,
-            selectedTime: null,
-            availableSlots: {},
-            workingDays: [1, 2, 3, 4, 5],
-            isConfirmed: false,
-            isLoading: false
-        };
-        
-        // Services
-        this.apiService = null;
-        
-        // Store full config
-        this.fullConfig = config;
-    }
-
-    // Utility methods
-    getText(key) {
-        return CalendarLocalization.getText(key, this.language);
-    }
-
-    formatDate(date) {
-        return CalendarUtils.formatDate(date);
-    }
-
-    isSameDay(date1, date2) {
-        return CalendarUtils.isSameDay(date1, date2);
-    }
-
-    getDefaultActiveDay() {
-        return CalendarUtils.getDefaultActiveDay(this.state.workingDays);
-    }
-
-    // Abstract methods to be implemented by subclasses
-    validateSelections() {
-        throw new Error('validateSelections must be implemented by subclass');
-    }
+    // ===============================
+    // HEADER GENERATION
+    // ===============================
 
     generateCalendarHeader() {
-        throw new Error('generateCalendarHeader must be implemented by subclass');
-    }
+        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
+        
+        if (!this.showProviderInfo) {
+            return '';
+        }
 
-    // Common validation
-    validate() {
-        // Check subclass-specific validations
-        const subclassValid = this.validateSelections();
-        if (!subclassValid) return false;
+        let headerHtml = `
+            <div class="service-provider">
+                <span class="provider-icon">${iconSvg}</span>
+                <div class="appointment-details">
+        `;
         
-        // Check date and time selection
-        const isDateTimeValid = !!(this.state.selectedDate && this.state.selectedTime);
-        
-        if (this.required && !isDateTimeValid) {
-            this.showError(this.getFieldErrorMessage('dateTimeRequired') || this.getText('dateTimeRequired'));
-            return false;
+        // Show selected service
+        if (this.selectedService) {
+            headerHtml += `<div class="service-name">${this.selectedService}</div>`;
         }
         
-        this.hideError();
-        return true;
+        // Show selected provider
+        if (this.currentProvider) {
+            const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
+            headerHtml += `<div class="provider-name">${displayName}</div>`;
+        }
+
+        headerHtml += `
+                </div>
+            </div>
+        `;
+
+        return headerHtml;
     }
 
-    // Common calendar initialization
-    async initializeCalendar(apiKey, scheduleId) {
-        if (!apiKey || !scheduleId) return;
+    // ===============================
+    // RENDER METHODS
+    // ===============================
+
+    render() {
+        const container = this.createContainer();
         
-        this.apiService = new CalendarApiService(apiKey, this.timezone);
+        // Create service selection field if needed
+        if (this.selectionMode === 'service-provider') {
+            this.createServiceSelectField();
+            const serviceFieldElement = this.serviceSelectField.render();
+            container.appendChild(serviceFieldElement);
+        }
         
-        try {
-            this.state.workingDays = await this.apiService.fetchWorkingDays(scheduleId);
-            if (!this.state.selectedDate) {
-                this.state.selectedDate = this.getDefaultActiveDay();
-                const dayKey = this.formatDate(this.state.selectedDate);
-                const slots = await this.fetchAvailableSlots(dayKey);
-                this.state.availableSlots[dayKey] = slots;
+        // Create provider selection field if needed
+        if (this.selectionMode === 'provider' || this.selectionMode === 'service-provider') {
+            this.createProviderSelectField();
+            const providerFieldElement = this.providerSelectField.render();
+            providerFieldElement.classList.add('provider-select-container');
+            
+            // Hide initially for service-provider mode
+            if (this.selectionMode === 'service-provider' && !this.selectedService) {
+                providerFieldElement.style.display = 'none';
             }
-        } catch (error) {
-            console.error('Error initializing calendar:', error);
-        }
-    }
-
-    // Fetch available slots
-    async fetchAvailableSlots(selectedDateISO) {
-        if (!this.apiService || !this.currentEventTypeId || !this.currentEventTypeSlug) return [];
-        
-        return await this.apiService.fetchAvailableSlots(
-            selectedDateISO, 
-            this.currentEventTypeId, 
-            this.currentEventTypeSlug
-        );
-    }
-
-    // Show loading state
-    showLoadingState() {
-        const daysEl = this.element?.querySelector('.days');
-        const timeSlotsEl = this.element?.querySelector('.time-slots');
-        
-        if (daysEl) {
-            daysEl.innerHTML = `<div class="loading-message">${this.getText('loadingAvailability')}</div>`;
+            
+            container.appendChild(providerFieldElement);
         }
         
-        if (timeSlotsEl) {
-            timeSlotsEl.innerHTML = `<div class="loading-message">${this.getText('loading')}</div>`;
-        }
+        // Create the calendar component
+        const calendarContainer = document.createElement('div');
+        calendarContainer.className = 'calendar-container';
+        calendarContainer.innerHTML = `
+            <div class="calendar-header">
+                <div class="calendar-title">
+                    ${this.generateCalendarHeader()}
+                </div>
+                <div class="calendar-nav">
+                    <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
+                        ${this.factory.SVG_ICONS.CHEVRON}
+                    </button>
+                    <div class="current-date"></div>
+                    <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                        ${this.factory.SVG_ICONS.CHEVRON}
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-body">
+                <div class="days-container">
+                    <div class="weekdays"></div>
+                    <div class="days"></div>
+                </div>
+                <div class="times-container">
+                    <div class="time-header"></div>
+                    <div class="time-slots"></div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(calendarContainer);
+        
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.calendarContainer = calendarContainer;
+        this.element.fieldInstance = this;
+        
+        this.renderCalendarData();
+        this.attachEvents();
+        
+        return this.element;
     }
 
-    // Common render calendar data
     renderCalendarData() {
         if (!this.calendarContainer) return;
         
-        // Update current date display
         const currentDateEl = this.calendarContainer.querySelector('.current-date');
         if (currentDateEl) {
-            currentDateEl.textContent = CalendarUtils.formatMonthYear(this.state.currentDate, this.language);
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                month: "long", year: "numeric" 
+            });
+            currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
         }
         
-        // Render weekdays
         const weekdaysEl = this.calendarContainer.querySelector('.weekdays');
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
@@ -9060,25 +9317,55 @@ class BaseCalendarField extends BaseField {
         this.renderDays();
         this.renderTimeSlots();
     }
-
-    // Common day rendering
+    
     renderDays() {
         const daysEl = this.calendarContainer.querySelector('.days');
         if (!daysEl) return;
         
         daysEl.innerHTML = '';
         
-        // Check subclass-specific prerequisites
-        const prerequisiteMessage = this.checkPrerequisites();
-        if (prerequisiteMessage) {
+        // Check selection requirements based on mode
+        if (this.selectionMode === 'service-provider' && !this.selectedService) {
             const messageEl = document.createElement('div');
-            messageEl.className = 'prerequisite-message';
-            messageEl.textContent = prerequisiteMessage;
+            messageEl.className = 'no-service-message';
+            messageEl.textContent = this.getText('pleaseSelectService');
             daysEl.appendChild(messageEl);
             return;
         }
         
-        const daysToShow = this.generateCalendarDays();
+        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'no-provider-message';
+            messageEl.textContent = this.getText('pleaseSelectProvider');
+            daysEl.appendChild(messageEl);
+            return;
+        }
+        
+        // Render calendar days (rest of the logic same as original)
+        let daysToShow = [];
+        const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
+        const daysFromPrevMonth = firstDay.getDay();
+        const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
+        const totalDays = lastDay.getDate();
+        
+        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
+        for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
+            daysToShow.push({ date: day, inactive: false });
+        }
+        
+        const remainingDays = 42 - daysToShow.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
         const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
         
         daysToShow.forEach(({ date, inactive }) => {
@@ -9089,97 +9376,62 @@ class BaseCalendarField extends BaseField {
             if (inactive) {
                 dayEl.classList.add("inactive");
             } else {
-                this.configureDayElement(dayEl, date, highlightDay);
+                const dayOfWeek = date.getDay();
+                if (!this.state.workingDays.includes(dayOfWeek)) {
+                    dayEl.classList.add("inactive");
+                } else {
+                    const todayMidnight = new Date();
+                    todayMidnight.setHours(0, 0, 0, 0);
+                    if (date < todayMidnight) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        if (this.formatDate(date) === this.formatDate(highlightDay)) {
+                            dayEl.classList.add("today");
+                        }
+                        if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                            dayEl.classList.add("active");
+                        }
+                        dayEl.classList.add("available");
+                        dayEl.addEventListener("click", async () => {
+                            this.state.selectedDate = new Date(date);
+                            this.state.selectedTime = null;
+                            const dateKey = this.formatDate(date);
+                            const slots = await this.fetchAvailableSlots(dateKey);
+                            this.state.availableSlots[dateKey] = slots;
+                            this.renderCalendarData();
+                            this.updateValue();
+                        });
+                    }
+                }
             }
             daysEl.appendChild(dayEl);
         });
     }
-
-    // Generate calendar days grid
-    generateCalendarDays() {
-        const daysToShow = [];
-        const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
-        const daysFromPrevMonth = firstDay.getDay();
-        const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
-        const totalDays = lastDay.getDate();
-        
-        // Previous month days
-        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
-            const day = new Date(firstDay);
-            day.setDate(day.getDate() - i - 1);
-            daysToShow.push({ date: day, inactive: true });
-        }
-        
-        // Current month days
-        for (let i = 1; i <= totalDays; i++) {
-            const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
-            daysToShow.push({ date: day, inactive: false });
-        }
-        
-        // Next month days to fill grid
-        const remainingDays = 42 - daysToShow.length;
-        for (let i = 1; i <= remainingDays; i++) {
-            const day = new Date(lastDay);
-            day.setDate(day.getDate() + i);
-            daysToShow.push({ date: day, inactive: true });
-        }
-        
-        return daysToShow;
-    }
-
-    // Configure individual day elements
-    configureDayElement(dayEl, date, highlightDay) {
-        const dayOfWeek = date.getDay();
-        if (!this.state.workingDays.includes(dayOfWeek)) {
-            dayEl.classList.add("inactive");
-        } else {
-            const todayMidnight = new Date();
-            todayMidnight.setHours(0, 0, 0, 0);
-            if (date < todayMidnight) {
-                dayEl.classList.add("inactive");
-            } else {
-                if (this.formatDate(date) === this.formatDate(highlightDay)) {
-                    dayEl.classList.add("today");
-                }
-                if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
-                    dayEl.classList.add("active");
-                }
-                dayEl.classList.add("available");
-                dayEl.addEventListener("click", async () => {
-                    await this.handleDayClick(date);
-                });
-            }
-        }
-    }
-
-    // Handle day click
-    async handleDayClick(date) {
-        this.state.selectedDate = new Date(date);
-        this.state.selectedTime = null;
-        const dateKey = this.formatDate(date);
-        const slots = await this.fetchAvailableSlots(dateKey);
-        this.state.availableSlots[dateKey] = slots;
-        this.renderCalendarData();
-        this.updateValue();
-    }
-
-    // Common time slots rendering
+    
     renderTimeSlots() {
         const timeHeaderEl = this.calendarContainer.querySelector('.time-header');
         const timeSlotsEl = this.calendarContainer.querySelector('.time-slots');
         
         if (!timeHeaderEl || !timeSlotsEl) return;
         
-        // Check prerequisites
-        const prerequisiteMessage = this.checkPrerequisites();
-        if (prerequisiteMessage) {
-            timeHeaderEl.textContent = prerequisiteMessage;
-            timeSlotsEl.innerHTML = `<div class="prerequisite-message">${prerequisiteMessage}</div>`;
+        // Check selection requirements
+        if (this.selectionMode === 'service-provider' && !this.selectedService) {
+            timeHeaderEl.textContent = this.getText('pleaseSelectService');
+            timeSlotsEl.innerHTML = `<div class="no-service-message">${this.getText('pleaseSelectService')}</div>`;
+            return;
+        }
+        
+        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
+            timeHeaderEl.textContent = this.getText('pleaseSelectProvider');
+            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.getText('pleaseSelectProvider')}</div>`;
             return;
         }
         
         if (this.state.selectedDate) {
-            timeHeaderEl.textContent = `${this.getText('availableTimesFor')} ${CalendarUtils.formatLongDate(this.state.selectedDate, this.language)}`;
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                weekday: "long", month: "long", day: "numeric" 
+            });
+            timeHeaderEl.textContent = `${this.getText('availableTimesFor')} ${dateFormatter.format(this.state.selectedDate)}`;
             
             const dateKey = this.formatDate(this.state.selectedDate);
             const timeSlots = this.state.availableSlots[dateKey] || [];
@@ -9187,69 +9439,66 @@ class BaseCalendarField extends BaseField {
             if (timeSlots.length === 0) {
                 timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('noAvailableSlots')}</div>`;
             } else {
-                this.renderTimeSlotsGrid(timeSlotsEl, timeSlots);
+                const columnsContainer = document.createElement("div");
+                columnsContainer.className = "time-slots-columns";
+                
+                const amColumn = document.createElement("div");
+                amColumn.className = "time-slots-column";
+                const pmColumn = document.createElement("div");
+                pmColumn.className = "time-slots-column";
+                
+                const amHeader = document.createElement("div");
+                amHeader.className = "time-column-header";
+                amHeader.textContent = "AM";
+                amColumn.appendChild(amHeader);
+                
+                const pmHeader = document.createElement("div");
+                pmHeader.className = "time-column-header";
+                pmHeader.textContent = "PM";
+                pmColumn.appendChild(pmHeader);
+                
+                timeSlots.forEach((timeISO) => {
+                    const dateTime = new Date(timeISO);
+                    const hours = dateTime.getHours();
+                    const timeSlot = document.createElement("div");
+                    timeSlot.className = "time-slot available";
+                    
+                    if (this.state.selectedTime === timeISO) {
+                        timeSlot.classList.add("selected");
+                    }
+                    
+                    const timeFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                        hour: "numeric", minute: "2-digit", hour12: true 
+                    });
+                    timeSlot.textContent = timeFormatter.format(dateTime);
+                    
+                    timeSlot.addEventListener("click", () => {
+                        if (!this.state.isConfirmed) {
+                            this.state.selectedTime = timeISO;
+                            this.renderTimeSlots();
+                            this.updateValue();
+                        }
+                    });
+                    
+                    if (hours < 12) {
+                        amColumn.appendChild(timeSlot);
+                    } else {
+                        pmColumn.appendChild(timeSlot);
+                    }
+                });
+                
+                columnsContainer.appendChild(amColumn);
+                columnsContainer.appendChild(pmColumn);
+                timeSlotsEl.innerHTML = '';
+                timeSlotsEl.appendChild(columnsContainer);
             }
         } else {
             timeHeaderEl.innerHTML = `<span class="pulse-text">${this.getText('selectDate')}</span>`;
             timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('pleaseSelectDate')}</div>`;
         }
     }
-
-    // Render time slots grid
-    renderTimeSlotsGrid(container, timeSlots) {
-        const columnsContainer = document.createElement("div");
-        columnsContainer.className = "time-slots-columns";
-        
-        const amColumn = document.createElement("div");
-        amColumn.className = "time-slots-column";
-        const pmColumn = document.createElement("div");
-        pmColumn.className = "time-slots-column";
-        
-        const amHeader = document.createElement("div");
-        amHeader.className = "time-column-header";
-        amHeader.textContent = "AM";
-        amColumn.appendChild(amHeader);
-        
-        const pmHeader = document.createElement("div");
-        pmHeader.className = "time-column-header";
-        pmHeader.textContent = "PM";
-        pmColumn.appendChild(pmHeader);
-        
-        timeSlots.forEach((timeISO) => {
-            const dateTime = new Date(timeISO);
-            const hours = dateTime.getHours();
-            const timeSlot = document.createElement("div");
-            timeSlot.className = "time-slot available";
-            
-            if (this.state.selectedTime === timeISO) {
-                timeSlot.classList.add("selected");
-            }
-            
-            timeSlot.textContent = CalendarUtils.formatTime(dateTime, this.language);
-            
-            timeSlot.addEventListener("click", () => {
-                if (!this.state.isConfirmed) {
-                    this.state.selectedTime = timeISO;
-                    this.renderTimeSlots();
-                    this.updateValue();
-                }
-            });
-            
-            if (hours < 12) {
-                amColumn.appendChild(timeSlot);
-            } else {
-                pmColumn.appendChild(timeSlot);
-            }
-        });
-        
-        columnsContainer.appendChild(amColumn);
-        columnsContainer.appendChild(pmColumn);
-        container.innerHTML = '';
-        container.appendChild(columnsContainer);
-    }
-
-    // Common navigation event attachment
-    attachCalendarNavigation() {
+    
+    attachEvents() {
         if (!this.calendarContainer) return;
         
         const prevBtn = this.calendarContainer.querySelector('.prev-btn');
@@ -9273,763 +9522,57 @@ class BaseCalendarField extends BaseField {
             });
         }
     }
-
-    // Common value management
-    getBaseValue() {
-        return {
+    
+    // ===============================
+    // VALUE MANAGEMENT
+    // ===============================
+    
+    updateValue() {
+        const value = {
+            selectedService: this.selectedService,
+            selectedProviderId: this.selectedProviderId,
+            selectedProvider: this.currentProvider,
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? CalendarUtils.formatTime(this.state.selectedTime, this.language) : null
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
         };
-    }
-
-    // Common reset functionality
-    resetCalendarState() {
-        this.state.selectedDate = null;
-        this.state.selectedTime = null;
-        this.state.availableSlots = {};
-        this.apiService = null;
-    }
-
-    // Abstract methods for subclasses
-    checkPrerequisites() {
-        // Override in subclasses to check specific prerequisites
-        return null;
-    }
-
-    // Booking methods
-    async createBooking(startTimeISO, fullName, email) {
-        if (!this.apiService || !this.currentEventTypeId) {
-            throw new Error('Missing API service or event type ID');
-        }
         
-        return await this.apiService.createBooking(startTimeISO, fullName, email, this.currentEventTypeId);
-    }
-
-    async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
-        if (!this.apiService || !uid) {
-            throw new Error('Missing API service or booking UID');
-        }
-        
-        return await this.apiService.rescheduleBooking(uid, startTimeISO, reason, rescheduledBy);
-    }
-}
-
-/**
- * Simple Calendar Field - For single service provider scenarios
- */
-class CalendarField extends BaseCalendarField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Simple calendar specific config
-        this.apiKey = config.apiKey || '';
-        this.eventTypeId = config.eventTypeId;
-        this.eventTypeSlug = config.eventTypeSlug;
-        this.scheduleId = config.scheduleId;
-        this.eventName = config.eventName || 'Appointment';
-        this.serviceProvider = config.serviceProvider || '';
-        this.serviceName = config.serviceName || config.eventName || 'Appointment';
-        
-        // Store for API calls
-        this.currentEventTypeId = this.eventTypeId;
-        this.currentEventTypeSlug = this.eventTypeSlug;
-        
-        this.init();
-    }
-
-    async init() {
-        await this.initializeCalendar(this.apiKey, this.scheduleId);
-    }
-
-    validateSelections() {
-        // Simple calendar doesn't need additional validation
-        return true;
-    }
-
-    checkPrerequisites() {
-        // No prerequisites for simple calendar
-        return null;
-    }
-
-    generateCalendarHeader() {
-        if (!this.showProviderInfo) return '';
-        
-        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
-        
-        return `
-            <div class="service-provider">
-                <span class="provider-icon">${iconSvg}</span>
-                <div class="appointment-details">
-                    <div class="provider-name">${this.serviceProvider}</div>
-                    ${this.serviceName ? `<div class="service-name">${this.serviceName}</div>` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    render() {
-        const container = this.createContainer();
-        
-        const calendarContainer = document.createElement('div');
-        calendarContainer.className = 'calendar-container';
-        calendarContainer.innerHTML = `
-            <div class="calendar-header">
-                <div class="calendar-title">
-                    ${this.generateCalendarHeader()}
-                </div>
-                <div class="calendar-nav">
-                    <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                    <div class="current-date"></div>
-                    <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                </div>
-            </div>
-            <div class="calendar-body">
-                <div class="days-container">
-                    <div class="weekdays"></div>
-                    <div class="days"></div>
-                </div>
-                <div class="times-container">
-                    <div class="time-header"></div>
-                    <div class="time-slots"></div>
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(calendarContainer);
-        container.appendChild(this.createErrorElement());
-        
-        this.element = container;
-        this.calendarContainer = calendarContainer;
-        this.element.fieldInstance = this;
-        
-        this.renderCalendarData();
-        this.attachCalendarNavigation();
-        
-        return this.element;
-    }
-
-    updateValue() {
         this.handleChange();
     }
-
+    
     getValue() {
         return {
-            ...this.getBaseValue(),
-            serviceProvider: this.serviceProvider,
-            serviceName: this.serviceName
-        };
-    }
-
-    setValue(value) {
-        if (value && typeof value === 'object') {
-            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
-            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
-            if (this.element) this.renderCalendarData();
-        }
-    }
-
-    reset() {
-        this.resetCalendarState();
-        if (this.element) this.renderCalendarData();
-    }
-}
-
-/**
- * Provider Calendar Field - For selecting from multiple providers for a specific service
- */
-class ProviderCalendarField extends BaseCalendarField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Provider calendar specific config
-        this.serviceName = config.serviceName || config.eventName || '';
-        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
-        this.serviceProviders = ProviderService.filterProvidersByService(this.rawServiceProviders, this.serviceName);
-        this.selectedProviderId = config.selectedProviderId || null;
-        this.allowProviderSelection = config.allowProviderSelection !== false && this.serviceProviders.length > 1;
-        this.placeholderText = config.placeholderText || this.getText('selectProvider');
-        
-        // Current provider state
-        this.currentProvider = null;
-        this.providerSelectField = null;
-        
-        // Store for API calls
-        this.currentEventTypeId = null;
-        this.currentEventTypeSlug = null;
-        
-        // Auto-select if only one provider
-        if (this.serviceProviders.length === 1) {
-            this.selectedProviderId = this.serviceProviders[0].id;
-            this.allowProviderSelection = false;
-            this.selectProvider(this.selectedProviderId, false);
-        } else if (this.selectedProviderId) {
-            this.selectProvider(this.selectedProviderId, false);
-        }
-        
-        this.init();
-    }
-
-    async init() {
-        // Initialization happens after provider selection
-    }
-
-    validateSelections() {
-        if (this.allowProviderSelection && this.serviceProviders.length > 0 && !this.selectedProviderId) {
-            this.showError(this.getFieldErrorMessage('providerRequired') || this.getText('providerRequired'));
-            return false;
-        }
-        return true;
-    }
-
-    checkPrerequisites() {
-        if (this.serviceProviders.length === 0) {
-            return `No providers available for "${this.serviceName}"`;
-        }
-        if (this.allowProviderSelection && !this.currentProvider) {
-            return this.getText('pleaseSelectProvider');
-        }
-        return null;
-    }
-
-    createProviderSelectField() {
-        if (!this.allowProviderSelection || this.serviceProviders.length === 0) {
-            return null;
-        }
-
-        const options = this.serviceProviders.map(provider => ({
-            id: provider.id,
-            name: provider.displayName || provider.name || provider.id,
-            description: provider.description || ''
-        }));
-        
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.placeholderText,
-            options: options,
-            required: true,
-            onChange: (value) => {
-                if (value) this.selectProvider(value);
-            }
-        });
-
-        if (this.selectedProviderId) {
-            this.providerSelectField.setValue(this.selectedProviderId);
-        }
-
-        return this.providerSelectField;
-    }
-
-    async selectProvider(providerId, shouldUpdateUI = true) {
-        const provider = this.serviceProviders.find(p => p.id === providerId);
-        if (!provider) {
-            console.error('Provider not found:', providerId);
-            return;
-        }
-        
-        this.selectedProviderId = providerId;
-        this.currentProvider = provider;
-        this.currentEventTypeId = provider.eventTypeId;
-        this.currentEventTypeSlug = provider.eventTypeSlug;
-        
-        this.resetCalendarState();
-        
-        if (shouldUpdateUI && this.element) {
-            this.showLoadingState();
-        }
-        
-        await this.initializeCalendar(provider.apiKey, provider.scheduleId);
-        
-        if (shouldUpdateUI && this.element) {
-            this.updateSelectedProviderDisplay();
-            this.renderCalendarData();
-        }
-        
-        this.updateValue();
-        
-        if (this.fullConfig.onProviderChange) {
-            this.fullConfig.onProviderChange(provider);
-        }
-    }
-
-    updateSelectedProviderDisplay() {
-        if (!this.element) return;
-        
-        const selectedProviderDisplay = this.element.querySelector('.selected-provider-display');
-        if (selectedProviderDisplay && this.currentProvider) {
-            const displayName = this.currentProvider.displayName || this.currentProvider.name;
-            selectedProviderDisplay.textContent = displayName;
-            selectedProviderDisplay.style.display = 'block';
-        }
-    }
-
-    generateCalendarHeader() {
-        if (!this.showProviderInfo) return '';
-        
-        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
-        
-        let headerHtml = `
-            <div class="service-provider">
-                <span class="provider-icon">${iconSvg}</span>
-                <div class="appointment-details">
-                    <div class="service-name">${this.serviceName}</div>
-        `;
-        
-        if (!this.allowProviderSelection && this.currentProvider) {
-            const displayName = this.currentProvider.displayName || this.currentProvider.name;
-            headerHtml += `<div class="provider-name">${displayName}</div>`;
-        } else if (this.allowProviderSelection && this.currentProvider) {
-            const displayName = this.currentProvider.displayName || this.currentProvider.name;
-            headerHtml += `<div class="selected-provider-display" style="display: block;">${displayName}</div>`;
-        } else {
-            headerHtml += `<div class="selected-provider-display" style="display: none;"></div>`;
-        }
-
-        headerHtml += `
-                </div>
-            </div>
-        `;
-
-        return headerHtml;
-    }
-
-    render() {
-        const container = this.createContainer();
-        
-        // Add provider selection if needed
-        if (this.allowProviderSelection && this.serviceProviders.length > 0) {
-            this.createProviderSelectField();
-            const providerFieldElement = this.providerSelectField.render();
-            container.appendChild(providerFieldElement);
-        }
-        
-        // Create calendar
-        const calendarContainer = document.createElement('div');
-        calendarContainer.className = 'calendar-container';
-        calendarContainer.innerHTML = `
-            <div class="calendar-header">
-                <div class="calendar-title">
-                    ${this.generateCalendarHeader()}
-                </div>
-                <div class="calendar-nav">
-                    <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                    <div class="current-date"></div>
-                    <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                </div>
-            </div>
-            <div class="calendar-body">
-                <div class="days-container">
-                    <div class="weekdays"></div>
-                    <div class="days"></div>
-                </div>
-                <div class="times-container">
-                    <div class="time-header"></div>
-                    <div class="time-slots"></div>
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(calendarContainer);
-        container.appendChild(this.createErrorElement());
-        
-        this.element = container;
-        this.calendarContainer = calendarContainer;
-        this.element.fieldInstance = this;
-        
-        this.renderCalendarData();
-        this.attachCalendarNavigation();
-        
-        return this.element;
-    }
-
-    updateValue() {
-        this.handleChange();
-    }
-
-    getValue() {
-        return {
-            ...this.getBaseValue(),
-            serviceName: this.serviceName,
-            selectedProviderId: this.selectedProviderId,
-            selectedProvider: this.currentProvider
-        };
-    }
-
-    setValue(value) {
-        if (value && typeof value === 'object') {
-            if (value.selectedProviderId && this.providerSelectField) {
-                this.providerSelectField.setValue(value.selectedProviderId);
-                this.selectProvider(value.selectedProviderId, false);
-            }
-            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
-            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
-            if (this.element) {
-                this.updateSelectedProviderDisplay();
-                this.renderCalendarData();
-            }
-        }
-    }
-
-    reset() {
-        this.selectedProviderId = null;
-        this.currentProvider = null;
-        this.currentEventTypeId = null;
-        this.currentEventTypeSlug = null;
-        
-        if (this.providerSelectField) {
-            this.providerSelectField.setValue('');
-        }
-        
-        this.resetCalendarState();
-        
-        if (this.element) {
-            this.updateSelectedProviderDisplay();
-            this.renderCalendarData();
-        }
-    }
-
-    destroy() {
-        if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
-            this.providerSelectField.destroy();
-        }
-        super.destroy();
-    }
-}
-
-/**
- * Service and Provider Calendar Field - For selecting both service and provider
- */
-class ServiceAndProviderCalendarField extends BaseCalendarField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Service and provider config
-        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
-        this.availableServices = ProviderService.extractServicesFromProviders(this.rawServiceProviders);
-        this.selectedService = config.selectedService || '';
-        this.selectedProviderId = config.selectedProviderId || '';
-        this.filteredProviders = [];
-        
-        // Field instances
-        this.serviceSelectField = null;
-        this.providerSelectField = null;
-        
-        // Current state
-        this.currentProvider = null;
-        this.currentEventTypeId = null;
-        this.currentEventTypeSlug = null;
-        
-        if (this.selectedService) {
-            this.filteredProviders = ProviderService.filterProvidersByService(this.rawServiceProviders, this.selectedService);
-            if (this.selectedProviderId) {
-                this.selectProvider(this.selectedProviderId, false);
-            }
-        }
-        
-        this.init();
-    }
-
-    async init() {
-        // Initialization happens after provider selection
-    }
-
-    validateSelections() {
-        if (!this.selectedService) {
-            this.showError(this.getFieldErrorMessage('serviceRequired') || this.getText('serviceRequired'));
-            return false;
-        }
-        
-        if (!this.selectedProviderId) {
-            this.showError(this.getFieldErrorMessage('providerRequired') || this.getText('providerRequired'));
-            return false;
-        }
-        
-        return true;
-    }
-
-    checkPrerequisites() {
-        if (!this.selectedService) {
-            return this.getText('pleaseSelectService');
-        }
-        if (!this.currentProvider) {
-            return this.getText('pleaseSelectProvider');
-        }
-        return null;
-    }
-
-    createServiceSelectField() {
-        this.serviceSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-service`,
-            name: `${this.name}_service`,
-            label: this.getText('selectService'),
-            placeholder: this.getText('selectServicePlaceholder'),
-            options: this.availableServices,
-            required: true,
-            onChange: (value) => {
-                if (value) this.selectService(value);
-            }
-        });
-
-        if (this.selectedService) {
-            const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
-            if (serviceOption) {
-                this.serviceSelectField.setValue(serviceOption.id);
-            }
-        }
-
-        return this.serviceSelectField;
-    }
-
-    createProviderSelectField() {
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.getText('selectProviderPlaceholder'),
-            options: [],
-            required: true,
-            onChange: (value) => {
-                if (value) this.selectProvider(value);
-            }
-        });
-
-        return this.providerSelectField;
-    }
-
-    selectService(serviceId) {
-        const service = this.availableServices.find(s => s.id === serviceId);
-        if (!service) {
-            console.error('Service not found:', serviceId);
-            return;
-        }
-        
-        this.selectedService = service.name;
-        this.filteredProviders = ProviderService.filterProvidersByService(this.rawServiceProviders, service.name);
-        
-        this.updateProviderOptions();
-        this.showProviderSelection();
-        
-        // Reset provider and calendar state
-        this.selectedProviderId = '';
-        this.currentProvider = null;
-        this.resetCalendarState();
-        
-        // Auto-select if only one provider
-        if (this.filteredProviders.length === 1) {
-            this.selectProvider(this.filteredProviders[0].id);
-            if (this.providerSelectField) {
-                this.providerSelectField.setValue(this.filteredProviders[0].id);
-            }
-        }
-        
-        this.updateCalendarHeader();
-        if (this.element && this.filteredProviders.length > 1) {
-            this.renderCalendarData();
-        }
-    }
-
-    updateProviderOptions() {
-        const providerContainer = this.element?.querySelector('.provider-select-container');
-        if (!providerContainer) return;
-
-        const currentValue = this.selectedProviderId;
-
-        providerContainer.innerHTML = '';
-
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.getText('selectProviderPlaceholder'),
-            options: this.filteredProviders,
-            required: true,
-            onChange: (value) => {
-                if (value) this.selectProvider(value);
-            }
-        });
-
-        const newFieldElement = this.providerSelectField.render();
-        newFieldElement.className = 'provider-select-container';
-        
-        providerContainer.parentNode.replaceChild(newFieldElement, providerContainer);
-
-        if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
-            this.providerSelectField.setValue(currentValue);
-        }
-    }
-
-    showProviderSelection() {
-        const providerContainer = this.element?.querySelector('.provider-select-container');
-        if (providerContainer) {
-            providerContainer.style.display = 'block';
-        }
-    }
-
-    async selectProvider(providerId, shouldUpdateUI = true) {
-        const provider = this.filteredProviders.find(p => p.id === providerId);
-        if (!provider) {
-            console.error('Provider not found:', providerId);
-            return;
-        }
-        
-        this.selectedProviderId = providerId;
-        this.currentProvider = provider;
-        this.currentEventTypeId = provider.eventTypeId;
-        this.currentEventTypeSlug = provider.eventTypeSlug;
-        
-        this.resetCalendarState();
-        
-        if (shouldUpdateUI && this.element) {
-            this.showLoadingState();
-        }
-        
-        await this.initializeCalendar(provider.apiKey, provider.scheduleId);
-        
-        if (shouldUpdateUI && this.element) {
-            this.updateCalendarHeader();
-            this.renderCalendarData();
-        }
-        
-        this.updateValue();
-        
-        if (this.fullConfig.onProviderChange) {
-            this.fullConfig.onProviderChange(provider);
-        }
-    }
-
-    updateCalendarHeader() {
-        if (!this.element) return;
-        
-        const headerElement = this.element.querySelector('.calendar-title');
-        if (headerElement) {
-            headerElement.innerHTML = this.generateCalendarHeader();
-        }
-    }
-
-    generateCalendarHeader() {
-        if (!this.showProviderInfo) return '';
-        
-        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
-        
-        let headerHtml = `
-            <div class="service-provider">
-                <span class="provider-icon">${iconSvg}</span>
-                <div class="appointment-details">
-        `;
-        
-        if (this.selectedService) {
-            headerHtml += `<div class="service-name">${this.selectedService}</div>`;
-        }
-        
-        if (this.currentProvider) {
-            const displayName = this.currentProvider.displayName || this.currentProvider.name;
-            headerHtml += `<div class="provider-name">${displayName}</div>`;
-        }
-
-        headerHtml += `
-                </div>
-            </div>
-        `;
-
-        return headerHtml;
-    }
-
-    render() {
-        const container = this.createContainer();
-        
-        // Service selection
-        this.createServiceSelectField();
-        const serviceFieldElement = this.serviceSelectField.render();
-        container.appendChild(serviceFieldElement);
-        
-        // Provider selection (initially hidden)
-        this.createProviderSelectField();
-        const providerFieldElement = this.providerSelectField.render();
-        providerFieldElement.classList.add('provider-select-container');
-        providerFieldElement.style.display = this.selectedService ? 'block' : 'none';
-        container.appendChild(providerFieldElement);
-        
-        // Calendar
-        const calendarContainer = document.createElement('div');
-        calendarContainer.className = 'calendar-container';
-        calendarContainer.innerHTML = `
-            <div class="calendar-header">
-                <div class="calendar-title">
-                    ${this.generateCalendarHeader()}
-                </div>
-                <div class="calendar-nav">
-                    <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                    <div class="current-date"></div>
-                    <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                        ${this.factory.SVG_ICONS.CHEVRON}
-                    </button>
-                </div>
-            </div>
-            <div class="calendar-body">
-                <div class="days-container">
-                    <div class="weekdays"></div>
-                    <div class="days"></div>
-                </div>
-                <div class="times-container">
-                    <div class="time-header"></div>
-                    <div class="time-slots"></div>
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(calendarContainer);
-        container.appendChild(this.createErrorElement());
-        
-        this.element = container;
-        this.calendarContainer = calendarContainer;
-        this.element.fieldInstance = this;
-        
-        this.renderCalendarData();
-        this.attachCalendarNavigation();
-        
-        return this.element;
-    }
-
-    updateValue() {
-        this.handleChange();
-    }
-
-    getValue() {
-        return {
-            ...this.getBaseValue(),
             selectedService: this.selectedService,
             selectedProviderId: this.selectedProviderId,
-            selectedProvider: this.currentProvider
+            selectedProvider: this.currentProvider,
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
         };
     }
-
+    
     setValue(value) {
         if (value && typeof value === 'object') {
-            if (value.selectedService) {
-                this.selectService(CalendarUtils.slugify(value.selectedService));
-                if (this.serviceSelectField) {
-                    const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
-                    if (serviceOption) {
+            if (value.selectedService && this.selectionMode === 'service-provider') {
+                const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
+                if (serviceOption) {
+                    this.selectService(serviceOption.id);
+                    if (this.serviceSelectField) {
                         this.serviceSelectField.setValue(serviceOption.id);
                     }
                 }
             }
-            if (value.selectedProviderId && this.providerSelectField) {
-                this.providerSelectField.setValue(value.selectedProviderId);
+            if (value.selectedProviderId && (this.selectionMode === 'provider' || this.selectionMode === 'service-provider')) {
                 this.selectProvider(value.selectedProviderId, false);
+                if (this.providerSelectField) {
+                    this.providerSelectField.setValue(value.selectedProviderId);
+                }
             }
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
@@ -10039,34 +9582,40 @@ class ServiceAndProviderCalendarField extends BaseCalendarField {
             }
         }
     }
-
+    
     reset() {
         this.selectedService = '';
         this.selectedProviderId = '';
         this.currentProvider = null;
         this.filteredProviders = [];
-        this.currentEventTypeId = null;
-        this.currentEventTypeSlug = null;
+        this.resetCalendarState();
         
         if (this.serviceSelectField) {
             this.serviceSelectField.setValue('');
         }
         if (this.providerSelectField) {
             this.providerSelectField.setValue('');
-            const providerContainer = this.element?.querySelector('.provider-select-container');
-            if (providerContainer) {
-                providerContainer.style.display = 'none';
+            
+            if (this.selectionMode === 'service-provider') {
+                const providerContainer = this.element.querySelector('.provider-select-container');
+                if (providerContainer) {
+                    providerContainer.style.display = 'none';
+                }
             }
         }
         
-        this.resetCalendarState();
+        this.apiKey = '';
+        this.eventTypeId = null;
+        this.eventTypeSlug = '';
+        this.scheduleId = null;
+        this.eventName = '';
         
         if (this.element) {
             this.updateCalendarHeader();
             this.renderCalendarData();
         }
     }
-
+    
     destroy() {
         if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
             this.serviceSelectField.destroy();
@@ -10077,6 +9626,81 @@ class ServiceAndProviderCalendarField extends BaseCalendarField {
         super.destroy();
     }
 }
+
+// ===============================
+// LEGACY COMPATIBILITY CLASSES
+// ===============================
+
+/**
+ * ProviderCalendarField - Backward compatibility
+ * Now just a wrapper around CalendarField with provider selection mode
+ */
+class ProviderCalendarField extends CalendarField {
+    constructor(factory, config) {
+        // Force provider selection mode and set the service
+        const enhancedConfig = {
+            ...config,
+            selectionMode: 'provider',
+            selectedService: config.serviceName || config.eventName || ''
+        };
+        
+        super(factory, enhancedConfig);
+    }
+}
+
+/**
+ * ServiceAndProviderCalendarField - Backward compatibility  
+ * Now just a wrapper around CalendarField with service-provider selection mode
+ */
+class ServiceAndProviderCalendarField extends CalendarField {
+    constructor(factory, config) {
+        // Force service-provider selection mode
+        const enhancedConfig = {
+            ...config,
+            selectionMode: 'service-provider'
+        };
+        
+        super(factory, enhancedConfig);
+    }
+}
+
+// ===============================
+// USAGE EXAMPLES
+// ===============================
+
+/*
+// Example 1: Direct calendar (original CalendarField behavior)
+const directCalendar = new CalendarField(factory, {
+    id: 'appointment',
+    apiKey: 'cal_live_xxx',
+    eventTypeId: 123,
+    eventTypeSlug: 'consultation',
+    scheduleId: 456,
+    eventName: 'Medical Consultation',
+    selectionMode: 'none' // Direct calendar, no service/provider selection
+});
+
+// Example 2: Provider selection for specific service
+const providerCalendar = new CalendarField(factory, {
+    id: 'appointment',
+    serviceProviders: providersData,
+    selectedService: 'General Consultation', // Service is predetermined
+    selectionMode: 'provider' // Show provider selection only
+});
+
+// Example 3: Service and provider selection
+const fullSelectionCalendar = new CalendarField(factory, {
+    id: 'appointment',
+    serviceProviders: providersData,
+    selectionMode: 'service-provider' // Show both service and provider selection
+});
+
+// Legacy compatibility - these still work but are now just wrappers
+const legacyProvider = new ProviderCalendarField(factory, config);
+const legacyServiceProvider = new ServiceAndProviderCalendarField(factory, config);
+*/
+
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { FormFieldFactory, CreatForm };
