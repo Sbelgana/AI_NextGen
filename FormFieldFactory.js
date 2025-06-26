@@ -218,6 +218,18 @@ this.SVG_ICONS = {
             case 'service-provider-calendar':
                 field = new ServiceAndProviderCalendarField (this, config);
                 break;
+            case 'service-request-calendar':
+            case 'serviceRequestCalendar':
+                field = new ServiceRequestCalendarField(this, config);
+                break;
+            case 'terms-checkbox':
+            case 'termsCheckbox':
+                field = new TermsCheckboxField(this, config);
+                break;
+            case 'service-request-file-upload':
+            case 'serviceRequestFileUpload':
+                field = new ServiceRequestFileUploadField(this, config);
+                break;
             case 'currentAppointmentCard':
                 field = new CurrentAppointmentCardField(this, config);
                 break;
@@ -692,8 +704,18 @@ this.SVG_ICONS = {
         return new ServiceAndProviderCalendarField (this, config);
     }
 
-	
-            
+    // ===== NEW CUSTOM FIELD FACTORY METHODS =====
+    createServiceRequestCalendarField(config) {
+        return new ServiceRequestCalendarField(this, config);
+    }
+
+    createTermsCheckboxField(config) {
+        return new TermsCheckboxField(this, config);
+    }
+
+    createServiceRequestFileUploadField(config) {
+        return new ServiceRequestFileUploadField(this, config);
+    }
 
     createCurrentAppointmentCardField(config) {
         return new CurrentAppointmentCardField(this, config);
@@ -1164,15 +1186,26 @@ class FormStep {
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
             case 'provider-calendar':
-                return this.factory.createProviderCalendarField (fieldConfig);
+                return this.factory.createProviderCalendarField(fieldConfig);
             case 'service-provider-calendar':
-                return this.factory.createServiceAndProviderCalendarField (fieldConfig);
-
-
-		
+                return this.factory.createServiceAndProviderCalendarField(fieldConfig);
+            // ===== NEW CUSTOM FIELD TYPES =====
+            case 'service-request-calendar':
+            case 'serviceRequestCalendar':
+                return this.factory.createServiceRequestCalendarField(fieldConfig);
+            case 'terms-checkbox':
+            case 'termsCheckbox':
+                return this.factory.createTermsCheckboxField(fieldConfig);
+            case 'service-request-file-upload':
+            case 'serviceRequestFileUpload':
+                return this.factory.createServiceRequestFileUploadField(fieldConfig);
             case 'currentAppointmentCard':
                 return this.factory.createCurrentAppointmentCardField(fieldConfig);
             case 'custom':
+                // Handle custom fields with render functions
+                if (fieldConfig.render && typeof fieldConfig.render === 'function') {
+                    return fieldConfig.render(this.factory, fieldConfig);
+                }
                 return new CustomField(this.factory, fieldConfig);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
@@ -1304,6 +1337,7 @@ class FormStep {
         });
     }
 }
+
 /**
  * ProgressBar - Progress bar for multi-step forms
  */
@@ -9777,6 +9811,649 @@ class ServiceAndProviderCalendarField extends CalendarField {
     }
 }
 
+class ServiceRequestCalendarField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Calendar configuration
+        this.maxSlots = config.maxSlots || 5;
+        this.workingDays = config.workingDays || [1, 2, 3, 4, 5]; // Monday to Friday
+        this.timeSlots = config.timeSlots || [
+            { id: 'morning', label: { fr: 'Matin', en: 'Morning' }, hours: { fr: '8h00 - 12h00', en: '8:00 AM - 12:00 PM' } },
+            { id: 'afternoon', label: { fr: 'Après-midi', en: 'Afternoon' }, hours: { fr: '13h00 - 17h00', en: '1:00 PM - 5:00 PM' } }
+        ];
+        
+        // Current language
+        this.language = config.language || 'fr';
+        
+        // State
+        this.state = {
+            currentDate: new Date(),
+            selectedDate: null,
+            selectedTime: null,
+            selectedSlots: [] // Array of {date, time, displayText, id}
+        };
+        
+        // SVG Icons
+        this.icons = {
+            chevron: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 662 662" width="18px" height="18px">
+                <g transform="translate(75, 75)">
+                    <path fill="currentColor" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                </g>
+            </svg>`,
+            sun: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24">
+                <path fill="#FF9800" d="M361.5 1.2c5 2.1 8.6 6.6 9.6 11.9L391 121l107.9 19.8c5.3 1 9.8 4.6 11.9 9.6s1.5 10.7-1.6 15.2L446.9 256l62.3 90.3c3.1 4.5 3.7 10.2 1.6 15.2s-6.6 8.6-11.9 9.6L391 391 371.1 498.9c-1 5.3-4.6 9.8-9.6 11.9s-10.7 1.5-15.2-1.6L256 446.9l-90.3 62.3c-4.5 3.1-10.2 3.7-15.2 1.6s-8.6-6.6-9.6-11.9L121 391 13.1 371.1c-5.3-1-9.8-4.6-11.9-9.6s-1.5-10.7 1.6-15.2L65.1 256 2.8 165.7c-3.1-4.5-3.7-10.2-1.6-15.2s6.6-8.6 11.9-9.6L121 121 140.9 13.1c1-5.3 4.6-9.8 9.6-11.9s10.7-1.5 15.2 1.6L256 65.1 346.3 2.8c4.5-3.1 10.2-3.7 15.2-1.6zM352 256c0 53-43 96-96 96s-96-43-96-96s43-96 96-96s96 43 96 96zm32 0c0-70.7-57.3-128-128-128s-128 57.3-128 128s57.3 128 128 128s128-57.3 128-128z"/>
+            </svg>`,
+            moon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24">
+                <path fill="#5E35B1" d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"/>
+            </svg>`,
+            delete: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+            </svg>`
+        };
+    }
+
+    getText(key) {
+        const translations = {
+            fr: {
+                selectDateAndTime: "Sélectionnez une date et une heure",
+                chooseOption: "Choisissez une option :",
+                selectedSlots: "Disponibilités sélectionnées",
+                maxSlotsReached: "Maximum 5 disponibilités atteint",
+                addThisSlot: "Ajouter cette disponibilité",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                months: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+            },
+            en: {
+                selectDateAndTime: "Select a Date and Time",
+                chooseOption: "Choose an option:",
+                selectedSlots: "Selected Availabilities",
+                maxSlotsReached: "Maximum 5 availabilities reached",
+                addThisSlot: "Add this availability",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            }
+        };
+        return translations[this.language]?.[key] || key;
+    }
+
+    validate() {
+        if (this.required && this.state.selectedSlots.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        const calendarContainer = document.createElement('div');
+        calendarContainer.className = 'service-calendar-container';
+        calendarContainer.innerHTML = `
+            <div class="calendar-flex-container">
+                <!-- Calendar Column -->
+                <div class="calendar-column">
+                    <div class="calendar-header">
+                        <div class="calendar-title">${this.getText('selectDateAndTime')}</div>
+                        <div class="calendar-nav">
+                            <button type="button" class="nav-btn prev-btn">
+                                <div style="transform: rotate(90deg);">${this.icons.chevron}</div>
+                            </button>
+                            <div class="current-date"></div>
+                            <button type="button" class="nav-btn next-btn">
+                                <div style="transform: rotate(-90deg);">${this.icons.chevron}</div>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="days-container">
+                        <div class="weekdays-container"></div>
+                        <div class="calendar-days"></div>
+                    </div>
+                </div>
+                
+                <!-- Availability Column -->
+                <div class="availability-column">
+                    <div class="time-choice-container">
+                        <div class="time-choice-label">${this.getText('chooseOption')}</div>
+                        <div class="time-choice-options"></div>
+                        
+                        <button type="button" class="add-slot-btn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
+                            </svg>
+                            <span>${this.getText('addThisSlot')}</span>
+                        </button>
+                        
+                        <div class="max-slots-message" style="display: none;">
+                            ${this.getText('maxSlotsReached')}
+                        </div>
+                    </div>
+                    
+                    <div class="selected-slots-container" style="display: none;">
+                        <div class="selected-slots-title">
+                            <span>${this.getText('selectedSlots')}</span>
+                            <div class="selected-badge">0</div>
+                        </div>
+                        <div class="selected-slots-list"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(calendarContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        this.calendarContainer = calendarContainer;
+        
+        this.initializeCalendar();
+        this.setupEventListeners();
+        
+        return container;
+    }
+
+    initializeCalendar() {
+        this.updateCurrentMonthDisplay();
+        this.updateWeekdays();
+        this.generateCalendar();
+        this.renderTimeChoices();
+    }
+
+    updateCurrentMonthDisplay() {
+        const monthDisplay = this.calendarContainer.querySelector('.current-date');
+        const months = this.getText('months');
+        const monthName = months[this.state.currentDate.getMonth()];
+        const year = this.state.currentDate.getFullYear();
+        monthDisplay.textContent = `${monthName} ${year}`;
+    }
+
+    updateWeekdays() {
+        const weekdaysContainer = this.calendarContainer.querySelector('.weekdays-container');
+        const weekdays = this.getText('weekdays');
+        
+        weekdaysContainer.innerHTML = '';
+        weekdays.forEach(day => {
+            const dayDiv = document.createElement('div');
+            dayDiv.textContent = day;
+            weekdaysContainer.appendChild(dayDiv);
+        });
+    }
+
+    generateCalendar() {
+        const daysContainer = this.calendarContainer.querySelector('.calendar-days');
+        daysContainer.innerHTML = '';
+        
+        const currentYear = this.state.currentDate.getFullYear();
+        const currentMonth = this.state.currentDate.getMonth();
+        
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const startingDayOfWeek = firstDay.getDay();
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const totalDays = lastDay.getDate();
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Add empty days for start of month
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'day inactive';
+            daysContainer.appendChild(emptyDay);
+        }
+        
+        // Add days of the month
+        for (let day = 1; day <= totalDays; day++) {
+            const date = new Date(currentYear, currentMonth, day);
+            const dayElement = document.createElement('div');
+            dayElement.className = 'day';
+            dayElement.textContent = day;
+            
+            if (!this.workingDays.includes(date.getDay())) {
+                dayElement.classList.add('weekend');
+            } else if (date < today) {
+                dayElement.classList.add('inactive');
+            } else {
+                dayElement.classList.add('available');
+                
+                if (date.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                    dayElement.classList.add('active');
+                }
+                
+                dayElement.addEventListener('click', () => {
+                    this.selectDate(date);
+                });
+            }
+            
+            daysContainer.appendChild(dayElement);
+        }
+    }
+
+    renderTimeChoices() {
+        const timeChoicesContainer = this.calendarContainer.querySelector('.time-choice-options');
+        timeChoicesContainer.innerHTML = '';
+        
+        this.timeSlots.forEach(slot => {
+            const timeChoice = document.createElement('div');
+            timeChoice.className = 'time-choice';
+            timeChoice.dataset.time = slot.id;
+            
+            const icon = slot.id === 'morning' ? this.icons.sun : this.icons.moon;
+            const label = slot.label[this.language];
+            const hours = slot.hours[this.language];
+            
+            timeChoice.innerHTML = `
+                <div class="time-choice-icon">${icon}</div>
+                <div class="time-choice-details">
+                    <div class="time-choice-title">${label}</div>
+                    <div class="time-choice-range">${hours}</div>
+                </div>
+            `;
+            
+            timeChoice.addEventListener('click', () => {
+                this.selectTime(slot.id);
+            });
+            
+            timeChoicesContainer.appendChild(timeChoice);
+        });
+    }
+
+    selectDate(date) {
+        // Remove active class from all days
+        this.calendarContainer.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
+        
+        // Add active class to clicked day
+        const dayElement = Array.from(this.calendarContainer.querySelectorAll('.day')).find(
+            el => el.textContent == date.getDate() && el.classList.contains('available')
+        );
+        if (dayElement) {
+            dayElement.classList.add('active');
+        }
+        
+        this.state.selectedDate = new Date(date);
+        this.state.selectedTime = null;
+        
+        this.resetTimeChoices();
+        this.updateAddSlotButton();
+    }
+
+    selectTime(timeId) {
+        if (!this.state.selectedDate) return;
+        
+        this.resetTimeChoices();
+        
+        const timeChoice = this.calendarContainer.querySelector(`[data-time="${timeId}"]`);
+        if (timeChoice) {
+            timeChoice.classList.add('selected');
+        }
+        
+        this.state.selectedTime = timeId;
+        this.updateAddSlotButton();
+    }
+
+    resetTimeChoices() {
+        this.calendarContainer.querySelectorAll('.time-choice').forEach(choice => {
+            choice.classList.remove('selected');
+        });
+    }
+
+    updateAddSlotButton() {
+        const addButton = this.calendarContainer.querySelector('.add-slot-btn');
+        addButton.disabled = !this.state.selectedDate || !this.state.selectedTime || this.state.selectedSlots.length >= this.maxSlots;
+    }
+
+    addSelectedSlot() {
+        if (!this.state.selectedDate || !this.state.selectedTime || this.state.selectedSlots.length >= this.maxSlots) {
+            return;
+        }
+        
+        const slotId = `${this.formatDate(this.state.selectedDate)}_${this.state.selectedTime}`;
+        
+        // Check if slot already selected
+        if (this.state.selectedSlots.some(slot => slot.id === slotId)) {
+            return;
+        }
+        
+        const timeSlot = this.timeSlots.find(slot => slot.id === this.state.selectedTime);
+        const formattedDate = this.formatDateForDisplay(this.state.selectedDate);
+        const timeLabel = timeSlot.label[this.language] + ' (' + timeSlot.hours[this.language] + ')';
+        
+        const newSlot = {
+            date: new Date(this.state.selectedDate),
+            timeOfDay: this.state.selectedTime,
+            id: slotId,
+            displayText: `${formattedDate} - ${timeLabel}`
+        };
+        
+        this.state.selectedSlots.push(newSlot);
+        this.renderSelectedSlots();
+        
+        // Reset selections
+        this.resetTimeChoices();
+        this.state.selectedTime = null;
+        this.updateAddSlotButton();
+        
+        this.hideError();
+        this.handleChange();
+        
+        if (this.state.selectedSlots.length >= this.maxSlots) {
+            this.showMaxSlotsMessage();
+        }
+    }
+
+    removeSelectedSlot(slotId) {
+        this.state.selectedSlots = this.state.selectedSlots.filter(slot => slot.id !== slotId);
+        this.renderSelectedSlots();
+        this.hideMaxSlotsMessage();
+        this.handleChange();
+    }
+
+    renderSelectedSlots() {
+        const slotsContainer = this.calendarContainer.querySelector('.selected-slots-container');
+        const slotsList = this.calendarContainer.querySelector('.selected-slots-list');
+        const slotsCount = this.calendarContainer.querySelector('.selected-badge');
+        
+        slotsCount.textContent = this.state.selectedSlots.length;
+        
+        if (this.state.selectedSlots.length > 0) {
+            slotsContainer.style.display = 'block';
+        } else {
+            slotsContainer.style.display = 'none';
+        }
+        
+        slotsList.innerHTML = '';
+        
+        this.state.selectedSlots.forEach(slot => {
+            const slotItem = document.createElement('div');
+            slotItem.className = 'selected-slot-item';
+            slotItem.innerHTML = `
+                <div class="selected-slot-info">${slot.displayText}</div>
+                <button type="button" class="delete-slot" data-slot-id="${slot.id}">
+                    ${this.icons.delete}
+                </button>
+            `;
+            
+            slotItem.querySelector('.delete-slot').addEventListener('click', () => {
+                this.removeSelectedSlot(slot.id);
+            });
+            
+            slotsList.appendChild(slotItem);
+        });
+    }
+
+    showMaxSlotsMessage() {
+        const messageElement = this.calendarContainer.querySelector('.max-slots-message');
+        messageElement.style.display = 'block';
+    }
+
+    hideMaxSlotsMessage() {
+        if (this.state.selectedSlots.length < this.maxSlots) {
+            const messageElement = this.calendarContainer.querySelector('.max-slots-message');
+            messageElement.style.display = 'none';
+        }
+    }
+
+    setupEventListeners() {
+        const prevBtn = this.calendarContainer.querySelector('.prev-btn');
+        const nextBtn = this.calendarContainer.querySelector('.next-btn');
+        const addBtn = this.calendarContainer.querySelector('.add-slot-btn');
+        
+        prevBtn.addEventListener('click', () => {
+            this.state.currentDate = new Date(
+                this.state.currentDate.getFullYear(),
+                this.state.currentDate.getMonth() - 1,
+                1
+            );
+            this.generateCalendar();
+            this.updateCurrentMonthDisplay();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            this.state.currentDate = new Date(
+                this.state.currentDate.getFullYear(),
+                this.state.currentDate.getMonth() + 1,
+                1
+            );
+            this.generateCalendar();
+            this.updateCurrentMonthDisplay();
+        });
+        
+        addBtn.addEventListener('click', () => {
+            this.addSelectedSlot();
+        });
+    }
+
+    formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    formatDateForDisplay(date) {
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+        return new Intl.DateTimeFormat(locale, options).format(date);
+    }
+
+    isSameDay(date1, date2) {
+        return date1.getFullYear() === date2.getFullYear() &&
+               date1.getMonth() === date2.getMonth() &&
+               date1.getDate() === date2.getDate();
+    }
+
+    getValue() {
+        return this.state.selectedSlots.map(slot => ({
+            date: this.formatDate(slot.date),
+            timeOfDay: slot.timeOfDay,
+            displayText: slot.displayText
+        }));
+    }
+
+    setValue(value) {
+        if (Array.isArray(value)) {
+            this.state.selectedSlots = value.map(slot => ({
+                date: new Date(slot.date),
+                timeOfDay: slot.timeOfDay,
+                id: `${slot.date}_${slot.timeOfDay}`,
+                displayText: slot.displayText
+            }));
+            this.renderSelectedSlots();
+        }
+    }
+}
+
+// ============================================================================
+// CUSTOM CHECKBOX FIELD FOR TERMS
+// ============================================================================
+
+class TermsCheckboxField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.termsContent = config.termsContent || '';
+        this.termsTitle = config.termsTitle || '';
+        this.acceptText = config.acceptText || '';
+        this.language = config.language || 'fr';
+    }
+
+    validate() {
+        const checkbox = this.container.querySelector('input[type="checkbox"]');
+        if (this.required && !checkbox.checked) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        const termsContainer = document.createElement('div');
+        termsContainer.className = 'terms-container';
+        termsContainer.innerHTML = `
+            <h3 class="terms-title required">${this.termsTitle}</h3>
+            <div class="terms-content">${this.termsContent}</div>
+            <ul class="terms-list">
+                <li><strong>${this.language === 'fr' ? 'Frais de déplacement' : 'Travel fees'}</strong>: ${this.language === 'fr' ? '125 $' : '$125'}</li>
+                <li><strong>${this.language === 'fr' ? 'Coût horaire' : 'Hourly rate'}</strong>: ${this.language === 'fr' ? '115 $ (minimum une heure de service)' : '$115 (minimum one hour of service)'}</li>
+            </ul>
+            <div class="checkbox-container">
+                <input type="checkbox" id="${this.id}" name="${this.name}" required />
+                <label for="${this.id}" class="checkbox-label">
+                    <span class="custom-checkbox">
+                        <span class="check-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12px" height="12px">
+                                <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+                            </svg>
+                        </span>
+                    </span>
+                    <span class="checkbox-text">${this.acceptText}</span>
+                </label>
+            </div>
+        `;
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(termsContainer);
+        container.appendChild(errorElement);
+        
+        this.container = container;
+        
+        // Add event listener
+        const checkbox = container.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                this.hideError();
+            }
+            this.handleChange();
+        });
+        
+        return container;
+    }
+
+    getValue() {
+        const checkbox = this.container.querySelector('input[type="checkbox"]');
+        return checkbox ? checkbox.checked : false;
+    }
+
+    setValue(value) {
+        const checkbox = this.container.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+            checkbox.checked = !!value;
+        }
+    }
+}
+
+// ============================================================================
+// FILE UPLOAD FIELD
+// ============================================================================
+
+class ServiceRequestFileUploadField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.accept = config.accept || 'image/*';
+        this.language = config.language || 'fr';
+    }
+
+    validate() {
+        // File upload is optional, so always return true
+        return true;
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const fileUploadContainer = document.createElement('div');
+        fileUploadContainer.className = 'file-upload-container';
+        fileUploadContainer.innerHTML = `
+            <div class="file-upload">
+                <input type="file" class="file-upload-input" id="${this.id}" name="${this.name}" accept="${this.accept}">
+                <div class="file-upload-text">${this.language === 'fr' ? 'Glissez et déposez une image ou cliquez pour parcourir' : 'Drag and drop an image or click to browse'}</div>
+                <div class="file-upload-buttons">
+                    <button type="button" class="file-upload-btn upload-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                        </svg>
+                        <span>${this.language === 'fr' ? 'Choisir un fichier' : 'Choose file'}</span>
+                    </button>
+                    <button type="button" class="file-upload-btn camera-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
+                            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+                        </svg>
+                        <span>${this.language === 'fr' ? 'Prendre une photo' : 'Take a photo'}</span>
+                    </button>
+                </div>
+                <div class="file-name-display" style="display: none;"></div>
+            </div>
+        `;
+        
+        container.appendChild(label);
+        container.appendChild(fileUploadContainer);
+        
+        this.container = container;
+        this.setupFileUploadEvents();
+        
+        return container;
+    }
+
+    setupFileUploadEvents() {
+        const fileInput = this.container.querySelector('.file-upload-input');
+        const fileNameDisplay = this.container.querySelector('.file-name-display');
+        const uploadBtn = this.container.querySelector('.upload-btn');
+        const cameraBtn = this.container.querySelector('.camera-btn');
+        
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files && fileInput.files[0]) {
+                const fileName = fileInput.files[0].name;
+                fileNameDisplay.textContent = fileName;
+                fileNameDisplay.style.display = 'block';
+                this.handleChange();
+            }
+        });
+        
+        uploadBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        cameraBtn.addEventListener('click', () => {
+            fileInput.setAttribute('capture', 'environment');
+            fileInput.click();
+        });
+    }
+
+    getValue() {
+        const fileInput = this.container.querySelector('.file-upload-input');
+        return fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+    }
+
+    setValue(value) {
+        // File inputs cannot be programmatically set for security reasons
+        // This method is mainly for form reset
+        if (!value) {
+            const fileInput = this.container.querySelector('.file-upload-input');
+            const fileNameDisplay = this.container.querySelector('.file-name-display');
+            if (fileInput) fileInput.value = '';
+            if (fileNameDisplay) fileNameDisplay.style.display = 'none';
+        }
+    }
+}
 
 
 // Export for module usage
