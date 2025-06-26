@@ -5262,6 +5262,14 @@ class MultiSelectWithOtherField extends BaseField {
 /**
  * SlidingWindowRangeField - Optimized with debouncing, caching, and memoization
  */
+/**
+ * OPTIMIZED SLIDER/RANGE FIELD CLASSES WITH PERFORMANCE ENHANCEMENTS
+ * Updated with debouncing, caching, memoization, and improved calculations
+ */
+
+/**
+ * SlidingWindowRangeField - Optimized with enhanced caching and performance
+ */
 class SlidingWindowRangeField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5278,14 +5286,13 @@ class SlidingWindowRangeField extends BaseField {
         this.selectedMin = config.defaultMin || this.currentMin + 200;
         this.selectedMax = config.defaultMax || this.currentMax - 200;
         
-        // Optimization: Debouncing and caching
+        // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
         this.positionCache = new Map();
         this.dimensionCache = new Map();
         
-        // Validation properties
         this.customValidation = config.customValidation || null;
     }
 
@@ -5568,7 +5575,7 @@ class SlidingWindowRangeField extends BaseField {
         this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
         this.increaseBtn.addEventListener('click', () => this.increaseRange());
         
-        // Optimize: Clear cache on window resize
+        // Clear cache on window resize
         window.addEventListener('resize', () => this.clearCache());
     }
 
@@ -5724,7 +5731,7 @@ class DualRangeField extends BaseField {
         this.selectedMin = config.defaultMin || this.min + 1000;
         this.selectedMax = config.defaultMax || this.max - 1000;
         
-        // Optimization: Debouncing and caching
+        // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
@@ -6085,7 +6092,7 @@ class SliderField extends BaseField {
         this.formatValue = config.formatValue || this.getDefaultFormatter();
         this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
         
-        // Optimization: Debouncing and caching
+        // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
@@ -6339,7 +6346,7 @@ class OptionsSliderField extends BaseField {
         this.currentIndex = config.defaultIndex || Math.floor(this.options.length / 2);
         this.value = this.getCurrentValue();
         
-        // Optimization: Debouncing and caching
+        // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
@@ -6658,7 +6665,7 @@ class SlidingWindowSliderField extends BaseField {
         
         this.value = this.selectedValue;
         
-        // Optimization: Debouncing and caching
+        // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
