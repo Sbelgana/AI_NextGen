@@ -3351,7 +3351,1163 @@ submission-form-extension {
         color: #fff;
     }
     
+/* ========================================
+   SERVICE REQUEST CALENDAR FIELD
+======================================== */
 
+/* Main Calendar Container */
+.service-calendar-container {
+  background: #fff;
+  border: 3px solid #e0e0e0;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(233, 93, 44, 0.15);
+  overflow: hidden;
+  transition: all 0.4s ease;
+  animation: fadeIn 0.8s ease-out;
+  margin-bottom: 24px;
+}
+
+.service-calendar-container:hover {
+  border-color: #e95d2c;
+  box-shadow: 0 12px 40px rgba(233, 93, 44, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Calendar Flex Layout */
+.calendar-flex-container {
+  display: flex;
+  min-height: 500px;
+}
+
+/* Calendar Column (Left Side) */
+.calendar-column {
+  flex: 1;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  border-right: 3px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Calendar Header */
+.service-calendar-container .calendar-header {
+  background: linear-gradient(135deg, #e95d2c 0%, #b0cee2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.service-calendar-container .calendar-title {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Calendar Navigation */
+.service-calendar-container .calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-calendar-container .nav-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+}
+
+.service-calendar-container .nav-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.service-calendar-container .current-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 20px;
+  border-radius: 20px;
+  text-align: center;
+  min-width: 180px;
+}
+
+/* Days Container */
+.service-calendar-container .days-container {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.service-calendar-container .weekdays-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.service-calendar-container .weekdays-container > div {
+  font-weight: 700;
+  font-size: 12px;
+  color: #e95d2c;
+  text-transform: uppercase;
+  padding: 8px 4px;
+}
+
+.service-calendar-container .calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.service-calendar-container .day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  background: #fff;
+  color: #333;
+  min-height: 40px;
+}
+
+.service-calendar-container .day:hover:not(.inactive):not(.weekend) {
+  background: rgba(233, 93, 44, 0.1);
+  border-color: #e95d2c;
+  color: #e95d2c;
+  transform: scale(1.1);
+}
+
+.service-calendar-container .day.available {
+  cursor: pointer;
+}
+
+.service-calendar-container .day.available::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #e95d2c;
+  border-radius: 50%;
+}
+
+.service-calendar-container .day.today {
+  background: #b0cee2;
+  color: white;
+  font-weight: 700;
+  border-color: #b0cee2;
+}
+
+.service-calendar-container .day.active {
+  background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+  color: white;
+  border-color: #e95d2c;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.3);
+  transform: scale(1.1);
+}
+
+.service-calendar-container .day.active::after {
+  display: none;
+}
+
+.service-calendar-container .day.inactive,
+.service-calendar-container .day.weekend {
+  color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.service-calendar-container .day.inactive:hover,
+.service-calendar-container .day.weekend:hover {
+  transform: none;
+  background: #fff;
+  border-color: transparent;
+}
+
+/* Availability Column (Right Side) */
+.availability-column {
+  flex: 1;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Time Choice Container */
+.time-choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.time-choice-label {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2730;
+  text-align: center;
+}
+
+.time-choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-choice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 3px solid #e0e0e0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.time-choice:hover {
+  border-color: #e95d2c;
+  background: rgba(233, 93, 44, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.15);
+}
+
+.time-choice.selected {
+  border-color: #e95d2c;
+  background: linear-gradient(135deg, rgba(233, 93, 44, 0.1) 0%, rgba(176, 206, 226, 0.1) 100%);
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.2);
+  transform: translateY(-2px);
+}
+
+.time-choice-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.time-choice.selected .time-choice-icon {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(233, 93, 44, 0.3);
+}
+
+.time-choice-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-choice-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2730;
+}
+
+.time-choice-range {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Add Slot Button */
+.add-slot-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.3);
+}
+
+.add-slot-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 93, 44, 0.4);
+}
+
+.add-slot-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.add-slot-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Max Slots Message */
+.max-slots-message {
+  text-align: center;
+  padding: 12px;
+  background: #fff3cd;
+  border: 2px solid #ffeaa7;
+  border-radius: 8px;
+  color: #856404;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Selected Slots Container */
+.selected-slots-container {
+  background: #fff;
+  border: 3px solid #e0e0e0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.1);
+}
+
+.selected-slots-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #e95d2c 0%, #b0cee2 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.selected-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+.selected-slots-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.selected-slot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.selected-slot-item:hover {
+  border-color: #e95d2c;
+  background: rgba(233, 93, 44, 0.05);
+  transform: translateX(4px);
+}
+
+.selected-slot-info {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.delete-slot {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-slot:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.delete-slot svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* Loading Message */
+.loading-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-style: italic;
+  background: #f9f9f9;
+  border-radius: 12px;
+  border: 2px dashed #e0e0e0;
+}
+
+/* ========================================
+   TERMS CHECKBOX FIELD
+======================================== */
+
+/* Terms Container */
+.terms-container {
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  border: 3px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 25px rgba(233, 93, 44, 0.15);
+  transition: all 0.4s ease;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.terms-container:hover {
+  border-color: #e95d2c;
+  box-shadow: 0 12px 40px rgba(233, 93, 44, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Terms Title */
+.terms-title {
+  font-size: 22px;
+  color: #1a2730;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+  position: relative;
+}
+
+.terms-title.required::after {
+  content: " *";
+  color: #e52059;
+  font-weight: bold;
+}
+
+.terms-title::before {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #e95d2c, #b0cee2);
+  border-radius: 6px;
+}
+
+/* Terms Content */
+.terms-content {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: rgba(233, 93, 44, 0.05);
+  border-left: 4px solid #e95d2c;
+  border-radius: 8px;
+}
+
+/* Terms List */
+.terms-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.terms-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.terms-list li:last-child {
+  border-bottom: none;
+}
+
+.terms-list li::before {
+  content: '💰';
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.terms-list li strong {
+  color: #e95d2c;
+  font-weight: 700;
+}
+
+/* Checkbox Container */
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 2px solid #e9ecef;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.checkbox-container:hover {
+  border-color: #e95d2c;
+  background: rgba(233, 93, 44, 0.02);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(233, 93, 44, 0.1);
+}
+
+/* Hidden Checkbox Input */
+.checkbox-container input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Custom Checkbox */
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.checkbox-container:hover .custom-checkbox {
+  border-color: #e95d2c;
+  background: rgba(233, 93, 44, 0.05);
+  transform: scale(1.05);
+}
+
+/* Checkmark Icon */
+.check-icon {
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.check-icon svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* Checked State */
+.checkbox-container input[type="checkbox"]:checked + .checkbox-label .custom-checkbox {
+  background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+  border-color: #e95d2c;
+  box-shadow: 0 4px 12px rgba(233, 93, 44, 0.3);
+  transform: scale(1.1);
+}
+
+.checkbox-container input[type="checkbox"]:checked + .checkbox-label .custom-checkbox .check-icon {
+  opacity: 1;
+  transform: scale(1);
+  animation: checkmarkPulse 0.6s ease-out;
+}
+
+/* Checkbox Label */
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.checkbox-text {
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Focus State */
+.checkbox-container input[type="checkbox"]:focus + .checkbox-label .custom-checkbox {
+  outline: 3px solid #e95d2c;
+  outline-offset: 2px;
+}
+
+/* ========================================
+   SERVICE REQUEST FILE UPLOAD FIELD
+======================================== */
+
+/* File Upload Container */
+.file-upload-container {
+  margin-bottom: 24px;
+}
+
+.file-upload {
+  position: relative;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+  border: 3px dashed #e0e0e0;
+  border-radius: 20px;
+  padding: 40px 24px;
+  text-align: center;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.file-upload::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    rgba(233, 93, 44, 0) 0%,
+    rgba(233, 93, 44, 0.1) 50%,
+    rgba(233, 93, 44, 0) 100%);
+  transition: all 0.6s ease;
+}
+
+.file-upload:hover {
+  border-color: #e95d2c;
+  border-style: solid;
+  background: rgba(233, 93, 44, 0.02);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(233, 93, 44, 0.15);
+}
+
+.file-upload:hover::before {
+  left: 100%;
+}
+
+/* Hidden File Input */
+.file-upload-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+}
+
+/* Upload Text */
+.file-upload-text {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Upload Buttons Container */
+.file-upload-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Upload Buttons */
+.file-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(233, 93, 44, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.file-upload-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: -100%;
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%);
+  transition: all 0.6s;
+}
+
+.file-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 93, 44, 0.4);
+}
+
+.file-upload-btn:hover::after {
+  left: 100%;
+}
+
+.file-upload-btn:active {
+  transform: translateY(0);
+}
+
+/* Camera Button Specific */
+.camera-btn {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+}
+
+.camera-btn:hover {
+  box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+}
+
+/* Button Icons */
+.file-upload-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* File Name Display */
+.file-name-display {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 2px solid #b0d4c8;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #155724;
+  margin-top: 16px;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.file-name-display::before {
+  content: '📄';
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN FOR CUSTOM FIELDS
+======================================== */
+
+/* Tablet (768px - 999px) */
+@media (max-width: 999px) and (min-width: 768px) {
+  
+  /* Service Calendar */
+  .calendar-flex-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .calendar-column,
+  .availability-column {
+    width: 100%;
+  }
+  
+  .calendar-column {
+    border-right: none;
+    border-bottom: 3px solid #e0e0e0;
+  }
+  
+  .service-calendar-container .calendar-header {
+    padding: 16px;
+  }
+  
+  .service-calendar-container .days-container {
+    padding: 16px;
+  }
+  
+  .availability-column {
+    padding: 16px;
+  }
+  
+  /* Terms Field */
+  .terms-container {
+    padding: 20px;
+  }
+  
+  .terms-title {
+    font-size: 20px;
+  }
+  
+  .terms-content {
+    font-size: 15px;
+    padding: 16px;
+  }
+  
+  /* File Upload */
+  .file-upload {
+    padding: 32px 20px;
+  }
+  
+  .file-upload-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .file-upload-btn {
+    width: 200px;
+  }
+}
+
+/* Mobile (481px - 767px) */
+@media (max-width: 767px) and (min-width: 481px) {
+  
+  /* Service Calendar */
+  .service-calendar-container .calendar-header {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .service-calendar-container .calendar-nav {
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .service-calendar-container .current-date {
+    font-size: 14px;
+    min-width: 140px;
+    padding: 8px 16px;
+  }
+  
+  .service-calendar-container .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .service-calendar-container .day {
+    min-height: 36px;
+    font-size: 13px;
+  }
+  
+  .time-choice {
+    padding: 12px;
+  }
+  
+  .time-choice-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .time-choice-title {
+    font-size: 15px;
+  }
+  
+  .time-choice-range {
+    font-size: 13px;
+  }
+  
+  .selected-slots-list {
+    max-height: 200px;
+  }
+  
+  /* Terms Field */
+  .terms-container {
+    padding: 16px;
+  }
+  
+  .terms-title {
+    font-size: 18px;
+  }
+  
+  .checkbox-container {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .checkbox-text {
+    font-size: 15px;
+  }
+  
+  /* File Upload */
+  .file-upload {
+    padding: 24px 16px;
+  }
+  
+  .file-upload-text {
+    font-size: 16px;
+  }
+  
+  .file-upload-btn {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile Small (max 480px) */
+@media (max-width: 480px) {
+  
+  /* Service Calendar */
+  .service-calendar-container {
+    border-radius: 16px;
+    border-width: 2px;
+  }
+  
+  .calendar-flex-container {
+    min-height: 400px;
+  }
+  
+  .service-calendar-container .calendar-header {
+    padding: 12px;
+  }
+  
+  .service-calendar-container .calendar-title {
+    font-size: 16px;
+  }
+  
+  .service-calendar-container .days-container {
+    padding: 12px;
+  }
+  
+  .service-calendar-container .calendar-days {
+    gap: 4px;
+  }
+  
+  .service-calendar-container .day {
+    min-height: 32px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  
+  .availability-column {
+    padding: 12px;
+    gap: 16px;
+  }
+  
+  .time-choice-label {
+    font-size: 16px;
+  }
+  
+  .time-choice {
+    padding: 12px;
+    border-radius: 12px;
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .time-choice-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .add-slot-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .selected-slots-title {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .selected-slots-list {
+    padding: 12px;
+    max-height: 150px;
+  }
+  
+  .selected-slot-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  
+  .selected-slot-info {
+    font-size: 13px;
+  }
+  
+  /* Terms Field */
+  .terms-container {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  
+  .terms-title {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .terms-content {
+    font-size: 14px;
+    padding: 12px;
+  }
+  
+  .terms-list {
+    padding: 12px;
+  }
+  
+  .terms-list li {
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  
+  .checkbox-container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .custom-checkbox {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .checkbox-text {
+    font-size: 14px;
+  }
+  
+  /* File Upload */
+  .file-upload {
+    padding: 20px 12px;
+    border-radius: 16px;
+  }
+  
+  .file-upload-text {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  
+  .file-upload-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .file-upload-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  
+  .file-name-display {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY & FOCUS STATES
+======================================== */
+
+/* Focus visible for calendar elements */
+.service-calendar-container .day:focus,
+.time-choice:focus,
+.add-slot-btn:focus,
+.delete-slot:focus {
+  outline: 3px solid #e95d2c;
+  outline-offset: 2px;
+}
+
+/* Focus visible for terms checkbox */
+.checkbox-container:focus-within .custom-checkbox {
+  outline: 3px solid #e95d2c;
+  outline-offset: 2px;
+}
+
+/* Focus visible for file upload */
+.file-upload:focus-within,
+.file-upload-btn:focus {
+  outline: 3px solid #e95d2c;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .service-calendar-container,
+  .terms-container,
+  .file-upload {
+    border-width: 4px;
+  }
+  
+  .time-choice,
+  .selected-slot-item,
+  .checkbox-container {
+    border-width: 3px;
+  }
+  
+  .service-calendar-container .day.active,
+  .time-choice.selected {
+    border-width: 4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .service-calendar-container,
+  .terms-container,
+  .file-upload,
+  .time-choice,
+  .selected-slot-item,
+  .checkbox-container,
+  .add-slot-btn,
+  .file-upload-btn {
+    transition: none;
+    animation: none;
+  }
+  
+  .service-calendar-container:hover,
+  .time-choice:hover,
+  .add-slot-btn:hover,
+  .file-upload:hover {
+    transform: none;
+  }
+}
     
 
 
