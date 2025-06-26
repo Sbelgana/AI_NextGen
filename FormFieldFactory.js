@@ -8567,6 +8567,7 @@ class CurrentAppointmentCardField extends BaseField {
  * Enhanced CalendarField - Base class with optional service/provider selection
  * Replaces the need for three separate classes with configuration-driven approach
  */
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -8601,6 +8602,9 @@ class CalendarField extends BaseField {
         this.scheduleId = config.scheduleId || null;
         this.eventName = config.eventName || '';
         
+        // Direct provider configuration (for direct mode and reschedule)
+        this.serviceProvider = config.serviceProvider || '';
+        
         // UI Configuration
         this.headerIcon = config.headerIcon || 'CALENDAR';
         this.showProviderInfo = config.showProviderInfo !== false;
@@ -8625,6 +8629,8 @@ class CalendarField extends BaseField {
         this.fullConfig = config;
         
         console.log('CalendarField initialized with selectionMode:', this.selectionMode);
+        console.log('CalendarField serviceProvider:', this.serviceProvider);
+        console.log('CalendarField mode:', this.mode);
         
         this.init();
     }
@@ -9267,7 +9273,14 @@ class CalendarField extends BaseField {
             const displayProvider = this.currentProvider?.displayName || 
                                    this.currentProvider?.name || 
                                    this.currentProvider?.id || 
+                                   this.serviceProvider ||
                                    'Service Provider';
+            
+            console.log('CalendarField generateCalendarHeader (reschedule mode):', {
+                currentProvider: this.currentProvider,
+                serviceProvider: this.serviceProvider,
+                displayProvider: displayProvider
+            });
             
             return `
                 <div class="calendar-title-content">
@@ -9299,6 +9312,9 @@ class CalendarField extends BaseField {
             if (this.currentProvider) {
                 const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
                 headerHtml += `<div class="provider-name">${displayName}</div>`;
+            } else if (this.serviceProvider) {
+                // Fallback to direct serviceProvider config
+                headerHtml += `<div class="provider-name">${this.serviceProvider}</div>`;
             }
 
             headerHtml += `
@@ -9639,6 +9655,7 @@ class CalendarField extends BaseField {
             selectedService: this.selectedService,
             selectedProviderId: this.selectedProviderId,
             selectedProvider: this.currentProvider,
+            serviceProvider: this.serviceProvider,
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
@@ -9670,6 +9687,7 @@ class CalendarField extends BaseField {
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
             if (value.currentAppointment) this.currentAppointment = value.currentAppointment;
+            if (value.serviceProvider) this.serviceProvider = value.serviceProvider;
             if (this.element) {
                 this.updateCalendarHeader();
                 this.renderCalendarData();
@@ -9681,6 +9699,7 @@ class CalendarField extends BaseField {
         this.selectedService = '';
         this.selectedProviderId = '';
         this.currentProvider = null;
+        this.serviceProvider = '';
         this.filteredProviders = [];
         this.resetCalendarState();
         
@@ -9720,6 +9739,7 @@ class CalendarField extends BaseField {
         super.destroy();
     }
 }
+
 // ===============================
 // LEGACY COMPATIBILITY CLASSES
 // ===============================
