@@ -272,7 +272,7 @@ body {
 }
 
 .field-col .form-group {
-  margin-bottom: 0;
+  margin-bottom: 24px;
 }
 
 /* Force Two Columns */
@@ -1017,7 +1017,6 @@ input[type="number"]:hover:not(:focus) {
   height: 6px;
   background: #e2e8f0;
   border-radius: 6px;
-  margin: 24px 0;
 }
 
 .slider-progress,
@@ -1043,7 +1042,7 @@ input[type="number"]:hover:not(:focus) {
   appearance: none;
   border: none;
   outline: none;
-  top: 24px;
+  top: 0;
   cursor: pointer;
 }
 
@@ -1088,7 +1087,7 @@ input[type="number"]:hover:not(:focus) {
 
 .slider-value-label {
   position: absolute;
-  top: 40px;
+  top: 20px;
   background: #2d3748;
   color: white;
   padding: 6px 8px;
@@ -2174,7 +2173,7 @@ select:focus-visible,
   }
   
   .field-col .form-group {
-    margin-bottom: 10px;
+    margin-bottom: 24px;
   }
   
   /* Force two columns override */
