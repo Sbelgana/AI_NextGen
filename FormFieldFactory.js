@@ -212,7 +212,7 @@ this.SVG_ICONS = {
             case 'calendar':
                 field = new CalendarField(this, config);
                 break;
-            case 'enhanced_calendar':
+            case 'provider-calendar':
                 field = new EnhancedCalendarField(this, config);
                 break;
             case 'service-provider-calendar':
@@ -1163,7 +1163,7 @@ class FormStep {
                 return this.factory.createServiceCardField(fieldConfig);
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
-            case 'enhanced_calendar':
+            case 'provider-calendar':
                 return this.factory.createEnhancedCalendarField (fieldConfig);
             case 'service-provider-calendar':
                 return this.factory.createServiceAndProviderCalendarField (fieldConfig);
