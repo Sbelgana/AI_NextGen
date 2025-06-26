@@ -272,7 +272,7 @@ body {
 }
 
 .field-col .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 /* Force Two Columns */
@@ -2173,7 +2173,7 @@ select:focus-visible,
   }
   
   .field-col .form-group {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   
   /* Force two columns override */
