@@ -1750,6 +1750,7 @@ input[type="number"]:hover:not(:focus) {
 .calendar-body {
   display: flex;
   background: linear-gradient(to bottom, #ffffff, #fefeff);
+	flex-direction: row;
 }
 
 /* Days Container */
