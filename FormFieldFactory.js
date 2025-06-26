@@ -9260,6 +9260,10 @@ class CurrentAppointmentCardField extends BaseField {
  * Enhanced Calendar Field using SingleSelectField for provider selection
  * Integrated into the calendar header using the same CSS structure as CalendarField
  */
+/**
+ * Enhanced Calendar Field using SingleSelectField for provider selection
+ * Filters providers based on specific service and shows service name from the beginning
+ */
 class EnhancedCalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -9269,14 +9273,19 @@ class EnhancedCalendarField extends BaseField {
         this.language = config.language || 'en';
         this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
         
-        // Service providers configuration
-        this.serviceProviders = config.serviceProviders || [];
+        // Service configuration - NEW: Service name is provided upfront
+        this.serviceName = config.serviceName || config.eventName || '';
+        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
+        
+        // Filter providers based on the specific service
+        this.serviceProviders = this.filterProvidersByService(this.rawServiceProviders, this.serviceName);
         this.selectedProviderId = config.selectedProviderId || null;
-        this.allowProviderSelection = config.allowProviderSelection !== false; // Default to true
+        this.allowProviderSelection = config.allowProviderSelection !== false && this.serviceProviders.length > 1;
         this.placeholderText = config.placeholderText || this.getText('selectProvider');
         
         // Current provider configuration (will be set when provider is selected)
         this.currentProvider = null;
+        this.currentServiceConfig = null; // Store the specific service config for selected provider
         this.apiKey = '';
         this.eventTypeId = null;
         this.eventTypeSlug = '';
@@ -9304,14 +9313,75 @@ class EnhancedCalendarField extends BaseField {
         // Store full config for reference
         this.fullConfig = config;
         
-        console.log('EnhancedCalendarField initialized with providers:', this.serviceProviders);
+        console.log('EnhancedCalendarField initialized with service:', this.serviceName);
+        console.log('Filtered providers:', this.serviceProviders);
         
-        // Initialize with selected provider if provided
-        if (this.selectedProviderId) {
+        // Auto-select if only one provider offers the service
+        if (this.serviceProviders.length === 1) {
+            this.selectedProviderId = this.serviceProviders[0].id;
+            this.allowProviderSelection = false; // Hide selection if only one provider
+            this.selectProvider(this.selectedProviderId, false);
+        } else if (this.selectedProviderId) {
             this.selectProvider(this.selectedProviderId, false);
         }
         
         this.init();
+    }
+
+    // NEW: Filter providers that offer the specific service
+    filterProvidersByService(rawProviders, serviceName) {
+        if (!serviceName || !rawProviders) {
+            console.warn('No service name or providers provided');
+            return [];
+        }
+
+        const filteredProviders = [];
+        
+        // Handle both array and object formats
+        const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
+        
+        providersArray.forEach(([providerName, providerData]) => {
+            // Handle case where rawProviders is already an array of objects
+            if (Array.isArray(rawProviders) && typeof providerName === 'object') {
+                providerData = providerName;
+                providerName = providerData.name || providerData.id;
+            }
+            
+            // Check if this provider offers the specific service
+            if (providerData.services && providerData.services[serviceName]) {
+                const serviceConfig = providerData.services[serviceName];
+                
+                filteredProviders.push({
+                    id: this.slugify(providerName),
+                    name: providerName,
+                    displayName: providerName,
+                    description: providerData.description || providerData.specialty || "",
+                    apiKey: providerData.apiKey || "",
+                    scheduleId: providerData.scheduleId || "",
+                    // Service-specific configuration
+                    eventTypeId: serviceConfig.eventId || "",
+                    eventTypeSlug: serviceConfig.eventSlug || "",
+                    eventName: serviceName,
+                    link: serviceConfig.link || "",
+                    // Store full service config for reference
+                    serviceConfig: serviceConfig,
+                    // Store all services in case needed
+                    allServices: providerData.services
+                });
+            }
+        });
+        
+        console.log(`Found ${filteredProviders.length} providers offering "${serviceName}"`);
+        return filteredProviders;
+    }
+
+    // Helper to create URL-friendly slugs
+    slugify(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '') // Remove special characters
+            .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+            .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
     }
 
     // Initialize the calendar
@@ -9376,11 +9446,12 @@ class EnhancedCalendarField extends BaseField {
         // Update current provider configuration
         this.selectedProviderId = providerId;
         this.currentProvider = provider;
+        this.currentServiceConfig = provider.serviceConfig;
         this.apiKey = provider.apiKey || '';
         this.eventTypeId = provider.eventTypeId || null;
         this.eventTypeSlug = provider.eventTypeSlug || '';
         this.scheduleId = provider.scheduleId || null;
-        this.eventName = provider.eventName || provider.name || '';
+        this.eventName = provider.eventName || this.serviceName || '';
         
         // Reset selection state since provider changed
         this.state.selectedDate = null;
@@ -9640,24 +9711,20 @@ class EnhancedCalendarField extends BaseField {
             return '';
         }
 
-        // Header structure same as CalendarField but with integrated provider selection
+        // ALWAYS show the service name from the beginning
         let headerHtml = `
             <div class="service-provider">
                 <span class="provider-icon">${iconSvg}</span>
                 <div class="appointment-details">
+                    <div class="service-name">${this.serviceName}</div>
         `;
         
         // Provider selection or display
         if (this.allowProviderSelection && this.serviceProviders.length > 0) {
             if (this.currentProvider) {
-                // Show selected provider name and service
+                // Show selected provider name
                 const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
-                const eventName = this.eventName || this.currentProvider.eventName || '';
-                
-                headerHtml += `
-                    <div class="provider-name">${displayName}</div>
-                    ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
-                `;
+                headerHtml += `<div class="provider-name">${displayName}</div>`;
             } else {
                 // Show provider selection placeholder
                 headerHtml += `<div class="provider-select-placeholder"></div>`;
@@ -9665,15 +9732,10 @@ class EnhancedCalendarField extends BaseField {
         } else if (!this.allowProviderSelection && this.currentProvider) {
             // Single provider, show name directly
             const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
-            const eventName = this.eventName || this.currentProvider.eventName || '';
-            
-            headerHtml += `
-                <div class="provider-name">${displayName}</div>
-                ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
-            `;
-        } else {
-            // No provider selected and no selection allowed
-            headerHtml += `<div class="provider-name">${this.getText('pleaseSelectProvider')}</div>`;
+            headerHtml += `<div class="provider-name">${displayName}</div>`;
+        } else if (this.serviceProviders.length === 0) {
+            // No providers available for this service
+            headerHtml += `<div class="provider-name">Aucun fournisseur disponible</div>`;
         }
 
         headerHtml += `
@@ -9776,7 +9838,16 @@ class EnhancedCalendarField extends BaseField {
         
         daysEl.innerHTML = '';
         
-        // If no provider selected and provider selection is required, show disabled state
+        // Check if no providers are available for this service
+        if (this.serviceProviders.length === 0) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'no-provider-message';
+            messageEl.textContent = `Aucun fournisseur disponible pour "${this.serviceName}"`;
+            daysEl.appendChild(messageEl);
+            return;
+        }
+        
+        // If provider selection is required but not selected yet
         if (this.allowProviderSelection && !this.currentProvider) {
             const messageEl = document.createElement('div');
             messageEl.className = 'no-provider-message';
@@ -9859,6 +9930,13 @@ class EnhancedCalendarField extends BaseField {
         const timeSlotsEl = this.element.querySelector('.time-slots');
         
         if (!timeHeaderEl || !timeSlotsEl) return;
+        
+        // Check if no providers are available for this service
+        if (this.serviceProviders.length === 0) {
+            timeHeaderEl.textContent = `Aucun fournisseur disponible pour "${this.serviceName}"`;
+            timeSlotsEl.innerHTML = `<div class="no-provider-message">Aucun fournisseur disponible pour "${this.serviceName}"</div>`;
+            return;
+        }
         
         // Check if provider is selected (if selection is required)
         if (this.allowProviderSelection && !this.currentProvider) {
@@ -9967,6 +10045,7 @@ class EnhancedCalendarField extends BaseField {
     // Value management
     updateValue() {
         const value = {
+            serviceName: this.serviceName,
             selectedProviderId: this.selectedProviderId,
             selectedProvider: this.currentProvider,
             selectedDate: this.state.selectedDate,
@@ -9982,6 +10061,7 @@ class EnhancedCalendarField extends BaseField {
     
     getValue() {
         return {
+            serviceName: this.serviceName,
             selectedProviderId: this.selectedProviderId,
             selectedProvider: this.currentProvider,
             selectedDate: this.state.selectedDate,
@@ -9995,6 +10075,7 @@ class EnhancedCalendarField extends BaseField {
     
     setValue(value) {
         if (value && typeof value === 'object') {
+            if (value.serviceName) this.serviceName = value.serviceName;
             if (value.selectedProviderId && this.providerSelectField) {
                 this.providerSelectField.setValue(value.selectedProviderId);
                 this.selectProvider(value.selectedProviderId, false);
