@@ -2075,6 +2075,7 @@ input:disabled,
   justify-content: space-between;
   align-items: center;
   gap: 15px;
+  margin-top: 10px;
 }
 
 /* ========================================
