@@ -3428,7 +3428,51 @@ class MultiSelectField extends BaseField {
 class SingleSelectSubsectionsField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
-        this.subsectionOptions = config.subsectionOptions || [];
+        
+        // Resolve subsectionOptions from string reference to actual data
+        if (typeof config.subsectionOptions === 'string') {
+            // Try multiple ways to access the form data
+            let optionsData = null;
+            
+            // Method 1: From factory
+            if (factory.formData && factory.formData.options) {
+                optionsData = factory.formData.options;
+            }
+            // Method 2: From factory.data
+            else if (factory.data && factory.data.options) {
+                optionsData = factory.data.options;
+            }
+            // Method 3: Direct from factory
+            else if (factory.options) {
+                optionsData = factory.options;
+            }
+            // Method 4: From global PropertySearchFormExtension
+            else if (typeof window !== 'undefined' && window.PropertySearchFormExtension && window.PropertySearchFormExtension.FORM_DATA) {
+                optionsData = window.PropertySearchFormExtension.FORM_DATA.options;
+            }
+            // Method 5: From config itself
+            else if (config.formData && config.formData.options) {
+                optionsData = config.formData.options;
+            }
+            
+            this.subsectionOptions = (optionsData && optionsData[config.subsectionOptions]) || [];
+            
+            // Log for debugging
+            console.log('Resolving subsectionOptions:', config.subsectionOptions);
+            console.log('Factory formData:', factory.formData);
+            console.log('Factory data:', factory.data);
+            console.log('Options data found:', optionsData);
+            console.log('Resolved subsectionOptions:', this.subsectionOptions);
+        } else {
+            this.subsectionOptions = config.subsectionOptions || [];
+        }
+        
+        // Ensure we have an array
+        if (!Array.isArray(this.subsectionOptions)) {
+            console.warn('subsectionOptions is not an array, using empty array');
+            this.subsectionOptions = [];
+        }
+        
         this.placeholder = config.placeholder || factory.getText('selectSubsectionPlaceholder');
         this.dropdownInstance = null;
         this.isOpen = false;
@@ -3501,12 +3545,28 @@ class SingleSelectSubsectionsField extends BaseField {
     }
 
     buildSubsectionOptions() {
+        // Ensure subsectionOptions is an array
+        if (!Array.isArray(this.subsectionOptions)) {
+            console.error('subsectionOptions is not an array:', this.subsectionOptions);
+            return;
+        }
+
+        // Get language from factory with fallbacks
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+
         this.subsectionOptions.forEach(group => {
             const mainDiv = document.createElement('div');
             mainDiv.className = 'custom-option category-option';
             mainDiv.dataset.value = group.id;
+            
+            // Handle multilingual names with better fallbacks
+            let groupName = group.name;
+            if (typeof group.name === 'object' && group.name !== null) {
+                groupName = group.name[language] || group.name.fr || group.name.en || Object.values(group.name)[0] || group.name;
+            }
+            
             mainDiv.innerHTML = `
-                <span>${group.name}</span>
+                <span>${groupName}</span>
                 <div class="main-arrow">
                     <div class="arrow-icon">${this.factory.SVG_ICONS.CHEVRON}</div>
                 </div>
@@ -3538,7 +3598,16 @@ class SingleSelectSubsectionsField extends BaseField {
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
         
+        // Get language from factory with fallbacks
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+        
         group.subcategories.forEach(item => {
+            // Handle multilingual names for subcategories with better fallbacks
+            let itemName = item.name;
+            if (typeof item.name === 'object' && item.name !== null) {
+                itemName = item.name[language] || item.name.fr || item.name.en || Object.values(item.name)[0] || item.name;
+            }
+            
             const subDiv = document.createElement('div');
             subDiv.className = 'custom-option';
             subDiv.dataset.value = item.id;
@@ -3546,7 +3615,7 @@ class SingleSelectSubsectionsField extends BaseField {
             checkboxDiv.className = 'option-checkbox';
             checkboxDiv.innerHTML = this.factory.SVG_ICONS.CHECK;
             const itemSpan = document.createElement('span');
-            itemSpan.textContent = item.name;
+            itemSpan.textContent = itemName;
             subDiv.appendChild(checkboxDiv);
             subDiv.appendChild(itemSpan);
             
@@ -3576,6 +3645,15 @@ class SingleSelectSubsectionsField extends BaseField {
     }
 
     selectOption(option) {
+        // Get language from factory with fallbacks
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+        
+        // Handle multilingual names for display
+        let optionName = option.name;
+        if (typeof option.name === 'object' && option.name !== null) {
+            optionName = option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+        }
+        
         // Clear all selections
         this.customOptionsElement.querySelectorAll('.custom-option.selected').forEach(opt => {
             opt.classList.remove('selected');
@@ -3587,7 +3665,7 @@ class SingleSelectSubsectionsField extends BaseField {
             optionElement.classList.add('selected');
         }
         
-        this.selectDisplayElement.querySelector('span').textContent = option.name;
+        this.selectDisplayElement.querySelector('span').textContent = optionName;
         this.selectDisplayElement.classList.remove('placeholder');
         
         this.element.value = option.id;
@@ -3651,11 +3729,20 @@ class SingleSelectSubsectionsField extends BaseField {
         if (this.element) {
             this.element.value = value;
             
+            // Get language from factory with fallbacks
+            const language = this.factory?.config?.language || this.factory?.language || 'fr';
+            
             // Find the option in subsections
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === value);
                 if (option && this.selectDisplayElement) {
-                    this.selectDisplayElement.querySelector('span').textContent = option.name;
+                    // Handle multilingual names for display
+                    let optionName = option.name;
+                    if (typeof option.name === 'object' && option.name !== null) {
+                        optionName = option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                    }
+                    
+                    this.selectDisplayElement.querySelector('span').textContent = optionName;
                     this.selectDisplayElement.classList.remove('placeholder');
                     break;
                 }
