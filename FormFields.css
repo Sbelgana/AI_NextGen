@@ -2076,7 +2076,6 @@ input:disabled,
   justify-content: space-between;
   align-items: center;
   gap: 15px;
-  margin-top: 10px;
 }
 
 /* ========================================
@@ -2273,7 +2272,13 @@ select:focus-visible,
     border-radius: 8px;
   }
   
-
+	.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
   
   .step-title {
     font-size: 22px;
@@ -2479,6 +2484,13 @@ select:focus-visible,
     margin: 4px;
     border-radius: 8px;
   }
+		.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
   
   .step-title {
     font-size: 20px;
@@ -2659,6 +2671,17 @@ select:focus-visible,
 
 /* Extra Small Mobile (max 320px) */
 @media (max-width: 320px) {
+
+	.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+
+	
   .multistep-form {
     margin: 2px;
     padding: 4px;
@@ -2911,6 +2934,13 @@ select:focus-visible,
 
 /* Responsive adjustments for CustomField */
 @media (max-width: 768px) {
+		.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
 	.summary-container {
 		padding: 15px;
 		margin-bottom: 15px;
@@ -2939,6 +2969,13 @@ select:focus-visible,
 }
 
 @media (max-width: 480px) {
+		.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
 	.summary-container {
 		padding: 12px;
 	}
@@ -3244,7 +3281,13 @@ submission-form-extension {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-
+	.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
     
     .appointment-icon {
         align-self: center;
@@ -3277,6 +3320,13 @@ submission-form-extension {
 }
 
 @media (max-width: 480px) {
+		.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
     .current-appointment-card {
         border-radius: 15px;
     }
@@ -4146,6 +4196,7 @@ submission-form-extension {
 
 /* Tablet (768px - 999px) */
 @media (max-width: 999px) and (min-width: 768px) {
+	
   
   /* Service Calendar */
   .calendar-flex-container {
@@ -4207,7 +4258,13 @@ submission-form-extension {
 
 /* Mobile (481px - 767px) */
 @media (max-width: 767px) and (min-width: 481px) {
-  
+  	.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
   /* Service Calendar */
   .service-calendar-container .calendar-header {
     padding: 16px;
@@ -4292,7 +4349,13 @@ submission-form-extension {
 
 /* Mobile Small (max 480px) */
 @media (max-width: 480px) {
-  
+  	.field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
   /* Service Calendar */
   .service-calendar-container {
     border-radius: 16px;
