@@ -2319,8 +2319,7 @@ select:focus-visible,
   
   /* Buttons */
   .form-navigation {
-    flex-direction: column;
-    gap: 16px;
+    gap: 10px;
   }
   
   .btn {
