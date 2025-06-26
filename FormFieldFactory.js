@@ -3450,7 +3450,11 @@ class SingleSelectSubsectionsField extends BaseField {
             else if (typeof window !== 'undefined' && window.PropertySearchFormExtension && window.PropertySearchFormExtension.FORM_DATA) {
                 optionsData = window.PropertySearchFormExtension.FORM_DATA.options;
             }
-            // Method 5: From config itself
+            // Method 5: From global PropertySellFormExtension
+            else if (typeof window !== 'undefined' && window.PropertySellFormExtension && window.PropertySellFormExtension.FORM_DATA) {
+                optionsData = window.PropertySellFormExtension.FORM_DATA.options;
+            }
+            // Method 6: From config itself
             else if (config.formData && config.formData.options) {
                 optionsData = config.formData.options;
             }
