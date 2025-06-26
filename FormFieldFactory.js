@@ -213,7 +213,7 @@ this.SVG_ICONS = {
                 field = new CalendarField(this, config);
                 break;
             case 'provider-calendar':
-                field = new EnhancedCalendarField(this, config);
+                field = new ProviderCalendarField(this, config);
                 break;
             case 'service-provider-calendar':
                 field = new ServiceAndProviderCalendarField (this, config);
@@ -685,8 +685,8 @@ this.SVG_ICONS = {
         return new CalendarField(this, config);
     }
 	
-	createEnhancedCalendarField (config) {
-        return new EnhancedCalendarField (this, config);
+	createProviderCalendarField (config) {
+        return new ProviderCalendarField (this, config);
     }
 	createServiceAndProviderCalendarField (config) {
         return new ServiceAndProviderCalendarField (this, config);
@@ -1164,7 +1164,7 @@ class FormStep {
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
             case 'provider-calendar':
-                return this.factory.createEnhancedCalendarField (fieldConfig);
+                return this.factory.createProviderCalendarField (fieldConfig);
             case 'service-provider-calendar':
                 return this.factory.createServiceAndProviderCalendarField (fieldConfig);
 
@@ -9283,7 +9283,7 @@ class CurrentAppointmentCardField extends BaseField {
  * Fixed Enhanced Calendar Field - Keeps SingleSelectField CSS intact
  * Uses proper form structure like ContactFormExtension
  */
-class EnhancedCalendarField extends BaseField {
+class ProviderCalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
@@ -9332,7 +9332,7 @@ class EnhancedCalendarField extends BaseField {
         // Store full config for reference
         this.fullConfig = config;
         
-        console.log('EnhancedCalendarField initialized with service:', this.serviceName);
+        console.log('ProviderCalendarField initialized with service:', this.serviceName);
         console.log('Filtered providers:', this.serviceProviders);
         
         // Auto-select if only one provider offers the service
@@ -10163,7 +10163,12 @@ class EnhancedCalendarField extends BaseField {
 /**
  * ServiceAndProviderCalendarField - Enhanced Calendar with Service and Provider Selection
  * First selects service, then shows providers who offer that service
- * Based on EnhancedCalendarField and BookingCalendarSDExtension patterns
+ * Based on ProviderCalendarField and BookingCalendarSDExtension patterns
+ */
+/**
+ * ServiceAndProviderCalendarField - Enhanced Calendar with Service and Provider Selection
+ * First selects service, then shows providers who offer that service
+ * Based on ProviderCalendarField structure and patterns
  */
 class ServiceAndProviderCalendarField extends BaseField {
     constructor(factory, config) {
@@ -10371,6 +10376,47 @@ class ServiceAndProviderCalendarField extends BaseField {
         return this.providerSelectField;
     }
 
+    // FIXED: Update provider options by recreating the field
+    updateProviderOptions() {
+        if (!this.providerSelectField) return;
+
+        // Get the provider container
+        const providerContainer = this.element.querySelector('.provider-select-container');
+        if (!providerContainer) return;
+
+        // Store current value
+        const currentValue = this.selectedProviderId;
+
+        // Remove old field
+        this.providerSelectField.destroy();
+
+        // Create new field with updated options
+        this.providerSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-provider`,
+            name: `${this.name}_provider`,
+            label: this.getText('selectProvider'),
+            placeholder: this.getText('selectProviderPlaceholder'),
+            options: this.filteredProviders,
+            required: true,
+            onChange: (value) => {
+                console.log('Provider selection changed:', value);
+                if (value) {
+                    this.selectProvider(value);
+                }
+            }
+        });
+
+        // Clear container and add new field
+        providerContainer.innerHTML = '';
+        const newFieldElement = this.providerSelectField.render();
+        providerContainer.appendChild(newFieldElement);
+
+        // Restore value if it exists in new options
+        if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
+            this.providerSelectField.setValue(currentValue);
+        }
+    }
+
     // Select service method
     selectService(serviceId) {
         console.log('Selecting service:', serviceId);
@@ -10387,15 +10433,13 @@ class ServiceAndProviderCalendarField extends BaseField {
         // Filter providers for this service
         this.filteredProviders = this.filterProvidersByService(service.name);
         
-        // Update provider dropdown options
-        if (this.providerSelectField) {
-            this.providerSelectField.setOptions(this.filteredProviders);
-            
-            // Show the provider selection container
-            const providerContainer = this.element.querySelector('.provider-select-container');
-            if (providerContainer) {
-                providerContainer.style.display = 'block';
-            }
+        // Update provider dropdown options using the fixed method
+        this.updateProviderOptions();
+        
+        // Show the provider selection container
+        const providerContainer = this.element.querySelector('.provider-select-container');
+        if (providerContainer) {
+            providerContainer.style.display = 'block';
         }
         
         // Reset provider selection
@@ -10426,7 +10470,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         console.log('Service selected:', service.name, 'Providers:', this.filteredProviders.length);
     }
 
-    // Select provider method
+    // Select provider method (same as ProviderCalendarField)
     async selectProvider(providerId, shouldUpdateUI = true) {
         console.log('Selecting provider:', providerId);
         
@@ -10486,7 +10530,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         console.log('Provider selected successfully:', provider);
     }
 
-    // Add loading state method
+    // Add loading state method (same as ProviderCalendarField)
     showLoadingState() {
         const daysEl = this.element.querySelector('.days');
         const timeSlotsEl = this.element.querySelector('.time-slots');
@@ -10500,7 +10544,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         }
     }
 
-    // Update calendar header
+    // Update calendar header (same as ProviderCalendarField)
     updateCalendarHeader() {
         if (!this.element) return;
         
@@ -10510,7 +10554,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         }
     }
 
-    // Validation
+    // Validation (same as ProviderCalendarField pattern)
     validate() {
         // Check if service is selected
         if (!this.selectedService) {
@@ -10536,7 +10580,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         return true;
     }
 
-    // Localization
+    // Localization (same as ProviderCalendarField)
     getText(key) {
         const translations = {
             en: {
@@ -10569,7 +10613,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
-    // Generate the calendar header
+    // Generate the calendar header (same structure as ProviderCalendarField)
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -10602,7 +10646,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         return headerHtml;
     }
 
-    // Date formatting utilities (same as EnhancedCalendarField)
+    // Date formatting utilities (same as ProviderCalendarField)
     formatDate(date) {
         const d = new Date(date);
         const year = d.getFullYear();
@@ -10630,7 +10674,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         return next;
     }
 
-    // API Methods (same as CalendarField)
+    // API Methods (same as ProviderCalendarField)
     async fetchWorkingDays(scheduleId) {
         if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
         
@@ -10751,36 +10795,24 @@ class ServiceAndProviderCalendarField extends BaseField {
         }
     }
 
-    // Render method with service and provider selection in a row
+    // FIXED: Render method with same structure as ProviderCalendarField
     render() {
         // Create the main container using the base field structure
         const container = this.createContainer();
         
-        // Create selectors container (service and provider in a row for large screens)
-        const selectorsContainer = document.createElement('div');
-        selectorsContainer.className = 'selectors-container';
-        
-        // Create selectors wrapper for responsive layout
-        const selectorsWrapper = document.createElement('div');
-        selectorsWrapper.className = 'selectors-wrapper';
-        
-        // Create service selection field
+        // Create service selection field FIRST (like ProviderCalendarField approach)
         this.createServiceSelectField();
         const serviceFieldElement = this.serviceSelectField.render();
-        serviceFieldElement.classList.add('service-select-container');
-        selectorsWrapper.appendChild(serviceFieldElement);
+        container.appendChild(serviceFieldElement);
         
-        // Create provider selection field (initially hidden)
+        // Create provider selection field (initially hidden - like ProviderCalendarField approach)
         this.createProviderSelectField();
         const providerFieldElement = this.providerSelectField.render();
         providerFieldElement.classList.add('provider-select-container');
         providerFieldElement.style.display = this.selectedService ? 'block' : 'none';
-        selectorsWrapper.appendChild(providerFieldElement);
+        container.appendChild(providerFieldElement);
         
-        selectorsContainer.appendChild(selectorsWrapper);
-        container.appendChild(selectorsContainer);
-        
-        // Create the calendar component
+        // Create the calendar component (same structure as ProviderCalendarField)
         const calendarContainer = document.createElement('div');
         calendarContainer.className = 'calendar-container';
         calendarContainer.innerHTML = `
@@ -10816,43 +10848,6 @@ class ServiceAndProviderCalendarField extends BaseField {
         const errorElement = this.createErrorElement();
         container.appendChild(errorElement);
         
-        // Add responsive CSS for selectors
-        const style = document.createElement('style');
-        style.textContent = `
-            .selectors-container {
-                padding: 15px 20px;
-                background-color: #F8EAFA;
-                border-bottom: 1px solid #eaeaea;
-            }
-            
-            .selectors-wrapper {
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            @media (min-width: 768px) {
-                .selectors-wrapper {
-                    flex-direction: row;
-                }
-                
-                .service-select-container,
-                .provider-select-container {
-                    flex: 1;
-                }
-            }
-            
-            .service-select-container,
-            .provider-select-container {
-                position: relative;
-            }
-        `;
-        
-        if (!document.querySelector('#service-provider-calendar-styles')) {
-            style.id = 'service-provider-calendar-styles';
-            document.head.appendChild(style);
-        }
-        
         this.element = container;
         this.calendarContainer = calendarContainer;
         
@@ -10865,6 +10860,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         return this.element;
     }
 
+    // Render methods (same as ProviderCalendarField)
     renderCalendarData() {
         if (!this.calendarContainer) return;
         
@@ -11102,7 +11098,7 @@ class ServiceAndProviderCalendarField extends BaseField {
         }
     }
     
-    // Value management
+    // Value management (same as ProviderCalendarField)
     updateValue() {
         const value = {
             selectedService: this.selectedService,
@@ -11136,7 +11132,7 @@ class ServiceAndProviderCalendarField extends BaseField {
     setValue(value) {
         if (value && typeof value === 'object') {
             if (value.selectedService) {
-                this.selectService(value.selectedService);
+                this.selectService(this.slugify(value.selectedService));
                 if (this.serviceSelectField) {
                     const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
                     if (serviceOption) {
@@ -11176,7 +11172,6 @@ class ServiceAndProviderCalendarField extends BaseField {
         }
         if (this.providerSelectField) {
             this.providerSelectField.setValue('');
-            this.providerSelectField.setOptions([]);
             
             // Hide the provider selection container
             const providerContainer = this.element.querySelector('.provider-select-container');
@@ -11200,18 +11195,11 @@ class ServiceAndProviderCalendarField extends BaseField {
     
     destroy() {
         if (this.serviceSelectField) {
-            this.serviceSelectField.cleanup();
+            this.serviceSelectField.destroy();
         }
         if (this.providerSelectField) {
-            this.providerSelectField.cleanup();
+            this.providerSelectField.destroy();
         }
-        
-        // Remove added styles
-        const styleEl = document.querySelector('#service-provider-calendar-styles');
-        if (styleEl) {
-            styleEl.remove();
-        }
-        
         super.destroy();
     }
 }
