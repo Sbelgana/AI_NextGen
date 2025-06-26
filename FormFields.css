@@ -240,7 +240,6 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
   animation: fadeIn 0.6s;
 }
 
@@ -271,9 +270,7 @@ body {
   min-width: 0;
 }
 
-.field-col .form-group {
-  margin-bottom: 24px;
-}
+
 
 /* Force Two Columns */
 .force-two-columns .field-row {
@@ -2172,9 +2169,7 @@ select:focus-visible,
     gap: 0;
   }
   
-  .field-col .form-group {
-    margin-bottom: 24px;
-  }
+
   
   /* Force two columns override */
   .force-two-columns .field-row {
@@ -2302,9 +2297,7 @@ select:focus-visible,
     padding: 0;
   }
   
-  .form-group {
-    margin-bottom: 10px;
-  }
+
   
   /* Force two columns override */
   .force-two-columns .field-row {
