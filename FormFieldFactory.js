@@ -194,6 +194,9 @@ this.SVG_ICONS = {
             case 'sliding-window-range':
                 field = new SlidingWindowRangeField(this, config);
                 break;
+            case 'sliding-window':
+                field = new SlidingWindowSliderField(this, config);
+                break;
             case 'dual-range':
                 field = new DualRangeField(this, config);
                 break;
@@ -1134,8 +1137,10 @@ class FormStep {
                 return this.factory.createSlidingWindowRangeField(fieldConfig);
             case 'dual-range':
                 return this.factory.createDualRangeField(fieldConfig);
-            case 'slider':
+            case 'sliding window':
                 return this.factory.createSliderField(fieldConfig);
+            case 'slider':
+                return this.factory.createSlidingWindowSliderField(fieldConfig);
             case 'options-slider':
                 return this.factory.createOptionsSliderField(fieldConfig);
             case 'serviceCard':
