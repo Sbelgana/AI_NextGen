@@ -5270,6 +5270,7 @@ class MultiSelectWithOtherField extends BaseField {
 /**
  * SlidingWindowRangeField - Optimized with enhanced caching and performance
  */
+
 class SlidingWindowRangeField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5718,628 +5719,7 @@ class SlidingWindowRangeField extends BaseField {
 }
 
 /**
- * DualRangeField - Optimized standard dual range slider
- */
-class DualRangeField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.min = config.min || 0;
-        this.max = config.max || 10000;
-        this.step = config.step || 100;
-        this.minGap = config.minGap || 500;
-        this.formatValue = config.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
-        this.selectedMin = config.defaultMin || this.min + 1000;
-        this.selectedMax = config.defaultMax || this.max - 1000;
-        
-        // Performance optimizations
-        this.debounceDelay = config.debounceDelay || 50;
-        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
-        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
-        this.positionCache = new Map();
-        this.dimensionCache = new Map();
-        
-        this.customValidation = config.customValidation || null;
-    }
-
-    debounce(func, delay) {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-    validate() {
-        if (this.required && (!this.selectedMin && !this.selectedMax)) {
-            this.showError(this.getFieldErrorMessage('required'));
-            return false;
-        }
-        return super.validate();
-    }
-
-    validateConstraints(newValue) {
-        if (this.customValidation) {
-            const result = this.customValidation(newValue, this.factory.formValues);
-            if (result !== true) {
-                if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    this.selectedMin = result.adjustedValue;
-                    this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
-                    
-                    if (this.minRange && this.maxRange) {
-                        this.minRange.value = this.selectedMin;
-                        this.maxRange.value = this.selectedMax;
-                        this.debouncedUpdate();
-                    }
-                    
-                    this.showError(result.message);
-                    return result.adjustedValue;
-                } else if (typeof result === 'string') {
-                    this.showError(result);
-                    return false;
-                }
-            } else {
-                this.hideError();
-            }
-        }
-        return newValue;
-    }
-
-    updateConstraints(newConstraints) {
-        if (newConstraints.min !== undefined) {
-            this.min = newConstraints.min;
-            
-            if (this.minRange) {
-                this.minRange.min = this.min;
-                this.maxRange.min = this.min;
-                
-                if (this.selectedMin < this.min) {
-                    this.selectedMin = this.min;
-                    this.minRange.value = this.selectedMin;
-                }
-                if (this.selectedMax < this.min + this.minGap) {
-                    this.selectedMax = this.min + this.minGap;
-                    this.maxRange.value = this.selectedMax;
-                }
-                
-                this.clearCache();
-                this.debouncedUpdate();
-            }
-        }
-        
-        if (newConstraints.max !== undefined) {
-            this.max = newConstraints.max;
-            if (this.minRange) {
-                this.minRange.max = this.max;
-                this.maxRange.max = this.max;
-                this.clearCache();
-                this.debouncedUpdate();
-            }
-        }
-    }
-
-    clearCache() {
-        this.positionCache.clear();
-        this.dimensionCache.clear();
-    }
-
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
-        if (this.positionCache.has(cacheKey)) {
-            return this.positionCache.get(cacheKey);
-        }
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        let result = percent;
-        if (percent < leftBoundary) {
-            result = leftBoundary;
-        } else if (percent > rightBoundary) {
-            result = rightBoundary;
-        }
-        
-        this.positionCache.set(cacheKey, result);
-        return result;
-    }
-
-    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
-        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
-        
-        const cacheKey = `collision-${minPercent}-${maxPercent}-${minLabel.offsetWidth}-${maxLabel.offsetWidth}`;
-        if (this.positionCache.has(cacheKey)) {
-            return this.positionCache.get(cacheKey);
-        }
-        
-        const minWidth = minLabel.offsetWidth || 100;
-        const maxWidth = maxLabel.offsetWidth || 100;
-        const container = this.container.querySelector('.slider-container');
-        
-        if (!container) return { minPercent, maxPercent };
-        
-        const containerWidth = container.offsetWidth;
-        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerWidth * 100;
-        const currentDistance = maxPercent - minPercent;
-        
-        let result = { minPercent, maxPercent };
-        
-        if (currentDistance < minDistance) {
-            const center = (minPercent + maxPercent) / 2;
-            const halfDistance = minDistance / 2;
-            
-            let adjustedMinPercent = center - halfDistance;
-            let adjustedMaxPercent = center + halfDistance;
-            
-            if (adjustedMinPercent < 0) {
-                adjustedMinPercent = 0;
-                adjustedMaxPercent = minDistance;
-            } else if (adjustedMaxPercent > 100) {
-                adjustedMaxPercent = 100;
-                adjustedMinPercent = 100 - minDistance;
-            }
-            
-            result = { 
-                minPercent: adjustedMinPercent, 
-                maxPercent: adjustedMaxPercent 
-            };
-        }
-        
-        this.positionCache.set(cacheKey, result);
-        return result;
-    }
-
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
-        
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
-        
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
-        
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        const trianglePosition = 50 + triangleOffset;
-        
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
-    }
-
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
-        
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        labelElement.style.setProperty('--triangle-left', trianglePos);
-    }
-
-    render() {
-        const container = this.createContainer();
-        const label = this.createLabel();
-        
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'slider-container';
-        
-        const trackBg = document.createElement('div');
-        trackBg.className = 'slider-track-bg';
-        
-        this.progress = document.createElement('div');
-        this.progress.className = 'slider-progress';
-        trackBg.appendChild(this.progress);
-        
-        this.minRange = document.createElement('input');
-        this.minRange.type = 'range';
-        this.minRange.className = 'range-input';
-        this.minRange.min = this.min;
-        this.minRange.max = this.max;
-        this.minRange.value = this.selectedMin;
-        this.minRange.step = this.step;
-        
-        this.maxRange = document.createElement('input');
-        this.maxRange.type = 'range';
-        this.maxRange.className = 'range-input';
-        this.maxRange.min = this.min;
-        this.maxRange.max = this.max;
-        this.maxRange.value = this.selectedMax;
-        this.maxRange.step = this.step;
-        
-        this.minLabel = document.createElement('div');
-        this.minLabel.className = 'slider-value-label';
-        
-        this.maxLabel = document.createElement('div');
-        this.maxLabel.className = 'slider-value-label';
-        
-        sliderContainer.appendChild(trackBg);
-        sliderContainer.appendChild(this.minRange);
-        sliderContainer.appendChild(this.maxRange);
-        sliderContainer.appendChild(this.minLabel);
-        sliderContainer.appendChild(this.maxLabel);
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(label);
-        container.appendChild(sliderContainer);
-        container.appendChild(errorElement);
-        
-        this.setupEventListeners();
-        this.updateUI();
-        
-        this.container = container;
-        return container;
-    }
-
-    setupEventListeners() {
-        this.minRange.addEventListener('input', () => this.handleMinChange());
-        this.maxRange.addEventListener('input', () => this.handleMaxChange());
-        window.addEventListener('resize', () => this.clearCache());
-    }
-
-    handleMinChange() {
-        const minVal = parseInt(this.minRange.value);
-        const maxVal = parseInt(this.maxRange.value);
-        
-        if (maxVal - minVal < this.minGap) {
-            this.minRange.value = maxVal - this.minGap;
-        }
-        
-        this.selectedMin = parseInt(this.minRange.value);
-        
-        const validatedValue = this.validateConstraints({
-            min: this.selectedMin,
-            max: this.selectedMax
-        });
-        
-        if (validatedValue !== false) {
-            this.debouncedUpdate();
-            this.debouncedChange();
-        }
-    }
-
-    handleMaxChange() {
-        const minVal = parseInt(this.minRange.value);
-        const maxVal = parseInt(this.maxRange.value);
-        
-        if (maxVal - minVal < this.minGap) {
-            this.maxRange.value = minVal + this.minGap;
-        }
-        
-        this.selectedMax = parseInt(this.maxRange.value);
-        
-        const validatedValue = this.validateConstraints({
-            min: this.selectedMin,
-            max: this.selectedMax
-        });
-        
-        if (validatedValue !== false) {
-            this.debouncedUpdate();
-            this.debouncedChange();
-        }
-    }
-
-    updateUI() {
-        let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
-        let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
-        
-        const originalMinPercent = minPercent;
-        const originalMaxPercent = maxPercent;
-        
-        this.progress.style.left = minPercent + '%';
-        this.progress.style.width = (maxPercent - minPercent) + '%';
-        
-        requestAnimationFrame(() => {
-            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
-            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
-            
-            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
-                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
-            
-            this.minLabel.style.left = finalMinPercent + '%';
-            this.maxLabel.style.left = finalMaxPercent + '%';
-            this.minLabel.textContent = this.formatValue(this.selectedMin);
-            this.maxLabel.textContent = this.formatValue(this.selectedMax);
-            
-            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
-            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
-        });
-    }
-
-    getValue() {
-        return {
-            min: this.selectedMin,
-            max: this.selectedMax
-        };
-    }
-
-    setValue(value) {
-        if (typeof value === 'object' && value !== null) {
-            this.selectedMin = value.min || this.selectedMin;
-            this.selectedMax = value.max || this.selectedMax;
-            
-            if (this.minRange && this.maxRange) {
-                this.minRange.value = this.selectedMin;
-                this.maxRange.value = this.selectedMax;
-                this.clearCache();
-                this.updateUI();
-            }
-        }
-    }
-}
-
-/**
- * SliderField - Optimized single value slider with progress
- */
-class SliderField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.min = config.min || 0;
-        this.max = config.max || 10000;
-        this.step = config.step || 100;
-        this.sliderType = config.sliderType || 'currency';
-        this.formatValue = config.formatValue || this.getDefaultFormatter();
-        this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
-        
-        // Performance optimizations
-        this.debounceDelay = config.debounceDelay || 50;
-        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
-        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
-        this.positionCache = new Map();
-        
-        this.customValidation = config.customValidation || null;
-    }
-
-    debounce(func, delay) {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-    validate() {
-        if (this.required && (this.value === null || this.value === undefined || this.value === '')) {
-            this.showError(this.getFieldErrorMessage('required'));
-            return false;
-        }
-        return super.validate();
-    }
-
-    getDefaultFormatter() {
-        switch (this.sliderType) {
-            case 'currency':
-                return (val) => `${parseInt(val).toLocaleString()}`;
-            case 'percentage':
-                return (val) => `${parseFloat(val).toFixed(1)}%`;
-            case 'number':
-            default:
-                return (val) => val.toString();
-        }
-    }
-
-    validateConstraints(newValue) {
-        if (this.customValidation) {
-            const result = this.customValidation(newValue, this.factory.formValues);
-            if (result !== true) {
-                if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    this.value = result.adjustedValue;
-                    
-                    if (this.slider) {
-                        this.slider.value = this.value;
-                        this.debouncedUpdate();
-                    }
-                    
-                    this.showError(result.message);
-                    return result.adjustedValue;
-                } else if (typeof result === 'string') {
-                    this.showError(result);
-                    return false;
-                }
-            } else {
-                this.hideError();
-            }
-        }
-        return newValue;
-    }
-
-    updateConstraints(newConstraints) {
-        if (newConstraints.min !== undefined) {
-            this.min = newConstraints.min;
-            
-            if (this.slider) {
-                this.slider.min = this.min;
-                
-                if (this.value < this.min) {
-                    this.value = this.min;
-                    this.slider.value = this.value;
-                }
-                
-                this.positionCache.clear();
-                this.debouncedUpdate();
-            }
-        }
-        
-        if (newConstraints.max !== undefined) {
-            this.max = newConstraints.max;
-            if (this.slider) {
-                this.slider.max = this.max;
-                
-                if (this.value > this.max) {
-                    this.value = this.max;
-                    this.slider.value = this.value;
-                }
-                
-                this.positionCache.clear();
-                this.debouncedUpdate();
-            }
-        }
-    }
-
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
-        if (this.positionCache.has(cacheKey)) {
-            return this.positionCache.get(cacheKey);
-        }
-        
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
-        
-        const containerWidth = container.offsetWidth;
-        const labelWidth = labelElement.offsetWidth || 100;
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        let result = percent;
-        if (percent < leftBoundary) {
-            result = leftBoundary;
-        } else if (percent > rightBoundary) {
-            result = rightBoundary;
-        }
-        
-        this.positionCache.set(cacheKey, result);
-        return result;
-    }
-
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
-        
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
-        
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
-        
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        const trianglePosition = 50 + triangleOffset;
-        
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
-    }
-
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
-        
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        labelElement.style.setProperty('--triangle-left', trianglePos);
-    }
-
-    render() {
-        const container = this.createContainer();
-        const label = this.createLabel();
-        
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'slider-container';
-        
-        const trackBg = document.createElement('div');
-        trackBg.className = 'slider-track-bg';
-        
-        this.progress = document.createElement('div');
-        this.progress.className = 'slider-progress';
-        trackBg.appendChild(this.progress);
-        
-        this.slider = document.createElement('input');
-        this.slider.type = 'range';
-        this.slider.className = 'range-input';
-        this.slider.id = this.id;
-        this.slider.min = this.min;
-        this.slider.max = this.max;
-        this.slider.value = this.value;
-        this.slider.step = this.step;
-        
-        this.valueLabel = document.createElement('div');
-        this.valueLabel.className = 'slider-value-label';
-        
-        sliderContainer.appendChild(trackBg);
-        sliderContainer.appendChild(this.slider);
-        sliderContainer.appendChild(this.valueLabel);
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(label);
-        container.appendChild(sliderContainer);
-        container.appendChild(errorElement);
-        
-        this.setupEventListeners();
-        this.updateUI();
-        
-        this.container = container;
-        return container;
-    }
-
-    setupEventListeners() {
-        this.slider.addEventListener('input', () => {
-            const newValue = parseFloat(this.slider.value);
-            
-            const validatedValue = this.validateConstraints(newValue);
-            
-            if (validatedValue !== false) {
-                this.value = validatedValue;
-                this.debouncedUpdate();
-                this.debouncedChange();
-            }
-        });
-        
-        window.addEventListener('resize', () => this.positionCache.clear());
-    }
-
-    updateUI() {
-        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
-        const originalPercent = percent;
-        
-        this.progress.style.width = percent + '%';
-        
-        requestAnimationFrame(() => {
-            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
-            this.valueLabel.style.left = finalPercent + '%';
-            this.valueLabel.textContent = this.formatValue(this.value);
-            
-            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
-        });
-    }
-
-    getValue() {
-        return this.value;
-    }
-
-    setValue(value) {
-        this.value = parseFloat(value) || this.min;
-        if (this.slider) {
-            this.slider.value = this.value;
-            this.positionCache.clear();
-            this.updateUI();
-        }
-    }
-}
-
-/**
  * OptionsSliderField - Optimized slider with predefined options
- */
-/**
- * Fixed OptionsSliderField - Added proper dimension caching and label positioning
  */
 class OptionsSliderField extends BaseField {
     constructor(factory, config) {
@@ -6680,7 +6060,677 @@ class OptionsSliderField extends BaseField {
 }
 
 /**
- * SlidingWindowSliderField - Optimized single value slider with sliding window controls
+ * Fixed DualRangeField - Added proper dimension caching and label positioning
+ */
+class DualRangeField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.minGap = config.minGap || 500;
+        this.formatValue = config.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
+        this.selectedMin = config.defaultMin || this.min + 1000;
+        this.selectedMax = config.defaultMax || this.max - 1000;
+        
+        // Performance optimizations
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
+        
+        this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    validate() {
+        if (this.required && (!this.selectedMin && !this.selectedMax)) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        return super.validate();
+    }
+
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    this.selectedMin = result.adjustedValue;
+                    this.selectedMax = Math.max(this.selectedMin + this.minGap, this.selectedMax);
+                    
+                    if (this.minRange && this.maxRange) {
+                        this.minRange.value = this.selectedMin;
+                        this.maxRange.value = this.selectedMax;
+                        this.debouncedUpdate();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            
+            if (this.minRange) {
+                this.minRange.min = this.min;
+                this.maxRange.min = this.min;
+                
+                if (this.selectedMin < this.min) {
+                    this.selectedMin = this.min;
+                    this.minRange.value = this.selectedMin;
+                }
+                if (this.selectedMax < this.min + this.minGap) {
+                    this.selectedMax = this.min + this.minGap;
+                    this.maxRange.value = this.selectedMax;
+                }
+                
+                this.clearCache();
+                this.debouncedUpdate();
+            }
+        }
+        
+        if (newConstraints.max !== undefined) {
+            this.max = newConstraints.max;
+            if (this.minRange) {
+                this.minRange.max = this.max;
+                this.maxRange.max = this.max;
+                this.clearCache();
+                this.debouncedUpdate();
+            }
+        }
+    }
+
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear(); // ADDED: Clear dimension cache
+    }
+
+    // ADDED: Missing getContainerDimensions method
+    getContainerDimensions() {
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
+    // UPDATED: Fixed calculateLabelPosition method
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
+        
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
+        
+        const labelWidth = labelElement.offsetWidth || 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        let result = percent;
+        if (percent < leftBoundary) {
+            result = leftBoundary;
+        } else if (percent > rightBoundary) {
+            result = rightBoundary;
+        }
+        
+        this.positionCache.set(cacheKey, result);
+        return result;
+    }
+
+    // UPDATED: Enhanced checkLabelCollision method
+    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
+        if (!minLabel || !maxLabel) return { minPercent, maxPercent };
+        
+        const cacheKey = `collision-${minPercent}-${maxPercent}-${minLabel.offsetWidth}-${maxLabel.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
+        
+        const minWidth = minLabel.offsetWidth || 100;
+        const maxWidth = maxLabel.offsetWidth || 100;
+        const containerDimensions = this.getContainerDimensions();
+        
+        if (containerDimensions.width === 0) return { minPercent, maxPercent };
+        
+        const minDistance = ((minWidth + maxWidth) / 2 + 10) / containerDimensions.width * 100;
+        const currentDistance = maxPercent - minPercent;
+        
+        let result = { minPercent, maxPercent };
+        
+        if (currentDistance < minDistance) {
+            const center = (minPercent + maxPercent) / 2;
+            const halfDistance = minDistance / 2;
+            
+            let adjustedMinPercent = center - halfDistance;
+            let adjustedMaxPercent = center + halfDistance;
+            
+            if (adjustedMinPercent < 0) {
+                adjustedMinPercent = 0;
+                adjustedMaxPercent = minDistance;
+            } else if (adjustedMaxPercent > 100) {
+                adjustedMaxPercent = 100;
+                adjustedMinPercent = 100 - minDistance;
+            }
+            
+            result = { 
+                minPercent: adjustedMinPercent, 
+                maxPercent: adjustedMaxPercent 
+            };
+        }
+        
+        this.positionCache.set(cacheKey, result);
+        return result;
+    }
+
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffset;
+        
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        this.minRange = document.createElement('input');
+        this.minRange.type = 'range';
+        this.minRange.className = 'range-input';
+        this.minRange.min = this.min;
+        this.minRange.max = this.max;
+        this.minRange.value = this.selectedMin;
+        this.minRange.step = this.step;
+        
+        this.maxRange = document.createElement('input');
+        this.maxRange.type = 'range';
+        this.maxRange.className = 'range-input';
+        this.maxRange.min = this.min;
+        this.maxRange.max = this.max;
+        this.maxRange.value = this.selectedMax;
+        this.maxRange.step = this.step;
+        
+        this.minLabel = document.createElement('div');
+        this.minLabel.className = 'slider-value-label';
+        
+        this.maxLabel = document.createElement('div');
+        this.maxLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.minRange);
+        sliderContainer.appendChild(this.maxRange);
+        sliderContainer.appendChild(this.minLabel);
+        sliderContainer.appendChild(this.maxLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.minRange.addEventListener('input', () => this.handleMinChange());
+        this.maxRange.addEventListener('input', () => this.handleMaxChange());
+        window.addEventListener('resize', () => this.clearCache()); // UPDATED: Clear cache on resize
+    }
+
+    handleMinChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.minRange.value = maxVal - this.minGap;
+        }
+        
+        this.selectedMin = parseInt(this.minRange.value);
+        
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax
+        });
+        
+        if (validatedValue !== false) {
+            this.debouncedUpdate();
+            this.debouncedChange();
+        }
+    }
+
+    handleMaxChange() {
+        const minVal = parseInt(this.minRange.value);
+        const maxVal = parseInt(this.maxRange.value);
+        
+        if (maxVal - minVal < this.minGap) {
+            this.maxRange.value = minVal + this.minGap;
+        }
+        
+        this.selectedMax = parseInt(this.maxRange.value);
+        
+        const validatedValue = this.validateConstraints({
+            min: this.selectedMin,
+            max: this.selectedMax
+        });
+        
+        if (validatedValue !== false) {
+            this.debouncedUpdate();
+            this.debouncedChange();
+        }
+    }
+
+    // UPDATED: Enhanced updateUI method with proper positioning
+    updateUI() {
+        let minPercent = ((this.selectedMin - this.min) / (this.max - this.min)) * 100;
+        let maxPercent = ((this.selectedMax - this.min) / (this.max - this.min)) * 100;
+        
+        const originalMinPercent = minPercent;
+        const originalMaxPercent = maxPercent;
+        
+        this.progress.style.left = minPercent + '%';
+        this.progress.style.width = (maxPercent - minPercent) + '%';
+        
+        requestAnimationFrame(() => {
+            // Force dimension recalculation
+            this.clearCache();
+            
+            const boundaryCheckedMin = this.calculateLabelPosition(minPercent, this.minLabel);
+            const boundaryCheckedMax = this.calculateLabelPosition(maxPercent, this.maxLabel);
+            
+            const { minPercent: finalMinPercent, maxPercent: finalMaxPercent } = 
+                this.checkLabelCollision(boundaryCheckedMin, boundaryCheckedMax, this.minLabel, this.maxLabel);
+            
+            this.minLabel.style.left = finalMinPercent + '%';
+            this.maxLabel.style.left = finalMaxPercent + '%';
+            this.minLabel.textContent = this.formatValue(this.selectedMin);
+            this.maxLabel.textContent = this.formatValue(this.selectedMax);
+            
+            this.updateTrianglePosition(this.minLabel, originalMinPercent, finalMinPercent);
+            this.updateTrianglePosition(this.maxLabel, originalMaxPercent, finalMaxPercent);
+        });
+    }
+
+    getValue() {
+        return {
+            min: this.selectedMin,
+            max: this.selectedMax
+        };
+    }
+
+    setValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            this.selectedMin = value.min || this.selectedMin;
+            this.selectedMax = value.max || this.selectedMax;
+            
+            if (this.minRange && this.maxRange) {
+                this.minRange.value = this.selectedMin;
+                this.maxRange.value = this.selectedMax;
+                this.clearCache();
+                this.updateUI();
+            }
+        }
+    }
+}
+
+/**
+ * Fixed SliderField - Added proper dimension caching and label positioning
+ */
+class SliderField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.min = config.min || 0;
+        this.max = config.max || 10000;
+        this.step = config.step || 100;
+        this.sliderType = config.sliderType || 'currency';
+        this.formatValue = config.formatValue || this.getDefaultFormatter();
+        this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
+        
+        // Performance optimizations
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
+        
+        this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    validate() {
+        if (this.required && (this.value === null || this.value === undefined || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        return super.validate();
+    }
+
+    getDefaultFormatter() {
+        switch (this.sliderType) {
+            case 'currency':
+                return (val) => `${parseInt(val).toLocaleString()}`;
+            case 'percentage':
+                return (val) => `${parseFloat(val).toFixed(1)}%`;
+            case 'number':
+            default:
+                return (val) => val.toString();
+        }
+    }
+
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    this.value = result.adjustedValue;
+                    
+                    if (this.slider) {
+                        this.slider.value = this.value;
+                        this.debouncedUpdate();
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    updateConstraints(newConstraints) {
+        if (newConstraints.min !== undefined) {
+            this.min = newConstraints.min;
+            
+            if (this.slider) {
+                this.slider.min = this.min;
+                
+                if (this.value < this.min) {
+                    this.value = this.min;
+                    this.slider.value = this.value;
+                }
+                
+                this.clearCache();
+                this.debouncedUpdate();
+            }
+        }
+        
+        if (newConstraints.max !== undefined) {
+            this.max = newConstraints.max;
+            if (this.slider) {
+                this.slider.max = this.max;
+                
+                if (this.value > this.max) {
+                    this.value = this.max;
+                    this.slider.value = this.value;
+                }
+                
+                this.clearCache();
+                this.debouncedUpdate();
+            }
+        }
+    }
+
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear(); // ADDED: Clear dimension cache
+    }
+
+    // ADDED: Missing getContainerDimensions method
+    getContainerDimensions() {
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
+    // UPDATED: Fixed calculateLabelPosition method
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
+        
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
+        
+        const labelWidth = labelElement.offsetWidth || 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        let result = percent;
+        if (percent < leftBoundary) {
+            result = leftBoundary;
+        } else if (percent > rightBoundary) {
+            result = rightBoundary;
+        }
+        
+        this.positionCache.set(cacheKey, result);
+        return result;
+    }
+
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffset;
+        
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        this.slider = document.createElement('input');
+        this.slider.type = 'range';
+        this.slider.className = 'range-input';
+        this.slider.id = this.id;
+        this.slider.min = this.min;
+        this.slider.max = this.max;
+        this.slider.value = this.value;
+        this.slider.step = this.step;
+        
+        this.valueLabel = document.createElement('div');
+        this.valueLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.slider);
+        sliderContainer.appendChild(this.valueLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    setupEventListeners() {
+        this.slider.addEventListener('input', () => {
+            const newValue = parseFloat(this.slider.value);
+            
+            const validatedValue = this.validateConstraints(newValue);
+            
+            if (validatedValue !== false) {
+                this.value = validatedValue;
+                this.debouncedUpdate();
+                this.debouncedChange();
+            }
+        });
+        
+        window.addEventListener('resize', () => this.clearCache()); // UPDATED: Clear cache on resize
+    }
+
+    // UPDATED: Enhanced updateUI method with proper positioning
+    updateUI() {
+        const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
+        const originalPercent = percent;
+        
+        this.progress.style.width = percent + '%';
+        
+        requestAnimationFrame(() => {
+            // Force dimension recalculation
+            this.clearCache();
+            
+            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
+            this.valueLabel.style.left = finalPercent + '%';
+            this.valueLabel.textContent = this.formatValue(this.value);
+            
+            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+        });
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        this.value = parseFloat(value) || this.min;
+        if (this.slider) {
+            this.slider.value = this.value;
+            this.clearCache();
+            this.updateUI();
+        }
+    }
+}
+
+/**
+ * Fixed SlidingWindowSliderField - Added proper dimension caching and label positioning
  */
 class SlidingWindowSliderField extends BaseField {
     constructor(factory, config) {
@@ -6709,6 +6759,7 @@ class SlidingWindowSliderField extends BaseField {
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
         this.positionCache = new Map();
+        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
         
         this.customValidation = config.customValidation || null;
     }
@@ -6769,7 +6820,7 @@ class SlidingWindowSliderField extends BaseField {
                     this.slider.value = this.selectedValue;
                 }
                 
-                this.positionCache.clear();
+                this.clearCache();
                 this.debouncedUpdate();
             }
         }
@@ -6783,6 +6834,31 @@ class SlidingWindowSliderField extends BaseField {
         }
     }
 
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear(); // ADDED: Clear dimension cache
+    }
+
+    // ADDED: Missing getContainerDimensions method
+    getContainerDimensions() {
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
+    // UPDATED: Fixed calculateLabelPosition method
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -6791,12 +6867,11 @@ class SlidingWindowSliderField extends BaseField {
             return this.positionCache.get(cacheKey);
         }
         
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return percent;
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
         
-        const containerWidth = container.offsetWidth;
         const labelWidth = labelElement.offsetWidth || 100;
-        const leftBoundary = (labelWidth / 2) / containerWidth * 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
         const rightBoundary = 100 - leftBoundary;
         
         let result = percent;
@@ -6907,7 +6982,7 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.addEventListener('input', () => this.handleValueChange());
         this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
         this.increaseBtn.addEventListener('click', () => this.increaseRange());
-        window.addEventListener('resize', () => this.positionCache.clear());
+        window.addEventListener('resize', () => this.clearCache()); // UPDATED: Clear cache on resize
     }
 
     handleValueChange() {
@@ -6928,7 +7003,7 @@ class SlidingWindowSliderField extends BaseField {
             this.currentMin = Math.min(this.currentMin + this.windowStep, this.max - this.rangeWindow);
             this.currentMax = Math.min(this.currentMax + this.windowStep, this.max);
             this.updateSliderAttributes();
-            this.positionCache.clear();
+            this.clearCache();
             this.updateUI();
         }
     }
@@ -6938,7 +7013,7 @@ class SlidingWindowSliderField extends BaseField {
             this.currentMin = Math.max(this.currentMin - this.windowStep, this.min);
             this.currentMax = Math.max(this.currentMax - this.windowStep, this.min + this.rangeWindow);
             this.updateSliderAttributes();
-            this.positionCache.clear();
+            this.clearCache();
             this.updateUI();
         }
     }
@@ -6957,6 +7032,7 @@ class SlidingWindowSliderField extends BaseField {
         this.value = this.selectedValue;
     }
 
+    // UPDATED: Enhanced updateUI method with proper positioning
     updateUI() {
         const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         const originalPercent = percent;
@@ -6964,6 +7040,9 @@ class SlidingWindowSliderField extends BaseField {
         this.progress.style.width = percent + '%';
         
         requestAnimationFrame(() => {
+            // Force dimension recalculation
+            this.clearCache();
+            
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
             this.valueLabel.style.left = finalPercent + '%';
             this.valueLabel.textContent = this.formatValue(this.selectedValue);
@@ -6992,7 +7071,7 @@ class SlidingWindowSliderField extends BaseField {
         
         if (this.slider) {
             this.updateSliderAttributes();
-            this.positionCache.clear();
+            this.clearCache();
             this.updateUI();
         }
     }
