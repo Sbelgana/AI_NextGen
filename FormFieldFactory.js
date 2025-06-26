@@ -9256,6 +9256,10 @@ class CurrentAppointmentCardField extends BaseField {
 /**
  * Enhanced Calendar Field using SingleSelectField for provider selection
  */
+/**
+ * Enhanced Calendar Field using SingleSelectField for provider selection
+ * Integrated into the calendar header using the same CSS structure as CalendarField
+ */
 class EnhancedCalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -9343,10 +9347,11 @@ class EnhancedCalendarField extends BaseField {
         this.providerSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-provider`,
             name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.getText('selectProviderPlaceholder'),
+            label: '',  // No label since it's integrated in header
+            placeholder: this.placeholderText,
             options: options,
             required: true,
+            containerClass: 'provider-select-container', // Custom container class
             onChange: (value) => {
                 console.log('Provider selection changed:', value);
                 if (value) {
@@ -9416,6 +9421,18 @@ class EnhancedCalendarField extends BaseField {
         const calendarTitle = this.element.querySelector('.calendar-title');
         if (calendarTitle) {
             calendarTitle.innerHTML = this.generateCalendarHeader();
+            
+            // Re-attach the provider select field if it exists
+            if (this.providerSelectField) {
+                const providerSelectContainer = calendarTitle.querySelector('.provider-select-placeholder');
+                if (providerSelectContainer) {
+                    const selectElement = this.providerSelectField.render();
+                    // Remove form-group class to prevent styling conflicts
+                    selectElement.classList.remove('form-group');
+                    selectElement.classList.add('provider-select-integrated');
+                    providerSelectContainer.replaceWith(selectElement);
+                }
+            }
         }
     }
 
@@ -9467,7 +9484,7 @@ class EnhancedCalendarField extends BaseField {
         return next;
     }
 
-    // API Methods
+    // API Methods (same as CalendarField)
     async fetchWorkingDays(scheduleId) {
         if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
         
@@ -9623,47 +9640,51 @@ class EnhancedCalendarField extends BaseField {
             return '';
         }
 
-        // Header with provider selection integrated
-        let headerHtml = '';
+        // Header structure same as CalendarField but with integrated provider selection
+        let headerHtml = `
+            <div class="service-provider">
+                <span class="provider-icon">${iconSvg}</span>
+                <div class="appointment-details">
+        `;
         
-        // Provider selection section (if needed)
-        if (this.allowProviderSelection && this.serviceProviders.length > 0 && this.providerSelectField) {
-            headerHtml += `
-                <div class="provider-selection-header">
-                    ${this.providerSelectField.render().outerHTML}
-                </div>
-            `;
-        }
-
-        // Service info section
-        if (this.currentProvider) {
+        // Provider selection or display
+        if (this.allowProviderSelection && this.serviceProviders.length > 0) {
+            if (this.currentProvider) {
+                // Show selected provider name and service
+                const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
+                const eventName = this.eventName || this.currentProvider.eventName || '';
+                
+                headerHtml += `
+                    <div class="provider-name">${displayName}</div>
+                    ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
+                `;
+            } else {
+                // Show provider selection placeholder
+                headerHtml += `<div class="provider-select-placeholder"></div>`;
+            }
+        } else if (!this.allowProviderSelection && this.currentProvider) {
+            // Single provider, show name directly
             const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
             const eventName = this.eventName || this.currentProvider.eventName || '';
             
             headerHtml += `
-                <div class="service-provider">
-                    <span class="provider-icon">${iconSvg}</span>
-                    <div class="appointment-details">
-                        <div class="provider-name">${displayName}</div>
-                        ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
-                    </div>
-                </div>
+                <div class="provider-name">${displayName}</div>
+                ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
             `;
-        } else if (!this.allowProviderSelection) {
-            headerHtml += `
-                <div class="service-provider">
-                    <span class="provider-icon">${iconSvg}</span>
-                    <div class="appointment-details">
-                        <div class="provider-name">${this.getText('pleaseSelectProvider')}</div>
-                    </div>
-                </div>
-            `;
+        } else {
+            // No provider selected and no selection allowed
+            headerHtml += `<div class="provider-name">${this.getText('pleaseSelectProvider')}</div>`;
         }
+
+        headerHtml += `
+                </div>
+            </div>
+        `;
 
         return headerHtml;
     }
     
-    // Render the main component
+    // Render the main component (same structure as CalendarField)
     render() {
         this.element = document.createElement('div');
         this.element.className = 'form-field enhanced-calendar-field';
@@ -9702,10 +9723,13 @@ class EnhancedCalendarField extends BaseField {
         
         // Insert the provider select field into the header if it exists
         if (this.providerSelectField) {
-            const providerSelectionHeader = this.element.querySelector('.provider-selection-header');
-            if (providerSelectionHeader) {
-                providerSelectionHeader.innerHTML = '';
-                providerSelectionHeader.appendChild(this.providerSelectField.render());
+            const providerSelectPlaceholder = this.element.querySelector('.provider-select-placeholder');
+            if (providerSelectPlaceholder) {
+                const selectElement = this.providerSelectField.render();
+                // Remove form-group class to prevent styling conflicts
+                selectElement.classList.remove('form-group');
+                selectElement.classList.add('provider-select-integrated');
+                providerSelectPlaceholder.replaceWith(selectElement);
             }
         }
         
