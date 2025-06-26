@@ -1007,7 +1007,6 @@ input[type="number"]:hover:not(:focus) {
 .range-container {
   flex: 1;
   position: relative;
-  margin: 24px 0;
 }
 
 /* Slider Track */
