@@ -4825,6 +4825,7 @@ class SingleSelectWithOtherField extends BaseField {
         this.otherContainer.className = 'conditional-field-wrapper';
         this.otherContainer.id = `${this.id}-other-group`;
         this.otherContainer.style.display = 'none';
+        this.otherContainer.style.marginTop = '10px'; // Add 10px vertical spacing
         
         const otherLabel = document.createElement('label');
         otherLabel.className = 'form-label';
@@ -5145,6 +5146,7 @@ class MultiSelectWithOtherField extends BaseField {
         this.otherContainer.className = 'conditional-field-wrapper';
         this.otherContainer.id = `${this.id}-other-group`;
         this.otherContainer.style.display = 'none';
+        this.otherContainer.style.marginTop = '10px'; // Add 10px vertical spacing
         
         const otherLabel = document.createElement('label');
         otherLabel.className = 'form-label';
