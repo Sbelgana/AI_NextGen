@@ -9252,6 +9252,10 @@ class CurrentAppointmentCardField extends BaseField {
     }
 }
 
+
+/**
+ * Enhanced Calendar Field using SingleSelectField for provider selection
+ */
 class EnhancedCalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -9279,6 +9283,9 @@ class EnhancedCalendarField extends BaseField {
         this.headerIcon = config.headerIcon || 'CALENDAR';
         this.showProviderInfo = config.showProviderInfo !== false; // Default to true
         
+        // Provider selection field
+        this.providerSelectField = null;
+        
         // State management
         this.state = {
             currentDate: new Date(),
@@ -9287,8 +9294,7 @@ class EnhancedCalendarField extends BaseField {
             availableSlots: {},
             workingDays: [1, 2, 3, 4, 5],
             isConfirmed: false,
-            isLoading: false,
-            providerDropdownOpen: false
+            isLoading: false
         };
         
         // Store full config for reference
@@ -9317,6 +9323,41 @@ class EnhancedCalendarField extends BaseField {
         }
     }
 
+    // Create provider select field options
+    getProviderOptions() {
+        return this.serviceProviders.map(provider => ({
+            id: provider.id,
+            name: provider.displayName || provider.name || provider.id,
+            description: provider.description || ''
+        }));
+    }
+
+    // Create provider select field
+    createProviderSelectField() {
+        if (!this.allowProviderSelection || this.serviceProviders.length === 0) {
+            return null;
+        }
+
+        const options = this.getProviderOptions();
+        
+        this.providerSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-provider`,
+            name: `${this.name}_provider`,
+            label: this.getText('selectProvider'),
+            placeholder: this.getText('selectProviderPlaceholder'),
+            options: options,
+            required: true,
+            onChange: (value) => {
+                console.log('Provider selection changed:', value);
+                if (value) {
+                    this.selectProvider(value);
+                }
+            }
+        });
+
+        return this.providerSelectField;
+    }
+
     // Select a service provider and update configuration
     async selectProvider(providerId, shouldUpdateUI = true) {
         console.log('Selecting provider:', providerId);
@@ -9340,7 +9381,6 @@ class EnhancedCalendarField extends BaseField {
         this.state.selectedDate = null;
         this.state.selectedTime = null;
         this.state.availableSlots = {};
-        this.state.providerDropdownOpen = false;
         
         // Fetch new configuration for selected provider
         if (this.scheduleId && this.apiKey) {
@@ -9372,54 +9412,10 @@ class EnhancedCalendarField extends BaseField {
     updateProviderDisplay() {
         if (!this.element) return;
         
-        const providerDisplay = this.element.querySelector('.provider-selector .provider-display');
-        const providerDropdown = this.element.querySelector('.provider-dropdown');
-        
-        if (providerDisplay && this.currentProvider) {
-            const displayText = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
-            providerDisplay.querySelector('.provider-text').textContent = displayText;
-            
-            // Update selection in dropdown
-            if (providerDropdown) {
-                const options = providerDropdown.querySelectorAll('.provider-option');
-                options.forEach(option => {
-                    option.classList.remove('selected');
-                    if (option.dataset.providerId === this.selectedProviderId) {
-                        option.classList.add('selected');
-                    }
-                });
-            }
-        }
-    }
-
-    // Toggle provider dropdown
-    toggleProviderDropdown() {
-        if (!this.allowProviderSelection) return;
-        
-        this.state.providerDropdownOpen = !this.state.providerDropdownOpen;
-        const dropdown = this.element.querySelector('.provider-dropdown');
-        const icon = this.element.querySelector('.dropdown-icon');
-        
-        if (dropdown && icon) {
-            if (this.state.providerDropdownOpen) {
-                dropdown.classList.add('show');
-                icon.classList.add('rotate');
-            } else {
-                dropdown.classList.remove('show');
-                icon.classList.remove('rotate');
-            }
-        }
-    }
-
-    // Close dropdown when clicking outside
-    closeProviderDropdown() {
-        this.state.providerDropdownOpen = false;
-        const dropdown = this.element.querySelector('.provider-dropdown');
-        const icon = this.element.querySelector('.dropdown-icon');
-        
-        if (dropdown && icon) {
-            dropdown.classList.remove('show');
-            icon.classList.remove('rotate');
+        // Update the calendar header to show selected provider info
+        const calendarTitle = this.element.querySelector('.calendar-title');
+        if (calendarTitle) {
+            calendarTitle.innerHTML = this.generateCalendarHeader();
         }
     }
 
@@ -9619,58 +9615,7 @@ class EnhancedCalendarField extends BaseField {
         return translations[this.language]?.[key] || key;
     }
 
-    // Generate the provider selector HTML
-    generateProviderSelector() {
-        if (!this.allowProviderSelection || this.serviceProviders.length === 0) {
-            return '';
-        }
-
-        const displayText = this.currentProvider ? 
-            (this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id) : 
-            this.getText('selectProviderPlaceholder');
-
-        const chevronSvg = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14">
-                <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
-            </svg>
-        `;
-
-        const checkSvg = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14">
-                <path fill="white" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
-            </svg>
-        `;
-
-        const optionsHtml = this.serviceProviders.map(provider => {
-            const isSelected = this.selectedProviderId === provider.id;
-            const displayName = provider.displayName || provider.name || provider.id;
-            
-            return `
-                <div class="provider-option ${isSelected ? 'selected' : ''}" data-provider-id="${provider.id}">
-                    <div class="option-checkbox">${checkSvg}</div>
-                    <span class="provider-name">${displayName}</span>
-                    ${provider.description ? `<span class="provider-description">${provider.description}</span>` : ''}
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="provider-selector">
-                <label class="provider-label">${this.getText('selectProvider')}</label>
-                <div class="provider-selector-dropdown">
-                    <div class="provider-display">
-                        <span class="provider-text">${displayText}</span>
-                        <div class="dropdown-icon">${chevronSvg}</div>
-                    </div>
-                    <div class="provider-dropdown">
-                        ${optionsHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    // Generate the calendar header
+    // Generate the calendar header with integrated provider selection
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -9678,11 +9623,24 @@ class EnhancedCalendarField extends BaseField {
             return '';
         }
 
+        // Header with provider selection integrated
+        let headerHtml = '';
+        
+        // Provider selection section (if needed)
+        if (this.allowProviderSelection && this.serviceProviders.length > 0 && this.providerSelectField) {
+            headerHtml += `
+                <div class="provider-selection-header">
+                    ${this.providerSelectField.render().outerHTML}
+                </div>
+            `;
+        }
+
+        // Service info section
         if (this.currentProvider) {
             const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
             const eventName = this.eventName || this.currentProvider.eventName || '';
             
-            return `
+            headerHtml += `
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
@@ -9691,8 +9649,8 @@ class EnhancedCalendarField extends BaseField {
                     </div>
                 </div>
             `;
-        } else {
-            return `
+        } else if (!this.allowProviderSelection) {
+            headerHtml += `
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
@@ -9701,6 +9659,8 @@ class EnhancedCalendarField extends BaseField {
                 </div>
             `;
         }
+
+        return headerHtml;
     }
     
     // Render the main component
@@ -9708,16 +9668,14 @@ class EnhancedCalendarField extends BaseField {
         this.element = document.createElement('div');
         this.element.className = 'form-field enhanced-calendar-field';
         
-        const providerSelectorHtml = this.generateProviderSelector();
-        const calendarHeaderHtml = this.generateCalendarHeader();
+        // Create provider select field if needed
+        this.createProviderSelectField();
         
         this.element.innerHTML = `
-            ${providerSelectorHtml}
             <div class="calendar-container ${this.state.isConfirmed ? 'confirmed' : ''}">
-                ${this.showProviderInfo ? `
                 <div class="calendar-header">
                     <div class="calendar-title">
-                        ${calendarHeaderHtml}
+                        ${this.generateCalendarHeader()}
                     </div>
                     <div class="calendar-nav">
                         <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
@@ -9729,7 +9687,6 @@ class EnhancedCalendarField extends BaseField {
                         </button>
                     </div>
                 </div>
-                ` : ''}
                 <div class="calendar-body">
                     <div class="days-container">
                         <div class="weekdays"></div>
@@ -9742,6 +9699,15 @@ class EnhancedCalendarField extends BaseField {
                 </div>
             </div>
         `;
+        
+        // Insert the provider select field into the header if it exists
+        if (this.providerSelectField) {
+            const providerSelectionHeader = this.element.querySelector('.provider-selection-header');
+            if (providerSelectionHeader) {
+                providerSelectionHeader.innerHTML = '';
+                providerSelectionHeader.appendChild(this.providerSelectField.render());
+            }
+        }
         
         // Store reference to this field instance on the element
         this.element.fieldInstance = this;
@@ -9786,8 +9752,8 @@ class EnhancedCalendarField extends BaseField {
         
         daysEl.innerHTML = '';
         
-        // If no provider selected, show disabled state
-        if (!this.currentProvider) {
+        // If no provider selected and provider selection is required, show disabled state
+        if (this.allowProviderSelection && !this.currentProvider) {
             const messageEl = document.createElement('div');
             messageEl.className = 'no-provider-message';
             messageEl.textContent = this.getText('pleaseSelectProvider');
@@ -9870,8 +9836,8 @@ class EnhancedCalendarField extends BaseField {
         
         if (!timeHeaderEl || !timeSlotsEl) return;
         
-        // Check if provider is selected
-        if (!this.currentProvider) {
+        // Check if provider is selected (if selection is required)
+        if (this.allowProviderSelection && !this.currentProvider) {
             timeHeaderEl.textContent = this.getText('pleaseSelectProvider');
             timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.getText('pleaseSelectProvider')}</div>`;
             return;
@@ -9951,38 +9917,6 @@ class EnhancedCalendarField extends BaseField {
     attachEvents() {
         if (!this.element) return;
         
-        // Provider selector events
-        const providerDisplay = this.element.querySelector('.provider-display');
-        if (providerDisplay) {
-            providerDisplay.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleProviderDropdown();
-            });
-        }
-        
-        // Provider option events
-        const providerOptions = this.element.querySelectorAll('.provider-option');
-        providerOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const providerId = option.dataset.providerId;
-                this.selectProvider(providerId);
-            });
-        });
-        
-        // Close dropdown on outside click
-        document.addEventListener('click', () => {
-            this.closeProviderDropdown();
-        });
-        
-        // Prevent dropdown from closing when clicking inside
-        const providerDropdown = this.element.querySelector('.provider-dropdown');
-        if (providerDropdown) {
-            providerDropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-        
         // Calendar navigation events
         const prevBtn = this.element.querySelector('.prev-btn');
         const nextBtn = this.element.querySelector('.next-btn');
@@ -10037,7 +9971,8 @@ class EnhancedCalendarField extends BaseField {
     
     setValue(value) {
         if (value && typeof value === 'object') {
-            if (value.selectedProviderId) {
+            if (value.selectedProviderId && this.providerSelectField) {
+                this.providerSelectField.setValue(value.selectedProviderId);
                 this.selectProvider(value.selectedProviderId, false);
             }
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
@@ -10055,7 +9990,11 @@ class EnhancedCalendarField extends BaseField {
         this.state.selectedDate = null;
         this.state.selectedTime = null;
         this.state.availableSlots = {};
-        this.state.providerDropdownOpen = false;
+        
+        if (this.providerSelectField) {
+            this.providerSelectField.setValue('');
+        }
+        
         if (this.element) {
             this.updateProviderDisplay();
             this.renderCalendarData();
@@ -10063,11 +10002,13 @@ class EnhancedCalendarField extends BaseField {
     }
     
     destroy() {
-        // Remove event listeners
-        document.removeEventListener('click', this.closeProviderDropdown);
+        if (this.providerSelectField) {
+            this.providerSelectField.cleanup();
+        }
         super.destroy();
     }
 }
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { FormFieldFactory, CreatForm };
