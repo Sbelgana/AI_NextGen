@@ -8567,6 +8567,13 @@ class CurrentAppointmentCardField extends BaseField {
  * Enhanced CalendarField - Base class with optional service/provider selection
  * Replaces the need for three separate classes with configuration-driven approach
  */
+
+/**
+ * COMPLETE ENHANCED CALENDARFIELD - FINAL VERSION
+ * Unified calendar field that replaces CalendarField, ProviderCalendarField, and ServiceAndProviderCalendarField
+ * Includes enhanced UX, reschedule mode, and all functionality
+ */
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -8575,10 +8582,15 @@ class CalendarField extends BaseField {
         this.timezone = config.timezone || 'America/Toronto';
         this.language = config.language || 'en';
         this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
+        this.selectionMode = config.selectionMode || 'none'; // 'none', 'provider', 'service-provider'
         
-        // Selection mode determines what UI to show
-        this.selectionMode = config.selectionMode || 'none'; 
-        // Options: 'none', 'provider', 'service-provider'
+        // RESCHEDULE MODE: Current appointment information
+        this.currentAppointment = config.currentAppointment || null;
+        this.currentServiceName = config.currentServiceName || config.serviceName || '';
+        this.currentProviderName = config.currentProviderName || config.serviceProvider || '';
+        this.currentAppointmentDate = config.currentAppointmentDate || null;
+        this.rescheduleReason = config.rescheduleReason || '';
+        this.rescheduledBy = config.rescheduledBy || 'user';
         
         // Service and provider data
         this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
@@ -8586,17 +8598,23 @@ class CalendarField extends BaseField {
         this.filteredProviders = [];
         
         // Selection state
-        this.selectedService = config.selectedService || config.serviceName || '';
+        this.selectedService = config.selectedService || this.currentServiceName || '';
         this.selectedProviderId = config.selectedProviderId || '';
         
-        // Current active configuration (what the calendar uses)
+        // Current active configuration (what the calendar uses for API calls)
         this.currentProvider = null;
         this.currentServiceConfig = null;
         this.apiKey = config.apiKey || '';
         this.eventTypeId = config.eventTypeId || null;
         this.eventTypeSlug = config.eventTypeSlug || '';
         this.scheduleId = config.scheduleId || null;
-        this.eventName = config.eventName || '';
+        this.eventName = config.eventName || this.currentServiceName || '';
+        
+        // Store original provider info to prevent loss during updates
+        this.originalServiceProvider = config.serviceProvider || this.currentProviderName || '';
+        this.availableServices = config.availableServices || [];
+        this.dynamicServiceUpdate = config.dynamicServiceUpdate || false;
+        this.onServiceChange = config.onServiceChange || null;
         
         // UI Configuration
         this.headerIcon = config.headerIcon || 'CALENDAR';
@@ -8621,21 +8639,30 @@ class CalendarField extends BaseField {
         // Store full config for reference
         this.fullConfig = config;
         
-        console.log('CalendarField initialized with selectionMode:', this.selectionMode);
+        console.log('CalendarField initialized:', {
+            mode: this.mode,
+            selectionMode: this.selectionMode,
+            currentAppointment: this.currentAppointment,
+            currentServiceName: this.currentServiceName,
+            currentProviderName: this.currentProviderName
+        });
         
         this.init();
     }
 
-    // Initialize based on selection mode
+    // ===============================
+    // INITIALIZATION METHODS
+    // ===============================
+
+    // Initialize based on mode and selection type
     async init() {
-        if (this.selectionMode === 'none') {
-            // Direct calendar mode - provider config should already be set
+        if (this.mode === 'reschedule') {
+            await this.initializeRescheduleMode();
+        } else if (this.selectionMode === 'none') {
             await this.initializeCalendar();
         } else if (this.selectionMode === 'provider') {
-            // Provider selection mode - extract services and filter providers
             this.initializeProviderSelection();
         } else if (this.selectionMode === 'service-provider') {
-            // Service + provider selection mode
             this.initializeServiceAndProviderSelection();
         }
     }
@@ -8651,6 +8678,9 @@ class CalendarField extends BaseField {
                 this.state.availableSlots[dayKey] = slots;
             }
         }
+        
+        // Ensure serviceProvider is preserved after init
+        this.preserveServiceProvider();
     }
 
     // Provider selection initialization (ProviderCalendarField behavior)
@@ -8680,6 +8710,94 @@ class CalendarField extends BaseField {
             if (this.selectedProviderId) {
                 this.selectProvider(this.selectedProviderId, false);
             }
+        }
+    }
+
+    // NEW: Initialize reschedule mode
+    async initializeRescheduleMode() {
+        console.log('Initializing reschedule mode with:', {
+            currentServiceName: this.currentServiceName,
+            currentProviderName: this.currentProviderName,
+            currentAppointmentDate: this.currentAppointmentDate
+        });
+
+        // Parse current appointment date if provided as string
+        if (this.currentAppointmentDate && typeof this.currentAppointmentDate === 'string') {
+            this.currentAppointmentDate = new Date(this.currentAppointmentDate);
+        }
+
+        // If we have service providers data, try to find the current provider configuration
+        if (this.rawServiceProviders && this.currentServiceName && this.currentProviderName) {
+            await this.findAndSetCurrentProviderConfig();
+        }
+
+        // Initialize calendar with current provider config if available
+        if (this.scheduleId && this.apiKey) {
+            await this.initializeCalendar();
+        }
+    }
+
+    // NEW: Find and set current provider configuration for reschedule
+    async findAndSetCurrentProviderConfig() {
+        try {
+            // Find the current provider in the service providers data
+            const providersArray = Array.isArray(this.rawServiceProviders) ? 
+                this.rawServiceProviders : Object.entries(this.rawServiceProviders);
+            
+            let foundProvider = null;
+            let foundServiceConfig = null;
+
+            providersArray.forEach(([providerName, providerData]) => {
+                // Handle case where rawProviders is already an array of objects
+                if (Array.isArray(this.rawServiceProviders) && typeof providerName === 'object') {
+                    providerData = providerName;
+                    providerName = providerData.name || providerData.id;
+                }
+                
+                // Check if this is the current provider
+                if (providerName === this.currentProviderName || 
+                    this.slugify(providerName) === this.slugify(this.currentProviderName)) {
+                    
+                    // Check if they offer the current service
+                    if (providerData.services && providerData.services[this.currentServiceName]) {
+                        foundProvider = {
+                            id: this.slugify(providerName),
+                            name: providerName,
+                            displayName: providerName,
+                            description: providerData.description || providerData.specialty || "",
+                            apiKey: providerData.apiKey || "",
+                            scheduleId: providerData.scheduleId || "",
+                            eventTypeId: providerData.services[this.currentServiceName].eventId || "",
+                            eventTypeSlug: providerData.services[this.currentServiceName].eventSlug || "",
+                            eventName: this.currentServiceName,
+                            serviceConfig: providerData.services[this.currentServiceName],
+                            allServices: providerData.services
+                        };
+                        foundServiceConfig = providerData.services[this.currentServiceName];
+                    }
+                }
+            });
+
+            if (foundProvider && foundServiceConfig) {
+                // Set the current provider configuration
+                this.currentProvider = foundProvider;
+                this.currentServiceConfig = foundServiceConfig;
+                this.selectedProviderId = foundProvider.id;
+                this.apiKey = foundProvider.apiKey;
+                this.eventTypeId = foundProvider.eventTypeId;
+                this.eventTypeSlug = foundProvider.eventTypeSlug;
+                this.scheduleId = foundProvider.scheduleId;
+                this.eventName = foundProvider.eventName;
+
+                console.log('Found provider config for reschedule:', foundProvider);
+            } else {
+                console.warn('Could not find provider configuration for reschedule:', {
+                    currentProviderName: this.currentProviderName,
+                    currentServiceName: this.currentServiceName
+                });
+            }
+        } catch (error) {
+            console.error('Error finding provider config for reschedule:', error);
         }
     }
 
@@ -8811,6 +8929,9 @@ class CalendarField extends BaseField {
             return;
         }
         
+        // Store original serviceProvider before any updates
+        const preservedServiceProvider = this.originalServiceProvider || this.currentProviderName;
+        
         // Update current configuration
         this.selectedProviderId = providerId;
         this.currentProvider = provider;
@@ -8820,6 +8941,11 @@ class CalendarField extends BaseField {
         this.eventTypeSlug = provider.eventTypeSlug || '';
         this.scheduleId = provider.scheduleId || null;
         this.eventName = provider.eventName || this.selectedService || '';
+        
+        // CRITICAL: Always preserve the original serviceProvider
+        if (preservedServiceProvider) {
+            this.currentProviderName = preservedServiceProvider;
+        }
         
         // Reset calendar state
         this.resetCalendarState();
@@ -8841,6 +8967,8 @@ class CalendarField extends BaseField {
         if (this.fullConfig.onProviderChange) {
             this.fullConfig.onProviderChange(provider);
         }
+        
+        console.log('Provider selected successfully:', provider);
     }
 
     // ===============================
@@ -8967,6 +9095,61 @@ class CalendarField extends BaseField {
         }
     }
 
+    // Method to preserve serviceProvider during any updates
+    preserveServiceProvider() {
+        if (this.originalServiceProvider && !this.currentProviderName) {
+            this.currentProviderName = this.originalServiceProvider;
+            console.log('CalendarField: ServiceProvider restored to:', this.currentProviderName);
+            this.updateCalendarHeader();
+        }
+    }
+
+    // Method to update calendar configuration while preserving serviceProvider
+    async updateServiceConfiguration(serviceConfig) {
+        console.log('CalendarField: Updating service configuration:', serviceConfig);
+        console.log('CalendarField: Current serviceProvider before update:', this.currentProviderName);
+        
+        // Store original serviceProvider before any updates
+        const preservedServiceProvider = this.originalServiceProvider || this.currentProviderName;
+        
+        // Update calendar properties
+        if (serviceConfig.eventTypeId) this.eventTypeId = serviceConfig.eventTypeId;
+        if (serviceConfig.eventTypeSlug) this.eventTypeSlug = serviceConfig.eventTypeSlug;
+        if (serviceConfig.scheduleId) this.scheduleId = serviceConfig.scheduleId;
+        if (serviceConfig.serviceName) this.selectedService = serviceConfig.serviceName;
+        if (serviceConfig.eventName) this.eventName = serviceConfig.eventName;
+        
+        // CRITICAL: Always preserve the original serviceProvider
+        this.currentProviderName = preservedServiceProvider;
+        
+        console.log('CalendarField: ServiceProvider preserved as:', this.currentProviderName);
+        
+        // Clear current selection and slots since service changed
+        this.resetCalendarState();
+        
+        // Fetch new working days for the new service
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            this.state.selectedDate = this.getDefaultActiveDay();
+            const dayKey = this.formatDate(this.state.selectedDate);
+            const slots = await this.fetchAvailableSlots(dayKey);
+            this.state.availableSlots[dayKey] = slots;
+        }
+        
+        // CRITICAL: Re-render the header with preserved serviceProvider
+        this.updateCalendarHeader();
+        
+        // Re-render the calendar with new configuration
+        if (this.element) {
+            this.renderCalendarData();
+        }
+        
+        // Update form value
+        this.updateValue();
+        
+        console.log('CalendarField: Service configuration updated, final serviceProvider:', this.currentProviderName);
+    }
+
     // ===============================
     // VALIDATION
     // ===============================
@@ -8997,7 +9180,7 @@ class CalendarField extends BaseField {
     }
 
     // ===============================
-    // CALENDAR CORE METHODS (Original CalendarField logic)
+    // CALENDAR CORE METHODS
     // ===============================
 
     formatDate(date) {
@@ -9147,6 +9330,46 @@ class CalendarField extends BaseField {
         }
     }
 
+    // ENHANCED: Add reschedule booking method
+    async rescheduleBooking(startTimeISO, reason = null) {
+        if (!this.apiKey || !this.currentAppointment?.uid) {
+            throw new Error('Missing API key or current appointment UID for rescheduling');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings/${this.currentAppointment.uid}/reschedule`;
+            const body = {
+                rescheduledBy: this.rescheduledBy || 'user',
+                reschedulingReason: reason || this.rescheduleReason || 'User requested reschedule',
+                start: startTimeISO
+            };
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Error rescheduling booking:", err);
+            return null;
+        }
+    }
+
     // ===============================
     // LOCALIZATION
     // ===============================
@@ -9164,7 +9387,33 @@ class CalendarField extends BaseField {
                 pleaseSelectDate: "Please select a date first",
                 pleaseSelectService: "Please select a service first",
                 pleaseSelectProvider: "Please select a service provider first",
-                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                
+                // Reschedule mode texts
+                currentAppointment: "Current Appointment",
+                newAppointment: "New Appointment",
+                service: "Service",
+                provider: "Provider",
+                currentDate: "Current Date",
+                selectNewDateTime: "Select a new date and time for your appointment",
+                noCurrentAppointment: "No current appointment specified",
+                notSpecified: "Not specified",
+                
+                // Enhanced guidance texts
+                selectServiceToStart: "Select a Service to Begin",
+                selectServiceDescription: "Choose from our available services to see provider options and schedules.",
+                selectProviderToStart: "Choose Your Provider",
+                selectProviderDescription: "Select a provider to view their availability and schedule your appointment.",
+                timeSlotGuidanceTitle: "Available Times",
+                stepService: "Service",
+                stepProvider: "Provider",
+                stepDateTime: "Date & Time",
+                realTimeAvailability: "Real-time Availability",
+                realTimeAvailabilityDesc: "See live availability and book instantly",
+                flexibleScheduling: "Flexible Scheduling",
+                flexibleSchedulingDesc: "Choose from available morning and afternoon slots",
+                instantConfirmation: "Instant Confirmation",
+                instantConfirmationDesc: "Receive immediate booking confirmation via email"
             },
             fr: {
                 selectService: "Sélectionner un service",
@@ -9177,7 +9426,33 @@ class CalendarField extends BaseField {
                 pleaseSelectDate: "Veuillez d'abord sélectionner une date",
                 pleaseSelectService: "Veuillez d'abord sélectionner un service",
                 pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
-                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+                
+                // Reschedule mode texts in French
+                currentAppointment: "Rendez-vous Actuel",
+                newAppointment: "Nouveau Rendez-vous",
+                service: "Service",
+                provider: "Fournisseur",
+                currentDate: "Date Actuelle",
+                selectNewDateTime: "Sélectionnez une nouvelle date et heure pour votre rendez-vous",
+                noCurrentAppointment: "Aucun rendez-vous actuel spécifié",
+                notSpecified: "Non spécifié",
+                
+                // Enhanced guidance texts in French
+                selectServiceToStart: "Sélectionnez un Service pour Commencer",
+                selectServiceDescription: "Choisissez parmi nos services disponibles pour voir les options de fournisseurs et les horaires.",
+                selectProviderToStart: "Choisissez Votre Fournisseur",
+                selectProviderDescription: "Sélectionnez un fournisseur pour voir ses disponibilités et planifier votre rendez-vous.",
+                timeSlotGuidanceTitle: "Créneaux Disponibles",
+                stepService: "Service",
+                stepProvider: "Fournisseur",
+                stepDateTime: "Date et Heure",
+                realTimeAvailability: "Disponibilité en Temps Réel",
+                realTimeAvailabilityDesc: "Consultez la disponibilité en direct et réservez instantanément",
+                flexibleScheduling: "Planification Flexible",
+                flexibleSchedulingDesc: "Choisissez parmi les créneaux disponibles matin et après-midi",
+                instantConfirmation: "Confirmation Instantanée",
+                instantConfirmationDesc: "Recevez une confirmation de réservation immédiate par email"
             }
         };
         return translations[this.language]?.[key] || key;
@@ -9187,6 +9462,7 @@ class CalendarField extends BaseField {
     // HEADER GENERATION
     // ===============================
 
+    // Generate calendar header with reschedule mode support
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
@@ -9194,6 +9470,12 @@ class CalendarField extends BaseField {
             return '';
         }
 
+        // RESCHEDULE MODE: Show current appointment details
+        if (this.mode === 'reschedule') {
+            return this.generateRescheduleHeader(iconSvg);
+        }
+
+        // BOOKING MODE: Show service and provider selection
         let headerHtml = `
             <div class="service-provider">
                 <span class="provider-icon">${iconSvg}</span>
@@ -9209,6 +9491,9 @@ class CalendarField extends BaseField {
         if (this.currentProvider) {
             const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
             headerHtml += `<div class="provider-name">${displayName}</div>`;
+        } else if (this.currentProviderName) {
+            // Show original provider name if available
+            headerHtml += `<div class="provider-name">${this.currentProviderName}</div>`;
         }
 
         headerHtml += `
@@ -9219,6 +9504,283 @@ class CalendarField extends BaseField {
         return headerHtml;
     }
 
+    // NEW: Generate reschedule header showing current appointment
+    generateRescheduleHeader(iconSvg) {
+        const formatCurrentAppointment = () => {
+            if (!this.currentAppointmentDate) return this.getText('noCurrentAppointment');
+            
+            const formatOptions = { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZone: this.timezone
+            };
+            
+            const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+            const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+            return formatter.format(this.currentAppointmentDate);
+        };
+
+        return `
+            <div class="reschedule-header">
+                <div class="current-appointment-section">
+                    <div class="section-header">
+                        <span class="section-icon">${iconSvg}</span>
+                        <h4 class="section-title">${this.getText('currentAppointment')}</h4>
+                    </div>
+                    <div class="appointment-info">
+                        <div class="appointment-row">
+                            <span class="info-label">${this.getText('service')}:</span>
+                            <span class="info-value service-name">${this.currentServiceName || this.getText('notSpecified')}</span>
+                        </div>
+                        <div class="appointment-row">
+                            <span class="info-label">${this.getText('provider')}:</span>
+                            <span class="info-value provider-name">${this.currentProviderName || this.getText('notSpecified')}</span>
+                        </div>
+                        <div class="appointment-row">
+                            <span class="info-label">${this.getText('currentDate')}:</span>
+                            <span class="info-value appointment-date">${formatCurrentAppointment()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="new-appointment-section">
+                    <div class="section-header">
+                        <span class="section-icon">${this.factory.SVG_ICONS.REFRESH || '🔄'}</span>
+                        <h4 class="section-title">${this.getText('newAppointment')}</h4>
+                    </div>
+                    <div class="reschedule-instruction">
+                        ${this.getText('selectNewDateTime')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ===============================
+    // ENHANCED UX METHODS
+    // ===============================
+
+    // NEW: Render an elegant empty calendar with user guidance
+    renderEmptyCalendarWithGuidance(daysEl, missingSelection) {
+        // Create a preview calendar that looks professional but is disabled
+        const currentMonth = this.state.currentDate;
+        const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+        const daysFromPrevMonth = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        
+        let daysToShow = [];
+        
+        // Previous month days
+        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true, preview: true });
+        }
+        
+        // Current month days
+        for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+            daysToShow.push({ date: day, inactive: false, preview: true });
+        }
+        
+        // Next month days to fill grid
+        const remainingDays = 42 - daysToShow.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true, preview: true });
+        }
+        
+        // Create calendar grid with preview styling
+        daysToShow.forEach(({ date, inactive, preview }) => {
+            const dayEl = document.createElement("div");
+            dayEl.className = "day preview-day";
+            dayEl.textContent = date.getDate();
+            
+            if (inactive) {
+                dayEl.classList.add("inactive");
+            }
+            
+            // Add subtle hover effect to show it's not clickable yet
+            dayEl.style.cursor = 'not-allowed';
+            dayEl.style.opacity = '0.4';
+            
+            daysEl.appendChild(dayEl);
+        });
+        
+        // Add guidance overlay
+        const guidanceOverlay = document.createElement('div');
+        guidanceOverlay.className = 'calendar-guidance-overlay';
+        
+        const guidanceContent = this.createGuidanceContent(missingSelection);
+        guidanceOverlay.appendChild(guidanceContent);
+        
+        daysEl.appendChild(guidanceOverlay);
+    }
+
+    // NEW: Create elegant guidance content
+    createGuidanceContent(missingSelection) {
+        const container = document.createElement('div');
+        container.className = 'guidance-content';
+        
+        const icon = document.createElement('div');
+        icon.className = 'guidance-icon';
+        icon.innerHTML = this.factory.SVG_ICONS.CALENDAR || '📅';
+        
+        const message = document.createElement('div');
+        message.className = 'guidance-message';
+        
+        const title = document.createElement('h4');
+        title.className = 'guidance-title';
+        
+        const description = document.createElement('p');
+        description.className = 'guidance-description';
+        
+        if (missingSelection === 'service') {
+            title.textContent = this.getText('selectServiceToStart');
+            description.textContent = this.getText('selectServiceDescription');
+        } else if (missingSelection === 'provider') {
+            title.textContent = this.getText('selectProviderToStart');
+            description.textContent = this.getText('selectProviderDescription');
+        }
+        
+        message.appendChild(title);
+        message.appendChild(description);
+        
+        // Add step indicator
+        const stepIndicator = document.createElement('div');
+        stepIndicator.className = 'step-indicator';
+        stepIndicator.innerHTML = this.createStepIndicator(missingSelection);
+        
+        container.appendChild(icon);
+        container.appendChild(message);
+        container.appendChild(stepIndicator);
+        
+        return container;
+    }
+
+    // NEW: Create step progress indicator
+    createStepIndicator(currentMissing) {
+        const steps = [];
+        
+        if (this.selectionMode === 'service-provider') {
+            steps.push({
+                key: 'service',
+                label: this.getText('stepService'),
+                completed: !!this.selectedService,
+                current: currentMissing === 'service'
+            });
+            steps.push({
+                key: 'provider',
+                label: this.getText('stepProvider'),
+                completed: !!this.currentProvider,
+                current: currentMissing === 'provider'
+            });
+            steps.push({
+                key: 'datetime',
+                label: this.getText('stepDateTime'),
+                completed: !!(this.state.selectedDate && this.state.selectedTime),
+                current: false
+            });
+        } else if (this.selectionMode === 'provider') {
+            steps.push({
+                key: 'provider',
+                label: this.getText('stepProvider'),
+                completed: !!this.currentProvider,
+                current: currentMissing === 'provider'
+            });
+            steps.push({
+                key: 'datetime',
+                label: this.getText('stepDateTime'),
+                completed: !!(this.state.selectedDate && this.state.selectedTime),
+                current: false
+            });
+        }
+        
+        let html = '<div class="steps-container">';
+        
+        steps.forEach((step, index) => {
+            const stepClass = step.completed ? 'step completed' : 
+                            step.current ? 'step current' : 'step pending';
+            
+            html += `
+                <div class="${stepClass}">
+                    <div class="step-number">${step.completed ? '✓' : index + 1}</div>
+                    <div class="step-label">${step.label}</div>
+                </div>
+            `;
+            
+            if (index < steps.length - 1) {
+                html += `<div class="step-connector ${step.completed ? 'completed' : ''}"></div>`;
+            }
+        });
+        
+        html += '</div>';
+        return html;
+    }
+
+    // NEW: Render elegant time slot guidance
+    renderTimeSlotGuidance(timeHeaderEl, timeSlotsEl, missingSelection) {
+        timeHeaderEl.innerHTML = `
+            <div class="time-header-guidance">
+                <span class="guidance-icon-small">${this.factory.SVG_ICONS.CLOCK || '🕐'}</span>
+                <span class="guidance-text">${this.getText('timeSlotGuidanceTitle')}</span>
+            </div>
+        `;
+        
+        const guidanceContainer = document.createElement('div');
+        guidanceContainer.className = 'time-slots-guidance';
+        
+        const guidanceItems = this.createTimeSlotGuidanceItems(missingSelection);
+        guidanceContainer.appendChild(guidanceItems);
+        
+        timeSlotsEl.innerHTML = '';
+        timeSlotsEl.appendChild(guidanceContainer);
+    }
+
+    // NEW: Create time slot guidance items
+    createTimeSlotGuidanceItems(missingSelection) {
+        const container = document.createElement('div');
+        container.className = 'guidance-items-container';
+        
+        const features = [
+            {
+                icon: '⏰',
+                title: this.getText('realTimeAvailability'),
+                description: this.getText('realTimeAvailabilityDesc')
+            },
+            {
+                icon: '📅',
+                title: this.getText('flexibleScheduling'),
+                description: this.getText('flexibleSchedulingDesc')
+            },
+            {
+                icon: '✉️',
+                title: this.getText('instantConfirmation'),
+                description: this.getText('instantConfirmationDesc')
+            }
+        ];
+        
+        features.forEach(feature => {
+            const featureEl = document.createElement('div');
+            featureEl.className = 'guidance-feature';
+            featureEl.innerHTML = `
+                <div class="feature-icon">${feature.icon}</div>
+                <div class="feature-content">
+                    <h5 class="feature-title">${feature.title}</h5>
+                    <p class="feature-description">${feature.description}</p>
+                </div>
+            `;
+            container.appendChild(featureEl);
+        });
+        
+        return container;
+    }
+
     // ===============================
     // RENDER METHODS
     // ===============================
@@ -9226,30 +9788,33 @@ class CalendarField extends BaseField {
     render() {
         const container = this.createContainer();
         
-        // Create service selection field if needed
-        if (this.selectionMode === 'service-provider') {
-            this.createServiceSelectField();
-            const serviceFieldElement = this.serviceSelectField.render();
-            container.appendChild(serviceFieldElement);
-        }
-        
-        // Create provider selection field if needed
-        if (this.selectionMode === 'provider' || this.selectionMode === 'service-provider') {
-            this.createProviderSelectField();
-            const providerFieldElement = this.providerSelectField.render();
-            providerFieldElement.classList.add('provider-select-container');
-            
-            // Hide initially for service-provider mode
-            if (this.selectionMode === 'service-provider' && !this.selectedService) {
-                providerFieldElement.style.display = 'none';
+        // For reschedule mode, don't show service/provider selection fields
+        if (this.mode !== 'reschedule') {
+            // Create service selection field if needed
+            if (this.selectionMode === 'service-provider') {
+                this.createServiceSelectField();
+                const serviceFieldElement = this.serviceSelectField.render();
+                container.appendChild(serviceFieldElement);
             }
             
-            container.appendChild(providerFieldElement);
+            // Create provider selection field if needed
+            if (this.selectionMode === 'provider' || this.selectionMode === 'service-provider') {
+                this.createProviderSelectField();
+                const providerFieldElement = this.providerSelectField.render();
+                providerFieldElement.classList.add('provider-select-container');
+                
+                // Hide initially for service-provider mode
+                if (this.selectionMode === 'service-provider' && !this.selectedService) {
+                    providerFieldElement.style.display = 'none';
+                }
+                
+                container.appendChild(providerFieldElement);
+            }
         }
         
         // Create the calendar component
         const calendarContainer = document.createElement('div');
-        calendarContainer.className = 'calendar-container';
+        calendarContainer.className = `calendar-container ${this.mode === 'reschedule' ? 'reschedule-mode' : ''}`;
         calendarContainer.innerHTML = `
             <div class="calendar-header">
                 <div class="calendar-title">
@@ -9295,6 +9860,7 @@ class CalendarField extends BaseField {
     renderCalendarData() {
         if (!this.calendarContainer) return;
         
+        // Update current date display
         const currentDateEl = this.calendarContainer.querySelector('.current-date');
         if (currentDateEl) {
             const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
@@ -9303,6 +9869,7 @@ class CalendarField extends BaseField {
             currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
         }
         
+        // Render weekdays
         const weekdaysEl = this.calendarContainer.querySelector('.weekdays');
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
@@ -9318,6 +9885,7 @@ class CalendarField extends BaseField {
         this.renderTimeSlots();
     }
     
+    // ENHANCED: Enhanced renderDays with better initial state UX
     renderDays() {
         const daysEl = this.calendarContainer.querySelector('.days');
         if (!daysEl) return;
@@ -9326,39 +9894,41 @@ class CalendarField extends BaseField {
         
         // Check selection requirements based on mode
         if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            const messageEl = document.createElement('div');
-            messageEl.className = 'no-service-message';
-            messageEl.textContent = this.getText('pleaseSelectService');
-            daysEl.appendChild(messageEl);
+            this.renderEmptyCalendarWithGuidance(daysEl, 'service');
             return;
         }
         
         if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
-            const messageEl = document.createElement('div');
-            messageEl.className = 'no-provider-message';
-            messageEl.textContent = this.getText('pleaseSelectProvider');
-            daysEl.appendChild(messageEl);
+            this.renderEmptyCalendarWithGuidance(daysEl, 'provider');
             return;
         }
         
-        // Render calendar days (rest of the logic same as original)
+        // Render actual calendar days when ready
+        this.renderActiveCalendarDays(daysEl);
+    }
+
+    // NEW: Render the actual active calendar days (when ready)
+    renderActiveCalendarDays(daysEl) {
         let daysToShow = [];
         const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
         const daysFromPrevMonth = firstDay.getDay();
         const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
         
+        // Previous month days
         for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
             const day = new Date(firstDay);
             day.setDate(day.getDate() - i - 1);
             daysToShow.push({ date: day, inactive: true });
         }
         
+        // Current month days
         for (let i = 1; i <= totalDays; i++) {
             const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
             daysToShow.push({ date: day, inactive: false });
         }
         
+        // Next month days to fill grid
         const remainingDays = 42 - daysToShow.length;
         for (let i = 1; i <= remainingDays; i++) {
             const day = new Date(lastDay);
@@ -9396,8 +9966,8 @@ class CalendarField extends BaseField {
                             this.state.selectedDate = new Date(date);
                             this.state.selectedTime = null;
                             const dateKey = this.formatDate(date);
-                            const slots = await this.fetchAvailableSlots(dateKey);
-                            this.state.availableSlots[dateKey] = slots;
+                            const slots = await this.fetchAvailableSlots(dayKey);
+                            this.state.availableSlots[dayKey] = slots;
                             this.renderCalendarData();
                             this.updateValue();
                         });
@@ -9408,25 +9978,30 @@ class CalendarField extends BaseField {
         });
     }
     
+    // ENHANCED: Enhanced renderTimeSlots with better empty states
     renderTimeSlots() {
         const timeHeaderEl = this.calendarContainer.querySelector('.time-header');
         const timeSlotsEl = this.calendarContainer.querySelector('.time-slots');
         
         if (!timeHeaderEl || !timeSlotsEl) return;
         
-        // Check selection requirements
+        // Check selection requirements with enhanced UX
         if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            timeHeaderEl.textContent = this.getText('pleaseSelectService');
-            timeSlotsEl.innerHTML = `<div class="no-service-message">${this.getText('pleaseSelectService')}</div>`;
+            this.renderTimeSlotGuidance(timeHeaderEl, timeSlotsEl, 'service');
             return;
         }
         
         if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
-            timeHeaderEl.textContent = this.getText('pleaseSelectProvider');
-            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.getText('pleaseSelectProvider')}</div>`;
+            this.renderTimeSlotGuidance(timeHeaderEl, timeSlotsEl, 'provider');
             return;
         }
         
+        // Render normal time slots when ready
+        this.renderActiveTimeSlots(timeHeaderEl, timeSlotsEl);
+    }
+
+    // NEW: Render active time slots (when ready)
+    renderActiveTimeSlots(timeHeaderEl, timeSlotsEl) {
         if (this.state.selectedDate) {
             const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
                 weekday: "long", month: "long", day: "numeric" 
@@ -9501,6 +10076,7 @@ class CalendarField extends BaseField {
     attachEvents() {
         if (!this.calendarContainer) return;
         
+        // Calendar navigation events
         const prevBtn = this.calendarContainer.querySelector('.prev-btn');
         const nextBtn = this.calendarContainer.querySelector('.next-btn');
         
@@ -9539,12 +10115,22 @@ class CalendarField extends BaseField {
                 hour: "numeric", minute: "2-digit", hour12: true 
             }).format(new Date(this.state.selectedTime)) : null
         };
+
+        // Add reschedule-specific information
+        if (this.mode === 'reschedule') {
+            value.mode = 'reschedule';
+            value.currentAppointment = this.currentAppointment;
+            value.currentServiceName = this.currentServiceName;
+            value.currentProviderName = this.currentProviderName;
+            value.currentAppointmentDate = this.currentAppointmentDate;
+            value.rescheduleReason = this.rescheduleReason;
+        }
         
         this.handleChange();
     }
     
     getValue() {
-        return {
+        const value = {
             selectedService: this.selectedService,
             selectedProviderId: this.selectedProviderId,
             selectedProvider: this.currentProvider,
@@ -9555,6 +10141,18 @@ class CalendarField extends BaseField {
                 hour: "numeric", minute: "2-digit", hour12: true 
             }).format(new Date(this.state.selectedTime)) : null
         };
+
+        // Add reschedule-specific information
+        if (this.mode === 'reschedule') {
+            value.mode = 'reschedule';
+            value.currentAppointment = this.currentAppointment;
+            value.currentServiceName = this.currentServiceName;
+            value.currentProviderName = this.currentProviderName;
+            value.currentAppointmentDate = this.currentAppointmentDate;
+            value.rescheduleReason = this.rescheduleReason;
+        }
+
+        return value;
     }
     
     setValue(value) {
@@ -9604,11 +10202,14 @@ class CalendarField extends BaseField {
             }
         }
         
-        this.apiKey = '';
-        this.eventTypeId = null;
-        this.eventTypeSlug = '';
-        this.scheduleId = null;
-        this.eventName = '';
+        // Don't reset API configuration in reschedule mode
+        if (this.mode !== 'reschedule') {
+            this.apiKey = '';
+            this.eventTypeId = null;
+            this.eventTypeSlug = '';
+            this.scheduleId = null;
+            this.eventName = '';
+        }
         
         if (this.element) {
             this.updateCalendarHeader();
