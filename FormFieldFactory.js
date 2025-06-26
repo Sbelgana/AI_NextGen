@@ -212,6 +212,9 @@ this.SVG_ICONS = {
             case 'calendar':
                 field = new CalendarField(this, config);
                 break;
+            case 'enhanced_calenda':
+                field = new EnhancedCalendarField(this, config);
+                break;
             case 'currentAppointmentCard':
                 field = new CurrentAppointmentCardField(this, config);
                 break;
@@ -677,6 +680,10 @@ this.SVG_ICONS = {
 	
 	createCalendarField(config) {
         return new CalendarField(this, config);
+    }
+	
+	createEnhancedCalendarField (config) {
+        return new EnhancedCalendarField (this, config);
     }
 
     createCurrentAppointmentCardField(config) {
@@ -1147,6 +1154,8 @@ class FormStep {
                 return this.factory.createServiceCardField(fieldConfig);
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
+            case 'enhanced_calenda':
+                return this.factory.createEnhancedCalendarField (fieldConfig);
             case 'currentAppointmentCard':
                 return this.factory.createCurrentAppointmentCardField(fieldConfig);
             case 'custom':
@@ -9240,6 +9249,823 @@ class CurrentAppointmentCardField extends BaseField {
                 cardContainer.outerHTML = cardContent;
             }
         }
+    }
+}
+
+class EnhancedCalendarField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Core calendar configuration
+        this.timezone = config.timezone || 'America/Toronto';
+        this.language = config.language || 'en';
+        this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
+        
+        // Service providers configuration
+        this.serviceProviders = config.serviceProviders || [];
+        this.selectedProviderId = config.selectedProviderId || null;
+        this.allowProviderSelection = config.allowProviderSelection !== false; // Default to true
+        this.placeholderText = config.placeholderText || this.getText('selectProvider');
+        
+        // Current provider configuration (will be set when provider is selected)
+        this.currentProvider = null;
+        this.apiKey = '';
+        this.eventTypeId = null;
+        this.eventTypeSlug = '';
+        this.scheduleId = null;
+        this.eventName = '';
+        
+        // UI Configuration
+        this.headerIcon = config.headerIcon || 'CALENDAR';
+        this.showProviderInfo = config.showProviderInfo !== false; // Default to true
+        
+        // State management
+        this.state = {
+            currentDate: new Date(),
+            selectedDate: null,
+            selectedTime: null,
+            availableSlots: {},
+            workingDays: [1, 2, 3, 4, 5],
+            isConfirmed: false,
+            isLoading: false,
+            providerDropdownOpen: false
+        };
+        
+        // Store full config for reference
+        this.fullConfig = config;
+        
+        console.log('EnhancedCalendarField initialized with providers:', this.serviceProviders);
+        
+        // Initialize with selected provider if provided
+        if (this.selectedProviderId) {
+            this.selectProvider(this.selectedProviderId, false);
+        }
+        
+        this.init();
+    }
+
+    // Initialize the calendar
+    async init() {
+        if (this.currentProvider && this.currentProvider.scheduleId && this.currentProvider.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.currentProvider.scheduleId);
+            if (!this.state.selectedDate) {
+                this.state.selectedDate = this.getDefaultActiveDay();
+                const dayKey = this.formatDate(this.state.selectedDate);
+                const slots = await this.fetchAvailableSlots(dayKey);
+                this.state.availableSlots[dayKey] = slots;
+            }
+        }
+    }
+
+    // Select a service provider and update configuration
+    async selectProvider(providerId, shouldUpdateUI = true) {
+        console.log('Selecting provider:', providerId);
+        
+        const provider = this.serviceProviders.find(p => p.id === providerId);
+        if (!provider) {
+            console.error('Provider not found:', providerId);
+            return;
+        }
+        
+        // Update current provider configuration
+        this.selectedProviderId = providerId;
+        this.currentProvider = provider;
+        this.apiKey = provider.apiKey || '';
+        this.eventTypeId = provider.eventTypeId || null;
+        this.eventTypeSlug = provider.eventTypeSlug || '';
+        this.scheduleId = provider.scheduleId || null;
+        this.eventName = provider.eventName || provider.name || '';
+        
+        // Reset selection state since provider changed
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+        this.state.providerDropdownOpen = false;
+        
+        // Fetch new configuration for selected provider
+        if (this.scheduleId && this.apiKey) {
+            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+            this.state.selectedDate = this.getDefaultActiveDay();
+            const dayKey = this.formatDate(this.state.selectedDate);
+            const slots = await this.fetchAvailableSlots(dayKey);
+            this.state.availableSlots[dayKey] = slots;
+        }
+        
+        // Update UI if requested
+        if (shouldUpdateUI && this.element) {
+            this.updateProviderDisplay();
+            this.renderCalendarData();
+        }
+        
+        // Update form value
+        this.updateValue();
+        
+        // Call callback if provided
+        if (this.fullConfig.onProviderChange) {
+            this.fullConfig.onProviderChange(provider);
+        }
+        
+        console.log('Provider selected successfully:', provider);
+    }
+
+    // Update the provider display in the header
+    updateProviderDisplay() {
+        if (!this.element) return;
+        
+        const providerDisplay = this.element.querySelector('.provider-selector .provider-display');
+        const providerDropdown = this.element.querySelector('.provider-dropdown');
+        
+        if (providerDisplay && this.currentProvider) {
+            const displayText = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
+            providerDisplay.querySelector('.provider-text').textContent = displayText;
+            
+            // Update selection in dropdown
+            if (providerDropdown) {
+                const options = providerDropdown.querySelectorAll('.provider-option');
+                options.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.dataset.providerId === this.selectedProviderId) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+        }
+    }
+
+    // Toggle provider dropdown
+    toggleProviderDropdown() {
+        if (!this.allowProviderSelection) return;
+        
+        this.state.providerDropdownOpen = !this.state.providerDropdownOpen;
+        const dropdown = this.element.querySelector('.provider-dropdown');
+        const icon = this.element.querySelector('.dropdown-icon');
+        
+        if (dropdown && icon) {
+            if (this.state.providerDropdownOpen) {
+                dropdown.classList.add('show');
+                icon.classList.add('rotate');
+            } else {
+                dropdown.classList.remove('show');
+                icon.classList.remove('rotate');
+            }
+        }
+    }
+
+    // Close dropdown when clicking outside
+    closeProviderDropdown() {
+        this.state.providerDropdownOpen = false;
+        const dropdown = this.element.querySelector('.provider-dropdown');
+        const icon = this.element.querySelector('.dropdown-icon');
+        
+        if (dropdown && icon) {
+            dropdown.classList.remove('show');
+            icon.classList.remove('rotate');
+        }
+    }
+
+    // Validation
+    validate() {
+        // Check if provider is selected (if selection is required)
+        if (this.allowProviderSelection && this.serviceProviders.length > 0 && !this.selectedProviderId) {
+            this.showError(this.getFieldErrorMessage('providerRequired') || 'Please select a service provider');
+            return false;
+        }
+        
+        // Check if date and time are selected
+        const isDateTimeValid = !!(this.state.selectedDate && this.state.selectedTime);
+        
+        if (this.required && !isDateTimeValid) {
+            this.showError(this.getFieldErrorMessage('dateTimeRequired') || 'Please select date and time');
+            return false;
+        }
+        
+        this.hideError();
+        return true;
+    }
+
+    // Date formatting utilities
+    formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    
+    isSameDay(date1, date2) {
+        if (!date1 || !date2) return false;
+        return this.formatDate(date1) === this.formatDate(date2);
+    }
+    
+    getDefaultActiveDay() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (this.state.workingDays.includes(today.getDay())) return today;
+        
+        const next = new Date(today);
+        let daysChecked = 0;
+        while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
+            next.setDate(next.getDate() + 1);
+            daysChecked++;
+        }
+        return next;
+    }
+
+    // API Methods
+    async fetchWorkingDays(scheduleId) {
+        if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+        
+        try {
+            const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-06-11",
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            
+            const data = await res.json();
+            const availability = data.data?.availability || [];
+            const dayNameToNumber = {
+                "Sunday": 0, "Monday": 1, "Tuesday": 2, "Wednesday": 3,
+                "Thursday": 4, "Friday": 5, "Saturday": 6
+            };
+            
+            const workingDaysSet = new Set();
+            availability.forEach(item => {
+                if (Array.isArray(item.days)) {
+                    item.days.forEach(dayName => {
+                        const dayNum = dayNameToNumber[dayName];
+                        if (dayNum !== undefined) {
+                            workingDaysSet.add(dayNum);
+                        }
+                    });
+                }
+            });
+            
+            return Array.from(workingDaysSet);
+        } catch (err) {
+            console.error("Error fetching schedule:", err);
+            return [1, 2, 3, 4, 5];
+        }
+    }
+    
+    async fetchAvailableSlots(selectedDateISO) {
+        if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
+        
+        const start = new Date(selectedDateISO);
+        start.setUTCHours(0, 0, 0, 0);
+        const end = new Date(selectedDateISO);
+        end.setUTCHours(23, 59, 59, 999);
+        
+        const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
+        
+        try {
+            const res = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            
+            const responseBody = await res.json();
+            if (responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            const slotsObj = responseBody.data?.slots || {};
+            const slotsForDate = slotsObj[selectedDateISO] || [];
+            return slotsForDate.map(slot => slot.time);
+        } catch (err) {
+            console.error("Error fetching available slots:", err);
+            return [];
+        }
+    }
+
+    async createBooking(startTimeISO, fullName, email) {
+        if (!this.apiKey || !this.eventTypeId) {
+            throw new Error('Missing API key or event type ID');
+        }
+        
+        try {
+            const url = `https://api.cal.com/v2/bookings`;
+            const body = {
+                start: startTimeISO,
+                attendee: { 
+                    name: fullName, 
+                    email: email, 
+                    timeZone: this.timezone 
+                },
+                eventTypeId: Number(this.eventTypeId)
+            };
+            
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${this.apiKey}`,
+                    "cal-api-version": "2024-08-13",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const responseBody = await res.json();
+            if (responseBody.status && responseBody.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
+            }
+            
+            return responseBody;
+        } catch (err) {
+            console.error("Booking error:", err);
+            return null;
+        }
+    }
+
+    // Localization
+    getText(key) {
+        const translations = {
+            en: {
+                selectProvider: "Select a service provider",
+                selectProviderPlaceholder: "-- Select a provider --",
+                selectDate: "Select a date to view available times",
+                availableTimesFor: "Available times for",
+                noAvailableSlots: "No available time slots for this date",
+                pleaseSelectDate: "Please select a date first",
+                pleaseSelectProvider: "Please select a service provider first",
+                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            },
+            fr: {
+                selectProvider: "Sélectionner un fournisseur de services",
+                selectProviderPlaceholder: "-- Sélectionner un fournisseur --",
+                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                availableTimesFor: "Disponibilités pour",
+                noAvailableSlots: "Aucun horaire disponible pour cette date",
+                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
+                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+            }
+        };
+        return translations[this.language]?.[key] || key;
+    }
+
+    // Generate the provider selector HTML
+    generateProviderSelector() {
+        if (!this.allowProviderSelection || this.serviceProviders.length === 0) {
+            return '';
+        }
+
+        const displayText = this.currentProvider ? 
+            (this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id) : 
+            this.getText('selectProviderPlaceholder');
+
+        const chevronSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14">
+                <path fill="#9c27b0" d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+            </svg>
+        `;
+
+        const checkSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="14" height="14">
+                <path fill="white" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+            </svg>
+        `;
+
+        const optionsHtml = this.serviceProviders.map(provider => {
+            const isSelected = this.selectedProviderId === provider.id;
+            const displayName = provider.displayName || provider.name || provider.id;
+            
+            return `
+                <div class="provider-option ${isSelected ? 'selected' : ''}" data-provider-id="${provider.id}">
+                    <div class="option-checkbox">${checkSvg}</div>
+                    <span class="provider-name">${displayName}</span>
+                    ${provider.description ? `<span class="provider-description">${provider.description}</span>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="provider-selector">
+                <label class="provider-label">${this.getText('selectProvider')}</label>
+                <div class="provider-selector-dropdown">
+                    <div class="provider-display">
+                        <span class="provider-text">${displayText}</span>
+                        <div class="dropdown-icon">${chevronSvg}</div>
+                    </div>
+                    <div class="provider-dropdown">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Generate the calendar header
+    generateCalendarHeader() {
+        const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
+        
+        if (!this.showProviderInfo) {
+            return '';
+        }
+
+        if (this.currentProvider) {
+            const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
+            const eventName = this.eventName || this.currentProvider.eventName || '';
+            
+            return `
+                <div class="service-provider">
+                    <span class="provider-icon">${iconSvg}</span>
+                    <div class="appointment-details">
+                        <div class="provider-name">${displayName}</div>
+                        ${eventName ? `<div class="service-name">${eventName}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="service-provider">
+                    <span class="provider-icon">${iconSvg}</span>
+                    <div class="appointment-details">
+                        <div class="provider-name">${this.getText('pleaseSelectProvider')}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Render the main component
+    render() {
+        this.element = document.createElement('div');
+        this.element.className = 'form-field enhanced-calendar-field';
+        
+        const providerSelectorHtml = this.generateProviderSelector();
+        const calendarHeaderHtml = this.generateCalendarHeader();
+        
+        this.element.innerHTML = `
+            ${providerSelectorHtml}
+            <div class="calendar-container ${this.state.isConfirmed ? 'confirmed' : ''}">
+                ${this.showProviderInfo ? `
+                <div class="calendar-header">
+                    <div class="calendar-title">
+                        ${calendarHeaderHtml}
+                    </div>
+                    <div class="calendar-nav">
+                        <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
+                        <div class="current-date"></div>
+                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                            ${this.factory.SVG_ICONS.CHEVRON}
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
+                <div class="calendar-body">
+                    <div class="days-container">
+                        <div class="weekdays"></div>
+                        <div class="days"></div>
+                    </div>
+                    <div class="times-container">
+                        <div class="time-header"></div>
+                        <div class="time-slots"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Store reference to this field instance on the element
+        this.element.fieldInstance = this;
+        
+        this.renderCalendarData();
+        this.attachEvents();
+        
+        return this.element;
+    }
+
+    renderCalendarData() {
+        if (!this.element) return;
+        
+        // Update current date display
+        const currentDateEl = this.element.querySelector('.current-date');
+        if (currentDateEl) {
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                month: "long", year: "numeric" 
+            });
+            currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
+        }
+        
+        // Render weekdays
+        const weekdaysEl = this.element.querySelector('.weekdays');
+        if (weekdaysEl) {
+            weekdaysEl.innerHTML = '';
+            const weekdays = this.getText('weekdays');
+            weekdays.forEach(day => {
+                const dayEl = document.createElement("div");
+                dayEl.textContent = day;
+                weekdaysEl.appendChild(dayEl);
+            });
+        }
+        
+        this.renderDays();
+        this.renderTimeSlots();
+    }
+    
+    renderDays() {
+        const daysEl = this.element.querySelector('.days');
+        if (!daysEl) return;
+        
+        daysEl.innerHTML = '';
+        
+        // If no provider selected, show disabled state
+        if (!this.currentProvider) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'no-provider-message';
+            messageEl.textContent = this.getText('pleaseSelectProvider');
+            daysEl.appendChild(messageEl);
+            return;
+        }
+        
+        let daysToShow = [];
+        const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
+        const daysFromPrevMonth = firstDay.getDay();
+        const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
+        const totalDays = lastDay.getDate();
+        
+        // Previous month days
+        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
+        // Current month days
+        for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
+            daysToShow.push({ date: day, inactive: false });
+        }
+        
+        // Next month days to fill grid
+        const remainingDays = 42 - daysToShow.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true });
+        }
+        
+        const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
+        
+        daysToShow.forEach(({ date, inactive }) => {
+            const dayEl = document.createElement("div");
+            dayEl.className = "day";
+            dayEl.textContent = date.getDate();
+            
+            if (inactive) {
+                dayEl.classList.add("inactive");
+            } else {
+                const dayOfWeek = date.getDay();
+                if (!this.state.workingDays.includes(dayOfWeek)) {
+                    dayEl.classList.add("inactive");
+                } else {
+                    const todayMidnight = new Date();
+                    todayMidnight.setHours(0, 0, 0, 0);
+                    if (date < todayMidnight) {
+                        dayEl.classList.add("inactive");
+                    } else {
+                        if (this.formatDate(date) === this.formatDate(highlightDay)) {
+                            dayEl.classList.add("today");
+                        }
+                        if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                            dayEl.classList.add("active");
+                        }
+                        dayEl.classList.add("available");
+                        dayEl.addEventListener("click", async () => {
+                            this.state.selectedDate = new Date(date);
+                            this.state.selectedTime = null;
+                            const dateKey = this.formatDate(date);
+                            const slots = await this.fetchAvailableSlots(dateKey);
+                            this.state.availableSlots[dateKey] = slots;
+                            this.renderCalendarData();
+                            this.updateValue();
+                        });
+                    }
+                }
+            }
+            daysEl.appendChild(dayEl);
+        });
+    }
+    
+    renderTimeSlots() {
+        const timeHeaderEl = this.element.querySelector('.time-header');
+        const timeSlotsEl = this.element.querySelector('.time-slots');
+        
+        if (!timeHeaderEl || !timeSlotsEl) return;
+        
+        // Check if provider is selected
+        if (!this.currentProvider) {
+            timeHeaderEl.textContent = this.getText('pleaseSelectProvider');
+            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.getText('pleaseSelectProvider')}</div>`;
+            return;
+        }
+        
+        if (this.state.selectedDate) {
+            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                weekday: "long", month: "long", day: "numeric" 
+            });
+            timeHeaderEl.textContent = `${this.getText('availableTimesFor')} ${dateFormatter.format(this.state.selectedDate)}`;
+            
+            const dateKey = this.formatDate(this.state.selectedDate);
+            const timeSlots = this.state.availableSlots[dateKey] || [];
+            
+            if (timeSlots.length === 0) {
+                timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('noAvailableSlots')}</div>`;
+            } else {
+                const columnsContainer = document.createElement("div");
+                columnsContainer.className = "time-slots-columns";
+                
+                const amColumn = document.createElement("div");
+                amColumn.className = "time-slots-column";
+                const pmColumn = document.createElement("div");
+                pmColumn.className = "time-slots-column";
+                
+                const amHeader = document.createElement("div");
+                amHeader.className = "time-column-header";
+                amHeader.textContent = "AM";
+                amColumn.appendChild(amHeader);
+                
+                const pmHeader = document.createElement("div");
+                pmHeader.className = "time-column-header";
+                pmHeader.textContent = "PM";
+                pmColumn.appendChild(pmHeader);
+                
+                timeSlots.forEach((timeISO) => {
+                    const dateTime = new Date(timeISO);
+                    const hours = dateTime.getHours();
+                    const timeSlot = document.createElement("div");
+                    timeSlot.className = "time-slot available";
+                    
+                    if (this.state.selectedTime === timeISO) {
+                        timeSlot.classList.add("selected");
+                    }
+                    
+                    const timeFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                        hour: "numeric", minute: "2-digit", hour12: true 
+                    });
+                    timeSlot.textContent = timeFormatter.format(dateTime);
+                    
+                    timeSlot.addEventListener("click", () => {
+                        if (!this.state.isConfirmed) {
+                            this.state.selectedTime = timeISO;
+                            this.renderTimeSlots();
+                            this.updateValue();
+                        }
+                    });
+                    
+                    if (hours < 12) {
+                        amColumn.appendChild(timeSlot);
+                    } else {
+                        pmColumn.appendChild(timeSlot);
+                    }
+                });
+                
+                columnsContainer.appendChild(amColumn);
+                columnsContainer.appendChild(pmColumn);
+                timeSlotsEl.innerHTML = '';
+                timeSlotsEl.appendChild(columnsContainer);
+            }
+        } else {
+            timeHeaderEl.innerHTML = `<span class="pulse-text">${this.getText('selectDate')}</span>`;
+            timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('pleaseSelectDate')}</div>`;
+        }
+    }
+    
+    attachEvents() {
+        if (!this.element) return;
+        
+        // Provider selector events
+        const providerDisplay = this.element.querySelector('.provider-display');
+        if (providerDisplay) {
+            providerDisplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleProviderDropdown();
+            });
+        }
+        
+        // Provider option events
+        const providerOptions = this.element.querySelectorAll('.provider-option');
+        providerOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const providerId = option.dataset.providerId;
+                this.selectProvider(providerId);
+            });
+        });
+        
+        // Close dropdown on outside click
+        document.addEventListener('click', () => {
+            this.closeProviderDropdown();
+        });
+        
+        // Prevent dropdown from closing when clicking inside
+        const providerDropdown = this.element.querySelector('.provider-dropdown');
+        if (providerDropdown) {
+            providerDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Calendar navigation events
+        const prevBtn = this.element.querySelector('.prev-btn');
+        const nextBtn = this.element.querySelector('.next-btn');
+        
+        if (prevBtn) {
+            prevBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
+                    this.renderCalendarData();
+                }
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                if (!this.state.isConfirmed) {
+                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
+                    this.renderCalendarData();
+                }
+            });
+        }
+    }
+    
+    // Value management
+    updateValue() {
+        const value = {
+            selectedProviderId: this.selectedProviderId,
+            selectedProvider: this.currentProvider,
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+        
+        this.handleChange();
+    }
+    
+    getValue() {
+        return {
+            selectedProviderId: this.selectedProviderId,
+            selectedProvider: this.currentProvider,
+            selectedDate: this.state.selectedDate,
+            selectedTime: this.state.selectedTime,
+            formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                hour: "numeric", minute: "2-digit", hour12: true 
+            }).format(new Date(this.state.selectedTime)) : null
+        };
+    }
+    
+    setValue(value) {
+        if (value && typeof value === 'object') {
+            if (value.selectedProviderId) {
+                this.selectProvider(value.selectedProviderId, false);
+            }
+            if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
+            if (value.selectedTime) this.state.selectedTime = value.selectedTime;
+            if (this.element) {
+                this.updateProviderDisplay();
+                this.renderCalendarData();
+            }
+        }
+    }
+    
+    reset() {
+        this.selectedProviderId = null;
+        this.currentProvider = null;
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        this.state.availableSlots = {};
+        this.state.providerDropdownOpen = false;
+        if (this.element) {
+            this.updateProviderDisplay();
+            this.renderCalendarData();
+        }
+    }
+    
+    destroy() {
+        // Remove event listeners
+        document.removeEventListener('click', this.closeProviderDropdown);
+        super.destroy();
     }
 }
 // Export for module usage
