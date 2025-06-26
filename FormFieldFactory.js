@@ -3672,6 +3672,15 @@ class SingleSelectSubsectionsField extends BaseField {
         this.selectDisplayElement.querySelector('span').textContent = optionName;
         this.selectDisplayElement.classList.remove('placeholder');
         
+        // FIX: Create the option element if it doesn't exist
+        let optionEl = this.element.querySelector(`option[value="${option.id}"]`);
+        if (!optionEl) {
+            optionEl = document.createElement('option');
+            optionEl.value = option.id;
+            optionEl.textContent = optionName;
+            this.element.appendChild(optionEl);
+        }
+        
         this.element.value = option.id;
         this.value = option.id;
         
@@ -3731,23 +3740,34 @@ class SingleSelectSubsectionsField extends BaseField {
     setValue(value) {
         this.value = value;
         if (this.element) {
-            this.element.value = value;
-            
             // Get language from factory with fallbacks
             const language = this.factory?.config?.language || this.factory?.language || 'fr';
             
             // Find the option in subsections
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === value);
-                if (option && this.selectDisplayElement) {
+                if (option) {
                     // Handle multilingual names for display
                     let optionName = option.name;
                     if (typeof option.name === 'object' && option.name !== null) {
                         optionName = option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
                     }
                     
-                    this.selectDisplayElement.querySelector('span').textContent = optionName;
-                    this.selectDisplayElement.classList.remove('placeholder');
+                    // Create the option element if it doesn't exist
+                    let optionEl = this.element.querySelector(`option[value="${option.id}"]`);
+                    if (!optionEl) {
+                        optionEl = document.createElement('option');
+                        optionEl.value = option.id;
+                        optionEl.textContent = optionName;
+                        this.element.appendChild(optionEl);
+                    }
+                    
+                    this.element.value = value;
+                    
+                    if (this.selectDisplayElement) {
+                        this.selectDisplayElement.querySelector('span').textContent = optionName;
+                        this.selectDisplayElement.classList.remove('placeholder');
+                    }
                     break;
                 }
             }
@@ -3759,6 +3779,7 @@ class SingleSelectSubsectionsField extends BaseField {
         super.cleanup();
     }
 }
+
 
 /**
  * MultiSelectSubsectionsField - Multi-select dropdown with nested subsections and personalized error messages
