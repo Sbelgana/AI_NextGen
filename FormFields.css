@@ -1300,6 +1300,7 @@ input[type="number"]:hover:not(:focus) {
 .conditional-field-wrapper {
   display: none;
   animation: slideDown 0.3s;
+	margin-top: 10px;
 }
 
 .conditional-field-wrapper.visible {
