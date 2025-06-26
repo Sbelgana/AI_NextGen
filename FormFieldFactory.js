@@ -10469,253 +10469,130 @@ class ServiceRequestFileUploadField extends BaseField {
  * Add this class to FormFieldFactory.js after CurrentAppointmentCardField
  */
 class BookingCancellationCardField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Store config for later use
-        this.config = config;
-        
-        // Validate required configuration
-        if (!config.translations) {
-            console.error('BookingCancellationCardField: translations are required in config');
-        }
-        if (!config.serviceMapping) {
-            console.error('BookingCancellationCardField: serviceMapping is required in config');
-        }
-        
-        // Booking cancellation specific config
-        this.meetingName = config.meetingName || config.serviceProvider || "Provider";
-        this.startTime = config.startTime || config.currentAppointment || new Date().toISOString();
-        this.serviceName = config.serviceName || config.eventName || this.getServiceNameFromSlug(config.eventTypeSlug, this.meetingName);
-        this.language = config.language || 'en';
-        this.bookingId = config.bookingId || '';
-        this.bookingUid = config.bookingUid || '';
-        this.status = config.status || 'confirmed';
-        this.attendeeEmail = config.attendeeEmail || '';
-        this.attendeeName = config.attendeeName || '';
-        
-        // UI options
-        this.showServiceName = config.showServiceName !== false;
-        this.showDateTime = config.showDateTime !== false;
-        this.showProvider = config.showProvider !== false;
-        this.showBookingInfo = config.showBookingInfo !== false;
-        this.showAttendeeInfo = config.showAttendeeInfo !== false;
-        this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'cancel'
-        this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
-        
-        // Translations and service mapping - MUST be provided from extension
-        this.translations = config.translations || {};
-        this.serviceMapping = config.serviceMapping || {};
-    }
-
-    getText(key) {
-        return this.translations[this.language]?.[key] || key;
-    }
-
-    getServiceNameFromSlug(eventTypeSlug, fallback) {
-        if (!eventTypeSlug) {
-            return fallback || 'Appointment';
-        }
-        
-        // Check if service mapping is provided
-        const serviceName = this.serviceMapping[eventTypeSlug];
-        if (serviceName) {
-            return serviceName;
-        }
-        
-        // Fallback: convert eventTypeSlug to readable format
-        return eventTypeSlug
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase());
-    }
-
-    formatAppointmentDate(dateTimeString) {
-        try {
-            const date = new Date(dateTimeString);
-            const formatOptions = { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            };
-            
-            const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
-            const formatter = new Intl.DateTimeFormat(locale, formatOptions);
-            return formatter.format(date);
-        } catch (error) {
-            console.warn('Error formatting date:', error);
-            return dateTimeString;
-        }
-    }
-
-    getIcon() {
-        const iconKey = this.iconType.toUpperCase();
-        
-        // Get icon from factory - factory is responsible for all icons
-        if (this.factory.SVG_ICONS[iconKey]) {
-            return this.factory.SVG_ICONS[iconKey];
-        }
-        
-        // Fallback to CALENDAR if specific icon not found
-        return this.factory.SVG_ICONS.CALENDAR || '';
-    }
-
-    getStatusDisplay() {
-        const statusMap = {
-            confirmed: this.getText('confirmed'),
-            pending: this.getText('pending'),
-            cancelled: this.getText('cancelled')
-        };
-        return statusMap[this.status] || this.status;
-    }
-
-    validate() {
-        // Booking cancellation card is typically read-only, so it's always valid
-        // But we can validate that required booking data is present
-        if (this.required) {
-            const hasRequiredData = this.meetingName && this.startTime && this.bookingUid;
-            if (!hasRequiredData) {
-                this.showError("Booking information is required");
-                return false;
+            constructor(factory, config) {
+                super(factory, config);
+                
+                // Store config for later use
+                this.config = config;
+                
+                // Validate required configuration
+                if (!config.translations) {
+                    console.error('BookingCancellationCardField: translations are required in config');
+                }
+                if (!config.serviceMapping) {
+                    console.error('BookingCancellationCardField: serviceMapping is required in config');
+                }
+                
+                // Booking cancellation specific config
+                this.meetingName = config.meetingName || config.serviceProvider || "Provider";
+                this.startTime = config.startTime || config.currentAppointment || new Date().toISOString();
+                this.serviceName = config.serviceName || config.eventName || this.getServiceNameFromSlug(config.eventTypeSlug, this.meetingName);
+                this.language = config.language || 'en';
+                this.bookingId = config.bookingId || '';
+                this.bookingUid = config.bookingUid || '';
+                this.status = config.status || 'confirmed';
+                this.attendeeEmail = config.attendeeEmail || '';
+                this.attendeeName = config.attendeeName || '';
+                
+                // UI options
+                this.showServiceName = config.showServiceName !== false;
+                this.showDateTime = config.showDateTime !== false;
+                this.showProvider = config.showProvider !== false;
+                this.showBookingInfo = config.showBookingInfo !== false;
+                this.showAttendeeInfo = config.showAttendeeInfo !== false;
+                this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'cancel'
+                this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
+                
+                // Translations and service mapping - MUST be provided from extension
+                this.translations = config.translations || {};
+                this.serviceMapping = config.serviceMapping || {};
             }
-        }
-        
-        this.hideError();
-        return true;
-    }
-    
-    render() {
-        this.element = document.createElement('div');
-        this.element.className = `form-field booking-cancellation-card-field card-style-${this.cardStyle}`;
-        this.element.id = this.id;
-        
-        const appointmentDate = this.formatAppointmentDate(this.startTime);
-        
-        let cardContent = '';
-        
-        if (this.cardStyle === 'compact') {
-            cardContent = this.renderCompactCard(appointmentDate);
-        } else if (this.cardStyle === 'detailed') {
-            cardContent = this.renderDetailedCard(appointmentDate);
-        } else {
-            cardContent = this.renderDefaultCard(appointmentDate);
-        }
-        
-        this.element.innerHTML = cardContent;
-        
-        // Add error container if required
-        if (this.required) {
-            const errorContainer = document.createElement('div');
-            errorContainer.className = 'error-container';
-            errorContainer.innerHTML = `
-                <div class="error-message" id="${this.id}-error">
-                    <div class="error-icon">!</div>
-                    <span class="error-text">Booking information is required</span>
-                </div>
-            `;
-            this.element.appendChild(errorContainer);
-        }
-        
-        return this.element;
-    }
-    
-    renderDefaultCard(appointmentDate) {
-        return `
-            <div class="booking-cancellation-card">
-                <div class="booking-header">
-                    <div class="booking-icon">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="booking-info">
-                        <div class="booking-info-title">${this.getText('bookingToCancel')}</div>
-                        ${this.showBookingInfo && this.bookingId ? `<p><strong>${this.getText('bookingNumber')}:</strong> ${this.bookingId}</p>` : ''}
-                        ${this.showBookingInfo ? `<p><strong>${this.getText('status')}:</strong> ${this.getStatusDisplay()}</p>` : ''}
-                        ${this.showProvider ? `<p><strong>${this.getText('scheduledWith')}:</strong> ${this.meetingName}</p>` : ''}
-                        ${this.showServiceName && this.serviceName ? `<p><strong>${this.getText('serviceName')}:</strong> ${this.serviceName}</p>` : ''}
-                        ${this.showDateTime ? `<p><strong>${this.getText('currentDateTime')}:</strong> ${appointmentDate}</p>` : ''}
-                        ${this.showAttendeeInfo && this.attendeeName ? `<p><strong>${this.getText('attendee')}:</strong> ${this.attendeeName}</p>` : ''}
-                        ${this.showAttendeeInfo && this.attendeeEmail ? `<p><strong>${this.getText('email')}:</strong> ${this.attendeeEmail}</p>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    renderCompactCard(appointmentDate) {
-        return `
-            <div class="booking-cancellation-card compact">
-                <div class="booking-header-compact">
-                    <div class="booking-icon-small">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="booking-summary">
-                        <div class="booking-title-compact">${this.meetingName}</div>
-                        <div class="booking-date-compact">${appointmentDate}</div>
-                        ${this.serviceName ? `<div class="booking-service-compact">${this.serviceName}</div>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    renderDetailedCard(appointmentDate) {
-        return `
-            <div class="booking-cancellation-card detailed">
-                <div class="booking-header-detailed">
-                    <div class="booking-icon-large">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="booking-details-full">
-                        <div class="booking-title-large">${this.getText('bookingToCancel')}</div>
-                        <div class="booking-meta">
-                            ${this.showBookingInfo && this.bookingId ? `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>` : ''}
-                            ${this.showBookingInfo ? `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>` : ''}
-                            ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
-                            ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
-                            ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
-                            ${this.showAttendeeInfo && this.attendeeName ? `<div class="meta-item"><span class="meta-label">${this.getText('attendee')}:</span> <span class="meta-value">${this.attendeeName}</span></div>` : ''}
-                            ${this.showAttendeeInfo && this.attendeeEmail ? `<div class="meta-item"><span class="meta-label">${this.getText('email')}:</span> <span class="meta-value">${this.attendeeEmail}</span></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    getValue() {
-        // Return the booking information as an object
-        return {
-            meetingName: this.meetingName,
-            startTime: this.startTime,
-            serviceName: this.serviceName,
-            bookingId: this.bookingId,
-            bookingUid: this.bookingUid,
-            status: this.status,
-            attendeeEmail: this.attendeeEmail,
-            attendeeName: this.attendeeName,
-            formattedDate: this.formatAppointmentDate(this.startTime),
-            language: this.language
-        };
-    }
-    
-    setValue(value) {
-        // Update booking information if provided
-        if (value && typeof value === 'object') {
-            if (value.meetingName) this.meetingName = value.meetingName;
-            if (value.startTime) this.startTime = value.startTime;
-            if (value.serviceName) this.serviceName = value.serviceName;
-            if (value.bookingId) this.bookingId = value.bookingId;
-            if (value.bookingUid) this.bookingUid = value.bookingUid;
-            if (value.status) this.status = value.status;
-            if (value.attendeeEmail) this.attendeeEmail = value.attendeeEmail;
-            if (value.attendeeName) this.attendeeName = value.attendeeName;
-            if (value.language) this.language = value.language;
+
+            getText(key) {
+                return this.translations[this.language]?.[key] || key;
+            }
+
+            getServiceNameFromSlug(eventTypeSlug, fallback) {
+                if (!eventTypeSlug) {
+                    return fallback || 'Appointment';
+                }
+                
+                // Check if service mapping is provided
+                const serviceName = this.serviceMapping[eventTypeSlug];
+                if (serviceName) {
+                    return serviceName;
+                }
+                
+                // Fallback: convert eventTypeSlug to readable format
+                return eventTypeSlug
+                    .replace(/-/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase());
+            }
+
+            formatAppointmentDate(dateTimeString) {
+                try {
+                    const date = new Date(dateTimeString);
+                    const formatOptions = { 
+                        weekday: 'long', 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    };
+                    
+                    const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
+                    const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+                    return formatter.format(date);
+                } catch (error) {
+                    console.warn('Error formatting date:', error);
+                    return dateTimeString;
+                }
+            }
+
+            getIcon() {
+                const iconKey = this.iconType.toUpperCase();
+                
+                // Get icon from factory - factory is responsible for all icons
+                if (this.factory.SVG_ICONS[iconKey]) {
+                    return this.factory.SVG_ICONS[iconKey];
+                }
+                
+                // Fallback to CALENDAR if specific icon not found
+                return this.factory.SVG_ICONS.CALENDAR || '';
+            }
+
+            getStatusDisplay() {
+                const statusMap = {
+                    confirmed: this.getText('confirmed'),
+                    pending: this.getText('pending'),
+                    cancelled: this.getText('cancelled')
+                };
+                return statusMap[this.status] || this.status;
+            }
+
+            validate() {
+                // Booking cancellation card is typically read-only, so it's always valid
+                // But we can validate that required booking data is present
+                if (this.required) {
+                    const hasRequiredData = this.meetingName && this.startTime && this.bookingUid;
+                    if (!hasRequiredData) {
+                        this.showError("Booking information is required");
+                        return false;
+                    }
+                }
+                
+                this.hideError();
+                return true;
+            }
             
-            // Re-render the card with new values
-            if (this.element) {
+            render() {
+                this.element = document.createElement('div');
+                this.element.className = `form-field current-appointment-card-field card-style-${this.cardStyle}`;
+                this.element.id = this.id;
+                
                 const appointmentDate = this.formatAppointmentDate(this.startTime);
+                
                 let cardContent = '';
                 
                 if (this.cardStyle === 'compact') {
@@ -10726,80 +10603,197 @@ class BookingCancellationCardField extends BaseField {
                     cardContent = this.renderDefaultCard(appointmentDate);
                 }
                 
-                const cardContainer = this.element.querySelector('.booking-cancellation-card');
-                if (cardContainer) {
-                    cardContainer.outerHTML = cardContent;
+                this.element.innerHTML = cardContent;
+                
+                // Add error container if required
+                if (this.required) {
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'error-container';
+                    errorContainer.innerHTML = `
+                        <div class="error-message" id="${this.id}-error">
+                            <div class="error-icon">!</div>
+                            <span class="error-text">Booking information is required</span>
+                        </div>
+                    `;
+                    this.element.appendChild(errorContainer);
+                }
+                
+                return this.element;
+            }
+            
+            renderDefaultCard(appointmentDate) {
+                return `
+                    <div class="current-appointment-card">
+                        <div class="appointment-header">
+                            <div class="appointment-icon">
+                                ${this.getIcon()}
+                            </div>
+                            <div class="appointment-info">
+                                <div class="appointment-info-title">${this.getText('bookingToCancel')}</div>
+                                ${this.showProvider ? `<p><strong>${this.getText('scheduledWith')}:</strong> ${this.meetingName}</p>` : ''}
+                                ${this.showServiceName && this.serviceName ? `<p><strong>${this.getText('serviceName')}:</strong> ${this.serviceName}</p>` : ''}
+                                ${this.showDateTime ? `<p><strong>${this.getText('currentDateTime')}:</strong> ${appointmentDate}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            renderCompactCard(appointmentDate) {
+                return `
+                    <div class="current-appointment-card compact">
+                        <div class="appointment-header-compact">
+                            <div class="appointment-icon-small">
+                                ${this.getIcon()}
+                            </div>
+                            <div class="appointment-summary">
+                                <div class="appointment-title-compact">${this.meetingName}</div>
+                                <div class="appointment-date-compact">${appointmentDate}</div>
+                                ${this.serviceName ? `<div class="appointment-service-compact">${this.serviceName}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            renderDetailedCard(appointmentDate) {
+                return `
+                    <div class="current-appointment-card detailed">
+                        <div class="appointment-header-detailed">
+                            <div class="appointment-icon-large">
+                                ${this.getIcon()}
+                            </div>
+                            <div class="appointment-details-full">
+                                <div class="appointment-title-large">${this.getText('bookingToCancel')}</div>
+                                <div class="appointment-meta">
+                                    ${this.showBookingInfo && this.bookingId ? `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>` : ''}
+                                    ${this.showBookingInfo ? `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>` : ''}
+                                    ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
+                                    ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
+                                    ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
+                                    ${this.showAttendeeInfo && this.attendeeName ? `<div class="meta-item"><span class="meta-label">${this.getText('attendee')}:</span> <span class="meta-value">${this.attendeeName}</span></div>` : ''}
+                                    ${this.showAttendeeInfo && this.attendeeEmail ? `<div class="meta-item"><span class="meta-label">${this.getText('email')}:</span> <span class="meta-value">${this.attendeeEmail}</span></div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            getValue() {
+                // Return the booking information as an object
+                return {
+                    meetingName: this.meetingName,
+                    startTime: this.startTime,
+                    serviceName: this.serviceName,
+                    bookingId: this.bookingId,
+                    bookingUid: this.bookingUid,
+                    status: this.status,
+                    attendeeEmail: this.attendeeEmail,
+                    attendeeName: this.attendeeName,
+                    formattedDate: this.formatAppointmentDate(this.startTime),
+                    language: this.language
+                };
+            }
+            
+            setValue(value) {
+                // Update booking information if provided
+                if (value && typeof value === 'object') {
+                    if (value.meetingName) this.meetingName = value.meetingName;
+                    if (value.startTime) this.startTime = value.startTime;
+                    if (value.serviceName) this.serviceName = value.serviceName;
+                    if (value.bookingId) this.bookingId = value.bookingId;
+                    if (value.bookingUid) this.bookingUid = value.bookingUid;
+                    if (value.status) this.status = value.status;
+                    if (value.attendeeEmail) this.attendeeEmail = value.attendeeEmail;
+                    if (value.attendeeName) this.attendeeName = value.attendeeName;
+                    if (value.language) this.language = value.language;
+                    
+                    // Re-render the card with new values
+                    if (this.element) {
+                        const appointmentDate = this.formatAppointmentDate(this.startTime);
+                        let cardContent = '';
+                        
+                        if (this.cardStyle === 'compact') {
+                            cardContent = this.renderCompactCard(appointmentDate);
+                        } else if (this.cardStyle === 'detailed') {
+                            cardContent = this.renderDetailedCard(appointmentDate);
+                        } else {
+                            cardContent = this.renderDefaultCard(appointmentDate);
+                        }
+                        
+                        const cardContainer = this.element.querySelector('.current-appointment-card');
+                        if (cardContainer) {
+                            cardContainer.outerHTML = cardContent;
+                        }
+                    }
+                }
+            }
+            
+            showError(message) {
+                const errorElement = this.element.querySelector(`#${this.id}-error`);
+                if (errorElement) {
+                    const errorText = errorElement.querySelector('.error-text');
+                    if (errorText) {
+                        errorText.textContent = message;
+                    }
+                    errorElement.classList.add('show');
+                }
+            }
+            
+            hideError() {
+                const errorElement = this.element.querySelector(`#${this.id}-error`);
+                if (errorElement) {
+                    errorElement.classList.remove('show');
+                }
+            }
+            
+            destroy() {
+                // Clean up any event listeners or resources
+                if (this.element) {
+                    this.element.remove();
+                }
+            }
+
+            // Update configuration method for dynamic updates
+            updateConfig(newConfig) {
+                if (newConfig.meetingName) this.meetingName = newConfig.meetingName;
+                if (newConfig.startTime) this.startTime = newConfig.startTime;
+                if (newConfig.serviceName) this.serviceName = newConfig.serviceName;
+                if (newConfig.bookingId) this.bookingId = newConfig.bookingId;
+                if (newConfig.bookingUid) this.bookingUid = newConfig.bookingUid;
+                if (newConfig.status) this.status = newConfig.status;
+                if (newConfig.attendeeEmail) this.attendeeEmail = newConfig.attendeeEmail;
+                if (newConfig.attendeeName) this.attendeeName = newConfig.attendeeName;
+                if (newConfig.language) this.language = newConfig.language;
+                if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
+                if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
+                
+                // Update service name if eventTypeSlug changed
+                if (newConfig.eventTypeSlug) {
+                    this.serviceName = this.getServiceNameFromSlug(newConfig.eventTypeSlug, this.meetingName);
+                }
+                
+                // Re-render if element exists
+                if (this.element) {
+                    const appointmentDate = this.formatAppointmentDate(this.startTime);
+                    let cardContent = '';
+                    
+                    if (this.cardStyle === 'compact') {
+                        cardContent = this.renderCompactCard(appointmentDate);
+                    } else if (this.cardStyle === 'detailed') {
+                        cardContent = this.renderDetailedCard(appointmentDate);
+                    } else {
+                        cardContent = this.renderDefaultCard(appointmentDate);
+                    }
+                    
+                    const cardContainer = this.element.querySelector('.current-appointment-card');
+                    if (cardContainer) {
+                        cardContainer.outerHTML = cardContent;
+                    }
                 }
             }
         }
-    }
-    
-    showError(message) {
-        const errorElement = this.element.querySelector(`#${this.id}-error`);
-        if (errorElement) {
-            const errorText = errorElement.querySelector('.error-text');
-            if (errorText) {
-                errorText.textContent = message;
-            }
-            errorElement.classList.add('show');
-        }
-    }
-    
-    hideError() {
-        const errorElement = this.element.querySelector(`#${this.id}-error`);
-        if (errorElement) {
-            errorElement.classList.remove('show');
-        }
-    }
-    
-    destroy() {
-        // Clean up any event listeners or resources
-        if (this.element) {
-            this.element.remove();
-        }
-    }
-
-    // Update configuration method for dynamic updates
-    updateConfig(newConfig) {
-        if (newConfig.meetingName) this.meetingName = newConfig.meetingName;
-        if (newConfig.startTime) this.startTime = newConfig.startTime;
-        if (newConfig.serviceName) this.serviceName = newConfig.serviceName;
-        if (newConfig.bookingId) this.bookingId = newConfig.bookingId;
-        if (newConfig.bookingUid) this.bookingUid = newConfig.bookingUid;
-        if (newConfig.status) this.status = newConfig.status;
-        if (newConfig.attendeeEmail) this.attendeeEmail = newConfig.attendeeEmail;
-        if (newConfig.attendeeName) this.attendeeName = newConfig.attendeeName;
-        if (newConfig.language) this.language = newConfig.language;
-        if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
-        if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
-        
-        // Update service name if eventTypeSlug changed
-        if (newConfig.eventTypeSlug) {
-            this.serviceName = this.getServiceNameFromSlug(newConfig.eventTypeSlug, this.meetingName);
-        }
-        
-        // Re-render if element exists
-        if (this.element) {
-            const appointmentDate = this.formatAppointmentDate(this.startTime);
-            let cardContent = '';
-            
-            if (this.cardStyle === 'compact') {
-                cardContent = this.renderCompactCard(appointmentDate);
-            } else if (this.cardStyle === 'detailed') {
-                cardContent = this.renderDetailedCard(appointmentDate);
-            } else {
-                cardContent = this.renderDefaultCard(appointmentDate);
-            }
-            
-            const cardContainer = this.element.querySelector('.booking-cancellation-card');
-            if (cardContainer) {
-                cardContainer.outerHTML = cardContent;
-            }
-        }
-    }
-}
-
-
 
 
 // Export for module usage
