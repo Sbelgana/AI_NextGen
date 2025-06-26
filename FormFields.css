@@ -633,6 +633,7 @@ input[type="number"]:hover:not(:focus) {
   display: flex;
   flex-wrap: nowrap;
   gap: 16px;
+	margin-bottom: 10px;
 }
 
 .radio-option {
