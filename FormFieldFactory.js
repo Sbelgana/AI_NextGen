@@ -7979,21 +7979,8 @@ class CreatForm {
         // Use same base class as multi-step for consistent styling
         container.className = 'multistep-form single-step-variant';
 
-        // Create title if exists
-        if (firstStep.title) {
-            const titleElement = document.createElement('h2');
-            titleElement.className = 'form-title';
-            titleElement.textContent = '' || firstStep.title;
-            container.appendChild(titleElement);
-        }
 
-        // Create description if exists
-        if (firstStep.description) {
-            const descElement = document.createElement('p');
-            descElement.className = 'form-description';
-            descElement.textContent = '' || firstStep.description;
-            container.appendChild(descElement);
-        }
+
 
         // Create form - Use same structure as multi-step
         const form = document.createElement('form');
