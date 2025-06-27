@@ -13537,11 +13537,20 @@ class CurrentAppointmentCardField extends BaseField {
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { FormFieldFactory, CreatForm,  DataTransformerFactory, TransformationConfigBuilder };
+    module.exports = { FormFieldFactory, CreatForm, MultiStepForm };
 } else {
     window.FormFieldFactory = FormFieldFactory;
 window.CreatForm = CreatForm;
 window.MultiStepForm = MultiStepForm;
-window.DataTransformerFactory = DataTransformerFactory;
-window.TransformationConfigBuilder = TransformationConfigBuilder;
 }
+
+// Export for module usage
+// if (typeof module !== 'undefined' && module.exports) {
+//     module.exports = { FormFieldFactory, CreatForm, MultiStepForm, DataTransformerFactory, TransformationConfigBuilder };
+// } else {
+//     window.FormFieldFactory = FormFieldFactory;
+// window.CreatForm = CreatForm;
+// window.MultiStepForm = MultiStepForm;
+// window.DataTransformerFactory = DataTransformerFactory;
+// window.TransformationConfigBuilder = TransformationConfigBuilder;
+// }
