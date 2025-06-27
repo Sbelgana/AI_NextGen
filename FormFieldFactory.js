@@ -10840,6 +10840,10 @@ class BookingCancellationCardField extends BaseField {
  * TabManager - A field that manages multiple tabs with their own content
  * Extends BaseField to integrate seamlessly with FormFieldFactory
  */
+/**
+ * TabManager - A field that manages multiple tabs with their own content
+ * Extends BaseField to integrate seamlessly with FormFieldFactory
+ */
 class TabManager extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -10948,6 +10952,9 @@ class TabManager extends BaseField {
             tabButton.className = 'tab-button';
             tabButton.dataset.tabId = tab.id;
             tabButton.textContent = tab.label;
+            
+            // Override flex: 1 to allow natural button width
+            tabButton.style.flex = 'none';
             
             // Add active class if this is the active tab
             if (tab.id === this.activeTabId) {
@@ -11241,6 +11248,9 @@ class TabManager extends BaseField {
             tabButton.className = 'tab-button';
             tabButton.dataset.tabId = tabConfig.id;
             tabButton.textContent = tabConfig.label;
+            
+            // Override flex: 1 to allow natural button width
+            tabButton.style.flex = 'none';
             
             const clickHandler = (e) => {
                 e.preventDefault();
