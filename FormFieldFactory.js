@@ -7,17 +7,31 @@
 // ============================================================================
 // 1. FIELD VALUE FORMATTER - Handles all field value formatting logic
 // ============================================================================
-
 class FieldValueFormatter {
     constructor(creatFormInstance) {
         this.creatFormInstance = creatFormInstance;
         this.config = creatFormInstance?.config || {};
         this.language = this.config.language || 'fr';
+        
+        // Fallback translations for when the system fails
+        this.fallbackTranslations = {
+            fr: {
+                'common.yes': 'Oui',
+                'common.no': 'Non',
+                'common.other': 'Autre',
+                'common.notSpecified': 'Non spécifié',
+                'common.none': 'Aucun'
+            },
+            en: {
+                'common.yes': 'Yes',
+                'common.no': 'No',
+                'common.other': 'Other',
+                'common.notSpecified': 'Not specified',
+                'common.none': 'None'
+            }
+        };
     }
 
-    /**
-     * Main method to format any field value for display
-     */
     formatValue(fieldConfig, value, context = {}) {
         if (!this.shouldDisplayValue(value)) {
             return '';
@@ -25,75 +39,47 @@ class FieldValueFormatter {
 
         const fieldType = fieldConfig?.type;
         
-        // Handle different field types
-        switch (fieldType) {
-            case 'yesno':
-                return this.formatYesNoValue(value, fieldConfig);
-            
-            case 'yesno-with-options':
-                return this.formatYesNoWithOptionsValue(value, fieldConfig, context);
-            
-            case 'select':
-            case 'select-subsections':
-                return this.formatSelectValue(value, fieldConfig);
-            
-            case 'multiselect':
-            case 'multiselect-subsections':
-                return this.formatMultiSelectValue(value, fieldConfig);
-            
-            case 'select-with-other':
-                return this.formatSelectWithOtherValue(value, fieldConfig);
-            
-            case 'multiselect-with-other':
-                return this.formatMultiSelectWithOtherValue(value, fieldConfig);
-            
-            case 'sliding-window-range':
-                return this.formatSlidingWindowRangeValue(value, fieldConfig);
-            
-            case 'options-slider':
-                return this.formatOptionsSliderValue(value, fieldConfig);
-            
-            case 'textarea':
-                return this.formatTextareaValue(value);
-            
-            case 'number':
-            case 'percentage':
-            case 'email':
-            case 'phone':
-            case 'url':
-            case 'text':
-            default:
-                return this.formatDefaultValue(value);
+        try {
+            switch (fieldType) {
+                case 'yesno':
+                    return this.formatYesNoValue(value, fieldConfig);
+                case 'yesno-with-options':
+                    return this.formatYesNoWithOptionsValue(value, fieldConfig, context);
+                case 'select':
+                case 'select-subsections':
+                    return this.formatSelectValue(value, fieldConfig);
+                case 'multiselect':
+                case 'multiselect-subsections':
+                    return this.formatMultiSelectValue(value, fieldConfig);
+                case 'select-with-other':
+                    return this.formatSelectWithOtherValue(value, fieldConfig);
+                case 'multiselect-with-other':
+                    return this.formatMultiSelectWithOtherValue(value, fieldConfig);
+                case 'sliding-window-range':
+                    return this.formatSlidingWindowRangeValue(value, fieldConfig);
+                case 'options-slider':
+                    return this.formatOptionsSliderValue(value, fieldConfig);
+                case 'textarea':
+                    return this.formatTextareaValue(value);
+                default:
+                    return this.formatDefaultValue(value);
+            }
+        } catch (error) {
+            console.error('🎨 Error formatting value:', error);
+            return this.formatDefaultValue(value);
         }
     }
 
-    /**
-     * Check if a value should be displayed
-     */
     shouldDisplayValue(value) {
         if (value === undefined || value === null || value === '') {
             return false;
         }
-        
         if (Array.isArray(value) && value.length === 0) {
             return false;
         }
-        
-        // Handle special "no preference" cases
-        if (typeof value === 'string') {
-            const lowerValue = value.toLowerCase();
-            if (lowerValue.includes('indifférent') || lowerValue.includes('any') || 
-                lowerValue === 'null' || lowerValue === 'undefined') {
-                return false;
-            }
-        }
-        
         return true;
     }
 
-    /**
-     * Format yes/no values
-     */
     formatYesNoValue(value, fieldConfig) {
         // Handle custom options first
         if (fieldConfig?.customOptions && Array.isArray(fieldConfig.customOptions)) {
@@ -103,61 +89,35 @@ class FieldValueFormatter {
             }
         }
         
-        // Standard yes/no
-        if (value === true || value === 'yes') {
-            return this.getText('common.yes') || 'Oui';
+        // Standard yes/no with enhanced translation support
+        if (value === true || value === 'yes' || value === 'true') {
+            return this.getTranslatedText('common.yes');
         }
-        if (value === false || value === 'no') {
-            return this.getText('common.no') || 'Non';
+        if (value === false || value === 'no' || value === 'false') {
+            return this.getTranslatedText('common.no');
         }
         
         return value;
     }
 
-    /**
-     * Format yes/no with options values (complex field type)
-     */
     formatYesNoWithOptionsValue(value, fieldConfig, context = {}) {
         if (typeof value !== 'object' || value.main === undefined) {
-            return this.formatValue({ type: 'yesno' }, value);
+            return this.formatYesNoValue(value, fieldConfig);
         }
-
-        // Get main value display
-        let mainDisplay = this.formatYesNoValue(value.main, fieldConfig);
-        
-        if (context.includeSubFields === false) {
-            return mainDisplay;
-        }
-
-        // For summary context, we might want just the main value
-        if (context.summaryMode) {
-            return mainDisplay;
-        }
-
-        return mainDisplay; // CustomField handles sub-fields separately
+        return this.formatYesNoValue(value.main, fieldConfig);
     }
 
-    /**
-     * Format select field values
-     */
     formatSelectValue(value, fieldConfig) {
         return this.getOptionDisplayName(fieldConfig?.options, value);
     }
 
-    /**
-     * Format multiselect field values
-     */
     formatMultiSelectValue(value, fieldConfig) {
         if (!Array.isArray(value)) {
             return this.formatSelectValue(value, fieldConfig);
         }
-        
         return value.map(v => this.getOptionDisplayName(fieldConfig?.options, v)).join(', ');
     }
 
-    /**
-     * Format select-with-other field values
-     */
     formatSelectWithOtherValue(value, fieldConfig) {
         if (typeof value === 'object' && value.main) {
             if (value.main === 'other' && value.other) {
@@ -165,13 +125,9 @@ class FieldValueFormatter {
             }
             return this.getOptionDisplayName(fieldConfig?.options, value.main);
         }
-        
         return this.getOptionDisplayName(fieldConfig?.options, value);
     }
 
-    /**
-     * Format multiselect-with-other field values
-     */
     formatMultiSelectWithOtherValue(value, fieldConfig) {
         if (typeof value === 'object' && value.main) {
             const mainValues = Array.isArray(value.main) ? 
@@ -181,15 +137,11 @@ class FieldValueFormatter {
                 mainValues.push(value.other.trim());
             }
             
-            return mainValues.join(', ');
+            return mainValues; // Return array, not joined string
         }
-        
-        return Array.isArray(value) ? value.join(', ') : value;
+        return Array.isArray(value) ? value : [value];
     }
 
-    /**
-     * Format sliding window range values
-     */
     formatSlidingWindowRangeValue(value, fieldConfig) {
         if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
             const formatValue = fieldConfig?.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
@@ -198,9 +150,6 @@ class FieldValueFormatter {
         return value;
     }
 
-    /**
-     * Format options slider values
-     */
     formatOptionsSliderValue(value, fieldConfig) {
         if (typeof value === 'object' && value.display) {
             return value.display;
@@ -216,9 +165,6 @@ class FieldValueFormatter {
         return value;
     }
 
-    /**
-     * Format textarea values (with truncation for long text)
-     */
     formatTextareaValue(value) {
         if (typeof value === 'string' && value.length > 100) {
             return value.substring(0, 100) + '...';
@@ -226,22 +172,21 @@ class FieldValueFormatter {
         return value;
     }
 
-    /**
-     * Format default values (passthrough)
-     */
     formatDefaultValue(value) {
         return value;
     }
 
-    /**
-     * Get option display name from options array
-     */
     getOptionDisplayName(options, value) {
         if (!options || !value) return value;
         
-        // Handle data path resolution (e.g., 'niches', 'budgetRanges')
+        // Handle data path resolution
         if (typeof options === 'string' && this.creatFormInstance) {
-            options = this.creatFormInstance.getData(options);
+            try {
+                options = this.creatFormInstance.getData(options);
+            } catch (error) {
+                console.error('Error getting data for options path:', options, error);
+                return value;
+            }
         }
         
         // Handle regular options array
@@ -252,24 +197,9 @@ class FieldValueFormatter {
             }
         }
         
-        // Handle subsection options
-        if (Array.isArray(options)) {
-            for (const group of options) {
-                if (group.subcategories) {
-                    const option = group.subcategories.find(opt => opt.id === value);
-                    if (option) {
-                        return this.getLocalizedLabel(option.name || option.label);
-                    }
-                }
-            }
-        }
-        
         return value;
     }
 
-    /**
-     * Get localized label (handles multilingual labels)
-     */
     getLocalizedLabel(label) {
         if (typeof label === 'object' && label !== null) {
             return label[this.language] || label.en || label.fr || Object.values(label)[0];
@@ -277,16 +207,58 @@ class FieldValueFormatter {
         return label;
     }
 
-    /**
-     * Get text from translations
-     */
-    getText(path) {
-        if (this.creatFormInstance && this.creatFormInstance.getText) {
-            return this.creatFormInstance.getText(path);
+    // Enhanced translation method with fallbacks
+    getTranslatedText(path) {
+        try {
+            // Method 1: Try the creatFormInstance getText method
+            if (this.creatFormInstance && this.creatFormInstance.getText) {
+                const translated = this.creatFormInstance.getText(path);
+                if (translated && translated !== path && !translated.includes('.')) {
+                    return translated;
+                }
+            }
+
+            // Method 2: Try direct access to form data translations
+            if (this.creatFormInstance && this.creatFormInstance.formData && this.creatFormInstance.formData.translations) {
+                const translations = this.creatFormInstance.formData.translations[this.language];
+                if (translations) {
+                    const keys = path.split('.');
+                    let value = translations;
+                    for (const key of keys) {
+                        value = value?.[key];
+                    }
+                    if (value && typeof value === 'string') {
+                        return value;
+                    }
+                }
+            }
+
+            // Method 3: Try fallback translations
+            const fallback = this.fallbackTranslations[this.language]?.[path];
+            if (fallback) {
+                return fallback;
+            }
+
+            // Method 4: Try English fallback
+            const englishFallback = this.fallbackTranslations.en?.[path];
+            if (englishFallback) {
+                return englishFallback;
+            }
+
+            return path;
+        } catch (error) {
+            console.error('Error getting translated text:', error);
+            return this.fallbackTranslations[this.language]?.[path] || 
+                   this.fallbackTranslations.en?.[path] || 
+                   path;
         }
-        return path;
+    }
+
+    getText(path) {
+        return this.getTranslatedText(path);
     }
 }
+
 
 // ============================================================================
 // 2. BASE DATA TRANSFORMER - Generic data transformation logic
@@ -445,10 +417,8 @@ class BaseDataTransformer {
 // ============================================================================
 // 3. CHATBOT FORM DATA TRANSFORMER - Specific implementation
 // ============================================================================
-
 class ChatbotFormDataTransformer extends BaseDataTransformer {
     constructor(creatFormInstance) {
-        // Define field configuration map specific to chatbot form
         const fieldConfigMap = {
             niche: { optionsPath: 'niches' },
             budget: { optionsPath: 'budgetRanges' },
@@ -474,9 +444,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         super(creatFormInstance, fieldConfigMap);
     }
 
-    /**
-     * Override to create chatbot-specific sections
-     */
     createSections(flatData, originalFormValues) {
         return {
             contactInfo: this.createContactInfoSection(flatData, originalFormValues),
@@ -493,66 +460,70 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     createContactInfoSection(flatData, originalFormValues) {
         return {
             sectionType: "contact_information",
-            firstName: this.extractSimpleValue(flatData.firstName),
-            lastName: this.extractSimpleValue(flatData.lastName),
-            fullName: `${this.extractSimpleValue(flatData.firstName)} ${this.extractSimpleValue(flatData.lastName)}`.trim(),
-            email: this.extractSimpleValue(flatData.email),
-            phone: this.extractSimpleValue(flatData.phone),
-            company: this.extractSimpleValue(flatData.company) || this.getText('common.notSpecified')
+            firstName: this.safeExtractValue(flatData.firstName),
+            lastName: this.safeExtractValue(flatData.lastName),
+            fullName: `${this.safeExtractValue(flatData.firstName)} ${this.safeExtractValue(flatData.lastName)}`.trim(),
+            email: this.safeExtractValue(flatData.email),
+            phone: this.safeExtractValue(flatData.phone),
+            company: this.safeExtractValue(flatData.company) || 'Non spécifié'
         };
     }
 
     createProjectSpecsSection(flatData, originalFormValues) {
         return {
             sectionType: "project_specifications",
-            industry: this.formatter.formatValue(this.getFieldConfig('niche'), flatData.niche) || this.getText('common.notSpecified'),
-            otherIndustry: this.extractSimpleValue(flatData.otherNiche),
-            budget: this.formatter.formatValue(this.getFieldConfig('budget'), flatData.budget) || this.getText('common.notSpecified'),
-            customBudget: this.extractSimpleValue(flatData.customBudget),
-            description: this.extractSimpleValue(flatData.description) || this.getText('common.notSpecified')
+            industry: this.safeExtractValue(flatData.niche) || 'Non spécifié',
+            otherIndustry: this.safeExtractValue(flatData.otherNiche),
+            budget: this.safeExtractValue(flatData.budget) || 'Non spécifié',
+            customBudget: this.safeExtractValue(flatData.customBudget),
+            description: this.safeExtractValue(flatData.description) || 'Non spécifié'
         };
     }
 
     createBusinessProfileSection(flatData, originalFormValues) {
         return {
             sectionType: "business_profile",
-            teamSize: this.formatter.formatValue(this.getFieldConfig('teamSize'), flatData.teamSize) || this.getText('common.notSpecified'),
-            services: this.extractSimpleValue(flatData.services) || this.getText('common.notSpecified')
+            teamSize: this.safeExtractValue(flatData.teamSize) || 'Non spécifié',
+            services: this.safeExtractValue(flatData.services) || 'Non spécifié'
         };
     }
 
     createCoreFeaturesSection(flatData, originalFormValues) {
         return {
             sectionType: "core_features",
-            leadCapture: flatData.leadCapture === true || flatData.leadCapture === 'yes',
-            leadQualification: flatData.leadQualification === true || flatData.leadQualification === 'yes',
-            conversationSummary: flatData.conversationSummary === true || flatData.conversationSummary === 'yes'
+            leadCapture: this.safeBooleanValue(flatData.leadCapture),
+            leadQualification: this.safeBooleanValue(flatData.leadQualification),
+            conversationSummary: this.safeBooleanValue(flatData.conversationSummary)
         };
     }
 
     createFormIntegrationSection(flatData, originalFormValues) {
-        const useFormResult = this.extractYesNoWithOptionsValues(
+        const useFormResult = this.safeExtractYesNoWithOptions(
             originalFormValues.useForm,
-            { customOptions: null },
+            'useForm',
             {
                 formTypes: { type: 'multiselect-with-other', optionsPath: 'formTypes' },
                 formPurpose: { type: 'textarea' }
             }
         );
 
+        // FIXED: Safe array extraction with proper type checking
+        const formTypesArray = this.safeArrayValue(useFormResult.extractedValues.formTypes);
+        const formPurpose = this.safeStringValue(useFormResult.extractedValues.formPurpose);
+
         return {
             sectionType: "form_integration",
             useForm: useFormResult.mainValue,
-            formTypes: useFormResult.extractedValues.formTypes || [],
-            formTypesString: (useFormResult.extractedValues.formTypes || []).join(', '),
-            formPurpose: useFormResult.extractedValues.formPurpose || ''
+            formTypes: formTypesArray,
+            formTypesString: formTypesArray.join(', '), // This will now work because formTypesArray is guaranteed to be an array
+            formPurpose: formPurpose
         };
     }
 
     createWebIntegrationSection(flatData, originalFormValues) {
-        const hasWebsiteResult = this.extractYesNoWithOptionsValues(
+        const hasWebsiteResult = this.safeExtractYesNoWithOptions(
             originalFormValues.hasWebsite,
-            { customOptions: null },
+            'hasWebsite',
             {
                 websitePlatform: { type: 'select-with-other', optionsPath: 'platforms.website' },
                 websiteTraffic: { type: 'select', optionsPath: 'websiteTraffic' },
@@ -563,148 +534,229 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         return {
             sectionType: "web_integration",
             hasWebsite: hasWebsiteResult.mainValue,
-            websitePlatform: hasWebsiteResult.extractedValues.websitePlatform || '',
-            websiteUrl: hasWebsiteResult.extractedValues.websiteUrl || '',
-            websiteTraffic: hasWebsiteResult.extractedValues.websiteTraffic || ''
+            websitePlatform: this.safeStringValue(hasWebsiteResult.extractedValues.websitePlatform),
+            websiteUrl: this.safeStringValue(hasWebsiteResult.extractedValues.websiteUrl),
+            websiteTraffic: this.safeStringValue(hasWebsiteResult.extractedValues.websiteTraffic)
         };
     }
 
     createIntegrationsSection(flatData, originalFormValues) {
-        // CRM
-        const useCRMResult = this.extractYesNoWithOptionsValues(
+        const useCRMResult = this.safeExtractYesNoWithOptions(
             originalFormValues.useCRM,
-            { customOptions: null },
+            'useCRM',
             { crms: { type: 'multiselect-with-other', optionsPath: 'integrations.crms' } }
         );
 
-        // Booking
-        const hasBookingResult = this.extractYesNoWithOptionsValues(
+        const hasBookingResult = this.safeExtractYesNoWithOptions(
             originalFormValues.hasBookingSystem,
-            { customOptions: null },
+            'hasBookingSystem',
             {
                 bookingSystems: { type: 'select-with-other', optionsPath: 'integrations.booking' },
                 wantBookingRecommendation: { type: 'yesno' }
             }
         );
 
-        // Database
-        const useDatabaseResult = this.extractYesNoWithOptionsValues(
+        const useDatabaseResult = this.safeExtractYesNoWithOptions(
             originalFormValues.useDatabase,
-            { customOptions: null },
+            'useDatabase',
             { databases: { type: 'multiselect-with-other', optionsPath: 'integrations.databases' } }
         );
+
+        // FIXED: Safe array extraction
+        const crmsArray = this.safeArrayValue(useCRMResult.extractedValues.crms);
+        const databasesArray = this.safeArrayValue(useDatabaseResult.extractedValues.databases);
 
         return {
             sectionType: "integrations_apis",
             useCRM: useCRMResult.mainValue,
-            crms: useCRMResult.extractedValues.crms || [],
-            crmsString: (useCRMResult.extractedValues.crms || []).join(', '),
+            crms: crmsArray,
+            crmsString: crmsArray.join(', '), // Now safe
             
             hasBookingSystem: hasBookingResult.mainValue,
-            bookingSystems: hasBookingResult.extractedValues.bookingSystems || '',
-            wantBookingRecommendation: hasBookingResult.extractedValues.wantBookingRecommendation || false,
-            handleCancellation: flatData.handleCancellation === true || flatData.handleCancellation === 'yes',
+            bookingSystems: this.safeStringValue(hasBookingResult.extractedValues.bookingSystems),
+            wantBookingRecommendation: this.safeBooleanValue(hasBookingResult.extractedValues.wantBookingRecommendation),
+            handleCancellation: this.safeBooleanValue(flatData.handleCancellation),
             
             useDatabase: useDatabaseResult.mainValue,
-            databases: useDatabaseResult.extractedValues.databases || [],
-            databasesString: (useDatabaseResult.extractedValues.databases || []).join(', ')
+            databases: databasesArray,
+            databasesString: databasesArray.join(', ') // Now safe
         };
     }
 
     createCommunicationChannelsSection(flatData, originalFormValues) {
-        // Social platforms
-        const needSocialBotResult = this.extractYesNoWithOptionsValues(
+        const needSocialBotResult = this.safeExtractYesNoWithOptions(
             originalFormValues.needSocialBot,
-            { customOptions: null },
+            'needSocialBot',
             { socialPlatforms: { type: 'multiselect', optionsPath: 'platforms.social' } }
         );
 
-        // Languages
-        const languageTypeResult = this.extractYesNoWithOptionsValues(
+        const languageTypeResult = this.safeExtractYesNoWithOptions(
             originalFormValues.languageType,
+            'languageType',
+            {
+                languages: { type: 'multiselect', optionsPath: 'languages' },
+                language: { type: 'select', optionsPath: 'languages' }
+            },
             { 
                 customOptions: [
                     { value: 'multilingual', label: { fr: 'Support multilingue', en: 'Multilingual Support' } },
                     { value: 'unilingual', label: { fr: 'Langue unique', en: 'Single Language' } }
                 ]
-            },
-            {
-                languages: { type: 'multiselect', optionsPath: 'languages' },
-                language: { type: 'select', optionsPath: 'languages' }
             }
         );
+
+        // FIXED: Safe array extraction
+        const socialPlatformsArray = this.safeArrayValue(needSocialBotResult.extractedValues.socialPlatforms);
+        const languagesArray = this.getLanguagesArray(languageTypeResult);
 
         return {
             sectionType: "communication_channels",
             needSocialBot: needSocialBotResult.mainValue,
-            socialPlatforms: needSocialBotResult.extractedValues.socialPlatforms || [],
-            socialPlatformsString: (needSocialBotResult.extractedValues.socialPlatforms || []).join(', '),
+            socialPlatforms: socialPlatformsArray,
+            socialPlatformsString: socialPlatformsArray.join(', '), // Now safe
             languageType: this.getLanguageTypeDisplay(languageTypeResult),
-            languages: this.getLanguagesArray(languageTypeResult),
-            languagesString: this.getLanguagesArray(languageTypeResult).join(', ')
+            languages: languagesArray,
+            languagesString: languagesArray.join(', ') // Now safe
         };
     }
 
-    // Helper methods specific to chatbot form
-    extractYesNoWithOptionsValues(fieldValue, mainFieldConfig, subFieldConfigs = {}) {
+    // FIXED: Safe extraction helper methods with comprehensive error handling
+
+    safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
         let mainValue = false;
         let extractedValues = {};
 
-        if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
-            mainValue = fieldValue.main === true || fieldValue.main === 'yes';
-            
-            if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
-                const option = mainFieldConfig.customOptions.find(opt => opt.value === fieldValue.main);
-                if (option) {
-                    mainValue = fieldValue.main === mainFieldConfig.customOptions[0].value;
+        try {
+            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
+                // Handle main value
+                if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
+                    const option = mainFieldConfig.customOptions.find(opt => opt.value === fieldValue.main);
+                    if (option) {
+                        mainValue = fieldValue.main === mainFieldConfig.customOptions[0].value;
+                    } else {
+                        mainValue = fieldValue.main === true || fieldValue.main === 'yes';
+                    }
+                } else {
+                    mainValue = fieldValue.main === true || fieldValue.main === 'yes';
                 }
-            }
 
-            // Extract sub-values
-            ['yesValues', 'noValues'].forEach(valueType => {
-                if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
-                    Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
-                        if (subValue !== undefined && subValue !== null && subValue !== '') {
-                            const subFieldConfig = subFieldConfigs[key] || {};
-                            extractedValues[key] = this.formatter.formatValue(subFieldConfig, subValue);
-                        }
-                    });
-                }
-            });
+                // Extract sub-values
+                ['yesValues', 'noValues'].forEach(valueType => {
+                    if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
+                        Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
+                            if (subValue !== undefined && subValue !== null && subValue !== '') {
+                                const subFieldConfig = subFieldConfigs[key] || {};
+                                extractedValues[key] = this.safeFormatFieldValue(subFieldConfig, subValue, key);
+                            }
+                        });
+                    }
+                });
+            } else if (typeof fieldValue === 'string') {
+                mainValue = fieldValue === 'yes' || fieldValue === 'true';
+            } else if (typeof fieldValue === 'boolean') {
+                mainValue = fieldValue;
+            }
+        } catch (error) {
+            console.error(`Error extracting yesno-with-options for ${fieldName}:`, error);
+            mainValue = false;
+            extractedValues = {};
         }
 
         return { mainValue, extractedValues };
     }
 
-    extractSimpleValue(value) {
-        return this.formatter.formatValue({}, value);
+    safeFormatFieldValue(fieldConfig, value, fieldName) {
+        try {
+            // Handle multiselect fields - FIXED: Always return arrays for multiselect
+            if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
+                if (Array.isArray(value)) {
+                    return value.map(v => this.formatter.formatValue(fieldConfig, v));
+                } else if (typeof value === 'string') {
+                    return value.split(',').map(v => v.trim()).filter(v => v);
+                } else {
+                    return [];
+                }
+            }
+
+            // Use the formatter for other types
+            return this.formatter.formatValue(fieldConfig, value);
+        } catch (error) {
+            console.error(`Error formatting field ${fieldName}:`, error);
+            return value;
+        }
+    }
+
+    // FIXED: Safe value extraction helpers with proper type checking
+    safeExtractValue(value) {
+        try {
+            return this.formatter.formatValue({}, value) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    safeArrayValue(value) {
+        if (Array.isArray(value)) {
+            return value;
+        } else if (typeof value === 'string' && value) {
+            return [value];
+        } else {
+            return []; // Always return an array
+        }
+    }
+
+    safeStringValue(value) {
+        if (typeof value === 'string') {
+            return value;
+        } else if (Array.isArray(value)) {
+            return value.join(', ');
+        } else {
+            return '';
+        }
+    }
+
+    safeBooleanValue(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        } else if (typeof value === 'string') {
+            return value === 'yes' || value === 'true' || value === 'Oui';
+        } else {
+            return false;
+        }
     }
 
     getLanguageTypeDisplay(languageTypeResult) {
         if (languageTypeResult.mainValue) {
-            return this.formatter.getLocalizedLabel({ fr: 'Support multilingue', en: 'Multilingual Support' });
+            return 'Support multilingue';
         }
-        return this.formatter.getLocalizedLabel({ fr: 'Langue unique', en: 'Single Language' });
+        return 'Langue unique';
     }
 
     getLanguagesArray(languageTypeResult) {
-        if (languageTypeResult.extractedValues.languages) {
-            return Array.isArray(languageTypeResult.extractedValues.languages) ? 
-                languageTypeResult.extractedValues.languages : [languageTypeResult.extractedValues.languages];
+        const languages = languageTypeResult.extractedValues.languages;
+        const language = languageTypeResult.extractedValues.language;
+        
+        if (Array.isArray(languages)) {
+            return languages;
+        } else if (language) {
+            return [language];
+        } else {
+            return [];
         }
-        if (languageTypeResult.extractedValues.language) {
-            return [languageTypeResult.extractedValues.language];
-        }
-        return [];
     }
 
     getText(path) {
-        if (this.creatFormInstance && this.creatFormInstance.getText) {
-            return this.creatFormInstance.getText(path);
+        try {
+            if (this.creatFormInstance && this.creatFormInstance.getText) {
+                return this.creatFormInstance.getText(path);
+            }
+            return path;
+        } catch (error) {
+            return path;
         }
-        return path;
     }
 }
+
 
 class FormFieldFactory {
     constructor(options = {}) {
