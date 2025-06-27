@@ -12966,7 +12966,7 @@ class CurrentAppointmentCardField extends BaseField {
         // FIXED DATA TRANSFORMER FACTORY SYSTEM
         // ============================================================================
 
-        class DataTransformerFactory {
+                class DataTransformerFactory {
             constructor(config = {}) {
                 this.config = {
                     defaultLanguage: config.defaultLanguage || 'fr',
@@ -13128,7 +13128,62 @@ class CurrentAppointmentCardField extends BaseField {
             }
 
             extractYesNoWithOptionsValue(value, fieldConfig, context) {
+                this.log(`🔍 Extracting yesno-with-options value:`, value);
+                this.log(`🔍 Field config:`, fieldConfig);
+                
+                // Handle the case where value is already a flattened string (from form submission)
+                if (typeof value === 'string') {
+                    // Try to parse the flattened format
+                    // Examples: "yes, item1, item2" or "no" or "multilingual, English, Español"
+                    const parts = value.split(', ').map(part => part.trim());
+                    const mainValue = parts[0];
+                    
+                    this.log(`🔍 Parsed string parts:`, parts);
+                    
+                    let extractedMain = mainValue;
+                    if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                        const option = fieldConfig.customOptions.find(opt => opt.value === mainValue);
+                        if (option) {
+                            const label = option.label;
+                            extractedMain = typeof label === 'object' ? 
+                                (label[context.language] || label.en || label.fr) : 
+                                label;
+                        }
+                    } else {
+                        extractedMain = mainValue === 'yes' ? context.getText('common.yes') :
+                                      mainValue === 'no' ? context.getText('common.no') :
+                                      mainValue;
+                    }
+                    
+                    const conditionalValues = {};
+                    
+                    // If there are additional parts, they represent conditional values
+                    if (parts.length > 1) {
+                        const conditionalItems = parts.slice(1);
+                        
+                        // Determine if this should be yesValues or noValues based on main value
+                        let shouldExtractYes = false;
+                        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                            shouldExtractYes = mainValue === fieldConfig.customOptions[0].value;
+                        } else {
+                            shouldExtractYes = mainValue === 'yes' || mainValue === true;
+                        }
+                        
+                        if (shouldExtractYes) {
+                            conditionalValues.yesValues = conditionalItems.length === 1 ? conditionalItems[0] : conditionalItems;
+                        } else {
+                            conditionalValues.noValues = conditionalItems.length === 1 ? conditionalItems[0] : conditionalItems;
+                        }
+                    }
+                    
+                    const result = { main: extractedMain, conditionalValues };
+                    this.log(`🔍 String extraction result:`, result);
+                    return result;
+                }
+                
+                // Handle structured object format
                 if (typeof value !== 'object' || !value || value.main === undefined) {
+                    this.log(`🔍 Invalid object format, returning empty`);
                     return { main: '', conditionalValues: {} };
                 }
                 
@@ -13165,7 +13220,9 @@ class CurrentAppointmentCardField extends BaseField {
                     );
                 }
                 
-                return { main: mainValue, conditionalValues };
+                const result = { main: mainValue, conditionalValues };
+                this.log(`🔍 Object extraction result:`, result);
+                return result;
             }
 
             extractConditionalValues(valuesObject, fieldConfigs, context) {
@@ -13234,22 +13291,33 @@ class CurrentAppointmentCardField extends BaseField {
                     // Build each configured section using the registered section builders
                     Object.entries(transformationConfig.sections || {}).forEach(([sectionId, sectionConfig]) => {
                         try {
+                            this.log(`🔧 Processing section ${sectionId}`);
+                            
                             // Always try to use the registered section builder first
                             if (this.sectionBuilders.has(sectionId)) {
-                                this.log(`Building section ${sectionId} with custom builder`);
+                                this.log(`🔧 Building section ${sectionId} with custom builder`);
                                 const sectionData = this.sectionBuilders.get(sectionId)(sectionConfig, context);
+                                this.log(`🔧 Section ${sectionId} data:`, sectionData);
+                                
                                 if (sectionData && Object.keys(sectionData).length > 1) { // More than just sectionType
                                     sections[sectionId] = sectionData;
+                                    this.log(`✅ Section ${sectionId} added successfully`);
+                                } else {
+                                    this.log(`⚠️ Section ${sectionId} has no data or only sectionType`);
                                 }
                             } else {
-                                this.log(`Building section ${sectionId} with default builder`);
+                                this.log(`⚠️ No custom builder found for section ${sectionId}, using default builder`);
                                 const sectionData = this.buildSection(sectionId, sectionConfig, context);
+                                this.log(`🔧 Default section ${sectionId} data:`, sectionData);
+                                
                                 if (sectionData && Object.keys(sectionData).length > 1) {
                                     sections[sectionId] = sectionData;
+                                    this.log(`✅ Section ${sectionId} added successfully`);
                                 }
                             }
                         } catch (error) {
-                            console.error(`Error building section ${sectionId}:`, error);
+                            console.error(`❌ Error building section ${sectionId}:`, error);
+                            this.log(`❌ Error details for section ${sectionId}:`, error.stack);
                         }
                     });
                     
@@ -13288,13 +13356,24 @@ class CurrentAppointmentCardField extends BaseField {
                     getData: (path) => creatFormInstance?.getData?.(path) || [],
                     // Enhanced extractValue that works with raw form values
                     extractValue: (fieldId, fieldConfig) => {
+                        // Get the raw value from originalFormValues (this contains the actual field values)
                         const rawValue = originalFormValues[fieldId];
-                        if (rawValue === undefined || rawValue === null) return '';
+                        
+                        this.log(`🔍 Extracting value for ${fieldId}:`, rawValue);
+                        
+                        if (rawValue === undefined || rawValue === null) {
+                            this.log(`⚠️ No value found for ${fieldId}`);
+                            return '';
+                        }
                         
                         const extractor = this.fieldExtractors.get(fieldConfig?.type) || 
                                         this.fieldExtractors.get('text');
                         
-                        return extractor(rawValue, fieldConfig || { type: 'text' }, this.createTransformationContext(flatData, originalFormValues, creatFormInstance));
+                        const result = extractor(rawValue, fieldConfig || { type: 'text' }, this.createTransformationContext(flatData, originalFormValues, creatFormInstance));
+                        
+                        this.log(`🔍 Extracted result for ${fieldId}:`, result);
+                        
+                        return result;
                     }
                 };
             }
@@ -13453,7 +13532,6 @@ class CurrentAppointmentCardField extends BaseField {
                 return this.config;
             }
         }
-
         
 
 
