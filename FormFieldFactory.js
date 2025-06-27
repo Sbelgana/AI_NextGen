@@ -5199,14 +5199,6 @@ class MultiSelectSubsectionsField extends BaseField {
 // UPDATED CUSTOMFIELD CLASS - Now uses FieldValueFormatter for consistency
 // ============================================================================
 
-// ============================================================================
-// FIXED CUSTOMFIELD CLASS - Properly displays YesNoWithOptionsField in summary
-// ============================================================================
-
-// ============================================================================
-// FIXED CUSTOMFIELD CLASS - Properly displays YesNoWithOptions nested values
-// ============================================================================
-
 class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5214,8 +5206,10 @@ class CustomField extends BaseField {
         this.updateFunction = config.update || null;
         this.autoSummary = config.autoSummary || false;
         
-        // Use factory's formatter instance
-        this.formatter = factory.formatter;
+        // Create formatter instance for consistent value formatting
+        this.formatter = new FieldValueFormatter(factory);
+        
+        // For forms with custom transformers, allow override
         this.customValueFormatter = config.customValueFormatter || null;
     }
 
@@ -5290,6 +5284,7 @@ class CustomField extends BaseField {
         return section;
     }
 
+    // ENHANCED: populateStepContent method now uses FieldValueFormatter
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
 
@@ -5317,9 +5312,9 @@ class CustomField extends BaseField {
                         });
                     }
                 }
-                // ENHANCED: Special handling for YesNoWithOptionsField
+                // Special handling for YesNoWithOptionsField
                 else if (fieldConfig.type === 'yesno-with-options') {
-                    const formattedContent = this.formatYesNoWithOptionsFieldForSummary(fieldConfig, fieldValue);
+                    const formattedContent = this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
                     if (formattedContent.trim()) {
                         contentHtml += formattedContent;
                     }
@@ -5376,20 +5371,29 @@ class CustomField extends BaseField {
             }
         }
 
+        // Handle options-slider fields
+        if (fieldConfig.type === 'options-slider' && !fieldConfig.required) {
+            if (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.value === 0)) {
+                return false;
+            }
+            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.display) {
+                const displayLower = fieldValue.display.toLowerCase();
+                if (displayLower.includes('indifférent') || displayLower.includes('any')) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
-    // FIXED: Enhanced YesNoWithOptions formatting for summary with nested value display
-    formatYesNoWithOptionsFieldForSummary(fieldConfig, value) {
-        console.log('🎨 Formatting YesNoWithOptions for summary:', { fieldConfig: fieldConfig.id, value });
-        
+    formatYesNoWithOptionsField(fieldConfig, value) {
         let html = '';
         
         if (typeof value === 'object' && value.main !== undefined) {
             // Get main display value using formatter
             const mainDisplayValue = this.formatter.formatYesNoValue(value.main, fieldConfig);
             
-            // Always show the main question and answer
             html += `
                 <div class="summary-row">
                     <div class="summary-label">${fieldConfig.label}:</div>
@@ -5409,68 +5413,11 @@ class CustomField extends BaseField {
                 showNoFields = value.main === false || value.main === 'no';
             }
             
-            console.log('🎨 Show nested fields:', { showYesFields, showNoFields, value });
-            
-            // ENHANCED: Display sub-fields when YES is selected
-            if (showYesFields && value.yesValues) {
-                console.log('🎨 Processing yesValues:', value.yesValues);
-                
-                // Handle yesFields (array) or yesField (single)
-                const fieldsToProcess = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
-                
-                fieldsToProcess.forEach(subField => {
-                    const subValue = value.yesValues[subField.id];
-                    console.log(`🎨 Processing subField ${subField.id}:`, subValue);
-                    
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatSubFieldValue(subField, subValue);
-                        console.log(`🎨 Formatted subField ${subField.id}:`, subDisplayValue);
-                        
-                        if (subDisplayValue && this.isValidDisplayValue(subDisplayValue)) {
-                            // Handle array values (like multiselect)
-                            if (Array.isArray(subDisplayValue)) {
-                                if (subDisplayValue.length > 0) {
-                                    html += `
-                                        <div class="summary-row summary-sub-field">
-                                            <div class="summary-label">  ${subField.label}:</div>
-                                            <div class="summary-value">${subDisplayValue.join(', ')}</div>
-                                        </div>
-                                    `;
-                                }
-                            } else {
-                                html += `
-                                    <div class="summary-row summary-sub-field">
-                                        <div class="summary-label">  ${subField.label}:</div>
-                                        <div class="summary-value">${subDisplayValue}</div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    }
-                });
-            } 
-            // ENHANCED: Display sub-fields when NO is selected
-            else if (showNoFields && value.noValues) {
-                console.log('🎨 Processing noValues:', value.noValues);
-                
-                if (fieldConfig.noField) {
-                    const subValue = value.noValues[fieldConfig.noField.id];
-                    console.log(`🎨 Processing noField ${fieldConfig.noField.id}:`, subValue);
-                    
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatSubFieldValue(fieldConfig.noField, subValue);
-                        console.log(`🎨 Formatted noField ${fieldConfig.noField.id}:`, subDisplayValue);
-                        
-                        if (subDisplayValue && this.isValidDisplayValue(subDisplayValue)) {
-                            html += `
-                                <div class="summary-row summary-sub-field">
-                                    <div class="summary-label">  ${fieldConfig.noField.label}:</div>
-                                    <div class="summary-value">${subDisplayValue}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
+            // Display sub-fields
+            if (showYesFields) {
+                this.renderSubFields(html, fieldConfig.yesFields || [fieldConfig.yesField], value.yesValues);
+            } else if (showNoFields && fieldConfig.noField) {
+                this.renderSubFields(html, [fieldConfig.noField], value.noValues);
             }
         } else {
             // Fallback for simple values
@@ -5485,60 +5432,29 @@ class CustomField extends BaseField {
             }
         }
         
-        console.log('🎨 Final HTML for summary:', html);
         return html;
     }
 
-    // NEW: Enhanced sub-field value formatting
-    formatSubFieldValue(subFieldConfig, subValue) {
-        console.log('🎨 Formatting sub-field value:', { subFieldConfig: subFieldConfig.id, subValue });
+    // NEW: Helper method to render sub-fields consistently
+    renderSubFields(html, subFields, subValues) {
+        if (!Array.isArray(subFields) || !subValues) return html;
         
-        try {
-            // Special handling for different sub-field types
-            switch (subFieldConfig.type) {
-                case 'multiselect':
-                case 'multiselect-with-other':
-                    // Handle comma-separated string from form data
-                    if (typeof subValue === 'string') {
-                        const values = subValue.split(',').map(v => v.trim()).filter(v => v);
-                        return values.length > 0 ? values : null;
-                    }
-                    // Handle array
-                    if (Array.isArray(subValue)) {
-                        return subValue.length > 0 ? subValue : null;
-                    }
-                    return subValue ? [subValue] : null;
-                    
-                case 'select':
-                case 'select-with-other':
-                    return this.formatter.formatValue(subFieldConfig, subValue);
-                    
-                case 'textarea':
-                    return typeof subValue === 'string' && subValue.trim() ? subValue.trim() : null;
-                    
-                case 'yesno':
-                    return this.formatter.formatYesNoValue(subValue, subFieldConfig);
-                    
-                default:
-                    return this.formatter.formatValue(subFieldConfig, subValue);
+        subFields.forEach(subField => {
+            const subValue = subValues[subField.id];
+            if (subValue !== undefined && subValue !== null && subValue !== '') {
+                const subDisplayValue = this.formatFieldValue(subField, subValue);
+                if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
+                    html += `
+                        <div class="summary-row">
+                            <div class="summary-label">${subField.label}:</div>
+                            <div class="summary-value">${subDisplayValue}</div>
+                        </div>
+                    `;
+                }
             }
-        } catch (error) {
-            console.error('🎨 Error formatting sub-field value:', error);
-            return subValue;
-        }
-    }
-
-    // NEW: Check if display value is valid for showing
-    isValidDisplayValue(value) {
-        if (!value) return false;
-        if (Array.isArray(value) && value.length === 0) return false;
-        if (typeof value === 'string') {
-            const trimmed = value.trim();
-            if (!trimmed || trimmed === 'Indifférent' || trimmed === 'Any' || trimmed === 'Non spécifié') {
-                return false;
-            }
-        }
-        return true;
+        });
+        
+        return html;
     }
 
     // UPDATED: formatFieldValue now uses FieldValueFormatter
@@ -5574,6 +5490,9 @@ class CustomField extends BaseField {
         }
         return null;
     }
+
+    // REMOVED: Old formatFieldValue methods - now using FieldValueFormatter
+    // This eliminates ~100 lines of duplicated formatting logic!
 
     getStepData(multiStepForm, stepIndex) {
         const stepInstance = multiStepForm.stepInstances[stepIndex];
