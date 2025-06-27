@@ -2888,6 +2888,8 @@ class YesNoWithOptionsField extends BaseField {
                 return this.factory.createSingleSelectWithOtherField(config);
             case 'multiselect-with-other':
                 return this.factory.createMultiSelectWithOtherField(config);
+	   case 'options-slider':
+    		return this.factory.createOptionsSliderField(config);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
                 return null;
