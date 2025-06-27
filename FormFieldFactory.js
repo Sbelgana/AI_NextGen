@@ -3107,6 +3107,31 @@ class YesNoWithOptionsField extends BaseField {
         }
         return currentValue;
     }
+	const parseYesNoWithOptionsValue = (fieldValue, fieldId) => {
+    if (!fieldValue || typeof fieldValue !== 'object' || fieldValue.main === undefined) {
+        return { main: false, conditionalValues: {} };
+    }
+    
+    let mainIsYes = fieldValue.main === true || fieldValue.main === 'yes';
+    
+    const result = {
+        main: mainIsYes,
+        conditionalValues: {}
+    };
+    
+    // Extract conditional values based on main selection
+    if (mainIsYes && fieldValue.yesValues) {
+        Object.entries(fieldValue.yesValues).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                result.conditionalValues[key] = value;
+            }
+        });
+    } else if (!mainIsYes && fieldValue.noValues) {
+        // Handle "no" conditional values
+    }
+    
+    return result;
+};
 }
 
 /**
