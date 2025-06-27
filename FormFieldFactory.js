@@ -5203,6 +5203,10 @@ class MultiSelectSubsectionsField extends BaseField {
 // FIXED CUSTOMFIELD CLASS - Properly displays YesNoWithOptionsField in summary
 // ============================================================================
 
+// ============================================================================
+// FIXED CUSTOMFIELD CLASS - Properly displays YesNoWithOptions nested values
+// ============================================================================
+
 class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5313,9 +5317,9 @@ class CustomField extends BaseField {
                         });
                     }
                 }
-                // FIXED: Enhanced handling for YesNoWithOptionsField
+                // ENHANCED: Special handling for YesNoWithOptionsField
                 else if (fieldConfig.type === 'yesno-with-options') {
-                    const formattedContent = this.formatYesNoWithOptionsFieldFixed(fieldConfig, fieldValue);
+                    const formattedContent = this.formatYesNoWithOptionsFieldForSummary(fieldConfig, fieldValue);
                     if (formattedContent.trim()) {
                         contentHtml += formattedContent;
                     }
@@ -5335,169 +5339,10 @@ class CustomField extends BaseField {
             }
         });
 
-        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">No data entered</div>';
+        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
     }
 
-    // FIXED: Enhanced YesNoWithOptionsField formatting for summary
-    formatYesNoWithOptionsFieldFixed(fieldConfig, value) {
-        console.log('🎨 CustomField: Formatting YesNoWithOptions for summary:', { fieldConfig, value });
-        
-        let html = '';
-        
-        if (typeof value === 'object' && value.main !== undefined) {
-            // Get main display value
-            let mainDisplayValue = value.main;
-            
-            // Handle custom options (like languageType)
-            if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-                const selectedOption = fieldConfig.customOptions.find(opt => opt.value === value.main);
-                if (selectedOption) {
-                    const label = selectedOption.label;
-                    mainDisplayValue = typeof label === 'object' ? 
-                        (label[this.factory.config?.language] || label.en || label.fr || label) : 
-                        label;
-                }
-            } else {
-                // Standard yes/no translation
-                if (value.main === true || value.main === 'yes') {
-                    mainDisplayValue = this.formatter.getTranslatedText('common.yes');
-                } else if (value.main === false || value.main === 'no') {
-                    mainDisplayValue = this.formatter.getTranslatedText('common.no');
-                }
-            }
-            
-            // Display main field value
-            html += `
-                <div class="summary-row">
-                    <div class="summary-label">${fieldConfig.label}:</div>
-                    <div class="summary-value">${mainDisplayValue}</div>
-                </div>
-            `;
-            
-            // Determine which conditional fields to show
-            let showYesFields = false;
-            let showNoFields = false;
-            
-            if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-                // For custom options like languageType (multilingual/unilingual)
-                showYesFields = value.main === fieldConfig.customOptions[0].value;
-                showNoFields = value.main === fieldConfig.customOptions[1].value;
-            } else {
-                // For standard yes/no fields
-                showYesFields = value.main === true || value.main === 'yes';
-                showNoFields = value.main === false || value.main === 'no';
-            }
-            
-            console.log('🎨 Show conditions:', { showYesFields, showNoFields, mainValue: value.main });
-            
-            // Display YES sub-fields
-            if (showYesFields && value.yesValues) {
-                console.log('🎨 Processing yesValues:', value.yesValues);
-                
-                // Handle yesFields (array) or yesField (single)
-                if (fieldConfig.yesFields && Array.isArray(fieldConfig.yesFields)) {
-                    fieldConfig.yesFields.forEach(subField => {
-                        const subValue = value.yesValues[subField.id];
-                        console.log(`🎨 Processing yesField ${subField.id}:`, subValue);
-                        
-                        if (subValue !== undefined && subValue !== null && subValue !== '') {
-                            const subDisplayValue = this.formatSubFieldValue(subField, subValue);
-                            if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                                html += `
-                                    <div class="summary-row">
-                                        <div class="summary-label">&nbsp;&nbsp;${subField.label}:</div>
-                                        <div class="summary-value">${subDisplayValue}</div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
-                } else if (fieldConfig.yesField) {
-                    const subValue = value.yesValues[fieldConfig.yesField.id];
-                    console.log(`🎨 Processing single yesField ${fieldConfig.yesField.id}:`, subValue);
-                    
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatSubFieldValue(fieldConfig.yesField, subValue);
-                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                            html += `
-                                <div class="summary-row">
-                                    <div class="summary-label">&nbsp;&nbsp;${fieldConfig.yesField.label}:</div>
-                                    <div class="summary-value">${subDisplayValue}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            }
-            
-            // Display NO sub-fields
-            if (showNoFields && value.noValues) {
-                console.log('🎨 Processing noValues:', value.noValues);
-                
-                if (fieldConfig.noField) {
-                    const subValue = value.noValues[fieldConfig.noField.id];
-                    console.log(`🎨 Processing noField ${fieldConfig.noField.id}:`, subValue);
-                    
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatSubFieldValue(fieldConfig.noField, subValue);
-                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                            html += `
-                                <div class="summary-row">
-                                    <div class="summary-label">&nbsp;&nbsp;${fieldConfig.noField.label}:</div>
-                                    <div class="summary-value">${subDisplayValue}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            }
-        } else {
-            // Fallback for simple values
-            const displayValue = this.formatFieldValue(fieldConfig, value);
-            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                html += `
-                    <div class="summary-row">
-                        <div class="summary-label">${fieldConfig.label}:</div>
-                        <div class="summary-value">${displayValue}</div>
-                    </div>
-                `;
-            }
-        }
-        
-        console.log('🎨 Generated HTML:', html);
-        return html;
-    }
-
-    // NEW: Enhanced sub-field value formatting
-    formatSubFieldValue(subFieldConfig, subValue) {
-        console.log('🎨 Formatting sub-field value:', { subFieldConfig, subValue });
-        
-        try {
-            // Handle multiselect fields - the value might be a comma-separated string
-            if (subFieldConfig.type === 'multiselect' || subFieldConfig.type === 'multiselect-with-other') {
-                if (typeof subValue === 'string') {
-                    // Split comma-separated string and format each item
-                    const items = subValue.split(',').map(item => item.trim()).filter(item => item);
-                    return items.join(', ');
-                } else if (Array.isArray(subValue)) {
-                    return subValue.join(', ');
-                }
-            }
-            
-            // Handle select fields
-            if (subFieldConfig.type === 'select') {
-                return this.formatter.formatValue(subFieldConfig, subValue);
-            }
-            
-            // Handle other field types
-            return this.formatFieldValue(subFieldConfig, subValue);
-        } catch (error) {
-            console.error('🎨 Error formatting sub-field value:', error);
-            return subValue;
-        }
-    }
-
-    // Enhanced field filtering for summary display
+    // ENHANCED: Better filtering for summary display
     shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
         // Use the formatter's validation logic for consistency
         if (!this.formatter.shouldDisplayValue(fieldValue)) {
@@ -5534,16 +5379,181 @@ class CustomField extends BaseField {
         return true;
     }
 
-    // Updated formatFieldValue method using FieldValueFormatter
+    // FIXED: Enhanced YesNoWithOptions formatting for summary with nested value display
+    formatYesNoWithOptionsFieldForSummary(fieldConfig, value) {
+        console.log('🎨 Formatting YesNoWithOptions for summary:', { fieldConfig: fieldConfig.id, value });
+        
+        let html = '';
+        
+        if (typeof value === 'object' && value.main !== undefined) {
+            // Get main display value using formatter
+            const mainDisplayValue = this.formatter.formatYesNoValue(value.main, fieldConfig);
+            
+            // Always show the main question and answer
+            html += `
+                <div class="summary-row">
+                    <div class="summary-label">${fieldConfig.label}:</div>
+                    <div class="summary-value">${mainDisplayValue}</div>
+                </div>
+            `;
+            
+            // Determine which conditional fields to show
+            let showYesFields = false;
+            let showNoFields = false;
+            
+            if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                showYesFields = value.main === fieldConfig.customOptions[0].value;
+                showNoFields = value.main === fieldConfig.customOptions[1].value;
+            } else {
+                showYesFields = value.main === true || value.main === 'yes';
+                showNoFields = value.main === false || value.main === 'no';
+            }
+            
+            console.log('🎨 Show nested fields:', { showYesFields, showNoFields, value });
+            
+            // ENHANCED: Display sub-fields when YES is selected
+            if (showYesFields && value.yesValues) {
+                console.log('🎨 Processing yesValues:', value.yesValues);
+                
+                // Handle yesFields (array) or yesField (single)
+                const fieldsToProcess = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
+                
+                fieldsToProcess.forEach(subField => {
+                    const subValue = value.yesValues[subField.id];
+                    console.log(`🎨 Processing subField ${subField.id}:`, subValue);
+                    
+                    if (subValue !== undefined && subValue !== null && subValue !== '') {
+                        const subDisplayValue = this.formatSubFieldValue(subField, subValue);
+                        console.log(`🎨 Formatted subField ${subField.id}:`, subDisplayValue);
+                        
+                        if (subDisplayValue && this.isValidDisplayValue(subDisplayValue)) {
+                            // Handle array values (like multiselect)
+                            if (Array.isArray(subDisplayValue)) {
+                                if (subDisplayValue.length > 0) {
+                                    html += `
+                                        <div class="summary-row summary-sub-field">
+                                            <div class="summary-label">  ${subField.label}:</div>
+                                            <div class="summary-value">${subDisplayValue.join(', ')}</div>
+                                        </div>
+                                    `;
+                                }
+                            } else {
+                                html += `
+                                    <div class="summary-row summary-sub-field">
+                                        <div class="summary-label">  ${subField.label}:</div>
+                                        <div class="summary-value">${subDisplayValue}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                });
+            } 
+            // ENHANCED: Display sub-fields when NO is selected
+            else if (showNoFields && value.noValues) {
+                console.log('🎨 Processing noValues:', value.noValues);
+                
+                if (fieldConfig.noField) {
+                    const subValue = value.noValues[fieldConfig.noField.id];
+                    console.log(`🎨 Processing noField ${fieldConfig.noField.id}:`, subValue);
+                    
+                    if (subValue !== undefined && subValue !== null && subValue !== '') {
+                        const subDisplayValue = this.formatSubFieldValue(fieldConfig.noField, subValue);
+                        console.log(`🎨 Formatted noField ${fieldConfig.noField.id}:`, subDisplayValue);
+                        
+                        if (subDisplayValue && this.isValidDisplayValue(subDisplayValue)) {
+                            html += `
+                                <div class="summary-row summary-sub-field">
+                                    <div class="summary-label">  ${fieldConfig.noField.label}:</div>
+                                    <div class="summary-value">${subDisplayValue}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback for simple values
+            const displayValue = this.formatFieldValue(fieldConfig, value);
+            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
+                html += `
+                    <div class="summary-row">
+                        <div class="summary-label">${fieldConfig.label}:</div>
+                        <div class="summary-value">${displayValue}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        console.log('🎨 Final HTML for summary:', html);
+        return html;
+    }
+
+    // NEW: Enhanced sub-field value formatting
+    formatSubFieldValue(subFieldConfig, subValue) {
+        console.log('🎨 Formatting sub-field value:', { subFieldConfig: subFieldConfig.id, subValue });
+        
+        try {
+            // Special handling for different sub-field types
+            switch (subFieldConfig.type) {
+                case 'multiselect':
+                case 'multiselect-with-other':
+                    // Handle comma-separated string from form data
+                    if (typeof subValue === 'string') {
+                        const values = subValue.split(',').map(v => v.trim()).filter(v => v);
+                        return values.length > 0 ? values : null;
+                    }
+                    // Handle array
+                    if (Array.isArray(subValue)) {
+                        return subValue.length > 0 ? subValue : null;
+                    }
+                    return subValue ? [subValue] : null;
+                    
+                case 'select':
+                case 'select-with-other':
+                    return this.formatter.formatValue(subFieldConfig, subValue);
+                    
+                case 'textarea':
+                    return typeof subValue === 'string' && subValue.trim() ? subValue.trim() : null;
+                    
+                case 'yesno':
+                    return this.formatter.formatYesNoValue(subValue, subFieldConfig);
+                    
+                default:
+                    return this.formatter.formatValue(subFieldConfig, subValue);
+            }
+        } catch (error) {
+            console.error('🎨 Error formatting sub-field value:', error);
+            return subValue;
+        }
+    }
+
+    // NEW: Check if display value is valid for showing
+    isValidDisplayValue(value) {
+        if (!value) return false;
+        if (Array.isArray(value) && value.length === 0) return false;
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (!trimmed || trimmed === 'Indifférent' || trimmed === 'Any' || trimmed === 'Non spécifié') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // UPDATED: formatFieldValue now uses FieldValueFormatter
     formatFieldValue(fieldConfig, value) {
+        // Use custom formatter if provided (for form-specific logic)
         if (this.customValueFormatter && typeof this.customValueFormatter === 'function') {
             try {
                 return this.customValueFormatter(fieldConfig, value, this.formatter);
             } catch (error) {
                 console.warn('Custom value formatter error:', error);
+                // Fallback to standard formatter
             }
         }
         
+        // Use standard formatter
         return this.formatter.formatValue(fieldConfig, value, { summaryMode: true });
     }
 
