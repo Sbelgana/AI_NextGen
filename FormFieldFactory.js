@@ -7983,7 +7983,7 @@ class CreatForm {
         if (firstStep.title) {
             const titleElement = document.createElement('h2');
             titleElement.className = 'form-title';
-            titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
+            titleElement.textContent = '' || firstStep.title;
             container.appendChild(titleElement);
         }
 
@@ -7991,7 +7991,7 @@ class CreatForm {
         if (firstStep.description) {
             const descElement = document.createElement('p');
             descElement.className = 'form-description';
-            descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
+            descElement.textContent = '' || firstStep.description;
             container.appendChild(descElement);
         }
 
