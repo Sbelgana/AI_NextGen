@@ -265,45 +265,115 @@ class FieldValueFormatter {
 // ============================================================================
 
 class BaseDataTransformer {
-    constructor(creatFormInstance, fieldConfigMap = {}) {
+    constructor(creatFormInstance, fieldConfigMap = {}, sectionConfigMap = {}) {
         this.creatFormInstance = creatFormInstance;
         this.formatter = new FieldValueFormatter(creatFormInstance);
         this.fieldConfigMap = fieldConfigMap;
+        this.sectionConfigMap = sectionConfigMap;
         this.config = creatFormInstance?.config || {};
         this.language = this.config.language || 'fr';
+        
+        // Register built-in field processors
+        this.fieldProcessors = new Map([
+            ['text', this.processTextValue.bind(this)],
+            ['email', this.processTextValue.bind(this)],
+            ['phone', this.processTextValue.bind(this)],
+            ['url', this.processTextValue.bind(this)],
+            ['textarea', this.processTextValue.bind(this)],
+            ['select', this.processSelectValue.bind(this)],
+            ['select-with-other', this.processSelectWithOtherValue.bind(this)],
+            ['multiselect', this.processMultiselectValue.bind(this)],
+            ['multiselect-with-other', this.processMultiselectValue.bind(this)],
+            ['yesno', this.processBooleanValue.bind(this)],
+            ['yesno-with-options', this.processYesNoWithOptionsValue.bind(this)]
+        ]);
     }
 
     /**
-     * Main transformation method - override in subclasses
+     * Main transformation method - now more generic
      */
     transform(flatData, originalFormValues) {
         console.log('BaseDataTransformer: Starting transformation...', { flatData, originalFormValues });
         
-        // Default structured format
         return {
             submissionType: this.getSubmissionType(),
             formVersion: this.getFormVersion(),
             submissionTimestamp: new Date().toISOString(),
             language: this.language,
-            
-            // Transform to sections
             sections: this.createSections(flatData, originalFormValues),
-            
-            // Keep flat data for compatibility
-            flatData: flatData,
-            
-            // Add metadata
             metadata: this.generateMetadata(flatData, originalFormValues)
         };
     }
 
     /**
-     * Create sections from form data - can be overridden
+     * Enhanced section creation with configuration-driven approach
      */
     createSections(flatData, originalFormValues) {
         const sections = {};
         
-        // Group by form steps
+        // Use section configuration if provided
+        if (Object.keys(this.sectionConfigMap).length > 0) {
+            for (const [sectionId, sectionConfig] of Object.entries(this.sectionConfigMap)) {
+                const sectionData = this.createConfiguredSection(sectionId, sectionConfig, flatData, originalFormValues);
+                if (Object.keys(sectionData).length > 0) {
+                    sections[sectionId] = {
+                        sectionType: sectionConfig.type || sectionId,
+                        ...sectionData
+                    };
+                }
+            }
+        } else {
+            // Fallback to step-based approach
+            return this.createStepBasedSections(flatData, originalFormValues);
+        }
+        
+        return sections;
+    }
+
+    /**
+     * Create section from configuration
+     */
+    createConfiguredSection(sectionId, sectionConfig, flatData, originalFormValues) {
+        const sectionData = {};
+        
+        // Process included fields
+        if (sectionConfig.fields) {
+            sectionConfig.fields.forEach(fieldId => {
+                const fieldValue = originalFormValues[fieldId];
+                const fieldConfig = this.getFieldConfig(fieldId);
+                
+                if (this.shouldIncludeField({ id: fieldId, ...fieldConfig }, fieldValue)) {
+                    const processedValue = this.processFieldValue(fieldId, fieldConfig, fieldValue, originalFormValues);
+                    
+                    // Apply field transformations if specified
+                    if (sectionConfig.transformations && sectionConfig.transformations[fieldId]) {
+                        const transformation = sectionConfig.transformations[fieldId];
+                        sectionData[transformation.outputKey || fieldId] = transformation.transform 
+                            ? transformation.transform(processedValue, fieldValue, originalFormValues)
+                            : processedValue;
+                    } else {
+                        sectionData[fieldId] = processedValue;
+                    }
+                }
+            });
+        }
+
+        // Apply computed fields
+        if (sectionConfig.computedFields) {
+            Object.entries(sectionConfig.computedFields).forEach(([fieldId, computation]) => {
+                sectionData[fieldId] = computation(sectionData, originalFormValues, flatData);
+            });
+        }
+
+        return sectionData;
+    }
+
+    /**
+     * Fallback step-based section creation
+     */
+    createStepBasedSections(flatData, originalFormValues) {
+        const sections = {};
+        
         if (this.creatFormInstance.formConfig?.steps) {
             this.creatFormInstance.formConfig.steps.forEach((stepConfig, stepIndex) => {
                 const sectionData = this.createSectionFromStep(stepConfig, stepIndex, flatData, originalFormValues);
@@ -321,109 +391,68 @@ class BaseDataTransformer {
     }
 
     /**
-     * Create section data from a step configuration
+     * Enhanced field value processing with type-specific handlers
      */
-    createSectionFromStep(stepConfig, stepIndex, flatData, originalFormValues) {
-        const sectionData = {};
-        
-        stepConfig.fields?.forEach(fieldConfig => {
-            const fieldValue = originalFormValues[fieldConfig.id];
-            if (this.shouldIncludeField(fieldConfig, fieldValue)) {
-                sectionData[fieldConfig.id] = this.transformFieldValue(fieldConfig, fieldValue, originalFormValues);
-            }
-        });
-        
-        return sectionData;
-    }
-
-    /**
-     * Transform individual field value
-     */
-    transformFieldValue(fieldConfig, value, originalFormValues) {
-        const config = this.getFieldConfig(fieldConfig.id);
-        
-        // Use formatter for display value
-        const displayValue = this.formatter.formatValue(fieldConfig, value);
-        
-        // Return structured field data
-        return {
-            rawValue: value,
-            displayValue: displayValue,
-            fieldType: fieldConfig.type,
-            ...this.getAdditionalFieldData(fieldConfig, value, config)
-        };
-    }
-
-    /**
-     * Get additional field-specific data - can be overridden
-     */
-    getAdditionalFieldData(fieldConfig, value, config) {
-        return {};
-    }
-
-    /**
-     * Check if field should be included in transformation
-     */
-    shouldIncludeField(fieldConfig, fieldValue) {
-        return this.formatter.shouldDisplayValue(fieldValue);
-    }
-
-    /**
-     * Get field configuration from the field config map
-     */
-    getFieldConfig(fieldId) {
-        return this.fieldConfigMap[fieldId] || {};
-    }
-
-    /**
-     * Generate metadata - can be overridden
-     */
-    generateMetadata(flatData, originalFormValues) {
-        return {
-            transformationTimestamp: new Date().toISOString(),
-            transformerType: this.constructor.name,
-            totalFields: Object.keys(originalFormValues).length,
-            completedFields: Object.keys(originalFormValues).filter(key => 
-                this.formatter.shouldDisplayValue(originalFormValues[key])
-            ).length
-        };
-    }
-
-    /**
-     * Get submission type - can be overridden
-     */
-    getSubmissionType() {
-        return this.config.formType === "booking" ? "booking_form" : "submission_form";
-    }
-
-    /**
-     * Get form version
-     */
-    getFormVersion() {
-        return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
-    }
-
-    /**
-     * Utility method to extract simple values (for backward compatibility)
-     */
-    extractValue(value) {
-        if (this.creatFormInstance && this.creatFormInstance.extractValue) {
-            return this.creatFormInstance.extractValue(value);
+    processFieldValue(fieldId, fieldConfig, value, originalFormValues) {
+        const processor = this.fieldProcessors.get(fieldConfig.type);
+        if (processor) {
+            return processor(fieldConfig, value, originalFormValues);
         }
-        return this.formatter.formatValue({}, value);
+        
+        // Fallback to basic processing
+        return this.safeExtractValue(value);
     }
 
     // ============================================================================
-    // GENERIC HELPER METHODS - Moved from specific transformers for reusability
+    // FIELD PROCESSORS - Type-specific value processing
+    // ============================================================================
+
+    processTextValue(fieldConfig, value, originalFormValues) {
+        return this.safeExtractValue(value);
+    }
+
+    processSelectValue(fieldConfig, value, originalFormValues) {
+        return this.safeExtractValue(value);
+    }
+
+    processSelectWithOtherValue(fieldConfig, value, originalFormValues) {
+        if (typeof value === 'object' && value !== null) {
+            return {
+                selected: value.selected || '',
+                other: value.other || '',
+                display: value.other || value.selected || ''
+            };
+        }
+        return this.safeExtractValue(value);
+    }
+
+    processMultiselectValue(fieldConfig, value, originalFormValues) {
+        const arrayValue = this.safeArrayValue(value);
+        return {
+            values: arrayValue,
+            display: arrayValue.join(', '),
+            count: arrayValue.length
+        };
+    }
+
+    processBooleanValue(fieldConfig, value, originalFormValues) {
+        const boolValue = this.safeBooleanValue(value);
+        return {
+            value: boolValue,
+            display: this.getBooleanDisplay(boolValue)
+        };
+    }
+
+    processYesNoWithOptionsValue(fieldConfig, value, originalFormValues) {
+        return this.safeExtractYesNoWithOptions(value, fieldConfig.id, fieldConfig.subFields || {}, fieldConfig);
+    }
+
+    // ============================================================================
+    // ENHANCED UTILITY METHODS - Moved from SubmissionFormTransformer
     // ============================================================================
 
     /**
-     * Enhanced YesNo with Options field extractor - handles complex nested field structures
-     * @param {*} fieldValue - The field value to extract
-     * @param {string} fieldName - Field name for error reporting
-     * @param {Object} subFieldConfigs - Configuration for sub-fields
-     * @param {Object} mainFieldConfig - Configuration for main field
-     * @returns {Object} - Extracted main value and sub-values
+     * Safely extract yes/no fields with conditional options
      */
     safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
         let mainValue = false;
@@ -451,15 +480,13 @@ class BaseDataTransformer {
                         Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
                             if (subValue !== undefined && subValue !== null && subValue !== '') {
                                 const subFieldConfig = subFieldConfigs[key] || {};
-                                extractedValues[key] = this.safeFormatFieldValue(subFieldConfig, subValue, key);
+                                extractedValues[key] = this.processFieldValue(key, subFieldConfig, subValue, {});
                             }
                         });
                     }
                 });
-            } else if (typeof fieldValue === 'string') {
-                mainValue = fieldValue === 'yes' || fieldValue === 'true';
-            } else if (typeof fieldValue === 'boolean') {
-                mainValue = fieldValue;
+            } else {
+                mainValue = this.safeBooleanValue(fieldValue);
             }
         } catch (error) {
             console.error(`Error extracting yesno-with-options for ${fieldName}:`, error);
@@ -467,108 +494,79 @@ class BaseDataTransformer {
             extractedValues = {};
         }
 
-        return { mainValue, extractedValues };
+        return { 
+            mainValue, 
+            extractedValues,
+            display: this.getBooleanDisplay(mainValue)
+        };
     }
 
     /**
-     * Safe field value formatter with multiselect support
-     * @param {Object} fieldConfig - Field configuration
-     * @param {*} value - Value to format
-     * @param {string} fieldName - Field name for error reporting
-     * @returns {*} - Formatted value
-     */
-    safeFormatFieldValue(fieldConfig, value, fieldName) {
-        try {
-            if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
-                if (Array.isArray(value)) {
-                    return value.map(v => this.formatter.formatValue(fieldConfig, v));
-                } else if (typeof value === 'string') {
-                    return value.split(',').map(v => v.trim()).filter(v => v);
-                } else {
-                    return [];
-                }
-            }
-            return this.formatter.formatValue(fieldConfig, value);
-        } catch (error) {
-            console.error(`Error formatting field ${fieldName}:`, error);
-            return value;
-        }
-    }
-
-    /**
-     * Safe value extraction with fallback
-     * @param {*} value - Value to extract
-     * @returns {string} - Extracted value or empty string
+     * Safe value extraction methods
      */
     safeExtractValue(value) {
         try {
+            if (value === null || value === undefined || value === '') {
+                return '';
+            }
+            if (typeof value === 'object' && value.display !== undefined) {
+                return value.display;
+            }
             return this.formatter.formatValue({}, value) || '';
         } catch (error) {
+            console.error('Error extracting value:', error);
             return '';
         }
     }
 
-    /**
-     * Ensure value is an array
-     * @param {*} value - Value to convert
-     * @returns {Array} - Array value
-     */
     safeArrayValue(value) {
         if (Array.isArray(value)) {
-            return value;
-        } else if (typeof value === 'string' && value) {
+            return value.filter(v => v !== null && v !== undefined && v !== '');
+        } else if (typeof value === 'string' && value.trim()) {
+            return value.split(',').map(v => v.trim()).filter(v => v);
+        } else if (value !== null && value !== undefined && value !== '') {
             return [value];
-        } else {
-            return [];
         }
+        return [];
     }
 
-    /**
-     * Ensure value is a string
-     * @param {*} value - Value to convert
-     * @returns {string} - String value
-     */
     safeStringValue(value) {
         if (typeof value === 'string') {
             return value;
         } else if (Array.isArray(value)) {
             return value.join(', ');
-        } else {
-            return '';
+        } else if (value !== null && value !== undefined) {
+            return String(value);
         }
+        return '';
     }
 
-    /**
-     * Ensure value is a boolean
-     * @param {*} value - Value to convert
-     * @returns {boolean} - Boolean value
-     */
     safeBooleanValue(value) {
         if (typeof value === 'boolean') {
             return value;
         } else if (typeof value === 'string') {
-            return value === 'yes' || value === 'true' || value === 'Oui';
-        } else {
-            return false;
+            const lowerValue = value.toLowerCase();
+            return lowerValue === 'yes' || lowerValue === 'true' || lowerValue === 'oui' || lowerValue === '1';
+        } else if (typeof value === 'number') {
+            return value === 1;
         }
+        return false;
     }
 
     /**
-     * Get localized label from multilingual object
-     * @param {*} label - Label object or string
-     * @returns {string} - Localized label
+     * Get boolean display value based on language
      */
-    getLocalizedLabel(label) {
-        if (typeof label === 'object' && label !== null) {
-            return label[this.language] || label.en || label.fr || Object.values(label)[0];
+    getBooleanDisplay(value) {
+        if (this.creatFormInstance && this.creatFormInstance.getText) {
+            return value 
+                ? this.creatFormInstance.getText('common.yes')
+                : this.creatFormInstance.getText('common.no');
         }
-        return label;
+        return value ? 'Yes' : 'No';
     }
 
     /**
-     * Get translated text with fallback
-     * @param {string} path - Translation path
-     * @returns {string} - Translated text
+     * Get localized text
      */
     getText(path) {
         try {
@@ -577,143 +575,120 @@ class BaseDataTransformer {
             }
             return path;
         } catch (error) {
+            console.error('Error getting text:', error);
             return path;
         }
     }
 
-    // ============================================================================
-    // GENERIC SECTION BUILDERS - Reusable patterns for common section types
-    // ============================================================================
-
     /**
-     * Build a simple key-value section
-     * @param {string} sectionType - Section type identifier
-     * @param {Object} fieldMappings - Mapping of output keys to input field names
-     * @param {Object} flatData - Flat form data
-     * @param {Object} options - Additional options
-     * @returns {Object} - Section data
+     * Get localized label from multilingual object
      */
-    buildSimpleSection(sectionType, fieldMappings, flatData, options = {}) {
-        const section = { sectionType };
-        
-        Object.entries(fieldMappings).forEach(([outputKey, inputField]) => {
-            if (typeof inputField === 'string') {
-                section[outputKey] = this.safeExtractValue(flatData[inputField]) || options.defaultValue || '';
-            } else if (typeof inputField === 'object') {
-                // Handle complex field mappings
-                if (inputField.type === 'concatenate') {
-                    section[outputKey] = inputField.fields
-                        .map(field => this.safeExtractValue(flatData[field]))
-                        .filter(val => val)
-                        .join(inputField.separator || ' ');
-                } else if (inputField.type === 'conditional') {
-                    section[outputKey] = flatData[inputField.field] ? 
-                        this.safeExtractValue(flatData[inputField.field]) : 
-                        (inputField.fallback || options.defaultValue || '');
-                }
-            }
-        });
-        
-        return section;
-    }
-
-    /**
-     * Build a boolean features section
-     * @param {string} sectionType - Section type identifier
-     * @param {Array} booleanFields - Array of boolean field names
-     * @param {Object} flatData - Flat form data
-     * @returns {Object} - Section data
-     */
-    buildBooleanSection(sectionType, booleanFields, flatData) {
-        const section = { sectionType };
-        
-        booleanFields.forEach(fieldName => {
-            section[fieldName] = this.safeBooleanValue(flatData[fieldName]);
-        });
-        
-        return section;
-    }
-
-    /**
-     * Build a complex field section with YesNo options support
-     * @param {string} sectionType - Section type identifier
-     * @param {Object} complexFields - Configuration for complex fields
-     * @param {Object} originalFormValues - Original form values
-     * @param {Object} flatData - Flat form data
-     * @returns {Object} - Section data
-     */
-    buildComplexFieldSection(sectionType, complexFields, originalFormValues, flatData) {
-        const section = { sectionType };
-        
-        Object.entries(complexFields).forEach(([outputKey, fieldConfig]) => {
-            if (fieldConfig.type === 'yesno-with-options') {
-                const result = this.safeExtractYesNoWithOptions(
-                    originalFormValues[fieldConfig.fieldName],
-                    fieldConfig.fieldName,
-                    fieldConfig.subFieldConfigs || {},
-                    fieldConfig.mainFieldConfig || {}
-                );
-                
-                // Add main value
-                section[outputKey] = result.mainValue;
-                
-                // Add extracted sub-values
-                Object.entries(result.extractedValues).forEach(([key, value]) => {
-                    if (fieldConfig.arrayFields && fieldConfig.arrayFields.includes(key)) {
-                        const arrayValue = this.safeArrayValue(value);
-                        section[key] = arrayValue;
-                        section[`${key}String`] = arrayValue.join(', ');
-                    } else {
-                        section[key] = this.safeStringValue(value);
-                    }
-                });
-            } else if (fieldConfig.type === 'simple') {
-                section[outputKey] = this.safeExtractValue(flatData[fieldConfig.fieldName]) || '';
-            }
-        });
-        
-        return section;
-    }
-
-    // ============================================================================
-    // OPTION DISPLAY HELPERS - For handling select field display values
-    // ============================================================================
-
-    /**
-     * Get display value for custom options (handles both value/id and label/name structures)
-     * @param {Array} options - Custom options array
-     * @param {*} selectedValue - Selected value
-     * @returns {string} - Display value
-     */
-    getCustomOptionDisplay(options, selectedValue) {
-        if (!Array.isArray(options) || !selectedValue) return selectedValue;
-        
-        const option = options.find(opt => 
-            (opt.value && opt.value === selectedValue) || 
-            (opt.id && opt.id === selectedValue)
-        );
-        
-        if (option) {
-            const label = option.label || option.name;
-            return this.getLocalizedLabel(label);
+    getLocalizedLabel(label) {
+        if (typeof label === 'object' && label !== null) {
+            return label[this.language] || label.en || label.fr || Object.values(label)[0];
         }
-        
-        return selectedValue;
+        return label;
+    }
+
+    // ============================================================================
+    // CONFIGURATION AND TEMPLATES
+    // ============================================================================
+
+    /**
+     * Register custom field processor
+     */
+    registerFieldProcessor(type, processor) {
+        this.fieldProcessors.set(type, processor);
     }
 
     /**
-     * Get multiple display values for arrays
-     * @param {Array} options - Custom options array
-     * @param {Array} selectedValues - Selected values array
-     * @returns {Array} - Display values array
+     * Create common section templates
      */
-    getMultipleCustomOptionDisplays(options, selectedValues) {
-        if (!Array.isArray(selectedValues)) return [];
+    static createSectionTemplate(type, fields, options = {}) {
+        const templates = {
+            contact: {
+                type: 'contact_information',
+                fields: ['firstName', 'lastName', 'email', 'phone', 'company'],
+                computedFields: {
+                    fullName: (data) => `${data.firstName || ''} ${data.lastName || ''}`.trim()
+                }
+            },
+            project: {
+                type: 'project_specifications', 
+                fields: ['niche', 'budget', 'description'],
+                transformations: {
+                    niche: {
+                        outputKey: 'industry',
+                        transform: (value) => value || 'Not specified'
+                    }
+                }
+            },
+            business: {
+                type: 'business_profile',
+                fields: ['teamSize', 'services']
+            }
+        };
+
+        return {
+            ...templates[type],
+            ...options
+        };
+    }
+
+    // ============================================================================
+    // EXISTING METHODS (maintained for compatibility)
+    // ============================================================================
+
+    createSectionFromStep(stepConfig, stepIndex, flatData, originalFormValues) {
+        const sectionData = {};
         
-        return selectedValues.map(value => this.getCustomOptionDisplay(options, value));
+        stepConfig.fields?.forEach(fieldConfig => {
+            const fieldValue = originalFormValues[fieldConfig.id];
+            if (this.shouldIncludeField(fieldConfig, fieldValue)) {
+                sectionData[fieldConfig.id] = this.processFieldValue(
+                    fieldConfig.id, 
+                    fieldConfig, 
+                    fieldValue, 
+                    originalFormValues
+                );
+            }
+        });
+        
+        return sectionData;
+    }
+
+    shouldIncludeField(fieldConfig, fieldValue) {
+        return this.formatter.shouldDisplayValue(fieldValue);
+    }
+
+    getFieldConfig(fieldId) {
+        return this.fieldConfigMap[fieldId] || {};
+    }
+
+    generateMetadata(flatData, originalFormValues) {
+        return {
+            transformationTimestamp: new Date().toISOString(),
+            transformerType: this.constructor.name,
+            totalFields: Object.keys(originalFormValues).length,
+            completedFields: Object.keys(originalFormValues).filter(key => 
+                this.formatter.shouldDisplayValue(originalFormValues[key])
+            ).length,
+            language: this.language
+        };
+    }
+
+    getSubmissionType() {
+        return this.config.formType === "booking" ? "booking_form" : "submission_form";
+    }
+
+    getFormVersion() {
+        return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
+    }
+
+    extractValue(value) {
+        return this.safeExtractValue(value);
     }
 }
-
 // ============================================================================
 // 3. CHATBOT FORM DATA TRANSFORMER - Specific implementation
 // ============================================================================
