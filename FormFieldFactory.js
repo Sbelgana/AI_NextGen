@@ -12962,590 +12962,499 @@ class CurrentAppointmentCardField extends BaseField {
         }
 
 
-// ============================================================================
-// CONFIGURABLE DATA TRANSFORMATION SYSTEM
-// ============================================================================
-
-class DataTransformerFactory {
-    constructor(config = {}) {
-        this.config = {
-            defaultLanguage: config.defaultLanguage || 'fr',
-            enableLogging: config.enableLogging || false,
-            logPrefix: config.logPrefix || '🔄 DataTransformer'
-        };
-        
-        this.fieldExtractors = new Map();
-        this.sectionBuilders = new Map();
-        this.visibilityRules = new Map();
-        this.optionsCache = new Map();
-        
-        this.initializeDefaultExtractors();
-    }
-
     // ============================================================================
-    // FIELD VALUE EXTRACTORS - Reusable components
-    // ============================================================================
-    initializeDefaultExtractors() {
-        // Basic field extractors
-        this.registerFieldExtractor('text', (value) => this.extractSimpleValue(value));
-        this.registerFieldExtractor('email', (value) => this.extractSimpleValue(value));
-        this.registerFieldExtractor('phone', (value) => this.extractSimpleValue(value));
-        this.registerFieldExtractor('textarea', (value) => this.extractSimpleValue(value));
-        this.registerFieldExtractor('number', (value) => this.extractSimpleValue(value));
-        this.registerFieldExtractor('url', (value) => this.extractSimpleValue(value));
-        
-        // Boolean field extractors
-        this.registerFieldExtractor('yesno', (value, fieldConfig, context) => {
-            return this.extractYesNoValue(value, fieldConfig, context);
-        });
-        
-        // Selection field extractors
-        this.registerFieldExtractor('select', (value, fieldConfig, context) => {
-            return this.extractSelectValue(value, fieldConfig, context);
-        });
-        
-        this.registerFieldExtractor('multiselect', (value, fieldConfig, context) => {
-            return this.extractMultiSelectValue(value, fieldConfig, context);
-        });
-        
-        this.registerFieldExtractor('select-with-other', (value, fieldConfig, context) => {
-            return this.extractSelectWithOtherValue(value, fieldConfig, context);
-        });
-        
-        this.registerFieldExtractor('multiselect-with-other', (value, fieldConfig, context) => {
-            return this.extractMultiSelectWithOtherValue(value, fieldConfig, context);
-        });
-        
-        // Complex field extractors
-        this.registerFieldExtractor('yesno-with-options', (value, fieldConfig, context) => {
-            return this.extractYesNoWithOptionsValue(value, fieldConfig, context);
-        });
-    }
+        // FIXED DATA TRANSFORMER FACTORY SYSTEM
+        // ============================================================================
 
-    registerFieldExtractor(fieldType, extractorFunction) {
-        this.fieldExtractors.set(fieldType, extractorFunction);
-    }
-
-    registerSectionBuilder(sectionId, builderFunction) {
-        this.sectionBuilders.set(sectionId, builderFunction);
-    }
-
-    registerVisibilityRule(ruleId, ruleFunction) {
-        this.visibilityRules.set(ruleId, ruleFunction);
-    }
-
-    // ============================================================================
-    // CORE VALUE EXTRACTION METHODS
-    // ============================================================================
-    extractSimpleValue(value) {
-        if (value === null || value === undefined || value === '') return '';
-        return String(value).trim();
-    }
-
-    extractYesNoValue(value, fieldConfig, context) {
-        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-            const option = fieldConfig.customOptions.find(opt => opt.value === value);
-            if (option) {
-                const label = option.label;
-                return typeof label === 'object' ? 
-                    (label[context.language] || label.en || label.fr) : 
-                    label;
+        class DataTransformerFactory {
+            constructor(config = {}) {
+                this.config = {
+                    defaultLanguage: config.defaultLanguage || 'fr',
+                    enableLogging: config.enableLogging || false,
+                    logPrefix: config.logPrefix || '🔄 DataTransformer'
+                };
+                
+                this.fieldExtractors = new Map();
+                this.sectionBuilders = new Map();
+                this.optionsCache = new Map();
+                
+                this.initializeDefaultExtractors();
             }
-        }
-        
-        if (value === true || value === 'yes') {
-            return context.getText('common.yes') || 'Oui';
-        } else if (value === false || value === 'no') {
-            return context.getText('common.no') || 'Non';
-        }
-        
-        return value;
-    }
 
-    extractSelectValue(value, fieldConfig, context) {
-        if (!value) return '';
-        return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
-    }
+            // ============================================================================
+            // ENHANCED FIELD VALUE EXTRACTORS
+            // ============================================================================
+            initializeDefaultExtractors() {
+                // Basic field extractors
+                this.registerFieldExtractor('text', (value, fieldConfig, context) => {
+                    return this.extractSimpleValue(value);
+                });
+                
+                this.registerFieldExtractor('email', (value, fieldConfig, context) => {
+                    return this.extractSimpleValue(value);
+                });
+                
+                this.registerFieldExtractor('phone', (value, fieldConfig, context) => {
+                    return this.extractSimpleValue(value);
+                });
+                
+                this.registerFieldExtractor('textarea', (value, fieldConfig, context) => {
+                    return this.extractSimpleValue(value);
+                });
+                
+                this.registerFieldExtractor('url', (value, fieldConfig, context) => {
+                    return this.extractSimpleValue(value);
+                });
 
-    extractMultiSelectValue(value, fieldConfig, context) {
-        if (!Array.isArray(value) || value.length === 0) return [];
-        
-        return value.map(item => 
-            this.getOptionDisplayName(fieldConfig.optionsPath, item, context)
-        ).filter(Boolean);
-    }
+                // Boolean field extractors
+                this.registerFieldExtractor('yesno', (value, fieldConfig, context) => {
+                    return this.extractYesNoValue(value, fieldConfig, context);
+                });
+                
+                // Selection field extractors  
+                this.registerFieldExtractor('select', (value, fieldConfig, context) => {
+                    return this.extractSelectValue(value, fieldConfig, context);
+                });
+                
+                this.registerFieldExtractor('multiselect', (value, fieldConfig, context) => {
+                    return this.extractMultiSelectValue(value, fieldConfig, context);
+                });
+                
+                this.registerFieldExtractor('select-with-other', (value, fieldConfig, context) => {
+                    return this.extractSelectWithOtherValue(value, fieldConfig, context);
+                });
+                
+                this.registerFieldExtractor('multiselect-with-other', (value, fieldConfig, context) => {
+                    return this.extractMultiSelectWithOtherValue(value, fieldConfig, context);
+                });
+                
+                // Complex field extractors
+                this.registerFieldExtractor('yesno-with-options', (value, fieldConfig, context) => {
+                    return this.extractYesNoWithOptionsValue(value, fieldConfig, context);
+                });
 
-    extractSelectWithOtherValue(value, fieldConfig, context) {
-        if (typeof value === 'object' && value.main) {
-            if (value.main === 'other' && value.other) {
-                return value.other.trim();
-            }
-            return this.getOptionDisplayName(fieldConfig.optionsPath, value.main, context);
-        }
-        
-        return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
-    }
-
-    extractMultiSelectWithOtherValue(value, fieldConfig, context) {
-        if (typeof value === 'object' && value.main) {
-            const mainValues = Array.isArray(value.main) ? 
-                value.main.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)) : [];
-            
-            if (value.other && value.other.trim()) {
-                mainValues.push(value.other.trim());
-            }
-            return mainValues.filter(Boolean);
-        }
-        
-        return Array.isArray(value) ? 
-            value.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)).filter(Boolean) : 
-            [];
-    }
-
-    extractYesNoWithOptionsValue(value, fieldConfig, context) {
-        if (typeof value !== 'object' || !value || value.main === undefined) {
-            return { main: '', conditionalValues: {} };
-        }
-        
-        // Extract main value
-        let mainValue = this.extractYesNoValue(value.main, fieldConfig, context);
-        
-        // Determine which conditional fields to extract
-        const conditionalValues = {};
-        let shouldExtractYes = false;
-        let shouldExtractNo = false;
-        
-        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-            shouldExtractYes = value.main === fieldConfig.customOptions[0].value;
-            shouldExtractNo = value.main === fieldConfig.customOptions[1].value;
-        } else {
-            shouldExtractYes = value.main === true || value.main === 'yes';
-            shouldExtractNo = value.main === false || value.main === 'no';
-        }
-        
-        // Extract conditional values
-        if (shouldExtractYes && value.yesValues) {
-            conditionalValues.yesValues = this.extractConditionalValues(
-                value.yesValues, 
-                fieldConfig.yesFields || [fieldConfig.yesField].filter(Boolean), 
-                context
-            );
-        }
-        
-        if (shouldExtractNo && value.noValues) {
-            conditionalValues.noValues = this.extractConditionalValues(
-                value.noValues, 
-                [fieldConfig.noField].filter(Boolean), 
-                context
-            );
-        }
-        
-        return { main: mainValue, conditionalValues };
-    }
-
-    extractConditionalValues(valuesObject, fieldConfigs, context) {
-        const extracted = {};
-        
-        if (!valuesObject || !fieldConfigs) return extracted;
-        
-        fieldConfigs.forEach(fieldConfig => {
-            if (!fieldConfig) return;
-            
-            const value = valuesObject[fieldConfig.id];
-            if (value !== undefined && value !== null && value !== '') {
-                const extractor = this.fieldExtractors.get(fieldConfig.type) || 
-                                this.fieldExtractors.get('text');
-                extracted[fieldConfig.id] = extractor(value, fieldConfig, context);
-            }
-        });
-        
-        return extracted;
-    }
-
-    // ============================================================================
-    // OPTIONS HANDLING WITH CACHING
-    // ============================================================================
-    getOptionDisplayName(optionsPath, value, context) {
-        if (!optionsPath || !value) return value;
-        
-        // Try to get from cache first
-        const cacheKey = `${optionsPath}:${context.language}`;
-        let options = this.optionsCache.get(cacheKey);
-        
-        if (!options && context.getData) {
-            options = context.getData(optionsPath);
-            this.optionsCache.set(cacheKey, options);
-        }
-        
-        if (!options || !Array.isArray(options)) return value;
-        
-        const option = options.find(opt => opt.id === value);
-        if (option) {
-            const name = option.name;
-            if (typeof name === 'object') {
-                return name[context.language] || name.en || name.fr || value;
-            }
-            return name || option.label || value;
-        }
-        
-        return value;
-    }
-
-    // ============================================================================
-    // SECTION-BASED DATA TRANSFORMATION
-    // ============================================================================
-    createStructuredTransformer(transformationConfig) {
-        return (flatData, originalFormValues, creatFormInstance) => {
-            const context = this.createTransformationContext(flatData, originalFormValues, creatFormInstance);
-            
-            this.log('Starting structured transformation', {
-                flatDataKeys: Object.keys(flatData),
-                configSections: Object.keys(transformationConfig.sections || {})
-            });
-            
-            const sections = {};
-            
-            // Build each configured section
-            Object.entries(transformationConfig.sections || {}).forEach(([sectionId, sectionConfig]) => {
-                try {
-                    const sectionData = this.buildSection(sectionId, sectionConfig, context);
-                    if (sectionData && Object.keys(sectionData).length > 0) {
-                        sections[sectionId] = sectionData;
+                // Custom extractor for teamSize
+                this.registerFieldExtractor('teamSize', (value, fieldConfig, context) => {
+                    const teamSizeOptions = [
+                        { id: 'solo', name: { fr: "Entrepreneur individuel", en: "Individual Entrepreneur" } },
+                        { id: 'small', name: { fr: "TPE (2-10 employés)", en: "Small Business (2-10 employees)" } },
+                        { id: 'medium', name: { fr: "PME (11-50 employés)", en: "Medium Business (11-50 employees)" } },
+                        { id: 'large', name: { fr: "Grande entreprise (50+ employés)", en: "Large Enterprise (50+ employees)" } }
+                    ];
+                    
+                    const option = teamSizeOptions.find(opt => opt.id === value);
+                    if (option) {
+                        const name = option.name;
+                        return typeof name === 'object' ? (name[context.language] || name.en) : name;
                     }
-                } catch (error) {
-                    console.error(`Error building section ${sectionId}:`, error);
+                    return value;
+                });
+            }
+
+            registerFieldExtractor(fieldType, extractorFunction) {
+                this.fieldExtractors.set(fieldType, extractorFunction);
+            }
+
+            registerSectionBuilder(sectionId, builderFunction) {
+                this.sectionBuilders.set(sectionId, builderFunction);
+            }
+
+            // ============================================================================
+            // CORE VALUE EXTRACTION METHODS
+            // ============================================================================
+            extractSimpleValue(value) {
+                if (value === null || value === undefined || value === '') return '';
+                return String(value).trim();
+            }
+
+            extractYesNoValue(value, fieldConfig, context) {
+                if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                    const option = fieldConfig.customOptions.find(opt => opt.value === value);
+                    if (option) {
+                        const label = option.label;
+                        return typeof label === 'object' ? 
+                            (label[context.language] || label.en || label.fr) : 
+                            label;
+                    }
                 }
-            });
-            
-            // Create final structured payload
-            const structuredPayload = {
-                submissionType: transformationConfig.submissionType || "form_submission",
-                formVersion: transformationConfig.formVersion || "1.0.0",
-                submissionTimestamp: new Date().toISOString(),
-                language: context.language,
                 
-                sections: sections,
-                
-                // Legacy flat data for backwards compatibility
-                flatData: flatData,
-                
-                // Generate metadata
-                metadata: this.generateMetadata(flatData, originalFormValues, context, transformationConfig)
-            };
-            
-            this.log('Structured transformation completed', {
-                sectionsCreated: Object.keys(sections),
-                totalFields: Object.keys(flatData).length
-            });
-            
-            return structuredPayload;
-        };
-    }
-
-    createTransformationContext(flatData, originalFormValues, creatFormInstance) {
-        return {
-            flatData,
-            originalFormValues,
-            creatFormInstance,
-            language: creatFormInstance?.config?.language || this.config.defaultLanguage,
-            getText: (path) => creatFormInstance?.getText?.(path) || path,
-            getData: (path) => creatFormInstance?.getData?.(path) || [],
-            extractValue: (fieldId, fieldConfig) => this.extractFieldValue(
-                originalFormValues[fieldId], 
-                fieldConfig, 
-                creatFormInstance
-            )
-        };
-    }
-
-    buildSection(sectionId, sectionConfig, context) {
-        // Use custom section builder if registered
-        if (this.sectionBuilders.has(sectionId)) {
-            return this.sectionBuilders.get(sectionId)(sectionConfig, context);
-        }
-        
-        // Default section building
-        const sectionData = {
-            sectionType: sectionId,
-            ...sectionConfig.staticFields || {}
-        };
-        
-        // Process field mappings
-        if (sectionConfig.fieldMappings) {
-            Object.entries(sectionConfig.fieldMappings).forEach(([targetField, sourceConfig]) => {
-                const value = this.extractMappedFieldValue(sourceConfig, context);
-                if (value !== null && value !== undefined && value !== '') {
-                    sectionData[targetField] = value;
+                if (value === true || value === 'yes') {
+                    return context.getText('common.yes') || 'Oui';
+                } else if (value === false || value === 'no') {
+                    return context.getText('common.no') || 'Non';
                 }
-            });
-        }
-        
-        // Apply post-processing if configured
-        if (sectionConfig.postProcess && typeof sectionConfig.postProcess === 'function') {
-            try {
-                return sectionConfig.postProcess(sectionData, context);
-            } catch (error) {
-                console.error(`Error in post-processing for section ${sectionId}:`, error);
+                
+                return value;
             }
-        }
-        
-        return sectionData;
-    }
 
-    extractMappedFieldValue(sourceConfig, context) {
-        if (typeof sourceConfig === 'string') {
-            // Simple field mapping
-            return context.flatData[sourceConfig] || '';
-        }
-        
-        if (typeof sourceConfig === 'object') {
-            const { sourceField, fieldConfig, transformer, fallback } = sourceConfig;
-            
-            let value = context.originalFormValues[sourceField];
-            
-            // Apply field-specific extraction
-            if (fieldConfig) {
-                const extractor = this.fieldExtractors.get(fieldConfig.type) || 
-                                this.fieldExtractors.get('text');
-                value = extractor(value, fieldConfig, context);
+            extractSelectValue(value, fieldConfig, context) {
+                if (!value) return '';
+                return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
             }
-            
-            // Apply custom transformer
-            if (transformer && typeof transformer === 'function') {
-                try {
-                    value = transformer(value, context);
-                } catch (error) {
-                    console.error('Error in field transformer:', error);
+
+            extractMultiSelectValue(value, fieldConfig, context) {
+                if (!Array.isArray(value) || value.length === 0) return [];
+                
+                return value.map(item => 
+                    this.getOptionDisplayName(fieldConfig.optionsPath, item, context)
+                ).filter(Boolean);
+            }
+
+            extractSelectWithOtherValue(value, fieldConfig, context) {
+                if (typeof value === 'object' && value.main) {
+                    if (value.main === 'other' && value.other) {
+                        return value.other.trim();
+                    }
+                    return this.getOptionDisplayName(fieldConfig.optionsPath, value.main, context);
                 }
+                
+                return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
             }
-            
-            // Apply fallback if needed
-            if ((value === null || value === undefined || value === '') && fallback) {
-                value = typeof fallback === 'function' ? fallback(context) : fallback;
-            }
-            
-            return value;
-        }
-        
-        return null;
-    }
 
-    extractFieldValue(value, fieldConfig, creatFormInstance) {
-        if (!fieldConfig) return this.extractSimpleValue(value);
-        
-        const context = this.createTransformationContext({}, {}, creatFormInstance);
-        const extractor = this.fieldExtractors.get(fieldConfig.type) || 
-                         this.fieldExtractors.get('text');
-        
-        return extractor(value, fieldConfig, context);
-    }
-
-    generateMetadata(flatData, originalFormValues, context, transformationConfig) {
-        const metadata = {
-            submissionQuality: this.assessSubmissionQuality(originalFormValues, transformationConfig),
-            completedFields: Object.keys(originalFormValues).filter(key => {
-                const value = originalFormValues[key];
-                return value !== undefined && value !== null && value !== '' && 
-                       !(Array.isArray(value) && value.length === 0);
-            }).length,
-            totalFields: Object.keys(originalFormValues).length,
-            deviceInfo: {
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                timestamp: new Date().toISOString()
+            extractMultiSelectWithOtherValue(value, fieldConfig, context) {
+                if (typeof value === 'object' && value.main) {
+                    const mainValues = Array.isArray(value.main) ? 
+                        value.main.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)) : [];
+                    
+                    if (value.other && value.other.trim()) {
+                        mainValues.push(value.other.trim());
+                    }
+                    return mainValues.filter(Boolean);
+                }
+                
+                return Array.isArray(value) ? 
+                    value.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)).filter(Boolean) : 
+                    [];
             }
-        };
-        
-        // Add custom metadata if configured
-        if (transformationConfig.metadataGenerators) {
-            Object.entries(transformationConfig.metadataGenerators).forEach(([key, generator]) => {
-                if (typeof generator === 'function') {
+
+            extractYesNoWithOptionsValue(value, fieldConfig, context) {
+                if (typeof value !== 'object' || !value || value.main === undefined) {
+                    return { main: '', conditionalValues: {} };
+                }
+                
+                // Extract main value
+                let mainValue = this.extractYesNoValue(value.main, fieldConfig, context);
+                
+                // Determine which conditional fields to extract
+                const conditionalValues = {};
+                let shouldExtractYes = false;
+                let shouldExtractNo = false;
+                
+                if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                    shouldExtractYes = value.main === fieldConfig.customOptions[0].value;
+                    shouldExtractNo = value.main === fieldConfig.customOptions[1].value;
+                } else {
+                    shouldExtractYes = value.main === true || value.main === 'yes';
+                    shouldExtractNo = value.main === false || value.main === 'no';
+                }
+                
+                // Extract conditional values
+                if (shouldExtractYes && value.yesValues) {
+                    conditionalValues.yesValues = this.extractConditionalValues(
+                        value.yesValues, 
+                        fieldConfig.yesFields || [fieldConfig.yesField].filter(Boolean), 
+                        context
+                    );
+                }
+                
+                if (shouldExtractNo && value.noValues) {
+                    conditionalValues.noValues = this.extractConditionalValues(
+                        value.noValues, 
+                        [fieldConfig.noField].filter(Boolean), 
+                        context
+                    );
+                }
+                
+                return { main: mainValue, conditionalValues };
+            }
+
+            extractConditionalValues(valuesObject, fieldConfigs, context) {
+                const extracted = {};
+                
+                if (!valuesObject || !fieldConfigs) return extracted;
+                
+                fieldConfigs.forEach(fieldConfig => {
+                    if (!fieldConfig) return;
+                    
+                    const value = valuesObject[fieldConfig.id];
+                    if (value !== undefined && value !== null && value !== '') {
+                        const extractor = this.fieldExtractors.get(fieldConfig.type) || 
+                                        this.fieldExtractors.get('text');
+                        extracted[fieldConfig.id] = extractor(value, fieldConfig, context);
+                    }
+                });
+                
+                return extracted;
+            }
+
+            // ============================================================================
+            // OPTIONS HANDLING WITH CACHING
+            // ============================================================================
+            getOptionDisplayName(optionsPath, value, context) {
+                if (!optionsPath || !value) return value;
+                
+                // Try to get from cache first
+                const cacheKey = `${optionsPath}:${context.language}`;
+                let options = this.optionsCache.get(cacheKey);
+                
+                if (!options && context.getData) {
+                    options = context.getData(optionsPath);
+                    this.optionsCache.set(cacheKey, options);
+                }
+                
+                if (!options || !Array.isArray(options)) return value;
+                
+                const option = options.find(opt => opt.id === value);
+                if (option) {
+                    const name = option.name;
+                    if (typeof name === 'object') {
+                        return name[context.language] || name.en || name.fr || value;
+                    }
+                    return name || option.label || value;
+                }
+                
+                return value;
+            }
+
+            // ============================================================================
+            // ENHANCED SECTION-BASED DATA TRANSFORMATION
+            // ============================================================================
+            createStructuredTransformer(transformationConfig) {
+                return (flatData, originalFormValues, creatFormInstance) => {
+                    const context = this.createTransformationContext(flatData, originalFormValues, creatFormInstance);
+                    
+                    this.log('Starting structured transformation', {
+                        flatDataKeys: Object.keys(flatData),
+                        originalFormValuesKeys: Object.keys(originalFormValues),
+                        configSections: Object.keys(transformationConfig.sections || {})
+                    });
+                    
+                    const sections = {};
+                    
+                    // Build each configured section using the registered section builders
+                    Object.entries(transformationConfig.sections || {}).forEach(([sectionId, sectionConfig]) => {
+                        try {
+                            // Always try to use the registered section builder first
+                            if (this.sectionBuilders.has(sectionId)) {
+                                this.log(`Building section ${sectionId} with custom builder`);
+                                const sectionData = this.sectionBuilders.get(sectionId)(sectionConfig, context);
+                                if (sectionData && Object.keys(sectionData).length > 1) { // More than just sectionType
+                                    sections[sectionId] = sectionData;
+                                }
+                            } else {
+                                this.log(`Building section ${sectionId} with default builder`);
+                                const sectionData = this.buildSection(sectionId, sectionConfig, context);
+                                if (sectionData && Object.keys(sectionData).length > 1) {
+                                    sections[sectionId] = sectionData;
+                                }
+                            }
+                        } catch (error) {
+                            console.error(`Error building section ${sectionId}:`, error);
+                        }
+                    });
+                    
+                    // Create final structured payload
+                    const structuredPayload = {
+                        submissionType: transformationConfig.submissionType || "form_submission",
+                        formVersion: transformationConfig.formVersion || "1.0.0",
+                        submissionTimestamp: new Date().toISOString(),
+                        language: context.language,
+                        
+                        sections: sections,
+                        
+                        // Legacy flat data for backwards compatibility
+                        flatData: flatData,
+                        
+                        // Generate metadata
+                        metadata: this.generateMetadata(flatData, originalFormValues, context, transformationConfig)
+                    };
+                    
+                    this.log('Structured transformation completed', {
+                        sectionsCreated: Object.keys(sections),
+                        totalFields: Object.keys(flatData).length
+                    });
+                    
+                    return structuredPayload;
+                };
+            }
+
+            createTransformationContext(flatData, originalFormValues, creatFormInstance) {
+                return {
+                    flatData,
+                    originalFormValues,
+                    creatFormInstance,
+                    language: creatFormInstance?.config?.language || this.config.defaultLanguage,
+                    getText: (path) => creatFormInstance?.getText?.(path) || path,
+                    getData: (path) => creatFormInstance?.getData?.(path) || [],
+                    // Enhanced extractValue that works with raw form values
+                    extractValue: (fieldId, fieldConfig) => {
+                        const rawValue = originalFormValues[fieldId];
+                        if (rawValue === undefined || rawValue === null) return '';
+                        
+                        const extractor = this.fieldExtractors.get(fieldConfig?.type) || 
+                                        this.fieldExtractors.get('text');
+                        
+                        return extractor(rawValue, fieldConfig || { type: 'text' }, this.createTransformationContext(flatData, originalFormValues, creatFormInstance));
+                    }
+                };
+            }
+
+            buildSection(sectionId, sectionConfig, context) {
+                // Default section building
+                const sectionData = {
+                    sectionType: sectionId,
+                    ...sectionConfig.staticFields || {}
+                };
+                
+                // Process field mappings if configured
+                if (sectionConfig.fieldMappings) {
+                    Object.entries(sectionConfig.fieldMappings).forEach(([targetField, sourceConfig]) => {
+                        const value = this.extractMappedFieldValue(sourceConfig, context);
+                        if (value !== null && value !== undefined && value !== '') {
+                            sectionData[targetField] = value;
+                        }
+                    });
+                }
+                
+                return sectionData;
+            }
+
+            extractMappedFieldValue(sourceConfig, context) {
+                if (typeof sourceConfig === 'string') {
+                    // Simple field mapping
+                    return context.extractValue(sourceConfig, { type: 'text' });
+                }
+                
+                if (typeof sourceConfig === 'object') {
+                    const { sourceField, fieldConfig, transformer, fallback } = sourceConfig;
+                    
+                    let value = context.extractValue(sourceField, fieldConfig);
+                    
+                    // Apply custom transformer
+                    if (transformer && typeof transformer === 'function') {
+                        try {
+                            value = transformer(value, context);
+                        } catch (error) {
+                            console.error('Error in field transformer:', error);
+                        }
+                    }
+                    
+                    // Apply fallback if needed
+                    if ((value === null || value === undefined || value === '') && fallback) {
+                        value = typeof fallback === 'function' ? fallback(context) : fallback;
+                    }
+                    
+                    return value;
+                }
+                
+                return null;
+            }
+
+            generateMetadata(flatData, originalFormValues, context, transformationConfig) {
+                const metadata = {
+                    submissionQuality: this.assessSubmissionQuality(originalFormValues, transformationConfig),
+                    completedFields: Object.keys(originalFormValues).filter(key => {
+                        const value = originalFormValues[key];
+                        return value !== undefined && value !== null && value !== '' && 
+                               !(Array.isArray(value) && value.length === 0);
+                    }).length,
+                    totalFields: Object.keys(originalFormValues).length,
+                    deviceInfo: {
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                // Add custom metadata if configured
+                if (transformationConfig.metadataGenerators) {
+                    Object.entries(transformationConfig.metadataGenerators).forEach(([key, generator]) => {
+                        if (typeof generator === 'function') {
+                            try {
+                                metadata[key] = generator(flatData, originalFormValues, context);
+                            } catch (error) {
+                                console.error(`Error generating metadata for ${key}:`, error);
+                            }
+                        }
+                    });
+                }
+                
+                return metadata;
+            }
+
+            assessSubmissionQuality(formValues, config) {
+                if (config.qualityAssessment && typeof config.qualityAssessment === 'function') {
                     try {
-                        metadata[key] = generator(flatData, originalFormValues, context);
+                        return config.qualityAssessment(formValues);
                     } catch (error) {
-                        console.error(`Error generating metadata for ${key}:`, error);
+                        console.error('Error in quality assessment:', error);
                     }
                 }
-            });
-        }
-        
-        return metadata;
-    }
-
-    assessSubmissionQuality(formValues, config) {
-        if (config.qualityAssessment && typeof config.qualityAssessment === 'function') {
-            try {
-                return config.qualityAssessment(formValues);
-            } catch (error) {
-                console.error('Error in quality assessment:', error);
-            }
-        }
-        
-        // Default quality assessment
-        const totalFields = Object.keys(formValues).length;
-        const completedFields = Object.values(formValues).filter(value => 
-            value !== undefined && value !== null && value !== '' && 
-            !(Array.isArray(value) && value.length === 0)
-        ).length;
-        
-        const completionPercentage = totalFields > 0 ? (completedFields / totalFields) * 100 : 0;
-        
-        if (completionPercentage >= 90) return 'excellent';
-        if (completionPercentage >= 70) return 'good';
-        if (completionPercentage >= 50) return 'fair';
-        return 'basic';
-    }
-
-    // ============================================================================
-    // UTILITY METHODS
-    // ============================================================================
-    log(message, data = null) {
-        if (this.config.enableLogging) {
-            console.log(`${this.config.logPrefix} ${message}`, data || '');
-        }
-    }
-
-    clearCache() {
-        this.optionsCache.clear();
-    }
-
-    // ============================================================================
-    // FACTORY METHODS FOR COMMON TRANSFORMATION PATTERNS
-    // ============================================================================
-    static createChatbotFormTransformer(formDataOptions, translations) {
-        const factory = new DataTransformerFactory({
-            enableLogging: true,
-            logPrefix: '📋 ChatbotForm 🔄'
-        });
-        
-        // Configure for chatbot form specific needs
-        factory.registerSectionBuilder('contactInfo', (sectionConfig, context) => ({
-            sectionType: "contact_information",
-            firstName: context.extractValue('firstName', { type: 'text' }) || '',
-            lastName: context.extractValue('lastName', { type: 'text' }) || '',
-            fullName: `${context.extractValue('firstName', { type: 'text' })} ${context.extractValue('lastName', { type: 'text' })}`.trim(),
-            email: context.extractValue('email', { type: 'email' }) || '',
-            phone: context.extractValue('phone', { type: 'phone' }) || '',
-            company: context.extractValue('company', { type: 'text' }) || context.getText('common.notSpecified')
-        }));
-        
-        factory.registerSectionBuilder('projectSpecs', (sectionConfig, context) => ({
-            sectionType: "project_specifications",
-            industry: context.extractValue('niche', { type: 'select-with-other', optionsPath: 'niches' }) || context.getText('common.notSpecified'),
-            budget: context.extractValue('budget', { type: 'select-with-other', optionsPath: 'budgetRanges' }) || context.getText('common.notSpecified'),
-            description: context.extractValue('description', { type: 'textarea' }) || context.getText('common.notSpecified')
-        }));
-        
-        // Add more section builders as needed...
-        
-        return factory.createStructuredTransformer({
-            submissionType: "chatbot_project_form",
-            formVersion: "4.0.0",
-            sections: {
-                contactInfo: {},
-                projectSpecs: {},
-                // Add other sections...
-            },
-            qualityAssessment: (formValues) => {
-                const hasContact = formValues.firstName && formValues.lastName && formValues.email;
-                const hasProject = formValues.niche && formValues.budget && formValues.description;
                 
-                if (hasContact && hasProject) return 'High';
-                if (hasContact || hasProject) return 'Medium';
-                return 'Basic';
+                // Default quality assessment
+                const totalFields = Object.keys(formValues).length;
+                const completedFields = Object.values(formValues).filter(value => 
+                    value !== undefined && value !== null && value !== '' && 
+                    !(Array.isArray(value) && value.length === 0)
+                ).length;
+                
+                const completionPercentage = totalFields > 0 ? (completedFields / totalFields) * 100 : 0;
+                
+                if (completionPercentage >= 90) return 'excellent';
+                if (completionPercentage >= 70) return 'good';
+                if (completionPercentage >= 50) return 'fair';
+                return 'basic';
             }
-        });
-    }
 
-    static createBookingFormTransformer() {
-        const factory = new DataTransformerFactory({
-            enableLogging: true,
-            logPrefix: '📅 BookingForm 🔄'
-        });
-        
-        factory.registerSectionBuilder('bookingInfo', (sectionConfig, context) => ({
-            sectionType: "booking_information",
-            service: context.extractValue('serviceSelection', { 
-                type: 'select',
-                transformer: (value) => value?.eventName || value?.title || ''
-            }),
-            appointmentDate: context.extractValue('appointment', {
-                type: 'calendar',
-                transformer: (value) => value?.selectedDate || ''
-            }),
-            appointmentTime: context.extractValue('appointment', {
-                type: 'calendar',
-                transformer: (value) => value?.selectedTime || ''
-            })
-        }));
-        
-        return factory.createStructuredTransformer({
-            submissionType: "booking_form",
-            formVersion: "1.0.0",
-            sections: {
-                contactInfo: {},
-                bookingInfo: {}
+            log(message, data = null) {
+                if (this.config.enableLogging) {
+                    console.log(`${this.config.logPrefix} ${message}`, data || '');
+                }
             }
-        });
-    }
-}
 
-// ============================================================================
-// CONFIGURATION HELPER FOR EASY SETUP
-// ============================================================================
-class TransformationConfigBuilder {
-    constructor() {
-        this.config = {
-            sections: {},
-            metadataGenerators: {},
-            visibilityRules: {}
-        };
-    }
-
-    addSection(sectionId, sectionConfig) {
-        this.config.sections[sectionId] = sectionConfig;
-        return this;
-    }
-
-    addFieldMapping(sectionId, targetField, sourceField, fieldConfig = null) {
-        if (!this.config.sections[sectionId]) {
-            this.config.sections[sectionId] = { fieldMappings: {} };
+            clearCache() {
+                this.optionsCache.clear();
+            }
         }
-        if (!this.config.sections[sectionId].fieldMappings) {
-            this.config.sections[sectionId].fieldMappings = {};
+
+        // ============================================================================
+        // TRANSFORMATION CONFIG BUILDER
+        // ============================================================================
+        class TransformationConfigBuilder {
+            constructor() {
+                this.config = {
+                    sections: {},
+                    metadataGenerators: {},
+                    visibilityRules: {}
+                };
+            }
+
+            addSection(sectionId, sectionConfig) {
+                this.config.sections[sectionId] = sectionConfig;
+                return this;
+            }
+
+            addMetadataGenerator(key, generator) {
+                this.config.metadataGenerators[key] = generator;
+                return this;
+            }
+
+            setSubmissionType(type) {
+                this.config.submissionType = type;
+                return this;
+            }
+
+            setFormVersion(version) {
+                this.config.formVersion = version;
+                return this;
+            }
+
+            build() {
+                return this.config;
+            }
         }
+
         
-        this.config.sections[sectionId].fieldMappings[targetField] = fieldConfig ? 
-            { sourceField, fieldConfig } : 
-            sourceField;
-        
-        return this;
-    }
-
-    addMetadataGenerator(key, generator) {
-        this.config.metadataGenerators[key] = generator;
-        return this;
-    }
-
-    addVisibilityRule(ruleId, rule) {
-        this.config.visibilityRules[ruleId] = rule;
-        return this;
-    }
-
-    setSubmissionType(type) {
-        this.config.submissionType = type;
-        return this;
-    }
-
-    setFormVersion(version) {
-        this.config.formVersion = version;
-        return this;
-    }
-
-    build() {
-        return this.config;
-    }
-}
 
 
 // Export for module usage
