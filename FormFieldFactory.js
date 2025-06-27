@@ -775,14 +775,14 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             }
         );
 
-        // FIXED: Safe array extraction with proper display value formatting
+        // FIXED: Safe array extraction with proper display value formatting and flattening
         const formTypesArray = this.safeArrayDisplayValue('formTypes', useFormResult.extractedValues.formTypes);
         const formPurpose = this.safeStringValue(useFormResult.extractedValues.formPurpose);
 
         return {
             sectionType: "form_integration",
             useForm: useFormResult.mainValue,
-            formTypes: formTypesArray,
+            formTypes: formTypesArray, // Now properly flattened with display values
             formTypesString: formTypesArray.join(', '),
             formPurpose: formPurpose
         };
@@ -830,14 +830,14 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             { databases: { type: 'multiselect-with-other', optionsPath: 'integrations.databases' } }
         );
 
-        // FIXED: Safe array extraction with display values
+        // FIXED: Safe array extraction with display values and proper flattening
         const crmsArray = this.safeArrayDisplayValue('crms', useCRMResult.extractedValues.crms);
         const databasesArray = this.safeArrayDisplayValue('databases', useDatabaseResult.extractedValues.databases);
 
         return {
             sectionType: "integrations_apis",
             useCRM: useCRMResult.mainValue,
-            crms: crmsArray,
+            crms: crmsArray, // Now properly flattened
             crmsString: crmsArray.join(', '),
             
             hasBookingSystem: hasBookingResult.mainValue,
@@ -846,7 +846,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             handleCancellation: this.safeBooleanValue(flatData.handleCancellation),
             
             useDatabase: useDatabaseResult.mainValue,
-            databases: databasesArray,
+            databases: databasesArray, // Now properly flattened
             databasesString: databasesArray.join(', ')
         };
     }
@@ -871,17 +871,17 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             }
         );
 
-        // FIXED: Safe array extraction with display values
+        // FIXED: Safe array extraction with display values and proper flattening
         const socialPlatformsArray = this.safeArrayDisplayValue('socialPlatforms', needSocialBotResult.extractedValues.socialPlatforms);
         const languagesArray = this.getLanguagesArrayWithDisplayValues(languageTypeResult);
 
         return {
             sectionType: "communication_channels",
             needSocialBot: needSocialBotResult.mainValue,
-            socialPlatforms: socialPlatformsArray,
+            socialPlatforms: socialPlatformsArray, // Now properly flattened
             socialPlatformsString: socialPlatformsArray.join(', '),
             languageType: this.getLanguageTypeDisplay(languageTypeResult),
-            languages: languagesArray,
+            languages: languagesArray, // Now properly flattened
             languagesString: languagesArray.join(', ')
         };
     }
@@ -930,19 +930,35 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             // Get field configuration
             const fieldConfig = this.fieldConfigMap[fieldName] || {};
             
-            // Use formatter to get display value
-            return this.formatter.formatValue(fieldConfig, value) || '';
+            // Debug logging
+            console.log(`🔍 Extracting display value for ${fieldName}:`, {
+                value,
+                fieldConfig,
+                hasFormatter: !!this.formatter
+            });
+            
+            // Use formatter to get display value - this converts IDs to proper display text
+            const displayValue = this.formatter.formatValue(fieldConfig, value);
+            
+            console.log(`✅ Display value result for ${fieldName}:`, {
+                input: value,
+                output: displayValue
+            });
+            
+            return displayValue || value || '';
         } catch (error) {
-            console.error(`Error extracting display value for ${fieldName}:`, error);
+            console.error(`❌ Error extracting display value for ${fieldName}:`, error);
             return value || '';
         }
     }
 
-    // FIXED: New method to handle arrays with display values
+    // FIXED: New method to handle arrays with display values - no nested arrays
     safeArrayDisplayValue(fieldName, value) {
         try {
             if (Array.isArray(value)) {
-                return value.map(v => this.safeExtractDisplayValue(fieldName, v));
+                // Flatten nested arrays and get display values
+                const flatArray = value.flat();
+                return flatArray.map(v => this.safeExtractDisplayValue(fieldName, v)).filter(v => v);
             } else if (typeof value === 'string' && value) {
                 return [this.safeExtractDisplayValue(fieldName, value)];
             } else {
@@ -1000,18 +1016,23 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         return { mainValue, extractedValues };
     }
 
-    // FIXED: New method that uses display values
+    // FIXED: New method that uses display values and handles arrays properly
     safeFormatFieldValueWithDisplay(fieldConfig, value, fieldName) {
         try {
-            // Handle multiselect fields - return arrays with display values
+            // Handle multiselect fields - return flat arrays with display values
             if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
                 if (Array.isArray(value)) {
-                    return value.map(v => this.formatter.formatValue(fieldConfig, v));
-                } else if (typeof value === 'string') {
-                    return value.split(',').map(v => {
-                        const trimmed = v.trim();
-                        return trimmed ? this.formatter.formatValue(fieldConfig, trimmed) : '';
-                    }).filter(v => v);
+                    // Flatten any nested arrays first, then format each value
+                    const flatArray = value.flat();
+                    return flatArray.map(v => {
+                        if (typeof v === 'string' && v.trim()) {
+                            return this.formatter.formatValue(fieldConfig, v.trim());
+                        }
+                        return this.formatter.formatValue(fieldConfig, v);
+                    }).filter(v => v && v !== '');
+                } else if (typeof value === 'string' && value.trim()) {
+                    const items = value.split(',').map(v => v.trim()).filter(v => v);
+                    return items.map(item => this.formatter.formatValue(fieldConfig, item));
                 } else {
                     return [];
                 }
@@ -1025,13 +1046,15 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         }
     }
 
-    // UPDATED: Better handling of language arrays with display values
+    // UPDATED: Better handling of language arrays with display values and flattening
     getLanguagesArrayWithDisplayValues(languageTypeResult) {
         const languages = languageTypeResult.extractedValues.languages;
         const language = languageTypeResult.extractedValues.language;
         
         if (Array.isArray(languages)) {
-            return languages.map(lang => this.safeExtractDisplayValue('languages', lang));
+            // Flatten any nested arrays and get display values
+            const flatLanguages = languages.flat();
+            return flatLanguages.map(lang => this.safeExtractDisplayValue('languages', lang)).filter(v => v);
         } else if (language) {
             return [this.safeExtractDisplayValue('language', language)];
         } else {
