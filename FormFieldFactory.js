@@ -4702,6 +4702,19 @@ class CustomField extends BaseField {
         const fieldType = fieldConfig.type;
 
         switch (fieldType) {
+            case 'sliding-window-range':
+                // Check if we can get the field instance to use its getDisplayValue method
+                const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
+                if (fieldInstance && typeof fieldInstance.getDisplayValue === 'function') {
+                    return fieldInstance.getDisplayValue();
+                }
+                // Fallback: handle the object directly
+                if (typeof value === 'object' && value !== null && value.min !== undefined && value.max !== undefined) {
+                    const formatValue = fieldConfig.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
+                    return `${formatValue(value.min)} - ${formatValue(value.max)}`;
+                }
+                return value;
+
             case 'yesno':
                 // Check for custom options first
                 if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
@@ -4755,6 +4768,18 @@ class CustomField extends BaseField {
                     return value.main === true || value.main === 'yes' ? 
                         (this.factory.getText('yes') || 'Oui') :
                         (this.factory.getText('no') || 'Non');
+                }
+                return value;
+
+            case 'options-slider':
+                // Handle options-slider which might return an object with display property
+                if (typeof value === 'object' && value !== null && value.display) {
+                    return value.display;
+                }
+                // If it's just a value, try to find the corresponding option
+                if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
+                    const option = fieldConfig.options.find(opt => opt.value === value);
+                    if (option) return option.display || option.label || value;
                 }
                 return value;
 
