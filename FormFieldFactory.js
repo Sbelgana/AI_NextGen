@@ -11639,7 +11639,7 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
- class ServiceProviderFilterField extends BaseField {
+class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12062,35 +12062,6 @@ class CurrentAppointmentCardField extends BaseField {
                             margin-top: 0;
                             transition: opacity 0.3s ease, transform 0.3s ease;
                         }
-                        /* CSS to handle the split summary fields */
-                        .summary-item[data-field="service"],
-                        .summary-item[data-field="dentist"] {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: flex-start;
-                            margin-bottom: 10px;
-                            padding: 8px 0;
-                            border-bottom: 1px solid #eee;
-                        }
-                        
-                        .summary-item[data-field="service"] .field-label,
-                        .summary-item[data-field="dentist"] .field-label {
-                            font-weight: 500;
-                            color: #333;
-                            min-width: 150px;
-                        }
-                        
-                        .summary-item[data-field="service"] .field-value,
-                        .summary-item[data-field="dentist"] .field-value {
-                            flex: 1;
-                            text-align: right;
-                            color: #666;
-                        }
-                        
-                        /* Hide the original combined field when split */
-                        [data-field-id="serviceProvider"].split-summary-processed {
-                            display: none !important;
-                        }
                     </style>
                 `;
                 
@@ -12138,12 +12109,13 @@ class CurrentAppointmentCardField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Return object with separate properties for split fields
+            // FIXED: Return object for split display in form summary
             getValue() {
-                // Return an object that will be split into separate fields in summary
+                // Return an object that can be displayed as separate lines
                 return {
                     service: this.selectedService || '',
-                    dentist: this.selectedProvider?.displayName || ''
+                    dentist: this.selectedProvider?.displayName || '',
+                    toString: () => this.getDisplayText() // Fallback for string conversion
                 };
             }
 
@@ -12164,29 +12136,17 @@ class CurrentAppointmentCardField extends BaseField {
 
             // NEW: Method specifically for summary display
             getSummaryValue() {
-                // This won't be used since we're creating split fields
-                return this.getDisplayText();
+                const parts = [];
+                if (this.selectedService) {
+                    parts.push(`Service: ${this.selectedService}`);
+                }
+                if (this.selectedProvider && this.selectedProvider.displayName) {
+                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
+                }
+                return parts.join('\n');
             }
 
-            // NEW: Method to get the raw data for form processing
-            getFormValue() {
-                return this.getDataValue();
-            }
-
-            // NEW: Method to customize summary display after render
-            formatSummaryDisplay() {
-                // Find the summary field value element for this field
-                setTimeout(() => {
-                    const summaryElement = document.querySelector(`[data-field-id="${this.id}"] .field-value, [data-summary-field="${this.id}"] .field-value`);
-                    if (summaryElement && this.selectedService && this.selectedProvider) {
-                        const formattedHTML = `
-                            <div>Service: ${this.selectedService}</div>
-                            <div>Dentiste: ${this.selectedProvider.displayName}</div>
-                        `;
-                        summaryElement.innerHTML = formattedHTML;
-                    }
-                }, 100);
-            }
+            // NEW: Method specifically for getting full data object when needed
             getDataValue() {
                 return {
                     selectedService: this.selectedService,
@@ -12266,9 +12226,6 @@ class CurrentAppointmentCardField extends BaseField {
                 super.destroy();
             }
         }
-
-
-
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
