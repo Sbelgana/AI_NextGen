@@ -11640,583 +11640,491 @@ class CurrentAppointmentCardField extends BaseField {
 
 
 class ServiceProviderFilterField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Core configuration
-        this.language = config.language || 'en';
-        this.mode = config.mode || 'both'; // 'service-only', 'provider-only', 'both'
-        
-        // Data configuration
-        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
-        this.availableServices = [];
-        this.filteredProviders = [];
-        this.allProviders = [];
-        
-        // Selection state
-        this.selectedService = config.selectedService || config.serviceName || '';
-        this.selectedProviderId = config.selectedProviderId || '';
-        this.selectedProvider = null;
-        
-        // UI Configuration
-        this.serviceLabel = config.serviceLabel || this.getText('selectService');
-        this.servicePlaceholder = config.servicePlaceholder || this.getText('selectServicePlaceholder');
-        this.providerLabel = config.providerLabel || this.getText('selectProvider');
-        this.providerPlaceholder = config.providerPlaceholder || this.getText('selectProviderPlaceholder');
-        
-        // Show/hide options
-        this.showServiceField = config.showServiceField !== false && (this.mode === 'both' || this.mode === 'service-only');
-        this.showProviderField = config.showProviderField !== false && (this.mode === 'both' || this.mode === 'provider-only');
-        
-        // Auto-selection behavior
-        this.autoSelectSingleService = config.autoSelectSingleService !== false;
-        this.autoSelectSingleProvider = config.autoSelectSingleProvider !== false;
-        
-        // Callback functions
-        this.onServiceChange = config.onServiceChange || null;
-        this.onProviderChange = config.onProviderChange || null;
-        this.onSelectionComplete = config.onSelectionComplete || null;
-        
-        // Field instances
-        this.serviceSelectField = null;
-        this.providerSelectField = null;
-        
-        console.log('ServiceProviderFilterField initialized with mode:', this.mode);
-        console.log('ServiceProviderFilterField data:', this.rawServiceProviders);
-        
-        this.init();
-    }
-
-    // Initialize the field based on configuration
-    init() {
-        // Extract all available services and providers
-        this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
-        this.allProviders = this.extractAllProviders(this.rawServiceProviders);
-        
-        console.log('Available services:', this.availableServices);
-        console.log('All providers:', this.allProviders);
-        
-        // Auto-select single service if enabled
-        if (this.autoSelectSingleService && this.availableServices.length === 1 && !this.selectedService) {
-            this.selectedService = this.availableServices[0].name;
-        }
-        
-        // Initialize filtered providers based on selected service
-        if (this.selectedService) {
-            this.filteredProviders = this.filterProvidersByService(this.selectedService);
-            
-            // Auto-select single provider if enabled
-            if (this.autoSelectSingleProvider && this.filteredProviders.length === 1 && !this.selectedProviderId) {
-                this.selectedProviderId = this.filteredProviders[0].id;
-                this.selectedProvider = this.filteredProviders[0];
-            }
-        } else {
-            this.filteredProviders = this.allProviders;
-        }
-        
-        // Set selected provider object if ID is provided
-        if (this.selectedProviderId && !this.selectedProvider) {
-            this.selectedProvider = this.filteredProviders.find(p => p.id === this.selectedProviderId);
-        }
-    }
-
-    // ===============================
-    // DATA EXTRACTION METHODS
-    // ===============================
-
-    // Extract all available services from providers data
-    extractAvailableServices(rawProviders) {
-        const serviceSet = new Set();
-        
-        try {
-            const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
-            
-            providersArray.forEach(([providerName, providerData]) => {
-                if (Array.isArray(rawProviders) && typeof providerName === 'object') {
-                    providerData = providerName;
-                    providerName = providerData.name || providerData.id;
+            constructor(factory, config) {
+                super(factory, config);
+                
+                // Core configuration
+                this.language = config.language || 'fr';
+                this.mode = config.mode || 'both'; // 'service-only', 'provider-only', 'both'
+                
+                // Data configuration - FIX: Properly handle data reference
+                if (typeof config.serviceProviders === 'string') {
+                    // Reference to data in form - need to get it from factory or form
+                    this.rawServiceProviders = this.factory.getFormData?.(config.serviceProviders) || 
+                                              this.factory.formData?.[config.serviceProviders] || 
+                                              this.factory.data?.[config.serviceProviders] || {};
+                } else {
+                    this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
                 }
                 
-                if (providerData && providerData.services) {
-                    Object.keys(providerData.services).forEach(service => {
-                        serviceSet.add(service);
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Error extracting services:', error);
-        }
-        
-        return Array.from(serviceSet).sort().map(service => ({
-            id: this.slugify(service),
-            name: service,
-            displayName: service
-        }));
-    }
-
-    // Extract all providers regardless of service
-    extractAllProviders(rawProviders) {
-        const allProviders = [];
-        
-        try {
-            const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
-            
-            providersArray.forEach(([providerName, providerData]) => {
-                if (Array.isArray(rawProviders) && typeof providerName === 'object') {
-                    providerData = providerName;
-                    providerName = providerData.name || providerData.id;
-                }
+                this.availableServices = [];
+                this.filteredProviders = [];
+                this.allProviders = [];
                 
-                if (providerData) {
-                    allProviders.push({
-                        id: this.slugify(providerName),
-                        name: providerName,
-                        displayName: providerName,
-                        description: providerData.description || providerData.specialty || "",
-                        services: providerData.services || {},
-                        rawData: providerData
-                    });
-                }
-            });
-        } catch (error) {
-            console.error('Error extracting providers:', error);
-        }
-        
-        return allProviders;
-    }
-
-    // Filter providers that offer the specific service
-    filterProvidersByService(serviceName) {
-        if (!serviceName || !this.rawServiceProviders) {
-            return this.allProviders;
-        }
-
-        const filteredProviders = [];
-        const providersArray = Array.isArray(this.rawServiceProviders) ? 
-            this.rawServiceProviders : Object.entries(this.rawServiceProviders);
-        
-        providersArray.forEach(([providerName, providerData]) => {
-            if (Array.isArray(this.rawServiceProviders) && typeof providerName === 'object') {
-                providerData = providerName;
-                providerName = providerData.name || providerData.id;
-            }
-            
-            if (providerData.services && providerData.services[serviceName]) {
-                const serviceConfig = providerData.services[serviceName];
-                
-                filteredProviders.push({
-                    id: this.slugify(providerName),
-                    name: providerName,
-                    displayName: providerName,
-                    description: providerData.description || providerData.specialty || "",
-                    serviceConfig: serviceConfig,
-                    allServices: providerData.services,
-                    rawData: providerData
-                });
-            }
-        });
-        
-        return filteredProviders;
-    }
-
-    // Helper to create URL-friendly slugs
-    slugify(text) {
-        return text
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, '') 
-            .replace(/[\s_-]+/g, '-') 
-            .replace(/^-+|-+$/g, '');
-    }
-
-    // ===============================
-    // SELECTION METHODS
-    // ===============================
-
-    // Select service and update providers
-    selectService(serviceId) {
-        console.log('Selecting service:', serviceId);
-        
-        const service = this.availableServices.find(s => s.id === serviceId);
-        if (!service) {
-            console.error('Service not found:', serviceId);
-            return;
-        }
-        
-        // Update selected service
-        this.selectedService = service.name;
-        
-        // Filter providers based on selected service
-        this.filteredProviders = this.filterProvidersByService(service.name);
-        
-        // Reset provider selection if current provider doesn't offer this service
-        if (this.selectedProviderId) {
-            const stillValid = this.filteredProviders.find(p => p.id === this.selectedProviderId);
-            if (!stillValid) {
-                this.selectedProviderId = '';
+                // Selection state
+                this.selectedService = config.selectedService || config.serviceName || '';
+                this.selectedProviderId = config.selectedProviderId || '';
                 this.selectedProvider = null;
+                
+                // UI Configuration
+                this.serviceLabel = config.serviceLabel || this.getText('selectService');
+                this.servicePlaceholder = config.servicePlaceholder || this.getText('selectServicePlaceholder');
+                this.providerLabel = config.providerLabel || this.getText('selectProvider');
+                this.providerPlaceholder = config.providerPlaceholder || this.getText('selectProviderPlaceholder');
+                
+                // Show/hide options
+                this.showServiceField = config.showServiceField !== false && (this.mode === 'both' || this.mode === 'service-only');
+                this.showProviderField = config.showProviderField !== false && (this.mode === 'both' || this.mode === 'provider-only');
+                
+                // Auto-selection behavior
+                this.autoSelectSingleService = config.autoSelectSingleService !== false;
+                this.autoSelectSingleProvider = config.autoSelectSingleProvider !== false;
+                
+                // Callback functions
+                this.onServiceChange = config.onServiceChange || null;
+                this.onProviderChange = config.onProviderChange || null;
+                this.onSelectionComplete = config.onSelectionComplete || null;
+                
+                // Field instances
+                this.serviceSelectField = null;
+                this.providerSelectField = null;
+                
+                console.log('ServiceProviderFilterField initialized with mode:', this.mode);
+                console.log('ServiceProviderFilterField data:', this.rawServiceProviders);
+                
+                this.init();
             }
-        }
-        
-        // Auto-select if only one provider offers this service
-        if (this.autoSelectSingleProvider && this.filteredProviders.length === 1) {
-            this.selectedProviderId = this.filteredProviders[0].id;
-            this.selectedProvider = this.filteredProviders[0];
-            
-            // Update provider field if it exists
-            if (this.providerSelectField) {
-                this.providerSelectField.setValue(this.selectedProviderId);
+
+            // FIX: Method to get data from form context
+            getDataFromForm() {
+                if (this.factory && this.factory.form && this.factory.form.data) {
+                    return this.factory.form.data.serviceProviders || {};
+                }
+                if (window.DentalServicesFormExtension && window.DentalServicesFormExtension.FORM_DATA) {
+                    return window.DentalServicesFormExtension.FORM_DATA.serviceProviders || {};
+                }
+                return this.rawServiceProviders;
             }
-        }
-        
-        // Update provider field options
-        this.updateProviderOptions();
-        
-        // Trigger callbacks
-        if (this.onServiceChange) {
-            this.onServiceChange(service, this.filteredProviders);
-        }
-        
-        this.checkSelectionComplete();
-        this.updateValue();
-    }
 
-    // Select provider
-    selectProvider(providerId) {
-        console.log('Selecting provider:', providerId);
-        
-        const provider = this.filteredProviders.find(p => p.id === providerId) || 
-                        this.allProviders.find(p => p.id === providerId);
-        
-        if (!provider) {
-            console.error('Provider not found:', providerId);
-            return;
-        }
-        
-        // Update selected provider
-        this.selectedProviderId = providerId;
-        this.selectedProvider = provider;
-        
-        // Trigger callbacks
-        if (this.onProviderChange) {
-            this.onProviderChange(provider);
-        }
-        
-        this.checkSelectionComplete();
-        this.updateValue();
-    }
-
-    // Check if selection is complete and trigger callback
-    checkSelectionComplete() {
-        const isComplete = this.isSelectionComplete();
-        
-        if (isComplete && this.onSelectionComplete) {
-            this.onSelectionComplete({
-                service: this.selectedService,
-                provider: this.selectedProvider,
-                serviceConfig: this.selectedProvider?.serviceConfig
-            });
-        }
-    }
-
-    // Check if required selections are made
-    isSelectionComplete() {
-        let complete = true;
-        
-        if (this.showServiceField && this.required && !this.selectedService) {
-            complete = false;
-        }
-        
-        if (this.showProviderField && this.required && !this.selectedProviderId) {
-            complete = false;
-        }
-        
-        return complete;
-    }
-
-    // ===============================
-    // UI FIELD CREATION
-    // ===============================
-
-    // Create service selection field
-    createServiceSelectField() {
-        if (!this.showServiceField) return null;
-        
-        this.serviceSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-service`,
-            name: `${this.name}_service`,
-            label: this.serviceLabel,
-            placeholder: this.servicePlaceholder,
-            options: this.availableServices,
-            required: this.required,
-            onChange: (value) => this.selectService(value)
-        });
-
-        // Set initial value
-        if (this.selectedService) {
-            const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
-            if (serviceOption) {
-                this.serviceSelectField.setValue(serviceOption.id);
+            init() {
+                // FIX: Ensure we have the correct data
+                if (!this.rawServiceProviders || Object.keys(this.rawServiceProviders).length === 0) {
+                    this.rawServiceProviders = this.getDataFromForm();
+                }
+                
+                console.log('Init with data:', this.rawServiceProviders);
+                
+                this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
+                this.allProviders = this.extractAllProviders(this.rawServiceProviders);
+                
+                console.log('Available services:', this.availableServices);
+                console.log('All providers:', this.allProviders);
+                
+                if (this.autoSelectSingleService && this.availableServices.length === 1 && !this.selectedService) {
+                    this.selectedService = this.availableServices[0].name;
+                }
+                
+                if (this.selectedService) {
+                    this.filteredProviders = this.filterProvidersByService(this.selectedService);
+                    
+                    if (this.autoSelectSingleProvider && this.filteredProviders.length === 1 && !this.selectedProviderId) {
+                        this.selectedProviderId = this.filteredProviders[0].id;
+                        this.selectedProvider = this.filteredProviders[0];
+                    }
+                } else {
+                    this.filteredProviders = this.allProviders;
+                }
+                
+                if (this.selectedProviderId && !this.selectedProvider) {
+                    this.selectedProvider = this.filteredProviders.find(p => p.id === this.selectedProviderId);
+                }
             }
-        }
 
-        return this.serviceSelectField;
-    }
-
-    // Create provider selection field
-    createProviderSelectField() {
-        if (!this.showProviderField) return null;
-        
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.providerLabel,
-            placeholder: this.providerPlaceholder,
-            options: this.filteredProviders,
-            required: this.required,
-            onChange: (value) => this.selectProvider(value)
-        });
-
-        // Set initial value
-        if (this.selectedProviderId) {
-            this.providerSelectField.setValue(this.selectedProviderId);
-        }
-
-        return this.providerSelectField;
-    }
-
-    // Update provider field options dynamically
-    updateProviderOptions() {
-        if (!this.providerSelectField) return;
-
-        const providerContainer = this.element.querySelector('.provider-select-container');
-        if (!providerContainer) return;
-
-        // Store current value
-        const currentValue = this.selectedProviderId;
-        
-        // Clear container
-        providerContainer.innerHTML = '';
-
-        // Create new provider field with updated options
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.providerLabel,
-            placeholder: this.providerPlaceholder,
-            options: this.filteredProviders,
-            required: this.required,
-            onChange: (value) => this.selectProvider(value)
-        });
-
-        // Render and replace
-        const newFieldElement = this.providerSelectField.render();
-        providerContainer.appendChild(newFieldElement);
-
-        // Restore value if still valid
-        if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
-            this.providerSelectField.setValue(currentValue);
-        }
-    }
-
-    // ===============================
-    // LOCALIZATION
-    // ===============================
-
-    getText(key) {
-        const translations = {
-            en: {
-                selectService: "Select a service",
-                selectServicePlaceholder: "-- Select a service --",
-                selectProvider: "Select a provider",
-                selectProviderPlaceholder: "-- Select a provider --"
-            },
-            fr: {
-                selectService: "Sélectionner un service",
-                selectServicePlaceholder: "-- Sélectionner un service --",
-                selectProvider: "Sélectionner un fournisseur",
-                selectProviderPlaceholder: "-- Sélectionner un fournisseur --"
+            extractAvailableServices(rawProviders) {
+                const serviceSet = new Set();
+                
+                try {
+                    console.log('Extracting services from:', rawProviders);
+                    
+                    // Handle object format: { 'Dr. Name': { services: {...} } }
+                    Object.entries(rawProviders).forEach(([providerName, providerData]) => {
+                        console.log('Processing provider:', providerName, providerData);
+                        
+                        if (providerData && providerData.services) {
+                            Object.keys(providerData.services).forEach(service => {
+                                serviceSet.add(service);
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error extracting services:', error);
+                }
+                
+                const services = Array.from(serviceSet).sort().map(service => ({
+                    id: this.slugify(service),
+                    name: service,
+                    displayName: service
+                }));
+                
+                console.log('Extracted services:', services);
+                return services;
             }
-        };
-        return translations[this.language]?.[key] || key;
-    }
 
-    // ===============================
-    // VALIDATION
-    // ===============================
+            extractAllProviders(rawProviders) {
+                const allProviders = [];
+                
+                try {
+                    Object.entries(rawProviders).forEach(([providerName, providerData]) => {
+                        if (providerData) {
+                            allProviders.push({
+                                id: this.slugify(providerName),
+                                name: providerName,
+                                displayName: providerName,
+                                description: providerData.description || providerData.specialty || "",
+                                services: providerData.services || {},
+                                rawData: providerData
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error extracting providers:', error);
+                }
+                
+                console.log('Extracted providers:', allProviders);
+                return allProviders;
+            }
 
-    validate() {
-        if (!this.required) return true;
-        
-        // Validate service selection
-        if (this.showServiceField && !this.selectedService) {
-            this.showError('Please select a service');
-            return false;
-        }
-        
-        // Validate provider selection
-        if (this.showProviderField && !this.selectedProviderId) {
-            this.showError('Please select a provider');
-            return false;
-        }
-        
-        this.hideError();
-        return true;
-    }
+            filterProvidersByService(serviceName) {
+                if (!serviceName || !this.rawServiceProviders) {
+                    return this.allProviders;
+                }
 
-    // ===============================
-    // RENDER METHODS
-    // ===============================
+                const filteredProviders = [];
+                
+                Object.entries(this.rawServiceProviders).forEach(([providerName, providerData]) => {
+                    if (providerData.services && providerData.services[serviceName]) {
+                        const serviceConfig = providerData.services[serviceName];
+                        
+                        filteredProviders.push({
+                            id: this.slugify(providerName),
+                            name: providerName,
+                            displayName: providerName,
+                            description: providerData.description || providerData.specialty || "",
+                            serviceConfig: serviceConfig,
+                            allServices: providerData.services,
+                            rawData: providerData
+                        });
+                    }
+                });
+                
+                return filteredProviders;
+            }
 
-    render() {
-        const container = this.createContainer();
-        
-        // Create service field if needed
-        if (this.showServiceField) {
-            this.createServiceSelectField();
-            const serviceFieldElement = this.serviceSelectField.render();
-            serviceFieldElement.classList.add('service-select-container');
-            container.appendChild(serviceFieldElement);
-        }
-        
-        // Create provider field if needed
-        if (this.showProviderField) {
-            this.createProviderSelectField();
-            const providerFieldElement = this.providerSelectField.render();
-            providerFieldElement.classList.add('provider-select-container');
-            container.appendChild(providerFieldElement);
-        }
-        
-        // Add custom styling container
-        const filterContainer = document.createElement('div');
-        filterContainer.className = 'service-provider-filter';
-        
-        // Move children to filter container
-        while (container.firstChild) {
-            filterContainer.appendChild(container.firstChild);
-        }
-        
-        container.appendChild(filterContainer);
-        
-        // Add error element
-        const errorElement = this.createErrorElement();
-        container.appendChild(errorElement);
-        
-        this.element = container;
-        this.element.fieldInstance = this;
-        
-        return this.element;
-    }
+            slugify(text) {
+                return text
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '') 
+                    .replace(/[\s_-]+/g, '-') 
+                    .replace(/^-+|-+$/g, '');
+            }
 
-    // ===============================
-    // VALUE MANAGEMENT
-    // ===============================
+            selectService(serviceId) {
+                console.log('Selecting service:', serviceId);
+                
+                const service = this.availableServices.find(s => s.id === serviceId);
+                if (!service) {
+                    console.error('Service not found:', serviceId);
+                    return;
+                }
+                
+                this.selectedService = service.name;
+                this.filteredProviders = this.filterProvidersByService(service.name);
+                
+                if (this.selectedProviderId) {
+                    const stillValid = this.filteredProviders.find(p => p.id === this.selectedProviderId);
+                    if (!stillValid) {
+                        this.selectedProviderId = '';
+                        this.selectedProvider = null;
+                    }
+                }
+                
+                if (this.autoSelectSingleProvider && this.filteredProviders.length === 1) {
+                    this.selectedProviderId = this.filteredProviders[0].id;
+                    this.selectedProvider = this.filteredProviders[0];
+                    
+                    if (this.providerSelectField) {
+                        this.providerSelectField.setValue(this.selectedProviderId);
+                    }
+                }
+                
+                this.updateProviderOptions();
+                
+                if (this.onServiceChange) {
+                    this.onServiceChange(service, this.filteredProviders);
+                }
+                
+                this.checkSelectionComplete();
+                this.updateValue();
+            }
 
-    getValue() {
-        return {
-            selectedService: this.selectedService,
-            selectedServiceId: this.selectedService ? this.slugify(this.selectedService) : '',
-            selectedProviderId: this.selectedProviderId,
-            selectedProvider: this.selectedProvider,
-            filteredProviders: this.filteredProviders,
-            serviceConfig: this.selectedProvider?.serviceConfig || null,
-            isComplete: this.isSelectionComplete()
-        };
-    }
+            selectProvider(providerId) {
+                console.log('Selecting provider:', providerId);
+                
+                const provider = this.filteredProviders.find(p => p.id === providerId) || 
+                                this.allProviders.find(p => p.id === providerId);
+                
+                if (!provider) {
+                    console.error('Provider not found:', providerId);
+                    return;
+                }
+                
+                this.selectedProviderId = providerId;
+                this.selectedProvider = provider;
+                
+                if (this.onProviderChange) {
+                    this.onProviderChange(provider);
+                }
+                
+                this.checkSelectionComplete();
+                this.updateValue();
+            }
 
-    setValue(value) {
-        if (value && typeof value === 'object') {
-            // Set service
-            if (value.selectedService && this.showServiceField) {
-                const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
-                if (serviceOption) {
-                    this.selectService(serviceOption.id);
-                    if (this.serviceSelectField) {
+            checkSelectionComplete() {
+                const isComplete = this.isSelectionComplete();
+                
+                if (isComplete && this.onSelectionComplete) {
+                    this.onSelectionComplete({
+                        service: this.selectedService,
+                        provider: this.selectedProvider,
+                        serviceConfig: this.selectedProvider?.serviceConfig
+                    });
+                }
+            }
+
+            isSelectionComplete() {
+                let complete = true;
+                
+                if (this.showServiceField && this.required && !this.selectedService) {
+                    complete = false;
+                }
+                
+                if (this.showProviderField && this.required && !this.selectedProviderId) {
+                    complete = false;
+                }
+                
+                return complete;
+            }
+
+            createServiceSelectField() {
+                if (!this.showServiceField) return null;
+                
+                this.serviceSelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-service`,
+                    name: `${this.name}_service`,
+                    label: this.serviceLabel,
+                    placeholder: this.servicePlaceholder,
+                    options: this.availableServices,
+                    required: this.required,
+                    onChange: (value) => this.selectService(value)
+                });
+
+                if (this.selectedService) {
+                    const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
+                    if (serviceOption) {
                         this.serviceSelectField.setValue(serviceOption.id);
                     }
                 }
+
+                return this.serviceSelectField;
             }
-            
-            // Set provider
-            if (value.selectedProviderId && this.showProviderField) {
-                this.selectProvider(value.selectedProviderId);
-                if (this.providerSelectField) {
-                    this.providerSelectField.setValue(value.selectedProviderId);
+
+            createProviderSelectField() {
+                if (!this.showProviderField) return null;
+                
+                this.providerSelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-provider`,
+                    name: `${this.name}_provider`,
+                    label: this.providerLabel,
+                    placeholder: this.providerPlaceholder,
+                    options: this.filteredProviders,
+                    required: this.required,
+                    onChange: (value) => this.selectProvider(value)
+                });
+
+                if (this.selectedProviderId) {
+                    this.providerSelectField.setValue(this.selectedProviderId);
+                }
+
+                return this.providerSelectField;
+            }
+
+            updateProviderOptions() {
+                if (!this.providerSelectField) return;
+
+                const providerContainer = this.element.querySelector('.provider-select-container');
+                if (!providerContainer) return;
+
+                const currentValue = this.selectedProviderId;
+                providerContainer.innerHTML = '';
+
+                this.providerSelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-provider`,
+                    name: `${this.name}_provider`,
+                    label: this.providerLabel,
+                    placeholder: this.providerPlaceholder,
+                    options: this.filteredProviders,
+                    required: this.required,
+                    onChange: (value) => this.selectProvider(value)
+                });
+
+                const newFieldElement = this.providerSelectField.render();
+                providerContainer.appendChild(newFieldElement);
+
+                if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
+                    this.providerSelectField.setValue(currentValue);
                 }
             }
+
+            getText(key) {
+                const translations = {
+                    en: {
+                        selectService: "Select a service",
+                        selectServicePlaceholder: "-- Select a service --",
+                        selectProvider: "Select a provider",
+                        selectProviderPlaceholder: "-- Select a provider --",
+                        pleaseSelectService: "Please select a service",
+                        pleaseSelectProvider: "Please select a provider"
+                    },
+                    fr: {
+                        selectService: "Sélectionner un service",
+                        selectServicePlaceholder: "-- Sélectionner un service --",
+                        selectProvider: "Sélectionner un dentiste",
+                        selectProviderPlaceholder: "-- Sélectionner un dentiste --",
+                        pleaseSelectService: "Veuillez sélectionner un service",
+                        pleaseSelectProvider: "Veuillez sélectionner un dentiste"
+                    }
+                };
+                return translations[this.language]?.[key] || key;
+            }
+
+            validate() {
+                if (!this.required) return true;
+                
+                // FIX: Use proper error messages in correct language
+                if (this.showServiceField && !this.selectedService) {
+                    this.showError(this.getText('pleaseSelectService'));
+                    return false;
+                }
+                
+                if (this.showProviderField && !this.selectedProviderId) {
+                    this.showError(this.getText('pleaseSelectProvider'));
+                    return false;
+                }
+                
+                this.hideError();
+                return true;
+            }
+
+            render() {
+                const container = this.createContainer();
+                
+                if (this.showServiceField) {
+                    this.createServiceSelectField();
+                    const serviceFieldElement = this.serviceSelectField.render();
+                    serviceFieldElement.classList.add('service-select-container');
+                    container.appendChild(serviceFieldElement);
+                }
+                
+                if (this.showProviderField) {
+                    this.createProviderSelectField();
+                    const providerFieldElement = this.providerSelectField.render();
+                    providerFieldElement.classList.add('provider-select-container');
+                    container.appendChild(providerFieldElement);
+                }
+                
+                const filterContainer = document.createElement('div');
+                filterContainer.className = 'service-provider-filter';
+                
+                while (container.firstChild) {
+                    filterContainer.appendChild(container.firstChild);
+                }
+                
+                container.appendChild(filterContainer);
+                
+                const errorElement = this.createErrorElement();
+                container.appendChild(errorElement);
+                
+                this.element = container;
+                this.element.fieldInstance = this;
+                
+                return this.element;
+            }
+
+            getValue() {
+                return {
+                    selectedService: this.selectedService,
+                    selectedServiceId: this.selectedService ? this.slugify(this.selectedService) : '',
+                    selectedProviderId: this.selectedProviderId,
+                    selectedProvider: this.selectedProvider,
+                    filteredProviders: this.filteredProviders,
+                    serviceConfig: this.selectedProvider?.serviceConfig || null,
+                    isComplete: this.isSelectionComplete()
+                };
+            }
+
+            setValue(value) {
+                if (value && typeof value === 'object') {
+                    if (value.selectedService && this.showServiceField) {
+                        const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
+                        if (serviceOption) {
+                            this.selectService(serviceOption.id);
+                            if (this.serviceSelectField) {
+                                this.serviceSelectField.setValue(serviceOption.id);
+                            }
+                        }
+                    }
+                    
+                    if (value.selectedProviderId && this.showProviderField) {
+                        this.selectProvider(value.selectedProviderId);
+                        if (this.providerSelectField) {
+                            this.providerSelectField.setValue(value.selectedProviderId);
+                        }
+                    }
+                }
+            }
+
+            updateValue() {
+                this.handleChange();
+            }
+
+            reset() {
+                this.selectedService = '';
+                this.selectedProviderId = '';
+                this.selectedProvider = null;
+                this.filteredProviders = this.allProviders;
+                
+                if (this.serviceSelectField) {
+                    this.serviceSelectField.setValue('');
+                }
+                
+                if (this.providerSelectField) {
+                    this.providerSelectField.setValue('');
+                    this.updateProviderOptions();
+                }
+                
+                this.updateValue();
+            }
+
+            destroy() {
+                if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
+                    this.serviceSelectField.destroy();
+                }
+                if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
+                    this.providerSelectField.destroy();
+                }
+                super.destroy();
+            }
         }
-    }
-
-    updateValue() {
-        this.handleChange();
-    }
-
-    reset() {
-        this.selectedService = '';
-        this.selectedProviderId = '';
-        this.selectedProvider = null;
-        this.filteredProviders = this.allProviders;
-        
-        if (this.serviceSelectField) {
-            this.serviceSelectField.setValue('');
-        }
-        
-        if (this.providerSelectField) {
-            this.providerSelectField.setValue('');
-            this.updateProviderOptions();
-        }
-        
-        this.updateValue();
-    }
-
-    destroy() {
-        if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
-            this.serviceSelectField.destroy();
-        }
-        if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
-            this.providerSelectField.destroy();
-        }
-        super.destroy();
-    }
-
-    // ===============================
-    // UTILITY METHODS
-    // ===============================
-
-    // Get services offered by a specific provider
-    getProviderServices(providerId) {
-        const provider = this.allProviders.find(p => p.id === providerId);
-        return provider ? Object.keys(provider.services) : [];
-    }
-
-    // Get providers that offer a specific service
-    getServiceProviders(serviceName) {
-        return this.filterProvidersByService(serviceName);
-    }
-
-    // Get service configuration for a provider
-    getServiceConfig(providerId, serviceName) {
-        const provider = this.allProviders.find(p => p.id === providerId);
-        return provider?.services?.[serviceName] || null;
-    }
-
-    // Get all service-provider combinations
-    getAllCombinations() {
-        const combinations = [];
-        
-        this.availableServices.forEach(service => {
-            const providers = this.filterProvidersByService(service.name);
-            providers.forEach(provider => {
-                combinations.push({
-                    service: service,
-                    provider: provider,
-                    serviceConfig: provider.serviceConfig
-                });
-            });
-        });
-        
-        return combinations;
-    }
-}
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
