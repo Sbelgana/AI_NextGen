@@ -11639,7 +11639,7 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
-  class ServiceProviderFilterField extends BaseField {
+ class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12062,30 +12062,34 @@ class CurrentAppointmentCardField extends BaseField {
                             margin-top: 0;
                             transition: opacity 0.3s ease, transform 0.3s ease;
                         }
-                        /* CSS to handle line breaks in summary display */
-                        .form-summary [data-field-id="serviceProvider"] .field-value,
-                        .summary-section [data-field-id="serviceProvider"] .field-value,
-                        .summary-item[data-field="serviceProvider"] .field-value,
-                        [data-summary-field="serviceProvider"] .field-value {
-                            white-space: pre-line !important;
-                            line-height: 1.4;
+                        /* CSS to handle the split summary fields */
+                        .summary-item[data-field="service"],
+                        .summary-item[data-field="dentist"] {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            margin-bottom: 10px;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #eee;
                         }
                         
-                        /* Ensure bold text is properly styled in summary */
-                        .form-summary [data-field-id="serviceProvider"] .field-value strong,
-                        .summary-section [data-field-id="serviceProvider"] .field-value strong,
-                        .summary-item[data-field="serviceProvider"] .field-value strong,
-                        [data-summary-field="serviceProvider"] .field-value strong {
-                            font-weight: bold;
-                            display: block;
-                            margin-top: 5px;
+                        .summary-item[data-field="service"] .field-label,
+                        .summary-item[data-field="dentist"] .field-label {
+                            font-weight: 500;
+                            color: #333;
+                            min-width: 150px;
                         }
                         
-                        .form-summary [data-field-id="serviceProvider"] .field-value strong:first-child,
-                        .summary-section [data-field-id="serviceProvider"] .field-value strong:first-child,
-                        .summary-item[data-field="serviceProvider"] .field-value strong:first-child,
-                        [data-summary-field="serviceProvider"] .field-value strong:first-child {
-                            margin-top: 0;
+                        .summary-item[data-field="service"] .field-value,
+                        .summary-item[data-field="dentist"] .field-value {
+                            flex: 1;
+                            text-align: right;
+                            color: #666;
+                        }
+                        
+                        /* Hide the original combined field when split */
+                        [data-field-id="serviceProvider"].split-summary-processed {
+                            display: none !important;
                         }
                     </style>
                 `;
@@ -12134,16 +12138,13 @@ class CurrentAppointmentCardField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Return HTML formatted string with bold labels
+            // FIXED: Return object with separate properties for split fields
             getValue() {
-                const parts = [];
-                if (this.selectedService) {
-                    parts.push(`<strong>Service</strong><br>${this.selectedService}`);
-                }
-                if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(`<strong>Dentiste</strong><br>${this.selectedProvider.displayName}`);
-                }
-                return parts.length > 0 ? parts.join('<br>') : '';
+                // Return an object that will be split into separate fields in summary
+                return {
+                    service: this.selectedService || '',
+                    dentist: this.selectedProvider?.displayName || ''
+                };
             }
 
             // NEW: Method to get display-friendly text
@@ -12163,14 +12164,8 @@ class CurrentAppointmentCardField extends BaseField {
 
             // NEW: Method specifically for summary display
             getSummaryValue() {
-                const parts = [];
-                if (this.selectedService) {
-                    parts.push(`<strong>Service</strong><br>${this.selectedService}`);
-                }
-                if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(`<strong>Dentiste</strong><br>${this.selectedProvider.displayName}`);
-                }
-                return parts.join('<br>');
+                // This won't be used since we're creating split fields
+                return this.getDisplayText();
             }
 
             // NEW: Method to get the raw data for form processing
@@ -12271,6 +12266,7 @@ class CurrentAppointmentCardField extends BaseField {
                 super.destroy();
             }
         }
+
 
 
 
