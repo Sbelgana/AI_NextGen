@@ -745,20 +745,27 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     }
 
     createProjectSpecsSection(flatData, originalFormValues) {
+        // FIXED: Use field configuration to transform ID to display value
+        const industryConfig = this.fieldConfigMap.niche || {};
+        const budgetConfig = this.fieldConfigMap.budget || {};
+
         return {
             sectionType: "project_specifications",
-            industry: this.safeExtractValue(flatData.niche) || 'Non spécifié',
+            industry: this.safeExtractValueWithConfig(flatData.niche, industryConfig) || 'Non spécifié',
             otherIndustry: this.safeExtractValue(flatData.otherNiche),
-            budget: this.safeExtractValue(flatData.budget) || 'Non spécifié',
+            budget: this.safeExtractValueWithConfig(flatData.budget, budgetConfig) || 'Non spécifié',
             customBudget: this.safeExtractValue(flatData.customBudget),
             description: this.safeExtractValue(flatData.description) || 'Non spécifié'
         };
     }
 
     createBusinessProfileSection(flatData, originalFormValues) {
+        // FIXED: Use field configuration to transform ID to display value
+        const teamSizeConfig = this.fieldConfigMap.teamSize || {};
+
         return {
             sectionType: "business_profile",
-            teamSize: this.safeExtractValue(flatData.teamSize) || 'Non spécifié',
+            teamSize: this.safeExtractValueWithConfig(flatData.teamSize, teamSizeConfig) || 'Non spécifié',
             services: this.safeExtractValue(flatData.services) || 'Non spécifié'
         };
     }
@@ -790,7 +797,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "form_integration",
             useForm: useFormResult.mainValue,
             formTypes: formTypesArray,
-            formTypesString: formTypesArray.join(', '), // This will now work because formTypesArray is guaranteed to be an array
+            formTypesString: formTypesArray.join(', '),
             formPurpose: formPurpose
         };
     }
@@ -845,7 +852,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "integrations_apis",
             useCRM: useCRMResult.mainValue,
             crms: crmsArray,
-            crmsString: crmsArray.join(', '), // Now safe
+            crmsString: crmsArray.join(', '),
             
             hasBookingSystem: hasBookingResult.mainValue,
             bookingSystems: this.safeStringValue(hasBookingResult.extractedValues.bookingSystems),
@@ -854,7 +861,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             
             useDatabase: useDatabaseResult.mainValue,
             databases: databasesArray,
-            databasesString: databasesArray.join(', ') // Now safe
+            databasesString: databasesArray.join(', ')
         };
     }
 
@@ -888,10 +895,10 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "communication_channels",
             needSocialBot: needSocialBotResult.mainValue,
             socialPlatforms: socialPlatformsArray,
-            socialPlatformsString: socialPlatformsArray.join(', '), // Now safe
+            socialPlatformsString: socialPlatformsArray.join(', '),
             languageType: this.getLanguageTypeDisplay(languageTypeResult),
             languages: languagesArray,
-            languagesString: languagesArray.join(', ') // Now safe
+            languagesString: languagesArray.join(', ')
         };
     }
 
@@ -958,6 +965,19 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         } catch (error) {
             console.error(`Error formatting field ${fieldName}:`, error);
             return value;
+        }
+    }
+
+    // FIXED: NEW METHOD - Extract value with field configuration for proper ID to display name transformation
+    safeExtractValueWithConfig(value, fieldConfig) {
+        try {
+            if (!value) return '';
+            
+            // Use the formatter to properly transform ID values to display values
+            return this.formatter.formatValue(fieldConfig, value) || value;
+        } catch (error) {
+            console.error('Error extracting value with config:', error);
+            return value || '';
         }
     }
 
