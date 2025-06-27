@@ -1017,8 +1017,6 @@ class MultiStepForm {
             }
         });
     });
-    
-    console.log('Form completely reset');
 }
 
     submit() {
@@ -3605,12 +3603,6 @@ class SingleSelectSubsectionsField extends BaseField {
             
             this.subsectionOptions = (optionsData && optionsData[config.subsectionOptions]) || [];
             
-            // Log for debugging
-            console.log('Resolving subsectionOptions:', config.subsectionOptions);
-            console.log('Factory formData:', factory.formData);
-            console.log('Factory data:', factory.data);
-            console.log('Options data found:', optionsData);
-            console.log('Resolved subsectionOptions:', this.subsectionOptions);
         } else {
             this.subsectionOptions = config.subsectionOptions || [];
         }
@@ -3960,12 +3952,6 @@ class MultiSelectSubsectionsField extends BaseField {
             
             this.subsectionOptions = (optionsData && optionsData[config.subsectionOptions]) || [];
             
-            // Log for debugging
-            console.log('Resolving subsectionOptions:', config.subsectionOptions);
-            console.log('Factory formData:', factory.formData);
-            console.log('Factory data:', factory.data);
-            console.log('Options data found:', optionsData);
-            console.log('Resolved subsectionOptions:', this.subsectionOptions);
         } else {
             this.subsectionOptions = config.subsectionOptions || [];
         }
@@ -7834,61 +7820,62 @@ class ServiceCardField extends BaseField {
 /**
  * CreatForm - Enhanced main form creation and management class with fixed single-step row support
  */
+
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
-    this.config = {
-        language: config.language || "fr",
-        webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
-        webhookEnabled: config.webhookEnabled !== false, // Default: enabled
-        voiceflowEnabled: config.voiceflowEnabled || false,
-        cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
-        enableSessionTimeout: config.enableSessionTimeout !== false,
-        sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
-        sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
-        debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
-        // Booking-specific configuration
-        formType: config.formType || "submission", // "submission" or "booking"
-        apiKey: config.apiKey || "",
-        timezone: config.timezone || "America/Toronto",
-        // Form structure configuration
-        formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
-        submitButtonText: config.submitButtonText || null, // Custom submit button text
-        showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
-        // NEW: Optional submit button for single step forms
-        voiceflowDataTransformer: config.voiceflowDataTransformer || null,
-        // NEW: Enhanced logging configuration
-        enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
-        logPrefix: config.logPrefix || "📋 CreatForm"
-    };
-    
-    // Store the passed data
-    this.formData = formData;
-    this.formConfig = formConfig;
-    this.defaultConfig = defaultConfig;
-    
-    this.state = { 
-        cssLoaded: false, 
-        initialized: false, 
-        formSubmitted: false, 
-        sessionExpired: false, 
-        currentStep: 0,
-        isSingleStep: false 
-    };
-    this.elements = new Map();
-    this.formValues = {};
-    this.sessionTimer = null;
-    this.warningTimer = null;
-    this.cssCache = new Map();
+        this.config = {
+            language: config.language || "fr",
+            webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
+            webhookEnabled: config.webhookEnabled !== false, // Default: enabled
+            voiceflowEnabled: config.voiceflowEnabled !== false, // FIXED: Default enabled
+            cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
+            enableSessionTimeout: config.enableSessionTimeout !== false,
+            sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
+            sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
+            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
+            // Booking-specific configuration
+            formType: config.formType || "submission", // "submission" or "booking"
+            apiKey: config.apiKey || "",
+            timezone: config.timezone || "America/Toronto",
+            // Form structure configuration
+            formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
+            submitButtonText: config.submitButtonText || null, // Custom submit button text
+            showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
+            // NEW: Optional submit button for single step forms
+            voiceflowDataTransformer: config.voiceflowDataTransformer || null,
+            // NEW: Enhanced logging configuration
+            enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
+            logPrefix: config.logPrefix || "📋 CreatForm"
+        };
+        
+        // Store the passed data
+        this.formData = formData;
+        this.formConfig = formConfig;
+        this.defaultConfig = defaultConfig;
+        
+        this.state = { 
+            cssLoaded: false, 
+            initialized: false, 
+            formSubmitted: false, 
+            sessionExpired: false, 
+            currentStep: 0,
+            isSingleStep: false 
+        };
+        this.elements = new Map();
+        this.formValues = {};
+        this.sessionTimer = null;
+        this.warningTimer = null;
+        this.cssCache = new Map();
 
-    // Determine if this is a booking form
-    this.isBookingForm = this.config.formType === "booking";
-    
-    // FIXED: Initialize logging BEFORE calling determineFormStructure
-    this.initializeLogging();
-    
-    // Determine form structure
-    this.determineFormStructure();
-}
+        // Determine if this is a booking form
+        this.isBookingForm = this.config.formType === "booking";
+        
+        // FIXED: Initialize logging BEFORE calling determineFormStructure
+        this.initializeLogging();
+        
+        // Determine form structure
+        this.determineFormStructure();
+    }
 
     // ============================================================================
     // ENHANCED LOGGING SYSTEM
@@ -8571,6 +8558,10 @@ class CreatForm {
             hasTransformer: typeof this.config.voiceflowDataTransformer === 'function'
         });
 
+        // ENHANCED: Log the raw form data received
+        this.logger.info('📥 Raw form data received:', formData);
+        this.logger.info('📋 Current form values in state:', this.formValues);
+
         const submitButton = this.getSubmitButton();
         if (submitButton) {
             submitButton.disabled = true;
@@ -8661,10 +8652,10 @@ class CreatForm {
             this.showSuccessScreen();
             
             // ============================================================================
-            // VOICEFLOW SUBMISSION WITH DETAILED LOGGING AND TRANSFORMATION
+            // ENHANCED VOICEFLOW SUBMISSION WITH SEPARATE LOGIC
             // ============================================================================
-            if (this.config.voiceflowEnabled && window.voiceflow) {
-                this.logger.voiceflow('Preparing data for Voiceflow...');
+            if (this.config.voiceflowEnabled) {
+                this.logger.voiceflow('Voiceflow integration enabled - preparing data...');
                 
                 let voiceflowPayload;
                 
@@ -8695,35 +8686,36 @@ class CreatForm {
                     voiceflowPayload = submissionData;
                 }
                 
-                // Send to Voiceflow
-                try {
-                    const voiceflowStartTime = Date.now();
-                    
-                    this.logger.voiceflow('📤 Sending data to Voiceflow...', {
-                        payload: voiceflowPayload,
-                        interactionType: 'success'
-                    });
-                    
-                    window.voiceflow.chat.interact({ 
-                        type: "success", 
-                        payload: voiceflowPayload 
-                    });
-                    
-                    const voiceflowDuration = Date.now() - voiceflowStartTime;
-                    this.logger.voiceflow(`✅ Voiceflow interaction completed (${voiceflowDuration}ms)`);
-                    
-                } catch (voiceflowError) {
-                    this.logger.voiceflow('❌ Voiceflow interaction error', {
-                        error: voiceflowError.message,
-                        payload: voiceflowPayload
-                    });
+                // FIXED: Check Voiceflow availability separately from data transformation
+                if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+                    try {
+                        const voiceflowStartTime = Date.now();
+                        
+                        this.logger.voiceflow('📤 Sending data to Voiceflow...', {
+                            payload: voiceflowPayload,
+                            interactionType: 'success'
+                        });
+                        
+                        window.voiceflow.chat.interact({ 
+                            type: "success", 
+                            payload: voiceflowPayload 
+                        });
+                        
+                        const voiceflowDuration = Date.now() - voiceflowStartTime;
+                        this.logger.voiceflow(`✅ Voiceflow interaction completed (${voiceflowDuration}ms)`);
+                        
+                    } catch (voiceflowError) {
+                        this.logger.voiceflow('❌ Voiceflow interaction error', {
+                            error: voiceflowError.message,
+                            payload: voiceflowPayload
+                        });
+                    }
+                } else {
+                    this.logger.warning('Voiceflow not available in window object');
+                    this.logger.info('💡 Generated payload that would be sent to Voiceflow:', voiceflowPayload);
                 }
             } else {
-                if (!this.config.voiceflowEnabled) {
-                    this.logger.info('Voiceflow integration disabled');
-                } else if (!window.voiceflow) {
-                    this.logger.warning('Voiceflow not available in window object');
-                }
+                this.logger.info('Voiceflow integration disabled');
             }
 
             this.logger.success('🎉 Form submission completed successfully!');
@@ -8755,6 +8747,8 @@ class CreatForm {
     }
 
     prepareDataForSubmission(formValues) {
+        this.logger.info('🔧 Preparing data for submission...', formValues);
+        
         const processedData = {};
         
         Object.keys(formValues).forEach(key => {
@@ -8762,7 +8756,7 @@ class CreatForm {
             processedData[key] = this.extractValue(value);
         });
         
-        return {
+        const finalData = {
             ...processedData,
             formLanguage: this.config.language,
             submissionTimestamp: new Date().toISOString(),
@@ -8771,6 +8765,9 @@ class CreatForm {
             formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form",
             summaryData: this.state.isSingleStep ? null : this.generateSummaryData()
         };
+        
+        this.logger.info('🔧 Final prepared data:', finalData);
+        return finalData;
     }
 
     // ============================================================================
@@ -9195,10 +9192,6 @@ class CalendarField extends BaseField {
         // Store full config for reference
         this.fullConfig = config;
         
-        console.log('CalendarField initialized with selectionMode:', this.selectionMode);
-        console.log('CalendarField serviceProvider:', this.serviceProvider);
-        console.log('CalendarField mode:', this.mode);
-        
         this.init();
     }
 
@@ -9347,7 +9340,6 @@ class CalendarField extends BaseField {
 
     // Select service (for service-provider mode)
     selectService(serviceId) {
-        console.log('Selecting service:', serviceId);
         
         const service = this.availableServices.find(s => s.id === serviceId);
         if (!service) {
@@ -9379,7 +9371,6 @@ class CalendarField extends BaseField {
 
     // Select provider
     async selectProvider(providerId, shouldUpdateUI = true) {
-        console.log('Selecting provider:', providerId);
         
         const provider = this.filteredProviders.find(p => p.id === providerId);
         if (!provider) {
@@ -9843,11 +9834,6 @@ class CalendarField extends BaseField {
                                    this.serviceProvider ||
                                    'Service Provider';
             
-            console.log('CalendarField generateCalendarHeader (reschedule mode):', {
-                currentProvider: this.currentProvider,
-                serviceProvider: this.serviceProvider,
-                displayProvider: displayProvider
-            });
             
             return `
                 <div class="calendar-title-content">
@@ -12177,9 +12163,6 @@ class CurrentAppointmentCardField extends BaseField {
                 this.serviceSelectField = null;
                 this.providerSelectField = null;
                 
-                console.log('ServiceProviderFilterField initialized with mode:', this.mode);
-                console.log('ServiceProviderFilterField data:', this.rawServiceProviders);
-                
                 this.init();
             }
 
@@ -12200,13 +12183,8 @@ class CurrentAppointmentCardField extends BaseField {
                     this.rawServiceProviders = this.getDataFromForm();
                 }
                 
-                console.log('Init with data:', this.rawServiceProviders);
-                
                 this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
                 this.allProviders = this.extractAllProviders(this.rawServiceProviders);
-                
-                console.log('Available services:', this.availableServices);
-                console.log('All providers:', this.allProviders);
                 
                 if (this.autoSelectSingleService && this.availableServices.length === 1 && !this.selectedService) {
                     this.selectedService = this.availableServices[0].name;
@@ -12232,7 +12210,6 @@ class CurrentAppointmentCardField extends BaseField {
                 const serviceSet = new Set();
                 
                 try {
-                    console.log('Extracting services from:', rawProviders);
                     
                     // Handle object format: { 'Dr. Name': { services: {...} } }
                     Object.entries(rawProviders).forEach(([providerName, providerData]) => {
@@ -12254,7 +12231,6 @@ class CurrentAppointmentCardField extends BaseField {
                     displayName: service
                 }));
                 
-                console.log('Extracted services:', services);
                 return services;
             }
 
@@ -12278,7 +12254,6 @@ class CurrentAppointmentCardField extends BaseField {
                     console.error('Error extracting providers:', error);
                 }
                 
-                console.log('Extracted providers:', allProviders);
                 return allProviders;
             }
 
@@ -12317,7 +12292,6 @@ class CurrentAppointmentCardField extends BaseField {
             }
 
             selectService(serviceId) {
-                console.log('Selecting service:', serviceId);
                 
                 const service = this.availableServices.find(s => s.id === serviceId);
                 if (!service) {
@@ -12357,7 +12331,6 @@ class CurrentAppointmentCardField extends BaseField {
             }
 
             selectProvider(providerId) {
-                console.log('Selecting provider:', providerId);
                 
                 const provider = this.filteredProviders.find(p => p.id === providerId) || 
                                 this.allProviders.find(p => p.id === providerId);
