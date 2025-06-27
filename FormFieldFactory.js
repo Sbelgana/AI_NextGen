@@ -7836,59 +7836,59 @@ class ServiceCardField extends BaseField {
  */
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
-        this.config = {
-            language: config.language || "fr",
-            webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
-            webhookEnabled: config.webhookEnabled !== false, // Default: enabled
-            voiceflowEnabled: config.voiceflowEnabled || false,
-            cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
-            enableSessionTimeout: config.enableSessionTimeout !== false,
-            sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
-            sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
-            debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
-            // Booking-specific configuration
-            formType: config.formType || "submission", // "submission" or "booking"
-            apiKey: config.apiKey || "",
-            timezone: config.timezone || "America/Toronto",
-            // Form structure configuration
-            formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
-            submitButtonText: config.submitButtonText || null, // Custom submit button text
-            showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
-            // NEW: Optional submit button for single step forms
-            voiceflowDataTransformer: config.voiceflowDataTransformer || null,
-            // NEW: Enhanced logging configuration
-            enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
-            logPrefix: config.logPrefix || "📋 CreatForm"
-        };
-        
-        // Store the passed data
-        this.formData = formData;
-        this.formConfig = formConfig;
-        this.defaultConfig = defaultConfig;
-        
-        this.state = { 
-            cssLoaded: false, 
-            initialized: false, 
-            formSubmitted: false, 
-            sessionExpired: false, 
-            currentStep: 0,
-            isSingleStep: false 
-        };
-        this.elements = new Map();
-        this.formValues = {};
-        this.sessionTimer = null;
-        this.warningTimer = null;
-        this.cssCache = new Map();
+    this.config = {
+        language: config.language || "fr",
+        webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
+        webhookEnabled: config.webhookEnabled !== false, // Default: enabled
+        voiceflowEnabled: config.voiceflowEnabled || false,
+        cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
+        enableSessionTimeout: config.enableSessionTimeout !== false,
+        sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
+        sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
+        debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
+        // Booking-specific configuration
+        formType: config.formType || "submission", // "submission" or "booking"
+        apiKey: config.apiKey || "",
+        timezone: config.timezone || "America/Toronto",
+        // Form structure configuration
+        formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
+        submitButtonText: config.submitButtonText || null, // Custom submit button text
+        showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
+        // NEW: Optional submit button for single step forms
+        voiceflowDataTransformer: config.voiceflowDataTransformer || null,
+        // NEW: Enhanced logging configuration
+        enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
+        logPrefix: config.logPrefix || "📋 CreatForm"
+    };
+    
+    // Store the passed data
+    this.formData = formData;
+    this.formConfig = formConfig;
+    this.defaultConfig = defaultConfig;
+    
+    this.state = { 
+        cssLoaded: false, 
+        initialized: false, 
+        formSubmitted: false, 
+        sessionExpired: false, 
+        currentStep: 0,
+        isSingleStep: false 
+    };
+    this.elements = new Map();
+    this.formValues = {};
+    this.sessionTimer = null;
+    this.warningTimer = null;
+    this.cssCache = new Map();
 
-        // Determine if this is a booking form
-        this.isBookingForm = this.config.formType === "booking";
-        
-        // Determine form structure
-        this.determineFormStructure();
-
-        // Initialize logging
-        this.initializeLogging();
-    }
+    // Determine if this is a booking form
+    this.isBookingForm = this.config.formType === "booking";
+    
+    // FIXED: Initialize logging BEFORE calling determineFormStructure
+    this.initializeLogging();
+    
+    // Determine form structure
+    this.determineFormStructure();
+}
 
     // ============================================================================
     // ENHANCED LOGGING SYSTEM
