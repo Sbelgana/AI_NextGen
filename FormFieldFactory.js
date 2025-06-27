@@ -11925,6 +11925,7 @@ class ServiceProviderFilterField extends BaseField {
                     placeholder: this.servicePlaceholder,
                     options: this.availableServices,
                     required: this.required,
+					row:serviceSelectField,
                     onChange: (value) => this.selectService(value)
                 });
 
@@ -11948,6 +11949,7 @@ class ServiceProviderFilterField extends BaseField {
                     placeholder: this.providerPlaceholder,
                     options: this.filteredProviders,
                     required: this.required,
+					row:providerSelectField,
                     onChange: (value) => this.selectProvider(value)
                 });
 
