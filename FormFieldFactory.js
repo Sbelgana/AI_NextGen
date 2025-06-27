@@ -7827,24 +7827,42 @@ class CreatForm {
             language: config.language || "fr",
             webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
             webhookEnabled: config.webhookEnabled !== false, // Default: enabled
-            voiceflowEnabled: config.voiceflowEnabled !== false, // FIXED: Default enabled
+            voiceflowEnabled: config.voiceflowEnabled !== false, // Default: enabled
             cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
             enableSessionTimeout: config.enableSessionTimeout !== false,
             sessionTimeout: config.sessionTimeout || defaultConfig.SESSION_TIMEOUT,
             sessionWarning: config.sessionWarning || defaultConfig.SESSION_WARNING,
             debounceDelay: config.debounceDelay || defaultConfig.DEBOUNCE_DELAY,
-            // Booking-specific configuration
+            
+            // Form type and structure
             formType: config.formType || "submission", // "submission" or "booking"
-            apiKey: config.apiKey || "",
-            timezone: config.timezone || "America/Toronto",
-            // Form structure configuration
             formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
+            
+            // Submit button configuration
             submitButtonText: config.submitButtonText || null, // Custom submit button text
             showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
-            // NEW: Optional submit button for single step forms
+            
+            // Booking-specific configuration
+            apiKey: config.apiKey || "",
+            timezone: config.timezone || "America/Toronto",
+            
+            // ============================================================================
+            // STRUCTURED DATA CONFIGURATION
+            // ============================================================================
+            
+            // Enable structured data format (sections, metadata, etc.)
+            useStructuredData: config.useStructuredData || false,
+            
+            // Custom function to transform data into structured format
+            // Signature: (flatData, originalFormValues, creatFormInstance) => structuredData
+            structuredDataTransformer: config.structuredDataTransformer || null,
+            
+            // Voiceflow-specific data transformer (separate from structured data)
+            // Signature: (submissionData, originalFormValues, creatFormInstance) => voiceflowPayload
             voiceflowDataTransformer: config.voiceflowDataTransformer || null,
-            // NEW: Enhanced logging configuration
-            enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
+            
+            // Enhanced logging configuration
+            enableDetailedLogging: config.enableDetailedLogging !== false,
             logPrefix: config.logPrefix || "📋 CreatForm"
         };
         
@@ -7870,7 +7888,7 @@ class CreatForm {
         // Determine if this is a booking form
         this.isBookingForm = this.config.formType === "booking";
         
-        // FIXED: Initialize logging BEFORE calling determineFormStructure
+        // Initialize logging
         this.initializeLogging();
         
         // Determine form structure
@@ -7936,7 +7954,9 @@ class CreatForm {
             structure: this.state.isSingleStep ? 'single-step' : 'multi-step',
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
-            hasTransformer: typeof this.config.voiceflowDataTransformer === 'function'
+            useStructuredData: this.config.useStructuredData,
+            hasStructuredTransformer: typeof this.config.structuredDataTransformer === 'function',
+            hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function'
         });
     }
 
@@ -8325,7 +8345,7 @@ class CreatForm {
         const fields = this.createFields(firstStep.fields);
         const fieldInstances = [];
 
-        // FIXED: Use the same grouping logic as multi-step forms
+        // Use the same grouping logic as multi-step forms
         const fieldGroups = this.groupFieldsForSingleStep(fields);
         
         fieldGroups.forEach(group => {
@@ -8417,6 +8437,242 @@ class CreatForm {
         container.appendChild(form);
         this.logger.success('Single step form created successfully');
         return container;
+    }
+
+    // ============================================================================
+    // ENHANCED DATA TRANSFORMATION WITH STRUCTURED SECTIONS
+    // ============================================================================
+
+    /**
+     * Enhanced data preparation that supports both flat and structured formats
+     */
+    prepareDataForSubmission(formValues) {
+        this.logger.info('🔧 Preparing data for submission...', formValues);
+        
+        // Create flat data (existing functionality)
+        const flatData = {};
+        Object.keys(formValues).forEach(key => {
+            const value = formValues[key];
+            flatData[key] = this.extractValue(value);
+        });
+        
+        // Base submission data
+        const baseSubmissionData = {
+            ...flatData,
+            formLanguage: this.config.language,
+            submissionTimestamp: new Date().toISOString(),
+            formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
+            userAgent: navigator.userAgent,
+            formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form"
+        };
+
+        // Check if structured data transformation is requested
+        if (this.config.useStructuredData) {
+            return this.createStructuredSubmissionData(baseSubmissionData, formValues);
+        }
+
+        // Add summary data for multi-step forms
+        if (!this.state.isSingleStep) {
+            baseSubmissionData.summaryData = this.generateSummaryData();
+        }
+        
+        this.logger.info('🔧 Final prepared data:', baseSubmissionData);
+        return baseSubmissionData;
+    }
+
+    /**
+     * Creates structured submission data with sections
+     */
+    createStructuredSubmissionData(flatData, originalFormValues) {
+        this.logger.info('🏗️ Creating structured submission data...');
+        
+        // Get the structured data transformer function if provided
+        if (this.config.structuredDataTransformer && typeof this.config.structuredDataTransformer === 'function') {
+            try {
+                const structuredData = this.config.structuredDataTransformer(flatData, originalFormValues, this);
+                this.logger.success('✅ Custom structured data transformation completed');
+                return structuredData;
+            } catch (error) {
+                this.logger.error('❌ Error in structured data transformer:', error);
+                // Fallback to default structure
+            }
+        }
+
+        // Default structured format
+        const sections = this.createDefaultStructuredSections(flatData, originalFormValues);
+        
+        const structuredPayload = {
+            submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
+            formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
+            submissionTimestamp: new Date().toISOString(),
+            language: this.config.language,
+            
+            // Structured sections
+            sections: sections,
+            
+            // Legacy flat data for backwards compatibility
+            flatData: flatData,
+            
+            // Metadata
+            metadata: this.generateSubmissionMetadata(flatData, originalFormValues)
+        };
+
+        this.logger.info('🏗️ Structured payload created:', structuredPayload);
+        return structuredPayload;
+    }
+
+    /**
+     * Creates default structured sections based on form configuration
+     */
+    createDefaultStructuredSections(flatData, originalFormValues) {
+        const sections = {};
+        
+        // Group fields by their step configuration
+        this.formConfig.steps?.forEach((stepConfig, stepIndex) => {
+            if (stepConfig.sectionId || stepConfig.fields?.length > 0) {
+                const sectionId = stepConfig.sectionId || `step_${stepIndex}`;
+                const sectionData = {
+                    sectionType: sectionId,
+                    title: this.getText(`steps.${stepIndex}.title`) || stepConfig.title || `Step ${stepIndex + 1}`,
+                    index: stepIndex
+                };
+
+                // Add field data for this section
+                stepConfig.fields?.forEach(fieldConfig => {
+                    const fieldValue = originalFormValues[fieldConfig.id];
+                    if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+                        sectionData[fieldConfig.id] = this.transformFieldValueForStructure(fieldConfig, fieldValue);
+                    }
+                });
+
+                // Only add section if it has data
+                if (Object.keys(sectionData).length > 3) { // More than just sectionType, title, index
+                    sections[sectionId] = sectionData;
+                }
+            }
+        });
+
+        return sections;
+    }
+
+    /**
+     * Transforms individual field values for structured format
+     */
+    transformFieldValueForStructure(fieldConfig, value) {
+        const baseTransform = {
+            id: fieldConfig.id,
+            type: fieldConfig.type,
+            label: this.getText(`fields.${fieldConfig.id}`) || fieldConfig.label,
+            rawValue: value,
+            displayValue: this.extractValue(value)
+        };
+
+        // Add type-specific transformations
+        switch (fieldConfig.type) {
+            case 'yesno-with-options':
+                if (typeof value === 'object' && value.main !== undefined) {
+                    baseTransform.mainSelection = value.main;
+                    baseTransform.conditionalValues = {
+                        yesValues: value.yesValues || {},
+                        noValues: value.noValues || {}
+                    };
+                }
+                break;
+                
+            case 'multiselect':
+            case 'multiselect-with-other':
+                if (Array.isArray(value)) {
+                    baseTransform.selectedCount = value.length;
+                    baseTransform.selectedItems = value;
+                }
+                break;
+                
+            case 'select-with-other':
+                if (typeof value === 'object' && value.main) {
+                    baseTransform.mainSelection = value.main;
+                    baseTransform.otherValue = value.other || null;
+                    baseTransform.isOther = value.main === 'other';
+                }
+                break;
+        }
+
+        return baseTransform;
+    }
+
+    /**
+     * Generates metadata for the submission
+     */
+    generateSubmissionMetadata(flatData, originalFormValues) {
+        const metadata = {
+            formStructure: this.state.isSingleStep ? 'single-step' : 'multi-step',
+            totalSteps: this.formConfig.steps?.length || 1,
+            completedFields: Object.keys(originalFormValues).filter(key => {
+                const value = originalFormValues[key];
+                return value !== undefined && value !== null && value !== '' && 
+                       !(Array.isArray(value) && value.length === 0);
+            }).length,
+            totalFields: this.getTotalFieldCount(),
+            completionPercentage: this.calculateCompletionPercentage(originalFormValues),
+            submissionQuality: this.assessSubmissionQuality(originalFormValues),
+            deviceInfo: {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
+            }
+        };
+
+        return metadata;
+    }
+
+    /**
+     * Helper methods for metadata generation
+     */
+    getTotalFieldCount() {
+        return this.formConfig.steps?.reduce((total, step) => {
+            return total + (step.fields?.length || 0);
+        }, 0) || 0;
+    }
+
+    calculateCompletionPercentage(formValues) {
+        const totalFields = this.getTotalFieldCount();
+        const completedFields = Object.keys(formValues).filter(key => {
+            const value = formValues[key];
+            return value !== undefined && value !== null && value !== '' && 
+                   !(Array.isArray(value) && value.length === 0);
+        }).length;
+        
+        return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+    }
+
+    assessSubmissionQuality(formValues) {
+        const completionPercentage = this.calculateCompletionPercentage(formValues);
+        const requiredFieldsCompleted = this.checkRequiredFieldsCompletion(formValues);
+        
+        if (completionPercentage >= 90 && requiredFieldsCompleted) return 'excellent';
+        if (completionPercentage >= 70 && requiredFieldsCompleted) return 'good';
+        if (completionPercentage >= 50) return 'fair';
+        return 'basic';
+    }
+
+    checkRequiredFieldsCompletion(formValues) {
+        const requiredFields = [];
+        this.formConfig.steps?.forEach(step => {
+            step.fields?.forEach(field => {
+                if (field.required) {
+                    requiredFields.push(field.id);
+                }
+            });
+        });
+        
+        return requiredFields.every(fieldId => {
+            const value = formValues[fieldId];
+            return value !== undefined && value !== null && value !== '' && 
+                   !(Array.isArray(value) && value.length === 0);
+        });
     }
 
     // ============================================================================
@@ -8551,14 +8807,16 @@ class CreatForm {
     // ============================================================================
 
     handleSubmission = async (formData) => {
-        this.logger.info('🚀 Starting form submission process...', {
+        this.logger.info('🚀 Starting enhanced submission process...', {
             formType: this.config.formType,
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
-            hasTransformer: typeof this.config.voiceflowDataTransformer === 'function'
+            useStructuredData: this.config.useStructuredData,
+            hasStructuredTransformer: typeof this.config.structuredDataTransformer === 'function',
+            hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function'
         });
 
-        // ENHANCED: Log the raw form data received
+        // Log the raw form data received
         this.logger.info('📥 Raw form data received:', formData);
         this.logger.info('📋 Current form values in state:', this.formValues);
 
@@ -8574,7 +8832,6 @@ class CreatForm {
             
             if (this.isBookingForm) {
                 this.logger.info('Processing booking form submission...');
-                // Booking form submission
                 const calendarField = this.getCalendarFieldInstance();
                 if (!calendarField) {
                     throw new Error('Calendar field not found');
@@ -8591,12 +8848,9 @@ class CreatForm {
                 }
 
                 submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
-                
-                // Booking forms might still want to send to webhook for tracking
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             } else {
                 this.logger.info('Processing regular form submission...');
-                // Regular submission form
                 submissionData = this.prepareDataForSubmission(formData);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             }
@@ -8604,14 +8858,12 @@ class CreatForm {
             this.logger.info('📦 Prepared submission data:', submissionData);
 
             // ============================================================================
-            // WEBHOOK SUBMISSION WITH DETAILED LOGGING
+            // WEBHOOK SUBMISSION
             // ============================================================================
             if (shouldSendToWebhook) {
                 this.logger.webhook('Sending data to webhook...', {
                     url: this.config.webhookUrl,
-                    data: submissionData,
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    dataType: this.config.useStructuredData ? 'structured' : 'flat'
                 });
 
                 try {
@@ -8625,23 +8877,15 @@ class CreatForm {
                     const webhookDuration = Date.now() - webhookStartTime;
 
                     if (response.ok) {
-                        this.logger.webhook(`✅ Webhook submission successful (${webhookDuration}ms)`, {
-                            status: response.status,
-                            statusText: response.statusText,
-                            duration: `${webhookDuration}ms`
-                        });
+                        this.logger.webhook(`✅ Webhook submission successful (${webhookDuration}ms)`);
                     } else {
                         this.logger.webhook(`⚠️ Webhook submission failed (${webhookDuration}ms)`, {
                             status: response.status,
-                            statusText: response.statusText,
-                            duration: `${webhookDuration}ms`
+                            statusText: response.statusText
                         });
                     }
                 } catch (webhookError) {
-                    this.logger.webhook('❌ Webhook submission error', {
-                        error: webhookError.message,
-                        url: this.config.webhookUrl
-                    });
+                    this.logger.webhook('❌ Webhook submission error', webhookError);
                 }
             } else {
                 this.logger.info('Webhook sending disabled or no webhook URL provided');
@@ -8657,36 +8901,27 @@ class CreatForm {
             if (this.config.voiceflowEnabled) {
                 this.logger.voiceflow('Voiceflow integration enabled - preparing data...');
                 
-                let voiceflowPayload;
+                let voiceflowPayload = submissionData;
                 
+                // Apply Voiceflow-specific transformation if provided
                 if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
                     this.logger.voiceflow('Using custom Voiceflow data transformer');
                     try {
                         const transformStartTime = Date.now();
-                        voiceflowPayload = this.config.voiceflowDataTransformer(submissionData, formData);
+                        voiceflowPayload = this.config.voiceflowDataTransformer(submissionData, formData, this);
                         const transformDuration = Date.now() - transformStartTime;
                         
-                        this.logger.transformation(
-                            { submissionData, formData }, 
-                            voiceflowPayload
-                        );
-                        
-                        this.logger.voiceflow(`✅ Data transformation completed (${transformDuration}ms)`, voiceflowPayload);
+                        this.logger.transformation(submissionData, voiceflowPayload);
+                        this.logger.voiceflow(`✅ Voiceflow transformation completed (${transformDuration}ms)`);
                     } catch (transformError) {
-                        this.logger.voiceflow('❌ Error in custom Voiceflow data transformer', {
-                            error: transformError.message,
-                            stack: transformError.stack
-                        });
-                        // Fallback to original data
-                        voiceflowPayload = submissionData;
-                        this.logger.voiceflow('🔄 Falling back to original submission data', voiceflowPayload);
+                        this.logger.voiceflow('❌ Error in Voiceflow transformer:', transformError);
+                        voiceflowPayload = submissionData; // Fallback
                     }
                 } else {
                     this.logger.voiceflow('No custom transformer found, using original submission data');
-                    voiceflowPayload = submissionData;
                 }
                 
-                // FIXED: Check Voiceflow availability separately from data transformation
+                // Send to Voiceflow
                 if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
                     try {
                         const voiceflowStartTime = Date.now();
@@ -8705,10 +8940,7 @@ class CreatForm {
                         this.logger.voiceflow(`✅ Voiceflow interaction completed (${voiceflowDuration}ms)`);
                         
                     } catch (voiceflowError) {
-                        this.logger.voiceflow('❌ Voiceflow interaction error', {
-                            error: voiceflowError.message,
-                            payload: voiceflowPayload
-                        });
+                        this.logger.voiceflow('❌ Voiceflow interaction error', voiceflowError);
                     }
                 } else {
                     this.logger.warning('Voiceflow not available in window object');
@@ -8718,20 +8950,16 @@ class CreatForm {
                 this.logger.info('Voiceflow integration disabled');
             }
 
-            this.logger.success('🎉 Form submission completed successfully!');
+            this.logger.success('🎉 Enhanced submission completed successfully!');
             return submissionData;
             
         } catch (error) {
-            this.logger.error('Form submission failed:', {
-                error: error.message,
-                stack: error.stack,
-                formData: formData
-            });
+            this.logger.error('Enhanced submission failed:', error);
             
             if (submitButton) {
                 const errorMessage = this.isBookingForm ? 
-                    (this.getText('errors.bookingError') || 'Erreur lors de la réservation. Veuillez réessayer.') :
-                    'Erreur lors de la soumission. Veuillez réessayer.';
+                    (this.getText('errors.bookingError') || 'Booking error. Please try again.') :
+                    'Submission error. Please try again.';
                 submitButton.textContent = errorMessage;
                 submitButton.disabled = false;
             }
@@ -8744,30 +8972,6 @@ class CreatForm {
             return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
         }
         return document.querySelector('.btn-submit');
-    }
-
-    prepareDataForSubmission(formValues) {
-        this.logger.info('🔧 Preparing data for submission...', formValues);
-        
-        const processedData = {};
-        
-        Object.keys(formValues).forEach(key => {
-            const value = formValues[key];
-            processedData[key] = this.extractValue(value);
-        });
-        
-        const finalData = {
-            ...processedData,
-            formLanguage: this.config.language,
-            submissionTimestamp: new Date().toISOString(),
-            formVersion: this.defaultConfig.FORM_VERSION,
-            userAgent: navigator.userAgent,
-            formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form",
-            summaryData: this.state.isSingleStep ? null : this.generateSummaryData()
-        };
-        
-        this.logger.info('🔧 Final prepared data:', finalData);
-        return finalData;
     }
 
     // ============================================================================
@@ -9042,17 +9246,30 @@ class CreatForm {
             getConfig: () => ({
                 webhookEnabled: this.config.webhookEnabled,
                 voiceflowEnabled: this.config.voiceflowEnabled,
+                useStructuredData: this.config.useStructuredData,
                 formType: this.config.formType,
                 formStructure: this.state.isSingleStep ? 'single' : 'multistep',
                 showSubmitButton: this.config.showSubmitButton,
-                hasTransformer: typeof this.config.voiceflowDataTransformer === 'function',
+                hasStructuredTransformer: typeof this.config.structuredDataTransformer === 'function',
+                hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function',
                 enableDetailedLogging: this.config.enableDetailedLogging
             }),
             // Enhanced testing and debugging methods
+            testStructuredTransformer: (testData) => {
+                if (this.config.structuredDataTransformer && typeof this.config.structuredDataTransformer === 'function') {
+                    try {
+                        return this.config.structuredDataTransformer(testData, testData, this);
+                    } catch (error) {
+                        this.logger.error('Error testing structured transformer:', error);
+                        return null;
+                    }
+                }
+                return null;
+            },
             testVoiceflowTransformer: (testData) => {
                 if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
                     try {
-                        return this.config.voiceflowDataTransformer(testData, testData);
+                        return this.config.voiceflowDataTransformer(testData, testData, this);
                     } catch (error) {
                         this.logger.error('Error testing Voiceflow transformer:', error);
                         return null;
