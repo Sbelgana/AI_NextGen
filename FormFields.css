@@ -982,6 +982,7 @@ input[type="number"]:hover:not(:focus) {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+	margin-bottom: 20px
 }
 
 .slider-control-btn:hover:not(:disabled) {
@@ -1005,7 +1006,7 @@ input[type="number"]:hover:not(:focus) {
 .range-container {
   flex: 1;
   position: relative;
-  margin: 24px 0;
+  margin: 24px 0 44px 0;
 }
 
 /* Slider Track */
