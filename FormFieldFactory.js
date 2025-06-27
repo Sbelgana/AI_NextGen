@@ -10752,7 +10752,7 @@ class BookingCancellationCardField extends BaseField {
         return this.factory.SVG_ICONS.CALENDAR || '';
     }
 
-    // Booking cancellation specific method
+    // Booking cancellation specific methods
     getStatusDisplay() {
         const statusMap = {
             confirmed: this.getText('confirmed'),
@@ -10760,6 +10760,23 @@ class BookingCancellationCardField extends BaseField {
             cancelled: this.getText('cancelled')
         };
         return statusMap[this.status] || this.status;
+    }
+
+    renderBookingSpecificFields() {
+        let bookingFields = '';
+        if (this.showBookingInfo && this.bookingId) {
+            bookingFields += `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>`;
+        }
+        if (this.showBookingInfo) {
+            bookingFields += `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>`;
+        }
+        if (this.showAttendeeInfo && this.attendeeName) {
+            bookingFields += `<div class="meta-item"><span class="meta-label">${this.getText('attendee')}:</span> <span class="meta-value">${this.attendeeName}</span></div>`;
+        }
+        if (this.showAttendeeInfo && this.attendeeEmail) {
+            bookingFields += `<div class="meta-item"><span class="meta-label">${this.getText('email')}:</span> <span class="meta-value">${this.attendeeEmail}</span></div>`;
+        }
+        return bookingFields;
     }
 
     validate() {
@@ -10847,6 +10864,8 @@ class BookingCancellationCardField extends BaseField {
     }
     
     renderDetailedCard(appointmentDate) {
+        const bookingFields = this.renderBookingSpecificFields();
+        
         return `
             <div class="current-appointment-card detailed">
                 <div class="appointment-header-detailed">
@@ -10859,10 +10878,7 @@ class BookingCancellationCardField extends BaseField {
                             ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
                             ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
                             ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
-                            ${this.showBookingInfo && this.bookingId ? `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>` : ''}
-                            ${this.showBookingInfo ? `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>` : ''}
-                            ${this.showAttendeeInfo && this.attendeeName ? `<div class="meta-item"><span class="meta-label">${this.getText('attendee')}:</span> <span class="meta-value">${this.attendeeName}</span></div>` : ''}
-                            ${this.showAttendeeInfo && this.attendeeEmail ? `<div class="meta-item"><span class="meta-label">${this.getText('email')}:</span> <span class="meta-value">${this.attendeeEmail}</span></div>` : ''}
+                            ${bookingFields}
                         </div>
                     </div>
                 </div>
@@ -10987,7 +11003,6 @@ class BookingCancellationCardField extends BaseField {
         }
     }
 }
-
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { FormFieldFactory, CreatForm };
