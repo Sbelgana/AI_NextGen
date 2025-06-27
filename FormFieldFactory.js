@@ -215,6 +215,9 @@ this.SVG_ICONS = {
             case 'provider-calendar':
                 field = new ProviderCalendarField(this, config);
                 break;
+            case 'tab-manager':
+    field = new TabManager(this, config);
+    break;
             case 'service-provider-calendar':
                 field = new ServiceAndProviderCalendarField (this, config);
                 break;
@@ -706,6 +709,12 @@ this.SVG_ICONS = {
         return new ProviderCalendarField (this, config);
     }
 	
+	createTabManager (config) {
+        return new TabManager (this, config);
+    }
+
+	
+	
 	createBookingCancellationCardField (config) {
         return new BookingCancellationCardField (this, config);
     }
@@ -1196,6 +1205,10 @@ class FormStep {
                 return this.factory.createCalendarField(fieldConfig);
             case 'provider-calendar':
                 return this.factory.createProviderCalendarField(fieldConfig);
+            case 'manager':
+                return this.factory.createTabManager(fieldConfig);
+
+
             case 'service-provider-calendar':
                 return this.factory.createServiceAndProviderCalendarField(fieldConfig);
             case 'bookingCancellationCard':
@@ -11068,6 +11081,327 @@ class BookingCancellationCardField extends BaseField {
         }
     }
 }
+
+
+class TabManager extends BaseField {
+                constructor(factory, config) {
+                    super(factory, config);
+                    
+                    this.tabs = config.tabs || [];
+                    this.activeTabId = config.activeTabId || (this.tabs[0]?.id);
+                    this.tabStyle = config.tabStyle || 'default';
+                    this.orientation = config.orientation || 'horizontal';
+                    
+                    this.tabFieldInstances = new Map();
+                    this.tabContainers = new Map();
+                    this.onTabChange = config.onTabChange || null;
+                    this.allowValidation = config.allowValidation !== false;
+                    this.tabEventListeners = [];
+                }
+
+                validate() {
+                    if (!this.allowValidation) return true;
+                    
+                    const activeFields = this.tabFieldInstances.get(this.activeTabId) || [];
+                    return activeFields.every(field => field.validate());
+                }
+
+                render() {
+                    const container = this.createContainer();
+                    container.classList.add('tab-manager-field');
+                    
+                    const tabNav = this.createTabNavigation();
+                    container.appendChild(tabNav);
+                    
+                    const tabContent = document.createElement('div');
+                    tabContent.className = 'tab-content-area';
+                    
+                    this.tabs.forEach(tab => {
+                        const tabContainer = this.createTabContent(tab);
+                        this.tabContainers.set(tab.id, tabContainer);
+                        tabContent.appendChild(tabContainer);
+                    });
+                    
+                    container.appendChild(tabContent);
+                    
+                    const errorElement = this.createErrorElement();
+                    container.appendChild(errorElement);
+                    
+                    this.setActiveTab(this.activeTabId, false);
+                    
+                    this.container = container;
+                    return container;
+                }
+
+                createTabNavigation() {
+                    const navContainer = document.createElement('div');
+                    navContainer.className = `tab-navigation ${this.tabStyle} ${this.orientation}`;
+                    
+                    this.tabs.forEach(tab => {
+                        const tabButton = document.createElement('button');
+                        tabButton.type = 'button';
+                        tabButton.className = 'tab-button';
+                        tabButton.dataset.tabId = tab.id;
+                        tabButton.textContent = tab.label;
+                        
+                        if (tab.id === this.activeTabId) {
+                            tabButton.classList.add('active');
+                        }
+                        
+                        const clickHandler = (e) => {
+                            e.preventDefault();
+                            this.setActiveTab(tab.id);
+                        };
+                        
+                        tabButton.addEventListener('click', clickHandler);
+                        this.tabEventListeners.push({
+                            element: tabButton,
+                            event: 'click',
+                            handler: clickHandler
+                        });
+                        
+                        navContainer.appendChild(tabButton);
+                    });
+                    
+                    return navContainer;
+                }
+
+                createTabContent(tab) {
+                    const tabContainer = document.createElement('div');
+                    tabContainer.className = 'tab-content';
+                    tabContainer.dataset.tabId = tab.id;
+                    tabContainer.style.display = tab.id === this.activeTabId ? 'block' : 'none';
+                    
+                    if (tab.customContent) {
+                        if (typeof tab.customContent === 'function') {
+                            tab.customContent(tabContainer, this);
+                        } else {
+                            tabContainer.innerHTML = tab.customContent;
+                        }
+                    } else if (tab.fields && Array.isArray(tab.fields)) {
+                        this.createTabFields(tab, tabContainer);
+                    }
+                    
+                    return tabContainer;
+                }
+
+                createTabFields(tab, container) {
+                    const fieldInstances = [];
+                    
+                    const fieldGroups = this.groupFieldsByRow(tab.fields);
+                    
+                    fieldGroups.forEach(group => {
+                        if (group.isRow) {
+                            const rowContainer = document.createElement('div');
+                            rowContainer.className = 'field-row';
+                            
+                            group.fields.forEach(fieldConfig => {
+                                const colContainer = document.createElement('div');
+                                colContainer.className = 'field-col';
+                                
+                                const field = this.createFieldInstance(fieldConfig, tab.id);
+                                if (field) {
+                                    fieldInstances.push(field);
+                                    colContainer.appendChild(field.render());
+                                }
+                                rowContainer.appendChild(colContainer);
+                            });
+                            
+                            container.appendChild(rowContainer);
+                        } else {
+                            const field = this.createFieldInstance(group.fields[0], tab.id);
+                            if (field) {
+                                fieldInstances.push(field);
+                                container.appendChild(field.render());
+                            }
+                        }
+                    });
+                    
+                    this.tabFieldInstances.set(tab.id, fieldInstances);
+                }
+
+                groupFieldsByRow(fields) {
+                    const groups = [];
+                    let i = 0;
+                    
+                    while (i < fields.length) {
+                        const currentField = fields[i];
+                        
+                        if (currentField.row) {
+                            const rowFields = [];
+                            let j = i;
+                            while (j < fields.length && fields[j].row === currentField.row) {
+                                rowFields.push(fields[j]);
+                                j++;
+                            }
+                            
+                            groups.push({
+                                isRow: true,
+                                fields: rowFields
+                            });
+                            
+                            i = j;
+                            continue;
+                        }
+                        
+                        groups.push({
+                            isRow: false,
+                            fields: [currentField]
+                        });
+                        
+                        i++;
+                    }
+                    
+                    return groups;
+                }
+
+                createFieldInstance(fieldConfig, tabId) {
+                    const enhancedConfig = {
+                        ...fieldConfig,
+                        id: `${tabId}-${fieldConfig.id}`,
+                        onChange: (value) => {
+                            if (fieldConfig.onChange) {
+                                fieldConfig.onChange(value, tabId, this);
+                            }
+                            this.handleFieldChange(tabId, fieldConfig.name || fieldConfig.id, value);
+                        }
+                    };
+
+                    return this.factory.createField(enhancedConfig);
+                }
+
+                handleFieldChange(tabId, fieldName, value) {
+                    if (!this.value) this.value = {};
+                    if (!this.value[tabId]) this.value[tabId] = {};
+                    
+                    this.value[tabId][fieldName] = value;
+                    
+                    this.handleChange();
+                    
+                    const tab = this.tabs.find(t => t.id === tabId);
+                    if (tab && tab.onFieldChange) {
+                        tab.onFieldChange(fieldName, value, tabId, this);
+                    }
+                }
+
+                setActiveTab(tabId, triggerCallbacks = true) {
+                    const previousTabId = this.activeTabId;
+                    
+                    if (previousTabId === tabId) return;
+                    
+                    if (triggerCallbacks && previousTabId) {
+                        const previousTab = this.tabs.find(t => t.id === previousTabId);
+                        if (previousTab && previousTab.onDeactivate) {
+                            previousTab.onDeactivate(previousTabId, this);
+                        }
+                    }
+                    
+                    this.activeTabId = tabId;
+                    
+                    this.container.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.tabId === tabId);
+                    });
+                    
+                    this.tabContainers.forEach((container, currentTabId) => {
+                        container.style.display = currentTabId === tabId ? 'block' : 'none';
+                    });
+                    
+                    if (triggerCallbacks) {
+                        const activeTab = this.tabs.find(t => t.id === tabId);
+                        if (activeTab && activeTab.onActivate) {
+                            activeTab.onActivate(tabId, this);
+                        }
+                        
+                        if (this.onTabChange) {
+                            this.onTabChange(tabId, previousTabId, this);
+                        }
+                    }
+                    
+                    this.handleChange();
+                }
+
+                getValue() {
+                    const allValues = {};
+                    
+                    this.tabFieldInstances.forEach((fields, tabId) => {
+                        allValues[tabId] = {};
+                        fields.forEach(field => {
+                            const fieldName = field.name;
+                            allValues[tabId][fieldName] = field.getValue();
+                        });
+                    });
+                    
+                    return {
+                        activeTab: this.activeTabId,
+                        tabs: allValues,
+                        ...allValues
+                    };
+                }
+
+                setValue(value) {
+                    if (!value || typeof value !== 'object') return;
+                    
+                    if (value.activeTab) {
+                        this.setActiveTab(value.activeTab, false);
+                    }
+                    
+                    const tabValues = value.tabs || value;
+                    
+                    this.tabFieldInstances.forEach((fields, tabId) => {
+                        const tabData = tabValues[tabId];
+                        if (tabData && typeof tabData === 'object') {
+                            fields.forEach(field => {
+                                const fieldName = field.name;
+                                if (tabData[fieldName] !== undefined) {
+                                    field.setValue(tabData[fieldName]);
+                                }
+                            });
+                        }
+                    });
+                    
+                    this.value = value;
+                }
+
+                getTabValues(tabId) {
+                    const fields = this.tabFieldInstances.get(tabId);
+                    if (!fields) return {};
+                    
+                    const values = {};
+                    fields.forEach(field => {
+                        values[field.name] = field.getValue();
+                    });
+                    return values;
+                }
+
+                getField(tabId, fieldName) {
+                    const fields = this.tabFieldInstances.get(tabId);
+                    if (!fields) return null;
+                    
+                    return fields.find(field => field.name === fieldName);
+                }
+
+                cleanup() {
+                    this.tabEventListeners.forEach(({ element, event, handler }) => {
+                        element.removeEventListener(event, handler);
+                    });
+                    this.tabEventListeners = [];
+                    
+                    this.tabFieldInstances.forEach(fields => {
+                        fields.forEach(field => {
+                            if (field.cleanup) field.cleanup();
+                        });
+                    });
+                    
+                    super.cleanup();
+                }
+
+                destroy() {
+                    this.cleanup();
+                    this.tabFieldInstances.clear();
+                    this.tabContainers.clear();
+                }
+            }
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { FormFieldFactory, CreatForm };
