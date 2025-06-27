@@ -12109,10 +12109,14 @@ class ServiceProviderFilterField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Always return display text for form summary
+            // FIXED: Return object for split display in form summary
             getValue() {
-                // Return display text for summary and general display purposes
-                return this.getDisplayText();
+                // Return an object that can be displayed as separate lines
+                return {
+                    service: this.selectedService || '',
+                    dentist: this.selectedProvider?.displayName || '',
+                    toString: () => this.getDisplayText() // Fallback for string conversion
+                };
             }
 
             // NEW: Method to get display-friendly text
@@ -12128,6 +12132,18 @@ class ServiceProviderFilterField extends BaseField {
                 }
                 
                 return parts.length > 0 ? parts.join(' - ') : '';
+            }
+
+            // NEW: Method specifically for summary display
+            getSummaryValue() {
+                const parts = [];
+                if (this.selectedService) {
+                    parts.push(`Service: ${this.selectedService}`);
+                }
+                if (this.selectedProvider && this.selectedProvider.displayName) {
+                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
+                }
+                return parts.join('\n');
             }
 
             // NEW: Method specifically for getting full data object when needed
