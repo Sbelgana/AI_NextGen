@@ -5387,53 +5387,84 @@ class CustomField extends BaseField {
         return true;
     }
 
-    formatYesNoWithOptionsField(fieldConfig, value) {
-        let html = '';
+    // FIXED: formatYesNoWithOptionsField method in CustomField class
+formatYesNoWithOptionsField(fieldConfig, value) {
+    let html = '';
+    
+    if (typeof value === 'object' && value.main !== undefined) {
+        // Get main display value using formatter
+        const mainDisplayValue = this.formatter.formatYesNoValue(value.main, fieldConfig);
         
-        if (typeof value === 'object' && value.main !== undefined) {
-            // Get main display value using formatter
-            const mainDisplayValue = this.formatter.formatYesNoValue(value.main, fieldConfig);
-            
+        html += `
+            <div class="summary-row">
+                <div class="summary-label">${fieldConfig.label}:</div>
+                <div class="summary-value">${mainDisplayValue}</div>
+            </div>
+        `;
+        
+        // Determine which conditional fields to show
+        let showYesFields = false;
+        let showNoFields = false;
+        
+        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            showYesFields = value.main === fieldConfig.customOptions[0].value;
+            showNoFields = value.main === fieldConfig.customOptions[1].value;
+        } else {
+            showYesFields = value.main === true || value.main === 'yes';
+            showNoFields = value.main === false || value.main === 'no';
+        }
+        
+        // FIXED: Display sub-fields with proper HTML capture and field configuration access
+        if (showYesFields) {
+            // Handle both yesFields (array) and yesField (single field)
+            const yesFields = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
+            html = this.renderSubFields(html, yesFields, value.yesValues);
+        } else if (showNoFields) {
+            // Handle both noFields (array) and noField (single field)  
+            const noFields = fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []);
+            html = this.renderSubFields(html, noFields, value.noValues);
+        }
+    } else {
+        // Fallback for simple values
+        const displayValue = this.formatFieldValue(fieldConfig, value);
+        if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
             html += `
                 <div class="summary-row">
                     <div class="summary-label">${fieldConfig.label}:</div>
-                    <div class="summary-value">${mainDisplayValue}</div>
+                    <div class="summary-value">${displayValue}</div>
                 </div>
             `;
-            
-            // Determine which conditional fields to show
-            let showYesFields = false;
-            let showNoFields = false;
-            
-            if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-                showYesFields = value.main === fieldConfig.customOptions[0].value;
-                showNoFields = value.main === fieldConfig.customOptions[1].value;
-            } else {
-                showYesFields = value.main === true || value.main === 'yes';
-                showNoFields = value.main === false || value.main === 'no';
-            }
-            
-            // Display sub-fields
-            if (showYesFields) {
-                this.renderSubFields(html, fieldConfig.yesFields || [fieldConfig.yesField], value.yesValues);
-            } else if (showNoFields && fieldConfig.noField) {
-                this.renderSubFields(html, [fieldConfig.noField], value.noValues);
-            }
-        } else {
-            // Fallback for simple values
-            const displayValue = this.formatFieldValue(fieldConfig, value);
-            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                html += `
+        }
+    }
+    
+    return html;
+}
+
+// FIXED: renderSubFields method to properly return accumulated HTML
+renderSubFields(html, subFields, subValues) {
+    if (!Array.isArray(subFields) || !subValues) return html;
+    
+    let accumulatedHtml = html; // Create a local variable to accumulate HTML
+    
+    subFields.forEach(subField => {
+        const fieldName = subField.name || subField.id; // Handle both name and id
+        const subValue = subValues[fieldName];
+        
+        if (subValue !== undefined && subValue !== null && subValue !== '') {
+            const subDisplayValue = this.formatFieldValue(subField, subValue);
+            if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
+                accumulatedHtml += `
                     <div class="summary-row">
-                        <div class="summary-label">${fieldConfig.label}:</div>
-                        <div class="summary-value">${displayValue}</div>
+                        <div class="summary-label">${subField.label}:</div>
+                        <div class="summary-value">${subDisplayValue}</div>
                     </div>
                 `;
             }
         }
-        
-        return html;
-    }
+    });
+    
+    return accumulatedHtml; // Return the accumulated HTML
+}
 
     // NEW: Helper method to render sub-fields consistently
     renderSubFields(html, subFields, subValues) {
