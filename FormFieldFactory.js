@@ -4411,16 +4411,24 @@ class MultiSelectSubsectionsField extends BaseField {
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
+// ============================================================================
+// ENHANCED CUSTOMFIELD WITH CONFIGURABLE TRANSFORMATION SYSTEM
+// ============================================================================
+
 class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         this.renderFunction = config.render || null;
         this.updateFunction = config.update || null;
         this.autoSummary = config.autoSummary || false;
+        
+        // Enhanced transformation configuration
+        this.transformationConfig = config.transformationConfig || null;
+        this.valueExtractor = config.valueExtractor || null;
+        this.summaryRenderer = config.summaryRenderer || null;
     }
 
     validate() {
-        // Custom fields generally don't require validation
         return super.validate();
     }
 
@@ -4456,7 +4464,7 @@ class CustomField extends BaseField {
             if (stepIndex === currentStepIndex) return;
 
             const stepData = this.getStepData(multiStepForm, stepIndex);
-            if (this.hasVisibleData(stepData)) {
+            if (this.hasVisibleData(stepData, step)) {
                 const stepSection = this.createStepSummarySection(step, stepData, stepIndex);
                 summaryContainer.appendChild(stepSection);
             }
@@ -4491,69 +4499,58 @@ class CustomField extends BaseField {
         return section;
     }
 
-    // ENHANCED: populateStepContent method with better filtering
+    // ============================================================================
+    // ENHANCED STEP CONTENT POPULATION WITH CONFIGURABLE RENDERING
+    // ============================================================================
     populateStepContent(contentDiv, step, stepData) {
+        let contentHtml = '';
+
+        // Use custom summary renderer if provided
+        if (this.summaryRenderer && typeof this.summaryRenderer === 'function') {
+            try {
+                contentHtml = this.summaryRenderer(step, stepData, this.factory);
+            } catch (error) {
+                console.error('Error in custom summary renderer:', error);
+                contentHtml = this.defaultPopulateStepContent(step, stepData);
+            }
+        } else {
+            contentHtml = this.defaultPopulateStepContent(step, stepData);
+        }
+
+        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    defaultPopulateStepContent(step, stepData) {
         let contentHtml = '';
 
         step.fields.forEach(fieldConfig => {
             const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
             
-            // Use the enhanced filtering logic
             if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
                 
-                // NEW: Check if field should render as separate summary fields
+                // Check for separate summary fields rendering
                 if (fieldConfig.renderSeparateSummaryFields) {
-                    // Get the field instance to access getSummaryFields method
                     const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
                     
                     if (fieldInstance && typeof fieldInstance.getSummaryFields === 'function') {
                         const summaryFields = fieldInstance.getSummaryFields();
                         
-                        // Render each field separately
                         summaryFields.forEach(field => {
-                            if (field.value && field.value !== 'Indifférent' && field.value !== 'Any') {
-                                contentHtml += `
-                                    <div class="summary-row">
-                                        <div class="summary-label">${field.label}:</div>
-                                        <div class="summary-value">${field.value}</div>
-                                    </div>
-                                `;
+                            if (this.isValidSummaryValue(field.value)) {
+                                contentHtml += this.createSummaryRow(field.label, field.value);
                             }
                         });
-                    } else {
-                        // Fallback: use custom getSummaryDisplay if available
-                        if (fieldConfig.getSummaryDisplay && typeof fieldConfig.getSummaryDisplay === 'function') {
-                            const displayValue = fieldConfig.getSummaryDisplay(fieldValue, fieldInstance);
-                            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                                // Split by newlines for separate fields
-                                const lines = displayValue.split('\n').filter(line => line.trim());
-                                lines.forEach(line => {
-                                    if (line.includes(':')) {
-                                        const [label, value] = line.split(':').map(part => part.trim());
-                                        if (value && value !== 'Indifférent' && value !== 'Any') {
-                                            contentHtml += `
-                                                <div class="summary-row">
-                                                    <div class="summary-label">${label}:</div>
-                                                    <div class="summary-value">${value}</div>
-                                                </div>
-                                            `;
-                                        }
-                                    } else {
-                                        if (line && line !== 'Indifférent' && line !== 'Any') {
-                                            contentHtml += `
-                                                <div class="summary-row">
-                                                    <div class="summary-label">${fieldConfig.label}:</div>
-                                                    <div class="summary-value">${line}</div>
-                                                </div>
-                                            `;
-                                        }
-                                    }
-                                });
-                            }
+                    } else if (fieldConfig.getSummaryDisplay && typeof fieldConfig.getSummaryDisplay === 'function') {
+                        const displayValue = fieldConfig.getSummaryDisplay(fieldValue, fieldInstance);
+                        if (displayValue && this.isValidSummaryValue(displayValue)) {
+                            const lines = displayValue.split('\n').filter(line => line.trim());
+                            lines.forEach(line => {
+                                contentHtml += this.processSummaryLine(line, fieldConfig.label);
+                            });
                         }
                     }
                 }
-                // Special handling for YesNoWithOptionsField (existing code)
+                // Special handling for complex field types
                 else if (fieldConfig.type === 'yesno-with-options') {
                     const formattedContent = this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
                     if (formattedContent.trim()) {
@@ -4563,114 +4560,393 @@ class CustomField extends BaseField {
                 // Default handling for other fields
                 else {
                     const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
-                    if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                        contentHtml += `
-                            <div class="summary-row">
-                                <div class="summary-label">${fieldConfig.label}:</div>
-                                <div class="summary-value">${displayValue}</div>
-                            </div>
-                        `;
+                    if (displayValue && this.isValidSummaryValue(displayValue)) {
+                        contentHtml += this.createSummaryRow(fieldConfig.label, displayValue);
                     }
                 }
             }
         });
 
-        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+        return contentHtml;
     }
 
-    // ENHANCED: Better filtering for summary display
+    // ============================================================================
+    // ENHANCED VALUE VALIDATION AND FORMATTING
+    // ============================================================================
+    isValidSummaryValue(value) {
+        if (!value) return false;
+        if (typeof value === 'string') {
+            const cleanValue = value.trim().toLowerCase();
+            return cleanValue !== '' && 
+                   cleanValue !== 'indifférent' && 
+                   cleanValue !== 'any' && 
+                   cleanValue !== 'non spécifié' && 
+                   cleanValue !== 'not specified';
+        }
+        return true;
+    }
+
+    createSummaryRow(label, value) {
+        return `
+            <div class="summary-row">
+                <div class="summary-label">${label}:</div>
+                <div class="summary-value">${value}</div>
+            </div>
+        `;
+    }
+
+    processSummaryLine(line, defaultLabel) {
+        if (line.includes(':')) {
+            const [label, value] = line.split(':').map(part => part.trim());
+            if (value && this.isValidSummaryValue(value)) {
+                return this.createSummaryRow(label, value);
+            }
+        } else if (line && this.isValidSummaryValue(line)) {
+            return this.createSummaryRow(defaultLabel, line);
+        }
+        return '';
+    }
+
+    // ============================================================================
+    // ENHANCED FIELD VALUE FORMATTING WITH CONFIGURABLE EXTRACTORS
+    // ============================================================================
+    formatFieldValue(fieldConfig, value) {
+        // Use custom value extractor if provided
+        if (this.valueExtractor && typeof this.valueExtractor === 'function') {
+            try {
+                const extracted = this.valueExtractor(fieldConfig, value, this.factory);
+                if (extracted !== undefined) return extracted;
+            } catch (error) {
+                console.error('Error in custom value extractor:', error);
+            }
+        }
+
+        // Use enhanced field formatter
+        return this.enhancedFormatFieldValue(fieldConfig, value);
+    }
+
+    enhancedFormatFieldValue(fieldConfig, value) {
+        const fieldType = fieldConfig.type;
+
+        // Enhanced field type handlers
+        const fieldHandlers = {
+            'sliding-window-range': () => this.handleSlidingWindowRange(fieldConfig, value),
+            'yesno': () => this.handleYesNoField(fieldConfig, value),
+            'select': () => this.handleSelectField(fieldConfig, value),
+            'multiselect': () => this.handleMultiSelectField(fieldConfig, value),
+            'select-with-other': () => this.handleSelectWithOtherField(fieldConfig, value),
+            'multiselect-with-other': () => this.handleMultiSelectWithOtherField(fieldConfig, value),
+            'yesno-with-options': () => this.handleYesNoWithOptionsField(fieldConfig, value),
+            'options-slider': () => this.handleOptionsSliderField(fieldConfig, value),
+            'textarea': () => this.handleTextareaField(value),
+            'default': () => value
+        };
+
+        const handler = fieldHandlers[fieldType] || fieldHandlers['default'];
+        return handler();
+    }
+
+    // ============================================================================
+    // SPECIALIZED FIELD HANDLERS
+    // ============================================================================
+    handleSlidingWindowRange(fieldConfig, value) {
+        const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
+        if (fieldInstance && typeof fieldInstance.getDisplayValue === 'function') {
+            return fieldInstance.getDisplayValue();
+        }
+        
+        if (typeof value === 'object' && value !== null && value.min !== undefined && value.max !== undefined) {
+            const formatValue = fieldConfig.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
+            return `${formatValue(value.min)} - ${formatValue(value.max)}`;
+        }
+        return value;
+    }
+
+    handleYesNoField(fieldConfig, value) {
+        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            const option = fieldConfig.customOptions.find(opt => opt.value === value);
+            if (option) return option.label;
+        }
+        
+        return value === 'yes' || value === true ? 
+            (this.factory.getText('yes') || 'Oui') : 
+            (this.factory.getText('no') || 'Non');
+    }
+
+    handleSelectField(fieldConfig, value) {
+        return this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, value);
+    }
+
+    handleMultiSelectField(fieldConfig, value) {
+        if (Array.isArray(value)) {
+            return value.map(v => this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, v)).join(', ');
+        }
+        return value;
+    }
+
+    handleSelectWithOtherField(fieldConfig, value) {
+        if (typeof value === 'object' && value.main) {
+            if (value.main === 'other') {
+                return value.other || this.factory.getText('other');
+            }
+            return this.getOptionDisplayName(fieldConfig.options, value.main);
+        }
+        return this.getOptionDisplayName(fieldConfig.options, value);
+    }
+
+    handleMultiSelectWithOtherField(fieldConfig, value) {
+        if (typeof value === 'object' && value.main) {
+            const mainValues = Array.isArray(value.main) ? 
+                value.main.map(v => this.getOptionDisplayName(fieldConfig.options, v)) : [];
+            if (value.other) {
+                mainValues.push(value.other);
+            }
+            return mainValues.join(', ');
+        }
+        return Array.isArray(value) ? value.join(', ') : value;
+    }
+
+    handleYesNoWithOptionsField(fieldConfig, value) {
+        if (typeof value === 'object' && value.main) {
+            if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+                const option = fieldConfig.customOptions.find(opt => opt.value === value.main);
+                if (option) return option.label;
+            }
+            
+            return value.main === true || value.main === 'yes' ? 
+                (this.factory.getText('yes') || 'Oui') :
+                (this.factory.getText('no') || 'Non');
+        }
+        return value;
+    }
+
+    handleOptionsSliderField(fieldConfig, value) {
+        if (typeof value === 'object' && value !== null && value.display) {
+            return value.display;
+        }
+        
+        if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
+            const option = fieldConfig.options.find(opt => opt.value === value);
+            if (option) return option.display || option.label || value;
+        }
+        return value;
+    }
+
+    handleTextareaField(value) {
+        if (typeof value === 'string' && value.length > 100) {
+            return value.substring(0, 100) + '...';
+        }
+        return value;
+    }
+
+    // ============================================================================
+    // ENHANCED VISIBILITY CHECKING WITH CONFIGURABLE RULES
+    // ============================================================================
     shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
+        // Use transformation config if available
+        if (this.transformationConfig && this.transformationConfig.visibilityRules) {
+            const rule = this.transformationConfig.visibilityRules[fieldConfig.id];
+            if (rule && typeof rule === 'function') {
+                return rule(fieldConfig, fieldValue);
+            }
+        }
+
+        return this.defaultShouldDisplayField(fieldConfig, fieldValue);
+    }
+
+    defaultShouldDisplayField(fieldConfig, fieldValue) {
         // Basic null/undefined/empty checks
         if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
             return false;
         }
 
-        // Handle array values (multiselect fields)
+        // Handle array values
         if (Array.isArray(fieldValue) && fieldValue.length === 0) {
             return false;
         }
 
-        // Handle yes/no fields - don't show if no selection made
-        if (fieldConfig.type === 'yesno') {
-            // For non-required fields, don't show if no explicit selection
-            if (!fieldConfig.required) {
-                if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
-                    return false;
-                }
-                // Also check for string representations of empty states
-                if (typeof fieldValue === 'string' && (fieldValue === 'null' || fieldValue === 'undefined')) {
-                    return false;
-                }
-            }
-        }
+        // Enhanced field type specific checks
+        const fieldTypeChecks = {
+            'yesno': () => this.checkYesNoFieldVisibility(fieldConfig, fieldValue),
+            'yesno-with-options': () => this.checkYesNoWithOptionsVisibility(fieldConfig, fieldValue),
+            'options-slider': () => this.checkOptionsSliderVisibility(fieldConfig, fieldValue),
+            'sliding-window-range': () => this.checkSlidingWindowRangeVisibility(fieldValue)
+        };
 
-        // Handle yes/no with options fields
-        if (fieldConfig.type === 'yesno-with-options') {
-            // Don't show if main value is null/undefined/empty for non-required fields
-            if (!fieldConfig.required) {
-                // Check for null/undefined value
-                if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
-                    return false;
-                }
-                
-                // Check for object with undefined/null/empty main property
-                if (typeof fieldValue === 'object' && fieldValue !== null) {
-                    const mainValue = fieldValue.main;
-                    if (mainValue === undefined || mainValue === null || mainValue === '') {
-                        return false;
-                    }
-                    // Also check for string representations of empty states
-                    if (typeof mainValue === 'string' && (mainValue === 'null' || mainValue === 'undefined')) {
-                        return false;
-                    }
-                }
-                
-                // Check for empty object or object with only null/undefined values
-                if (typeof fieldValue === 'object' && fieldValue !== null) {
-                    const hasValidValue = Object.values(fieldValue).some(val => 
-                        val !== null && val !== undefined && val !== ''
-                    );
-                    if (!hasValidValue) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        // Handle options-slider fields - check for default unselected state
-        if (fieldConfig.type === 'options-slider') {
-            // If field is not required and value is 0 (often means "Indifférent"), don't show
-            if (!fieldConfig.required) {
-                if (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.value === 0)) {
-                    return false;
-                }
-                // Also check if the display value indicates "no preference"
-                if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.display) {
-                    const displayLower = fieldValue.display.toLowerCase();
-                    if (displayLower.includes('indifférent') || displayLower.includes('any')) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        // Handle sliding-window-range fields
-        if (fieldConfig.type === 'sliding-window-range') {
-            if (typeof fieldValue === 'object' && fieldValue !== null) {
-                // Don't show if it's still at default values
-                return fieldValue.min !== undefined && fieldValue.max !== undefined;
-            }
+        const checker = fieldTypeChecks[fieldConfig.type];
+        if (checker) {
+            return checker();
         }
 
         return true;
     }
 
-    // NEW: Helper method to get field instance from the multi-step form
+    checkYesNoFieldVisibility(fieldConfig, fieldValue) {
+        if (!fieldConfig.required) {
+            if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
+                return false;
+            }
+            if (typeof fieldValue === 'string' && (fieldValue === 'null' || fieldValue === 'undefined')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    checkYesNoWithOptionsVisibility(fieldConfig, fieldValue) {
+        if (!fieldConfig.required) {
+            if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
+                return false;
+            }
+            
+            if (typeof fieldValue === 'object' && fieldValue !== null) {
+                const mainValue = fieldValue.main;
+                if (mainValue === undefined || mainValue === null || mainValue === '') {
+                    return false;
+                }
+                if (typeof mainValue === 'string' && (mainValue === 'null' || mainValue === 'undefined')) {
+                    return false;
+                }
+                
+                const hasValidValue = Object.values(fieldValue).some(val => 
+                    val !== null && val !== undefined && val !== ''
+                );
+                if (!hasValidValue) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    checkOptionsSliderVisibility(fieldConfig, fieldValue) {
+        if (!fieldConfig.required) {
+            if (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.value === 0)) {
+                return false;
+            }
+            
+            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.display) {
+                const displayLower = fieldValue.display.toLowerCase();
+                if (displayLower.includes('indifférent') || displayLower.includes('any')) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    checkSlidingWindowRangeVisibility(fieldValue) {
+        if (typeof fieldValue === 'object' && fieldValue !== null) {
+            return fieldValue.min !== undefined && fieldValue.max !== undefined;
+        }
+        return true;
+    }
+
+    // ============================================================================
+    // ENHANCED YES/NO WITH OPTIONS FORMATTING
+    // ============================================================================
+    formatYesNoWithOptionsField(fieldConfig, value) {
+        let html = '';
+        
+        if (typeof value === 'object' && value.main !== undefined) {
+            const customOptions = fieldConfig.customOptions;
+            let mainDisplayValue = value.main;
+            
+            // Get display value for main selection
+            if (customOptions && Array.isArray(customOptions)) {
+                const selectedOption = customOptions.find(opt => opt.value === value.main);
+                if (selectedOption) {
+                    mainDisplayValue = selectedOption.label;
+                }
+            } else {
+                mainDisplayValue = value.main === true || value.main === 'yes' ? this.factory.getText('yes') :
+                                  value.main === false || value.main === 'no' ? this.factory.getText('no') :
+                                  value.main;
+            }
+            
+            // Display main field value
+            html += this.createSummaryRow(fieldConfig.label, mainDisplayValue);
+            
+            // Determine which conditional fields to show
+            const { showYesFields, showNoFields } = this.determineConditionalFieldsVisibility(fieldConfig, value);
+            
+            // Display conditional fields
+            if (showYesFields) {
+                html += this.renderConditionalFields(fieldConfig.yesFields || [fieldConfig.yesField], value.yesValues);
+            } else if (showNoFields) {
+                html += this.renderConditionalFields([fieldConfig.noField], value.noValues);
+            }
+        } else {
+            const displayValue = this.formatFieldValue(fieldConfig, value);
+            if (displayValue && this.isValidSummaryValue(displayValue)) {
+                html += this.createSummaryRow(fieldConfig.label, displayValue);
+            }
+        }
+        
+        return html;
+    }
+
+    determineConditionalFieldsVisibility(fieldConfig, value) {
+        let showYesFields = false;
+        let showNoFields = false;
+        
+        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            showYesFields = value.main === fieldConfig.customOptions[0].value;
+            showNoFields = value.main === fieldConfig.customOptions[1].value;
+        } else {
+            showYesFields = value.main === true || value.main === 'yes';
+            showNoFields = value.main === false || value.main === 'no';
+        }
+        
+        return { showYesFields, showNoFields };
+    }
+
+    renderConditionalFields(subFields, subValues) {
+        let html = '';
+        
+        if (!subFields || !subValues) return html;
+        
+        const fieldsArray = Array.isArray(subFields) ? subFields : [subFields].filter(Boolean);
+        
+        fieldsArray.forEach(subField => {
+            const subValue = subValues[subField.id];
+            if (subValue !== undefined && subValue !== null && subValue !== '') {
+                const subDisplayValue = this.formatFieldValue(subField, subValue);
+                if (subDisplayValue && this.isValidSummaryValue(subDisplayValue)) {
+                    html += this.createSummaryRow(subField.label, subDisplayValue);
+                }
+            }
+        });
+        
+        return html;
+    }
+
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
+    getOptionDisplayName(options, value) {
+        if (!options) return value;
+        
+        if (Array.isArray(options)) {
+            const option = options.find(opt => opt.id === value);
+            return option ? (option.name || option.label) : value;
+        }
+        
+        // Handle subsection options
+        for (const group of options) {
+            if (group.subcategories) {
+                const option = group.subcategories.find(opt => opt.id === value);
+                if (option) return option.name || option.label;
+            }
+        }
+        
+        return value;
+    }
+
     getFieldInstance(fieldName) {
         const multiStepForm = this.factory.currentMultiStepForm;
         if (!multiStepForm) return null;
         
-        // Search through all step instances to find the field
         for (let stepInstance of multiStepForm.stepInstances) {
             if (stepInstance.fieldInstances) {
                 const fieldInstance = stepInstance.fieldInstances.find(field => 
@@ -4684,258 +4960,6 @@ class CustomField extends BaseField {
         return null;
     }
 
-    formatYesNoWithOptionsField(fieldConfig, value) {
-        let html = '';
-        
-        if (typeof value === 'object' && value.main !== undefined) {
-            // Get the custom options for this field if available
-            const customOptions = fieldConfig.customOptions;
-            let mainDisplayValue = value.main;
-            
-            // If we have custom options, try to find the display label
-            if (customOptions && Array.isArray(customOptions)) {
-                const selectedOption = customOptions.find(opt => opt.value === value.main);
-                if (selectedOption) {
-                    mainDisplayValue = selectedOption.label;
-                }
-            } else {
-                // Fallback to standard yes/no translation
-                mainDisplayValue = value.main === true || value.main === 'yes' ? this.factory.getText('yes') :
-                                  value.main === false || value.main === 'no' ? this.factory.getText('no') :
-                                  value.main;
-            }
-            
-            // Display main field value
-            html += `
-                <div class="summary-row">
-                    <div class="summary-label">${fieldConfig.label}:</div>
-                    <div class="summary-value">${mainDisplayValue}</div>
-                </div>
-            `;
-            
-            // Determine which conditional fields to show based on custom options or default yes/no
-            let showYesFields = false;
-            let showNoFields = false;
-            
-            if (customOptions && Array.isArray(customOptions)) {
-                showYesFields = value.main === customOptions[0].value;
-                showNoFields = value.main === customOptions[1].value;
-            } else {
-                showYesFields = value.main === true || value.main === 'yes';
-                showNoFields = value.main === false || value.main === 'no';
-            }
-            
-            // Display sub-fields based on selection
-            if (showYesFields) {
-                // Handle yesFields (array) or yesField (single)
-                if (fieldConfig.yesFields && value.yesValues) {
-                    fieldConfig.yesFields.forEach(subField => {
-                        const subValue = value.yesValues[subField.id];
-                        if (subValue !== undefined && subValue !== null && subValue !== '') {
-                            const subDisplayValue = this.formatFieldValue(subField, subValue);
-                            if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                                html += `
-                                    <div class="summary-row">
-                                        <div class="summary-label">${subField.label}:</div>
-                                        <div class="summary-value">${subDisplayValue}</div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
-                } else if (fieldConfig.yesField && value.yesValues) {
-                    const subValue = value.yesValues[fieldConfig.yesField.id];
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatFieldValue(fieldConfig.yesField, subValue);
-                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                            html += `
-                                <div class="summary-row">
-                                    <div class="summary-label">${fieldConfig.yesField.label}:</div>
-                                    <div class="summary-value">${subDisplayValue}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            } else if (showNoFields) {
-                // Handle noField
-                if (fieldConfig.noField && value.noValues) {
-                    const subValue = value.noValues[fieldConfig.noField.id];
-                    if (subValue !== undefined && subValue !== null && subValue !== '') {
-                        const subDisplayValue = this.formatFieldValue(fieldConfig.noField, subValue);
-                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                            html += `
-                                <div class="summary-row">
-                                    <div class="summary-label">${fieldConfig.noField.label}:</div>
-                                    <div class="summary-value">${subDisplayValue}</div>
-                                </div>
-                            `;
-                        }
-                    }
-                }
-            }
-        } else {
-            // Fallback for simple values
-            const displayValue = this.formatFieldValue(fieldConfig, value);
-            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                html += `
-                    <div class="summary-row">
-                        <div class="summary-label">${fieldConfig.label}:</div>
-                        <div class="summary-value">${displayValue}</div>
-                    </div>
-                `;
-            }
-        }
-        
-        return html;
-    }
-
-    formatFieldValue(fieldConfig, value) {
-        const fieldType = fieldConfig.type;
-
-        switch (fieldType) {
-            case 'sliding-window-range':
-                // Check if we can get the field instance to use its getDisplayValue method
-                const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
-                if (fieldInstance && typeof fieldInstance.getDisplayValue === 'function') {
-                    return fieldInstance.getDisplayValue();
-                }
-                // Fallback: handle the object directly
-                if (typeof value === 'object' && value !== null && value.min !== undefined && value.max !== undefined) {
-                    const formatValue = fieldConfig.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
-                    return `${formatValue(value.min)} - ${formatValue(value.max)}`;
-                }
-                return value;
-
-            case 'yesno':
-                // Check for custom options first
-                if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-                    const option = fieldConfig.customOptions.find(opt => opt.value === value);
-                    if (option) return option.label;
-                }
-                // Fallback to standard yes/no
-                return value === 'yes' || value === true ? 
-                    (this.factory.getText('yes') || 'Oui') : 
-                    (this.factory.getText('no') || 'Non');
-
-            case 'select':
-            case 'select-subsections':
-                return this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, value);
-
-            case 'multiselect':
-            case 'multiselect-subsections':
-                if (Array.isArray(value)) {
-                    return value.map(v => this.getOptionDisplayName(fieldConfig.options || fieldConfig.subsectionOptions, v)).join(', ');
-                }
-                return value;
-
-            case 'select-with-other':
-                if (typeof value === 'object' && value.main) {
-                    if (value.main === 'other') {
-                        return value.other || this.factory.getText('other');
-                    }
-                    return this.getOptionDisplayName(fieldConfig.options, value.main);
-                }
-                return this.getOptionDisplayName(fieldConfig.options, value);
-
-            case 'multiselect-with-other':
-                if (typeof value === 'object' && value.main) {
-                    const mainValues = Array.isArray(value.main) ? 
-                        value.main.map(v => this.getOptionDisplayName(fieldConfig.options, v)) : [];
-                    if (value.other) {
-                        mainValues.push(value.other);
-                    }
-                    return mainValues.join(', ');
-                }
-                return Array.isArray(value) ? value.join(', ') : value;
-
-            case 'yesno-with-options':
-                // Handle the main value display with custom options
-                if (typeof value === 'object' && value.main) {
-                    if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-                        const option = fieldConfig.customOptions.find(opt => opt.value === value.main);
-                        if (option) return option.label;
-                    }
-                    // Fallback to standard yes/no
-                    return value.main === true || value.main === 'yes' ? 
-                        (this.factory.getText('yes') || 'Oui') :
-                        (this.factory.getText('no') || 'Non');
-                }
-                return value;
-
-            case 'options-slider':
-                // Handle options-slider which might return an object with display property
-                if (typeof value === 'object' && value !== null && value.display) {
-                    return value.display;
-                }
-                // If it's just a value, try to find the corresponding option
-                if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
-                    const option = fieldConfig.options.find(opt => opt.value === value);
-                    if (option) return option.display || option.label || value;
-                }
-                return value;
-
-            case 'textarea':
-                if (typeof value === 'string' && value.length > 100) {
-                    return value.substring(0, 100) + '...';
-                }
-                return value;
-
-            case 'number':
-            case 'percentage':
-            case 'options-stepper':
-            case 'email':
-            case 'phone':
-            case 'url':
-            case 'text':
-            default:
-                return value;
-        }
-    }
-
-    formatSubValue(key, value, fieldConfig) {
-        // Handle language fields specifically using existing data
-        if (key === 'languages' || key === 'language') {
-            const currentLang = window.currentLanguage || 'fr';
-            const languageOptions = window.formDataOptions?.[currentLang]?.languages || [];
-            
-            if (Array.isArray(value)) {
-                return value.map(v => this.getOptionDisplayName(languageOptions, v)).join(', ');
-            } else {
-                return this.getOptionDisplayName(languageOptions, value);
-            }
-        }
-        
-        // Handle other fields
-        if (Array.isArray(value)) {
-            return value.join(', ');
-        }
-        
-        return value;
-    }
-
-    getOptionDisplayName(options, value) {
-        if (!options) return value;
-        
-        // Handle regular options array
-        if (Array.isArray(options)) {
-            const option = options.find(opt => opt.id === value);
-            return option ? (option.name || option.label) : value;
-        }
-        
-        // Handle subsection options
-        if (Array.isArray(options)) {
-            for (const group of options) {
-                if (group.subcategories) {
-                    const option = group.subcategories.find(opt => opt.id === value);
-                    if (option) return option.name || option.label;
-                }
-            }
-        }
-        
-        return value;
-    }
-
     getStepData(multiStepForm, stepIndex) {
         const stepInstance = multiStepForm.stepInstances[stepIndex];
         if (!stepInstance) return {};
@@ -4943,13 +4967,19 @@ class CustomField extends BaseField {
         return stepInstance.getStepData();
     }
 
-    hasVisibleData(stepData) {
-        return Object.values(stepData).some(value => 
-            value !== undefined && 
-            value !== null && 
-            value !== '' && 
-            !(Array.isArray(value) && value.length === 0)
-        );
+    hasVisibleData(stepData, stepConfig) {
+        // Use transformation config for visibility if available
+        if (this.transformationConfig && this.transformationConfig.stepVisibilityRules) {
+            const rule = this.transformationConfig.stepVisibilityRules[stepConfig.id];
+            if (rule && typeof rule === 'function') {
+                return rule(stepData, stepConfig);
+            }
+        }
+
+        return Object.entries(stepData).some(([key, value]) => {
+            const fieldConfig = stepConfig.fields.find(f => f.id === key || f.name === key);
+            return this.shouldDisplayFieldInSummary(fieldConfig || { id: key }, value);
+        });
     }
 
     updateContent() {
@@ -12931,12 +12961,600 @@ class CurrentAppointmentCardField extends BaseField {
             }
         }
 
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { FormFieldFactory, CreatForm };
+
+// ============================================================================
+// CONFIGURABLE DATA TRANSFORMATION SYSTEM
+// ============================================================================
+
+class DataTransformerFactory {
+    constructor(config = {}) {
+        this.config = {
+            defaultLanguage: config.defaultLanguage || 'fr',
+            enableLogging: config.enableLogging || false,
+            logPrefix: config.logPrefix || '🔄 DataTransformer'
+        };
+        
+        this.fieldExtractors = new Map();
+        this.sectionBuilders = new Map();
+        this.visibilityRules = new Map();
+        this.optionsCache = new Map();
+        
+        this.initializeDefaultExtractors();
+    }
+
+    // ============================================================================
+    // FIELD VALUE EXTRACTORS - Reusable components
+    // ============================================================================
+    initializeDefaultExtractors() {
+        // Basic field extractors
+        this.registerFieldExtractor('text', (value) => this.extractSimpleValue(value));
+        this.registerFieldExtractor('email', (value) => this.extractSimpleValue(value));
+        this.registerFieldExtractor('phone', (value) => this.extractSimpleValue(value));
+        this.registerFieldExtractor('textarea', (value) => this.extractSimpleValue(value));
+        this.registerFieldExtractor('number', (value) => this.extractSimpleValue(value));
+        this.registerFieldExtractor('url', (value) => this.extractSimpleValue(value));
+        
+        // Boolean field extractors
+        this.registerFieldExtractor('yesno', (value, fieldConfig, context) => {
+            return this.extractYesNoValue(value, fieldConfig, context);
+        });
+        
+        // Selection field extractors
+        this.registerFieldExtractor('select', (value, fieldConfig, context) => {
+            return this.extractSelectValue(value, fieldConfig, context);
+        });
+        
+        this.registerFieldExtractor('multiselect', (value, fieldConfig, context) => {
+            return this.extractMultiSelectValue(value, fieldConfig, context);
+        });
+        
+        this.registerFieldExtractor('select-with-other', (value, fieldConfig, context) => {
+            return this.extractSelectWithOtherValue(value, fieldConfig, context);
+        });
+        
+        this.registerFieldExtractor('multiselect-with-other', (value, fieldConfig, context) => {
+            return this.extractMultiSelectWithOtherValue(value, fieldConfig, context);
+        });
+        
+        // Complex field extractors
+        this.registerFieldExtractor('yesno-with-options', (value, fieldConfig, context) => {
+            return this.extractYesNoWithOptionsValue(value, fieldConfig, context);
+        });
+    }
+
+    registerFieldExtractor(fieldType, extractorFunction) {
+        this.fieldExtractors.set(fieldType, extractorFunction);
+    }
+
+    registerSectionBuilder(sectionId, builderFunction) {
+        this.sectionBuilders.set(sectionId, builderFunction);
+    }
+
+    registerVisibilityRule(ruleId, ruleFunction) {
+        this.visibilityRules.set(ruleId, ruleFunction);
+    }
+
+    // ============================================================================
+    // CORE VALUE EXTRACTION METHODS
+    // ============================================================================
+    extractSimpleValue(value) {
+        if (value === null || value === undefined || value === '') return '';
+        return String(value).trim();
+    }
+
+    extractYesNoValue(value, fieldConfig, context) {
+        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            const option = fieldConfig.customOptions.find(opt => opt.value === value);
+            if (option) {
+                const label = option.label;
+                return typeof label === 'object' ? 
+                    (label[context.language] || label.en || label.fr) : 
+                    label;
+            }
+        }
+        
+        if (value === true || value === 'yes') {
+            return context.getText('common.yes') || 'Oui';
+        } else if (value === false || value === 'no') {
+            return context.getText('common.no') || 'Non';
+        }
+        
+        return value;
+    }
+
+    extractSelectValue(value, fieldConfig, context) {
+        if (!value) return '';
+        return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
+    }
+
+    extractMultiSelectValue(value, fieldConfig, context) {
+        if (!Array.isArray(value) || value.length === 0) return [];
+        
+        return value.map(item => 
+            this.getOptionDisplayName(fieldConfig.optionsPath, item, context)
+        ).filter(Boolean);
+    }
+
+    extractSelectWithOtherValue(value, fieldConfig, context) {
+        if (typeof value === 'object' && value.main) {
+            if (value.main === 'other' && value.other) {
+                return value.other.trim();
+            }
+            return this.getOptionDisplayName(fieldConfig.optionsPath, value.main, context);
+        }
+        
+        return this.getOptionDisplayName(fieldConfig.optionsPath, value, context);
+    }
+
+    extractMultiSelectWithOtherValue(value, fieldConfig, context) {
+        if (typeof value === 'object' && value.main) {
+            const mainValues = Array.isArray(value.main) ? 
+                value.main.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)) : [];
+            
+            if (value.other && value.other.trim()) {
+                mainValues.push(value.other.trim());
+            }
+            return mainValues.filter(Boolean);
+        }
+        
+        return Array.isArray(value) ? 
+            value.map(v => this.getOptionDisplayName(fieldConfig.optionsPath, v, context)).filter(Boolean) : 
+            [];
+    }
+
+    extractYesNoWithOptionsValue(value, fieldConfig, context) {
+        if (typeof value !== 'object' || !value || value.main === undefined) {
+            return { main: '', conditionalValues: {} };
+        }
+        
+        // Extract main value
+        let mainValue = this.extractYesNoValue(value.main, fieldConfig, context);
+        
+        // Determine which conditional fields to extract
+        const conditionalValues = {};
+        let shouldExtractYes = false;
+        let shouldExtractNo = false;
+        
+        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            shouldExtractYes = value.main === fieldConfig.customOptions[0].value;
+            shouldExtractNo = value.main === fieldConfig.customOptions[1].value;
+        } else {
+            shouldExtractYes = value.main === true || value.main === 'yes';
+            shouldExtractNo = value.main === false || value.main === 'no';
+        }
+        
+        // Extract conditional values
+        if (shouldExtractYes && value.yesValues) {
+            conditionalValues.yesValues = this.extractConditionalValues(
+                value.yesValues, 
+                fieldConfig.yesFields || [fieldConfig.yesField].filter(Boolean), 
+                context
+            );
+        }
+        
+        if (shouldExtractNo && value.noValues) {
+            conditionalValues.noValues = this.extractConditionalValues(
+                value.noValues, 
+                [fieldConfig.noField].filter(Boolean), 
+                context
+            );
+        }
+        
+        return { main: mainValue, conditionalValues };
+    }
+
+    extractConditionalValues(valuesObject, fieldConfigs, context) {
+        const extracted = {};
+        
+        if (!valuesObject || !fieldConfigs) return extracted;
+        
+        fieldConfigs.forEach(fieldConfig => {
+            if (!fieldConfig) return;
+            
+            const value = valuesObject[fieldConfig.id];
+            if (value !== undefined && value !== null && value !== '') {
+                const extractor = this.fieldExtractors.get(fieldConfig.type) || 
+                                this.fieldExtractors.get('text');
+                extracted[fieldConfig.id] = extractor(value, fieldConfig, context);
+            }
+        });
+        
+        return extracted;
+    }
+
+    // ============================================================================
+    // OPTIONS HANDLING WITH CACHING
+    // ============================================================================
+    getOptionDisplayName(optionsPath, value, context) {
+        if (!optionsPath || !value) return value;
+        
+        // Try to get from cache first
+        const cacheKey = `${optionsPath}:${context.language}`;
+        let options = this.optionsCache.get(cacheKey);
+        
+        if (!options && context.getData) {
+            options = context.getData(optionsPath);
+            this.optionsCache.set(cacheKey, options);
+        }
+        
+        if (!options || !Array.isArray(options)) return value;
+        
+        const option = options.find(opt => opt.id === value);
+        if (option) {
+            const name = option.name;
+            if (typeof name === 'object') {
+                return name[context.language] || name.en || name.fr || value;
+            }
+            return name || option.label || value;
+        }
+        
+        return value;
+    }
+
+    // ============================================================================
+    // SECTION-BASED DATA TRANSFORMATION
+    // ============================================================================
+    createStructuredTransformer(transformationConfig) {
+        return (flatData, originalFormValues, creatFormInstance) => {
+            const context = this.createTransformationContext(flatData, originalFormValues, creatFormInstance);
+            
+            this.log('Starting structured transformation', {
+                flatDataKeys: Object.keys(flatData),
+                configSections: Object.keys(transformationConfig.sections || {})
+            });
+            
+            const sections = {};
+            
+            // Build each configured section
+            Object.entries(transformationConfig.sections || {}).forEach(([sectionId, sectionConfig]) => {
+                try {
+                    const sectionData = this.buildSection(sectionId, sectionConfig, context);
+                    if (sectionData && Object.keys(sectionData).length > 0) {
+                        sections[sectionId] = sectionData;
+                    }
+                } catch (error) {
+                    console.error(`Error building section ${sectionId}:`, error);
+                }
+            });
+            
+            // Create final structured payload
+            const structuredPayload = {
+                submissionType: transformationConfig.submissionType || "form_submission",
+                formVersion: transformationConfig.formVersion || "1.0.0",
+                submissionTimestamp: new Date().toISOString(),
+                language: context.language,
+                
+                sections: sections,
+                
+                // Legacy flat data for backwards compatibility
+                flatData: flatData,
+                
+                // Generate metadata
+                metadata: this.generateMetadata(flatData, originalFormValues, context, transformationConfig)
+            };
+            
+            this.log('Structured transformation completed', {
+                sectionsCreated: Object.keys(sections),
+                totalFields: Object.keys(flatData).length
+            });
+            
+            return structuredPayload;
+        };
+    }
+
+    createTransformationContext(flatData, originalFormValues, creatFormInstance) {
+        return {
+            flatData,
+            originalFormValues,
+            creatFormInstance,
+            language: creatFormInstance?.config?.language || this.config.defaultLanguage,
+            getText: (path) => creatFormInstance?.getText?.(path) || path,
+            getData: (path) => creatFormInstance?.getData?.(path) || [],
+            extractValue: (fieldId, fieldConfig) => this.extractFieldValue(
+                originalFormValues[fieldId], 
+                fieldConfig, 
+                creatFormInstance
+            )
+        };
+    }
+
+    buildSection(sectionId, sectionConfig, context) {
+        // Use custom section builder if registered
+        if (this.sectionBuilders.has(sectionId)) {
+            return this.sectionBuilders.get(sectionId)(sectionConfig, context);
+        }
+        
+        // Default section building
+        const sectionData = {
+            sectionType: sectionId,
+            ...sectionConfig.staticFields || {}
+        };
+        
+        // Process field mappings
+        if (sectionConfig.fieldMappings) {
+            Object.entries(sectionConfig.fieldMappings).forEach(([targetField, sourceConfig]) => {
+                const value = this.extractMappedFieldValue(sourceConfig, context);
+                if (value !== null && value !== undefined && value !== '') {
+                    sectionData[targetField] = value;
+                }
+            });
+        }
+        
+        // Apply post-processing if configured
+        if (sectionConfig.postProcess && typeof sectionConfig.postProcess === 'function') {
+            try {
+                return sectionConfig.postProcess(sectionData, context);
+            } catch (error) {
+                console.error(`Error in post-processing for section ${sectionId}:`, error);
+            }
+        }
+        
+        return sectionData;
+    }
+
+    extractMappedFieldValue(sourceConfig, context) {
+        if (typeof sourceConfig === 'string') {
+            // Simple field mapping
+            return context.flatData[sourceConfig] || '';
+        }
+        
+        if (typeof sourceConfig === 'object') {
+            const { sourceField, fieldConfig, transformer, fallback } = sourceConfig;
+            
+            let value = context.originalFormValues[sourceField];
+            
+            // Apply field-specific extraction
+            if (fieldConfig) {
+                const extractor = this.fieldExtractors.get(fieldConfig.type) || 
+                                this.fieldExtractors.get('text');
+                value = extractor(value, fieldConfig, context);
+            }
+            
+            // Apply custom transformer
+            if (transformer && typeof transformer === 'function') {
+                try {
+                    value = transformer(value, context);
+                } catch (error) {
+                    console.error('Error in field transformer:', error);
+                }
+            }
+            
+            // Apply fallback if needed
+            if ((value === null || value === undefined || value === '') && fallback) {
+                value = typeof fallback === 'function' ? fallback(context) : fallback;
+            }
+            
+            return value;
+        }
+        
+        return null;
+    }
+
+    extractFieldValue(value, fieldConfig, creatFormInstance) {
+        if (!fieldConfig) return this.extractSimpleValue(value);
+        
+        const context = this.createTransformationContext({}, {}, creatFormInstance);
+        const extractor = this.fieldExtractors.get(fieldConfig.type) || 
+                         this.fieldExtractors.get('text');
+        
+        return extractor(value, fieldConfig, context);
+    }
+
+    generateMetadata(flatData, originalFormValues, context, transformationConfig) {
+        const metadata = {
+            submissionQuality: this.assessSubmissionQuality(originalFormValues, transformationConfig),
+            completedFields: Object.keys(originalFormValues).filter(key => {
+                const value = originalFormValues[key];
+                return value !== undefined && value !== null && value !== '' && 
+                       !(Array.isArray(value) && value.length === 0);
+            }).length,
+            totalFields: Object.keys(originalFormValues).length,
+            deviceInfo: {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                timestamp: new Date().toISOString()
+            }
+        };
+        
+        // Add custom metadata if configured
+        if (transformationConfig.metadataGenerators) {
+            Object.entries(transformationConfig.metadataGenerators).forEach(([key, generator]) => {
+                if (typeof generator === 'function') {
+                    try {
+                        metadata[key] = generator(flatData, originalFormValues, context);
+                    } catch (error) {
+                        console.error(`Error generating metadata for ${key}:`, error);
+                    }
+                }
+            });
+        }
+        
+        return metadata;
+    }
+
+    assessSubmissionQuality(formValues, config) {
+        if (config.qualityAssessment && typeof config.qualityAssessment === 'function') {
+            try {
+                return config.qualityAssessment(formValues);
+            } catch (error) {
+                console.error('Error in quality assessment:', error);
+            }
+        }
+        
+        // Default quality assessment
+        const totalFields = Object.keys(formValues).length;
+        const completedFields = Object.values(formValues).filter(value => 
+            value !== undefined && value !== null && value !== '' && 
+            !(Array.isArray(value) && value.length === 0)
+        ).length;
+        
+        const completionPercentage = totalFields > 0 ? (completedFields / totalFields) * 100 : 0;
+        
+        if (completionPercentage >= 90) return 'excellent';
+        if (completionPercentage >= 70) return 'good';
+        if (completionPercentage >= 50) return 'fair';
+        return 'basic';
+    }
+
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
+    log(message, data = null) {
+        if (this.config.enableLogging) {
+            console.log(`${this.config.logPrefix} ${message}`, data || '');
+        }
+    }
+
+    clearCache() {
+        this.optionsCache.clear();
+    }
+
+    // ============================================================================
+    // FACTORY METHODS FOR COMMON TRANSFORMATION PATTERNS
+    // ============================================================================
+    static createChatbotFormTransformer(formDataOptions, translations) {
+        const factory = new DataTransformerFactory({
+            enableLogging: true,
+            logPrefix: '📋 ChatbotForm 🔄'
+        });
+        
+        // Configure for chatbot form specific needs
+        factory.registerSectionBuilder('contactInfo', (sectionConfig, context) => ({
+            sectionType: "contact_information",
+            firstName: context.extractValue('firstName', { type: 'text' }) || '',
+            lastName: context.extractValue('lastName', { type: 'text' }) || '',
+            fullName: `${context.extractValue('firstName', { type: 'text' })} ${context.extractValue('lastName', { type: 'text' })}`.trim(),
+            email: context.extractValue('email', { type: 'email' }) || '',
+            phone: context.extractValue('phone', { type: 'phone' }) || '',
+            company: context.extractValue('company', { type: 'text' }) || context.getText('common.notSpecified')
+        }));
+        
+        factory.registerSectionBuilder('projectSpecs', (sectionConfig, context) => ({
+            sectionType: "project_specifications",
+            industry: context.extractValue('niche', { type: 'select-with-other', optionsPath: 'niches' }) || context.getText('common.notSpecified'),
+            budget: context.extractValue('budget', { type: 'select-with-other', optionsPath: 'budgetRanges' }) || context.getText('common.notSpecified'),
+            description: context.extractValue('description', { type: 'textarea' }) || context.getText('common.notSpecified')
+        }));
+        
+        // Add more section builders as needed...
+        
+        return factory.createStructuredTransformer({
+            submissionType: "chatbot_project_form",
+            formVersion: "4.0.0",
+            sections: {
+                contactInfo: {},
+                projectSpecs: {},
+                // Add other sections...
+            },
+            qualityAssessment: (formValues) => {
+                const hasContact = formValues.firstName && formValues.lastName && formValues.email;
+                const hasProject = formValues.niche && formValues.budget && formValues.description;
+                
+                if (hasContact && hasProject) return 'High';
+                if (hasContact || hasProject) return 'Medium';
+                return 'Basic';
+            }
+        });
+    }
+
+    static createBookingFormTransformer() {
+        const factory = new DataTransformerFactory({
+            enableLogging: true,
+            logPrefix: '📅 BookingForm 🔄'
+        });
+        
+        factory.registerSectionBuilder('bookingInfo', (sectionConfig, context) => ({
+            sectionType: "booking_information",
+            service: context.extractValue('serviceSelection', { 
+                type: 'select',
+                transformer: (value) => value?.eventName || value?.title || ''
+            }),
+            appointmentDate: context.extractValue('appointment', {
+                type: 'calendar',
+                transformer: (value) => value?.selectedDate || ''
+            }),
+            appointmentTime: context.extractValue('appointment', {
+                type: 'calendar',
+                transformer: (value) => value?.selectedTime || ''
+            })
+        }));
+        
+        return factory.createStructuredTransformer({
+            submissionType: "booking_form",
+            formVersion: "1.0.0",
+            sections: {
+                contactInfo: {},
+                bookingInfo: {}
+            }
+        });
+    }
 }
 
-// Export to window
-window.FormFieldFactory = FormFieldFactory;
+// ============================================================================
+// CONFIGURATION HELPER FOR EASY SETUP
+// ============================================================================
+class TransformationConfigBuilder {
+    constructor() {
+        this.config = {
+            sections: {},
+            metadataGenerators: {},
+            visibilityRules: {}
+        };
+    }
+
+    addSection(sectionId, sectionConfig) {
+        this.config.sections[sectionId] = sectionConfig;
+        return this;
+    }
+
+    addFieldMapping(sectionId, targetField, sourceField, fieldConfig = null) {
+        if (!this.config.sections[sectionId]) {
+            this.config.sections[sectionId] = { fieldMappings: {} };
+        }
+        if (!this.config.sections[sectionId].fieldMappings) {
+            this.config.sections[sectionId].fieldMappings = {};
+        }
+        
+        this.config.sections[sectionId].fieldMappings[targetField] = fieldConfig ? 
+            { sourceField, fieldConfig } : 
+            sourceField;
+        
+        return this;
+    }
+
+    addMetadataGenerator(key, generator) {
+        this.config.metadataGenerators[key] = generator;
+        return this;
+    }
+
+    addVisibilityRule(ruleId, rule) {
+        this.config.visibilityRules[ruleId] = rule;
+        return this;
+    }
+
+    setSubmissionType(type) {
+        this.config.submissionType = type;
+        return this;
+    }
+
+    setFormVersion(version) {
+        this.config.formVersion = version;
+        return this;
+    }
+
+    build() {
+        return this.config;
+    }
+}
+
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { FormFieldFactory, CreatForm,  DataTransformerFactory, TransformationConfigBuilder };
+} else {
+    window.FormFieldFactory = FormFieldFactory;
 window.CreatForm = CreatForm;
 window.MultiStepForm = MultiStepForm;
+window.DataTransformerFactory = DataTransformerFactory;
+window.TransformationConfigBuilder = TransformationConfigBuilder;
+}
