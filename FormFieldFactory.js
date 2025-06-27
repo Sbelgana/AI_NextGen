@@ -285,8 +285,15 @@ class BaseDataTransformer {
             formVersion: this.getFormVersion(),
             submissionTimestamp: new Date().toISOString(),
             language: this.language,
+            
+            // Transform to sections
             sections: this.createSections(flatData, originalFormValues),
             
+            // Keep flat data for compatibility
+            flatData: flatData,
+            
+            // Add metadata
+            metadata: this.generateMetadata(flatData, originalFormValues)
         };
     }
 
@@ -404,6 +411,306 @@ class BaseDataTransformer {
             return this.creatFormInstance.extractValue(value);
         }
         return this.formatter.formatValue({}, value);
+    }
+
+    // ============================================================================
+    // GENERIC HELPER METHODS - Moved from specific transformers for reusability
+    // ============================================================================
+
+    /**
+     * Enhanced YesNo with Options field extractor - handles complex nested field structures
+     * @param {*} fieldValue - The field value to extract
+     * @param {string} fieldName - Field name for error reporting
+     * @param {Object} subFieldConfigs - Configuration for sub-fields
+     * @param {Object} mainFieldConfig - Configuration for main field
+     * @returns {Object} - Extracted main value and sub-values
+     */
+    safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
+        let mainValue = false;
+        let extractedValues = {};
+
+        try {
+            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
+                if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
+                    const option = mainFieldConfig.customOptions.find(opt => 
+                        (opt.value && opt.value === fieldValue.main) || 
+                        (opt.id && opt.id === fieldValue.main)
+                    );
+                    if (option) {
+                        mainValue = fieldValue.main === mainFieldConfig.customOptions[0].value || 
+                                   fieldValue.main === mainFieldConfig.customOptions[0].id;
+                    } else {
+                        mainValue = fieldValue.main === true || fieldValue.main === 'yes';
+                    }
+                } else {
+                    mainValue = fieldValue.main === true || fieldValue.main === 'yes';
+                }
+
+                ['yesValues', 'noValues'].forEach(valueType => {
+                    if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
+                        Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
+                            if (subValue !== undefined && subValue !== null && subValue !== '') {
+                                const subFieldConfig = subFieldConfigs[key] || {};
+                                extractedValues[key] = this.safeFormatFieldValue(subFieldConfig, subValue, key);
+                            }
+                        });
+                    }
+                });
+            } else if (typeof fieldValue === 'string') {
+                mainValue = fieldValue === 'yes' || fieldValue === 'true';
+            } else if (typeof fieldValue === 'boolean') {
+                mainValue = fieldValue;
+            }
+        } catch (error) {
+            console.error(`Error extracting yesno-with-options for ${fieldName}:`, error);
+            mainValue = false;
+            extractedValues = {};
+        }
+
+        return { mainValue, extractedValues };
+    }
+
+    /**
+     * Safe field value formatter with multiselect support
+     * @param {Object} fieldConfig - Field configuration
+     * @param {*} value - Value to format
+     * @param {string} fieldName - Field name for error reporting
+     * @returns {*} - Formatted value
+     */
+    safeFormatFieldValue(fieldConfig, value, fieldName) {
+        try {
+            if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
+                if (Array.isArray(value)) {
+                    return value.map(v => this.formatter.formatValue(fieldConfig, v));
+                } else if (typeof value === 'string') {
+                    return value.split(',').map(v => v.trim()).filter(v => v);
+                } else {
+                    return [];
+                }
+            }
+            return this.formatter.formatValue(fieldConfig, value);
+        } catch (error) {
+            console.error(`Error formatting field ${fieldName}:`, error);
+            return value;
+        }
+    }
+
+    /**
+     * Safe value extraction with fallback
+     * @param {*} value - Value to extract
+     * @returns {string} - Extracted value or empty string
+     */
+    safeExtractValue(value) {
+        try {
+            return this.formatter.formatValue({}, value) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    /**
+     * Ensure value is an array
+     * @param {*} value - Value to convert
+     * @returns {Array} - Array value
+     */
+    safeArrayValue(value) {
+        if (Array.isArray(value)) {
+            return value;
+        } else if (typeof value === 'string' && value) {
+            return [value];
+        } else {
+            return [];
+        }
+    }
+
+    /**
+     * Ensure value is a string
+     * @param {*} value - Value to convert
+     * @returns {string} - String value
+     */
+    safeStringValue(value) {
+        if (typeof value === 'string') {
+            return value;
+        } else if (Array.isArray(value)) {
+            return value.join(', ');
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Ensure value is a boolean
+     * @param {*} value - Value to convert
+     * @returns {boolean} - Boolean value
+     */
+    safeBooleanValue(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        } else if (typeof value === 'string') {
+            return value === 'yes' || value === 'true' || value === 'Oui';
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get localized label from multilingual object
+     * @param {*} label - Label object or string
+     * @returns {string} - Localized label
+     */
+    getLocalizedLabel(label) {
+        if (typeof label === 'object' && label !== null) {
+            return label[this.language] || label.en || label.fr || Object.values(label)[0];
+        }
+        return label;
+    }
+
+    /**
+     * Get translated text with fallback
+     * @param {string} path - Translation path
+     * @returns {string} - Translated text
+     */
+    getText(path) {
+        try {
+            if (this.creatFormInstance && this.creatFormInstance.getText) {
+                return this.creatFormInstance.getText(path);
+            }
+            return path;
+        } catch (error) {
+            return path;
+        }
+    }
+
+    // ============================================================================
+    // GENERIC SECTION BUILDERS - Reusable patterns for common section types
+    // ============================================================================
+
+    /**
+     * Build a simple key-value section
+     * @param {string} sectionType - Section type identifier
+     * @param {Object} fieldMappings - Mapping of output keys to input field names
+     * @param {Object} flatData - Flat form data
+     * @param {Object} options - Additional options
+     * @returns {Object} - Section data
+     */
+    buildSimpleSection(sectionType, fieldMappings, flatData, options = {}) {
+        const section = { sectionType };
+        
+        Object.entries(fieldMappings).forEach(([outputKey, inputField]) => {
+            if (typeof inputField === 'string') {
+                section[outputKey] = this.safeExtractValue(flatData[inputField]) || options.defaultValue || '';
+            } else if (typeof inputField === 'object') {
+                // Handle complex field mappings
+                if (inputField.type === 'concatenate') {
+                    section[outputKey] = inputField.fields
+                        .map(field => this.safeExtractValue(flatData[field]))
+                        .filter(val => val)
+                        .join(inputField.separator || ' ');
+                } else if (inputField.type === 'conditional') {
+                    section[outputKey] = flatData[inputField.field] ? 
+                        this.safeExtractValue(flatData[inputField.field]) : 
+                        (inputField.fallback || options.defaultValue || '');
+                }
+            }
+        });
+        
+        return section;
+    }
+
+    /**
+     * Build a boolean features section
+     * @param {string} sectionType - Section type identifier
+     * @param {Array} booleanFields - Array of boolean field names
+     * @param {Object} flatData - Flat form data
+     * @returns {Object} - Section data
+     */
+    buildBooleanSection(sectionType, booleanFields, flatData) {
+        const section = { sectionType };
+        
+        booleanFields.forEach(fieldName => {
+            section[fieldName] = this.safeBooleanValue(flatData[fieldName]);
+        });
+        
+        return section;
+    }
+
+    /**
+     * Build a complex field section with YesNo options support
+     * @param {string} sectionType - Section type identifier
+     * @param {Object} complexFields - Configuration for complex fields
+     * @param {Object} originalFormValues - Original form values
+     * @param {Object} flatData - Flat form data
+     * @returns {Object} - Section data
+     */
+    buildComplexFieldSection(sectionType, complexFields, originalFormValues, flatData) {
+        const section = { sectionType };
+        
+        Object.entries(complexFields).forEach(([outputKey, fieldConfig]) => {
+            if (fieldConfig.type === 'yesno-with-options') {
+                const result = this.safeExtractYesNoWithOptions(
+                    originalFormValues[fieldConfig.fieldName],
+                    fieldConfig.fieldName,
+                    fieldConfig.subFieldConfigs || {},
+                    fieldConfig.mainFieldConfig || {}
+                );
+                
+                // Add main value
+                section[outputKey] = result.mainValue;
+                
+                // Add extracted sub-values
+                Object.entries(result.extractedValues).forEach(([key, value]) => {
+                    if (fieldConfig.arrayFields && fieldConfig.arrayFields.includes(key)) {
+                        const arrayValue = this.safeArrayValue(value);
+                        section[key] = arrayValue;
+                        section[`${key}String`] = arrayValue.join(', ');
+                    } else {
+                        section[key] = this.safeStringValue(value);
+                    }
+                });
+            } else if (fieldConfig.type === 'simple') {
+                section[outputKey] = this.safeExtractValue(flatData[fieldConfig.fieldName]) || '';
+            }
+        });
+        
+        return section;
+    }
+
+    // ============================================================================
+    // OPTION DISPLAY HELPERS - For handling select field display values
+    // ============================================================================
+
+    /**
+     * Get display value for custom options (handles both value/id and label/name structures)
+     * @param {Array} options - Custom options array
+     * @param {*} selectedValue - Selected value
+     * @returns {string} - Display value
+     */
+    getCustomOptionDisplay(options, selectedValue) {
+        if (!Array.isArray(options) || !selectedValue) return selectedValue;
+        
+        const option = options.find(opt => 
+            (opt.value && opt.value === selectedValue) || 
+            (opt.id && opt.id === selectedValue)
+        );
+        
+        if (option) {
+            const label = option.label || option.name;
+            return this.getLocalizedLabel(label);
+        }
+        
+        return selectedValue;
+    }
+
+    /**
+     * Get multiple display values for arrays
+     * @param {Array} options - Custom options array
+     * @param {Array} selectedValues - Selected values array
+     * @returns {Array} - Display values array
+     */
+    getMultipleCustomOptionDisplays(options, selectedValues) {
+        if (!Array.isArray(selectedValues)) return [];
+        
+        return selectedValues.map(value => this.getCustomOptionDisplay(options, value));
     }
 }
 
