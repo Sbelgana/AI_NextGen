@@ -697,14 +697,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         const fieldConfigMap = {
             niche: { optionsPath: 'niches' },
             budget: { optionsPath: 'budgetRanges' },
-            teamSize: { 
-                customOptions: [
-                    { id: 'solo', name: { fr: 'Entrepreneur individuel', en: 'Individual Entrepreneur' } },
-                    { id: 'small', name: { fr: 'TPE (2-10 employés)', en: 'Small Business (2-10 employees)' } },
-                    { id: 'medium', name: { fr: 'PME (11-50 employés)', en: 'Medium Business (11-50 employees)' } },
-                    { id: 'large', name: { fr: 'Grande entreprise (50+ employés)', en: 'Large Enterprise (50+ employees)' } }
-                ]
-            },
+            teamSize: { optionsPath: 'teamSizeOptions' }, // FIXED: Use translation-based options
             formTypes: { optionsPath: 'formTypes' },
             websitePlatform: { optionsPath: 'platforms.website' },
             websiteTraffic: { optionsPath: 'websiteTraffic' },
@@ -735,38 +728,31 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     createContactInfoSection(flatData, originalFormValues) {
         return {
             sectionType: "contact_information",
-            firstName: this.safeExtractValue(flatData.firstName),
-            lastName: this.safeExtractValue(flatData.lastName),
-            fullName: `${this.safeExtractValue(flatData.firstName)} ${this.safeExtractValue(flatData.lastName)}`.trim(),
-            email: this.safeExtractValue(flatData.email),
-            phone: this.safeExtractValue(flatData.phone),
-            company: this.safeExtractValue(flatData.company) || 'Non spécifié'
+            firstName: this.safeExtractDisplayValue('firstName', flatData.firstName),
+            lastName: this.safeExtractDisplayValue('lastName', flatData.lastName),
+            fullName: `${this.safeExtractDisplayValue('firstName', flatData.firstName)} ${this.safeExtractDisplayValue('lastName', flatData.lastName)}`.trim(),
+            email: this.safeExtractDisplayValue('email', flatData.email),
+            phone: this.safeExtractDisplayValue('phone', flatData.phone),
+            company: this.safeExtractDisplayValue('company', flatData.company) || 'Non spécifié'
         };
     }
 
     createProjectSpecsSection(flatData, originalFormValues) {
-        // FIXED: Use field configuration to transform ID to display value
-        const industryConfig = this.fieldConfigMap.niche || {};
-        const budgetConfig = this.fieldConfigMap.budget || {};
-
         return {
             sectionType: "project_specifications",
-            industry: this.safeExtractValueWithConfig(flatData.niche, industryConfig) || 'Non spécifié',
-            otherIndustry: this.safeExtractValue(flatData.otherNiche),
-            budget: this.safeExtractValueWithConfig(flatData.budget, budgetConfig) || 'Non spécifié',
-            customBudget: this.safeExtractValue(flatData.customBudget),
-            description: this.safeExtractValue(flatData.description) || 'Non spécifié'
+            industry: this.safeExtractDisplayValue('niche', flatData.niche) || 'Non spécifié',
+            otherIndustry: this.safeExtractDisplayValue('otherNiche', flatData.otherNiche),
+            budget: this.safeExtractDisplayValue('budget', flatData.budget) || 'Non spécifié', // FIXED: Now returns display value
+            customBudget: this.safeExtractDisplayValue('customBudget', flatData.customBudget),
+            description: this.safeExtractDisplayValue('description', flatData.description) || 'Non spécifié'
         };
     }
 
     createBusinessProfileSection(flatData, originalFormValues) {
-        // FIXED: Use field configuration to transform ID to display value
-        const teamSizeConfig = this.fieldConfigMap.teamSize || {};
-
         return {
             sectionType: "business_profile",
-            teamSize: this.safeExtractValueWithConfig(flatData.teamSize, teamSizeConfig) || 'Non spécifié',
-            services: this.safeExtractValue(flatData.services) || 'Non spécifié'
+            teamSize: this.safeExtractDisplayValue('teamSize', flatData.teamSize) || 'Non spécifié', // FIXED: Now returns display value
+            services: this.safeExtractDisplayValue('services', flatData.services) || 'Non spécifié'
         };
     }
 
@@ -789,8 +775,8 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             }
         );
 
-        // FIXED: Safe array extraction with proper type checking
-        const formTypesArray = this.safeArrayValue(useFormResult.extractedValues.formTypes);
+        // FIXED: Safe array extraction with proper display value formatting
+        const formTypesArray = this.safeArrayDisplayValue('formTypes', useFormResult.extractedValues.formTypes);
         const formPurpose = this.safeStringValue(useFormResult.extractedValues.formPurpose);
 
         return {
@@ -816,9 +802,9 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         return {
             sectionType: "web_integration",
             hasWebsite: hasWebsiteResult.mainValue,
-            websitePlatform: this.safeStringValue(hasWebsiteResult.extractedValues.websitePlatform),
+            websitePlatform: this.safeExtractDisplayValue('websitePlatform', hasWebsiteResult.extractedValues.websitePlatform),
             websiteUrl: this.safeStringValue(hasWebsiteResult.extractedValues.websiteUrl),
-            websiteTraffic: this.safeStringValue(hasWebsiteResult.extractedValues.websiteTraffic)
+            websiteTraffic: this.safeExtractDisplayValue('websiteTraffic', hasWebsiteResult.extractedValues.websiteTraffic)
         };
     }
 
@@ -844,9 +830,9 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             { databases: { type: 'multiselect-with-other', optionsPath: 'integrations.databases' } }
         );
 
-        // FIXED: Safe array extraction
-        const crmsArray = this.safeArrayValue(useCRMResult.extractedValues.crms);
-        const databasesArray = this.safeArrayValue(useDatabaseResult.extractedValues.databases);
+        // FIXED: Safe array extraction with display values
+        const crmsArray = this.safeArrayDisplayValue('crms', useCRMResult.extractedValues.crms);
+        const databasesArray = this.safeArrayDisplayValue('databases', useDatabaseResult.extractedValues.databases);
 
         return {
             sectionType: "integrations_apis",
@@ -855,7 +841,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             crmsString: crmsArray.join(', '),
             
             hasBookingSystem: hasBookingResult.mainValue,
-            bookingSystems: this.safeStringValue(hasBookingResult.extractedValues.bookingSystems),
+            bookingSystems: this.safeExtractDisplayValue('bookingSystems', hasBookingResult.extractedValues.bookingSystems),
             wantBookingRecommendation: this.safeBooleanValue(hasBookingResult.extractedValues.wantBookingRecommendation),
             handleCancellation: this.safeBooleanValue(flatData.handleCancellation),
             
@@ -880,16 +866,14 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                 language: { type: 'select', optionsPath: 'languages' }
             },
             { 
-                customOptions: [
-                    { value: 'multilingual', label: { fr: 'Support multilingue', en: 'Multilingual Support' } },
-                    { value: 'unilingual', label: { fr: 'Langue unique', en: 'Single Language' } }
-                ]
+                // FIXED: Use dynamic options from translations instead of hardcoded
+                getCustomOptions: () => this.getLanguageTypeOptions()
             }
         );
 
-        // FIXED: Safe array extraction
-        const socialPlatformsArray = this.safeArrayValue(needSocialBotResult.extractedValues.socialPlatforms);
-        const languagesArray = this.getLanguagesArray(languageTypeResult);
+        // FIXED: Safe array extraction with display values
+        const socialPlatformsArray = this.safeArrayDisplayValue('socialPlatforms', needSocialBotResult.extractedValues.socialPlatforms);
+        const languagesArray = this.getLanguagesArrayWithDisplayValues(languageTypeResult);
 
         return {
             sectionType: "communication_channels",
@@ -902,8 +886,75 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         };
     }
 
-    // FIXED: Safe extraction helper methods with comprehensive error handling
+    // NEW: Get language type options directly from FORM_DATA
+    getLanguageTypeOptions() {
+        try {
+            const lang = this.creatFormInstance?.config?.language || 'fr';
+            const formData = this.creatFormInstance?.formData || window.SubmissionFormExtension?.FORM_DATA;
+            
+            if (formData?.translations?.[lang]?.languageType) {
+                const translations = formData.translations[lang].languageType;
+                return [
+                    { 
+                        value: 'multilingual', 
+                        label: translations.multilingual
+                    },
+                    { 
+                        value: 'unilingual', 
+                        label: translations.unilingual
+                    }
+                ];
+            }
+            
+            // Fallback if translations not found
+            return [
+                { value: 'multilingual', label: lang === 'fr' ? 'Support multilingue' : 'Multilingual Support' },
+                { value: 'unilingual', label: lang === 'fr' ? 'Langue unique' : 'Single Language' }
+            ];
+        } catch (error) {
+            console.warn('Error getting language type options:', error);
+            return [
+                { value: 'multilingual', label: 'Support multilingue' },
+                { value: 'unilingual', label: 'Langue unique' }
+            ];
+        }
+    }
 
+    // FIXED: New method to extract display values using the formatter
+    safeExtractDisplayValue(fieldName, value) {
+        try {
+            if (value === undefined || value === null || value === '') {
+                return '';
+            }
+
+            // Get field configuration
+            const fieldConfig = this.fieldConfigMap[fieldName] || {};
+            
+            // Use formatter to get display value
+            return this.formatter.formatValue(fieldConfig, value) || '';
+        } catch (error) {
+            console.error(`Error extracting display value for ${fieldName}:`, error);
+            return value || '';
+        }
+    }
+
+    // FIXED: New method to handle arrays with display values
+    safeArrayDisplayValue(fieldName, value) {
+        try {
+            if (Array.isArray(value)) {
+                return value.map(v => this.safeExtractDisplayValue(fieldName, v));
+            } else if (typeof value === 'string' && value) {
+                return [this.safeExtractDisplayValue(fieldName, value)];
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.error(`Error extracting array display value for ${fieldName}:`, error);
+            return [];
+        }
+    }
+
+    // UPDATED: safeExtractYesNoWithOptions now uses display values for sub-fields
     safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
         let mainValue = false;
         let extractedValues = {};
@@ -911,10 +962,11 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         try {
             if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
                 // Handle main value
-                if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
-                    const option = mainFieldConfig.customOptions.find(opt => opt.value === fieldValue.main);
+                if (mainFieldConfig.getCustomOptions && typeof mainFieldConfig.getCustomOptions === 'function') {
+                    const customOptions = mainFieldConfig.getCustomOptions();
+                    const option = customOptions.find(opt => opt.value === fieldValue.main);
                     if (option) {
-                        mainValue = fieldValue.main === mainFieldConfig.customOptions[0].value;
+                        mainValue = fieldValue.main === customOptions[0].value;
                     } else {
                         mainValue = fieldValue.main === true || fieldValue.main === 'yes';
                     }
@@ -922,13 +974,14 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                     mainValue = fieldValue.main === true || fieldValue.main === 'yes';
                 }
 
-                // Extract sub-values
+                // Extract sub-values with display formatting
                 ['yesValues', 'noValues'].forEach(valueType => {
                     if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
                         Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
                             if (subValue !== undefined && subValue !== null && subValue !== '') {
                                 const subFieldConfig = subFieldConfigs[key] || {};
-                                extractedValues[key] = this.safeFormatFieldValue(subFieldConfig, subValue, key);
+                                // FIXED: Use display value formatting for sub-fields
+                                extractedValues[key] = this.safeFormatFieldValueWithDisplay(subFieldConfig, subValue, key);
                             }
                         });
                     }
@@ -947,20 +1000,24 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         return { mainValue, extractedValues };
     }
 
-    safeFormatFieldValue(fieldConfig, value, fieldName) {
+    // FIXED: New method that uses display values
+    safeFormatFieldValueWithDisplay(fieldConfig, value, fieldName) {
         try {
-            // Handle multiselect fields - FIXED: Always return arrays for multiselect
+            // Handle multiselect fields - return arrays with display values
             if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
                 if (Array.isArray(value)) {
                     return value.map(v => this.formatter.formatValue(fieldConfig, v));
                 } else if (typeof value === 'string') {
-                    return value.split(',').map(v => v.trim()).filter(v => v);
+                    return value.split(',').map(v => {
+                        const trimmed = v.trim();
+                        return trimmed ? this.formatter.formatValue(fieldConfig, trimmed) : '';
+                    }).filter(v => v);
                 } else {
                     return [];
                 }
             }
 
-            // Use the formatter for other types
+            // Use the formatter for other types to get display values
             return this.formatter.formatValue(fieldConfig, value);
         } catch (error) {
             console.error(`Error formatting field ${fieldName}:`, error);
@@ -968,38 +1025,21 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         }
     }
 
-    // FIXED: NEW METHOD - Extract value with field configuration for proper ID to display name transformation
-    safeExtractValueWithConfig(value, fieldConfig) {
-        try {
-            if (!value) return '';
-            
-            // Use the formatter to properly transform ID values to display values
-            return this.formatter.formatValue(fieldConfig, value) || value;
-        } catch (error) {
-            console.error('Error extracting value with config:', error);
-            return value || '';
-        }
-    }
-
-    // FIXED: Safe value extraction helpers with proper type checking
-    safeExtractValue(value) {
-        try {
-            return this.formatter.formatValue({}, value) || '';
-        } catch (error) {
-            return '';
-        }
-    }
-
-    safeArrayValue(value) {
-        if (Array.isArray(value)) {
-            return value;
-        } else if (typeof value === 'string' && value) {
-            return [value];
+    // UPDATED: Better handling of language arrays with display values
+    getLanguagesArrayWithDisplayValues(languageTypeResult) {
+        const languages = languageTypeResult.extractedValues.languages;
+        const language = languageTypeResult.extractedValues.language;
+        
+        if (Array.isArray(languages)) {
+            return languages.map(lang => this.safeExtractDisplayValue('languages', lang));
+        } else if (language) {
+            return [this.safeExtractDisplayValue('language', language)];
         } else {
-            return []; // Always return an array
+            return [];
         }
     }
 
+    // Keep existing helper methods but update to use display values where needed
     safeStringValue(value) {
         if (typeof value === 'string') {
             return value;
@@ -1021,23 +1061,11 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     }
 
     getLanguageTypeDisplay(languageTypeResult) {
+        const lang = this.creatFormInstance?.config?.language || 'fr';
         if (languageTypeResult.mainValue) {
-            return 'Support multilingue';
+            return lang === 'fr' ? 'Support multilingue' : 'Multilingual Support';
         }
-        return 'Langue unique';
-    }
-
-    getLanguagesArray(languageTypeResult) {
-        const languages = languageTypeResult.extractedValues.languages;
-        const language = languageTypeResult.extractedValues.language;
-        
-        if (Array.isArray(languages)) {
-            return languages;
-        } else if (language) {
-            return [language];
-        } else {
-            return [];
-        }
+        return lang === 'fr' ? 'Langue unique' : 'Single Language';
     }
 
     getText(path) {
