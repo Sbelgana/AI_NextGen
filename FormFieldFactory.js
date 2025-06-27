@@ -7581,7 +7581,9 @@ class CreatForm {
             timezone: config.timezone || "America/Toronto",
             // Form structure configuration
             formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
-            submitButtonText: config.submitButtonText || null // Custom submit button text
+            submitButtonText: config.submitButtonText || null, // Custom submit button text
+            // NEW: Optional submit button for single step forms
+            showSubmitButton: config.showSubmitButton !== false // Default: true, can be set to false
         };
         
         // Store the passed data
@@ -7928,7 +7930,7 @@ class CreatForm {
     }
 
     // ============================================================================
-    // ENHANCED SINGLE STEP FORM CREATION WITH ROW SUPPORT
+    // ENHANCED SINGLE STEP FORM CREATION WITH ROW SUPPORT AND OPTIONAL SUBMIT BUTTON
     // ============================================================================
 
     // Helper method to group fields by row (same logic as FormStep)
@@ -7979,9 +7981,6 @@ class CreatForm {
         // Use same base class as multi-step for consistent styling
         container.className = 'multistep-form single-step-variant';
 
-
-
-
         // Create form - Use same structure as multi-step
         const form = document.createElement('form');
         form.className = 'form-step active'; // Same as multi-step step class
@@ -8028,47 +8027,56 @@ class CreatForm {
 
         form.appendChild(fieldsContainer);
 
-        // Create navigation container (same structure as multi-step)
-        const navigationContainer = document.createElement('div');
-        navigationContainer.className = 'form-navigation';
-        
-        const submitButton = document.createElement('button');
-        submitButton.type = 'button';
-        submitButton.className = 'btn btn-submit';
-        submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
-        
-        submitButton.addEventListener('click', async () => {
-            // Validate all fields
-            let isValid = true;
-            fieldInstances.forEach(field => {
-                if (!field.validate()) {
-                    isValid = false;
+        // Create navigation container only if submit button is enabled
+        if (this.config.showSubmitButton) {
+            const navigationContainer = document.createElement('div');
+            navigationContainer.className = 'form-navigation';
+            
+            const submitButton = document.createElement('button');
+            submitButton.type = 'button';
+            submitButton.className = 'btn btn-submit';
+            submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
+            
+            submitButton.addEventListener('click', async () => {
+                // Validate all fields
+                let isValid = true;
+                fieldInstances.forEach(field => {
+                    if (!field.validate()) {
+                        isValid = false;
+                    }
+                });
+
+                if (isValid) {
+                    // Collect form data
+                    const formData = {};
+                    fieldInstances.forEach(field => {
+                        formData[field.name] = field.getValue();
+                    });
+
+                    // Submit
+                    await this.handleSubmission(formData);
                 }
             });
 
-            if (isValid) {
-                // Collect form data
-                const formData = {};
-                fieldInstances.forEach(field => {
-                    formData[field.name] = field.getValue();
-                });
+            navigationContainer.appendChild(submitButton);
+            form.appendChild(navigationContainer);
+            
+            // Store references for cleanup
+            this.singleStepForm = {
+                container,
+                fieldInstances,
+                submitButton
+            };
+        } else {
+            // Store references for cleanup (without submit button)
+            this.singleStepForm = {
+                container,
+                fieldInstances,
+                submitButton: null
+            };
+        }
 
-                // Submit
-                await this.handleSubmission(formData);
-            }
-        });
-
-        navigationContainer.appendChild(submitButton);
-        form.appendChild(navigationContainer);
         container.appendChild(form);
-
-        // Store references for cleanup
-        this.singleStepForm = {
-            container,
-            fieldInstances,
-            submitButton
-        };
-
         return container;
     }
 
@@ -8280,7 +8288,7 @@ class CreatForm {
 
     getSubmitButton() {
         if (this.state.isSingleStep && this.singleStepForm) {
-            return this.singleStepForm.submitButton;
+            return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
         }
         return document.querySelector('.btn-submit');
     }
@@ -8302,6 +8310,50 @@ class CreatForm {
             formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form",
             summaryData: this.state.isSingleStep ? null : this.generateSummaryData()
         };
+    }
+
+    // ============================================================================
+    // PUBLIC API FOR EXTERNAL SUBMISSION (NEW)
+    // ============================================================================
+
+    // Public method to trigger form submission programmatically
+    async submitForm() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            // Validate all fields
+            let isValid = true;
+            this.singleStepForm.fieldInstances.forEach(field => {
+                if (!field.validate()) {
+                    isValid = false;
+                }
+            });
+
+            if (isValid) {
+                // Collect form data
+                const formData = {};
+                this.singleStepForm.fieldInstances.forEach(field => {
+                    formData[field.name] = field.getValue();
+                });
+
+                // Submit
+                return await this.handleSubmission(formData);
+            } else {
+                throw new Error('Form validation failed');
+            }
+        } else if (this.multiStepForm) {
+            // For multi-step forms, delegate to the multistep form
+            return await this.multiStepForm.submitForm();
+        }
+        throw new Error('Form not initialized');
+    }
+
+    // Public method to validate form without submitting
+    validateForm() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            return this.singleStepForm.fieldInstances.every(field => field.validate());
+        } else if (this.multiStepForm) {
+            return this.multiStepForm.validateAllSteps();
+        }
+        return false;
     }
 
     // ============================================================================
@@ -8435,7 +8487,7 @@ class CreatForm {
 
             if (this.state.isSingleStep) {
                 // Create single step form
-                console.log('Creating single step form with row support');
+                console.log('Creating single step form with row support and optional submit button');
                 const singleStepContainer = this.createSingleStepForm();
                 this.container.appendChild(singleStepContainer);
             } else {
@@ -8516,6 +8568,10 @@ class CreatForm {
             isBookingForm: () => this.isBookingForm,
             isSingleStep: () => this.state.isSingleStep,
             reset: () => this.reset(),
+            // Enhanced public API for external control
+            submitForm: () => this.submitForm(),
+            validateForm: () => this.validateForm(),
+            hasSubmitButton: () => this.config.showSubmitButton,
             // Booking-specific API methods
             getCalendarField: () => this.isBookingForm ? this.getCalendarFieldInstance() : null,
             updateCalendar: (serviceData) => this.isBookingForm ? this.updateCalendarConfiguration(serviceData) : null,
@@ -8524,7 +8580,8 @@ class CreatForm {
                 webhookEnabled: this.config.webhookEnabled,
                 voiceflowEnabled: this.config.voiceflowEnabled,
                 formType: this.config.formType,
-                formStructure: this.state.isSingleStep ? 'single' : 'multistep'
+                formStructure: this.state.isSingleStep ? 'single' : 'multistep',
+                showSubmitButton: this.config.showSubmitButton
             })
         };
     }
@@ -8563,298 +8620,6 @@ class CreatForm {
         document.querySelector(`.${styleClass}`)?.remove();
     }
 }
-
-
-
-class CurrentAppointmentCardField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Store config for later use
-        this.config = config;
-        
-        // Validate required configuration
-        if (!config.translations) {
-            console.error('CurrentAppointmentCardField: translations are required in config');
-        }
-        if (!config.serviceMapping) {
-            console.error('CurrentAppointmentCardField: serviceMapping is required in config');
-        }
-        
-        // Current appointment specific config
-        this.meetingName = config.meetingName || config.serviceProvider || "Provider";
-        this.startTime = config.startTime || config.currentAppointment || new Date().toISOString();
-        this.serviceName = config.serviceName || config.eventName || this.getServiceNameFromSlug(config.eventTypeSlug, this.meetingName);
-        this.language = config.language || 'en';
-        this.showServiceName = config.showServiceName !== false;
-        this.showDateTime = config.showDateTime !== false;
-        this.showProvider = config.showProvider !== false;
-        this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'reschedule'
-        this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
-        
-        // Translations and service mapping - MUST be provided from extension
-        this.translations = config.translations || {};
-        this.serviceMapping = config.serviceMapping || {};
-    }
-
-    getText(key) {
-        return this.translations[this.language]?.[key] || key;
-    }
-
-    getServiceNameFromSlug(eventTypeSlug, fallback) {
-        if (!eventTypeSlug) {
-            return fallback || 'Appointment';
-        }
-        
-        // Check if service mapping is provided
-        const serviceName = this.serviceMapping[eventTypeSlug];
-        if (serviceName) {
-            return serviceName;
-        }
-        
-        // Fallback: convert eventTypeSlug to readable format
-        return eventTypeSlug
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, l => l.toUpperCase());
-    }
-
-    formatAppointmentDate(dateTimeString) {
-        try {
-            const date = new Date(dateTimeString);
-            const formatOptions = { 
-                weekday: 'long', 
-                day: 'numeric', 
-                month: 'long', 
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            };
-            
-            const locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
-            const formatter = new Intl.DateTimeFormat(locale, formatOptions);
-            return formatter.format(date);
-        } catch (error) {
-            console.warn('Error formatting date:', error);
-            return dateTimeString;
-        }
-    }
-
-    getIcon() {
-        const iconKey = this.iconType.toUpperCase();
-        
-        // Get icon from factory - factory is responsible for all icons
-        if (this.factory.SVG_ICONS[iconKey]) {
-            return this.factory.SVG_ICONS[iconKey];
-        }
-        
-        // Fallback to CALENDAR if specific icon not found
-        return this.factory.SVG_ICONS.CALENDAR || '';
-    }
-
-    validate() {
-        // Current appointment card is typically read-only, so it's always valid
-        // But we can validate that required appointment data is present
-        if (this.required) {
-            const hasRequiredData = this.meetingName && this.startTime;
-            if (!hasRequiredData) {
-                this.showError("Appointment information is required");
-                return false;
-            }
-        }
-        
-        this.hideError();
-        return true;
-    }
-    
-    render() {
-        this.element = document.createElement('div');
-        this.element.className = `form-field current-appointment-card-field card-style-${this.cardStyle}`;
-        this.element.id = this.id;
-        
-        const appointmentDate = this.formatAppointmentDate(this.startTime);
-        
-        let cardContent = '';
-        
-        if (this.cardStyle === 'compact') {
-            cardContent = this.renderCompactCard(appointmentDate);
-        } else if (this.cardStyle === 'detailed') {
-            cardContent = this.renderDetailedCard(appointmentDate);
-        } else {
-            cardContent = this.renderDefaultCard(appointmentDate);
-        }
-        
-        this.element.innerHTML = cardContent;
-        
-        // Add error container if required
-        if (this.required) {
-            const errorContainer = document.createElement('div');
-            errorContainer.className = 'error-container';
-            errorContainer.innerHTML = `
-                <div class="error-message" id="${this.id}-error">
-                    <div class="error-icon">!</div>
-                    <span class="error-text">Appointment information is required</span>
-                </div>
-            `;
-            this.element.appendChild(errorContainer);
-        }
-        
-        return this.element;
-    }
-    
-    renderDefaultCard(appointmentDate) {
-        return `
-            <div class="current-appointment-card">
-                <div class="appointment-header">
-                    <div class="appointment-icon">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="appointment-info">
-                        <div class="appointment-info-title">${this.getText('currentAppointment')}</div>
-                        ${this.showProvider ? `<p><strong>${this.getText('scheduledWith')}:</strong> ${this.meetingName}</p>` : ''}
-                        ${this.showServiceName && this.serviceName ? `<p><strong>${this.getText('serviceName')}:</strong> ${this.serviceName}</p>` : ''}
-                        ${this.showDateTime ? `<p><strong>${this.getText('currentDateTime')}:</strong> ${appointmentDate}</p>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    renderCompactCard(appointmentDate) {
-        return `
-            <div class="current-appointment-card compact">
-                <div class="appointment-header-compact">
-                    <div class="appointment-icon-small">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="appointment-summary">
-                        <div class="appointment-title-compact">${this.meetingName}</div>
-                        <div class="appointment-date-compact">${appointmentDate}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    renderDetailedCard(appointmentDate) {
-        return `
-            <div class="current-appointment-card detailed">
-                <div class="appointment-header-detailed">
-                    <div class="appointment-icon-large">
-                        ${this.getIcon()}
-                    </div>
-                    <div class="appointment-details-full">
-                        <div class="appointment-title-large">${this.getText('currentAppointment')}</div>
-                        <div class="appointment-meta">
-                            ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
-                            ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
-                            ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    getValue() {
-        // Return the appointment information as an object
-        return {
-            meetingName: this.meetingName,
-            startTime: this.startTime,
-            serviceName: this.serviceName,
-            formattedDate: this.formatAppointmentDate(this.startTime),
-            language: this.language
-        };
-    }
-    
-    setValue(value) {
-        // Update appointment information if provided
-        if (value && typeof value === 'object') {
-            if (value.meetingName) this.meetingName = value.meetingName;
-            if (value.startTime) this.startTime = value.startTime;
-            if (value.serviceName) this.serviceName = value.serviceName;
-            if (value.language) this.language = value.language;
-            
-            // Re-render the card with new values
-            if (this.element) {
-                const appointmentDate = this.formatAppointmentDate(this.startTime);
-                let cardContent = '';
-                
-                if (this.cardStyle === 'compact') {
-                    cardContent = this.renderCompactCard(appointmentDate);
-                } else if (this.cardStyle === 'detailed') {
-                    cardContent = this.renderDetailedCard(appointmentDate);
-                } else {
-                    cardContent = this.renderDefaultCard(appointmentDate);
-                }
-                
-                const cardContainer = this.element.querySelector('.current-appointment-card');
-                if (cardContainer) {
-                    cardContainer.outerHTML = cardContent;
-                }
-            }
-        }
-    }
-    
-    showError(message) {
-        const errorElement = this.element.querySelector(`#${this.id}-error`);
-        if (errorElement) {
-            const errorText = errorElement.querySelector('.error-text');
-            if (errorText) {
-                errorText.textContent = message;
-            }
-            errorElement.classList.add('show');
-        }
-    }
-    
-    hideError() {
-        const errorElement = this.element.querySelector(`#${this.id}-error`);
-        if (errorElement) {
-            errorElement.classList.remove('show');
-        }
-    }
-    
-    destroy() {
-        // Clean up any event listeners or resources
-        if (this.element) {
-            this.element.remove();
-        }
-    }
-
-    // Update configuration method for dynamic updates
-    updateConfig(newConfig) {
-        if (newConfig.meetingName) this.meetingName = newConfig.meetingName;
-        if (newConfig.startTime) this.startTime = newConfig.startTime;
-        if (newConfig.serviceName) this.serviceName = newConfig.serviceName;
-        if (newConfig.language) this.language = newConfig.language;
-        if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
-        if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
-        
-        // Update service name if eventTypeSlug changed
-        if (newConfig.eventTypeSlug) {
-            this.serviceName = this.getServiceNameFromSlug(newConfig.eventTypeSlug, this.meetingName);
-        }
-        
-        // Re-render if element exists
-        if (this.element) {
-            const appointmentDate = this.formatAppointmentDate(this.startTime);
-            let cardContent = '';
-            
-            if (this.cardStyle === 'compact') {
-                cardContent = this.renderCompactCard(appointmentDate);
-            } else if (this.cardStyle === 'detailed') {
-                cardContent = this.renderDetailedCard(appointmentDate);
-            } else {
-                cardContent = this.renderDefaultCard(appointmentDate);
-            }
-            
-            const cardContainer = this.element.querySelector('.current-appointment-card');
-            if (cardContainer) {
-                cardContainer.outerHTML = cardContent;
-            }
-        }
-    }
-}
-
 
 /**
  * OPTIMIZED CALENDAR FIELDS - Unified approach using CalendarField as base
@@ -11070,324 +10835,494 @@ class BookingCancellationCardField extends BaseField {
 }
 
 
+
+/**
+ * TabManager - A field that manages multiple tabs with their own content
+ * Extends BaseField to integrate seamlessly with FormFieldFactory
+ */
 class TabManager extends BaseField {
-                constructor(factory, config) {
-                    super(factory, config);
-                    
-                    this.tabs = config.tabs || [];
-                    this.activeTabId = config.activeTabId || (this.tabs[0]?.id);
-                    this.tabStyle = config.tabStyle || 'default';
-                    this.orientation = config.orientation || 'horizontal';
-                    
-                    this.tabFieldInstances = new Map();
-                    this.tabContainers = new Map();
-                    this.onTabChange = config.onTabChange || null;
-                    this.allowValidation = config.allowValidation !== false;
-                    this.tabEventListeners = [];
-                }
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Tab-specific configuration
+        this.tabs = config.tabs || []; // Array of tab objects
+        this.activeTabId = config.activeTabId || (this.tabs[0]?.id);
+        this.tabStyle = config.tabStyle || 'default'; // 'default', 'pills', 'underline'
+        this.orientation = config.orientation || 'horizontal'; // 'horizontal', 'vertical'
+        
+        // Tab structure example:
+        // {
+        //   id: 'borrowing',
+        //   label: 'Borrowing Capacity',
+        //   fields: [field configurations],
+        //   onActivate: function(tabId, tabManager) {},
+        //   onDeactivate: function(tabId, tabManager) {},
+        //   customContent: null // Optional custom HTML content
+        // }
+        
+        this.tabFieldInstances = new Map(); // Store field instances for each tab
+        this.tabContainers = new Map(); // Store tab content containers
+        this.onTabChange = config.onTabChange || null;
+        this.allowValidation = config.allowValidation !== false;
+        
+        // Event listeners registry
+        this.tabEventListeners = [];
+    }
 
-                validate() {
-                    if (!this.allowValidation) return true;
-                    
-                    const activeFields = this.tabFieldInstances.get(this.activeTabId) || [];
-                    return activeFields.every(field => field.validate());
-                }
-
-                render() {
-                    const container = this.createContainer();
-                    container.classList.add('tab-manager-field');
-                    
-                    const tabNav = this.createTabNavigation();
-                    container.appendChild(tabNav);
-                    
-                    const tabContent = document.createElement('div');
-                    tabContent.className = 'tab-content-area';
-                    
-                    this.tabs.forEach(tab => {
-                        const tabContainer = this.createTabContent(tab);
-                        this.tabContainers.set(tab.id, tabContainer);
-                        tabContent.appendChild(tabContainer);
-                    });
-                    
-                    container.appendChild(tabContent);
-                    
-                    const errorElement = this.createErrorElement();
-                    container.appendChild(errorElement);
-                    
-                    this.setActiveTab(this.activeTabId, false);
-                    
-                    this.container = container;
-                    return container;
-                }
-
-                createTabNavigation() {
-                    const navContainer = document.createElement('div');
-                    navContainer.className = `tab-navigation ${this.tabStyle} ${this.orientation}`;
-                    
-                    this.tabs.forEach(tab => {
-                        const tabButton = document.createElement('button');
-                        tabButton.type = 'button';
-                        tabButton.className = 'tab-button';
-                        tabButton.dataset.tabId = tab.id;
-                        tabButton.textContent = tab.label;
-                        
-                        if (tab.id === this.activeTabId) {
-                            tabButton.classList.add('active');
-                        }
-                        
-                        const clickHandler = (e) => {
-                            e.preventDefault();
-                            this.setActiveTab(tab.id);
-                        };
-                        
-                        tabButton.addEventListener('click', clickHandler);
-                        this.tabEventListeners.push({
-                            element: tabButton,
-                            event: 'click',
-                            handler: clickHandler
-                        });
-                        
-                        navContainer.appendChild(tabButton);
-                    });
-                    
-                    return navContainer;
-                }
-
-                createTabContent(tab) {
-                    const tabContainer = document.createElement('div');
-                    tabContainer.className = 'tab-content';
-                    tabContainer.dataset.tabId = tab.id;
-                    tabContainer.style.display = tab.id === this.activeTabId ? 'block' : 'none';
-                    
-                    if (tab.customContent) {
-                        if (typeof tab.customContent === 'function') {
-                            tab.customContent(tabContainer, this);
-                        } else {
-                            tabContainer.innerHTML = tab.customContent;
-                        }
-                    } else if (tab.fields && Array.isArray(tab.fields)) {
-                        this.createTabFields(tab, tabContainer);
+    validate() {
+        if (!this.allowValidation) return true;
+        
+        // Validate all fields in all tabs or just active tab based on config
+        const validateAllTabs = this.config.validateAllTabs || false;
+        
+        if (validateAllTabs) {
+            // Validate all tabs
+            let isValid = true;
+            this.tabFieldInstances.forEach((fields, tabId) => {
+                fields.forEach(field => {
+                    if (!field.validate()) {
+                        isValid = false;
                     }
-                    
-                    return tabContainer;
-                }
+                });
+            });
+            return isValid;
+        } else {
+            // Validate only active tab
+            const activeFields = this.tabFieldInstances.get(this.activeTabId) || [];
+            return activeFields.every(field => field.validate());
+        }
+    }
 
-                createTabFields(tab, container) {
-                    const fieldInstances = [];
-                    
-                    const fieldGroups = this.groupFieldsByRow(tab.fields);
-                    
-                    fieldGroups.forEach(group => {
-                        if (group.isRow) {
-                            const rowContainer = document.createElement('div');
-                            rowContainer.className = 'field-row';
-                            
-                            group.fields.forEach(fieldConfig => {
-                                const colContainer = document.createElement('div');
-                                colContainer.className = 'field-col';
-                                
-                                const field = this.createFieldInstance(fieldConfig, tab.id);
-                                if (field) {
-                                    fieldInstances.push(field);
-                                    colContainer.appendChild(field.render());
-                                }
-                                rowContainer.appendChild(colContainer);
-                            });
-                            
-                            container.appendChild(rowContainer);
-                        } else {
-                            const field = this.createFieldInstance(group.fields[0], tab.id);
-                            if (field) {
-                                fieldInstances.push(field);
-                                container.appendChild(field.render());
-                            }
-                        }
-                    });
-                    
-                    this.tabFieldInstances.set(tab.id, fieldInstances);
-                }
+    render() {
+        const container = this.createContainer();
+        
+        // Create tab navigation
+        const tabNav = this.createTabNavigation();
+        container.appendChild(tabNav);
+        
+        // Create tab content area
+        const tabContent = document.createElement('div');
+        tabContent.className = 'tab-content-area';
+        
+        // Create content for each tab
+        this.tabs.forEach(tab => {
+            const tabContainer = this.createTabContent(tab);
+            this.tabContainers.set(tab.id, tabContainer);
+            tabContent.appendChild(tabContainer);
+        });
+        
+        container.appendChild(tabContent);
+        
+        // Create error element
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        // Set initial active tab
+        this.setActiveTab(this.activeTabId, false);
+        
+        this.container = container;
+        return container;
+    }
 
-                groupFieldsByRow(fields) {
-                    const groups = [];
-                    let i = 0;
+    createTabNavigation() {
+        const navContainer = document.createElement('div');
+        navContainer.className = `tab-navigation ${this.tabStyle} ${this.orientation}`;
+        
+        // Add centering styles
+        navContainer.style.display = 'flex';
+        navContainer.style.justifyContent = 'center';
+        navContainer.style.alignItems = 'center';
+        navContainer.style.marginBottom = '20px';
+        
+        // Create inner container for the buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'tab-buttons-container';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.flexWrap = 'wrap';
+        buttonContainer.style.justifyContent = 'center';
+        
+        this.tabs.forEach(tab => {
+            const tabButton = document.createElement('button');
+            tabButton.type = 'button';
+            tabButton.className = 'tab-button';
+            tabButton.dataset.tabId = tab.id;
+            tabButton.textContent = tab.label;
+            
+            // Add active class if this is the active tab
+            if (tab.id === this.activeTabId) {
+                tabButton.classList.add('active');
+            }
+            
+            // Add click event listener
+            const clickHandler = (e) => {
+                e.preventDefault();
+                this.setActiveTab(tab.id);
+            };
+            
+            tabButton.addEventListener('click', clickHandler);
+            this.tabEventListeners.push({
+                element: tabButton,
+                event: 'click',
+                handler: clickHandler
+            });
+            
+            buttonContainer.appendChild(tabButton);
+        });
+        
+        navContainer.appendChild(buttonContainer);
+        return navContainer;
+    }
+
+    createTabContent(tab) {
+        const tabContainer = document.createElement('div');
+        tabContainer.className = 'tab-content';
+        tabContainer.dataset.tabId = tab.id;
+        tabContainer.style.display = tab.id === this.activeTabId ? 'block' : 'none';
+        
+        if (tab.customContent && typeof tab.customContent === 'function') {
+            // Use custom content function
+            tab.customContent(tabContainer, this);
+        } else if (tab.customContent) {
+            // Use custom HTML content
+            tabContainer.innerHTML = tab.customContent;
+        } else if (tab.fields && Array.isArray(tab.fields)) {
+            // Create fields from configuration
+            this.createTabFields(tab, tabContainer);
+        }
+        
+        return tabContainer;
+    }
+
+    createTabFields(tab, container) {
+        const fieldInstances = [];
+        
+        // Group fields by rows if specified
+        const fieldGroups = this.groupFieldsByRow(tab.fields);
+        
+        fieldGroups.forEach(group => {
+            if (group.isRow) {
+                // Create row container
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'field-row';
+                
+                group.fields.forEach(fieldConfig => {
+                    const colContainer = document.createElement('div');
+                    colContainer.className = 'field-col';
                     
-                    while (i < fields.length) {
-                        const currentField = fields[i];
-                        
-                        if (currentField.row) {
-                            const rowFields = [];
-                            let j = i;
-                            while (j < fields.length && fields[j].row === currentField.row) {
-                                rowFields.push(fields[j]);
-                                j++;
-                            }
-                            
-                            groups.push({
-                                isRow: true,
-                                fields: rowFields
-                            });
-                            
-                            i = j;
-                            continue;
-                        }
-                        
-                        groups.push({
-                            isRow: false,
-                            fields: [currentField]
-                        });
-                        
-                        i++;
+                    const field = this.createFieldInstance(fieldConfig, tab.id);
+                    if (field) {
+                        fieldInstances.push(field);
+                        colContainer.appendChild(field.render());
                     }
-                    
-                    return groups;
-                }
-
-                createFieldInstance(fieldConfig, tabId) {
-                    const enhancedConfig = {
-                        ...fieldConfig,
-                        id: `${tabId}-${fieldConfig.id}`,
-                        onChange: (value) => {
-                            if (fieldConfig.onChange) {
-                                fieldConfig.onChange(value, tabId, this);
-                            }
-                            this.handleFieldChange(tabId, fieldConfig.name || fieldConfig.id, value);
-                        }
-                    };
-
-                    return this.factory.createField(enhancedConfig);
-                }
-
-                handleFieldChange(tabId, fieldName, value) {
-                    if (!this.value) this.value = {};
-                    if (!this.value[tabId]) this.value[tabId] = {};
-                    
-                    this.value[tabId][fieldName] = value;
-                    
-                    this.handleChange();
-                    
-                    const tab = this.tabs.find(t => t.id === tabId);
-                    if (tab && tab.onFieldChange) {
-                        tab.onFieldChange(fieldName, value, tabId, this);
-                    }
-                }
-
-                setActiveTab(tabId, triggerCallbacks = true) {
-                    const previousTabId = this.activeTabId;
-                    
-                    if (previousTabId === tabId) return;
-                    
-                    if (triggerCallbacks && previousTabId) {
-                        const previousTab = this.tabs.find(t => t.id === previousTabId);
-                        if (previousTab && previousTab.onDeactivate) {
-                            previousTab.onDeactivate(previousTabId, this);
-                        }
-                    }
-                    
-                    this.activeTabId = tabId;
-                    
-                    this.container.querySelectorAll('.tab-button').forEach(btn => {
-                        btn.classList.toggle('active', btn.dataset.tabId === tabId);
-                    });
-                    
-                    this.tabContainers.forEach((container, currentTabId) => {
-                        container.style.display = currentTabId === tabId ? 'block' : 'none';
-                    });
-                    
-                    if (triggerCallbacks) {
-                        const activeTab = this.tabs.find(t => t.id === tabId);
-                        if (activeTab && activeTab.onActivate) {
-                            activeTab.onActivate(tabId, this);
-                        }
-                        
-                        if (this.onTabChange) {
-                            this.onTabChange(tabId, previousTabId, this);
-                        }
-                    }
-                    
-                    this.handleChange();
-                }
-
-                getValue() {
-                    const allValues = {};
-                    
-                    this.tabFieldInstances.forEach((fields, tabId) => {
-                        allValues[tabId] = {};
-                        fields.forEach(field => {
-                            const fieldName = field.name;
-                            allValues[tabId][fieldName] = field.getValue();
-                        });
-                    });
-                    
-                    return {
-                        activeTab: this.activeTabId,
-                        tabs: allValues,
-                        ...allValues
-                    };
-                }
-
-                setValue(value) {
-                    if (!value || typeof value !== 'object') return;
-                    
-                    if (value.activeTab) {
-                        this.setActiveTab(value.activeTab, false);
-                    }
-                    
-                    const tabValues = value.tabs || value;
-                    
-                    this.tabFieldInstances.forEach((fields, tabId) => {
-                        const tabData = tabValues[tabId];
-                        if (tabData && typeof tabData === 'object') {
-                            fields.forEach(field => {
-                                const fieldName = field.name;
-                                if (tabData[fieldName] !== undefined) {
-                                    field.setValue(tabData[fieldName]);
-                                }
-                            });
-                        }
-                    });
-                    
-                    this.value = value;
-                }
-
-                getTabValues(tabId) {
-                    const fields = this.tabFieldInstances.get(tabId);
-                    if (!fields) return {};
-                    
-                    const values = {};
-                    fields.forEach(field => {
-                        values[field.name] = field.getValue();
-                    });
-                    return values;
-                }
-
-                getField(tabId, fieldName) {
-                    const fields = this.tabFieldInstances.get(tabId);
-                    if (!fields) return null;
-                    
-                    return fields.find(field => field.name === fieldName);
-                }
-
-                cleanup() {
-                    this.tabEventListeners.forEach(({ element, event, handler }) => {
-                        element.removeEventListener(event, handler);
-                    });
-                    this.tabEventListeners = [];
-                    
-                    this.tabFieldInstances.forEach(fields => {
-                        fields.forEach(field => {
-                            if (field.cleanup) field.cleanup();
-                        });
-                    });
-                    
-                    super.cleanup();
-                }
-
-                destroy() {
-                    this.cleanup();
-                    this.tabFieldInstances.clear();
-                    this.tabContainers.clear();
+                    rowContainer.appendChild(colContainer);
+                });
+                
+                container.appendChild(rowContainer);
+            } else {
+                // Single field
+                const field = this.createFieldInstance(group.fields[0], tab.id);
+                if (field) {
+                    fieldInstances.push(field);
+                    container.appendChild(field.render());
                 }
             }
+        });
+        
+        // Store field instances for this tab
+        this.tabFieldInstances.set(tab.id, fieldInstances);
+    }
+
+    groupFieldsByRow(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            if (currentField.row) {
+                // Find all fields with the same row identifier
+                const rowFields = [];
+                let j = i;
+                while (j < fields.length && fields[j].row === currentField.row) {
+                    rowFields.push(fields[j]);
+                    j++;
+                }
+                
+                groups.push({
+                    isRow: true,
+                    fields: rowFields
+                });
+                
+                i = j; // Skip the grouped fields
+                continue;
+            }
+            
+            // Single field without row
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
+        }
+        
+        return groups;
+    }
+
+    createFieldInstance(fieldConfig, tabId) {
+        // Create unique field ID with tab prefix
+        const enhancedConfig = {
+            ...fieldConfig,
+            id: `${tabId}-${fieldConfig.id}`,
+            onChange: (value) => {
+                // Call original onChange if provided
+                if (fieldConfig.onChange) {
+                    fieldConfig.onChange(value, tabId, this);
+                }
+                // Call tab manager onChange
+                this.handleFieldChange(tabId, fieldConfig.name || fieldConfig.id, value);
+            }
+        };
+
+        return this.factory.createField(enhancedConfig);
+    }
+
+    handleFieldChange(tabId, fieldName, value) {
+        // Update the tab's value
+        if (!this.value) this.value = {};
+        if (!this.value[tabId]) this.value[tabId] = {};
+        
+        this.value[tabId][fieldName] = value;
+        
+        // Call main field change handler
+        this.handleChange();
+        
+        // Call tab-specific change handler if provided
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab && tab.onFieldChange) {
+            tab.onFieldChange(fieldName, value, tabId, this);
+        }
+    }
+
+    setActiveTab(tabId, triggerCallbacks = true) {
+        const previousTabId = this.activeTabId;
+        
+        if (previousTabId === tabId) return; // No change needed
+        
+        // Call deactivate callback for previous tab
+        if (triggerCallbacks && previousTabId) {
+            const previousTab = this.tabs.find(t => t.id === previousTabId);
+            if (previousTab && previousTab.onDeactivate) {
+                previousTab.onDeactivate(previousTabId, this);
+            }
+        }
+        
+        // Update active tab
+        this.activeTabId = tabId;
+        
+        // Update tab buttons
+        this.container.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tabId === tabId);
+        });
+        
+        // Show/hide tab content
+        this.tabContainers.forEach((container, currentTabId) => {
+            container.style.display = currentTabId === tabId ? 'block' : 'none';
+        });
+        
+        // Call activate callback for new tab
+        if (triggerCallbacks) {
+            const activeTab = this.tabs.find(t => t.id === tabId);
+            if (activeTab && activeTab.onActivate) {
+                activeTab.onActivate(tabId, this);
+            }
+            
+            // Call global tab change callback
+            if (this.onTabChange) {
+                this.onTabChange(tabId, previousTabId, this);
+            }
+        }
+        
+        // Trigger change event
+        this.handleChange();
+    }
+
+    getValue() {
+        // Return object with all tab values and current active tab
+        const allValues = {};
+        
+        this.tabFieldInstances.forEach((fields, tabId) => {
+            allValues[tabId] = {};
+            fields.forEach(field => {
+                const fieldName = field.name;
+                allValues[tabId][fieldName] = field.getValue();
+            });
+        });
+        
+        return {
+            activeTab: this.activeTabId,
+            tabs: allValues,
+            // Convenience accessors
+            ...allValues
+        };
+    }
+
+    setValue(value) {
+        if (!value || typeof value !== 'object') return;
+        
+        // Set active tab if provided
+        if (value.activeTab) {
+            this.setActiveTab(value.activeTab, false);
+        }
+        
+        // Set values for each tab
+        const tabValues = value.tabs || value;
+        
+        this.tabFieldInstances.forEach((fields, tabId) => {
+            const tabData = tabValues[tabId];
+            if (tabData && typeof tabData === 'object') {
+                fields.forEach(field => {
+                    const fieldName = field.name;
+                    if (tabData[fieldName] !== undefined) {
+                        field.setValue(tabData[fieldName]);
+                    }
+                });
+            }
+        });
+        
+        this.value = value;
+    }
+
+    // Get values for specific tab
+    getTabValues(tabId) {
+        const fields = this.tabFieldInstances.get(tabId);
+        if (!fields) return {};
+        
+        const values = {};
+        fields.forEach(field => {
+            values[field.name] = field.getValue();
+        });
+        return values;
+    }
+
+    // Set values for specific tab
+    setTabValues(tabId, values) {
+        const fields = this.tabFieldInstances.get(tabId);
+        if (!fields || !values) return;
+        
+        fields.forEach(field => {
+            if (values[field.name] !== undefined) {
+                field.setValue(values[field.name]);
+            }
+        });
+    }
+
+    // Get field instance by tab and field name
+    getField(tabId, fieldName) {
+        const fields = this.tabFieldInstances.get(tabId);
+        if (!fields) return null;
+        
+        return fields.find(field => field.name === fieldName);
+    }
+
+    // Add new tab dynamically
+    addTab(tabConfig) {
+        this.tabs.push(tabConfig);
+        
+        if (this.container) {
+            // Re-render if already rendered
+            const buttonContainer = this.container.querySelector('.tab-buttons-container');
+            const tabContent = this.container.querySelector('.tab-content-area');
+            
+            // Add new tab button
+            const tabButton = document.createElement('button');
+            tabButton.type = 'button';
+            tabButton.className = 'tab-button';
+            tabButton.dataset.tabId = tabConfig.id;
+            tabButton.textContent = tabConfig.label;
+            
+            const clickHandler = (e) => {
+                e.preventDefault();
+                this.setActiveTab(tabConfig.id);
+            };
+            
+            tabButton.addEventListener('click', clickHandler);
+            this.tabEventListeners.push({
+                element: tabButton,
+                event: 'click',
+                handler: clickHandler
+            });
+            
+            buttonContainer.appendChild(tabButton);
+            
+            // Add new tab content
+            const tabContainer = this.createTabContent(tabConfig);
+            this.tabContainers.set(tabConfig.id, tabContainer);
+            tabContent.appendChild(tabContainer);
+        }
+    }
+
+    // Remove tab
+    removeTab(tabId) {
+        this.tabs = this.tabs.filter(tab => tab.id !== tabId);
+        
+        if (this.container) {
+            // Remove tab button
+            const tabButton = this.container.querySelector(`.tab-button[data-tab-id="${tabId}"]`);
+            if (tabButton) {
+                // Remove event listeners
+                this.tabEventListeners = this.tabEventListeners.filter(listener => {
+                    if (listener.element === tabButton) {
+                        tabButton.removeEventListener(listener.event, listener.handler);
+                        return false;
+                    }
+                    return true;
+                });
+                tabButton.remove();
+            }
+            
+            // Remove tab content
+            const tabContainer = this.tabContainers.get(tabId);
+            if (tabContainer) {
+                tabContainer.remove();
+                this.tabContainers.delete(tabId);
+            }
+            
+            // Remove field instances
+            this.tabFieldInstances.delete(tabId);
+            
+            // Switch to first tab if removing active tab
+            if (this.activeTabId === tabId && this.tabs.length > 0) {
+                this.setActiveTab(this.tabs[0].id);
+            }
+        }
+    }
+
+    // Clean up event listeners
+    cleanup() {
+        this.tabEventListeners.forEach(({ element, event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        this.tabEventListeners = [];
+        
+        // Cleanup field instances
+        this.tabFieldInstances.forEach(fields => {
+            fields.forEach(field => {
+                if (field.cleanup) field.cleanup();
+            });
+        });
+        
+        super.cleanup();
+    }
+
+    destroy() {
+        this.cleanup();
+        this.tabFieldInstances.clear();
+        this.tabContainers.clear();
+    }
+}
+
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
