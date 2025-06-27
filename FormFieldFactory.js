@@ -2888,19 +2888,29 @@ class YesNoWithOptionsField extends BaseField {
                 return this.factory.createSingleSelectWithOtherField(config);
             case 'multiselect-with-other':
                 return this.factory.createMultiSelectWithOtherField(config);
-	   case 'options-slider':
-    		return this.factory.createOptionsSliderField(config);
+            case 'options-slider':
+                return this.factory.createOptionsSliderField(config);
             default:
                 console.warn(`Unknown field type: ${fieldType}`);
                 return null;
         }
     }
 
-    // Enhanced getValue method to properly extract display names
+    // ENHANCED: getValue method to properly handle unselected states
     getValue() {
         const mainValue = this.container ? 
-            this.container.querySelector('input[type="radio"]:checked')?.value || '' : 
+            this.container.querySelector('input[type="radio"]:checked')?.value : 
             this.value;
+            
+        // If no selection made and field is not required, return null instead of empty string
+        if (!mainValue && !this.required) {
+            return { main: null };
+        }
+        
+        // If no selection made but field is required, return empty string to trigger validation
+        if (!mainValue && this.required) {
+            return { main: '' };
+        }
             
         const result = { main: mainValue };
         
@@ -3053,41 +3063,41 @@ class YesNoWithOptionsField extends BaseField {
     }
     
     groupFields(fields) {
-    const groups = [];
-    let i = 0;
-    
-    while (i < fields.length) {
-        const currentField = fields[i];
+        const groups = [];
+        let i = 0;
         
-        if (currentField.row) {
-            // Find all fields with the same row identifier
-            const rowFields = [];
-            let j = i;
-            while (j < fields.length && fields[j].row === currentField.row) {
-                rowFields.push(fields[j]);
-                j++;
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            if (currentField.row) {
+                // Find all fields with the same row identifier
+                const rowFields = [];
+                let j = i;
+                while (j < fields.length && fields[j].row === currentField.row) {
+                    rowFields.push(fields[j]);
+                    j++;
+                }
+                
+                groups.push({
+                    isRow: true,
+                    fields: rowFields
+                });
+                
+                i = j; // Skip the grouped fields
+                continue;
             }
             
+            // Single field without row
             groups.push({
-                isRow: true,
-                fields: rowFields
+                isRow: false,
+                fields: [currentField]
             });
             
-            i = j; // Skip the grouped fields
-            continue;
+            i++;
         }
         
-        // Single field without row
-        groups.push({
-            isRow: false,
-            fields: [currentField]
-        });
-        
-        i++;
+        return groups;
     }
-    
-    return groups;
-}
 
     // Get display value for the main selection
     getMainDisplayValue() {
@@ -4495,12 +4505,14 @@ class CustomField extends BaseField {
         return section;
     }
 
-    // UPDATED: Enhanced populateStepContent method with separate fields support
+    // ENHANCED: populateStepContent method with better filtering
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
 
         step.fields.forEach(fieldConfig => {
             const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
+            
+            // Use the enhanced filtering logic
             if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
                 
                 // NEW: Check if field should render as separate summary fields
@@ -4513,7 +4525,7 @@ class CustomField extends BaseField {
                         
                         // Render each field separately
                         summaryFields.forEach(field => {
-                            if (field.value) {
+                            if (field.value && field.value !== 'Indifférent' && field.value !== 'Any') {
                                 contentHtml += `
                                     <div class="summary-row">
                                         <div class="summary-label">${field.label}:</div>
@@ -4526,25 +4538,29 @@ class CustomField extends BaseField {
                         // Fallback: use custom getSummaryDisplay if available
                         if (fieldConfig.getSummaryDisplay && typeof fieldConfig.getSummaryDisplay === 'function') {
                             const displayValue = fieldConfig.getSummaryDisplay(fieldValue, fieldInstance);
-                            if (displayValue) {
+                            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
                                 // Split by newlines for separate fields
                                 const lines = displayValue.split('\n').filter(line => line.trim());
                                 lines.forEach(line => {
                                     if (line.includes(':')) {
                                         const [label, value] = line.split(':').map(part => part.trim());
-                                        contentHtml += `
-                                            <div class="summary-row">
-                                                <div class="summary-label">${label}:</div>
-                                                <div class="summary-value">${value}</div>
-                                            </div>
-                                        `;
+                                        if (value && value !== 'Indifférent' && value !== 'Any') {
+                                            contentHtml += `
+                                                <div class="summary-row">
+                                                    <div class="summary-label">${label}:</div>
+                                                    <div class="summary-value">${value}</div>
+                                                </div>
+                                            `;
+                                        }
                                     } else {
-                                        contentHtml += `
-                                            <div class="summary-row">
-                                                <div class="summary-label">${fieldConfig.label}:</div>
-                                                <div class="summary-value">${line}</div>
-                                            </div>
-                                        `;
+                                        if (line && line !== 'Indifférent' && line !== 'Any') {
+                                            contentHtml += `
+                                                <div class="summary-row">
+                                                    <div class="summary-label">${fieldConfig.label}:</div>
+                                                    <div class="summary-value">${line}</div>
+                                                </div>
+                                            `;
+                                        }
                                     }
                                 });
                             }
@@ -4553,12 +4569,15 @@ class CustomField extends BaseField {
                 }
                 // Special handling for YesNoWithOptionsField (existing code)
                 else if (fieldConfig.type === 'yesno-with-options') {
-                    contentHtml += this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
+                    const formattedContent = this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
+                    if (formattedContent.trim()) {
+                        contentHtml += formattedContent;
+                    }
                 } 
                 // Default handling for other fields
                 else {
                     const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
-                    if (displayValue) {
+                    if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
                         contentHtml += `
                             <div class="summary-row">
                                 <div class="summary-label">${fieldConfig.label}:</div>
@@ -4573,7 +4592,7 @@ class CustomField extends BaseField {
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
     }
 
-    // NEW: Helper method to determine if a field should be displayed in summary
+    // ENHANCED: Better filtering for summary display
     shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
         // Basic null/undefined/empty checks
         if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
@@ -4588,20 +4607,46 @@ class CustomField extends BaseField {
         // Handle yes/no fields - don't show if no selection made
         if (fieldConfig.type === 'yesno') {
             // For non-required fields, don't show if no explicit selection
-            if (!fieldConfig.required && (fieldValue === null || fieldValue === undefined)) {
-                return false;
+            if (!fieldConfig.required) {
+                if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
+                    return false;
+                }
+                // Also check for string representations of empty states
+                if (typeof fieldValue === 'string' && (fieldValue === 'null' || fieldValue === 'undefined')) {
+                    return false;
+                }
             }
         }
 
         // Handle yes/no with options fields
         if (fieldConfig.type === 'yesno-with-options') {
-            // Don't show if main value is null/undefined for non-required fields
+            // Don't show if main value is null/undefined/empty for non-required fields
             if (!fieldConfig.required) {
-                if (typeof fieldValue === 'object' && fieldValue.main === undefined) {
+                // Check for null/undefined value
+                if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
                     return false;
                 }
-                if (fieldValue === null || fieldValue === undefined) {
-                    return false;
+                
+                // Check for object with undefined/null/empty main property
+                if (typeof fieldValue === 'object' && fieldValue !== null) {
+                    const mainValue = fieldValue.main;
+                    if (mainValue === undefined || mainValue === null || mainValue === '') {
+                        return false;
+                    }
+                    // Also check for string representations of empty states
+                    if (typeof mainValue === 'string' && (mainValue === 'null' || mainValue === 'undefined')) {
+                        return false;
+                    }
+                }
+                
+                // Check for empty object or object with only null/undefined values
+                if (typeof fieldValue === 'object' && fieldValue !== null) {
+                    const hasValidValue = Object.values(fieldValue).some(val => 
+                        val !== null && val !== undefined && val !== ''
+                    );
+                    if (!hasValidValue) {
+                        return false;
+                    }
                 }
             }
         }
@@ -4609,15 +4654,24 @@ class CustomField extends BaseField {
         // Handle options-slider fields - check for default unselected state
         if (fieldConfig.type === 'options-slider') {
             // If field is not required and value is 0 (often means "Indifférent"), don't show
-            if (!fieldConfig.required && (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue.value === 0))) {
-                return false;
+            if (!fieldConfig.required) {
+                if (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.value === 0)) {
+                    return false;
+                }
+                // Also check if the display value indicates "no preference"
+                if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.display) {
+                    const displayLower = fieldValue.display.toLowerCase();
+                    if (displayLower.includes('indifférent') || displayLower.includes('any')) {
+                        return false;
+                    }
+                }
             }
         }
 
         // Handle sliding-window-range fields
         if (fieldConfig.type === 'sliding-window-range') {
             if (typeof fieldValue === 'object' && fieldValue !== null) {
-                // Don't show if it's still at default values (could add more specific logic here)
+                // Don't show if it's still at default values
                 return fieldValue.min !== undefined && fieldValue.max !== undefined;
             }
         }
@@ -4693,7 +4747,7 @@ class CustomField extends BaseField {
                         const subValue = value.yesValues[subField.id];
                         if (subValue !== undefined && subValue !== null && subValue !== '') {
                             const subDisplayValue = this.formatFieldValue(subField, subValue);
-                            if (subDisplayValue) {
+                            if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
                                 html += `
                                     <div class="summary-row">
                                         <div class="summary-label">${subField.label}:</div>
@@ -4707,7 +4761,7 @@ class CustomField extends BaseField {
                     const subValue = value.yesValues[fieldConfig.yesField.id];
                     if (subValue !== undefined && subValue !== null && subValue !== '') {
                         const subDisplayValue = this.formatFieldValue(fieldConfig.yesField, subValue);
-                        if (subDisplayValue) {
+                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
                             html += `
                                 <div class="summary-row">
                                     <div class="summary-label">${fieldConfig.yesField.label}:</div>
@@ -4723,7 +4777,7 @@ class CustomField extends BaseField {
                     const subValue = value.noValues[fieldConfig.noField.id];
                     if (subValue !== undefined && subValue !== null && subValue !== '') {
                         const subDisplayValue = this.formatFieldValue(fieldConfig.noField, subValue);
-                        if (subDisplayValue) {
+                        if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
                             html += `
                                 <div class="summary-row">
                                     <div class="summary-label">${fieldConfig.noField.label}:</div>
@@ -4737,7 +4791,7 @@ class CustomField extends BaseField {
         } else {
             // Fallback for simple values
             const displayValue = this.formatFieldValue(fieldConfig, value);
-            if (displayValue) {
+            if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
                 html += `
                     <div class="summary-row">
                         <div class="summary-label">${fieldConfig.label}:</div>
@@ -4944,7 +4998,6 @@ class CustomField extends BaseField {
         }
     }
 }
-
 
 /**
  * SingleSelectWithOtherField - Simple dropdown with "Other" option and personalized error messages
