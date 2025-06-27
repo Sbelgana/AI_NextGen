@@ -10673,25 +10673,25 @@ class BookingCancellationCardField extends BaseField {
             console.error('BookingCancellationCardField: serviceMapping is required in config');
         }
         
-        // Booking cancellation specific config
+        // Current appointment specific config (same structure as CurrentAppointmentCardField)
         this.meetingName = config.meetingName || config.serviceProvider || "Provider";
         this.startTime = config.startTime || config.currentAppointment || new Date().toISOString();
         this.serviceName = config.serviceName || config.eventName || this.getServiceNameFromSlug(config.eventTypeSlug, this.meetingName);
         this.language = config.language || 'en';
+        this.showServiceName = config.showServiceName !== false;
+        this.showDateTime = config.showDateTime !== false;
+        this.showProvider = config.showProvider !== false;
+        this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'cancel'
+        this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
+        
+        // Booking cancellation specific config (additional properties)
         this.bookingId = config.bookingId || '';
         this.bookingUid = config.bookingUid || '';
         this.status = config.status || 'confirmed';
         this.attendeeEmail = config.attendeeEmail || '';
         this.attendeeName = config.attendeeName || '';
-        
-        // UI options (same as CurrentAppointmentCardField)
-        this.showServiceName = config.showServiceName !== false;
-        this.showDateTime = config.showDateTime !== false;
-        this.showProvider = config.showProvider !== false;
         this.showBookingInfo = config.showBookingInfo !== false;
         this.showAttendeeInfo = config.showAttendeeInfo !== false;
-        this.iconType = config.iconType || 'calendar'; // 'calendar', 'appointment', 'reschedule'
-        this.cardStyle = config.cardStyle || 'default'; // 'default', 'compact', 'detailed'
         
         // Translations and service mapping - MUST be provided from extension
         this.translations = config.translations || {};
@@ -10752,6 +10752,7 @@ class BookingCancellationCardField extends BaseField {
         return this.factory.SVG_ICONS.CALENDAR || '';
     }
 
+    // Booking cancellation specific method
     getStatusDisplay() {
         const statusMap = {
             confirmed: this.getText('confirmed'),
@@ -10765,7 +10766,7 @@ class BookingCancellationCardField extends BaseField {
         // Booking cancellation card is typically read-only, so it's always valid
         // But we can validate that required booking data is present
         if (this.required) {
-            const hasRequiredData = this.meetingName && this.startTime && this.bookingUid;
+            const hasRequiredData = this.meetingName && this.startTime;
             if (!hasRequiredData) {
                 this.showError("Booking information is required");
                 return false;
@@ -10778,7 +10779,6 @@ class BookingCancellationCardField extends BaseField {
     
     render() {
         this.element = document.createElement('div');
-        // FIXED: Use EXACT same classes as CurrentAppointmentCardField
         this.element.className = `form-field current-appointment-card-field card-style-${this.cardStyle}`;
         this.element.id = this.id;
         
@@ -10796,14 +10796,14 @@ class BookingCancellationCardField extends BaseField {
         
         this.element.innerHTML = cardContent;
         
-        // Add error container if required (same structure as CurrentAppointmentCardField)
+        // Add error container if required
         if (this.required) {
             const errorContainer = document.createElement('div');
             errorContainer.className = 'error-container';
             errorContainer.innerHTML = `
                 <div class="error-message" id="${this.id}-error">
                     <div class="error-icon">!</div>
-                    <span class="error-text">Appointment information is required</span>
+                    <span class="error-text">Booking information is required</span>
                 </div>
             `;
             this.element.appendChild(errorContainer);
@@ -10813,7 +10813,6 @@ class BookingCancellationCardField extends BaseField {
     }
     
     renderDefaultCard(appointmentDate) {
-        // FIXED: Use EXACT same structure and classes as CurrentAppointmentCardField
         return `
             <div class="current-appointment-card">
                 <div class="appointment-header">
@@ -10832,7 +10831,6 @@ class BookingCancellationCardField extends BaseField {
     }
     
     renderCompactCard(appointmentDate) {
-        // FIXED: Use EXACT same structure and classes as CurrentAppointmentCardField
         return `
             <div class="current-appointment-card compact">
                 <div class="appointment-header-compact">
@@ -10842,7 +10840,6 @@ class BookingCancellationCardField extends BaseField {
                     <div class="appointment-summary">
                         <div class="appointment-title-compact">${this.meetingName}</div>
                         <div class="appointment-date-compact">${appointmentDate}</div>
-                        ${this.serviceName ? `<div class="appointment-service-compact">${this.serviceName}</div>` : ''}
                     </div>
                 </div>
             </div>
@@ -10850,8 +10847,6 @@ class BookingCancellationCardField extends BaseField {
     }
     
     renderDetailedCard(appointmentDate) {
-        // FIXED: Use EXACT same structure and classes as CurrentAppointmentCardField
-        // Just add the extra booking-specific information using the same meta structure
         return `
             <div class="current-appointment-card detailed">
                 <div class="appointment-header-detailed">
@@ -10861,11 +10856,11 @@ class BookingCancellationCardField extends BaseField {
                     <div class="appointment-details-full">
                         <div class="appointment-title-large">${this.getText('bookingToCancel')}</div>
                         <div class="appointment-meta">
-                            ${this.showBookingInfo && this.bookingId ? `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>` : ''}
-                            ${this.showBookingInfo ? `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>` : ''}
                             ${this.showProvider ? `<div class="meta-item"><span class="meta-label">${this.getText('scheduledWith')}:</span> <span class="meta-value">${this.meetingName}</span></div>` : ''}
                             ${this.showServiceName && this.serviceName ? `<div class="meta-item"><span class="meta-label">${this.getText('serviceName')}:</span> <span class="meta-value">${this.serviceName}</span></div>` : ''}
                             ${this.showDateTime ? `<div class="meta-item"><span class="meta-label">${this.getText('currentDateTime')}:</span> <span class="meta-value">${appointmentDate}</span></div>` : ''}
+                            ${this.showBookingInfo && this.bookingId ? `<div class="meta-item"><span class="meta-label">${this.getText('bookingNumber')}:</span> <span class="meta-value">${this.bookingId}</span></div>` : ''}
+                            ${this.showBookingInfo ? `<div class="meta-item"><span class="meta-label">${this.getText('status')}:</span> <span class="meta-value">${this.getStatusDisplay()}</span></div>` : ''}
                             ${this.showAttendeeInfo && this.attendeeName ? `<div class="meta-item"><span class="meta-label">${this.getText('attendee')}:</span> <span class="meta-value">${this.attendeeName}</span></div>` : ''}
                             ${this.showAttendeeInfo && this.attendeeEmail ? `<div class="meta-item"><span class="meta-label">${this.getText('email')}:</span> <span class="meta-value">${this.attendeeEmail}</span></div>` : ''}
                         </div>
@@ -10881,13 +10876,14 @@ class BookingCancellationCardField extends BaseField {
             meetingName: this.meetingName,
             startTime: this.startTime,
             serviceName: this.serviceName,
+            formattedDate: this.formatAppointmentDate(this.startTime),
+            language: this.language,
+            // Booking cancellation specific properties
             bookingId: this.bookingId,
             bookingUid: this.bookingUid,
             status: this.status,
             attendeeEmail: this.attendeeEmail,
-            attendeeName: this.attendeeName,
-            formattedDate: this.formatAppointmentDate(this.startTime),
-            language: this.language
+            attendeeName: this.attendeeName
         };
     }
     
@@ -10897,14 +10893,15 @@ class BookingCancellationCardField extends BaseField {
             if (value.meetingName) this.meetingName = value.meetingName;
             if (value.startTime) this.startTime = value.startTime;
             if (value.serviceName) this.serviceName = value.serviceName;
+            if (value.language) this.language = value.language;
+            // Booking cancellation specific properties
             if (value.bookingId) this.bookingId = value.bookingId;
             if (value.bookingUid) this.bookingUid = value.bookingUid;
             if (value.status) this.status = value.status;
             if (value.attendeeEmail) this.attendeeEmail = value.attendeeEmail;
             if (value.attendeeName) this.attendeeName = value.attendeeName;
-            if (value.language) this.language = value.language;
             
-            // Re-render the card with new values (same method as CurrentAppointmentCardField)
+            // Re-render the card with new values
             if (this.element) {
                 const appointmentDate = this.formatAppointmentDate(this.startTime);
                 let cardContent = '';
@@ -10926,7 +10923,6 @@ class BookingCancellationCardField extends BaseField {
     }
     
     showError(message) {
-        // FIXED: Use same error handling as CurrentAppointmentCardField
         const errorElement = this.element.querySelector(`#${this.id}-error`);
         if (errorElement) {
             const errorText = errorElement.querySelector('.error-text');
@@ -10938,7 +10934,6 @@ class BookingCancellationCardField extends BaseField {
     }
     
     hideError() {
-        // FIXED: Use same error handling as CurrentAppointmentCardField
         const errorElement = this.element.querySelector(`#${this.id}-error`);
         if (errorElement) {
             errorElement.classList.remove('show');
@@ -10946,32 +10941,33 @@ class BookingCancellationCardField extends BaseField {
     }
     
     destroy() {
-        // FIXED: Use same cleanup as CurrentAppointmentCardField
+        // Clean up any event listeners or resources
         if (this.element) {
             this.element.remove();
         }
     }
 
-    // Update configuration method for dynamic updates (same as CurrentAppointmentCardField)
+    // Update configuration method for dynamic updates
     updateConfig(newConfig) {
         if (newConfig.meetingName) this.meetingName = newConfig.meetingName;
         if (newConfig.startTime) this.startTime = newConfig.startTime;
         if (newConfig.serviceName) this.serviceName = newConfig.serviceName;
+        if (newConfig.language) this.language = newConfig.language;
+        if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
+        if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
+        // Booking cancellation specific properties
         if (newConfig.bookingId) this.bookingId = newConfig.bookingId;
         if (newConfig.bookingUid) this.bookingUid = newConfig.bookingUid;
         if (newConfig.status) this.status = newConfig.status;
         if (newConfig.attendeeEmail) this.attendeeEmail = newConfig.attendeeEmail;
         if (newConfig.attendeeName) this.attendeeName = newConfig.attendeeName;
-        if (newConfig.language) this.language = newConfig.language;
-        if (newConfig.translations) this.translations = { ...this.translations, ...newConfig.translations };
-        if (newConfig.serviceMapping) this.serviceMapping = { ...this.serviceMapping, ...newConfig.serviceMapping };
         
         // Update service name if eventTypeSlug changed
         if (newConfig.eventTypeSlug) {
             this.serviceName = this.getServiceNameFromSlug(newConfig.eventTypeSlug, this.meetingName);
         }
         
-        // Re-render if element exists (same method as CurrentAppointmentCardField)
+        // Re-render if element exists
         if (this.element) {
             const appointmentDate = this.formatAppointmentDate(this.startTime);
             let cardContent = '';
