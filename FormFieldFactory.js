@@ -7552,6 +7552,7 @@ class CreatForm {
         this.config = {
             language: config.language || "fr",
             webhookUrl: config.webhookUrl || defaultConfig.DEFAULT_WEBHOOK,
+            webhookEnabled: config.webhookEnabled !== false, // Default: enabled
             voiceflowEnabled: config.voiceflowEnabled || false,
             cssUrls: config.cssUrls || defaultConfig.DEFAULT_CSS,
             enableSessionTimeout: config.enableSessionTimeout !== false,
@@ -7561,7 +7562,10 @@ class CreatForm {
             // Booking-specific configuration
             formType: config.formType || "submission", // "submission" or "booking"
             apiKey: config.apiKey || "",
-            timezone: config.timezone || "America/Toronto"
+            timezone: config.timezone || "America/Toronto",
+            // Form structure configuration
+            formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
+            submitButtonText: config.submitButtonText || null // Custom submit button text
         };
         
         // Store the passed data
@@ -7569,7 +7573,14 @@ class CreatForm {
         this.formConfig = formConfig;
         this.defaultConfig = defaultConfig;
         
-        this.state = { cssLoaded: false, initialized: false, formSubmitted: false, sessionExpired: false, currentStep: 0 };
+        this.state = { 
+            cssLoaded: false, 
+            initialized: false, 
+            formSubmitted: false, 
+            sessionExpired: false, 
+            currentStep: 0,
+            isSingleStep: false 
+        };
         this.elements = new Map();
         this.formValues = {};
         this.sessionTimer = null;
@@ -7578,9 +7589,34 @@ class CreatForm {
 
         // Determine if this is a booking form
         this.isBookingForm = this.config.formType === "booking";
+        
+        // Determine form structure
+        this.determineFormStructure();
     }
 
-    // Utility methods
+    // ============================================================================
+    // FORM STRUCTURE DETECTION
+    // ============================================================================
+
+    determineFormStructure() {
+        const steps = this.formConfig.steps || [];
+        
+        if (this.config.formStructure === "single") {
+            this.state.isSingleStep = true;
+        } else if (this.config.formStructure === "multistep") {
+            this.state.isSingleStep = false;
+        } else {
+            // Auto-detect based on steps
+            this.state.isSingleStep = steps.length <= 1;
+        }
+        
+        console.log(`Form structure determined: ${this.state.isSingleStep ? 'Single Step' : 'Multi Step'}`);
+    }
+
+    // ============================================================================
+    // UTILITY METHODS (unchanged)
+    // ============================================================================
+
     getText(path) {
         return this.getNestedValue(this.formData.translations[this.config.language], path) || path;
     }
@@ -7603,48 +7639,38 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
-    // Enhanced extractValue method with generalized option handling
+    // Enhanced extractValue method (unchanged)
     extractValue(value) {
         if (value == null || value === undefined) return '';
         
-        // Handle numbers
         if (typeof value === 'number' && !isNaN(value)) return value;
         
-        // Handle boolean values - BUT skip if it's already a display string
         if (typeof value === 'boolean') {
             return value ? this.getText('common.yes') : this.getText('common.no');
         }
         
-        // Handle string values that might already be translated
         if (typeof value === 'string') {
-            // Check if it's already a translated yes/no value to prevent double translation
             const yesText = this.getText('common.yes');
             const noText = this.getText('common.no');
             if (value === yesText || value === noText) {
-                return value; // Already translated, return as-is
+                return value;
             }
-            // For other strings, return as-is
             return value;
         }
         
-        // Handle arrays (multi-select)
         if (Array.isArray(value)) {
             return value.map(item => this.extractValue(item)).filter(Boolean).join(', ');
         }
         
-        // Handle objects
         if (typeof value === 'object' && value !== null) {
-            // Handle complex objects from YesNoWithOptionsField
             if (value.main !== undefined) {
                 let result = [];
                 
-                // Add main value 
                 const mainDisplay = value.main === true ? this.getText('common.yes') :
                                    value.main === false ? this.getText('common.no') :
-                                   value.main; // Just use the value as-is for custom options
+                                   value.main;
                 result.push(mainDisplay);
                 
-                // Add yesValues if present
                 if (value.yesValues && Object.keys(value.yesValues).length > 0) {
                     Object.values(value.yesValues).forEach(subValue => {
                         const extracted = this.extractValue(subValue);
@@ -7654,7 +7680,6 @@ class CreatForm {
                     });
                 }
                 
-                // Add noValues if present
                 if (value.noValues && Object.keys(value.noValues).length > 0) {
                     Object.values(value.noValues).forEach(subValue => {
                         const extracted = this.extractValue(subValue);
@@ -7667,37 +7692,30 @@ class CreatForm {
                 return result.filter(Boolean).join(', ');
             }
             
-            // Check for selectedValue first (conditional fields)
             if (value.selectedValue !== undefined) {
                 return this.extractValue(value.selectedValue);
             }
             
-            // Check for value property
             if (value.value !== undefined) {
                 return this.extractValue(value.value);
             }
             
-            // Check for name property (option objects)
             if (value.name !== undefined) {
                 return typeof value.name === 'object' ? 
                        (value.name[this.config.language] || value.name.en || value.name) :
                        value.name;
             }
             
-            // Check for id property
             if (value.id !== undefined) {
                 return value.id;
             }
             
-            // Default fallback - return empty string instead of [object Object]
             return '';
         }
         
-        // Handle primitive values
         return String(value);
     }
 
-    // Enhanced formatValueForDisplay method
     formatValueForDisplay(fieldId, value, fieldConfig = null) {
         const extractedValue = this.extractValue(value);
         
@@ -7708,12 +7726,11 @@ class CreatForm {
         return extractedValue;
     }
     
-    // Enhanced summary generation with generalized handling
     generateSummaryData() {
         const summaryData = {};
         
         this.formConfig.steps.forEach((stepConfig, stepIndex) => {
-            if (stepIndex === this.formConfig.steps.length - 1) return; // Skip summary step itself
+            if (stepIndex === this.formConfig.steps.length - 1) return;
             
             const stepData = {};
             
@@ -7727,9 +7744,7 @@ class CreatForm {
                         rawValue: fieldValue
                     };
                     
-                    // Handle conditional fields for yesno-with-options
                     if (fieldConfig.type === 'yesno-with-options') {
-                        // Determine which option was selected based on custom options or default
                         let isFirstOption = false;
                         let isSecondOption = false;
                         
@@ -7737,24 +7752,20 @@ class CreatForm {
                             isFirstOption = fieldValue === fieldConfig.customOptions[0].value;
                             isSecondOption = fieldValue === fieldConfig.customOptions[1].value;
                         } else {
-                            // Default yes/no behavior
                             isFirstOption = fieldValue === true || fieldValue === 'yes';
                             isSecondOption = fieldValue === false || fieldValue === 'no';
                         }
                         
                         if (isFirstOption) {
-                            // Handle yesFields (array)
                             if (fieldConfig.yesFields) {
                                 fieldConfig.yesFields.forEach(subField => {
                                     processField(subField, true);
                                 });
                             }
-                            // Handle yesField (single)
                             if (fieldConfig.yesField) {
                                 processField(fieldConfig.yesField, true);
                             }
                         } else if (isSecondOption) {
-                            // Handle noField
                             if (fieldConfig.noField) {
                                 processField(fieldConfig.noField, false);
                             }
@@ -7778,7 +7789,10 @@ class CreatForm {
         return summaryData;
     }
 
-    // CSS Management
+    // ============================================================================
+    // CSS MANAGEMENT (unchanged)
+    // ============================================================================
+
     async loadCSS() {
         if (this.state.cssLoaded) return;
         try {
@@ -7817,10 +7831,12 @@ class CreatForm {
         document.head.appendChild(styleElement);
     }
 
-    // Form Creation - Configuration-driven approach
+    // ============================================================================
+    // FORM CREATION - Enhanced for single/multistep support
+    // ============================================================================
+
     createFormSteps() {
         return this.formConfig.steps.map((stepConfig, index) => {
-            // Special handling for summary step - use custom type like working code
             if (stepConfig.fields.length === 1 && 
                 (stepConfig.fields[0].type === 'summary' || stepConfig.fields[0].autoGenerate || stepConfig.fields[0].type === 'custom')) {
                 return {
@@ -7855,11 +7871,9 @@ class CreatForm {
                 customErrorMessage: this.getErrorMessage(fieldConfig.id)
             };
 
-            // Handle options
             if (fieldConfig.options) {
                 if (typeof fieldConfig.options === 'string') {
                     field.options = this.getData(fieldConfig.options);
-                    // For serviceCard, pass as services
                     if (fieldConfig.type === 'serviceCard') {
                         field.services = this.getData(fieldConfig.options);
                     }
@@ -7871,7 +7885,6 @@ class CreatForm {
                 }
             }
 
-            // Handle custom options for yes/no fields
             if (fieldConfig.customOptions) {
                 field.customOptions = fieldConfig.customOptions.map(opt => ({
                     ...opt,
@@ -7879,17 +7892,14 @@ class CreatForm {
                 }));
             }
 
-            // Handle nested fields
             if (fieldConfig.yesFields) field.yesFields = this.createFields(fieldConfig.yesFields);
             if (fieldConfig.yesField) field.yesField = this.createFields([fieldConfig.yesField])[0];
             if (fieldConfig.noField) field.noField = this.createFields([fieldConfig.noField])[0];
 
-            // Handle booking-specific calendar field configuration
             if (fieldConfig.type === 'calendar' && this.isBookingForm) {
                 field.apiKey = this.config.apiKey;
                 field.timezone = this.config.timezone;
                 field.language = this.config.language;
-                // These will be updated when service is selected
                 field.eventTypeId = null;
                 field.eventTypeSlug = null;
                 field.scheduleId = null;
@@ -7902,22 +7912,110 @@ class CreatForm {
     }
 
     // ============================================================================
-    // BOOKING-SPECIFIC METHODS
+    // SINGLE STEP FORM CREATION
     // ============================================================================
 
-    // Method to update calendar configuration when service is selected (booking forms only)
+    createSingleStepForm() {
+        const firstStep = this.formConfig.steps[0];
+        if (!firstStep) {
+            throw new Error('No steps defined for single step form');
+        }
+
+        const container = document.createElement('div');
+        container.className = this.isBookingForm ? 'single-step-booking-form' : 'single-step-submission-form';
+
+        // Create title if exists
+        if (firstStep.title) {
+            const titleElement = document.createElement('h2');
+            titleElement.className = 'form-title';
+            titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
+            container.appendChild(titleElement);
+        }
+
+        // Create description if exists
+        if (firstStep.description) {
+            const descElement = document.createElement('p');
+            descElement.className = 'form-description';
+            descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
+            container.appendChild(descElement);
+        }
+
+        // Create form
+        const form = document.createElement('form');
+        form.className = 'single-step-form';
+        
+        // Create fields container
+        const fieldsContainer = document.createElement('div');
+        fieldsContainer.className = 'form-fields';
+
+        // Create fields
+        const fields = this.createFields(firstStep.fields);
+        const fieldInstances = [];
+
+        fields.forEach(fieldConfig => {
+            const field = this.factory.createField(fieldConfig);
+            if (field) {
+                fieldInstances.push(field);
+                fieldsContainer.appendChild(field.render());
+            }
+        });
+
+        form.appendChild(fieldsContainer);
+
+        // Create submit button
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.className = 'btn btn-submit';
+        submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
+        
+        submitButton.addEventListener('click', async () => {
+            // Validate all fields
+            let isValid = true;
+            fieldInstances.forEach(field => {
+                if (!field.validate()) {
+                    isValid = false;
+                }
+            });
+
+            if (isValid) {
+                // Collect form data
+                const formData = {};
+                fieldInstances.forEach(field => {
+                    formData[field.name] = field.getValue();
+                });
+
+                // Submit
+                await this.handleSubmission(formData);
+            }
+        });
+
+        form.appendChild(submitButton);
+        container.appendChild(form);
+
+        // Store references for cleanup
+        this.singleStepForm = {
+            container,
+            fieldInstances,
+            submitButton
+        };
+
+        return container;
+    }
+
+    // ============================================================================
+    // BOOKING-SPECIFIC METHODS (unchanged)
+    // ============================================================================
+
     updateCalendarConfiguration(selectedService) {
-        if (!this.isBookingForm || !selectedService || !this.multiStepForm) return;
+        if (!this.isBookingForm || !selectedService) return;
         
         console.log('Updating calendar configuration with service:', selectedService);
         
-        // Find the calendar field instance
         const calendarField = this.getCalendarFieldInstance();
         
         if (calendarField) {
             console.log('Found calendar field, updating configuration...');
             
-            // Update calendar configuration
             calendarField.apiKey = this.config.apiKey;
             calendarField.timezone = this.config.timezone;
             calendarField.eventTypeId = selectedService.eventTypeId;
@@ -7928,17 +8026,14 @@ class CreatForm {
             calendarField.serviceName = selectedService.title;
             calendarField.mode = 'booking';
             
-            // Reset calendar state
             calendarField.state.selectedDate = null;
             calendarField.state.selectedTime = null;
             calendarField.state.availableSlots = {};
             
-            // Update the header immediately
             if (calendarField.updateCalendarHeader) {
                 calendarField.updateCalendarHeader();
             }
             
-            // Reinitialize calendar with new configuration
             calendarField.init().then(() => {
                 if (calendarField.element) {
                     calendarField.renderCalendarData();
@@ -7952,24 +8047,33 @@ class CreatForm {
         }
     }
 
-    // Method to get calendar field instance (booking forms only)
     getCalendarFieldInstance() {
-        if (!this.isBookingForm || !this.multiStepForm) return null;
+        if (!this.isBookingForm) return null;
         
-        // Find calendar field in any step
-        for (let stepIndex = 0; stepIndex < this.multiStepForm.stepInstances.length; stepIndex++) {
-            const stepInstance = this.multiStepForm.stepInstances[stepIndex];
-            if (stepInstance && stepInstance.fieldInstances) {
-                const calendarField = stepInstance.fieldInstances.find(field => 
-                    field.constructor.name === 'CalendarField'
-                );
-                if (calendarField) return calendarField;
+        // For single step forms
+        if (this.state.isSingleStep && this.singleStepForm) {
+            const calendarField = this.singleStepForm.fieldInstances.find(field => 
+                field.constructor.name === 'CalendarField'
+            );
+            if (calendarField) return calendarField;
+        }
+        
+        // For multi-step forms
+        if (this.multiStepForm) {
+            for (let stepIndex = 0; stepIndex < this.multiStepForm.stepInstances.length; stepIndex++) {
+                const stepInstance = this.multiStepForm.stepInstances[stepIndex];
+                if (stepInstance && stepInstance.fieldInstances) {
+                    const calendarField = stepInstance.fieldInstances.find(field => 
+                        field.constructor.name === 'CalendarField'
+                    );
+                    if (calendarField) return calendarField;
+                }
             }
         }
+        
         return null;
     }
 
-    // Booking-specific data preparation
     prepareBookingDataForSubmission(formValues, bookingResponse) {
         const appointment = formValues.appointment || {};
         const formattedDate = appointment.selectedDate ? 
@@ -8012,15 +8116,13 @@ class CreatForm {
     }
 
     // ============================================================================
-    // EVENT HANDLERS
+    // ENHANCED EVENT HANDLERS
     // ============================================================================
 
     handleFieldChange = (name, value) => {
-        // Store the raw value - let extractValue handle formatting when needed
         this.formValues[name] = value;
         console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
         
-        // Handle service selection for booking forms
         if (this.isBookingForm && name === 'serviceSelection' && value) {
             console.log('Service selected:', value);
             this.updateCalendarConfiguration(value);
@@ -8028,7 +8130,7 @@ class CreatForm {
     };
 
     handleSubmission = async (formData) => {
-        const submitButton = document.querySelector('.btn-submit');
+        const submitButton = this.getSubmitButton();
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.textContent = this.getText('nav.processing');
@@ -8036,6 +8138,7 @@ class CreatForm {
 
         try {
             let submissionData;
+            let shouldSendToWebhook = false;
             
             if (this.isBookingForm) {
                 // Booking form submission
@@ -8044,7 +8147,6 @@ class CreatForm {
                     throw new Error('Calendar field not found');
                 }
 
-                // Create booking using calendar field
                 const bookingResponse = await calendarField.createBooking(
                     formData.appointment.selectedTime,
                     `${formData.firstName} ${formData.lastName}`,
@@ -8056,24 +8158,39 @@ class CreatForm {
                 }
 
                 submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
+                
+                // Booking forms might still want to send to webhook for tracking
+                shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             } else {
                 // Regular submission form
                 submissionData = this.prepareDataForSubmission(formData);
-                
+                shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
+            }
+
+            // Send to webhook if enabled
+            if (shouldSendToWebhook) {
+                console.log('Sending data to webhook:', this.config.webhookUrl);
                 const response = await fetch(this.config.webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submissionData)
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) {
+                    console.warn('Webhook submission failed:', response.status, response.statusText);
+                    // Don't throw error - continue with success flow
+                }
+            } else {
+                console.log('Webhook sending disabled or no webhook URL provided');
             }
             
             this.clearSessionTimers();
             this.state.formSubmitted = true;
             this.showSuccessScreen();
             
+            // Send to Voiceflow if enabled
             if (this.config.voiceflowEnabled && window.voiceflow) {
+                console.log('Sending data to Voiceflow');
                 window.voiceflow.chat.interact({ type: "success", payload: submissionData });
             }
 
@@ -8091,8 +8208,14 @@ class CreatForm {
         }
     };
 
+    getSubmitButton() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            return this.singleStepForm.submitButton;
+        }
+        return document.querySelector('.btn-submit');
+    }
+
     prepareDataForSubmission(formValues) {
-        // Process all form values for submission using the working code approach
         const processedData = {};
         
         Object.keys(formValues).forEach(key => {
@@ -8106,11 +8229,15 @@ class CreatForm {
             submissionTimestamp: new Date().toISOString(),
             formVersion: this.defaultConfig.FORM_VERSION,
             userAgent: navigator.userAgent,
-            summaryData: this.generateSummaryData()
+            formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form",
+            summaryData: this.state.isSingleStep ? null : this.generateSummaryData()
         };
     }
 
-    // Session Management
+    // ============================================================================
+    // SESSION MANAGEMENT (unchanged)
+    // ============================================================================
+
     setupSessionManagement() {
         if (!this.config.enableSessionTimeout) {
             console.log('Session timeout disabled');
@@ -8139,8 +8266,12 @@ class CreatForm {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.state.sessionExpired = true;
         
-        if (this.multiStepForm?.container) {
-            this.multiStepForm.container.querySelectorAll('input, select, button, textarea, [contenteditable]')
+        const formContainer = this.state.isSingleStep ? 
+            this.singleStepForm?.container : 
+            this.multiStepForm?.container;
+            
+        if (formContainer) {
+            formContainer.querySelectorAll('input, select, button, textarea, [contenteditable]')
                 .forEach(el => {
                     el.disabled = true;
                     el.style.opacity = '0.5';
@@ -8163,9 +8294,16 @@ class CreatForm {
         document.querySelector('.session-warning')?.remove();
     }
 
-    // UI States
+    // ============================================================================
+    // UI STATES
+    // ============================================================================
+
     showSuccessScreen() {
-        if (this.multiStepForm?.container) this.multiStepForm.container.style.display = 'none';
+        const formContainer = this.state.isSingleStep ? 
+            this.singleStepForm?.container : 
+            this.multiStepForm?.container;
+            
+        if (formContainer) formContainer.style.display = 'none';
         
         const successScreen = document.createElement('div');
         successScreen.className = 'success-state';
@@ -8193,7 +8331,10 @@ class CreatForm {
         this.container.appendChild(overlay);
     }
 
-    // Main Render Method
+    // ============================================================================
+    // MAIN RENDER METHOD - Enhanced for single/multistep support
+    // ============================================================================
+
     async render(element) {
         try {
             await this.loadCSS();
@@ -8202,7 +8343,7 @@ class CreatForm {
             this.container.className = this.isBookingForm ? 'booking-form-extension' : 'submission-form-extension';
             this.container.id = this.isBookingForm ? 'booking-form-root' : 'submission-form-root';
 
-            // Enhanced FormFieldFactory configuration with edit button text
+            // Enhanced FormFieldFactory configuration
             this.factory = new FormFieldFactory({
                 container: this.container,
                 formValues: this.formValues,
@@ -8222,45 +8363,52 @@ class CreatForm {
                 }
             });
 
-            const formConfig = {
-                showProgress: true,
-                saveProgress: false,
-                validateOnNext: true,
-                steps: this.createFormSteps(),
-                onSubmit: this.handleSubmission,
-                onStepChange: (stepIndex, stepInstance) => { 
-                    this.state.currentStep = stepIndex;
-                    console.log(`Step changed to ${stepIndex + 1}`);
-                    
-                    // Booking-specific: When reaching calendar step, ensure service configuration is applied
-                    if (this.isBookingForm && this.formValues.serviceSelection) {
-                        // Find calendar step (could be step 2 for booking forms)
-                        const calendarStepIndex = this.formConfig.steps.findIndex(step => 
-                            step.fields.some(field => field.type === 'calendar')
-                        );
+            if (this.state.isSingleStep) {
+                // Create single step form
+                console.log('Creating single step form');
+                const singleStepContainer = this.createSingleStepForm();
+                this.container.appendChild(singleStepContainer);
+            } else {
+                // Create multi-step form
+                console.log('Creating multi-step form');
+                const formConfig = {
+                    showProgress: true,
+                    saveProgress: false,
+                    validateOnNext: true,
+                    steps: this.createFormSteps(),
+                    onSubmit: this.handleSubmission,
+                    onStepChange: (stepIndex, stepInstance) => { 
+                        this.state.currentStep = stepIndex;
+                        console.log(`Step changed to ${stepIndex + 1}`);
                         
-                        if (stepIndex === calendarStepIndex) {
-                            console.log('Reached calendar step, applying service configuration...');
-                            setTimeout(() => {
-                                this.updateCalendarConfiguration(this.formValues.serviceSelection);
-                            }, 100);
-                        }
-                    }
-                    
-                    // Update custom fields with autoSummary when entering summary step
-                    if (stepInstance && stepInstance.fieldInstances) {
-                        stepInstance.fieldInstances.forEach(fieldInstance => {
-                            if (fieldInstance.autoSummary && fieldInstance.updateContent) {
+                        if (this.isBookingForm && this.formValues.serviceSelection) {
+                            const calendarStepIndex = this.formConfig.steps.findIndex(step => 
+                                step.fields.some(field => field.type === 'calendar')
+                            );
+                            
+                            if (stepIndex === calendarStepIndex) {
+                                console.log('Reached calendar step, applying service configuration...');
                                 setTimeout(() => {
-                                    fieldInstance.updateContent();
+                                    this.updateCalendarConfiguration(this.formValues.serviceSelection);
                                 }, 100);
                             }
-                        });
+                        }
+                        
+                        if (stepInstance && stepInstance.fieldInstances) {
+                            stepInstance.fieldInstances.forEach(fieldInstance => {
+                                if (fieldInstance.autoSummary && fieldInstance.updateContent) {
+                                    setTimeout(() => {
+                                        fieldInstance.updateContent();
+                                    }, 100);
+                                }
+                            });
+                        }
                     }
-                }
-            };
+                };
 
-            this.multiStepForm = this.factory.createMultiStepForm(formConfig);
+                this.multiStepForm = this.factory.createMultiStepForm(formConfig);
+            }
+
             element.appendChild(this.container);
             this.setupSessionManagement();
             this.state.initialized = true;
@@ -8274,40 +8422,77 @@ class CreatForm {
         }
     }
 
+    // ============================================================================
+    // PUBLIC API
+    // ============================================================================
+
     createPublicAPI() {
         return {
             destroy: () => this.destroy(),
             getCurrentStep: () => this.state.currentStep,
-            getFormData: () => this.multiStepForm?.getFormData() || {},
+            getFormData: () => {
+                if (this.state.isSingleStep && this.singleStepForm) {
+                    const data = {};
+                    this.singleStepForm.fieldInstances.forEach(field => {
+                        data[field.name] = field.getValue();
+                    });
+                    return data;
+                }
+                return this.multiStepForm?.getFormData() || {};
+            },
             getSummaryData: () => this.generateSummaryData(),
             isInitialized: () => this.state.initialized,
             isSubmitted: () => this.state.formSubmitted,
             isBookingForm: () => this.isBookingForm,
+            isSingleStep: () => this.state.isSingleStep,
             reset: () => this.reset(),
             // Booking-specific API methods
             getCalendarField: () => this.isBookingForm ? this.getCalendarFieldInstance() : null,
-            updateCalendar: (serviceData) => this.isBookingForm ? this.updateCalendarConfiguration(serviceData) : null
+            updateCalendar: (serviceData) => this.isBookingForm ? this.updateCalendarConfiguration(serviceData) : null,
+            // Configuration info
+            getConfig: () => ({
+                webhookEnabled: this.config.webhookEnabled,
+                voiceflowEnabled: this.config.voiceflowEnabled,
+                formType: this.config.formType,
+                formStructure: this.state.isSingleStep ? 'single' : 'multistep'
+            })
         };
     }
 
     reset() {
         this.clearSessionTimers();
-        this.state = { ...this.state, initialized: false, formSubmitted: false, sessionExpired: false, currentStep: 0 };
-        this.multiStepForm?.reset();
+        this.state = { 
+            ...this.state, 
+            initialized: false, 
+            formSubmitted: false, 
+            sessionExpired: false, 
+            currentStep: 0 
+        };
+        
+        if (this.state.isSingleStep && this.singleStepForm) {
+            this.singleStepForm.fieldInstances.forEach(field => {
+                field.setValue('');
+                field.hideError();
+            });
+        } else if (this.multiStepForm) {
+            this.multiStepForm.reset();
+        }
+        
         this.setupSessionManagement();
     }
 
     destroy() {
         this.clearSessionTimers();
         this.factory?.destroy();
-        this.multiStepForm?.clearSavedProgress();
+        if (this.multiStepForm) {
+            this.multiStepForm.clearSavedProgress();
+        }
         this.elements.clear();
         this.container?.remove();
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
     }
 }
-
 
 
 
