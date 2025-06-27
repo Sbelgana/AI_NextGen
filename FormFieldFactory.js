@@ -4501,7 +4501,7 @@ class CustomField extends BaseField {
 
         step.fields.forEach(fieldConfig => {
             const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
-            if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+            if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
                 
                 // NEW: Check if field should render as separate summary fields
                 if (fieldConfig.renderSeparateSummaryFields) {
@@ -4571,6 +4571,58 @@ class CustomField extends BaseField {
         });
 
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    // NEW: Helper method to determine if a field should be displayed in summary
+    shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
+        // Basic null/undefined/empty checks
+        if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+            return false;
+        }
+
+        // Handle array values (multiselect fields)
+        if (Array.isArray(fieldValue) && fieldValue.length === 0) {
+            return false;
+        }
+
+        // Handle yes/no fields - don't show if no selection made
+        if (fieldConfig.type === 'yesno') {
+            // For non-required fields, don't show if no explicit selection
+            if (!fieldConfig.required && (fieldValue === null || fieldValue === undefined)) {
+                return false;
+            }
+        }
+
+        // Handle yes/no with options fields
+        if (fieldConfig.type === 'yesno-with-options') {
+            // Don't show if main value is null/undefined for non-required fields
+            if (!fieldConfig.required) {
+                if (typeof fieldValue === 'object' && fieldValue.main === undefined) {
+                    return false;
+                }
+                if (fieldValue === null || fieldValue === undefined) {
+                    return false;
+                }
+            }
+        }
+
+        // Handle options-slider fields - check for default unselected state
+        if (fieldConfig.type === 'options-slider') {
+            // If field is not required and value is 0 (often means "Indifférent"), don't show
+            if (!fieldConfig.required && (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue.value === 0))) {
+                return false;
+            }
+        }
+
+        // Handle sliding-window-range fields
+        if (fieldConfig.type === 'sliding-window-range') {
+            if (typeof fieldValue === 'object' && fieldValue !== null) {
+                // Don't show if it's still at default values (could add more specific logic here)
+                return fieldValue.min !== undefined && fieldValue.max !== undefined;
+            }
+        }
+
+        return true;
     }
 
     // NEW: Helper method to get field instance from the multi-step form
