@@ -7547,6 +7547,9 @@ class ServiceCardField extends BaseField {
 /**
  * CreatForm - Main form creation and management class
  */
+/**
+ * CreatForm - Enhanced main form creation and management class with fixed single-step row support
+ */
 class CreatForm {
     constructor(config = {}, formData = {}, formConfig = {}, defaultConfig = {}) {
         this.config = {
@@ -7912,100 +7915,162 @@ class CreatForm {
     }
 
     // ============================================================================
-    // SINGLE STEP FORM CREATION
+    // ENHANCED SINGLE STEP FORM CREATION WITH ROW SUPPORT
     // ============================================================================
 
-    createSingleStepForm() {
-    const firstStep = this.formConfig.steps[0];
-    if (!firstStep) {
-        throw new Error('No steps defined for single step form');
-    }
-
-    const container = document.createElement('div');
-    // FIXED: Use same base class as multi-step for consistent styling
-    container.className = 'multistep-form single-step-variant';
-
-    // Create title if exists
-    if (firstStep.title) {
-        const titleElement = document.createElement('h2');
-        titleElement.className = 'form-title';
-        titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
-        container.appendChild(titleElement);
-    }
-
-    // Create description if exists
-    if (firstStep.description) {
-        const descElement = document.createElement('p');
-        descElement.className = 'form-description';
-        descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
-        container.appendChild(descElement);
-    }
-
-    // Create form - FIXED: Use same structure as multi-step
-    const form = document.createElement('form');
-    form.className = 'form-step active'; // Same as multi-step step class
-    
-    // Create fields container
-    const fieldsContainer = document.createElement('div');
-    fieldsContainer.className = 'step-fields';
-
-    // Create fields
-    const fields = this.createFields(firstStep.fields);
-    const fieldInstances = [];
-
-    fields.forEach(fieldConfig => {
-        const field = this.factory.createField(fieldConfig);
-        if (field) {
-            fieldInstances.push(field);
-            fieldsContainer.appendChild(field.render());
+    // Helper method to group fields by row (same logic as FormStep)
+    groupFieldsForSingleStep(fields) {
+        const groups = [];
+        let i = 0;
+        
+        while (i < fields.length) {
+            const currentField = fields[i];
+            
+            if (currentField.row) {
+                // Find all fields with the same row identifier
+                const rowFields = [];
+                let j = i;
+                while (j < fields.length && fields[j].row === currentField.row) {
+                    rowFields.push(fields[j]);
+                    j++;
+                }
+                
+                groups.push({
+                    isRow: true,
+                    fields: rowFields
+                });
+                
+                i = j; // Skip the grouped fields
+                continue;
+            }
+            
+            // Single field without row
+            groups.push({
+                isRow: false,
+                fields: [currentField]
+            });
+            
+            i++;
         }
-    });
+        
+        return groups;
+    }
 
-    form.appendChild(fieldsContainer);
+    createSingleStepForm() {
+        const firstStep = this.formConfig.steps[0];
+        if (!firstStep) {
+            throw new Error('No steps defined for single step form');
+        }
 
-    // Create navigation container (same structure as multi-step)
-    const navigationContainer = document.createElement('div');
-    navigationContainer.className = 'form-navigation';
-    
-    const submitButton = document.createElement('button');
-    submitButton.type = 'button';
-    submitButton.className = 'btn btn-submit';
-    submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
-    
-    submitButton.addEventListener('click', async () => {
-        // Validate all fields
-        let isValid = true;
-        fieldInstances.forEach(field => {
-            if (!field.validate()) {
-                isValid = false;
+        const container = document.createElement('div');
+        // Use same base class as multi-step for consistent styling
+        container.className = 'multistep-form single-step-variant';
+
+        // Create title if exists
+        if (firstStep.title) {
+            const titleElement = document.createElement('h2');
+            titleElement.className = 'form-title';
+            titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
+            container.appendChild(titleElement);
+        }
+
+        // Create description if exists
+        if (firstStep.description) {
+            const descElement = document.createElement('p');
+            descElement.className = 'form-description';
+            descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
+            container.appendChild(descElement);
+        }
+
+        // Create form - Use same structure as multi-step
+        const form = document.createElement('form');
+        form.className = 'form-step active'; // Same as multi-step step class
+        
+        // Create fields container
+        const fieldsContainer = document.createElement('div');
+        fieldsContainer.className = 'step-fields';
+
+        // Create fields with proper row grouping
+        const fields = this.createFields(firstStep.fields);
+        const fieldInstances = [];
+
+        // FIXED: Use the same grouping logic as multi-step forms
+        const fieldGroups = this.groupFieldsForSingleStep(fields);
+        
+        fieldGroups.forEach(group => {
+            if (group.isRow) {
+                // Create row container
+                const rowContainer = document.createElement('div');
+                rowContainer.className = 'field-row';
+                
+                group.fields.forEach(fieldConfig => {
+                    const colContainer = document.createElement('div');
+                    colContainer.className = 'field-col';
+                    
+                    const field = this.factory.createField(fieldConfig);
+                    if (field) {
+                        fieldInstances.push(field);
+                        colContainer.appendChild(field.render());
+                    }
+                    rowContainer.appendChild(colContainer);
+                });
+                
+                fieldsContainer.appendChild(rowContainer);
+            } else {
+                // Single field
+                const field = this.factory.createField(group.fields[0]);
+                if (field) {
+                    fieldInstances.push(field);
+                    fieldsContainer.appendChild(field.render());
+                }
             }
         });
 
-        if (isValid) {
-            // Collect form data
-            const formData = {};
+        form.appendChild(fieldsContainer);
+
+        // Create navigation container (same structure as multi-step)
+        const navigationContainer = document.createElement('div');
+        navigationContainer.className = 'form-navigation';
+        
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.className = 'btn btn-submit';
+        submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
+        
+        submitButton.addEventListener('click', async () => {
+            // Validate all fields
+            let isValid = true;
             fieldInstances.forEach(field => {
-                formData[field.name] = field.getValue();
+                if (!field.validate()) {
+                    isValid = false;
+                }
             });
 
-            // Submit
-            await this.handleSubmission(formData);
-        }
-    });
+            if (isValid) {
+                // Collect form data
+                const formData = {};
+                fieldInstances.forEach(field => {
+                    formData[field.name] = field.getValue();
+                });
 
-    navigationContainer.appendChild(submitButton);
-    form.appendChild(navigationContainer);
-    container.appendChild(form);
+                // Submit
+                await this.handleSubmission(formData);
+            }
+        });
 
-    // Store references for cleanup
-    this.singleStepForm = {
-        container,
-        fieldInstances,
-        submitButton
-    };
+        navigationContainer.appendChild(submitButton);
+        form.appendChild(navigationContainer);
+        container.appendChild(form);
 
-    return container;
-}
+        // Store references for cleanup
+        this.singleStepForm = {
+            container,
+            fieldInstances,
+            submitButton
+        };
+
+        return container;
+    }
 
     // ============================================================================
     // BOOKING-SPECIFIC METHODS (unchanged)
@@ -8370,7 +8435,7 @@ class CreatForm {
 
             if (this.state.isSingleStep) {
                 // Create single step form
-                console.log('Creating single step form');
+                console.log('Creating single step form with row support');
                 const singleStepContainer = this.createSingleStepForm();
                 this.container.appendChild(singleStepContainer);
             } else {
