@@ -5914,346 +5914,7 @@ class SlidingWindowRangeField extends BaseField {
     }
 }
 
-/**
- * OptionsSliderField - Optimized slider with predefined options
- */
-class OptionsSliderField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.options = config.options || [];
-        this.showMarkers = config.showMarkers !== false;
-        this.currentIndex = config.defaultIndex || Math.floor(this.options.length / 2);
-        this.value = this.getCurrentValue();
-        
-        // Performance optimizations
-        this.debounceDelay = config.debounceDelay || 50;
-        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
-        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
-        this.positionCache = new Map();
-        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
-        
-        this.customValidation = config.customValidation || null;
-    }
 
-    debounce(func, delay) {
-        let timeoutId;
-        return (...args) => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
-
-    validate() {
-        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
-            this.showError(this.getFieldErrorMessage('required'));
-            return false;
-        }
-        return super.validate();
-    }
-
-    getCurrentValue() {
-        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
-            const option = this.options[this.currentIndex];
-            return typeof option === 'object' ? option.value : option;
-        }
-        return '';
-    }
-
-    getCurrentDisplay() {
-        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
-            const option = this.options[this.currentIndex];
-            return typeof option === 'object' ? (option.display || option.label || option.value) : option;
-        }
-        return '';
-    }
-
-    validateConstraints(newValue) {
-        if (this.customValidation) {
-            const result = this.customValidation(newValue, this.factory.formValues);
-            if (result !== true) {
-                if (typeof result === 'object' && result.adjustedValue !== undefined) {
-                    const adjustedIndex = this.options.findIndex(opt => 
-                        (typeof opt === 'object' ? opt.value : opt) === result.adjustedValue
-                    );
-                    
-                    if (adjustedIndex !== -1) {
-                        this.currentIndex = adjustedIndex;
-                        this.value = result.adjustedValue;
-                        
-                        if (this.slider) {
-                            this.slider.value = this.currentIndex;
-                            this.debouncedUpdate();
-                        }
-                    }
-                    
-                    this.showError(result.message);
-                    return result.adjustedValue;
-                } else if (typeof result === 'string') {
-                    this.showError(result);
-                    return false;
-                }
-            } else {
-                this.hideError();
-            }
-        }
-        return newValue;
-    }
-
-    updateConstraints(newConstraints) {
-        if (newConstraints.options !== undefined) {
-            this.options = newConstraints.options;
-            
-            if (this.currentIndex >= this.options.length) {
-                this.currentIndex = this.options.length - 1;
-            }
-            
-            if (this.slider) {
-                this.slider.max = this.options.length - 1;
-                this.slider.value = this.currentIndex;
-                this.value = this.getCurrentValue();
-                
-                if (this.showMarkers && this.markersContainer) {
-                    this.createMarkers();
-                }
-                
-                this.clearCache();
-                this.debouncedUpdate();
-            }
-        }
-    }
-
-    clearCache() {
-        this.positionCache.clear();
-        this.dimensionCache.clear();
-    }
-
-    // ADDED: Missing getContainerDimensions method
-    getContainerDimensions() {
-        const container = this.container.querySelector('.slider-container');
-        if (!container) return { width: 0, height: 0 };
-        
-        const cacheKey = 'container-dimensions';
-        if (this.dimensionCache.has(cacheKey)) {
-            return this.dimensionCache.get(cacheKey);
-        }
-        
-        const dimensions = {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        };
-        
-        this.dimensionCache.set(cacheKey, dimensions);
-        return dimensions;
-    }
-
-    // UPDATED: Fixed calculateLabelPosition method
-    calculateLabelPosition(percent, labelElement) {
-        if (!labelElement) return percent;
-        
-        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
-        if (this.positionCache.has(cacheKey)) {
-            return this.positionCache.get(cacheKey);
-        }
-        
-        const containerDimensions = this.getContainerDimensions();
-        if (containerDimensions.width === 0) return percent;
-        
-        const labelWidth = labelElement.offsetWidth || 100;
-        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
-        const rightBoundary = 100 - leftBoundary;
-        
-        let result = percent;
-        if (percent < leftBoundary) {
-            result = leftBoundary;
-        } else if (percent > rightBoundary) {
-            result = rightBoundary;
-        }
-        
-        this.positionCache.set(cacheKey, result);
-        return result;
-    }
-
-    // ADDED: Missing checkLabelCollision method for consistency
-    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
-        // For single slider, just return the original position
-        return { minPercent, maxPercent };
-    }
-
-    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
-        if (!labelElement || !containerElement) return '50%';
-        
-        const containerWidth = containerElement.offsetWidth;
-        const labelWidth = labelElement.offsetWidth;
-        
-        if (containerWidth === 0 || labelWidth === 0) return '50%';
-        
-        const originalHandlePosition = (originalPercent / 100) * containerWidth;
-        const finalLabelPosition = (finalPercent / 100) * containerWidth;
-        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
-        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
-        const trianglePosition = 50 + triangleOffset;
-        
-        const triangleHalfWidth = 5;
-        const safetyMargin = 4;
-        const minSafeDistance = triangleHalfWidth + safetyMargin;
-        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
-        const maxTrianglePos = 100 - minTrianglePos;
-        const absoluteMinPos = Math.max(minTrianglePos, 15);
-        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
-        
-        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
-    }
-
-    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
-        if (!labelElement) return;
-        
-        const container = this.container.querySelector('.slider-container');
-        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
-        labelElement.style.setProperty('--triangle-left', trianglePos);
-    }
-
-    render() {
-        const container = this.createContainer();
-        const label = this.createLabel();
-        
-        const sliderContainer = document.createElement('div');
-        sliderContainer.className = 'slider-container';
-        
-        if (this.showMarkers) {
-            this.markersContainer = document.createElement('div');
-            this.markersContainer.className = 'slider-markers';
-            this.createMarkers();
-            sliderContainer.appendChild(this.markersContainer);
-        }
-        
-        const trackBg = document.createElement('div');
-        trackBg.className = 'slider-track-bg';
-        
-        this.progress = document.createElement('div');
-        this.progress.className = 'slider-progress';
-        trackBg.appendChild(this.progress);
-        
-        this.slider = document.createElement('input');
-        this.slider.type = 'range';
-        this.slider.className = 'range-input';
-        this.slider.id = this.id;
-        this.slider.min = 0;
-        this.slider.max = this.options.length - 1;
-        this.slider.value = this.currentIndex;
-        this.slider.step = 1;
-        
-        this.valueLabel = document.createElement('div');
-        this.valueLabel.className = 'slider-value-label';
-        
-        sliderContainer.appendChild(trackBg);
-        sliderContainer.appendChild(this.slider);
-        sliderContainer.appendChild(this.valueLabel);
-        
-        const errorElement = this.createErrorElement();
-        
-        container.appendChild(label);
-        container.appendChild(sliderContainer);
-        container.appendChild(errorElement);
-        
-        this.setupEventListeners();
-        this.updateUI();
-        
-        this.container = container;
-        return container;
-    }
-
-    createMarkers() {
-        this.markersContainer.innerHTML = '';
-        this.options.forEach((option, index) => {
-            const marker = document.createElement('div');
-            marker.className = 'slider-marker';
-            marker.dataset.index = index;
-            
-            const display = typeof option === 'object' ? (option.display || option.label || option.value) : option;
-            marker.textContent = display;
-            
-            marker.addEventListener('click', () => {
-                const newValue = typeof option === 'object' ? option.value : option;
-                
-                const validatedValue = this.validateConstraints(newValue);
-                
-                if (validatedValue !== false) {
-                    this.currentIndex = index;
-                    this.value = this.getCurrentValue();
-                    this.slider.value = index;
-                    this.debouncedUpdate();
-                    this.debouncedChange();
-                }
-            });
-            
-            this.markersContainer.appendChild(marker);
-        });
-    }
-
-    setupEventListeners() {
-        this.slider.addEventListener('input', () => {
-            this.currentIndex = parseInt(this.slider.value);
-            const newValue = this.getCurrentValue();
-            
-            const validatedValue = this.validateConstraints(newValue);
-            
-            if (validatedValue !== false) {
-                this.value = validatedValue;
-                this.debouncedUpdate();
-                this.debouncedChange();
-            }
-        });
-        
-        // UPDATED: Clear cache on window resize
-        window.addEventListener('resize', () => this.clearCache());
-    }
-
-    // UPDATED: Enhanced updateUI method with proper positioning
-    updateUI() {
-        const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
-        const originalPercent = percent;
-        
-        this.progress.style.width = percent + '%';
-        
-        requestAnimationFrame(() => {
-            // Force dimension recalculation
-            this.clearCache();
-            
-            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
-            this.valueLabel.style.left = finalPercent + '%';
-            this.valueLabel.textContent = this.getCurrentDisplay();
-            
-            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
-        });
-        
-        if (this.showMarkers && this.markersContainer) {
-            this.markersContainer.querySelectorAll('.slider-marker').forEach((marker, index) => {
-                marker.classList.toggle('active', index === this.currentIndex);
-            });
-        }
-    }
-
-    getValue() {
-        return this.value;
-    }
-
-    setValue(value) {
-        const index = this.options.findIndex(opt => 
-            (typeof opt === 'object' ? opt.value : opt) === value
-        );
-        
-        if (index !== -1) {
-            this.currentIndex = index;
-            this.value = value;
-            
-            if (this.slider) {
-                this.slider.value = index;
-                this.clearCache();
-                this.updateUI();
-            }
-        }
-    }
-}
 
 /**
  * Fixed DualRangeField - Added proper dimension caching and label positioning
@@ -6640,8 +6301,348 @@ class DualRangeField extends BaseField {
     }
 }
 
+
 /**
- * Fixed SliderField - Added proper dimension caching and label positioning
+ * OptionsSliderField - Fixed with proper defaultIndex handling
+ */
+class OptionsSliderField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.options = config.options || [];
+        this.showMarkers = config.showMarkers !== false;
+        
+        // FIX: Proper undefined checking for defaultIndex
+        this.currentIndex = config.defaultIndex !== undefined ? 
+            config.defaultIndex : 
+            Math.floor(this.options.length / 2);
+            
+        this.value = this.getCurrentValue();
+        
+        // Performance optimizations
+        this.debounceDelay = config.debounceDelay || 50;
+        this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
+        this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
+        this.positionCache = new Map();
+        this.dimensionCache = new Map();
+        
+        this.customValidation = config.customValidation || null;
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    validate() {
+        if (this.required && (this.value === undefined || this.value === null || this.value === '')) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        return super.validate();
+    }
+
+    getCurrentValue() {
+        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
+            const option = this.options[this.currentIndex];
+            return typeof option === 'object' ? option.value : option;
+        }
+        return '';
+    }
+
+    getCurrentDisplay() {
+        if (this.currentIndex >= 0 && this.currentIndex < this.options.length) {
+            const option = this.options[this.currentIndex];
+            return typeof option === 'object' ? (option.display || option.label || option.value) : option;
+        }
+        return '';
+    }
+
+    validateConstraints(newValue) {
+        if (this.customValidation) {
+            const result = this.customValidation(newValue, this.factory.formValues);
+            if (result !== true) {
+                if (typeof result === 'object' && result.adjustedValue !== undefined) {
+                    const adjustedIndex = this.options.findIndex(opt => 
+                        (typeof opt === 'object' ? opt.value : opt) === result.adjustedValue
+                    );
+                    
+                    if (adjustedIndex !== -1) {
+                        this.currentIndex = adjustedIndex;
+                        this.value = result.adjustedValue;
+                        
+                        if (this.slider) {
+                            this.slider.value = this.currentIndex;
+                            this.debouncedUpdate();
+                        }
+                    }
+                    
+                    this.showError(result.message);
+                    return result.adjustedValue;
+                } else if (typeof result === 'string') {
+                    this.showError(result);
+                    return false;
+                }
+            } else {
+                this.hideError();
+            }
+        }
+        return newValue;
+    }
+
+    updateConstraints(newConstraints) {
+        if (newConstraints.options !== undefined) {
+            this.options = newConstraints.options;
+            
+            if (this.currentIndex >= this.options.length) {
+                this.currentIndex = this.options.length - 1;
+            }
+            
+            if (this.slider) {
+                this.slider.max = this.options.length - 1;
+                this.slider.value = this.currentIndex;
+                this.value = this.getCurrentValue();
+                
+                if (this.showMarkers && this.markersContainer) {
+                    this.createMarkers();
+                }
+                
+                this.clearCache();
+                this.debouncedUpdate();
+            }
+        }
+    }
+
+    clearCache() {
+        this.positionCache.clear();
+        this.dimensionCache.clear();
+    }
+
+    getContainerDimensions() {
+        const container = this.container.querySelector('.slider-container');
+        if (!container) return { width: 0, height: 0 };
+        
+        const cacheKey = 'container-dimensions';
+        if (this.dimensionCache.has(cacheKey)) {
+            return this.dimensionCache.get(cacheKey);
+        }
+        
+        const dimensions = {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        };
+        
+        this.dimensionCache.set(cacheKey, dimensions);
+        return dimensions;
+    }
+
+    calculateLabelPosition(percent, labelElement) {
+        if (!labelElement) return percent;
+        
+        const cacheKey = `label-pos-${percent}-${labelElement.offsetWidth}`;
+        if (this.positionCache.has(cacheKey)) {
+            return this.positionCache.get(cacheKey);
+        }
+        
+        const containerDimensions = this.getContainerDimensions();
+        if (containerDimensions.width === 0) return percent;
+        
+        const labelWidth = labelElement.offsetWidth || 100;
+        const leftBoundary = (labelWidth / 2) / containerDimensions.width * 100;
+        const rightBoundary = 100 - leftBoundary;
+        
+        let result = percent;
+        if (percent < leftBoundary) {
+            result = leftBoundary;
+        } else if (percent > rightBoundary) {
+            result = rightBoundary;
+        }
+        
+        this.positionCache.set(cacheKey, result);
+        return result;
+    }
+
+    checkLabelCollision(minPercent, maxPercent, minLabel, maxLabel) {
+        return { minPercent, maxPercent };
+    }
+
+    calculateTrianglePosition(originalPercent, finalPercent, labelElement, containerElement) {
+        if (!labelElement || !containerElement) return '50%';
+        
+        const containerWidth = containerElement.offsetWidth;
+        const labelWidth = labelElement.offsetWidth;
+        
+        if (containerWidth === 0 || labelWidth === 0) return '50%';
+        
+        const originalHandlePosition = (originalPercent / 100) * containerWidth;
+        const finalLabelPosition = (finalPercent / 100) * containerWidth;
+        const offsetFromCenter = originalHandlePosition - finalLabelPosition;
+        const triangleOffset = (offsetFromCenter / labelWidth) * 100;
+        const trianglePosition = 50 + triangleOffset;
+        
+        const triangleHalfWidth = 5;
+        const safetyMargin = 4;
+        const minSafeDistance = triangleHalfWidth + safetyMargin;
+        const minTrianglePos = (minSafeDistance / labelWidth) * 100;
+        const maxTrianglePos = 100 - minTrianglePos;
+        const absoluteMinPos = Math.max(minTrianglePos, 15);
+        const absoluteMaxPos = Math.min(maxTrianglePos, 85);
+        
+        return `${Math.max(absoluteMinPos, Math.min(absoluteMaxPos, trianglePosition))}%`;
+    }
+
+    updateTrianglePosition(labelElement, originalPercent, finalPercent) {
+        if (!labelElement) return;
+        
+        const container = this.container.querySelector('.slider-container');
+        const trianglePos = this.calculateTrianglePosition(originalPercent, finalPercent, labelElement, container);
+        labelElement.style.setProperty('--triangle-left', trianglePos);
+    }
+
+    render() {
+        const container = this.createContainer();
+        const label = this.createLabel();
+        
+        const sliderContainer = document.createElement('div');
+        sliderContainer.className = 'slider-container';
+        
+        if (this.showMarkers) {
+            this.markersContainer = document.createElement('div');
+            this.markersContainer.className = 'slider-markers';
+            this.createMarkers();
+            sliderContainer.appendChild(this.markersContainer);
+        }
+        
+        const trackBg = document.createElement('div');
+        trackBg.className = 'slider-track-bg';
+        
+        this.progress = document.createElement('div');
+        this.progress.className = 'slider-progress';
+        trackBg.appendChild(this.progress);
+        
+        this.slider = document.createElement('input');
+        this.slider.type = 'range';
+        this.slider.className = 'range-input';
+        this.slider.id = this.id;
+        this.slider.min = 0;
+        this.slider.max = this.options.length - 1;
+        this.slider.value = this.currentIndex;
+        this.slider.step = 1;
+        
+        this.valueLabel = document.createElement('div');
+        this.valueLabel.className = 'slider-value-label';
+        
+        sliderContainer.appendChild(trackBg);
+        sliderContainer.appendChild(this.slider);
+        sliderContainer.appendChild(this.valueLabel);
+        
+        const errorElement = this.createErrorElement();
+        
+        container.appendChild(label);
+        container.appendChild(sliderContainer);
+        container.appendChild(errorElement);
+        
+        this.setupEventListeners();
+        this.updateUI();
+        
+        this.container = container;
+        return container;
+    }
+
+    createMarkers() {
+        this.markersContainer.innerHTML = '';
+        this.options.forEach((option, index) => {
+            const marker = document.createElement('div');
+            marker.className = 'slider-marker';
+            marker.dataset.index = index;
+            
+            const display = typeof option === 'object' ? (option.display || option.label || option.value) : option;
+            marker.textContent = display;
+            
+            marker.addEventListener('click', () => {
+                const newValue = typeof option === 'object' ? option.value : option;
+                
+                const validatedValue = this.validateConstraints(newValue);
+                
+                if (validatedValue !== false) {
+                    this.currentIndex = index;
+                    this.value = this.getCurrentValue();
+                    this.slider.value = index;
+                    this.debouncedUpdate();
+                    this.debouncedChange();
+                }
+            });
+            
+            this.markersContainer.appendChild(marker);
+        });
+    }
+
+    setupEventListeners() {
+        this.slider.addEventListener('input', () => {
+            this.currentIndex = parseInt(this.slider.value);
+            const newValue = this.getCurrentValue();
+            
+            const validatedValue = this.validateConstraints(newValue);
+            
+            if (validatedValue !== false) {
+                this.value = validatedValue;
+                this.debouncedUpdate();
+                this.debouncedChange();
+            }
+        });
+        
+        window.addEventListener('resize', () => this.clearCache());
+    }
+
+    updateUI() {
+        const percent = this.options.length > 1 ? (this.currentIndex / (this.options.length - 1)) * 100 : 0;
+        const originalPercent = percent;
+        
+        this.progress.style.width = percent + '%';
+        
+        requestAnimationFrame(() => {
+            this.clearCache();
+            
+            const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
+            this.valueLabel.style.left = finalPercent + '%';
+            this.valueLabel.textContent = this.getCurrentDisplay();
+            
+            this.updateTrianglePosition(this.valueLabel, originalPercent, finalPercent);
+        });
+        
+        if (this.showMarkers && this.markersContainer) {
+            this.markersContainer.querySelectorAll('.slider-marker').forEach((marker, index) => {
+                marker.classList.toggle('active', index === this.currentIndex);
+            });
+        }
+    }
+
+    getValue() {
+        return this.value;
+    }
+
+    setValue(value) {
+        const index = this.options.findIndex(opt => 
+            (typeof opt === 'object' ? opt.value : opt) === value
+        );
+        
+        if (index !== -1) {
+            this.currentIndex = index;
+            this.value = value;
+            
+            if (this.slider) {
+                this.slider.value = index;
+                this.clearCache();
+                this.updateUI();
+            }
+        }
+    }
+}
+
+/**
+ * SliderField - Fixed with proper defaultValue handling
  */
 class SliderField extends BaseField {
     constructor(factory, config) {
@@ -6651,14 +6652,20 @@ class SliderField extends BaseField {
         this.step = config.step || 100;
         this.sliderType = config.sliderType || 'currency';
         this.formatValue = config.formatValue || this.getDefaultFormatter();
-        this.value = config.value || config.defaultValue || (this.min + this.max) / 2;
+        
+        // FIX: Proper undefined checking for value/defaultValue
+        this.value = config.value !== undefined ? 
+            config.value : 
+            (config.defaultValue !== undefined ? 
+                config.defaultValue : 
+                (this.min + this.max) / 2);
         
         // Performance optimizations
         this.debounceDelay = config.debounceDelay || 50;
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
         this.positionCache = new Map();
-        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
+        this.dimensionCache = new Map();
         
         this.customValidation = config.customValidation || null;
     }
@@ -6751,10 +6758,9 @@ class SliderField extends BaseField {
 
     clearCache() {
         this.positionCache.clear();
-        this.dimensionCache.clear(); // ADDED: Clear dimension cache
+        this.dimensionCache.clear();
     }
 
-    // ADDED: Missing getContainerDimensions method
     getContainerDimensions() {
         const container = this.container.querySelector('.slider-container');
         if (!container) return { width: 0, height: 0 };
@@ -6773,7 +6779,6 @@ class SliderField extends BaseField {
         return dimensions;
     }
 
-    // UPDATED: Fixed calculateLabelPosition method
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -6889,10 +6894,9 @@ class SliderField extends BaseField {
             }
         });
         
-        window.addEventListener('resize', () => this.clearCache()); // UPDATED: Clear cache on resize
+        window.addEventListener('resize', () => this.clearCache());
     }
 
-    // UPDATED: Enhanced updateUI method with proper positioning
     updateUI() {
         const percent = ((this.value - this.min) / (this.max - this.min)) * 100;
         const originalPercent = percent;
@@ -6900,7 +6904,6 @@ class SliderField extends BaseField {
         this.progress.style.width = percent + '%';
         
         requestAnimationFrame(() => {
-            // Force dimension recalculation
             this.clearCache();
             
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
@@ -6926,7 +6929,7 @@ class SliderField extends BaseField {
 }
 
 /**
- * Fixed SlidingWindowSliderField - Added proper dimension caching and label positioning
+ * SlidingWindowSliderField - Fixed with proper defaultValue handling
  */
 class SlidingWindowSliderField extends BaseField {
     constructor(factory, config) {
@@ -6940,7 +6943,13 @@ class SlidingWindowSliderField extends BaseField {
         
         this.currentMin = config.currentMin || this.min;
         this.currentMax = config.currentMax || Math.min(this.min + this.rangeWindow, this.max);
-        this.selectedValue = config.defaultValue || config.value || ((this.currentMin + this.currentMax) / 2);
+        
+        // FIX: Proper undefined checking for defaultValue
+        this.selectedValue = config.defaultValue !== undefined ? 
+            config.defaultValue : 
+            (config.value !== undefined ? 
+                config.value : 
+                ((this.currentMin + this.currentMax) / 2));
         
         if (this.selectedValue < this.currentMin) {
             this.selectedValue = this.currentMin;
@@ -6955,7 +6964,7 @@ class SlidingWindowSliderField extends BaseField {
         this.debouncedUpdate = this.debounce(() => this.updateUI(), this.debounceDelay);
         this.debouncedChange = this.debounce(() => this.handleChange(), this.debounceDelay);
         this.positionCache = new Map();
-        this.dimensionCache = new Map(); // ADDED: Missing dimension cache
+        this.dimensionCache = new Map();
         
         this.customValidation = config.customValidation || null;
     }
@@ -7032,10 +7041,9 @@ class SlidingWindowSliderField extends BaseField {
 
     clearCache() {
         this.positionCache.clear();
-        this.dimensionCache.clear(); // ADDED: Clear dimension cache
+        this.dimensionCache.clear();
     }
 
-    // ADDED: Missing getContainerDimensions method
     getContainerDimensions() {
         const container = this.container.querySelector('.slider-container');
         if (!container) return { width: 0, height: 0 };
@@ -7054,7 +7062,6 @@ class SlidingWindowSliderField extends BaseField {
         return dimensions;
     }
 
-    // UPDATED: Fixed calculateLabelPosition method
     calculateLabelPosition(percent, labelElement) {
         if (!labelElement) return percent;
         
@@ -7178,7 +7185,7 @@ class SlidingWindowSliderField extends BaseField {
         this.slider.addEventListener('input', () => this.handleValueChange());
         this.decreaseBtn.addEventListener('click', () => this.decreaseRange());
         this.increaseBtn.addEventListener('click', () => this.increaseRange());
-        window.addEventListener('resize', () => this.clearCache()); // UPDATED: Clear cache on resize
+        window.addEventListener('resize', () => this.clearCache());
     }
 
     handleValueChange() {
@@ -7228,7 +7235,6 @@ class SlidingWindowSliderField extends BaseField {
         this.value = this.selectedValue;
     }
 
-    // UPDATED: Enhanced updateUI method with proper positioning
     updateUI() {
         const percent = ((this.selectedValue - this.currentMin) / (this.currentMax - this.currentMin)) * 100;
         const originalPercent = percent;
@@ -7236,7 +7242,6 @@ class SlidingWindowSliderField extends BaseField {
         this.progress.style.width = percent + '%';
         
         requestAnimationFrame(() => {
-            // Force dimension recalculation
             this.clearCache();
             
             const finalPercent = this.calculateLabelPosition(percent, this.valueLabel);
