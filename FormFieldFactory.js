@@ -12057,7 +12057,7 @@ class ServiceProviderFilterField extends BaseField {
                 .service-provider-filter {
                     display: flex;
                     flex-direction: column;
-                    gap: 1.5rem; /* Vertical spacing between dropdowns */
+                    gap: 10px; /* Vertical spacing between dropdowns */
                 }
                 .service-provider-filter .service-select-container {
                     margin-bottom: 0;
