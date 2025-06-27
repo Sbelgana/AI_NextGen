@@ -11639,7 +11639,7 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
-   class ServiceProviderFilterField extends BaseField {
+  class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12070,6 +12070,23 @@ class CurrentAppointmentCardField extends BaseField {
                             white-space: pre-line !important;
                             line-height: 1.4;
                         }
+                        
+                        /* Ensure bold text is properly styled in summary */
+                        .form-summary [data-field-id="serviceProvider"] .field-value strong,
+                        .summary-section [data-field-id="serviceProvider"] .field-value strong,
+                        .summary-item[data-field="serviceProvider"] .field-value strong,
+                        [data-summary-field="serviceProvider"] .field-value strong {
+                            font-weight: bold;
+                            display: block;
+                            margin-top: 5px;
+                        }
+                        
+                        .form-summary [data-field-id="serviceProvider"] .field-value strong:first-child,
+                        .summary-section [data-field-id="serviceProvider"] .field-value strong:first-child,
+                        .summary-item[data-field="serviceProvider"] .field-value strong:first-child,
+                        [data-summary-field="serviceProvider"] .field-value strong:first-child {
+                            margin-top: 0;
+                        }
                     </style>
                 `;
                 
@@ -12117,16 +12134,16 @@ class CurrentAppointmentCardField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Return plain text with line separators that can be styled
+            // FIXED: Return HTML formatted string with bold labels
             getValue() {
                 const parts = [];
                 if (this.selectedService) {
-                    parts.push(`Service: ${this.selectedService}`);
+                    parts.push(`<strong>Service</strong><br>${this.selectedService}`);
                 }
                 if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
+                    parts.push(`<strong>Dentiste</strong><br>${this.selectedProvider.displayName}`);
                 }
-                return parts.length > 0 ? parts.join('\n') : '';
+                return parts.length > 0 ? parts.join('<br>') : '';
             }
 
             // NEW: Method to get display-friendly text
@@ -12148,12 +12165,12 @@ class CurrentAppointmentCardField extends BaseField {
             getSummaryValue() {
                 const parts = [];
                 if (this.selectedService) {
-                    parts.push(`Service: ${this.selectedService}`);
+                    parts.push(`<strong>Service</strong><br>${this.selectedService}`);
                 }
                 if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
+                    parts.push(`<strong>Dentiste</strong><br>${this.selectedProvider.displayName}`);
                 }
-                return parts.join('\n');
+                return parts.join('<br>');
             }
 
             // NEW: Method to get the raw data for form processing
@@ -12254,6 +12271,7 @@ class CurrentAppointmentCardField extends BaseField {
                 super.destroy();
             }
         }
+
 
 
 // Export for module usage
