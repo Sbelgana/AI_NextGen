@@ -6028,6 +6028,13 @@ class SlidingWindowRangeField extends BaseField {
         };
     }
 
+    // ADD THIS METHOD: Returns formatted display value for summary
+    getDisplayValue() {
+        const formattedMin = this.formatValue(this.selectedMin);
+        const formattedMax = this.formatValue(this.selectedMax);
+        return `${formattedMin} - ${formattedMax}`;
+    }
+
     setValue(value) {
         if (typeof value === 'object' && value !== null) {
             this.selectedMin = value.min || this.selectedMin;
@@ -6043,7 +6050,6 @@ class SlidingWindowRangeField extends BaseField {
         }
     }
 }
-
 
 
 /**
