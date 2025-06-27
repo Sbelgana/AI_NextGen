@@ -12053,7 +12053,7 @@ class ServiceProviderFilterField extends BaseField {
                 .service-provider-filter {
                     display: flex;
                     flex-direction: column;
-                    gap: 1.5rem;
+                    gap: 10px;
                 }
                 .service-provider-filter .service-select-container {
                     margin-bottom: 0;
