@@ -11639,7 +11639,9 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
-class ServiceProviderFilterField extends BaseField {
+
+				
+				class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -11925,7 +11927,7 @@ class ServiceProviderFilterField extends BaseField {
                     placeholder: this.servicePlaceholder,
                     options: this.availableServices,
                     required: this.required,
-					row:serviceSelectField,
+					row:'serviceSelectField',
                     onChange: (value) => this.selectService(value)
                 });
 
@@ -11949,7 +11951,7 @@ class ServiceProviderFilterField extends BaseField {
                     placeholder: this.providerPlaceholder,
                     options: this.filteredProviders,
                     required: this.required,
-					row:providerSelectField,
+					row:'providerSelectField',
                     onChange: (value) => this.selectProvider(value)
                 });
 
