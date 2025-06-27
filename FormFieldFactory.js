@@ -4366,6 +4366,9 @@ class MultiSelectSubsectionsField extends BaseField {
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
+/**
+ * CustomField - For special content like summaries with personalized error messages
+ */
 class CustomField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -4446,6 +4449,7 @@ class CustomField extends BaseField {
         return section;
     }
 
+    // UPDATED: Enhanced populateStepContent method with separate fields support
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
 
@@ -4453,10 +4457,60 @@ class CustomField extends BaseField {
             const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
             if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
                 
-                // Special handling for YesNoWithOptionsField
-                if (fieldConfig.type === 'yesno-with-options') {
+                // NEW: Check if field should render as separate summary fields
+                if (fieldConfig.renderSeparateSummaryFields) {
+                    // Get the field instance to access getSummaryFields method
+                    const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
+                    
+                    if (fieldInstance && typeof fieldInstance.getSummaryFields === 'function') {
+                        const summaryFields = fieldInstance.getSummaryFields();
+                        
+                        // Render each field separately
+                        summaryFields.forEach(field => {
+                            if (field.value) {
+                                contentHtml += `
+                                    <div class="summary-row">
+                                        <div class="summary-label">${field.label}:</div>
+                                        <div class="summary-value">${field.value}</div>
+                                    </div>
+                                `;
+                            }
+                        });
+                    } else {
+                        // Fallback: use custom getSummaryDisplay if available
+                        if (fieldConfig.getSummaryDisplay && typeof fieldConfig.getSummaryDisplay === 'function') {
+                            const displayValue = fieldConfig.getSummaryDisplay(fieldValue, fieldInstance);
+                            if (displayValue) {
+                                // Split by newlines for separate fields
+                                const lines = displayValue.split('\n').filter(line => line.trim());
+                                lines.forEach(line => {
+                                    if (line.includes(':')) {
+                                        const [label, value] = line.split(':').map(part => part.trim());
+                                        contentHtml += `
+                                            <div class="summary-row">
+                                                <div class="summary-label">${label}:</div>
+                                                <div class="summary-value">${value}</div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        contentHtml += `
+                                            <div class="summary-row">
+                                                <div class="summary-label">${fieldConfig.label}:</div>
+                                                <div class="summary-value">${line}</div>
+                                            </div>
+                                        `;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+                // Special handling for YesNoWithOptionsField (existing code)
+                else if (fieldConfig.type === 'yesno-with-options') {
                     contentHtml += this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
-                } else {
+                } 
+                // Default handling for other fields
+                else {
                     const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
                     if (displayValue) {
                         contentHtml += `
@@ -4471,6 +4525,25 @@ class CustomField extends BaseField {
         });
 
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    // NEW: Helper method to get field instance from the multi-step form
+    getFieldInstance(fieldName) {
+        const multiStepForm = this.factory.currentMultiStepForm;
+        if (!multiStepForm) return null;
+        
+        // Search through all step instances to find the field
+        for (let stepInstance of multiStepForm.stepInstances) {
+            if (stepInstance.fieldInstances) {
+                const fieldInstance = stepInstance.fieldInstances.find(field => 
+                    field.name === fieldName || field.id === fieldName
+                );
+                if (fieldInstance) {
+                    return fieldInstance;
+                }
+            }
+        }
+        return null;
     }
 
     formatYesNoWithOptionsField(fieldConfig, value) {
