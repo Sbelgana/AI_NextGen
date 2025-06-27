@@ -285,15 +285,8 @@ class BaseDataTransformer {
             formVersion: this.getFormVersion(),
             submissionTimestamp: new Date().toISOString(),
             language: this.language,
-            
-            // Transform to sections
             sections: this.createSections(flatData, originalFormValues),
             
-            // Keep flat data for compatibility
-            flatData: flatData,
-            
-            // Add metadata
-            metadata: this.generateMetadata(flatData, originalFormValues)
         };
     }
 
