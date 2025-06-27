@@ -215,7 +215,7 @@ this.SVG_ICONS = {
             case 'provider-calendar':
                 field = new ProviderCalendarField(this, config);
                 break;
-            case 'service-provider-filter ':
+            case 'service-provider-filter':
                 field = new ServiceProviderFilterField (this, config);
                 break;
             case 'tab-manager':
