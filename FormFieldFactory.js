@@ -11639,7 +11639,7 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
-class ServiceProviderFilterField extends BaseField {
+   class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12062,6 +12062,14 @@ class ServiceProviderFilterField extends BaseField {
                             margin-top: 0;
                             transition: opacity 0.3s ease, transform 0.3s ease;
                         }
+                        /* CSS to handle line breaks in summary display */
+                        .form-summary [data-field-id="serviceProvider"] .field-value,
+                        .summary-section [data-field-id="serviceProvider"] .field-value,
+                        .summary-item[data-field="serviceProvider"] .field-value,
+                        [data-summary-field="serviceProvider"] .field-value {
+                            white-space: pre-line !important;
+                            line-height: 1.4;
+                        }
                     </style>
                 `;
                 
@@ -12109,14 +12117,16 @@ class ServiceProviderFilterField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Return object for split display in form summary
+            // FIXED: Return plain text with line separators that can be styled
             getValue() {
-                // Return an object that can be displayed as separate lines
-                return {
-                    service: this.selectedService || '',
-                    dentist: this.selectedProvider?.displayName || '',
-                    toString: () => this.getDisplayText() // Fallback for string conversion
-                };
+                const parts = [];
+                if (this.selectedService) {
+                    parts.push(`Service: ${this.selectedService}`);
+                }
+                if (this.selectedProvider && this.selectedProvider.displayName) {
+                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
+                }
+                return parts.length > 0 ? parts.join('\n') : '';
             }
 
             // NEW: Method to get display-friendly text
@@ -12146,7 +12156,25 @@ class ServiceProviderFilterField extends BaseField {
                 return parts.join('\n');
             }
 
-            // NEW: Method specifically for getting full data object when needed
+            // NEW: Method to get the raw data for form processing
+            getFormValue() {
+                return this.getDataValue();
+            }
+
+            // NEW: Method to customize summary display after render
+            formatSummaryDisplay() {
+                // Find the summary field value element for this field
+                setTimeout(() => {
+                    const summaryElement = document.querySelector(`[data-field-id="${this.id}"] .field-value, [data-summary-field="${this.id}"] .field-value`);
+                    if (summaryElement && this.selectedService && this.selectedProvider) {
+                        const formattedHTML = `
+                            <div>Service: ${this.selectedService}</div>
+                            <div>Dentiste: ${this.selectedProvider.displayName}</div>
+                        `;
+                        summaryElement.innerHTML = formattedHTML;
+                    }
+                }, 100);
+            }
             getDataValue() {
                 return {
                     selectedService: this.selectedService,
@@ -12226,6 +12254,7 @@ class ServiceProviderFilterField extends BaseField {
                 super.destroy();
             }
         }
+
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
