@@ -7853,8 +7853,12 @@ class CreatForm {
             // Form structure configuration
             formStructure: config.formStructure || "auto", // "auto", "single", "multistep"
             submitButtonText: config.submitButtonText || null, // Custom submit button text
+            showSubmitButton: config.showSubmitButton !== false, // Default: true, can be set to false
             // NEW: Optional submit button for single step forms
-            showSubmitButton: config.showSubmitButton !== false // Default: true, can be set to false
+            voiceflowDataTransformer: config.voiceflowDataTransformer || null,
+            // NEW: Enhanced logging configuration
+            enableDetailedLogging: config.enableDetailedLogging !== false, // Default: enabled
+            logPrefix: config.logPrefix || "📋 CreatForm"
         };
         
         // Store the passed data
@@ -7881,6 +7885,72 @@ class CreatForm {
         
         // Determine form structure
         this.determineFormStructure();
+
+        // Initialize logging
+        this.initializeLogging();
+    }
+
+    // ============================================================================
+    // ENHANCED LOGGING SYSTEM
+    // ============================================================================
+
+    initializeLogging() {
+        this.logger = {
+            info: (message, data = null) => {
+                if (this.config.enableDetailedLogging) {
+                    console.log(`${this.config.logPrefix} ℹ️`, message, data || '');
+                }
+            },
+            success: (message, data = null) => {
+                if (this.config.enableDetailedLogging) {
+                    console.log(`${this.config.logPrefix} ✅`, message, data || '');
+                }
+            },
+            warning: (message, data = null) => {
+                if (this.config.enableDetailedLogging) {
+                    console.warn(`${this.config.logPrefix} ⚠️`, message, data || '');
+                }
+            },
+            error: (message, data = null) => {
+                console.error(`${this.config.logPrefix} ❌`, message, data || '');
+            },
+            webhook: (message, data = null) => {
+                if (this.config.enableDetailedLogging) {
+                    console.group(`${this.config.logPrefix} 🔗 WEBHOOK`);
+                    console.log(message);
+                    if (data) {
+                        console.log('📤 Webhook Data:', JSON.stringify(data, null, 2));
+                    }
+                    console.groupEnd();
+                }
+            },
+            voiceflow: (message, data = null) => {
+                if (this.config.enableDetailedLogging) {
+                    console.group(`${this.config.logPrefix} 🤖 VOICEFLOW`);
+                    console.log(message);
+                    if (data) {
+                        console.log('📤 Voiceflow Data:', JSON.stringify(data, null, 2));
+                    }
+                    console.groupEnd();
+                }
+            },
+            transformation: (originalData, transformedData) => {
+                if (this.config.enableDetailedLogging) {
+                    console.group(`${this.config.logPrefix} 🔄 DATA TRANSFORMATION`);
+                    console.log('📥 Original Form Data:', JSON.stringify(originalData, null, 2));
+                    console.log('📤 Transformed Data:', JSON.stringify(transformedData, null, 2));
+                    console.groupEnd();
+                }
+            }
+        };
+
+        this.logger.info('CreatForm initialized', {
+            formType: this.config.formType,
+            structure: this.state.isSingleStep ? 'single-step' : 'multi-step',
+            webhookEnabled: this.config.webhookEnabled,
+            voiceflowEnabled: this.config.voiceflowEnabled,
+            hasTransformer: typeof this.config.voiceflowDataTransformer === 'function'
+        });
     }
 
     // ============================================================================
@@ -7899,11 +7969,11 @@ class CreatForm {
             this.state.isSingleStep = steps.length <= 1;
         }
         
-        console.log(`Form structure determined: ${this.state.isSingleStep ? 'Single Step' : 'Multi Step'}`);
+        this.logger.info(`Form structure determined: ${this.state.isSingleStep ? 'Single Step' : 'Multi Step'}`);
     }
 
     // ============================================================================
-    // UTILITY METHODS (unchanged)
+    // UTILITY METHODS
     // ============================================================================
 
     getText(path) {
@@ -7928,7 +7998,7 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
-    // Enhanced extractValue method (unchanged)
+    // Enhanced extractValue method
     extractValue(value) {
         if (value == null || value === undefined) return '';
         
@@ -8079,12 +8149,13 @@ class CreatForm {
     }
 
     // ============================================================================
-    // CSS MANAGEMENT (unchanged)
+    // CSS MANAGEMENT
     // ============================================================================
 
     async loadCSS() {
         if (this.state.cssLoaded) return;
         try {
+            this.logger.info('Loading CSS files...');
             const cssPromises = this.config.cssUrls.map(url => this.fetchCSS(url));
             const cssTexts = await Promise.allSettled(cssPromises);
             const validCSS = cssTexts
@@ -8093,8 +8164,9 @@ class CreatForm {
             
             if (validCSS.trim()) this.injectCSS(validCSS);
             this.state.cssLoaded = true;
+            this.logger.success('CSS loaded successfully');
         } catch (error) {
-            console.warn('Failed to load CSS:', error);
+            this.logger.error('Failed to load CSS:', error);
         }
     }
 
@@ -8106,7 +8178,7 @@ class CreatForm {
             this.cssCache.set(url, css);
             return css;
         } catch (error) {
-            console.warn(`Failed to fetch CSS from ${url}:`, error);
+            this.logger.warning(`Failed to fetch CSS from ${url}:`, error);
             return '';
         }
     }
@@ -8248,6 +8320,8 @@ class CreatForm {
             throw new Error('No steps defined for single step form');
         }
 
+        this.logger.info('Creating single step form with row support');
+
         const container = document.createElement('div');
         // Use same base class as multi-step for consistent styling
         container.className = 'multistep-form single-step-variant';
@@ -8309,6 +8383,8 @@ class CreatForm {
             submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
             
             submitButton.addEventListener('click', async () => {
+                this.logger.info('Single step form submit button clicked');
+                
                 // Validate all fields
                 let isValid = true;
                 fieldInstances.forEach(field => {
@@ -8324,8 +8400,12 @@ class CreatForm {
                         formData[field.name] = field.getValue();
                     });
 
+                    this.logger.info('Single step form validation passed, submitting...', formData);
+
                     // Submit
                     await this.handleSubmission(formData);
+                } else {
+                    this.logger.warning('Single step form validation failed');
                 }
             });
 
@@ -8348,22 +8428,23 @@ class CreatForm {
         }
 
         container.appendChild(form);
+        this.logger.success('Single step form created successfully');
         return container;
     }
 
     // ============================================================================
-    // BOOKING-SPECIFIC METHODS (unchanged)
+    // BOOKING-SPECIFIC METHODS
     // ============================================================================
 
     updateCalendarConfiguration(selectedService) {
         if (!this.isBookingForm || !selectedService) return;
         
-        console.log('Updating calendar configuration with service:', selectedService);
+        this.logger.info('Updating calendar configuration with service:', selectedService);
         
         const calendarField = this.getCalendarFieldInstance();
         
         if (calendarField) {
-            console.log('Found calendar field, updating configuration...');
+            this.logger.info('Found calendar field, updating configuration...');
             
             calendarField.apiKey = this.config.apiKey;
             calendarField.timezone = this.config.timezone;
@@ -8387,12 +8468,12 @@ class CreatForm {
                 if (calendarField.element) {
                     calendarField.renderCalendarData();
                 }
-                console.log('Calendar reinitialized with new service configuration');
+                this.logger.success('Calendar reinitialized with new service configuration');
             }).catch(error => {
-                console.error('Error reinitializing calendar:', error);
+                this.logger.error('Error reinitializing calendar:', error);
             });
         } else {
-            console.log('Calendar field not found, will be configured when calendar step is reached');
+            this.logger.info('Calendar field not found, will be configured when calendar step is reached');
         }
     }
 
@@ -8470,15 +8551,26 @@ class CreatForm {
 
     handleFieldChange = (name, value) => {
         this.formValues[name] = value;
-        console.log(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
+        this.logger.info(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
         
         if (this.isBookingForm && name === 'serviceSelection' && value) {
-            console.log('Service selected:', value);
+            this.logger.info('Service selected:', value);
             this.updateCalendarConfiguration(value);
         }
     };
 
+    // ============================================================================
+    // ENHANCED SUBMISSION HANDLING WITH COMPREHENSIVE LOGGING
+    // ============================================================================
+
     handleSubmission = async (formData) => {
+        this.logger.info('🚀 Starting form submission process...', {
+            formType: this.config.formType,
+            webhookEnabled: this.config.webhookEnabled,
+            voiceflowEnabled: this.config.voiceflowEnabled,
+            hasTransformer: typeof this.config.voiceflowDataTransformer === 'function'
+        });
+
         const submitButton = this.getSubmitButton();
         if (submitButton) {
             submitButton.disabled = true;
@@ -8490,6 +8582,7 @@ class CreatForm {
             let shouldSendToWebhook = false;
             
             if (this.isBookingForm) {
+                this.logger.info('Processing booking form submission...');
                 // Booking form submission
                 const calendarField = this.getCalendarFieldInstance();
                 if (!calendarField) {
@@ -8511,41 +8604,138 @@ class CreatForm {
                 // Booking forms might still want to send to webhook for tracking
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             } else {
+                this.logger.info('Processing regular form submission...');
                 // Regular submission form
                 submissionData = this.prepareDataForSubmission(formData);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             }
 
-            // Send to webhook if enabled
+            this.logger.info('📦 Prepared submission data:', submissionData);
+
+            // ============================================================================
+            // WEBHOOK SUBMISSION WITH DETAILED LOGGING
+            // ============================================================================
             if (shouldSendToWebhook) {
-                console.log('Sending data to webhook:', this.config.webhookUrl);
-                const response = await fetch(this.config.webhookUrl, {
+                this.logger.webhook('Sending data to webhook...', {
+                    url: this.config.webhookUrl,
+                    data: submissionData,
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(submissionData)
+                    headers: { 'Content-Type': 'application/json' }
                 });
 
-                if (!response.ok) {
-                    console.warn('Webhook submission failed:', response.status, response.statusText);
-                    // Don't throw error - continue with success flow
+                try {
+                    const webhookStartTime = Date.now();
+                    const response = await fetch(this.config.webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(submissionData)
+                    });
+
+                    const webhookDuration = Date.now() - webhookStartTime;
+
+                    if (response.ok) {
+                        this.logger.webhook(`✅ Webhook submission successful (${webhookDuration}ms)`, {
+                            status: response.status,
+                            statusText: response.statusText,
+                            duration: `${webhookDuration}ms`
+                        });
+                    } else {
+                        this.logger.webhook(`⚠️ Webhook submission failed (${webhookDuration}ms)`, {
+                            status: response.status,
+                            statusText: response.statusText,
+                            duration: `${webhookDuration}ms`
+                        });
+                    }
+                } catch (webhookError) {
+                    this.logger.webhook('❌ Webhook submission error', {
+                        error: webhookError.message,
+                        url: this.config.webhookUrl
+                    });
                 }
             } else {
-                console.log('Webhook sending disabled or no webhook URL provided');
+                this.logger.info('Webhook sending disabled or no webhook URL provided');
             }
             
             this.clearSessionTimers();
             this.state.formSubmitted = true;
             this.showSuccessScreen();
             
-            // Send to Voiceflow if enabled
+            // ============================================================================
+            // VOICEFLOW SUBMISSION WITH DETAILED LOGGING AND TRANSFORMATION
+            // ============================================================================
             if (this.config.voiceflowEnabled && window.voiceflow) {
-                console.log('Sending data to Voiceflow');
-                window.voiceflow.chat.interact({ type: "success", payload: submissionData });
+                this.logger.voiceflow('Preparing data for Voiceflow...');
+                
+                let voiceflowPayload;
+                
+                if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
+                    this.logger.voiceflow('Using custom Voiceflow data transformer');
+                    try {
+                        const transformStartTime = Date.now();
+                        voiceflowPayload = this.config.voiceflowDataTransformer(submissionData, formData);
+                        const transformDuration = Date.now() - transformStartTime;
+                        
+                        this.logger.transformation(
+                            { submissionData, formData }, 
+                            voiceflowPayload
+                        );
+                        
+                        this.logger.voiceflow(`✅ Data transformation completed (${transformDuration}ms)`, voiceflowPayload);
+                    } catch (transformError) {
+                        this.logger.voiceflow('❌ Error in custom Voiceflow data transformer', {
+                            error: transformError.message,
+                            stack: transformError.stack
+                        });
+                        // Fallback to original data
+                        voiceflowPayload = submissionData;
+                        this.logger.voiceflow('🔄 Falling back to original submission data', voiceflowPayload);
+                    }
+                } else {
+                    this.logger.voiceflow('No custom transformer found, using original submission data');
+                    voiceflowPayload = submissionData;
+                }
+                
+                // Send to Voiceflow
+                try {
+                    const voiceflowStartTime = Date.now();
+                    
+                    this.logger.voiceflow('📤 Sending data to Voiceflow...', {
+                        payload: voiceflowPayload,
+                        interactionType: 'success'
+                    });
+                    
+                    window.voiceflow.chat.interact({ 
+                        type: "success", 
+                        payload: voiceflowPayload 
+                    });
+                    
+                    const voiceflowDuration = Date.now() - voiceflowStartTime;
+                    this.logger.voiceflow(`✅ Voiceflow interaction completed (${voiceflowDuration}ms)`);
+                    
+                } catch (voiceflowError) {
+                    this.logger.voiceflow('❌ Voiceflow interaction error', {
+                        error: voiceflowError.message,
+                        payload: voiceflowPayload
+                    });
+                }
+            } else {
+                if (!this.config.voiceflowEnabled) {
+                    this.logger.info('Voiceflow integration disabled');
+                } else if (!window.voiceflow) {
+                    this.logger.warning('Voiceflow not available in window object');
+                }
             }
 
+            this.logger.success('🎉 Form submission completed successfully!');
             return submissionData;
+            
         } catch (error) {
-            console.error('Submission error:', error);
+            this.logger.error('Form submission failed:', {
+                error: error.message,
+                stack: error.stack,
+                formData: formData
+            });
+            
             if (submitButton) {
                 const errorMessage = this.isBookingForm ? 
                     (this.getText('errors.bookingError') || 'Erreur lors de la réservation. Veuillez réessayer.') :
@@ -8584,7 +8774,7 @@ class CreatForm {
     }
 
     // ============================================================================
-    // PUBLIC API FOR EXTERNAL SUBMISSION (NEW)
+    // PUBLIC API FOR EXTERNAL SUBMISSION
     // ============================================================================
 
     // Public method to trigger form submission programmatically
@@ -8628,16 +8818,16 @@ class CreatForm {
     }
 
     // ============================================================================
-    // SESSION MANAGEMENT (unchanged)
+    // SESSION MANAGEMENT
     // ============================================================================
 
     setupSessionManagement() {
         if (!this.config.enableSessionTimeout) {
-            console.log('Session timeout disabled');
+            this.logger.info('Session timeout disabled');
             return;
         }
         
-        console.log('Setting up session management:', {
+        this.logger.info('Setting up session management:', {
             warningTime: this.config.sessionWarning,
             timeoutTime: this.config.sessionTimeout
         });
@@ -8648,6 +8838,7 @@ class CreatForm {
 
     showSessionWarning() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
+        this.logger.warning('Session warning displayed');
         const warningDiv = document.createElement('div');
         warningDiv.className = 'session-warning';
         warningDiv.innerHTML = `<div style="display: flex; align-items: center; margin-bottom: 10px;"><span style="font-size: 20px; margin-right: 10px;">⚠️</span><strong>Session Warning</strong></div><p style="margin: 0; font-size: 14px;">Your session will expire in 2 minutes.</p>`;
@@ -8658,6 +8849,7 @@ class CreatForm {
     disableFormOnTimeout() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.state.sessionExpired = true;
+        this.logger.warning('Session expired - disabling form');
         
         const formContainer = this.state.isSingleStep ? 
             this.singleStepForm?.container : 
@@ -8675,7 +8867,7 @@ class CreatForm {
     }
 
     clearSessionTimers() {
-        console.log('Clearing session timers');
+        this.logger.info('Clearing session timers');
         if (this.sessionTimer) {
             clearTimeout(this.sessionTimer);
             this.sessionTimer = null;
@@ -8709,6 +8901,7 @@ class CreatForm {
             </button>
         `;
         this.container.appendChild(successScreen);
+        this.logger.success('Success screen displayed');
     }
 
     showTimeoutOverlay() {
@@ -8730,6 +8923,7 @@ class CreatForm {
 
     async render(element) {
         try {
+            this.logger.info('🎬 Starting form render process...');
             await this.loadCSS();
             
             this.container = document.createElement('div');
@@ -8758,12 +8952,12 @@ class CreatForm {
 
             if (this.state.isSingleStep) {
                 // Create single step form
-                console.log('Creating single step form with row support and optional submit button');
+                this.logger.info('Creating single step form with row support and optional submit button');
                 const singleStepContainer = this.createSingleStepForm();
                 this.container.appendChild(singleStepContainer);
             } else {
                 // Create multi-step form
-                console.log('Creating multi-step form');
+                this.logger.info('Creating multi-step form');
                 const formConfig = {
                     showProgress: true,
                     saveProgress: false,
@@ -8772,7 +8966,7 @@ class CreatForm {
                     onSubmit: this.handleSubmission,
                     onStepChange: (stepIndex, stepInstance) => { 
                         this.state.currentStep = stepIndex;
-                        console.log(`Step changed to ${stepIndex + 1}`);
+                        this.logger.info(`Step changed to ${stepIndex + 1}`);
                         
                         if (this.isBookingForm && this.formValues.serviceSelection) {
                             const calendarStepIndex = this.formConfig.steps.findIndex(step => 
@@ -8780,7 +8974,7 @@ class CreatForm {
                             );
                             
                             if (stepIndex === calendarStepIndex) {
-                                console.log('Reached calendar step, applying service configuration...');
+                                this.logger.info('Reached calendar step, applying service configuration...');
                                 setTimeout(() => {
                                     this.updateCalendarConfiguration(this.formValues.serviceSelection);
                                 }, 100);
@@ -8806,9 +9000,10 @@ class CreatForm {
             this.setupSessionManagement();
             this.state.initialized = true;
 
+            this.logger.success('🎊 Form rendered successfully!');
             return this.createPublicAPI();
         } catch (error) {
-            console.error('Failed to render form:', error);
+            this.logger.error('Failed to render form:', error);
             const errorMessage = this.isBookingForm ? 'Failed to load booking form' : 'Failed to load submission form';
             element.innerHTML = `<div class="error-state">${errorMessage}</div>`;
             return { destroy: () => {} };
@@ -8852,12 +9047,47 @@ class CreatForm {
                 voiceflowEnabled: this.config.voiceflowEnabled,
                 formType: this.config.formType,
                 formStructure: this.state.isSingleStep ? 'single' : 'multistep',
-                showSubmitButton: this.config.showSubmitButton
-            })
+                showSubmitButton: this.config.showSubmitButton,
+                hasTransformer: typeof this.config.voiceflowDataTransformer === 'function',
+                enableDetailedLogging: this.config.enableDetailedLogging
+            }),
+            // Enhanced testing and debugging methods
+            testVoiceflowTransformer: (testData) => {
+                if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
+                    try {
+                        return this.config.voiceflowDataTransformer(testData, testData);
+                    } catch (error) {
+                        this.logger.error('Error testing Voiceflow transformer:', error);
+                        return null;
+                    }
+                }
+                return null;
+            },
+            // Logging control methods
+            enableLogging: () => {
+                this.config.enableDetailedLogging = true;
+                this.logger.info('Detailed logging enabled');
+            },
+            disableLogging: () => {
+                this.config.enableDetailedLogging = false;
+                console.log('📋 CreatForm: Detailed logging disabled');
+            },
+            // Data inspection methods
+            inspectFormValues: () => {
+                this.logger.info('Current form values:', this.formValues);
+                return this.formValues;
+            },
+            inspectSubmissionData: () => {
+                const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
+                const prepared = this.prepareDataForSubmission(data);
+                this.logger.info('Prepared submission data:', prepared);
+                return prepared;
+            }
         };
     }
 
     reset() {
+        this.logger.info('Resetting form...');
         this.clearSessionTimers();
         this.state = { 
             ...this.state, 
@@ -8877,9 +9107,11 @@ class CreatForm {
         }
         
         this.setupSessionManagement();
+        this.logger.success('Form reset completed');
     }
 
     destroy() {
+        this.logger.info('Destroying form...');
         this.clearSessionTimers();
         this.factory?.destroy();
         if (this.multiStepForm) {
@@ -8889,6 +9121,7 @@ class CreatForm {
         this.container?.remove();
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
+        this.logger.success('Form destroyed successfully');
     }
 }
 
