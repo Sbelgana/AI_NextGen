@@ -3107,7 +3107,7 @@ class YesNoWithOptionsField extends BaseField {
         }
         return currentValue;
     }
-	const parseYesNoWithOptionsValue = (fieldValue, fieldId) => {
+    parseYesNoWithOptionsValue (fieldValue, fieldId) {
     if (!fieldValue || typeof fieldValue !== 'object' || fieldValue.main === undefined) {
         return { main: false, conditionalValues: {} };
     }
@@ -3131,7 +3131,7 @@ class YesNoWithOptionsField extends BaseField {
     }
     
     return result;
-};
+}
 }
 
 /**
