@@ -11639,7 +11639,7 @@ class CurrentAppointmentCardField extends BaseField {
 }
 
 
-class ServiceProviderFilterField extends BaseField {
+   class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12109,17 +12109,44 @@ class ServiceProviderFilterField extends BaseField {
                 return this.element;
             }
 
-            // FIXED: Return object for split display in form summary
+            // UPDATED: Return structured object for separate summary display
             getValue() {
-                // Return an object that can be displayed as separate lines
                 return {
                     service: this.selectedService || '',
                     dentist: this.selectedProvider?.displayName || '',
+                    // Flag to indicate this should be displayed as separate fields
+                    _separateFields: true,
+                    // Provide field labels for display
+                    _fieldLabels: {
+                        service: 'Service',
+                        dentist: 'Dentiste'
+                    },
                     toString: () => this.getDisplayText() // Fallback for string conversion
                 };
             }
 
-            // NEW: Method to get display-friendly text
+            // NEW: Method to get separate summary fields
+            getSummaryFields() {
+                const fields = [];
+                
+                if (this.selectedService) {
+                    fields.push({
+                        label: 'Service',
+                        value: this.selectedService
+                    });
+                }
+                
+                if (this.selectedProvider?.displayName) {
+                    fields.push({
+                        label: 'Dentiste', 
+                        value: this.selectedProvider.displayName
+                    });
+                }
+                
+                return fields;
+            }
+
+            // Method to get display-friendly text
             getDisplayText() {
                 const parts = [];
                 
@@ -12134,7 +12161,7 @@ class ServiceProviderFilterField extends BaseField {
                 return parts.length > 0 ? parts.join(' - ') : '';
             }
 
-            // NEW: Method specifically for summary display
+            // Method specifically for summary display
             getSummaryValue() {
                 const parts = [];
                 if (this.selectedService) {
@@ -12146,7 +12173,7 @@ class ServiceProviderFilterField extends BaseField {
                 return parts.join('\n');
             }
 
-            // NEW: Method specifically for getting full data object when needed
+            // Method specifically for getting full data object when needed
             getDataValue() {
                 return {
                     selectedService: this.selectedService,
@@ -12184,7 +12211,6 @@ class ServiceProviderFilterField extends BaseField {
                         }
                     }
                 } else if (typeof value === 'string') {
-                    // Handle string values if needed
                     console.log('String value set:', value);
                 }
             }
