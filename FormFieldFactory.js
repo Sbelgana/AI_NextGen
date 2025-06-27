@@ -7916,91 +7916,96 @@ class CreatForm {
     // ============================================================================
 
     createSingleStepForm() {
-        const firstStep = this.formConfig.steps[0];
-        if (!firstStep) {
-            throw new Error('No steps defined for single step form');
+    const firstStep = this.formConfig.steps[0];
+    if (!firstStep) {
+        throw new Error('No steps defined for single step form');
+    }
+
+    const container = document.createElement('div');
+    // FIXED: Use same base class as multi-step for consistent styling
+    container.className = 'multistep-form single-step-variant';
+
+    // Create title if exists
+    if (firstStep.title) {
+        const titleElement = document.createElement('h2');
+        titleElement.className = 'form-title';
+        titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
+        container.appendChild(titleElement);
+    }
+
+    // Create description if exists
+    if (firstStep.description) {
+        const descElement = document.createElement('p');
+        descElement.className = 'form-description';
+        descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
+        container.appendChild(descElement);
+    }
+
+    // Create form - FIXED: Use same structure as multi-step
+    const form = document.createElement('form');
+    form.className = 'form-step active'; // Same as multi-step step class
+    
+    // Create fields container
+    const fieldsContainer = document.createElement('div');
+    fieldsContainer.className = 'step-fields';
+
+    // Create fields
+    const fields = this.createFields(firstStep.fields);
+    const fieldInstances = [];
+
+    fields.forEach(fieldConfig => {
+        const field = this.factory.createField(fieldConfig);
+        if (field) {
+            fieldInstances.push(field);
+            fieldsContainer.appendChild(field.render());
         }
+    });
 
-        const container = document.createElement('div');
-        container.className = this.isBookingForm ? 'single-step-booking-form' : 'single-step-submission-form';
+    form.appendChild(fieldsContainer);
 
-        // Create title if exists
-        if (firstStep.title) {
-            const titleElement = document.createElement('h2');
-            titleElement.className = 'form-title';
-            titleElement.textContent = this.getText(`steps.0.title`) || firstStep.title;
-            container.appendChild(titleElement);
-        }
-
-        // Create description if exists
-        if (firstStep.description) {
-            const descElement = document.createElement('p');
-            descElement.className = 'form-description';
-            descElement.textContent = this.getText(`steps.0.desc`) || firstStep.description;
-            container.appendChild(descElement);
-        }
-
-        // Create form
-        const form = document.createElement('form');
-        form.className = 'single-step-form';
-        
-        // Create fields container
-        const fieldsContainer = document.createElement('div');
-        fieldsContainer.className = 'form-fields';
-
-        // Create fields
-        const fields = this.createFields(firstStep.fields);
-        const fieldInstances = [];
-
-        fields.forEach(fieldConfig => {
-            const field = this.factory.createField(fieldConfig);
-            if (field) {
-                fieldInstances.push(field);
-                fieldsContainer.appendChild(field.render());
+    // Create navigation container (same structure as multi-step)
+    const navigationContainer = document.createElement('div');
+    navigationContainer.className = 'form-navigation';
+    
+    const submitButton = document.createElement('button');
+    submitButton.type = 'button';
+    submitButton.className = 'btn btn-submit';
+    submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
+    
+    submitButton.addEventListener('click', async () => {
+        // Validate all fields
+        let isValid = true;
+        fieldInstances.forEach(field => {
+            if (!field.validate()) {
+                isValid = false;
             }
         });
 
-        form.appendChild(fieldsContainer);
-
-        // Create submit button
-        const submitButton = document.createElement('button');
-        submitButton.type = 'button';
-        submitButton.className = 'btn btn-submit';
-        submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
-        
-        submitButton.addEventListener('click', async () => {
-            // Validate all fields
-            let isValid = true;
+        if (isValid) {
+            // Collect form data
+            const formData = {};
             fieldInstances.forEach(field => {
-                if (!field.validate()) {
-                    isValid = false;
-                }
+                formData[field.name] = field.getValue();
             });
 
-            if (isValid) {
-                // Collect form data
-                const formData = {};
-                fieldInstances.forEach(field => {
-                    formData[field.name] = field.getValue();
-                });
+            // Submit
+            await this.handleSubmission(formData);
+        }
+    });
 
-                // Submit
-                await this.handleSubmission(formData);
-            }
-        });
+    navigationContainer.appendChild(submitButton);
+    form.appendChild(navigationContainer);
+    container.appendChild(form);
 
-        form.appendChild(submitButton);
-        container.appendChild(form);
+    // Store references for cleanup
+    this.singleStepForm = {
+        container,
+        fieldInstances,
+        submitButton
+    };
 
-        // Store references for cleanup
-        this.singleStepForm = {
-            container,
-            fieldInstances,
-            submitButton
-        };
-
-        return container;
-    }
+    return container;
+}
 
     // ============================================================================
     // BOOKING-SPECIFIC METHODS (unchanged)
