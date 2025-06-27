@@ -1970,6 +1970,18 @@ class NumberField extends BaseField {
     }
 
     validateValue(newValue) {
+        // First, check min/max constraints
+        if (newValue < this.min) {
+            this.showError(`Value must be at least ${this.min}`);
+            return this.min;
+        }
+        
+        if (newValue > this.max) {
+            this.showError(`Value must be at most ${this.max}`);
+            return this.max;
+        }
+
+        // Then run custom validation if provided
         if (this.customValidation) {
             const validationResult = this.customValidation(newValue, this.factory.formValues);
             if (validationResult !== true) {
@@ -1983,6 +1995,7 @@ class NumberField extends BaseField {
                 return this.value;
             }
         }
+        
         this.hideError();
         return newValue;
     }
@@ -1990,6 +2003,17 @@ class NumberField extends BaseField {
     validate() {
         if (this.required && (this.value === null || this.value === undefined || this.value === '')) {
             this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        
+        // Validate min/max for required validation
+        if (this.value < this.min) {
+            this.showError(this.getFieldErrorMessage('min') || `Value must be at least ${this.min}`);
+            return false;
+        }
+        
+        if (this.value > this.max) {
+            this.showError(this.getFieldErrorMessage('max') || `Value must be at most ${this.max}`);
             return false;
         }
         
@@ -2015,6 +2039,11 @@ class NumberField extends BaseField {
         this.element.type = 'number';
         this.element.id = this.id;
         this.element.value = this.formatValue(this.value);
+        
+        // ✅ FIX: Set min, max, and step attributes on the HTML element
+        this.element.min = this.min;
+        this.element.max = this.max;
+        this.element.step = this.step;
 
         const incrementBtn = document.createElement('button');
         incrementBtn.type = 'button';
@@ -2033,10 +2062,21 @@ class NumberField extends BaseField {
         // Event listeners
         this.element.addEventListener('input', () => {
             const newValue = this.parseValue(this.element.value);
-            const validatedValue = this.validateValue(newValue);
+            // ✅ FIX: Clamp value to min/max range before validation
+            const clampedValue = Math.min(Math.max(newValue, this.min), this.max);
+            const validatedValue = this.validateValue(clampedValue);
             this.value = validatedValue;
             this.element.value = this.formatValue(this.value);
             this.handleChange();
+        });
+
+        // ✅ FIX: Add blur event to handle cases where user types invalid values
+        this.element.addEventListener('blur', () => {
+            const newValue = this.parseValue(this.element.value);
+            const clampedValue = Math.min(Math.max(newValue, this.min), this.max);
+            const validatedValue = this.validateValue(clampedValue);
+            this.value = validatedValue;
+            this.element.value = this.formatValue(this.value);
         });
 
         decrementBtn.addEventListener('click', () => {
@@ -2063,7 +2103,9 @@ class NumberField extends BaseField {
     }
 
     parseValue(value) {
-        return parseFloat((value || '').toString().replace(/\s/g, '')) || 0;
+        const parsed = parseFloat((value || '').toString().replace(/\s/g, '')) || 0;
+        // ✅ FIX: Return a valid number, defaulting to min if invalid
+        return isNaN(parsed) ? this.min : parsed;
     }
 
     getValue() {
@@ -2071,7 +2113,9 @@ class NumberField extends BaseField {
     }
 
     setValue(value) {
-        this.value = this.parseValue(value);
+        const newValue = this.parseValue(value);
+        // ✅ FIX: Clamp the value when setting it
+        this.value = Math.min(Math.max(newValue, this.min), this.max);
         if (this.element) {
             this.element.value = this.formatValue(this.value);
         }
@@ -2079,7 +2123,8 @@ class NumberField extends BaseField {
 
     // Method to trigger validation from external sources
     revalidate() {
-        const validatedValue = this.validateValue(this.value);
+        const clampedValue = Math.min(Math.max(this.value, this.min), this.max);
+        const validatedValue = this.validateValue(clampedValue);
         if (validatedValue !== this.value) {
             this.value = validatedValue;
             this.element.value = this.formatValue(this.value);
@@ -2087,7 +2132,6 @@ class NumberField extends BaseField {
         }
     }
 }
-
 class PercentageField extends NumberField {
     constructor(factory, config) {
         super(factory, config);
