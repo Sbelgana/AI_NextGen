@@ -11857,9 +11857,7 @@ class ServiceProviderFilterField extends BaseField {
             }
         }
         
-        // IMPROVEMENT 2: Show provider field when service is selected
         this.showProviderSelection();
-        
         this.updateProviderOptions();
         
         if (this.onServiceChange) {
@@ -11963,7 +11961,6 @@ class ServiceProviderFilterField extends BaseField {
         return this.providerSelectField;
     }
 
-    // IMPROVEMENT 2: Method to show provider selection
     showProviderSelection() {
         const providerContainer = this.element.querySelector('.provider-select-container');
         if (providerContainer) {
@@ -12033,7 +12030,6 @@ class ServiceProviderFilterField extends BaseField {
     validate() {
         if (!this.required) return true;
         
-        // FIX: Use proper error messages in correct language
         if (this.showServiceField && !this.selectedService) {
             this.showError(this.getText('pleaseSelectService'));
             return false;
@@ -12051,13 +12047,13 @@ class ServiceProviderFilterField extends BaseField {
     render() {
         const container = this.createContainer();
         
-        // IMPROVEMENT 1: Add vertical spacing styles
+        // Add vertical spacing styles
         const styles = `
             <style>
                 .service-provider-filter {
                     display: flex;
                     flex-direction: column;
-                    gap: 10px; /* Vertical spacing between dropdowns */
+                    gap: 1.5rem;
                 }
                 .service-provider-filter .service-select-container {
                     margin-bottom: 0;
@@ -12069,7 +12065,6 @@ class ServiceProviderFilterField extends BaseField {
             </style>
         `;
         
-        // Add styles to document head if not already present
         if (!document.querySelector('#service-provider-filter-styles')) {
             const styleElement = document.createElement('div');
             styleElement.id = 'service-provider-filter-styles';
@@ -12089,7 +12084,6 @@ class ServiceProviderFilterField extends BaseField {
             const providerFieldElement = this.providerSelectField.render();
             providerFieldElement.classList.add('provider-select-container');
             
-            // IMPROVEMENT 2: Initially hide provider field if no service is selected
             if (!this.selectedService) {
                 providerFieldElement.style.display = 'none';
             }
@@ -12115,7 +12109,61 @@ class ServiceProviderFilterField extends BaseField {
         return this.element;
     }
 
+    // NEW: Method to get display-friendly text
+    getDisplayText() {
+        const parts = [];
+        
+        if (this.selectedService) {
+            parts.push(this.selectedService);
+        }
+        
+        if (this.selectedProvider && this.selectedProvider.displayName) {
+            parts.push(this.selectedProvider.displayName);
+        }
+        
+        return parts.length > 0 ? parts.join(' - ') : '';
+    }
+
+    // MODIFIED: Return display text for simple display contexts
     getValue() {
+        // Check if this is being called for display purposes (like summary)
+        // If the caller expects a string, return display text
+        if (this.isDisplayContext()) {
+            return this.getDisplayText();
+        }
+        
+        // Otherwise return the full object for data processing
+        return {
+            selectedService: this.selectedService,
+            selectedServiceId: this.selectedService ? this.slugify(this.selectedService) : '',
+            selectedProviderId: this.selectedProviderId,
+            selectedProvider: this.selectedProvider,
+            filteredProviders: this.filteredProviders,
+            serviceConfig: this.selectedProvider?.serviceConfig || null,
+            isComplete: this.isSelectionComplete(),
+            displayText: this.getDisplayText()
+        };
+    }
+
+    // NEW: Method to detect if this is being called for display purposes
+    isDisplayContext() {
+        // Check the call stack to see if this is being called for display
+        const stack = new Error().stack;
+        return stack && (
+            stack.includes('summary') || 
+            stack.includes('display') || 
+            stack.includes('toString') ||
+            stack.includes('render')
+        );
+    }
+
+    // NEW: Override toString for automatic string conversion
+    toString() {
+        return this.getDisplayText();
+    }
+
+    // NEW: Method specifically for getting data (not display)
+    getDataValue() {
         return {
             selectedService: this.selectedService,
             selectedServiceId: this.selectedService ? this.slugify(this.selectedService) : '',
@@ -12167,7 +12215,6 @@ class ServiceProviderFilterField extends BaseField {
             this.updateProviderOptions();
         }
         
-        // IMPROVEMENT 2: Hide provider field when reset
         const providerContainer = this.element?.querySelector('.provider-select-container');
         if (providerContainer) {
             providerContainer.style.display = 'none';
