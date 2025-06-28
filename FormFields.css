@@ -2277,6 +2277,12 @@ select:focus-visible,
   .multistep-form {
     border-radius: 8px;
   }
+
+	.time-choice-container {
+
+	
+	width:100%;
+}
   
 	.field-row {
     display: flex;
@@ -2489,6 +2495,13 @@ select:focus-visible,
     margin: 4px;
     border-radius: 8px;
   }
+
+		.time-choice-container {
+
+	
+	width:100%;
+}
+	
 		.field-row {
     display: flex;
     flex-wrap: wrap;
@@ -3607,13 +3620,7 @@ submission-form-extension {
 }
 
 /* Time Choice Container */
-.time-choice-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-	
-	width:100%;
-}
+
 
 .time-choice-label {
   font-size: 18px;
