@@ -12518,7 +12518,7 @@ class CurrentAppointmentCardField extends BaseField {
     }
 }
 
-   class ServiceProviderFilterField extends BaseField {
+       class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
                 
@@ -12576,8 +12576,8 @@ class CurrentAppointmentCardField extends BaseField {
                 if (this.factory && this.factory.form && this.factory.form.data) {
                     return this.factory.form.data.serviceProviders || {};
                 }
-                if (window.DentalServicesFormExtension && window.DentalServicesFormExtension.FORM_DATA) {
-                    return window.DentalServicesFormExtension.FORM_DATA.serviceProviders || {};
+                if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
+                    return window.ContactFormExtension.FORM_DATA.serviceProviders || {};
                 }
                 return this.rawServiceProviders;
             }
@@ -12615,7 +12615,6 @@ class CurrentAppointmentCardField extends BaseField {
                 const serviceSet = new Set();
                 
                 try {
-                    
                     // Handle object format: { 'Dr. Name': { services: {...} } }
                     Object.entries(rawProviders).forEach(([providerName, providerData]) => {
                         console.log('Processing provider:', providerName, providerData);
@@ -12697,7 +12696,6 @@ class CurrentAppointmentCardField extends BaseField {
             }
 
             selectService(serviceId) {
-                
                 const service = this.availableServices.find(s => s.id === serviceId);
                 if (!service) {
                     console.error('Service not found:', serviceId);
@@ -12736,7 +12734,6 @@ class CurrentAppointmentCardField extends BaseField {
             }
 
             selectProvider(providerId) {
-                
                 const provider = this.filteredProviders.find(p => p.id === providerId) || 
                                 this.allProviders.find(p => p.id === providerId);
                 
@@ -13122,7 +13119,6 @@ class CurrentAppointmentCardField extends BaseField {
 
 
 
-
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { 
@@ -13141,14 +13137,3 @@ if (typeof module !== 'undefined' && module.exports) {
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
 }
-
-// Export for module usage
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = { FormFieldFactory, CreatForm, MultiStepForm, DataTransformerFactory, TransformationConfigBuilder };
-// } else {
-//     window.FormFieldFactory = FormFieldFactory;
-// window.CreatForm = CreatForm;
-// window.MultiStepForm = MultiStepForm;
-// window.DataTransformerFactory = DataTransformerFactory;
-// window.TransformationConfigBuilder = TransformationConfigBuilder;
-// }
