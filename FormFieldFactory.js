@@ -5190,56 +5190,159 @@ class CustomField extends BaseField {
     }
 
     /**
-     * UPDATED: populateStepContent now uses FormDataProcessor (same as transformers)
+     * UPDATED: populateStepContent now properly handles yesno-with-options sub-fields
      */
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
 
-        // Process the step data using the same approach as transformers
-        const processedStepData = this.processor.processFormData(stepData);
-
         step.fields.forEach(fieldConfig => {
             const fieldName = fieldConfig.name || fieldConfig.id;
-            const processedField = processedStepData[fieldName];
+            const fieldValue = stepData[fieldName];
 
-            if (processedField && this.shouldDisplayFieldInSummary(fieldConfig, processedField.rawValue)) {
-                // Handle yesno-with-options fields with sub-fields
-                if (processedField.hasSubFields) {
-                    contentHtml += `
-                        <div class="summary-row">
-                            <div class="summary-label">${processedField.label}:</div>
-                            <div class="summary-value">${processedField.mainDisplayValue}</div>
-                        </div>
-                    `;
-
-                    // Add sub-fields
-                    Object.values(processedField.subFields).forEach(subField => {
-                        if (subField.displayValue) {
-                            contentHtml += `
-                                <div class="summary-row">
-                                    <div class="summary-label">${subField.label}:</div>
-                                    <div class="summary-value">${subField.displayValue}</div>
-                                </div>
-                            `;
-                        }
-                    });
+            if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
+                // Special handling for yesno-with-options fields
+                if (fieldConfig.type === 'yesno-with-options') {
+                    contentHtml += this.renderYesNoWithOptionsField(fieldConfig, fieldValue, stepData);
                 } else {
-                    // Regular fields
-                    const displayValue = Array.isArray(processedField.displayValue) 
-                        ? processedField.string 
-                        : processedField.displayValue;
+                    // Regular field processing
+                    const processedField = this.processor.processFormData({ [fieldName]: fieldValue })[fieldName];
+                    if (processedField) {
+                        const displayValue = Array.isArray(processedField.displayValue) 
+                            ? processedField.displayValue.join(', ')
+                            : processedField.displayValue;
 
-                    contentHtml += `
-                        <div class="summary-row">
-                            <div class="summary-label">${processedField.label}:</div>
-                            <div class="summary-value">${displayValue}</div>
-                        </div>
-                    `;
+                        contentHtml += `
+                            <div class="summary-row">
+                                <div class="summary-label">${processedField.label}:</div>
+                                <div class="summary-value">${displayValue}</div>
+                            </div>
+                        `;
+                    }
                 }
             }
         });
 
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+    }
+
+    /**
+     * NEW: Special rendering for yesno-with-options fields with nested sub-fields
+     */
+    renderYesNoWithOptionsField(fieldConfig, fieldValue, stepData) {
+        let html = '';
+
+        if (!fieldValue || typeof fieldValue !== 'object' || fieldValue.main === undefined) {
+            return '';
+        }
+
+        // Get the main field label and display value
+        const mainLabel = this.getFieldLabel(fieldConfig);
+        const mainDisplayValue = this.formatter.formatYesNoValue(fieldValue.main, fieldConfig);
+
+        // Always show the main field
+        html += `
+            <div class="summary-row">
+                <div class="summary-label">${mainLabel}:</div>
+                <div class="summary-value">${mainDisplayValue}</div>
+            </div>
+        `;
+
+        // Determine which conditional fields to show
+        const showYesFields = this.formatter.isYesValue(fieldValue.main, fieldConfig);
+        const showNoFields = this.formatter.isNoValue(fieldValue.main, fieldConfig);
+
+        // Show conditional sub-fields
+        if (showYesFields && fieldValue.yesValues) {
+            const subFieldConfigs = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
+            html += this.renderSubFields(subFieldConfigs, fieldValue.yesValues, stepData);
+        } else if (showNoFields && fieldValue.noValues) {
+            const subFieldConfigs = fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []);
+            html += this.renderSubFields(subFieldConfigs, fieldValue.noValues, stepData);
+        }
+
+        return html;
+    }
+
+    /**
+     * NEW: Render sub-fields for conditional yesno-with-options fields
+     */
+    renderSubFields(subFieldConfigs, subFieldValues, stepData) {
+        let html = '';
+
+        if (!Array.isArray(subFieldConfigs) || !subFieldValues) {
+            return html;
+        }
+
+        subFieldConfigs.forEach(subFieldConfig => {
+            const fieldName = subFieldConfig.name || subFieldConfig.id;
+            const subFieldValue = subFieldValues[fieldName];
+
+            if (this.shouldDisplayFieldInSummary(subFieldConfig, subFieldValue)) {
+                const subFieldLabel = this.getSubFieldLabel(subFieldConfig);
+                const subFieldDisplayValue = this.formatter.formatValueDirectly(subFieldConfig, subFieldValue);
+
+                // Handle different types of sub-field values
+                let displayValue;
+                if (Array.isArray(subFieldDisplayValue)) {
+                    displayValue = subFieldDisplayValue.join(', ');
+                } else {
+                    displayValue = subFieldDisplayValue;
+                }
+
+                html += `
+                    <div class="summary-row sub-field">
+                        <div class="summary-label">↳ ${subFieldLabel}:</div>
+                        <div class="summary-value">${displayValue}</div>
+                    </div>
+                `;
+            }
+        });
+
+        return html;
+    }
+
+    /**
+     * NEW: Get label for sub-fields with proper fallbacks
+     */
+    getSubFieldLabel(subFieldConfig) {
+        // Try multiple ways to get the label
+        if (subFieldConfig.label) {
+            return subFieldConfig.label;
+        }
+
+        // Try to get translated label
+        const fieldId = subFieldConfig.id || subFieldConfig.name;
+        if (fieldId && this.factory.creatFormInstance) {
+            const translatedLabel = this.factory.creatFormInstance.getText(`fields.${fieldId}`);
+            if (translatedLabel && translatedLabel !== `fields.${fieldId}`) {
+                return translatedLabel;
+            }
+        }
+
+        // Fallback to field ID
+        return fieldId || 'Unknown Field';
+    }
+
+    /**
+     * UPDATED: Get field label with better fallback handling
+     */
+    getFieldLabel(fieldConfig) {
+        // Try multiple ways to get the label
+        if (fieldConfig.label) {
+            return fieldConfig.label;
+        }
+
+        // Try to get translated label
+        const fieldId = fieldConfig.id || fieldConfig.name;
+        if (fieldId && this.factory.creatFormInstance) {
+            const translatedLabel = this.factory.creatFormInstance.getText(`fields.${fieldId}`);
+            if (translatedLabel && translatedLabel !== `fields.${fieldId}`) {
+                return translatedLabel;
+            }
+        }
+
+        // Fallback to field ID
+        return fieldId || 'Unknown Field';
     }
 
     // ============================================================================
