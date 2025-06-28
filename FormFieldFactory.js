@@ -984,9 +984,9 @@ this.SVG_ICONS = {
             case 'category-item-calendar':
                 field = new CategoryAndItemCalendarField  (this, config);
                 break;
-            case 'category-request-calendar':
-            case 'categoryRequestCalendar':
-                field = new CategoryRequestCalendarField(this, config);
+            case 'service-request-calendar':
+            case 'serviceRequestCalendar':
+                field = new ServiceRequestCalendarField(this, config);
                 break;
             case 'terms-checkbox':
             case 'termsCheckbox':
@@ -1281,8 +1281,8 @@ this.SVG_ICONS = {
     }
 
     // ===== NEW CUSTOM FIELD FACTORY METHODS =====
-    createCategoryRequestCalendarField(config) {
-        return new CategoryRequestCalendarField(this, config);
+    createServiceRequestCalendarField(config) {
+        return new ServiceRequestCalendarField(this, config);
     }
 
     createTermsCheckboxField(config) {
@@ -1815,9 +1815,9 @@ class FormStep {
             case 'bookingCancellationCard':
                 return this.factory.createBookingCancellationCardField(fieldConfig);
             // ===== NEW CUSTOM FIELD TYPES =====
-            case 'category-request-calendar':
-            case 'categoryRequestCalendar':
-                return this.factory.createCategoryRequestCalendarField(fieldConfig);
+            case 'service-request-calendar':
+            case 'serviceRequestCalendar':
+                return this.factory.createServiceRequestCalendarField(fieldConfig);
             case 'terms-checkbox':
             case 'termsCheckbox':
                 return this.factory.createTermsCheckboxField(fieldConfig);
