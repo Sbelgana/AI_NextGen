@@ -1216,6 +1216,13 @@ input[type="number"]:hover:not(:focus) {
   z-index: 50;
 }
 
+.time-choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+	width:50%;
+}
+
 .info-panel.show {
   display: block;
 }
@@ -3604,6 +3611,8 @@ submission-form-extension {
   display: flex;
   flex-direction: column;
   gap: 16px;
+	
+	width:100%;
 }
 
 .time-choice-label {
