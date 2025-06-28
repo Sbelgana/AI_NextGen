@@ -9529,6 +9529,7 @@ class CalendarField extends BaseField {
         // Core calendar configuration
         this.timezone = config.timezone || 'America/Toronto';
         this.language = config.language || 'en';
+        this.locale = config.locale || 'en-US'; // Receive locale from config
         this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
         
         // Reschedule mode configuration  
@@ -9563,6 +9564,34 @@ class CalendarField extends BaseField {
         this.headerIcon = config.headerIcon || 'CALENDAR';
         this.showProviderInfo = config.showProviderInfo !== false;
         this.placeholderText = config.placeholderText || '';
+        
+        // ===============================
+        // TRANSLATED TEXTS - Receive from BookingDirectExtension
+        // ===============================
+        this.texts = {
+            selectService: config.texts?.selectService || "Select a service",
+            selectServicePlaceholder: config.texts?.selectServicePlaceholder || "-- Select a service --",
+            selectProvider: config.texts?.selectProvider || "Select a service provider",
+            selectProviderPlaceholder: config.texts?.selectProviderPlaceholder || "-- Select a provider --",
+            selectDate: config.texts?.selectDate || "Select a date to view available times",
+            availableTimesFor: config.texts?.availableTimesFor || "Available times for",
+            noAvailableSlots: config.texts?.noAvailableSlots || "No available time slots for this date",
+            pleaseSelectDate: config.texts?.pleaseSelectDate || "Please select a date first",
+            pleaseSelectService: config.texts?.pleaseSelectService || "Please select a service first",
+            pleaseSelectProvider: config.texts?.pleaseSelectProvider || "Please select a service provider first",
+            currentAppointment: config.texts?.currentAppointment || "Current Appointment",
+            newAppointment: config.texts?.newAppointment || "New Appointment",
+            loadingAvailability: config.texts?.loadingAvailability || "Loading availability...",
+            loading: config.texts?.loading || "Loading...",
+            weekdays: config.texts?.weekdays || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        };
+        
+        // Error messages - Receive from BookingDirectExtension
+        this.errorTexts = {
+            serviceRequired: config.errorTexts?.serviceRequired || 'Please select a service',
+            providerRequired: config.errorTexts?.providerRequired || 'Please select a provider',
+            dateTimeRequired: config.errorTexts?.dateTimeRequired || 'Please select date and time'
+        };
         
         // Selection fields (created as needed)
         this.serviceSelectField = null;
@@ -9811,8 +9840,8 @@ class CalendarField extends BaseField {
         this.serviceSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-service`,
             name: `${this.name}_service`,
-            label: this.getText('selectService'),
-            placeholder: this.getText('selectServicePlaceholder'),
+            label: this.texts.selectService,
+            placeholder: this.texts.selectServicePlaceholder,
             options: this.availableServices,
             required: true,
             onChange: (value) => this.selectService(value)
@@ -9835,8 +9864,8 @@ class CalendarField extends BaseField {
         this.providerSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-provider`,
             name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.getText('selectProviderPlaceholder'),
+            label: this.texts.selectProvider,
+            placeholder: this.texts.selectProviderPlaceholder,
             options: this.filteredProviders,
             required: true,
             onChange: (value) => this.selectProvider(value)
@@ -9862,8 +9891,8 @@ class CalendarField extends BaseField {
         this.providerSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-provider`,
             name: `${this.name}_provider`,
-            label: this.getText('selectProvider'),
-            placeholder: this.getText('selectProviderPlaceholder'),
+            label: this.texts.selectProvider,
+            placeholder: this.texts.selectProviderPlaceholder,
             options: this.filteredProviders,
             required: true,
             onChange: (value) => this.selectProvider(value)
@@ -9907,11 +9936,11 @@ class CalendarField extends BaseField {
         const timeSlotsEl = this.element.querySelector('.time-slots');
         
         if (daysEl) {
-            daysEl.innerHTML = '<div class="loading-message">Loading availability...</div>';
+            daysEl.innerHTML = `<div class="loading-message">${this.texts.loadingAvailability}</div>`;
         }
         
         if (timeSlotsEl) {
-            timeSlotsEl.innerHTML = '<div class="loading-message">Loading...</div>';
+            timeSlotsEl.innerHTML = `<div class="loading-message">${this.texts.loading}</div>`;
         }
     }
 
@@ -9931,13 +9960,13 @@ class CalendarField extends BaseField {
     validate() {
         // Check service selection if required
         if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            this.showError(this.getFieldErrorMessage('serviceRequired') || 'Please select a service');
+            this.showError(this.getFieldErrorMessage('serviceRequired') || this.errorTexts.serviceRequired);
             return false;
         }
         
         // Check provider selection if required
         if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.selectedProviderId) {
-            this.showError(this.getFieldErrorMessage('providerRequired') || 'Please select a provider');
+            this.showError(this.getFieldErrorMessage('providerRequired') || this.errorTexts.providerRequired);
             return false;
         }
         
@@ -9945,7 +9974,7 @@ class CalendarField extends BaseField {
         const isDateTimeValid = !!(this.state.selectedDate && this.state.selectedTime);
         
         if (this.required && !isDateTimeValid) {
-            this.showError(this.getFieldErrorMessage('dateTimeRequired') || 'Please select date and time');
+            this.showError(this.getFieldErrorMessage('dateTimeRequired') || this.errorTexts.dateTimeRequired);
             return false;
         }
         
@@ -10144,46 +10173,6 @@ class CalendarField extends BaseField {
     }
 
     // ===============================
-    // LOCALIZATION
-    // ===============================
-
-    getText(key) {
-        const translations = {
-            en: {
-                selectService: "Select a service",
-                selectServicePlaceholder: "-- Select a service --",
-                selectProvider: "Select a service provider",
-                selectProviderPlaceholder: "-- Select a provider --",
-                selectDate: "Select a date to view available times",
-                availableTimesFor: "Available times for",
-                noAvailableSlots: "No available time slots for this date",
-                pleaseSelectDate: "Please select a date first",
-                pleaseSelectService: "Please select a service first",
-                pleaseSelectProvider: "Please select a service provider first",
-                weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                currentAppointment: "Current Appointment",
-                newAppointment: "New Appointment"
-            },
-            fr: {
-                selectService: "Sélectionner un service",
-                selectServicePlaceholder: "-- Sélectionner un service --",
-                selectProvider: "Sélectionner un fournisseur de services",
-                selectProviderPlaceholder: "-- Sélectionner un fournisseur --",
-                selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-                availableTimesFor: "Disponibilités pour",
-                noAvailableSlots: "Aucun horaire disponible pour cette date",
-                pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-                pleaseSelectService: "Veuillez d'abord sélectionner un service",
-                pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
-                weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-                currentAppointment: "Rendez-vous Actuel",
-                newAppointment: "Nouveau Rendez-vous"
-            }
-        };
-        return translations[this.language]?.[key] || key;
-    }
-
-    // ===============================
     // RESCHEDULE MODE FORMATTING
     // ===============================
 
@@ -10200,8 +10189,7 @@ class CalendarField extends BaseField {
             minute: '2-digit'
         };
         
-        let locale = this.language === 'fr' ? 'fr-FR' : 'en-US';
-        const formatter = new Intl.DateTimeFormat(locale, formatOptions);
+        const formatter = new Intl.DateTimeFormat(this.locale, formatOptions);
         return formatter.format(date);
     }
 
@@ -10347,7 +10335,7 @@ class CalendarField extends BaseField {
         
         const currentDateEl = this.calendarContainer.querySelector('.current-date');
         if (currentDateEl) {
-            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+            const dateFormatter = new Intl.DateTimeFormat(this.locale, { 
                 month: "long", year: "numeric" 
             });
             currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
@@ -10356,8 +10344,7 @@ class CalendarField extends BaseField {
         const weekdaysEl = this.calendarContainer.querySelector('.weekdays');
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
-            const weekdays = this.getText('weekdays');
-            weekdays.forEach(day => {
+            this.texts.weekdays.forEach(day => {
                 const dayEl = document.createElement("div");
                 dayEl.textContent = day;
                 weekdaysEl.appendChild(dayEl);
@@ -10378,7 +10365,7 @@ class CalendarField extends BaseField {
         if (this.selectionMode === 'service-provider' && !this.selectedService) {
             const messageEl = document.createElement('div');
             messageEl.className = 'no-service-message';
-            messageEl.textContent = this.getText('pleaseSelectService');
+            messageEl.textContent = this.texts.pleaseSelectService;
             daysEl.appendChild(messageEl);
             return;
         }
@@ -10386,7 +10373,7 @@ class CalendarField extends BaseField {
         if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
             const messageEl = document.createElement('div');
             messageEl.className = 'no-provider-message';
-            messageEl.textContent = this.getText('pleaseSelectProvider');
+            messageEl.textContent = this.texts.pleaseSelectProvider;
             daysEl.appendChild(messageEl);
             return;
         }
@@ -10466,28 +10453,28 @@ class CalendarField extends BaseField {
         
         // Check selection requirements
         if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            timeHeaderEl.textContent = this.getText('pleaseSelectService');
-            timeSlotsEl.innerHTML = `<div class="no-service-message">${this.getText('pleaseSelectService')}</div>`;
+            timeHeaderEl.textContent = this.texts.pleaseSelectService;
+            timeSlotsEl.innerHTML = `<div class="no-service-message">${this.texts.pleaseSelectService}</div>`;
             return;
         }
         
         if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
-            timeHeaderEl.textContent = this.getText('pleaseSelectProvider');
-            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.getText('pleaseSelectProvider')}</div>`;
+            timeHeaderEl.textContent = this.texts.pleaseSelectProvider;
+            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.texts.pleaseSelectProvider}</div>`;
             return;
         }
         
         if (this.state.selectedDate) {
-            const dateFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+            const dateFormatter = new Intl.DateTimeFormat(this.locale, { 
                 weekday: "long", month: "long", day: "numeric" 
             });
-            timeHeaderEl.textContent = `${this.getText('availableTimesFor')} ${dateFormatter.format(this.state.selectedDate)}`;
+            timeHeaderEl.textContent = `${this.texts.availableTimesFor} ${dateFormatter.format(this.state.selectedDate)}`;
             
             const dateKey = this.formatDate(this.state.selectedDate);
             const timeSlots = this.state.availableSlots[dateKey] || [];
             
             if (timeSlots.length === 0) {
-                timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('noAvailableSlots')}</div>`;
+                timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.texts.noAvailableSlots}</div>`;
             } else {
                 const columnsContainer = document.createElement("div");
                 columnsContainer.className = "time-slots-columns";
@@ -10517,7 +10504,7 @@ class CalendarField extends BaseField {
                         timeSlot.classList.add("selected");
                     }
                     
-                    const timeFormatter = new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+                    const timeFormatter = new Intl.DateTimeFormat(this.locale, { 
                         hour: "numeric", minute: "2-digit", hour12: true 
                     });
                     timeSlot.textContent = timeFormatter.format(dateTime);
@@ -10543,8 +10530,8 @@ class CalendarField extends BaseField {
                 timeSlotsEl.appendChild(columnsContainer);
             }
         } else {
-            timeHeaderEl.innerHTML = `<span class="pulse-text">${this.getText('selectDate')}</span>`;
-            timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.getText('pleaseSelectDate')}</div>`;
+            timeHeaderEl.innerHTML = `<span class="pulse-text">${this.texts.selectDate}</span>`;
+            timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.texts.pleaseSelectDate}</div>`;
         }
     }
     
@@ -10585,7 +10572,7 @@ class CalendarField extends BaseField {
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.locale, { 
                 hour: "numeric", minute: "2-digit", hour12: true 
             }).format(new Date(this.state.selectedTime)) : null
         };
@@ -10602,7 +10589,7 @@ class CalendarField extends BaseField {
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.language === "fr" ? "fr-CA" : "en-US", { 
+            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.locale, { 
                 hour: "numeric", minute: "2-digit", hour12: true 
             }).format(new Date(this.state.selectedTime)) : null,
             currentAppointment: this.currentAppointment,
