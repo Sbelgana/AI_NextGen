@@ -426,8 +426,15 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         const fieldConfigMap = {
             niche: { optionsPath: 'niches', type: 'select-with-other' },
             budget: { optionsPath: 'budgetRanges', type: 'select-with-other' },
-                        teamSize: { optionsPath: 'teamSize', type: 'select' }, // UPDATED: Now uses optionsPath
-
+            teamSize: { 
+                type: 'select',
+                customOptions: [
+                    { id: 'solo', name: { fr: 'Entrepreneur individuel', en: 'Individual Entrepreneur' } },
+                    { id: 'small', name: { fr: 'TPE (2-10 employés)', en: 'Small Business (2-10 employees)' } },
+                    { id: 'medium', name: { fr: 'PME (11-50 employés)', en: 'Medium Business (11-50 employees)' } },
+                    { id: 'large', name: { fr: 'Grande entreprise (50+ employés)', en: 'Large Enterprise (50+ employees)' } }
+                ]
+            },
             formTypes: { optionsPath: 'formTypes', type: 'multiselect-with-other' },
             websitePlatform: { optionsPath: 'platforms.website', type: 'select-with-other' },
             websiteTraffic: { optionsPath: 'websiteTraffic', type: 'select' },
