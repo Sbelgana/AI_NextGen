@@ -12231,8 +12231,23 @@ class CurrentAppointmentCardField extends BaseField {
         this.serviceMapping = config.serviceMapping || {};
     }
 
+    // FIXED: getText method now properly accesses nested translation structure
     getText(key) {
-        return this.translations[this.language]?.[key] || key;
+        // First try to get from fields section
+        const fieldsText = this.translations[this.language]?.fields?.[key];
+        if (fieldsText) {
+            return fieldsText;
+        }
+        
+        // Fallback to direct access for backward compatibility
+        const directText = this.translations[this.language]?.[key];
+        if (directText) {
+            return directText;
+        }
+        
+        // Final fallback - return the key itself
+        console.warn(`CurrentAppointmentCardField: Translation missing for key "${key}" in language "${this.language}"`);
+        return key;
     }
 
     getServiceNameFromSlug(eventTypeSlug, fallback) {
@@ -12488,7 +12503,6 @@ class CurrentAppointmentCardField extends BaseField {
         }
     }
 }
-
 
    class ServiceProviderFilterField extends BaseField {
             constructor(factory, config) {
