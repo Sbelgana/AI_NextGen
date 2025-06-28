@@ -972,17 +972,17 @@ this.SVG_ICONS = {
             case 'calendar':
                 field = new CalendarField(this, config);
                 break;
-            case 'provider-calendar':
-                field = new ProviderCalendarField(this, config);
+            case 'item-calendar':
+                field = new ItemCalendarField (this, config);
                 break;
-            case 'service-provider-filter':
-                field = new ServiceProviderFilterField (this, config);
+            case 'category-item-filter':
+                field = new CategoryItemFilterField  (this, config);
                 break;
             case 'tab-manager':
     field = new TabManager(this, config);
     break;
-            case 'service-provider-calendar':
-                field = new ServiceAndProviderCalendarField (this, config);
+            case 'category-item-calendar':
+                field = new CategoryAndItemCalendarField  (this, config);
                 break;
             case 'service-request-calendar':
             case 'serviceRequestCalendar':
@@ -1255,8 +1255,8 @@ this.SVG_ICONS = {
         return new CalendarField(this, config);
     }
 	
-	createProviderCalendarField (config) {
-        return new ProviderCalendarField (this, config);
+	createItemCalendarField  (config) {
+        return new ItemCalendarField  (this, config);
     }
 	
 	createTabManager (config) {
@@ -1272,12 +1272,12 @@ this.SVG_ICONS = {
 
 	
 
-	createServiceAndProviderCalendarField (config) {
-        return new ServiceAndProviderCalendarField (this, config);
+	createCategoryAndItemCalendarField  (config) {
+        return new CategoryAndItemCalendarField  (this, config);
     }
 
-		createServiceProviderFilterField (config) {
-        return new ServiceProviderFilterField (this, config);
+		createCategoryItemFilterField  (config) {
+        return new CategoryItemFilterField  (this, config);
     }
 
     // ===== NEW CUSTOM FIELD FACTORY METHODS =====
@@ -1800,18 +1800,18 @@ class FormStep {
                 return this.factory.createServiceCardField(fieldConfig);
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
-            case 'provider-calendar':
-                return this.factory.createProviderCalendarField(fieldConfig);
+            case 'item-calendar':
+                return this.factory.createItemCalendarField (fieldConfig);
             case 'manager':
                 return this.factory.createTabManager(fieldConfig);
-            case 'service-provider-filter':
-                return this.factory.createServiceProviderFilterField(fieldConfig);
+            case 'category-item-filter':
+                return this.factory.createCategoryItemFilterField (fieldConfig);
 
 
 		
 
-            case 'service-provider-calendar':
-                return this.factory.createServiceAndProviderCalendarField(fieldConfig);
+            case 'category-item-calendar':
+                return this.factory.createCategoryAndItemCalendarField (fieldConfig);
             case 'bookingCancellationCard':
                 return this.factory.createBookingCancellationCardField(fieldConfig);
             // ===== NEW CUSTOM FIELD TYPES =====
@@ -9674,6 +9674,605 @@ class CreatForm {
  * Replaces the need for three separate classes with configuration-driven approach
  */
 
+class CategoryItemFilterField extends BaseField {
+            constructor(factory, config) {
+                super(factory, config);
+                
+                // Core configuration
+                this.language = config.language || 'fr';
+                this.mode = config.mode || 'both'; // 'category-only', 'item-only', 'both'
+                
+                // Data configuration - FIX: Properly handle data reference
+                if (typeof config.categoryItems === 'string') {
+                    // Reference to data in form - need to get it from factory or form
+                    this.rawCategoryItems = this.factory.getFormData?.(config.categoryItems) || 
+                                              this.factory.formData?.[config.categoryItems] || 
+                                              this.factory.data?.[config.categoryItems] || {};
+                } else {
+                    this.rawCategoryItems = config.categoryItems || config.categorysInfo || {};
+                }
+                
+                this.availableCategories = [];
+                this.filteredItems = [];
+                this.allItems = [];
+                
+                // Selection state
+                this.selectedCategory = config.selectedCategory || config.categoryName || '';
+                this.selectedItemId = config.selectedItemId || '';
+                this.selectedItem = null;
+                
+                // UI Configuration
+                this.categoryLabel = config.categoryLabel || this.getText('selectCategory');
+                this.categoryPlaceholder = config.categoryPlaceholder || this.getText('selectCategoryPlaceholder');
+                this.itemLabel = config.itemLabel || this.getText('selectItem');
+                this.itemPlaceholder = config.itemPlaceholder || this.getText('selectItemPlaceholder');
+                
+                // Show/hide options
+                this.showCategoryField = config.showCategoryField !== false && (this.mode === 'both' || this.mode === 'category-only');
+                this.showItemField = config.showItemField !== false && (this.mode === 'both' || this.mode === 'item-only');
+                
+                // Auto-selection behavior
+                this.autoSelectSingleCategory = config.autoSelectSingleCategory !== false;
+                this.autoSelectSingleItem = config.autoSelectSingleItem !== false;
+                
+                // Callback functions
+                this.onCategoryChange = config.onCategoryChange || null;
+                this.onItemChange = config.onItemChange || null;
+                this.onSelectionComplete = config.onSelectionComplete || null;
+                
+                // Field instances
+                this.categorySelectField = null;
+                this.itemSelectField = null;
+                
+                this.init();
+            }
+
+            // FIX: Method to get data from form context
+            getDataFromForm() {
+                if (this.factory && this.factory.form && this.factory.form.data) {
+                    return this.factory.form.data.categoryItems || {};
+                }
+                if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
+                    return window.ContactFormExtension.FORM_DATA.categoryItems || {};
+                }
+                return this.rawCategoryItems;
+            }
+
+            init() {
+                // FIX: Ensure we have the correct data
+                if (!this.rawCategoryItems || Object.keys(this.rawCategoryItems).length === 0) {
+                    this.rawCategoryItems = this.getDataFromForm();
+                }
+                
+                this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
+                this.allItems = this.extractAllItems(this.rawCategoryItems);
+                
+                if (this.autoSelectSingleCategory && this.availableCategories.length === 1 && !this.selectedCategory) {
+                    this.selectedCategory = this.availableCategories[0].name;
+                }
+                
+                if (this.selectedCategory) {
+                    this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
+                    
+                    if (this.autoSelectSingleItem && this.filteredItems.length === 1 && !this.selectedItemId) {
+                        this.selectedItemId = this.filteredItems[0].id;
+                        this.selectedItem = this.filteredItems[0];
+                    }
+                } else {
+                    this.filteredItems = this.allItems;
+                }
+                
+                if (this.selectedItemId && !this.selectedItem) {
+                    this.selectedItem = this.filteredItems.find(p => p.id === this.selectedItemId);
+                }
+            }
+
+            extractAvailableCategories(rawItems) {
+                const categorySet = new Set();
+                
+                try {
+                    // Handle object format: { 'Item Name': { categories: {...} } }
+                    Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                        console.log('Processing item:', itemName, itemData);
+                        
+                        if (itemData && itemData.categories) {
+                            Object.keys(itemData.categories).forEach(category => {
+                                categorySet.add(category);
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error extracting categories:', error);
+                }
+                
+                const categories = Array.from(categorySet).sort().map(category => ({
+                    id: this.slugify(category),
+                    name: category,
+                    displayName: category
+                }));
+                
+                return categories;
+            }
+
+            extractAllItems(rawItems) {
+                const allItems = [];
+                
+                try {
+                    Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                        if (itemData) {
+                            allItems.push({
+                                id: this.slugify(itemName),
+                                name: itemName,
+                                displayName: itemName,
+                                description: itemData.description || itemData.specialty || "",
+                                categories: itemData.categories || {},
+                                rawData: itemData
+                            });
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error extracting items:', error);
+                }
+                
+                return allItems;
+            }
+
+            filterItemsByCategory(categoryName) {
+                if (!categoryName || !this.rawCategoryItems) {
+                    return this.allItems;
+                }
+
+                const filteredItems = [];
+                
+                Object.entries(this.rawCategoryItems).forEach(([itemName, itemData]) => {
+                    if (itemData.categories && itemData.categories[categoryName]) {
+                        const categoryConfig = itemData.categories[categoryName];
+                        
+                        filteredItems.push({
+                            id: this.slugify(itemName),
+                            name: itemName,
+                            displayName: itemName,
+                            description: itemData.description || itemData.specialty || "",
+                            categoryConfig: categoryConfig,
+                            allCategories: itemData.categories,
+                            rawData: itemData
+                        });
+                    }
+                });
+                
+                return filteredItems;
+            }
+
+            slugify(text) {
+                return text
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '') 
+                    .replace(/[\s_-]+/g, '-') 
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            selectCategory(categoryId) {
+                const category = this.availableCategories.find(s => s.id === categoryId);
+                if (!category) {
+                    console.error('Category not found:', categoryId);
+                    return;
+                }
+                
+                this.selectedCategory = category.name;
+                this.filteredItems = this.filterItemsByCategory(category.name);
+                
+                if (this.selectedItemId) {
+                    const stillValid = this.filteredItems.find(p => p.id === this.selectedItemId);
+                    if (!stillValid) {
+                        this.selectedItemId = '';
+                        this.selectedItem = null;
+                    }
+                }
+                
+                if (this.autoSelectSingleItem && this.filteredItems.length === 1) {
+                    this.selectedItemId = this.filteredItems[0].id;
+                    this.selectedItem = this.filteredItems[0];
+                    
+                    if (this.itemSelectField) {
+                        this.itemSelectField.setValue(this.selectedItemId);
+                    }
+                }
+                
+                this.showItemSelection();
+                this.updateItemOptions();
+                
+                if (this.onCategoryChange) {
+                    this.onCategoryChange(category, this.filteredItems);
+                }
+                
+                this.checkSelectionComplete();
+                this.updateValue();
+            }
+
+            selectItem(itemId) {
+                const item = this.filteredItems.find(p => p.id === itemId) || 
+                                this.allItems.find(p => p.id === itemId);
+                
+                if (!item) {
+                    console.error('Item not found:', itemId);
+                    return;
+                }
+                
+                this.selectedItemId = itemId;
+                this.selectedItem = item;
+                
+                if (this.onItemChange) {
+                    this.onItemChange(item);
+                }
+                
+                this.checkSelectionComplete();
+                this.updateValue();
+            }
+
+            checkSelectionComplete() {
+                const isComplete = this.isSelectionComplete();
+                
+                if (isComplete && this.onSelectionComplete) {
+                    this.onSelectionComplete({
+                        category: this.selectedCategory,
+                        item: this.selectedItem,
+                        categoryConfig: this.selectedItem?.categoryConfig
+                    });
+                }
+            }
+
+            isSelectionComplete() {
+                let complete = true;
+                
+                if (this.showCategoryField && this.required && !this.selectedCategory) {
+                    complete = false;
+                }
+                
+                if (this.showItemField && this.required && !this.selectedItemId) {
+                    complete = false;
+                }
+                
+                return complete;
+            }
+
+            createCategorySelectField() {
+                if (!this.showCategoryField) return null;
+                
+                this.categorySelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-category`,
+                    name: `${this.name}_category`,
+                    label: this.categoryLabel,
+                    placeholder: this.categoryPlaceholder,
+                    options: this.availableCategories,
+                    required: this.required,
+                    row:'categorySelectField',
+                    onChange: (value) => this.selectCategory(value)
+                });
+
+                if (this.selectedCategory) {
+                    const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
+                    if (categoryOption) {
+                        this.categorySelectField.setValue(categoryOption.id);
+                    }
+                }
+
+                return this.categorySelectField;
+            }
+
+            createItemSelectField() {
+                if (!this.showItemField) return null;
+                
+                this.itemSelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-item`,
+                    name: `${this.name}_item`,
+                    label: this.itemLabel,
+                    placeholder: this.itemPlaceholder,
+                    options: this.filteredItems,
+                    required: this.required,
+                    row:'itemSelectField',
+                    onChange: (value) => this.selectItem(value)
+                });
+
+                if (this.selectedItemId) {
+                    this.itemSelectField.setValue(this.selectedItemId);
+                }
+
+                return this.itemSelectField;
+            }
+
+            showItemSelection() {
+                const itemContainer = this.element.querySelector('.item-select-container');
+                if (itemContainer) {
+                    itemContainer.style.display = 'block';
+                    // Add smooth transition effect
+                    itemContainer.style.opacity = '0';
+                    itemContainer.style.transform = 'translateY(-10px)';
+                    
+                    // Animate in
+                    setTimeout(() => {
+                        itemContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        itemContainer.style.opacity = '1';
+                        itemContainer.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+            }
+
+            updateItemOptions() {
+                if (!this.itemSelectField) return;
+
+                const itemContainer = this.element.querySelector('.item-select-container');
+                if (!itemContainer) return;
+
+                const currentValue = this.selectedItemId;
+                itemContainer.innerHTML = '';
+
+                this.itemSelectField = new SingleSelectField(this.factory, {
+                    id: `${this.id}-item`,
+                    name: `${this.name}_item`,
+                    label: this.itemLabel,
+                    placeholder: this.itemPlaceholder,
+                    options: this.filteredItems,
+                    required: this.required,
+                    onChange: (value) => this.selectItem(value)
+                });
+
+                const newFieldElement = this.itemSelectField.render();
+                itemContainer.appendChild(newFieldElement);
+
+                if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
+                    this.itemSelectField.setValue(currentValue);
+                }
+            }
+
+            getText(key) {
+                const translations = {
+                    en: {
+                        selectCategory: "Select a category",
+                        selectCategoryPlaceholder: "-- Select a category --",
+                        selectItem: "Select an item",
+                        selectItemPlaceholder: "-- Select an item --",
+                        pleaseSelectCategory: "Please select a category",
+                        pleaseSelectItem: "Please select an item"
+                    },
+                    fr: {
+                        selectCategory: "Sélectionner une catégorie",
+                        selectCategoryPlaceholder: "-- Sélectionner une catégorie --",
+                        selectItem: "Sélectionner un élément",
+                        selectItemPlaceholder: "-- Sélectionner un élément --",
+                        pleaseSelectCategory: "Veuillez sélectionner une catégorie",
+                        pleaseSelectItem: "Veuillez sélectionner un élément"
+                    }
+                };
+                return translations[this.language]?.[key] || key;
+            }
+
+            validate() {
+                if (!this.required) return true;
+                
+                if (this.showCategoryField && !this.selectedCategory) {
+                    this.showError(this.getText('pleaseSelectCategory'));
+                    return false;
+                }
+                
+                if (this.showItemField && !this.selectedItemId) {
+                    this.showError(this.getText('pleaseSelectItem'));
+                    return false;
+                }
+                
+                this.hideError();
+                return true;
+            }
+
+            render() {
+                const container = this.createContainer();
+                
+                // Add vertical spacing styles
+                const styles = `
+                    <style>
+                        .category-item-filter {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 10px;
+                        }
+                        .category-item-filter .category-select-container {
+                            margin-bottom: 0;
+                        }
+                        .category-item-filter .item-select-container {
+                            margin-top: 0;
+                            transition: opacity 0.3s ease, transform 0.3s ease;
+                        }
+                    </style>
+                `;
+                
+                if (!document.querySelector('#category-item-filter-styles')) {
+                    const styleElement = document.createElement('div');
+                    styleElement.id = 'category-item-filter-styles';
+                    styleElement.innerHTML = styles;
+                    document.head.appendChild(styleElement.firstElementChild);
+                }
+                
+                if (this.showCategoryField) {
+                    this.createCategorySelectField();
+                    const categoryFieldElement = this.categorySelectField.render();
+                    categoryFieldElement.classList.add('category-select-container');
+                    container.appendChild(categoryFieldElement);
+                }
+                
+                if (this.showItemField) {
+                    this.createItemSelectField();
+                    const itemFieldElement = this.itemSelectField.render();
+                    itemFieldElement.classList.add('item-select-container');
+                    
+                    if (!this.selectedCategory) {
+                        itemFieldElement.style.display = 'none';
+                    }
+                    
+                    container.appendChild(itemFieldElement);
+                }
+                
+                const filterContainer = document.createElement('div');
+                filterContainer.className = 'category-item-filter';
+                
+                while (container.firstChild) {
+                    filterContainer.appendChild(container.firstChild);
+                }
+                
+                container.appendChild(filterContainer);
+                
+                const errorElement = this.createErrorElement();
+                container.appendChild(errorElement);
+                
+                this.element = container;
+                this.element.fieldInstance = this;
+                
+                return this.element;
+            }
+
+            // UPDATED: Return structured object for separate summary display
+            getValue() {
+                return {
+                    category: this.selectedCategory || '',
+                    item: this.selectedItem?.displayName || '',
+                    // Flag to indicate this should be displayed as separate fields
+                    _separateFields: true,
+                    // Provide field labels for display
+                    _fieldLabels: {
+                        category: 'Category',
+                        item: 'Item'
+                    },
+                    toString: () => this.getDisplayText() // Fallback for string conversion
+                };
+            }
+
+            // NEW: Method to get separate summary fields
+            getSummaryFields() {
+                const fields = [];
+                
+                if (this.selectedCategory) {
+                    fields.push({
+                        label: 'Category',
+                        value: this.selectedCategory
+                    });
+                }
+                
+                if (this.selectedItem?.displayName) {
+                    fields.push({
+                        label: 'Item', 
+                        value: this.selectedItem.displayName
+                    });
+                }
+                
+                return fields;
+            }
+
+            // Method to get display-friendly text
+            getDisplayText() {
+                const parts = [];
+                
+                if (this.selectedCategory) {
+                    parts.push(this.selectedCategory);
+                }
+                
+                if (this.selectedItem && this.selectedItem.displayName) {
+                    parts.push(this.selectedItem.displayName);
+                }
+                
+                return parts.length > 0 ? parts.join(' - ') : '';
+            }
+
+            // Method specifically for summary display
+            getSummaryValue() {
+                const parts = [];
+                if (this.selectedCategory) {
+                    parts.push(`Category: ${this.selectedCategory}`);
+                }
+                if (this.selectedItem && this.selectedItem.displayName) {
+                    parts.push(`Item: ${this.selectedItem.displayName}`);
+                }
+                return parts.join('\n');
+            }
+
+            // Method specifically for getting full data object when needed
+            getDataValue() {
+                return {
+                    selectedCategory: this.selectedCategory,
+                    selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
+                    selectedItemId: this.selectedItemId,
+                    selectedItem: this.selectedItem,
+                    filteredItems: this.filteredItems,
+                    categoryConfig: this.selectedItem?.categoryConfig || null,
+                    isComplete: this.isSelectionComplete(),
+                    displayText: this.getDisplayText()
+                };
+            }
+
+            // Override toString for automatic string conversion
+            toString() {
+                return this.getDisplayText();
+            }
+
+            setValue(value) {
+                if (value && typeof value === 'object') {
+                    if (value.selectedCategory && this.showCategoryField) {
+                        const categoryOption = this.availableCategories.find(s => s.name === value.selectedCategory);
+                        if (categoryOption) {
+                            this.selectCategory(categoryOption.id);
+                            if (this.categorySelectField) {
+                                this.categorySelectField.setValue(categoryOption.id);
+                            }
+                        }
+                    }
+                    
+                    if (value.selectedItemId && this.showItemField) {
+                        this.selectItem(value.selectedItemId);
+                        if (this.itemSelectField) {
+                            this.itemSelectField.setValue(value.selectedItemId);
+                        }
+                    }
+                } else if (typeof value === 'string') {
+                    console.log('String value set:', value);
+                }
+            }
+
+            updateValue() {
+                this.handleChange();
+            }
+
+            reset() {
+                this.selectedCategory = '';
+                this.selectedItemId = '';
+                this.selectedItem = null;
+                this.filteredItems = this.allItems;
+                
+                if (this.categorySelectField) {
+                    this.categorySelectField.setValue('');
+                }
+                
+                if (this.itemSelectField) {
+                    this.itemSelectField.setValue('');
+                    this.updateItemOptions();
+                }
+                
+                const itemContainer = this.element?.querySelector('.item-select-container');
+                if (itemContainer) {
+                    itemContainer.style.display = 'none';
+                }
+                
+                this.updateValue();
+            }
+
+            destroy() {
+                if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
+                    this.categorySelectField.destroy();
+                }
+                if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
+                    this.itemSelectField.destroy();
+                }
+                super.destroy();
+            }
+        }
+
+
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -9689,48 +10288,48 @@ class CalendarField extends BaseField {
         
         // Selection mode determines what UI to show
         this.selectionMode = config.selectionMode || 'none'; 
-        // Options: 'none', 'provider', 'service-provider'
+        // Options: 'none', 'item', 'category-item'
         
-        // Service and provider data
-        this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
-        this.availableServices = [];
-        this.filteredProviders = [];
+        // Category and item data
+        this.rawCategoryItems = config.categoryItems || config.categorysInfo || {};
+        this.availableCategories = [];
+        this.filteredItems = [];
         
         // Selection state
-        this.selectedService = config.selectedService || config.serviceName || '';
-        this.selectedProviderId = config.selectedProviderId || '';
+        this.selectedCategory = config.selectedCategory || config.categoryName || '';
+        this.selectedItemId = config.selectedItemId || '';
         
         // Current active configuration (what the calendar uses)
-        this.currentProvider = null;
-        this.currentServiceConfig = null;
+        this.currentItem = null;
+        this.currentCategoryConfig = null;
         this.apiKey = config.apiKey || '';
         this.eventTypeId = config.eventTypeId || null;
         this.eventTypeSlug = config.eventTypeSlug || '';
         this.scheduleId = config.scheduleId || null;
         this.eventName = config.eventName || '';
         
-        // Direct provider configuration (for direct mode and reschedule)
-        this.serviceProvider = config.serviceProvider || '';
+        // Direct item configuration (for direct mode and reschedule)
+        this.categoryItem = config.categoryItem || '';
         
         // UI Configuration
         this.headerIcon = config.headerIcon || 'CALENDAR';
-        this.showProviderInfo = config.showProviderInfo !== false;
+        this.showItemInfo = config.showItemInfo !== false;
         this.placeholderText = config.placeholderText || '';
         
         // ===============================
         // TRANSLATED TEXTS - Receive from BookingDirectExtension
         // ===============================
         this.texts = {
-            selectService: config.texts?.selectService || "Select a service",
-            selectServicePlaceholder: config.texts?.selectServicePlaceholder || "-- Select a service --",
-            selectProvider: config.texts?.selectProvider || "Select a service provider",
-            selectProviderPlaceholder: config.texts?.selectProviderPlaceholder || "-- Select a provider --",
+            selectCategory: config.texts?.selectCategory || "Select a category",
+            selectCategoryPlaceholder: config.texts?.selectCategoryPlaceholder || "-- Select a category --",
+            selectItem: config.texts?.selectItem || "Select an item",
+            selectItemPlaceholder: config.texts?.selectItemPlaceholder || "-- Select an item --",
             selectDate: config.texts?.selectDate || "Select a date to view available times",
             availableTimesFor: config.texts?.availableTimesFor || "Available times for",
             noAvailableSlots: config.texts?.noAvailableSlots || "No available time slots for this date",
             pleaseSelectDate: config.texts?.pleaseSelectDate || "Please select a date first",
-            pleaseSelectService: config.texts?.pleaseSelectService || "Please select a service first",
-            pleaseSelectProvider: config.texts?.pleaseSelectProvider || "Please select a service provider first",
+            pleaseSelectCategory: config.texts?.pleaseSelectCategory || "Please select a category first",
+            pleaseSelectItem: config.texts?.pleaseSelectItem || "Please select an item first",
             currentAppointment: config.texts?.currentAppointment || "Current Appointment",
             newAppointment: config.texts?.newAppointment || "New Appointment",
             loadingAvailability: config.texts?.loadingAvailability || "Loading availability...",
@@ -9740,14 +10339,14 @@ class CalendarField extends BaseField {
         
         // Error messages - Receive from BookingDirectExtension
         this.errorTexts = {
-            serviceRequired: config.errorTexts?.serviceRequired || 'Please select a service',
-            providerRequired: config.errorTexts?.providerRequired || 'Please select a provider',
+            categoryRequired: config.errorTexts?.categoryRequired || 'Please select a category',
+            itemRequired: config.errorTexts?.itemRequired || 'Please select an item',
             dateTimeRequired: config.errorTexts?.dateTimeRequired || 'Please select date and time'
         };
         
         // Selection fields (created as needed)
-        this.serviceSelectField = null;
-        this.providerSelectField = null;
+        this.categorySelectField = null;
+        this.itemSelectField = null;
         
         // Calendar state
         this.state = {
@@ -9769,14 +10368,14 @@ class CalendarField extends BaseField {
     // Initialize based on selection mode
     async init() {
         if (this.selectionMode === 'none') {
-            // Direct calendar mode - provider config should already be set
+            // Direct calendar mode - item config should already be set
             await this.initializeCalendar();
-        } else if (this.selectionMode === 'provider') {
-            // Provider selection mode - extract services and filter providers
-            this.initializeProviderSelection();
-        } else if (this.selectionMode === 'service-provider') {
-            // Service + provider selection mode
-            this.initializeServiceAndProviderSelection();
+        } else if (this.selectionMode === 'item') {
+            // Item selection mode - extract categories and filter items
+            this.initializeItemSelection();
+        } else if (this.selectionMode === 'category-item') {
+            // Category + item selection mode
+            this.initializeCategoryAndItemSelection();
         }
     }
 
@@ -9793,107 +10392,107 @@ class CalendarField extends BaseField {
         }
     }
 
-    // Provider selection initialization (ProviderCalendarField behavior)
-    initializeProviderSelection() {
-        if (!this.selectedService) {
-            console.error('Provider selection mode requires selectedService to be set');
+    // Item selection initialization (ItemCalendarField behavior)
+    initializeItemSelection() {
+        if (!this.selectedCategory) {
+            console.error('Item selection mode requires selectedCategory to be set');
             return;
         }
         
-        this.filteredProviders = this.filterProvidersByService(this.selectedService);
+        this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
         
-        // Auto-select if only one provider offers the service
-        if (this.filteredProviders.length === 1) {
-            this.selectedProviderId = this.filteredProviders[0].id;
-            this.selectProvider(this.selectedProviderId, false);
-        } else if (this.selectedProviderId) {
-            this.selectProvider(this.selectedProviderId, false);
+        // Auto-select if only one item offers the category
+        if (this.filteredItems.length === 1) {
+            this.selectedItemId = this.filteredItems[0].id;
+            this.selectItem(this.selectedItemId, false);
+        } else if (this.selectedItemId) {
+            this.selectItem(this.selectedItemId, false);
         }
     }
 
-    // Service + provider selection initialization (ServiceAndProviderCalendarField behavior)
-    initializeServiceAndProviderSelection() {
-        this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
+    // Category + item selection initialization (CategoryAndItemCalendarField behavior)
+    initializeCategoryAndItemSelection() {
+        this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
         
-        if (this.selectedService) {
-            this.filteredProviders = this.filterProvidersByService(this.selectedService);
-            if (this.selectedProviderId) {
-                this.selectProvider(this.selectedProviderId, false);
+        if (this.selectedCategory) {
+            this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
+            if (this.selectedItemId) {
+                this.selectItem(this.selectedItemId, false);
             }
         }
     }
 
     // ===============================
-    // SERVICE AND PROVIDER UTILITIES
+    // CATEGORY AND ITEM UTILITIES
     // ===============================
 
-    // Extract all available services from providers data
-    extractAvailableServices(rawProviders) {
-        const serviceSet = new Set();
+    // Extract all available categories from items data
+    extractAvailableCategories(rawItems) {
+        const categorySet = new Set();
         
         try {
-            const providersArray = Array.isArray(rawProviders) ? rawProviders : Object.entries(rawProviders);
+            const itemsArray = Array.isArray(rawItems) ? rawItems : Object.entries(rawItems);
             
-            providersArray.forEach(([providerName, providerData]) => {
-                if (Array.isArray(rawProviders) && typeof providerName === 'object') {
-                    providerData = providerName;
-                    providerName = providerData.name || providerData.id;
+            itemsArray.forEach(([itemName, itemData]) => {
+                if (Array.isArray(rawItems) && typeof itemName === 'object') {
+                    itemData = itemName;
+                    itemName = itemData.name || itemData.id;
                 }
                 
-                if (providerData && providerData.services) {
-                    Object.keys(providerData.services).forEach(service => {
-                        serviceSet.add(service);
+                if (itemData && itemData.categories) {
+                    Object.keys(itemData.categories).forEach(category => {
+                        categorySet.add(category);
                     });
                 }
             });
         } catch (error) {
-            console.error('Error extracting services:', error);
+            console.error('Error extracting categories:', error);
         }
         
-        return Array.from(serviceSet).sort().map(service => ({
-            id: this.slugify(service),
-            name: service,
-            displayName: service
+        return Array.from(categorySet).sort().map(category => ({
+            id: this.slugify(category),
+            name: category,
+            displayName: category
         }));
     }
 
-    // Filter providers that offer the specific service
-    filterProvidersByService(serviceName) {
-        if (!serviceName || !this.rawServiceProviders) {
+    // Filter items that offer the specific category
+    filterItemsByCategory(categoryName) {
+        if (!categoryName || !this.rawCategoryItems) {
             return [];
         }
 
-        const filteredProviders = [];
-        const providersArray = Array.isArray(this.rawServiceProviders) ? 
-            this.rawServiceProviders : Object.entries(this.rawServiceProviders);
+        const filteredItems = [];
+        const itemsArray = Array.isArray(this.rawCategoryItems) ? 
+            this.rawCategoryItems : Object.entries(this.rawCategoryItems);
         
-        providersArray.forEach(([providerName, providerData]) => {
-            if (Array.isArray(this.rawServiceProviders) && typeof providerName === 'object') {
-                providerData = providerName;
-                providerName = providerData.name || providerData.id;
+        itemsArray.forEach(([itemName, itemData]) => {
+            if (Array.isArray(this.rawCategoryItems) && typeof itemName === 'object') {
+                itemData = itemName;
+                itemName = itemData.name || itemData.id;
             }
             
-            if (providerData.services && providerData.services[serviceName]) {
-                const serviceConfig = providerData.services[serviceName];
+            if (itemData.categories && itemData.categories[categoryName]) {
+                const categoryConfig = itemData.categories[categoryName];
                 
-                filteredProviders.push({
-                    id: this.slugify(providerName),
-                    name: providerName,
-                    displayName: providerName,
-                    description: providerData.description || providerData.specialty || "",
-                    apiKey: providerData.apiKey || "",
-                    scheduleId: providerData.scheduleId || "",
-                    eventTypeId: serviceConfig.eventId || "",
-                    eventTypeSlug: serviceConfig.eventSlug || "",
-                    eventName: serviceName,
-                    link: serviceConfig.link || "",
-                    serviceConfig: serviceConfig,
-                    allServices: providerData.services
+                filteredItems.push({
+                    id: this.slugify(itemName),
+                    name: itemName,
+                    displayName: itemName,
+                    description: itemData.description || itemData.specialty || "",
+                    apiKey: itemData.apiKey || "",
+                    scheduleId: itemData.scheduleId || "",
+                    eventTypeId: categoryConfig.eventId || "",
+                    eventTypeSlug: categoryConfig.eventSlug || "",
+                    eventName: categoryName,
+                    link: categoryConfig.link || "",
+                    categoryConfig: categoryConfig,
+                    allCategories: itemData.categories
                 });
             }
         });
         
-        return filteredProviders;
+        return filteredItems;
     }
 
     // Helper to create URL-friendly slugs
@@ -9909,30 +10508,30 @@ class CalendarField extends BaseField {
     // SELECTION METHODS
     // ===============================
 
-    // Select service (for service-provider mode)
-    selectService(serviceId) {
+    // Select category (for category-item mode)
+    selectCategory(categoryId) {
         
-        const service = this.availableServices.find(s => s.id === serviceId);
-        if (!service) {
-            console.error('Service not found:', serviceId);
+        const category = this.availableCategories.find(s => s.id === categoryId);
+        if (!category) {
+            console.error('Category not found:', categoryId);
             return;
         }
         
-        this.selectedService = service.name;
-        this.filteredProviders = this.filterProvidersByService(service.name);
+        this.selectedCategory = category.name;
+        this.filteredItems = this.filterItemsByCategory(category.name);
         
-        // Update provider dropdown
-        this.updateProviderOptions();
-        this.showProviderSelection();
+        // Update item dropdown
+        this.updateItemOptions();
+        this.showItemSelection();
         
-        // Reset provider and calendar state
-        this.resetProviderAndCalendar();
+        // Reset item and calendar state
+        this.resetItemAndCalendar();
         
-        // Auto-select if only one provider
-        if (this.filteredProviders.length === 1) {
-            this.selectProvider(this.filteredProviders[0].id);
-            if (this.providerSelectField) {
-                this.providerSelectField.setValue(this.filteredProviders[0].id);
+        // Auto-select if only one item
+        if (this.filteredItems.length === 1) {
+            this.selectItem(this.filteredItems[0].id);
+            if (this.itemSelectField) {
+                this.itemSelectField.setValue(this.filteredItems[0].id);
             }
         }
         
@@ -9940,24 +10539,24 @@ class CalendarField extends BaseField {
         this.renderCalendarData();
     }
 
-    // Select provider
-    async selectProvider(providerId, shouldUpdateUI = true) {
+    // Select item
+    async selectItem(itemId, shouldUpdateUI = true) {
         
-        const provider = this.filteredProviders.find(p => p.id === providerId);
-        if (!provider) {
-            console.error('Provider not found:', providerId);
+        const item = this.filteredItems.find(p => p.id === itemId);
+        if (!item) {
+            console.error('Item not found:', itemId);
             return;
         }
         
         // Update current configuration
-        this.selectedProviderId = providerId;
-        this.currentProvider = provider;
-        this.currentServiceConfig = provider.serviceConfig;
-        this.apiKey = provider.apiKey || '';
-        this.eventTypeId = provider.eventTypeId || null;
-        this.eventTypeSlug = provider.eventTypeSlug || '';
-        this.scheduleId = provider.scheduleId || null;
-        this.eventName = provider.eventName || this.selectedService || '';
+        this.selectedItemId = itemId;
+        this.currentItem = item;
+        this.currentCategoryConfig = item.categoryConfig;
+        this.apiKey = item.apiKey || '';
+        this.eventTypeId = item.eventTypeId || null;
+        this.eventTypeSlug = item.eventTypeSlug || '';
+        this.scheduleId = item.scheduleId || null;
+        this.eventName = item.eventName || this.selectedCategory || '';
         
         // Reset calendar state
         this.resetCalendarState();
@@ -9966,7 +10565,7 @@ class CalendarField extends BaseField {
             this.showLoadingState();
         }
         
-        // Initialize calendar with new provider
+        // Initialize calendar with new item
         await this.initializeCalendar();
         
         if (shouldUpdateUI && this.element) {
@@ -9976,8 +10575,8 @@ class CalendarField extends BaseField {
         
         this.updateValue();
         
-        if (this.fullConfig.onProviderChange) {
-            this.fullConfig.onProviderChange(provider);
+        if (this.fullConfig.onItemChange) {
+            this.fullConfig.onItemChange(item);
         }
     }
 
@@ -9985,85 +10584,85 @@ class CalendarField extends BaseField {
     // UI CREATION METHODS
     // ===============================
 
-    // Create service selection field
-    createServiceSelectField() {
-        if (this.selectionMode !== 'service-provider') return null;
+    // Create category selection field
+    createCategorySelectField() {
+        if (this.selectionMode !== 'category-item') return null;
         
-        this.serviceSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-service`,
-            name: `${this.name}_service`,
-            label: this.texts.selectService,
-            placeholder: this.texts.selectServicePlaceholder,
-            options: this.availableServices,
+        this.categorySelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-category`,
+            name: `${this.name}_category`,
+            label: this.texts.selectCategory,
+            placeholder: this.texts.selectCategoryPlaceholder,
+            options: this.availableCategories,
             required: true,
-            onChange: (value) => this.selectService(value)
+            onChange: (value) => this.selectCategory(value)
         });
 
-        if (this.selectedService) {
-            const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
-            if (serviceOption) {
-                this.serviceSelectField.setValue(serviceOption.id);
+        if (this.selectedCategory) {
+            const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
+            if (categoryOption) {
+                this.categorySelectField.setValue(categoryOption.id);
             }
         }
 
-        return this.serviceSelectField;
+        return this.categorySelectField;
     }
 
-    // Create provider selection field
-    createProviderSelectField() {
+    // Create item selection field
+    createItemSelectField() {
         if (this.selectionMode === 'none') return null;
         
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.texts.selectProvider,
-            placeholder: this.texts.selectProviderPlaceholder,
-            options: this.filteredProviders,
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.texts.selectItem,
+            placeholder: this.texts.selectItemPlaceholder,
+            options: this.filteredItems,
             required: true,
-            onChange: (value) => this.selectProvider(value)
+            onChange: (value) => this.selectItem(value)
         });
 
-        if (this.selectedProviderId) {
-            this.providerSelectField.setValue(this.selectedProviderId);
+        if (this.selectedItemId) {
+            this.itemSelectField.setValue(this.selectedItemId);
         }
 
-        return this.providerSelectField;
+        return this.itemSelectField;
     }
 
-    // Update provider options dynamically
-    updateProviderOptions() {
-        if (!this.providerSelectField) return;
+    // Update item options dynamically
+    updateItemOptions() {
+        if (!this.itemSelectField) return;
 
-        const providerContainer = this.element.querySelector('.provider-select-container');
-        if (!providerContainer) return;
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (!itemContainer) return;
 
-        const currentValue = this.selectedProviderId;
-        providerContainer.innerHTML = '';
+        const currentValue = this.selectedItemId;
+        itemContainer.innerHTML = '';
 
-        this.providerSelectField = new SingleSelectField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            label: this.texts.selectProvider,
-            placeholder: this.texts.selectProviderPlaceholder,
-            options: this.filteredProviders,
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.texts.selectItem,
+            placeholder: this.texts.selectItemPlaceholder,
+            options: this.filteredItems,
             required: true,
-            onChange: (value) => this.selectProvider(value)
+            onChange: (value) => this.selectItem(value)
         });
 
-        const newFieldElement = this.providerSelectField.render();
-        newFieldElement.className = 'provider-select-container';
-        providerContainer.parentNode.replaceChild(newFieldElement, providerContainer);
+        const newFieldElement = this.itemSelectField.render();
+        newFieldElement.className = 'item-select-container';
+        itemContainer.parentNode.replaceChild(newFieldElement, itemContainer);
 
-        if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
-            this.providerSelectField.setValue(currentValue);
+        if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
+            this.itemSelectField.setValue(currentValue);
         }
     }
 
-    // Show provider selection container
-    showProviderSelection() {
-        const providerContainer = this.element.querySelector('.provider-select-container');
-        if (providerContainer) {
-            providerContainer.style.display = 'block';
+    // Show item selection container
+    showItemSelection() {
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (itemContainer) {
+            itemContainer.style.display = 'block';
         }
     }
 
@@ -10071,9 +10670,9 @@ class CalendarField extends BaseField {
     // STATE MANAGEMENT
     // ===============================
 
-    resetProviderAndCalendar() {
-        this.selectedProviderId = '';
-        this.currentProvider = null;
+    resetItemAndCalendar() {
+        this.selectedItemId = '';
+        this.currentItem = null;
         this.resetCalendarState();
     }
 
@@ -10110,15 +10709,15 @@ class CalendarField extends BaseField {
     // ===============================
 
     validate() {
-        // Check service selection if required
-        if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            this.showError(this.getFieldErrorMessage('serviceRequired') || this.errorTexts.serviceRequired);
+        // Check category selection if required
+        if (this.selectionMode === 'category-item' && !this.selectedCategory) {
+            this.showError(this.getFieldErrorMessage('categoryRequired') || this.errorTexts.categoryRequired);
             return false;
         }
         
-        // Check provider selection if required
-        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.selectedProviderId) {
-            this.showError(this.getFieldErrorMessage('providerRequired') || this.errorTexts.providerRequired);
+        // Check item selection if required
+        if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.selectedItemId) {
+            this.showError(this.getFieldErrorMessage('itemRequired') || this.errorTexts.itemRequired);
             return false;
         }
         
@@ -10352,52 +10951,52 @@ class CalendarField extends BaseField {
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
         
-        if (!this.showProviderInfo) {
+        if (!this.showItemInfo) {
             return '';
         }
 
         // RESCHEDULE MODE - Show current appointment details
         if (this.mode === 'reschedule' && this.currentAppointment) {
-            const displayProvider = this.currentProvider?.displayName || 
-                                   this.currentProvider?.name || 
-                                   this.currentProvider?.id || 
-                                   this.serviceProvider ||
-                                   'Service Provider';
+            const displayItem = this.currentItem?.displayName || 
+                                   this.currentItem?.name || 
+                                   this.currentItem?.id || 
+                                   this.categoryItem ||
+                                   'Item';
             
             
             return `
                 <div class="calendar-title-content">
-                    <div class="service-provider">
-                        <span class="provider-icon">${iconSvg}</span>
+                    <div class="category-item">
+                        <span class="item-icon">${iconSvg}</span>
                         <div class="appointment-details">
-                            <div class="provider-name">${displayProvider}</div>
-                            ${this.selectedService ? `<div class="service-name">${this.selectedService}</div>` : ''}
+                            <div class="item-name">${displayItem}</div>
+                            ${this.selectedCategory ? `<div class="category-name">${this.selectedCategory}</div>` : ''}
                             <div class="current-appointment">${this.formatCurrentAppointment()}</div>
                         </div>
                     </div>
                 </div>
             `;
         } 
-        // BOOKING MODE - Show service and provider selection
+        // BOOKING MODE - Show category and item selection
         else {
             let headerHtml = `
-                <div class="service-provider">
-                    <span class="provider-icon">${iconSvg}</span>
+                <div class="category-item">
+                    <span class="item-icon">${iconSvg}</span>
                     <div class="appointment-details">
             `;
             
-            // Show selected service
-            if (this.selectedService) {
-                headerHtml += `<div class="service-name">${this.selectedService}</div>`;
+            // Show selected category
+            if (this.selectedCategory) {
+                headerHtml += `<div class="category-name">${this.selectedCategory}</div>`;
             }
             
-            // Show selected provider
-            if (this.currentProvider) {
-                const displayName = this.currentProvider.displayName || this.currentProvider.name || this.currentProvider.id;
-                headerHtml += `<div class="provider-name">${displayName}</div>`;
-            } else if (this.serviceProvider) {
-                // Fallback to direct serviceProvider config
-                headerHtml += `<div class="provider-name">${this.serviceProvider}</div>`;
+            // Show selected item
+            if (this.currentItem) {
+                const displayName = this.currentItem.displayName || this.currentItem.name || this.currentItem.id;
+                headerHtml += `<div class="item-name">${displayName}</div>`;
+            } else if (this.categoryItem) {
+                // Fallback to direct categoryItem config
+                headerHtml += `<div class="item-name">${this.categoryItem}</div>`;
             }
 
             headerHtml += `
@@ -10416,25 +11015,25 @@ class CalendarField extends BaseField {
     render() {
         const container = this.createContainer();
         
-        // Create service selection field if needed
-        if (this.selectionMode === 'service-provider') {
-            this.createServiceSelectField();
-            const serviceFieldElement = this.serviceSelectField.render();
-            container.appendChild(serviceFieldElement);
+        // Create category selection field if needed
+        if (this.selectionMode === 'category-item') {
+            this.createCategorySelectField();
+            const categoryFieldElement = this.categorySelectField.render();
+            container.appendChild(categoryFieldElement);
         }
         
-        // Create provider selection field if needed
-        if (this.selectionMode === 'provider' || this.selectionMode === 'service-provider') {
-            this.createProviderSelectField();
-            const providerFieldElement = this.providerSelectField.render();
-            providerFieldElement.classList.add('provider-select-container');
+        // Create item selection field if needed
+        if (this.selectionMode === 'item' || this.selectionMode === 'category-item') {
+            this.createItemSelectField();
+            const itemFieldElement = this.itemSelectField.render();
+            itemFieldElement.classList.add('item-select-container');
             
-            // Hide initially for service-provider mode
-            if (this.selectionMode === 'service-provider' && !this.selectedService) {
-                providerFieldElement.style.display = 'none';
+            // Hide initially for category-item mode
+            if (this.selectionMode === 'category-item' && !this.selectedCategory) {
+                itemFieldElement.style.display = 'none';
             }
             
-            container.appendChild(providerFieldElement);
+            container.appendChild(itemFieldElement);
         }
         
         // Create the calendar component
@@ -10514,18 +11113,18 @@ class CalendarField extends BaseField {
         daysEl.innerHTML = '';
         
         // Check selection requirements based on mode
-        if (this.selectionMode === 'service-provider' && !this.selectedService) {
+        if (this.selectionMode === 'category-item' && !this.selectedCategory) {
             const messageEl = document.createElement('div');
-            messageEl.className = 'no-service-message';
-            messageEl.textContent = this.texts.pleaseSelectService;
+            messageEl.className = 'no-category-message';
+            messageEl.textContent = this.texts.pleaseSelectCategory;
             daysEl.appendChild(messageEl);
             return;
         }
         
-        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
+        if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.currentItem) {
             const messageEl = document.createElement('div');
-            messageEl.className = 'no-provider-message';
-            messageEl.textContent = this.texts.pleaseSelectProvider;
+            messageEl.className = 'no-item-message';
+            messageEl.textContent = this.texts.pleaseSelectItem;
             daysEl.appendChild(messageEl);
             return;
         }
@@ -10604,15 +11203,15 @@ class CalendarField extends BaseField {
         if (!timeHeaderEl || !timeSlotsEl) return;
         
         // Check selection requirements
-        if (this.selectionMode === 'service-provider' && !this.selectedService) {
-            timeHeaderEl.textContent = this.texts.pleaseSelectService;
-            timeSlotsEl.innerHTML = `<div class="no-service-message">${this.texts.pleaseSelectService}</div>`;
+        if (this.selectionMode === 'category-item' && !this.selectedCategory) {
+            timeHeaderEl.textContent = this.texts.pleaseSelectCategory;
+            timeSlotsEl.innerHTML = `<div class="no-category-message">${this.texts.pleaseSelectCategory}</div>`;
             return;
         }
         
-        if ((this.selectionMode === 'provider' || this.selectionMode === 'service-provider') && !this.currentProvider) {
-            timeHeaderEl.textContent = this.texts.pleaseSelectProvider;
-            timeSlotsEl.innerHTML = `<div class="no-provider-message">${this.texts.pleaseSelectProvider}</div>`;
+        if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.currentItem) {
+            timeHeaderEl.textContent = this.texts.pleaseSelectItem;
+            timeSlotsEl.innerHTML = `<div class="no-item-message">${this.texts.pleaseSelectItem}</div>`;
             return;
         }
         
@@ -10718,9 +11317,9 @@ class CalendarField extends BaseField {
     
     updateValue() {
         const value = {
-            selectedService: this.selectedService,
-            selectedProviderId: this.selectedProviderId,
-            selectedProvider: this.currentProvider,
+            selectedCategory: this.selectedCategory,
+            selectedItemId: this.selectedItemId,
+            selectedItem: this.currentItem,
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
@@ -10734,10 +11333,10 @@ class CalendarField extends BaseField {
     
     getValue() {
         return {
-            selectedService: this.selectedService,
-            selectedProviderId: this.selectedProviderId,
-            selectedProvider: this.currentProvider,
-            serviceProvider: this.serviceProvider,
+            selectedCategory: this.selectedCategory,
+            selectedItemId: this.selectedItemId,
+            selectedItem: this.currentItem,
+            categoryItem: this.categoryItem,
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
@@ -10751,25 +11350,25 @@ class CalendarField extends BaseField {
     
     setValue(value) {
         if (value && typeof value === 'object') {
-            if (value.selectedService && this.selectionMode === 'service-provider') {
-                const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
-                if (serviceOption) {
-                    this.selectService(serviceOption.id);
-                    if (this.serviceSelectField) {
-                        this.serviceSelectField.setValue(serviceOption.id);
+            if (value.selectedCategory && this.selectionMode === 'category-item') {
+                const categoryOption = this.availableCategories.find(s => s.name === value.selectedCategory);
+                if (categoryOption) {
+                    this.selectCategory(categoryOption.id);
+                    if (this.categorySelectField) {
+                        this.categorySelectField.setValue(categoryOption.id);
                     }
                 }
             }
-            if (value.selectedProviderId && (this.selectionMode === 'provider' || this.selectionMode === 'service-provider')) {
-                this.selectProvider(value.selectedProviderId, false);
-                if (this.providerSelectField) {
-                    this.providerSelectField.setValue(value.selectedProviderId);
+            if (value.selectedItemId && (this.selectionMode === 'item' || this.selectionMode === 'category-item')) {
+                this.selectItem(value.selectedItemId, false);
+                if (this.itemSelectField) {
+                    this.itemSelectField.setValue(value.selectedItemId);
                 }
             }
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
             if (value.currentAppointment) this.currentAppointment = value.currentAppointment;
-            if (value.serviceProvider) this.serviceProvider = value.serviceProvider;
+            if (value.categoryItem) this.categoryItem = value.categoryItem;
             if (this.element) {
                 this.updateCalendarHeader();
                 this.renderCalendarData();
@@ -10778,23 +11377,23 @@ class CalendarField extends BaseField {
     }
     
     reset() {
-        this.selectedService = '';
-        this.selectedProviderId = '';
-        this.currentProvider = null;
-        this.serviceProvider = '';
-        this.filteredProviders = [];
+        this.selectedCategory = '';
+        this.selectedItemId = '';
+        this.currentItem = null;
+        this.categoryItem = '';
+        this.filteredItems = [];
         this.resetCalendarState();
         
-        if (this.serviceSelectField) {
-            this.serviceSelectField.setValue('');
+        if (this.categorySelectField) {
+            this.categorySelectField.setValue('');
         }
-        if (this.providerSelectField) {
-            this.providerSelectField.setValue('');
+        if (this.itemSelectField) {
+            this.itemSelectField.setValue('');
             
-            if (this.selectionMode === 'service-provider') {
-                const providerContainer = this.element.querySelector('.provider-select-container');
-                if (providerContainer) {
-                    providerContainer.style.display = 'none';
+            if (this.selectionMode === 'category-item') {
+                const itemContainer = this.element.querySelector('.item-select-container');
+                if (itemContainer) {
+                    itemContainer.style.display = 'none';
                 }
             }
         }
@@ -10812,11 +11411,11 @@ class CalendarField extends BaseField {
     }
     
     destroy() {
-        if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
-            this.serviceSelectField.destroy();
+        if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
+            this.categorySelectField.destroy();
         }
-        if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
-            this.providerSelectField.destroy();
+        if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
+            this.itemSelectField.destroy();
         }
         super.destroy();
     }
@@ -10827,16 +11426,16 @@ class CalendarField extends BaseField {
 // ===============================
 
 /**
- * ProviderCalendarField - Backward compatibility
- * Now just a wrapper around CalendarField with provider selection mode
+ * ItemCalendarField - Backward compatibility
+ * Now just a wrapper around CalendarField with item selection mode
  */
-class ProviderCalendarField extends CalendarField {
+class ItemCalendarField extends CalendarField {
     constructor(factory, config) {
-        // Force provider selection mode and set the service
+        // Force item selection mode and set the category
         const enhancedConfig = {
             ...config,
-            selectionMode: 'provider',
-            selectedService: config.serviceName || config.eventName || ''
+            selectionMode: 'item',
+            selectedCategory: config.categoryName || config.eventName || ''
         };
         
         super(factory, enhancedConfig);
@@ -10844,20 +11443,21 @@ class ProviderCalendarField extends CalendarField {
 }
 
 /**
- * ServiceAndProviderCalendarField - Backward compatibility  
- * Now just a wrapper around CalendarField with service-provider selection mode
+ * CategoryAndItemCalendarField - Backward compatibility  
+ * Now just a wrapper around CalendarField with category-item selection mode
  */
-class ServiceAndProviderCalendarField extends CalendarField {
+class CategoryAndItemCalendarField extends CalendarField {
     constructor(factory, config) {
-        // Force service-provider selection mode
+        // Force category-item selection mode
         const enhancedConfig = {
             ...config,
-            selectionMode: 'service-provider'
+            selectionMode: 'category-item'
         };
         
         super(factory, enhancedConfig);
     }
 }
+
 
 class ServiceRequestCalendarField extends BaseField {
     constructor(factory, config) {
@@ -12677,605 +13277,7 @@ class CurrentAppointmentCardField extends BaseField {
     }
 }
 
-       class ServiceProviderFilterField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                
-                // Core configuration
-                this.language = config.language || 'fr';
-                this.mode = config.mode || 'both'; // 'service-only', 'provider-only', 'both'
-                
-                // Data configuration - FIX: Properly handle data reference
-                if (typeof config.serviceProviders === 'string') {
-                    // Reference to data in form - need to get it from factory or form
-                    this.rawServiceProviders = this.factory.getFormData?.(config.serviceProviders) || 
-                                              this.factory.formData?.[config.serviceProviders] || 
-                                              this.factory.data?.[config.serviceProviders] || {};
-                } else {
-                    this.rawServiceProviders = config.serviceProviders || config.dentistsInfo || {};
-                }
-                
-                this.availableServices = [];
-                this.filteredProviders = [];
-                this.allProviders = [];
-                
-                // Selection state
-                this.selectedService = config.selectedService || config.serviceName || '';
-                this.selectedProviderId = config.selectedProviderId || '';
-                this.selectedProvider = null;
-                
-                // UI Configuration
-                this.serviceLabel = config.serviceLabel || this.getText('selectService');
-                this.servicePlaceholder = config.servicePlaceholder || this.getText('selectServicePlaceholder');
-                this.providerLabel = config.providerLabel || this.getText('selectProvider');
-                this.providerPlaceholder = config.providerPlaceholder || this.getText('selectProviderPlaceholder');
-                
-                // Show/hide options
-                this.showServiceField = config.showServiceField !== false && (this.mode === 'both' || this.mode === 'service-only');
-                this.showProviderField = config.showProviderField !== false && (this.mode === 'both' || this.mode === 'provider-only');
-                
-                // Auto-selection behavior
-                this.autoSelectSingleService = config.autoSelectSingleService !== false;
-                this.autoSelectSingleProvider = config.autoSelectSingleProvider !== false;
-                
-                // Callback functions
-                this.onServiceChange = config.onServiceChange || null;
-                this.onProviderChange = config.onProviderChange || null;
-                this.onSelectionComplete = config.onSelectionComplete || null;
-                
-                // Field instances
-                this.serviceSelectField = null;
-                this.providerSelectField = null;
-                
-                this.init();
-            }
-
-            // FIX: Method to get data from form context
-            getDataFromForm() {
-                if (this.factory && this.factory.form && this.factory.form.data) {
-                    return this.factory.form.data.serviceProviders || {};
-                }
-                if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
-                    return window.ContactFormExtension.FORM_DATA.serviceProviders || {};
-                }
-                return this.rawServiceProviders;
-            }
-
-            init() {
-                // FIX: Ensure we have the correct data
-                if (!this.rawServiceProviders || Object.keys(this.rawServiceProviders).length === 0) {
-                    this.rawServiceProviders = this.getDataFromForm();
-                }
-                
-                this.availableServices = this.extractAvailableServices(this.rawServiceProviders);
-                this.allProviders = this.extractAllProviders(this.rawServiceProviders);
-                
-                if (this.autoSelectSingleService && this.availableServices.length === 1 && !this.selectedService) {
-                    this.selectedService = this.availableServices[0].name;
-                }
-                
-                if (this.selectedService) {
-                    this.filteredProviders = this.filterProvidersByService(this.selectedService);
-                    
-                    if (this.autoSelectSingleProvider && this.filteredProviders.length === 1 && !this.selectedProviderId) {
-                        this.selectedProviderId = this.filteredProviders[0].id;
-                        this.selectedProvider = this.filteredProviders[0];
-                    }
-                } else {
-                    this.filteredProviders = this.allProviders;
-                }
-                
-                if (this.selectedProviderId && !this.selectedProvider) {
-                    this.selectedProvider = this.filteredProviders.find(p => p.id === this.selectedProviderId);
-                }
-            }
-
-            extractAvailableServices(rawProviders) {
-                const serviceSet = new Set();
-                
-                try {
-                    // Handle object format: { 'Dr. Name': { services: {...} } }
-                    Object.entries(rawProviders).forEach(([providerName, providerData]) => {
-                        console.log('Processing provider:', providerName, providerData);
-                        
-                        if (providerData && providerData.services) {
-                            Object.keys(providerData.services).forEach(service => {
-                                serviceSet.add(service);
-                            });
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error extracting services:', error);
-                }
-                
-                const services = Array.from(serviceSet).sort().map(service => ({
-                    id: this.slugify(service),
-                    name: service,
-                    displayName: service
-                }));
-                
-                return services;
-            }
-
-            extractAllProviders(rawProviders) {
-                const allProviders = [];
-                
-                try {
-                    Object.entries(rawProviders).forEach(([providerName, providerData]) => {
-                        if (providerData) {
-                            allProviders.push({
-                                id: this.slugify(providerName),
-                                name: providerName,
-                                displayName: providerName,
-                                description: providerData.description || providerData.specialty || "",
-                                services: providerData.services || {},
-                                rawData: providerData
-                            });
-                        }
-                    });
-                } catch (error) {
-                    console.error('Error extracting providers:', error);
-                }
-                
-                return allProviders;
-            }
-
-            filterProvidersByService(serviceName) {
-                if (!serviceName || !this.rawServiceProviders) {
-                    return this.allProviders;
-                }
-
-                const filteredProviders = [];
-                
-                Object.entries(this.rawServiceProviders).forEach(([providerName, providerData]) => {
-                    if (providerData.services && providerData.services[serviceName]) {
-                        const serviceConfig = providerData.services[serviceName];
-                        
-                        filteredProviders.push({
-                            id: this.slugify(providerName),
-                            name: providerName,
-                            displayName: providerName,
-                            description: providerData.description || providerData.specialty || "",
-                            serviceConfig: serviceConfig,
-                            allServices: providerData.services,
-                            rawData: providerData
-                        });
-                    }
-                });
-                
-                return filteredProviders;
-            }
-
-            slugify(text) {
-                return text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, '') 
-                    .replace(/[\s_-]+/g, '-') 
-                    .replace(/^-+|-+$/g, '');
-            }
-
-            selectService(serviceId) {
-                const service = this.availableServices.find(s => s.id === serviceId);
-                if (!service) {
-                    console.error('Service not found:', serviceId);
-                    return;
-                }
-                
-                this.selectedService = service.name;
-                this.filteredProviders = this.filterProvidersByService(service.name);
-                
-                if (this.selectedProviderId) {
-                    const stillValid = this.filteredProviders.find(p => p.id === this.selectedProviderId);
-                    if (!stillValid) {
-                        this.selectedProviderId = '';
-                        this.selectedProvider = null;
-                    }
-                }
-                
-                if (this.autoSelectSingleProvider && this.filteredProviders.length === 1) {
-                    this.selectedProviderId = this.filteredProviders[0].id;
-                    this.selectedProvider = this.filteredProviders[0];
-                    
-                    if (this.providerSelectField) {
-                        this.providerSelectField.setValue(this.selectedProviderId);
-                    }
-                }
-                
-                this.showProviderSelection();
-                this.updateProviderOptions();
-                
-                if (this.onServiceChange) {
-                    this.onServiceChange(service, this.filteredProviders);
-                }
-                
-                this.checkSelectionComplete();
-                this.updateValue();
-            }
-
-            selectProvider(providerId) {
-                const provider = this.filteredProviders.find(p => p.id === providerId) || 
-                                this.allProviders.find(p => p.id === providerId);
-                
-                if (!provider) {
-                    console.error('Provider not found:', providerId);
-                    return;
-                }
-                
-                this.selectedProviderId = providerId;
-                this.selectedProvider = provider;
-                
-                if (this.onProviderChange) {
-                    this.onProviderChange(provider);
-                }
-                
-                this.checkSelectionComplete();
-                this.updateValue();
-            }
-
-            checkSelectionComplete() {
-                const isComplete = this.isSelectionComplete();
-                
-                if (isComplete && this.onSelectionComplete) {
-                    this.onSelectionComplete({
-                        service: this.selectedService,
-                        provider: this.selectedProvider,
-                        serviceConfig: this.selectedProvider?.serviceConfig
-                    });
-                }
-            }
-
-            isSelectionComplete() {
-                let complete = true;
-                
-                if (this.showServiceField && this.required && !this.selectedService) {
-                    complete = false;
-                }
-                
-                if (this.showProviderField && this.required && !this.selectedProviderId) {
-                    complete = false;
-                }
-                
-                return complete;
-            }
-
-            createServiceSelectField() {
-                if (!this.showServiceField) return null;
-                
-                this.serviceSelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-service`,
-                    name: `${this.name}_service`,
-                    label: this.serviceLabel,
-                    placeholder: this.servicePlaceholder,
-                    options: this.availableServices,
-                    required: this.required,
-                    row:'serviceSelectField',
-                    onChange: (value) => this.selectService(value)
-                });
-
-                if (this.selectedService) {
-                    const serviceOption = this.availableServices.find(s => s.name === this.selectedService);
-                    if (serviceOption) {
-                        this.serviceSelectField.setValue(serviceOption.id);
-                    }
-                }
-
-                return this.serviceSelectField;
-            }
-
-            createProviderSelectField() {
-                if (!this.showProviderField) return null;
-                
-                this.providerSelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-provider`,
-                    name: `${this.name}_provider`,
-                    label: this.providerLabel,
-                    placeholder: this.providerPlaceholder,
-                    options: this.filteredProviders,
-                    required: this.required,
-                    row:'providerSelectField',
-                    onChange: (value) => this.selectProvider(value)
-                });
-
-                if (this.selectedProviderId) {
-                    this.providerSelectField.setValue(this.selectedProviderId);
-                }
-
-                return this.providerSelectField;
-            }
-
-            showProviderSelection() {
-                const providerContainer = this.element.querySelector('.provider-select-container');
-                if (providerContainer) {
-                    providerContainer.style.display = 'block';
-                    // Add smooth transition effect
-                    providerContainer.style.opacity = '0';
-                    providerContainer.style.transform = 'translateY(-10px)';
-                    
-                    // Animate in
-                    setTimeout(() => {
-                        providerContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                        providerContainer.style.opacity = '1';
-                        providerContainer.style.transform = 'translateY(0)';
-                    }, 10);
-                }
-            }
-
-            updateProviderOptions() {
-                if (!this.providerSelectField) return;
-
-                const providerContainer = this.element.querySelector('.provider-select-container');
-                if (!providerContainer) return;
-
-                const currentValue = this.selectedProviderId;
-                providerContainer.innerHTML = '';
-
-                this.providerSelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-provider`,
-                    name: `${this.name}_provider`,
-                    label: this.providerLabel,
-                    placeholder: this.providerPlaceholder,
-                    options: this.filteredProviders,
-                    required: this.required,
-                    onChange: (value) => this.selectProvider(value)
-                });
-
-                const newFieldElement = this.providerSelectField.render();
-                providerContainer.appendChild(newFieldElement);
-
-                if (currentValue && this.filteredProviders.find(p => p.id === currentValue)) {
-                    this.providerSelectField.setValue(currentValue);
-                }
-            }
-
-            getText(key) {
-                const translations = {
-                    en: {
-                        selectService: "Select a service",
-                        selectServicePlaceholder: "-- Select a service --",
-                        selectProvider: "Select a provider",
-                        selectProviderPlaceholder: "-- Select a provider --",
-                        pleaseSelectService: "Please select a service",
-                        pleaseSelectProvider: "Please select a provider"
-                    },
-                    fr: {
-                        selectService: "Sélectionner un service",
-                        selectServicePlaceholder: "-- Sélectionner un service --",
-                        selectProvider: "Sélectionner un dentiste",
-                        selectProviderPlaceholder: "-- Sélectionner un dentiste --",
-                        pleaseSelectService: "Veuillez sélectionner un service",
-                        pleaseSelectProvider: "Veuillez sélectionner un dentiste"
-                    }
-                };
-                return translations[this.language]?.[key] || key;
-            }
-
-            validate() {
-                if (!this.required) return true;
-                
-                if (this.showServiceField && !this.selectedService) {
-                    this.showError(this.getText('pleaseSelectService'));
-                    return false;
-                }
-                
-                if (this.showProviderField && !this.selectedProviderId) {
-                    this.showError(this.getText('pleaseSelectProvider'));
-                    return false;
-                }
-                
-                this.hideError();
-                return true;
-            }
-
-            render() {
-                const container = this.createContainer();
-                
-                // Add vertical spacing styles
-                const styles = `
-                    <style>
-                        .service-provider-filter {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        .service-provider-filter .service-select-container {
-                            margin-bottom: 0;
-                        }
-                        .service-provider-filter .provider-select-container {
-                            margin-top: 0;
-                            transition: opacity 0.3s ease, transform 0.3s ease;
-                        }
-                    </style>
-                `;
-                
-                if (!document.querySelector('#service-provider-filter-styles')) {
-                    const styleElement = document.createElement('div');
-                    styleElement.id = 'service-provider-filter-styles';
-                    styleElement.innerHTML = styles;
-                    document.head.appendChild(styleElement.firstElementChild);
-                }
-                
-                if (this.showServiceField) {
-                    this.createServiceSelectField();
-                    const serviceFieldElement = this.serviceSelectField.render();
-                    serviceFieldElement.classList.add('service-select-container');
-                    container.appendChild(serviceFieldElement);
-                }
-                
-                if (this.showProviderField) {
-                    this.createProviderSelectField();
-                    const providerFieldElement = this.providerSelectField.render();
-                    providerFieldElement.classList.add('provider-select-container');
-                    
-                    if (!this.selectedService) {
-                        providerFieldElement.style.display = 'none';
-                    }
-                    
-                    container.appendChild(providerFieldElement);
-                }
-                
-                const filterContainer = document.createElement('div');
-                filterContainer.className = 'service-provider-filter';
-                
-                while (container.firstChild) {
-                    filterContainer.appendChild(container.firstChild);
-                }
-                
-                container.appendChild(filterContainer);
-                
-                const errorElement = this.createErrorElement();
-                container.appendChild(errorElement);
-                
-                this.element = container;
-                this.element.fieldInstance = this;
-                
-                return this.element;
-            }
-
-            // UPDATED: Return structured object for separate summary display
-            getValue() {
-                return {
-                    service: this.selectedService || '',
-                    dentist: this.selectedProvider?.displayName || '',
-                    // Flag to indicate this should be displayed as separate fields
-                    _separateFields: true,
-                    // Provide field labels for display
-                    _fieldLabels: {
-                        service: 'Service',
-                        dentist: 'Dentiste'
-                    },
-                    toString: () => this.getDisplayText() // Fallback for string conversion
-                };
-            }
-
-            // NEW: Method to get separate summary fields
-            getSummaryFields() {
-                const fields = [];
-                
-                if (this.selectedService) {
-                    fields.push({
-                        label: 'Service',
-                        value: this.selectedService
-                    });
-                }
-                
-                if (this.selectedProvider?.displayName) {
-                    fields.push({
-                        label: 'Dentiste', 
-                        value: this.selectedProvider.displayName
-                    });
-                }
-                
-                return fields;
-            }
-
-            // Method to get display-friendly text
-            getDisplayText() {
-                const parts = [];
-                
-                if (this.selectedService) {
-                    parts.push(this.selectedService);
-                }
-                
-                if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(this.selectedProvider.displayName);
-                }
-                
-                return parts.length > 0 ? parts.join(' - ') : '';
-            }
-
-            // Method specifically for summary display
-            getSummaryValue() {
-                const parts = [];
-                if (this.selectedService) {
-                    parts.push(`Service: ${this.selectedService}`);
-                }
-                if (this.selectedProvider && this.selectedProvider.displayName) {
-                    parts.push(`Dentiste: ${this.selectedProvider.displayName}`);
-                }
-                return parts.join('\n');
-            }
-
-            // Method specifically for getting full data object when needed
-            getDataValue() {
-                return {
-                    selectedService: this.selectedService,
-                    selectedServiceId: this.selectedService ? this.slugify(this.selectedService) : '',
-                    selectedProviderId: this.selectedProviderId,
-                    selectedProvider: this.selectedProvider,
-                    filteredProviders: this.filteredProviders,
-                    serviceConfig: this.selectedProvider?.serviceConfig || null,
-                    isComplete: this.isSelectionComplete(),
-                    displayText: this.getDisplayText()
-                };
-            }
-
-            // Override toString for automatic string conversion
-            toString() {
-                return this.getDisplayText();
-            }
-
-            setValue(value) {
-                if (value && typeof value === 'object') {
-                    if (value.selectedService && this.showServiceField) {
-                        const serviceOption = this.availableServices.find(s => s.name === value.selectedService);
-                        if (serviceOption) {
-                            this.selectService(serviceOption.id);
-                            if (this.serviceSelectField) {
-                                this.serviceSelectField.setValue(serviceOption.id);
-                            }
-                        }
-                    }
-                    
-                    if (value.selectedProviderId && this.showProviderField) {
-                        this.selectProvider(value.selectedProviderId);
-                        if (this.providerSelectField) {
-                            this.providerSelectField.setValue(value.selectedProviderId);
-                        }
-                    }
-                } else if (typeof value === 'string') {
-                    console.log('String value set:', value);
-                }
-            }
-
-            updateValue() {
-                this.handleChange();
-            }
-
-            reset() {
-                this.selectedService = '';
-                this.selectedProviderId = '';
-                this.selectedProvider = null;
-                this.filteredProviders = this.allProviders;
-                
-                if (this.serviceSelectField) {
-                    this.serviceSelectField.setValue('');
-                }
-                
-                if (this.providerSelectField) {
-                    this.providerSelectField.setValue('');
-                    this.updateProviderOptions();
-                }
-                
-                const providerContainer = this.element?.querySelector('.provider-select-container');
-                if (providerContainer) {
-                    providerContainer.style.display = 'none';
-                }
-                
-                this.updateValue();
-            }
-
-            destroy() {
-                if (this.serviceSelectField && typeof this.serviceSelectField.destroy === 'function') {
-                    this.serviceSelectField.destroy();
-                }
-                if (this.providerSelectField && typeof this.providerSelectField.destroy === 'function') {
-                    this.providerSelectField.destroy();
-                }
-                super.destroy();
-            }
-        }
-
-
+     
 
 
 // Export for module usage
