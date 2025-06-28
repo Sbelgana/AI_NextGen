@@ -1,6 +1,9 @@
 // ============================================================================
 // ENHANCED FIELD VALUE FORMATTER - More robust formatting logic
 // ============================================================================
+// ============================================================================
+// ENHANCED FIELD VALUE FORMATTER - Complete with bullet points for calendar
+// ============================================================================
 class FieldValueFormatter {
     constructor(creatFormInstance) {
         this.creatFormInstance = creatFormInstance;
@@ -264,11 +267,11 @@ class FieldValueFormatter {
     }
 
     /**
-     * NEW: Format ServiceRequestCalendar values
+     * UPDATED: Format ServiceRequestCalendar values with bullet points
      */
     formatServiceRequestCalendarValue(value, fieldConfig) {
         if (Array.isArray(value)) {
-            return value.map(slot => {
+            const formattedSlots = value.map(slot => {
                 if (typeof slot === 'object' && slot.displayText) {
                     return slot.displayText;
                 }
@@ -277,6 +280,14 @@ class FieldValueFormatter {
                 }
                 return this.safeStringConversion(slot);
             });
+            
+            // Add bullet points for multiple slots
+            if (formattedSlots.length > 1) {
+                return formattedSlots.map(slot => `• ${slot}`).join('\n');
+            } else if (formattedSlots.length === 1) {
+                return formattedSlots[0]; // Single item doesn't need bullet
+            }
+            return '';
         }
         
         return this.safeStringConversion(value);
@@ -459,25 +470,48 @@ class FieldValueFormatter {
     }
 
     // ============================================================================
-    // NEW: Safe string conversion method
+    // ENHANCED: Safe string conversion method with calendar support
     // ============================================================================
 
     /**
-     * NEW: Safe string conversion method
+     * UPDATED: Safe string conversion method with better calendar array handling
      */
-    safeStringConversion(value) {
+    safeStringConversion(value, fieldConfig = null) {
         // Handle null/undefined
         if (value === null || value === undefined) {
             return '';
         }
         
-        // Handle arrays
+        // Handle arrays with special formatting for calendar fields
         if (Array.isArray(value)) {
-            return value.map(item => this.safeStringConversion(item)).filter(item => item !== '').join(', ');
+            // Check if this is a calendar field array
+            const isCalendarArray = value.some(item => 
+                typeof item === 'object' && (item.displayText || (item.date && item.timeOfDay))
+            );
+            
+            if (isCalendarArray && value.length > 1) {
+                // Use bullet points for calendar arrays with multiple items
+                return value.map(item => {
+                    const formatted = this.safeStringConversion(item);
+                    return formatted ? `• ${formatted}` : '';
+                }).filter(item => item !== '').join('\n');
+            } else {
+                // Regular array formatting with commas
+                return value.map(item => this.safeStringConversion(item)).filter(item => item !== '').join(', ');
+            }
         }
         
         // Handle objects
         if (typeof value === 'object' && value !== null) {
+            // Check for calendar-specific properties first
+            if (value.displayText) {
+                return String(value.displayText);
+            }
+            
+            if (value.date && value.timeOfDay) {
+                return `${value.date} - ${value.timeOfDay}`;
+            }
+            
             // Try toString first
             if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
                 try {
@@ -488,6 +522,20 @@ class FieldValueFormatter {
                 } catch (error) {
                     console.warn('Error calling toString:', error);
                 }
+            }
+            
+            // Check for other common display fields
+            if (value.display) {
+                return String(value.display);
+            }
+            if (value.label) {
+                return String(value.label);
+            }
+            if (value.name) {
+                return String(value.name);
+            }
+            if (value.value !== undefined) {
+                return String(value.value);
             }
             
             // Try JSON.stringify as last resort
@@ -532,7 +580,7 @@ class FieldValueFormatter {
             }
             
             // Check for common meaningful properties
-            const meaningfulProps = ['displayText', 'display', 'label', 'name', 'value', 'selectedCategory', 'selectedItem'];
+            const meaningfulProps = ['displayText', 'display', 'label', 'name', 'value', 'selectedCategory', 'selectedItem', 'date', 'timeOfDay'];
             const hasMeaningfulContent = meaningfulProps.some(prop => {
                 const propValue = value[prop];
                 return propValue !== undefined && propValue !== null && propValue !== '';
