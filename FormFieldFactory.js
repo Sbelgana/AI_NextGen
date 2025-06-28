@@ -1,11 +1,5 @@
-/**
- * Complete FormFieldFactory System - Enhanced with Personalized Error Messages
- * @version 3.3.0
- * @description Complete form system with multi-step capability, universal data processing, linked fields, subsections support, and personalized error messages
- */
-
 // ============================================================================
-// 1. FIELD VALUE FORMATTER - Handles all field value formatting logic
+// 1. ENHANCED FIELD VALUE FORMATTER - More robust formatting logic
 // ============================================================================
 class FieldValueFormatter {
     constructor(creatFormInstance) {
@@ -32,9 +26,12 @@ class FieldValueFormatter {
         };
     }
 
+    /**
+     * Main formatting method - handles all field types consistently
+     */
     formatValue(fieldConfig, value, context = {}) {
         if (!this.shouldDisplayValue(value)) {
-            return '';
+            return context.returnEmpty ? '' : this.getTranslatedText('common.notSpecified');
         }
 
         const fieldType = fieldConfig?.type;
@@ -60,7 +57,14 @@ class FieldValueFormatter {
                 case 'options-slider':
                     return this.formatOptionsSliderValue(value, fieldConfig);
                 case 'textarea':
-                    return this.formatTextareaValue(value);
+                    return this.formatTextareaValue(value, context);
+                case 'email':
+                case 'phone':
+                case 'url':
+                    return this.formatContactValue(value);
+                case 'number':
+                case 'percentage':
+                    return this.formatNumericValue(value, fieldConfig);
                 default:
                     return this.formatDefaultValue(value);
             }
@@ -70,15 +74,77 @@ class FieldValueFormatter {
         }
     }
 
-    shouldDisplayValue(value) {
-        if (value === undefined || value === null || value === '') {
-            return false;
+    /**
+     * Extract structured data for complex fields (like yesno-with-options)
+     */
+    extractStructuredValue(fieldConfig, value) {
+        if (!this.shouldDisplayValue(value)) {
+            return { displayValue: '', rawValue: value, hasSubFields: false };
         }
-        if (Array.isArray(value) && value.length === 0) {
-            return false;
+
+        const result = {
+            displayValue: this.formatValue(fieldConfig, value),
+            rawValue: value,
+            hasSubFields: false,
+            subFields: {}
+        };
+
+        // Handle yesno-with-options specially
+        if (fieldConfig.type === 'yesno-with-options' && typeof value === 'object' && value.main !== undefined) {
+            result.mainValue = value.main;
+            result.mainDisplayValue = this.formatYesNoValue(value.main, fieldConfig);
+            result.hasSubFields = true;
+
+            // Determine which sub-fields to include
+            const showYesFields = this.isYesValue(value.main, fieldConfig);
+            const showNoFields = this.isNoValue(value.main, fieldConfig);
+
+            if (showYesFields && value.yesValues) {
+                result.subFields = this.extractSubFieldValues(
+                    fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []),
+                    value.yesValues
+                );
+            } else if (showNoFields && value.noValues) {
+                result.subFields = this.extractSubFieldValues(
+                    fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []),
+                    value.noValues
+                );
+            }
         }
-        return true;
+
+        return result;
     }
+
+    /**
+     * Extract sub-field values for conditional fields
+     */
+    extractSubFieldValues(subFieldConfigs, subFieldValues) {
+        const extracted = {};
+        
+        if (!Array.isArray(subFieldConfigs) || !subFieldValues) {
+            return extracted;
+        }
+
+        subFieldConfigs.forEach(subFieldConfig => {
+            const fieldName = subFieldConfig.name || subFieldConfig.id;
+            const fieldValue = subFieldValues[fieldName];
+            
+            if (this.shouldDisplayValue(fieldValue)) {
+                extracted[fieldName] = {
+                    label: subFieldConfig.label,
+                    displayValue: this.formatValue(subFieldConfig, fieldValue),
+                    rawValue: fieldValue,
+                    fieldType: subFieldConfig.type
+                };
+            }
+        });
+
+        return extracted;
+    }
+
+    // ============================================================================
+    // ENHANCED FIELD-SPECIFIC FORMATTING METHODS
+    // ============================================================================
 
     formatYesNoValue(value, fieldConfig) {
         // Handle custom options first
@@ -89,11 +155,11 @@ class FieldValueFormatter {
             }
         }
         
-        // Standard yes/no with enhanced translation support
-        if (value === true || value === 'yes' || value === 'true') {
+        // Standard yes/no
+        if (this.isYesValue(value, fieldConfig)) {
             return this.getTranslatedText('common.yes');
         }
-        if (value === false || value === 'no' || value === 'false') {
+        if (this.isNoValue(value, fieldConfig)) {
             return this.getTranslatedText('common.no');
         }
         
@@ -104,18 +170,26 @@ class FieldValueFormatter {
         if (typeof value !== 'object' || value.main === undefined) {
             return this.formatYesNoValue(value, fieldConfig);
         }
-        return this.formatYesNoValue(value.main, fieldConfig);
+
+        // For summary context, return just the main value
+        if (context.summaryMode) {
+            return this.formatYesNoValue(value.main, fieldConfig);
+        }
+
+        // For detailed context, include sub-field information
+        const structured = this.extractStructuredValue(fieldConfig, value);
+        return structured.mainDisplayValue;
     }
 
     formatSelectValue(value, fieldConfig) {
-        return this.getOptionDisplayName(fieldConfig?.options, value);
+        return this.getOptionDisplayName(fieldConfig?.options, value, fieldConfig);
     }
 
     formatMultiSelectValue(value, fieldConfig) {
         if (!Array.isArray(value)) {
             return this.formatSelectValue(value, fieldConfig);
         }
-        return value.map(v => this.getOptionDisplayName(fieldConfig?.options, v)).join(', ');
+        return value.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig));
     }
 
     formatSelectWithOtherValue(value, fieldConfig) {
@@ -123,23 +197,43 @@ class FieldValueFormatter {
             if (value.main === 'other' && value.other) {
                 return value.other.trim();
             }
-            return this.getOptionDisplayName(fieldConfig?.options, value.main);
+            return this.getOptionDisplayName(fieldConfig?.options, value.main, fieldConfig);
         }
-        return this.getOptionDisplayName(fieldConfig?.options, value);
+        return this.getOptionDisplayName(fieldConfig?.options, value, fieldConfig);
     }
 
     formatMultiSelectWithOtherValue(value, fieldConfig) {
         if (typeof value === 'object' && value.main) {
             const mainValues = Array.isArray(value.main) ? 
-                value.main.map(v => this.getOptionDisplayName(fieldConfig?.options, v)) : [];
+                value.main.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig)) : [];
             
             if (value.other && value.other.trim()) {
                 mainValues.push(value.other.trim());
             }
             
-            return mainValues; // Return array, not joined string
+            return mainValues;
         }
         return Array.isArray(value) ? value : [value];
+    }
+
+    formatContactValue(value) {
+        return value ? value.toString().trim() : '';
+    }
+
+    formatNumericValue(value, fieldConfig) {
+        if (typeof value === 'number') {
+            return fieldConfig?.type === 'percentage' ? `${value}%` : value.toString();
+        }
+        return value;
+    }
+
+    formatTextareaValue(value, context = {}) {
+        if (typeof value === 'string') {
+            if (context.summaryMode && value.length > 100) {
+                return value.substring(0, 100) + '...';
+            }
+        }
+        return value;
     }
 
     formatSlidingWindowRangeValue(value, fieldConfig) {
@@ -165,18 +259,39 @@ class FieldValueFormatter {
         return value;
     }
 
-    formatTextareaValue(value) {
-        if (typeof value === 'string' && value.length > 100) {
-            return value.substring(0, 100) + '...';
-        }
-        return value;
-    }
-
     formatDefaultValue(value) {
         return value;
     }
 
-    getOptionDisplayName(options, value) {
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
+
+    shouldDisplayValue(value) {
+        if (value === undefined || value === null || value === '') {
+            return false;
+        }
+        if (Array.isArray(value) && value.length === 0) {
+            return false;
+        }
+        return true;
+    }
+
+    isYesValue(value, fieldConfig) {
+        if (fieldConfig?.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            return value === fieldConfig.customOptions[0]?.value;
+        }
+        return value === true || value === 'yes' || value === 'true';
+    }
+
+    isNoValue(value, fieldConfig) {
+        if (fieldConfig?.customOptions && Array.isArray(fieldConfig.customOptions)) {
+            return value === fieldConfig.customOptions[1]?.value;
+        }
+        return value === false || value === 'no' || value === 'false';
+    }
+
+    getOptionDisplayName(options, value, fieldConfig) {
         if (!options || !value) return value;
         
         // Handle data path resolution
@@ -186,6 +301,21 @@ class FieldValueFormatter {
             } catch (error) {
                 console.error('Error getting data for options path:', options, error);
                 return value;
+            }
+        }
+        
+        // Handle subsection options (for select-subsections)
+        if (fieldConfig?.type === 'select-subsections' || fieldConfig?.type === 'multiselect-subsections') {
+            if (fieldConfig.subsectionOptions || fieldConfig.options) {
+                const subsections = fieldConfig.subsectionOptions || fieldConfig.options;
+                for (const section of subsections) {
+                    if (section.subcategories) {
+                        const option = section.subcategories.find(opt => opt.id === value);
+                        if (option) {
+                            return this.getLocalizedLabel(option.name || option.label);
+                        }
+                    }
+                }
             }
         }
         
@@ -207,7 +337,6 @@ class FieldValueFormatter {
         return label;
     }
 
-    // Enhanced translation method with fallbacks
     getTranslatedText(path) {
         try {
             // Method 1: Try the creatFormInstance getText method
@@ -253,64 +382,157 @@ class FieldValueFormatter {
                    path;
         }
     }
-
-    getText(path) {
-        return this.getTranslatedText(path);
-    }
 }
 
-
 // ============================================================================
-// 2. BASE DATA TRANSFORMER - Generic data transformation logic
+// 2. FORM DATA PROCESSOR - Generic processor using field configurations
 // ============================================================================
-
-class BaseDataTransformer {
-    constructor(creatFormInstance, fieldConfigMap = {}) {
+class FormDataProcessor {
+    constructor(creatFormInstance) {
         this.creatFormInstance = creatFormInstance;
         this.formatter = new FieldValueFormatter(creatFormInstance);
-        this.fieldConfigMap = fieldConfigMap;
         this.config = creatFormInstance?.config || {};
         this.language = this.config.language || 'fr';
     }
 
     /**
-     * Main transformation method - override in subclasses
+     * Process form data using field configurations (same approach as CustomField)
      */
-    transform(flatData, originalFormValues) {
-        console.log('BaseDataTransformer: Starting transformation...', { flatData, originalFormValues });
+    processFormData(originalFormValues) {
+        const fieldConfigurations = this.getFieldConfigurations();
+        const processedData = {};
+
+        // Process each field value using its configuration
+        Object.keys(originalFormValues).forEach(fieldName => {
+            const fieldValue = originalFormValues[fieldName];
+            const fieldConfig = this.findFieldConfiguration(fieldName, fieldConfigurations);
+
+            if (fieldConfig && this.formatter.shouldDisplayValue(fieldValue)) {
+                processedData[fieldName] = this.processFieldValue(fieldConfig, fieldValue, originalFormValues);
+            }
+        });
+
+        return processedData;
+    }
+
+    /**
+     * Process individual field value using the same technique as CustomField
+     */
+    processFieldValue(fieldConfig, fieldValue, allFormValues) {
+        // Get the structured value extraction (like CustomField does)
+        const structured = this.formatter.extractStructuredValue(fieldConfig, fieldValue);
         
-        // Default structured format
         return {
-            submissionType: this.getSubmissionType(),
-            formVersion: this.getFormVersion(),
-            submissionTimestamp: new Date().toISOString(),
-            language: this.language,
+            fieldId: fieldConfig.id || fieldConfig.name,
+            fieldType: fieldConfig.type,
+            label: this.getFieldLabel(fieldConfig),
+            displayValue: structured.displayValue,
+            rawValue: structured.rawValue,
             
-            // Transform to sections
-            sections: this.createSections(flatData, originalFormValues),
+            // For complex fields, include structured information
+            ...(structured.hasSubFields && {
+                mainValue: structured.mainValue,
+                mainDisplayValue: structured.mainDisplayValue,
+                subFields: structured.subFields
+            }),
             
-            // Keep flat data for compatibility
-            flatData: flatData,
-            
-            // Add metadata
-            metadata: this.generateMetadata(flatData, originalFormValues)
+            // For array fields, provide different formats
+            ...(Array.isArray(structured.displayValue) && {
+                array: structured.displayValue,
+                string: structured.displayValue.join(', '),
+                count: structured.displayValue.length
+            })
         };
     }
 
     /**
-     * Create sections from form data - can be overridden
+     * Get field configurations from the form (same as CustomField approach)
      */
-    createSections(flatData, originalFormValues) {
+    getFieldConfigurations() {
+        const configs = [];
+        
+        if (this.creatFormInstance.formConfig?.steps) {
+            this.creatFormInstance.formConfig.steps.forEach(stepConfig => {
+                if (stepConfig.fields) {
+                    configs.push(...this.extractFieldConfigs(stepConfig.fields));
+                }
+            });
+        }
+        
+        return configs;
+    }
+
+    /**
+     * Extract field configurations including nested fields (yesFields, noFields, etc.)
+     */
+    extractFieldConfigs(fields) {
+        const configs = [];
+        
+        fields.forEach(fieldConfig => {
+            configs.push(fieldConfig);
+            
+            // Extract nested field configurations
+            if (fieldConfig.yesFields) {
+                configs.push(...this.extractFieldConfigs(fieldConfig.yesFields));
+            }
+            if (fieldConfig.yesField) {
+                configs.push(fieldConfig.yesField);
+            }
+            if (fieldConfig.noFields) {
+                configs.push(...this.extractFieldConfigs(fieldConfig.noFields));
+            }
+            if (fieldConfig.noField) {
+                configs.push(fieldConfig.noField);
+            }
+        });
+        
+        return configs;
+    }
+
+    /**
+     * Find field configuration by name (same as CustomField approach)
+     */
+    findFieldConfiguration(fieldName, fieldConfigurations) {
+        return fieldConfigurations.find(config => 
+            (config.name === fieldName) || 
+            (config.id === fieldName)
+        ) || null;
+    }
+
+    /**
+     * Get field label using the same approach as CustomField
+     */
+    getFieldLabel(fieldConfig) {
+        const fieldId = fieldConfig.id || fieldConfig.name;
+        
+        // Try to get translated label
+        if (this.creatFormInstance.getText) {
+            const translatedLabel = this.creatFormInstance.getText(`fields.${fieldId}`);
+            if (translatedLabel && translatedLabel !== `fields.${fieldId}`) {
+                return translatedLabel;
+            }
+        }
+        
+        // Fallback to config label
+        return fieldConfig.label || fieldId;
+    }
+
+    /**
+     * Create sections based on form structure (not hardcoded field names)
+     */
+    createSections(processedData) {
         const sections = {};
         
-        // Group by form steps
         if (this.creatFormInstance.formConfig?.steps) {
             this.creatFormInstance.formConfig.steps.forEach((stepConfig, stepIndex) => {
-                const sectionData = this.createSectionFromStep(stepConfig, stepIndex, flatData, originalFormValues);
+                const sectionData = this.createSectionFromStep(stepConfig, stepIndex, processedData);
+                
                 if (Object.keys(sectionData).length > 0) {
-                    const sectionId = stepConfig.sectionId || `step_${stepIndex}`;
+                    const sectionId = this.getSectionId(stepConfig, stepIndex);
                     sections[sectionId] = {
                         sectionType: sectionId,
+                        title: this.getSectionTitle(stepConfig, stepIndex),
+                        index: stepIndex,
                         ...sectionData
                     };
                 }
@@ -321,76 +543,144 @@ class BaseDataTransformer {
     }
 
     /**
-     * Create section data from a step configuration
+     * Create section data from step configuration
      */
-    createSectionFromStep(stepConfig, stepIndex, flatData, originalFormValues) {
+    createSectionFromStep(stepConfig, stepIndex, processedData) {
         const sectionData = {};
         
-        stepConfig.fields?.forEach(fieldConfig => {
-            const fieldValue = originalFormValues[fieldConfig.id];
-            if (this.shouldIncludeField(fieldConfig, fieldValue)) {
-                sectionData[fieldConfig.id] = this.transformFieldValue(fieldConfig, fieldValue, originalFormValues);
-            }
-        });
+        if (stepConfig.fields) {
+            stepConfig.fields.forEach(fieldConfig => {
+                const fieldName = fieldConfig.id || fieldConfig.name;
+                const fieldData = processedData[fieldName];
+                
+                if (fieldData) {
+                    sectionData[fieldName] = fieldData;
+                }
+            });
+        }
         
         return sectionData;
     }
 
     /**
-     * Transform individual field value
+     * Get section ID from step configuration
      */
-    transformFieldValue(fieldConfig, value, originalFormValues) {
-        const config = this.getFieldConfig(fieldConfig.id);
+    getSectionId(stepConfig, stepIndex) {
+        if (stepConfig.sectionId) {
+            return stepConfig.sectionId;
+        }
         
-        // Use formatter for display value
-        const displayValue = this.formatter.formatValue(fieldConfig, value);
+        // Generate semantic section IDs based on content
+        const fieldTypes = stepConfig.fields?.map(f => f.type) || [];
         
-        // Return structured field data
+        if (fieldTypes.includes('email') || fieldTypes.includes('phone')) {
+            return 'contact_information';
+        }
+        if (fieldTypes.includes('textarea') && stepConfig.fields?.some(f => f.id?.includes('description'))) {
+            return 'project_details';
+        }
+        if (fieldTypes.includes('serviceCard') || fieldTypes.includes('calendar')) {
+            return 'service_selection';
+        }
+        if (fieldTypes.includes('yesno-with-options')) {
+            return 'feature_configuration';
+        }
+        
+        return `step_${stepIndex}`;
+    }
+
+    /**
+     * Get section title from step configuration
+     */
+    getSectionTitle(stepConfig, stepIndex) {
+        // Try to get translated title
+        if (this.creatFormInstance.getText) {
+            const translatedTitle = this.creatFormInstance.getText(`steps.${stepIndex}.title`);
+            if (translatedTitle && translatedTitle !== `steps.${stepIndex}.title`) {
+                return translatedTitle;
+            }
+        }
+        
+        // Fallback to config title or generated title
+        return stepConfig.title || `Step ${stepIndex + 1}`;
+    }
+}
+
+// ============================================================================
+// 3. UPDATED BASE DATA TRANSFORMER - Uses FormDataProcessor
+// ============================================================================
+class BaseDataTransformer {
+    constructor(creatFormInstance) {
+        this.creatFormInstance = creatFormInstance;
+        this.processor = new FormDataProcessor(creatFormInstance);
+        this.config = creatFormInstance?.config || {};
+        this.language = this.config.language || 'fr';
+    }
+
+    /**
+     * Main transformation method - no more flatData!
+     */
+    transform(originalFormValues) {
+        console.log('BaseDataTransformer: Starting transformation...', { originalFormValues });
+        
+        // Process form data using field configurations (same as CustomField)
+        const processedData = this.processor.processFormData(originalFormValues);
+        
+        // Create structured format
         return {
-            rawValue: value,
-            displayValue: displayValue,
-            fieldType: fieldConfig.type,
-            ...this.getAdditionalFieldData(fieldConfig, value, config)
+            submissionType: this.getSubmissionType(),
+            formVersion: this.getFormVersion(),
+            submissionTimestamp: new Date().toISOString(),
+            language: this.language,
+            
+            // Create sections using processed data
+            sections: this.processor.createSections(processedData),
+            
+            // Keep processed field data for direct access
+            processedFields: processedData,
+            
+            // Add metadata
+            metadata: this.generateMetadata(originalFormValues, processedData)
         };
     }
 
     /**
-     * Get additional field-specific data - can be overridden
+     * Generate metadata
      */
-    getAdditionalFieldData(fieldConfig, value, config) {
-        return {};
-    }
-
-    /**
-     * Check if field should be included in transformation
-     */
-    shouldIncludeField(fieldConfig, fieldValue) {
-        return this.formatter.shouldDisplayValue(fieldValue);
-    }
-
-    /**
-     * Get field configuration from the field config map
-     */
-    getFieldConfig(fieldId) {
-        return this.fieldConfigMap[fieldId] || {};
-    }
-
-    /**
-     * Generate metadata - can be overridden
-     */
-    generateMetadata(flatData, originalFormValues) {
+    generateMetadata(originalFormValues, processedData) {
         return {
             transformationTimestamp: new Date().toISOString(),
             transformerType: this.constructor.name,
             totalFields: Object.keys(originalFormValues).length,
-            completedFields: Object.keys(originalFormValues).filter(key => 
-                this.formatter.shouldDisplayValue(originalFormValues[key])
-            ).length
+            processedFields: Object.keys(processedData).length,
+            completionPercentage: this.calculateCompletionPercentage(originalFormValues),
+            formStructure: this.determineFormStructure()
         };
     }
 
     /**
-     * Get submission type - can be overridden
+     * Calculate completion percentage
+     */
+    calculateCompletionPercentage(formValues) {
+        const fieldConfigs = this.processor.getFieldConfigurations();
+        const totalFields = fieldConfigs.length;
+        const completedFields = Object.keys(formValues).filter(key => 
+            this.processor.formatter.shouldDisplayValue(formValues[key])
+        ).length;
+        
+        return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+    }
+
+    /**
+     * Determine form structure
+     */
+    determineFormStructure() {
+        const steps = this.creatFormInstance.formConfig?.steps?.length || 1;
+        return steps > 1 ? 'multi-step' : 'single-step';
+    }
+
+    /**
+     * Get submission type
      */
     getSubmissionType() {
         return this.config.formType === "booking" ? "booking_form" : "submission_form";
@@ -402,398 +692,7 @@ class BaseDataTransformer {
     getFormVersion() {
         return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
     }
-
-    /**
-     * Utility method to extract simple values (for backward compatibility)
-     */
-    extractValue(value) {
-        if (this.creatFormInstance && this.creatFormInstance.extractValue) {
-            return this.creatFormInstance.extractValue(value);
-        }
-        return this.formatter.formatValue({}, value);
-    }
 }
-
-// ============================================================================
-// 3. CHATBOT FORM DATA TRANSFORMER - Specific implementation
-// ============================================================================
-// ============================================================================
-// 3. CHATBOT FORM DATA TRANSFORMER - FIXED VERSION
-// Now properly formats field values using field configurations
-// ============================================================================
-class ChatbotFormDataTransformer extends BaseDataTransformer {
-    constructor(creatFormInstance) {
-        const fieldConfigMap = {
-            niche: { optionsPath: 'niches', type: 'select-with-other' },
-            budget: { optionsPath: 'budgetRanges', type: 'select-with-other' },
-            teamSize: { 
-                type: 'select',
-                customOptions: [
-                    { id: 'solo', name: { fr: 'Entrepreneur individuel', en: 'Individual Entrepreneur' } },
-                    { id: 'small', name: { fr: 'TPE (2-10 employés)', en: 'Small Business (2-10 employees)' } },
-                    { id: 'medium', name: { fr: 'PME (11-50 employés)', en: 'Medium Business (11-50 employees)' } },
-                    { id: 'large', name: { fr: 'Grande entreprise (50+ employés)', en: 'Large Enterprise (50+ employees)' } }
-                ]
-            },
-            formTypes: { optionsPath: 'formTypes', type: 'multiselect-with-other' },
-            websitePlatform: { optionsPath: 'platforms.website', type: 'select-with-other' },
-            websiteTraffic: { optionsPath: 'websiteTraffic', type: 'select' },
-            crms: { optionsPath: 'integrations.crms', type: 'multiselect-with-other' },
-            bookingSystems: { optionsPath: 'integrations.booking', type: 'select-with-other' },
-            databases: { optionsPath: 'integrations.databases', type: 'multiselect-with-other' },
-            socialPlatforms: { optionsPath: 'platforms.social', type: 'multiselect' },
-            languages: { optionsPath: 'languages', type: 'multiselect' },
-            language: { optionsPath: 'languages', type: 'select' }
-        };
-
-        super(creatFormInstance, fieldConfigMap);
-    }
-
-    createSections(flatData, originalFormValues) {
-        return {
-            contactInfo: this.createContactInfoSection(flatData, originalFormValues),
-            projectSpecs: this.createProjectSpecsSection(flatData, originalFormValues),
-            businessProfile: this.createBusinessProfileSection(flatData, originalFormValues),
-            coreFeatures: this.createCoreFeaturesSection(flatData, originalFormValues),
-            formIntegration: this.createFormIntegrationSection(flatData, originalFormValues),
-            webIntegration: this.createWebIntegrationSection(flatData, originalFormValues),
-            integrations: this.createIntegrationsSection(flatData, originalFormValues),
-            communicationChannels: this.createCommunicationChannelsSection(flatData, originalFormValues)
-        };
-    }
-
-    createContactInfoSection(flatData, originalFormValues) {
-        return {
-            sectionType: "contact_information",
-            firstName: this.safeExtractValue('firstName', flatData.firstName),
-            lastName: this.safeExtractValue('lastName', flatData.lastName),
-            fullName: `${this.safeExtractValue('firstName', flatData.firstName)} ${this.safeExtractValue('lastName', flatData.lastName)}`.trim(),
-            email: this.safeExtractValue('email', flatData.email),
-            phone: this.safeExtractValue('phone', flatData.phone),
-            company: this.safeExtractValue('company', flatData.company) || 'Non spécifié'
-        };
-    }
-
-    createProjectSpecsSection(flatData, originalFormValues) {
-        return {
-            sectionType: "project_specifications",
-            industry: this.safeExtractValue('niche', flatData.niche) || 'Non spécifié',
-            otherIndustry: this.safeExtractValue('otherNiche', flatData.otherNiche),
-            budget: this.safeExtractValue('budget', flatData.budget) || 'Non spécifié',
-            customBudget: this.safeExtractValue('customBudget', flatData.customBudget),
-            description: this.safeExtractValue('description', flatData.description) || 'Non spécifié'
-        };
-    }
-
-    createBusinessProfileSection(flatData, originalFormValues) {
-        return {
-            sectionType: "business_profile",
-            teamSize: this.safeExtractValue('teamSize', flatData.teamSize) || 'Non spécifié',
-            services: this.safeExtractValue('services', flatData.services) || 'Non spécifié'
-        };
-    }
-
-    createCoreFeaturesSection(flatData, originalFormValues) {
-        return {
-            sectionType: "core_features",
-            leadCapture: this.safeBooleanValue(flatData.leadCapture),
-            leadQualification: this.safeBooleanValue(flatData.leadQualification),
-            conversationSummary: this.safeBooleanValue(flatData.conversationSummary)
-        };
-    }
-
-    createFormIntegrationSection(flatData, originalFormValues) {
-        const useFormResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.useForm,
-            'useForm',
-            {
-                formTypes: { type: 'multiselect-with-other', optionsPath: 'formTypes' },
-                formPurpose: { type: 'textarea' }
-            }
-        );
-
-        // FIXED: Safe array extraction with proper type checking
-        const formTypesArray = this.safeArrayValue(useFormResult.extractedValues.formTypes);
-        const formPurpose = this.safeStringValue(useFormResult.extractedValues.formPurpose);
-
-        return {
-            sectionType: "form_integration",
-            useForm: useFormResult.mainValue,
-            formTypes: formTypesArray,
-            formTypesString: formTypesArray.join(', '),
-            formPurpose: formPurpose
-        };
-    }
-
-    createWebIntegrationSection(flatData, originalFormValues) {
-        const hasWebsiteResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.hasWebsite,
-            'hasWebsite',
-            {
-                websitePlatform: { type: 'select-with-other', optionsPath: 'platforms.website' },
-                websiteTraffic: { type: 'select', optionsPath: 'websiteTraffic' },
-                websiteUrl: { type: 'url' }
-            }
-        );
-
-        return {
-            sectionType: "web_integration",
-            hasWebsite: hasWebsiteResult.mainValue,
-            websitePlatform: this.safeStringValue(hasWebsiteResult.extractedValues.websitePlatform),
-            websiteUrl: this.safeStringValue(hasWebsiteResult.extractedValues.websiteUrl),
-            websiteTraffic: this.safeStringValue(hasWebsiteResult.extractedValues.websiteTraffic)
-        };
-    }
-
-    createIntegrationsSection(flatData, originalFormValues) {
-        const useCRMResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.useCRM,
-            'useCRM',
-            { crms: { type: 'multiselect-with-other', optionsPath: 'integrations.crms' } }
-        );
-
-        const hasBookingResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.hasBookingSystem,
-            'hasBookingSystem',
-            {
-                bookingSystems: { type: 'select-with-other', optionsPath: 'integrations.booking' },
-                wantBookingRecommendation: { type: 'yesno' }
-            }
-        );
-
-        const useDatabaseResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.useDatabase,
-            'useDatabase',
-            { databases: { type: 'multiselect-with-other', optionsPath: 'integrations.databases' } }
-        );
-
-        // FIXED: Safe array extraction
-        const crmsArray = this.safeArrayValue(useCRMResult.extractedValues.crms);
-        const databasesArray = this.safeArrayValue(useDatabaseResult.extractedValues.databases);
-
-        return {
-            sectionType: "integrations_apis",
-            useCRM: useCRMResult.mainValue,
-            crms: crmsArray,
-            crmsString: crmsArray.join(', '),
-            
-            hasBookingSystem: hasBookingResult.mainValue,
-            bookingSystems: this.safeStringValue(hasBookingResult.extractedValues.bookingSystems),
-            wantBookingRecommendation: this.safeBooleanValue(hasBookingResult.extractedValues.wantBookingRecommendation),
-            handleCancellation: this.safeBooleanValue(flatData.handleCancellation),
-            
-            useDatabase: useDatabaseResult.mainValue,
-            databases: databasesArray,
-            databasesString: databasesArray.join(', ')
-        };
-    }
-
-    createCommunicationChannelsSection(flatData, originalFormValues) {
-        const needSocialBotResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.needSocialBot,
-            'needSocialBot',
-            { socialPlatforms: { type: 'multiselect', optionsPath: 'platforms.social' } }
-        );
-
-        const languageTypeResult = this.safeExtractYesNoWithOptions(
-            originalFormValues.languageType,
-            'languageType',
-            {
-                languages: { type: 'multiselect', optionsPath: 'languages' },
-                language: { type: 'select', optionsPath: 'languages' }
-            },
-            { 
-                customOptions: [
-                    { value: 'multilingual', label: { fr: 'Support multilingue', en: 'Multilingual Support' } },
-                    { value: 'unilingual', label: { fr: 'Langue unique', en: 'Single Language' } }
-                ]
-            }
-        );
-
-        // FIXED: Safe array extraction
-        const socialPlatformsArray = this.safeArrayValue(needSocialBotResult.extractedValues.socialPlatforms);
-        const languagesArray = this.getLanguagesArray(languageTypeResult);
-
-        return {
-            sectionType: "communication_channels",
-            needSocialBot: needSocialBotResult.mainValue,
-            socialPlatforms: socialPlatformsArray,
-            socialPlatformsString: socialPlatformsArray.join(', '),
-            languageType: this.getLanguageTypeDisplay(languageTypeResult),
-            languages: languagesArray,
-            languagesString: languagesArray.join(', ')
-        };
-    }
-
-    // ============================================================================
-    // FIXED: Safe extraction helper methods with proper field configuration usage
-    // ============================================================================
-
-    // NEW: Enhanced safeExtractValue that uses field configuration
-    safeExtractValue(fieldName, value) {
-        try {
-            const fieldConfig = this.getFieldConfig(fieldName);
-            
-            // If we have field configuration, use it for proper formatting
-            if (fieldConfig && Object.keys(fieldConfig).length > 0) {
-                // For custom options (like teamSize), add them to the field config
-                if (fieldConfig.customOptions) {
-                    fieldConfig.options = fieldConfig.customOptions;
-                }
-                
-                return this.formatter.formatValue(fieldConfig, value) || '';
-            }
-            
-            // Fallback to basic formatting
-            return this.formatter.formatValue({}, value) || '';
-        } catch (error) {
-            console.error(`Error extracting value for ${fieldName}:`, error);
-            return '';
-        }
-    }
-
-    safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
-        let mainValue = false;
-        let extractedValues = {};
-
-        try {
-            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
-                // Handle main value
-                if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
-                    const option = mainFieldConfig.customOptions.find(opt => opt.value === fieldValue.main);
-                    if (option) {
-                        mainValue = fieldValue.main === mainFieldConfig.customOptions[0].value;
-                    } else {
-                        mainValue = fieldValue.main === true || fieldValue.main === 'yes';
-                    }
-                } else {
-                    mainValue = fieldValue.main === true || fieldValue.main === 'yes';
-                }
-
-                // Extract sub-values using proper field configurations
-                ['yesValues', 'noValues'].forEach(valueType => {
-                    if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
-                        Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
-                            if (subValue !== undefined && subValue !== null && subValue !== '') {
-                                const subFieldConfig = subFieldConfigs[key] || {};
-                                extractedValues[key] = this.safeFormatFieldValue(subFieldConfig, subValue, key);
-                            }
-                        });
-                    }
-                });
-            } else if (typeof fieldValue === 'string') {
-                mainValue = fieldValue === 'yes' || fieldValue === 'true';
-            } else if (typeof fieldValue === 'boolean') {
-                mainValue = fieldValue;
-            }
-        } catch (error) {
-            console.error(`Error extracting yesno-with-options for ${fieldName}:`, error);
-            mainValue = false;
-            extractedValues = {};
-        }
-
-        return { mainValue, extractedValues };
-    }
-
-    safeFormatFieldValue(fieldConfig, value, fieldName) {
-        try {
-            // Enhanced field configuration with proper options resolution
-            const enhancedConfig = { ...fieldConfig };
-            
-            // Add options from optionsPath if available
-            if (fieldConfig.optionsPath && this.creatFormInstance) {
-                try {
-                    const options = this.creatFormInstance.getData(fieldConfig.optionsPath);
-                    if (options) {
-                        enhancedConfig.options = options;
-                    }
-                } catch (error) {
-                    console.error(`Error resolving options path ${fieldConfig.optionsPath}:`, error);
-                }
-            }
-
-            // Handle multiselect fields - FIXED: Always return arrays for multiselect
-            if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
-                if (Array.isArray(value)) {
-                    return value.map(v => this.formatter.formatValue(enhancedConfig, v));
-                } else if (typeof value === 'string') {
-                    return value.split(',').map(v => v.trim()).filter(v => v);
-                } else {
-                    return [];
-                }
-            }
-
-            // Use the formatter for other types with enhanced config
-            return this.formatter.formatValue(enhancedConfig, value);
-        } catch (error) {
-            console.error(`Error formatting field ${fieldName}:`, error);
-            return value;
-        }
-    }
-
-    // FIXED: Safe value extraction helpers with proper type checking
-    safeArrayValue(value) {
-        if (Array.isArray(value)) {
-            return value;
-        } else if (typeof value === 'string' && value) {
-            return [value];
-        } else {
-            return []; // Always return an array
-        }
-    }
-
-    safeStringValue(value) {
-        if (typeof value === 'string') {
-            return value;
-        } else if (Array.isArray(value)) {
-            return value.join(', ');
-        } else {
-            return '';
-        }
-    }
-
-    safeBooleanValue(value) {
-        if (typeof value === 'boolean') {
-            return value;
-        } else if (typeof value === 'string') {
-            return value === 'yes' || value === 'true' || value === 'Oui';
-        } else {
-            return false;
-        }
-    }
-
-    getLanguageTypeDisplay(languageTypeResult) {
-        if (languageTypeResult.mainValue) {
-            return 'Support multilingue';
-        }
-        return 'Langue unique';
-    }
-
-    getLanguagesArray(languageTypeResult) {
-        const languages = languageTypeResult.extractedValues.languages;
-        const language = languageTypeResult.extractedValues.language;
-        
-        if (Array.isArray(languages)) {
-            return languages;
-        } else if (language) {
-            return [language];
-        } else {
-            return [];
-        }
-    }
-
-    getText(path) {
-        try {
-            if (this.creatFormInstance && this.creatFormInstance.getText) {
-                return this.creatFormInstance.getText(path);
-            }
-            return path;
-        } catch (error) {
-            return path;
-        }
-    }
-}
-
 
 class FormFieldFactory {
     constructor(options = {}) {
@@ -835,6 +734,12 @@ class FormFieldFactory {
 			serviceRequired: options.texts?.serviceRequired || "Please select a service",
 			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
 		};
+
+        // ============================================================================
+        // NEW: Initialize FormDataProcessor and FieldValueFormatter
+        // ============================================================================
+        this.dataProcessor = null; // Will be set when CreatForm instance is available
+        this.formatter = null; // Will be set when CreatForm instance is available
         
         // SVG Icons - All icons used by fields should be defined here
 this.SVG_ICONS = {
@@ -878,6 +783,15 @@ this.SVG_ICONS = {
 
         // Initialize global click handler
         this.initGlobalClickHandler();
+    }
+
+    // ============================================================================
+    // NEW: Set CreatForm instance and initialize processors
+    // ============================================================================
+    setCreatFormInstance(creatFormInstance) {
+        this.creatFormInstance = creatFormInstance;
+        this.dataProcessor = new FormDataProcessor(creatFormInstance);
+        this.formatter = new FieldValueFormatter(creatFormInstance);
     }
 
     // ===== GLOBAL CLICK MANAGEMENT =====
@@ -1032,12 +946,11 @@ this.SVG_ICONS = {
                 field = new CurrentAppointmentCardField(this, config);
                 break;
             case 'custom':
-                field = new CustomField(this, config);
+                field = new CustomField(this, config); // Uses CustomField extending BaseField
                 break;
             case 'booking-cancellation-card':
                 field = new BookingCancellationCardField(this, config);
                 break;
-
 
             default:
                 console.warn(`Unknown field type: ${config.type}`);
@@ -1047,357 +960,145 @@ this.SVG_ICONS = {
         return field;
     }
 
-    // ===== UNIVERSAL DATA PROCESSING METHODS =====
+    // ============================================================================
+    // UPDATED: Simplified data processing using FormDataProcessor
+    // ============================================================================
 
     /**
-     * Universal data processor - works with ANY form structure
+     * NEW: Simplified form data processor using FormDataProcessor (same as transformers)
      * @param {Object} rawFormData - Raw data from any multi-step form
      * @returns {Object} Processed data ready for submission
      */
-    processAnyFormData(rawFormData) {
-        if (!this.currentMultiStepForm) {
-            console.warn('No multi-step form available for processing');
-            return rawFormData;
+    processFormData(rawFormData) {
+        if (!this.dataProcessor) {
+            console.warn('FormDataProcessor not available - CreatForm instance not set');
+            return this.fallbackProcessing(rawFormData);
         }
         
-        // Step 1: Flatten complex structures
-        const flattened = this.universalFlatten(rawFormData);
+        try {
+            // Use the same FormDataProcessor as transformers
+            return this.dataProcessor.processFormData(rawFormData);
+        } catch (error) {
+            console.error('Error processing form data:', error);
+            return this.fallbackProcessing(rawFormData);
+        }
+    }
+
+    /**
+     * NEW: Fallback processing for when FormDataProcessor is not available
+     */
+    fallbackProcessing(rawFormData) {
+        const processed = {};
         
-        // Step 2: Convert IDs to names
-        const converted = this.universalConvertIds(flattened);
-        
-        // Step 3: Apply universal transformations
-        const processed = this.universalTransform(converted);
+        Object.keys(rawFormData).forEach(fieldName => {
+            const fieldValue = rawFormData[fieldName];
+            
+            // Basic processing without field configuration
+            processed[fieldName] = {
+                fieldId: fieldName,
+                fieldType: 'unknown',
+                label: fieldName,
+                displayValue: this.basicValueFormat(fieldValue),
+                rawValue: fieldValue
+            };
+        });
         
         return processed;
     }
 
     /**
-     * Universal flattening - works with any field structure
+     * Basic value formatting when FieldValueFormatter is not available
      */
-    universalFlatten(formData) {
-        const flattened = { ...formData };
-        const allFieldConfigs = this.getAllFieldConfigs();
+    basicValueFormat(value) {
+        if (value === undefined || value === null || value === '') {
+            return '';
+        }
         
-        Object.keys(formData).forEach(fieldName => {
-            const fieldValue = formData[fieldName];
-            const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
-            
-            if (!fieldConfig || !fieldValue || typeof fieldValue !== 'object') return;
-            
-            // Handle yesno-with-options fields
-            if (fieldConfig.type === 'yesno-with-options' && fieldValue.main) {
-                flattened[fieldName] = fieldValue.main;
-                
-                // Extract yesValues
-                if (fieldValue.yesValues) {
-                    Object.keys(fieldValue.yesValues).forEach(key => {
-                        flattened[key] = fieldValue.yesValues[key];
-                    });
-                }
-                
-                // Extract noValues
-                if (fieldValue.noValues) {
-                    Object.keys(fieldValue.noValues).forEach(key => {
-                        flattened[key] = fieldValue.noValues[key];
-                    });
-                }
+        if (Array.isArray(value)) {
+            return value.join(', ');
+        }
+        
+        if (typeof value === 'object') {
+            // Handle yesno-with-options structure
+            if (value.main !== undefined) {
+                return value.main === true || value.main === 'yes' ? 'Yes' : 'No';
             }
             
-            // Handle select-with-other and multiselect-with-other fields
-            else if ((fieldConfig.type === 'select-with-other' || 
-                      fieldConfig.type === 'multiselect-with-other') && 
-                     fieldValue.main !== undefined) {
-                
-                flattened[fieldName] = fieldValue.main;
-                
-                if (fieldValue.other) {
-                    const otherFieldName = this.generateOtherFieldName(fieldName);
-                    flattened[otherFieldName] = fieldValue.other;
-                }
+            // Handle select-with-other structure
+            if (value.main && value.other) {
+                return value.main === 'other' ? value.other : value.main;
             }
-        });
+            
+            return JSON.stringify(value);
+        }
         
-        return flattened;
+        return value.toString();
     }
 
+    // ============================================================================
+    // UPDATED: Get field configurations using same approach as FormDataProcessor
+    // ============================================================================
+    
     /**
-     * Universal ID to name conversion
+     * Get field configurations from current multi-step form
      */
-    universalConvertIds(flatData) {
-		const converted = { ...flatData };
-		const allFieldConfigs = this.getAllFieldConfigs();
-		
-		Object.keys(flatData).forEach(fieldName => {
-			const fieldValue = flatData[fieldName];
-			const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
-			
-			if (!fieldConfig || !fieldValue) return;
-			
-			// Handle fields with options
-			if (fieldConfig.options && Array.isArray(fieldConfig.options)) {
-				
-				// Single select fields
-				if (typeof fieldValue === 'string') {
-					if (fieldValue !== 'other') {
-						const option = fieldConfig.options.find(opt => opt.id === fieldValue);
-						if (option) {
-							converted[fieldName] = option.name;
-						}
-					} else {
-						// Handle "other"
-						const otherFieldName = this.generateOtherFieldName(fieldName);
-						if (converted[otherFieldName]) {
-							converted[fieldName] = converted[otherFieldName];
-							// Remove the separate other field since we merged it
-							delete converted[otherFieldName];
-						}
-					}
-				}
-				
-				// Multiple select fields
-				else if (Array.isArray(fieldValue)) {
-					const convertedValues = fieldValue.map(id => {
-						if (id === 'other') {
-							const otherFieldName = this.generateOtherFieldName(fieldName);
-							return converted[otherFieldName] || this.getText('other');
-						}
-						const option = fieldConfig.options.find(opt => opt.id === id);
-						return option ? option.name : id;
-					}).filter(val => val && val.trim() !== ''); // Remove empty values
-					
-					converted[fieldName] = convertedValues;
-					converted[`${fieldName}Array`] = convertedValues;
-					converted[`${fieldName}String`] = convertedValues.join(', ');
-					
-					// Remove the separate other field if it exists
-					const otherFieldName = this.generateOtherFieldName(fieldName);
-					if (converted[otherFieldName]) {
-						delete converted[otherFieldName];
-					}
-				}
-			}
-			
-			// Handle subsection fields
-			if (fieldConfig.subsectionOptions && Array.isArray(fieldConfig.subsectionOptions)) {
-				if (typeof fieldValue === 'string') {
-					// Find option in subsections
-					for (const group of fieldConfig.subsectionOptions) {
-						const option = group.subcategories.find(opt => opt.id === fieldValue);
-						if (option) {
-							converted[fieldName] = option.name;
-							break;
-						}
-					}
-				} else if (Array.isArray(fieldValue)) {
-					const convertedValues = fieldValue.map(id => {
-						for (const group of fieldConfig.subsectionOptions) {
-							const option = group.subcategories.find(opt => opt.id === id);
-							if (option) return option.name;
-						}
-						return id;
-					}).filter(val => val && val.trim() !== ''); // Remove empty values
-					
-					converted[fieldName] = convertedValues;
-					converted[`${fieldName}Array`] = convertedValues;
-					converted[`${fieldName}String`] = convertedValues.join(', ');
-				}
-			}
-			
-			// Handle select-with-other fields
-			if (fieldConfig.type === 'select-with-other' && typeof fieldValue === 'object') {
-				if (fieldValue.main === 'other' && fieldValue.other) {
-					converted[fieldName] = fieldValue.other;
-				} else if (fieldValue.main && fieldConfig.options) {
-					const option = fieldConfig.options.find(opt => opt.id === fieldValue.main);
-					converted[fieldName] = option ? option.name : fieldValue.main;
-				}
-			}
-			
-			// Handle multiselect-with-other fields
-			if (fieldConfig.type === 'multiselect-with-other' && typeof fieldValue === 'object') {
-				const allValues = [];
-				
-				if (fieldValue.main && Array.isArray(fieldValue.main)) {
-					const convertedMain = fieldValue.main.map(id => {
-						const option = fieldConfig.options.find(opt => opt.id === id);
-						return option ? option.name : id;
-					});
-					allValues.push(...convertedMain);
-				}
-				
-				if (fieldValue.other && fieldValue.other.trim() !== '') {
-					allValues.push(fieldValue.other);
-				}
-				
-				converted[fieldName] = allValues;
-				converted[`${fieldName}Array`] = allValues;
-				converted[`${fieldName}String`] = allValues.join(', ');
-			}
-		});
-		
-		return converted;
-	}
-
-    /**
-     * Universal transformations
-     */
-    universalTransform(data) {
-        const transformed = { ...data };
-        const allFieldConfigs = this.getAllFieldConfigs();
-        
-        // Transform based on field types
-        Object.keys(data).forEach(fieldName => {
-            const fieldValue = data[fieldName];
-            const fieldConfig = this.findFieldConfig(fieldName, allFieldConfigs);
-            
-            if (!fieldConfig) return;
-            
-            // Convert yes/no to boolean
-            if (fieldConfig.type === 'yesno' || 
-                (fieldConfig.type === 'yesno-with-options' && typeof fieldValue === 'string')) {
-                
-                if (fieldValue === 'yes') {
-                    transformed[fieldName] = true;
-                } else if (fieldValue === 'no') {
-                    transformed[fieldName] = false;
-                }
-            }
-            
-            // Clean text fields
-            if (['text', 'email', 'phone', 'url', 'textarea'].includes(fieldConfig.type)) {
-                if (!fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '')) {
-                    transformed[fieldName] = "";
-                }
-            }
-            
-            // Handle number fields
-            if (['number', 'percentage'].includes(fieldConfig.type)) {
-                transformed[fieldName] = parseFloat(fieldValue) || 0;
-            }
-            
-            // Ensure arrays for multiselect fields
-            if (['multiselect', 'multiselect-with-other', 'multiselect-subsections'].includes(fieldConfig.type)) {
-                if (!Array.isArray(fieldValue)) {
-                    transformed[fieldName] = fieldValue ? [fieldValue] : [];
-                }
-                
-                if (!transformed[`${fieldName}Array`]) {
-                    transformed[`${fieldName}Array`] = transformed[fieldName];
-                }
-                if (!transformed[`${fieldName}String`]) {
-                    transformed[`${fieldName}String`] = Array.isArray(transformed[fieldName]) 
-                        ? transformed[fieldName].join(', ') 
-                        : '';
-                }
-            }
-        });
-        
-		// Clean up any remaining other fields and ensure proper formatting
-		Object.keys(transformed).forEach(fieldName => {
-			const fieldValue = transformed[fieldName];
-			
-			// Clean up empty arrays and strings
-			if (Array.isArray(fieldValue) && fieldValue.length === 0) {
-				delete transformed[fieldName];
-				delete transformed[`${fieldName}Array`];
-				delete transformed[`${fieldName}String`];
-			} else if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
-				delete transformed[fieldName];
-			}
-			
-			// Remove any remaining otherXXX fields that weren't properly merged
-			if (fieldName.startsWith('other') && fieldName.length > 5) {
-				const baseFieldName = fieldName.replace(/^other/, '').toLowerCase();
-				const baseFieldNamePlural = baseFieldName + 's';
-				
-				// Check if the base field exists and has incorporated this other value
-				if (transformed[baseFieldName] || transformed[baseFieldNamePlural]) {
-					delete transformed[fieldName];
-				}
-			}
-		});
-
-		this.setUniversalDefaults(transformed, allFieldConfigs);
-			
-		this.setUniversalDefaults(transformed, allFieldConfigs);
-		return transformed;
-    }
-
-    getAllFieldConfigs() {
+    getFieldConfigurations() {
         if (!this.currentMultiStepForm || !this.currentMultiStepForm.steps) {
             return [];
         }
         
-        return this.currentMultiStepForm.steps.flatMap(step => step.fields || []);
+        const configs = [];
+        
+        this.currentMultiStepForm.steps.forEach(step => {
+            if (step.fields) {
+                configs.push(...this.extractFieldConfigs(step.fields));
+            }
+        });
+        
+        return configs;
     }
 
-    findFieldConfig(fieldName, fieldConfigs) {
-        return fieldConfigs.find(config => 
+    /**
+     * Extract field configurations including nested fields (same as FormDataProcessor)
+     */
+    extractFieldConfigs(fields) {
+        const configs = [];
+        
+        fields.forEach(fieldConfig => {
+            configs.push(fieldConfig);
+            
+            // Extract nested field configurations
+            if (fieldConfig.yesFields) {
+                configs.push(...this.extractFieldConfigs(fieldConfig.yesFields));
+            }
+            if (fieldConfig.yesField) {
+                configs.push(fieldConfig.yesField);
+            }
+            if (fieldConfig.noFields) {
+                configs.push(...this.extractFieldConfigs(fieldConfig.noFields));
+            }
+            if (fieldConfig.noField) {
+                configs.push(fieldConfig.noField);
+            }
+        });
+        
+        return configs;
+    }
+
+    /**
+     * Find field configuration by name (same as FormDataProcessor)
+     */
+    findFieldConfiguration(fieldName, fieldConfigurations) {
+        return fieldConfigurations.find(config => 
             (config.name === fieldName) || 
-            (config.id === fieldName) ||
-            (config.yesFields && config.yesFields.some(yf => (yf.name || yf.id) === fieldName)) ||
-            (config.noFields && config.noFields.some(nf => (nf.name || nf.id) === fieldName)) ||
-            (config.yesField && ((config.yesField.name || config.yesField.id) === fieldName))
+            (config.id === fieldName)
         ) || null;
     }
 
-    generateOtherFieldName(fieldName) {
-        if (fieldName.endsWith('s')) {
-            return `other${fieldName.charAt(0).toUpperCase() + fieldName.slice(1, -1)}`;
-        }
-        return `other${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`;
-    }
-
-    setUniversalDefaults(data, fieldConfigs) {
-        const defaultText = "Not specified";
-        
-        fieldConfigs.forEach(config => {
-            const fieldName = config.name || config.id;
-            
-            if (config.required && !data[fieldName]) {
-                if (['text', 'email', 'phone', 'url', 'textarea'].includes(config.type)) {
-                    data[fieldName] = "";
-                }
-                else if (['select', 'select-with-other', 'select-subsections'].includes(config.type)) {
-                    data[fieldName] = defaultText;
-                }
-                else if (['multiselect', 'multiselect-with-other', 'multiselect-subsections'].includes(config.type)) {
-                    data[fieldName] = [];
-                    data[`${fieldName}Array`] = [];
-                    data[`${fieldName}String`] = "";
-                }
-                else if (config.type === 'yesno') {
-                    data[fieldName] = false;
-                }
-                else if (['number', 'percentage'].includes(config.type)) {
-                    data[fieldName] = 0;
-                }
-            }
-        });
-    }
-
-    getProcessingSummary(originalData, processedData) {
-        const allFieldConfigs = this.getAllFieldConfigs();
-        
-        return {
-            totalFields: Object.keys(originalData).length,
-            processedFields: Object.keys(processedData).length,
-            fieldTypes: allFieldConfigs.reduce((acc, config) => {
-                acc[config.type] = (acc[config.type] || 0) + 1;
-                return acc;
-            }, {}),
-            transformations: {
-                flattened: Object.keys(originalData).filter(key => 
-                    originalData[key] && typeof originalData[key] === 'object' && 
-                    !(processedData[key] && typeof processedData[key] === 'object')
-                ),
-                converted: Object.keys(processedData).filter(key => 
-                    originalData[key] !== processedData[key]
-                )
-            }
-        };
-    }
+    // ============================================================================
+    // REMOVED: All old flatData methods (universalFlatten, universalConvertIds, etc.)
+    // These are no longer needed with the new FormDataProcessor approach
+    // ============================================================================
 
     // ===== STANDARD METHODS =====
     getText(key, customMessages = {}) {
@@ -1542,6 +1243,44 @@ this.SVG_ICONS = {
         return new CurrentAppointmentCardField(this, config);
     }
 
+    // ============================================================================
+    // NEW: Public API for accessing processors
+    // ============================================================================
+    
+    /**
+     * Get the FormDataProcessor instance
+     */
+    getDataProcessor() {
+        return this.dataProcessor;
+    }
+
+    /**
+     * Get the FieldValueFormatter instance
+     */
+    getFormatter() {
+        return this.formatter;
+    }
+
+    /**
+     * Format a field value using the same approach as transformers
+     */
+    formatFieldValue(fieldConfig, value, context = {}) {
+        if (this.formatter) {
+            return this.formatter.formatValue(fieldConfig, value, context);
+        }
+        return this.basicValueFormat(value);
+    }
+
+    /**
+     * Process form data the same way as transformers
+     */
+    processDataLikeTransformers(formData) {
+        if (this.dataProcessor) {
+            return this.dataProcessor.processFormData(formData);
+        }
+        return this.fallbackProcessing(formData);
+    }
+
     // Cleanup method
     destroy() {
         if (this.globalClickHandlerAttached) {
@@ -1550,6 +1289,11 @@ this.SVG_ICONS = {
         }
         this.openDropdowns.clear();
         this.openInfoPanels.clear();
+        
+        // Clean up processor references
+        this.dataProcessor = null;
+        this.formatter = null;
+        this.creatFormInstance = null;
     }
 
     static ValidationUtils = {
@@ -1600,6 +1344,8 @@ this.SVG_ICONS = {
         }
     };
 }
+
+
 
 /**
  * MultiStepForm - Enhanced main manager for multi-step forms
@@ -5238,42 +4984,110 @@ class MultiSelectSubsectionsField extends BaseField {
 
 class CustomField extends BaseField {
     constructor(factory, config) {
-        super(factory, config);
+        // Call parent constructor with appropriate config
+        super(factory, {
+            ...config,
+            required: false, // Custom fields are never required
+            label: config.label || '', // Usually no label for custom fields
+        });
+        
         this.renderFunction = config.render || null;
         this.updateFunction = config.update || null;
         this.autoSummary = config.autoSummary || false;
-        
-        // Create formatter instance for consistent value formatting
-        this.formatter = new FieldValueFormatter(factory);
-        
-        // For forms with custom transformers, allow override
-        this.customValueFormatter = config.customValueFormatter || null;
+
+        // Use the same processor as the data transformer
+        this.processor = factory.getDataProcessor() || new FormDataProcessor(factory.creatFormInstance);
+        this.formatter = factory.getFormatter() || new FieldValueFormatter(factory.creatFormInstance);
     }
 
+    // ============================================================================
+    // OVERRIDE: Custom validation behavior
+    // ============================================================================
     validate() {
-        return super.validate();
+        // Custom fields typically don't need validation
+        // But we hide any errors and return true for consistency
+        this.hideError();
+        return true;
     }
 
+    // ============================================================================
+    // OVERRIDE: Custom container creation
+    // ============================================================================
+    createContainer() {
+        // Use BaseField's container creation but with custom class
+        const container = super.createContainer();
+        container.classList.add('custom-field');
+        return container;
+    }
+
+    // ============================================================================
+    // OVERRIDE: Custom render method
+    // ============================================================================
     render() {
         const container = this.createContainer();
-        
+
+        // Only create label if explicitly provided
+        if (this.label && this.label.trim()) {
+            const labelElement = this.createLabel();
+            container.appendChild(labelElement);
+        }
+
+        // Create content based on configuration
+        let contentElement;
         if (this.autoSummary) {
-            const summaryContent = this.createAutoSummary();
-            container.appendChild(summaryContent);
+            contentElement = this.createAutoSummary();
         } else if (this.renderFunction) {
+            contentElement = this.createCustomContent();
+        } else {
+            contentElement = this.createEmptyContent();
+        }
+
+        container.appendChild(contentElement);
+
+        // Create error element (even though custom fields rarely use it)
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+
+        this.container = container;
+        this.element = contentElement; // For consistency with BaseField
+        return container;
+    }
+
+    // ============================================================================
+    // CUSTOM CONTENT CREATION METHODS
+    // ============================================================================
+    createCustomContent() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-content';
+        
+        try {
             const customContent = this.renderFunction(this.factory, this.getFormData());
-            container.appendChild(customContent);
+            if (customContent instanceof HTMLElement) {
+                wrapper.appendChild(customContent);
+            } else if (typeof customContent === 'string') {
+                wrapper.innerHTML = customContent;
+            }
+        } catch (error) {
+            console.error('Error rendering custom field:', error);
+            wrapper.innerHTML = '<div class="custom-field-error">Error rendering custom content</div>';
         }
         
-        this.container = container;
-        return container;
+        return wrapper;
+    }
+
+    createEmptyContent() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-content empty';
+        wrapper.innerHTML = '<div class="custom-field-placeholder">Custom field content not configured</div>';
+        return wrapper;
     }
 
     createAutoSummary() {
         const multiStepForm = this.factory.currentMultiStepForm;
         if (!multiStepForm) {
             const errorDiv = document.createElement('div');
-            errorDiv.textContent = 'No multi-step form found';
+            errorDiv.className = 'custom-content error';
+            errorDiv.textContent = 'No multi-step form found for summary';
             return errorDiv;
         }
 
@@ -5281,7 +5095,7 @@ class CustomField extends BaseField {
         summaryContainer.className = 'summary-container auto-summary';
 
         const currentStepIndex = multiStepForm.currentStep;
-        
+
         multiStepForm.steps.forEach((step, stepIndex) => {
             if (stepIndex === currentStepIndex) return;
 
@@ -5321,52 +5135,52 @@ class CustomField extends BaseField {
         return section;
     }
 
-    // ENHANCED: populateStepContent method now uses FieldValueFormatter
+    /**
+     * UPDATED: populateStepContent now uses FormDataProcessor (same as transformers)
+     */
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
 
+        // Process the step data using the same approach as transformers
+        const processedStepData = this.processor.processFormData(stepData);
+
         step.fields.forEach(fieldConfig => {
-            const fieldValue = stepData[fieldConfig.name || fieldConfig.id];
-            
-            if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
-                
-                // Check if field should render as separate summary fields
-                if (fieldConfig.renderSeparateSummaryFields) {
-                    const fieldInstance = this.getFieldInstance(fieldConfig.name || fieldConfig.id);
-                    
-                    if (fieldInstance && typeof fieldInstance.getSummaryFields === 'function') {
-                        const summaryFields = fieldInstance.getSummaryFields();
-                        
-                        summaryFields.forEach(field => {
-                            if (field.value && field.value !== 'Indifférent' && field.value !== 'Any') {
-                                contentHtml += `
-                                    <div class="summary-row">
-                                        <div class="summary-label">${field.label}:</div>
-                                        <div class="summary-value">${field.value}</div>
-                                    </div>
-                                `;
-                            }
-                        });
-                    }
-                }
-                // Special handling for YesNoWithOptionsField
-                else if (fieldConfig.type === 'yesno-with-options') {
-                    const formattedContent = this.formatYesNoWithOptionsField(fieldConfig, fieldValue);
-                    if (formattedContent.trim()) {
-                        contentHtml += formattedContent;
-                    }
-                } 
-                // Default handling using FieldValueFormatter
-                else {
-                    const displayValue = this.formatFieldValue(fieldConfig, fieldValue);
-                    if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-                        contentHtml += `
-                            <div class="summary-row">
-                                <div class="summary-label">${fieldConfig.label}:</div>
-                                <div class="summary-value">${displayValue}</div>
-                            </div>
-                        `;
-                    }
+            const fieldName = fieldConfig.name || fieldConfig.id;
+            const processedField = processedStepData[fieldName];
+
+            if (processedField && this.shouldDisplayFieldInSummary(fieldConfig, processedField.rawValue)) {
+                // Handle yesno-with-options fields with sub-fields
+                if (processedField.hasSubFields) {
+                    contentHtml += `
+                        <div class="summary-row">
+                            <div class="summary-label">${processedField.label}:</div>
+                            <div class="summary-value">${processedField.mainDisplayValue}</div>
+                        </div>
+                    `;
+
+                    // Add sub-fields
+                    Object.values(processedField.subFields).forEach(subField => {
+                        if (subField.displayValue) {
+                            contentHtml += `
+                                <div class="summary-row">
+                                    <div class="summary-label">${subField.label}:</div>
+                                    <div class="summary-value">${subField.displayValue}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    // Regular fields
+                    const displayValue = Array.isArray(processedField.displayValue) 
+                        ? processedField.string 
+                        : processedField.displayValue;
+
+                    contentHtml += `
+                        <div class="summary-row">
+                            <div class="summary-label">${processedField.label}:</div>
+                            <div class="summary-value">${displayValue}</div>
+                        </div>
+                    `;
                 }
             }
         });
@@ -5374,198 +5188,51 @@ class CustomField extends BaseField {
         contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
     }
 
-    // ENHANCED: Better filtering for summary display
-    shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
-        // Use the formatter's validation logic for consistency
-        if (!this.formatter.shouldDisplayValue(fieldValue)) {
-            return false;
-        }
-
-        // Handle yes/no fields - don't show if no selection made
-        if (fieldConfig.type === 'yesno' && !fieldConfig.required) {
-            if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
-                return false;
-            }
-            if (typeof fieldValue === 'string' && (fieldValue === 'null' || fieldValue === 'undefined')) {
-                return false;
-            }
-        }
-
-        // Handle yes/no with options fields
-        if (fieldConfig.type === 'yesno-with-options' && !fieldConfig.required) {
-            if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
-                return false;
-            }
-            
-            if (typeof fieldValue === 'object' && fieldValue !== null) {
-                const mainValue = fieldValue.main;
-                if (mainValue === undefined || mainValue === null || mainValue === '') {
-                    return false;
-                }
-                if (typeof mainValue === 'string' && (mainValue === 'null' || mainValue === 'undefined')) {
-                    return false;
-                }
-            }
-        }
-
-        // Handle options-slider fields
-        if (fieldConfig.type === 'options-slider' && !fieldConfig.required) {
-            if (fieldValue === 0 || (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.value === 0)) {
-                return false;
-            }
-            if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.display) {
-                const displayLower = fieldValue.display.toLowerCase();
-                if (displayLower.includes('indifférent') || displayLower.includes('any')) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    // FIXED: formatYesNoWithOptionsField method in CustomField class
-formatYesNoWithOptionsField(fieldConfig, value) {
-    let html = '';
-    
-    if (typeof value === 'object' && value.main !== undefined) {
-        // Get main display value using formatter
-        const mainDisplayValue = this.formatter.formatYesNoValue(value.main, fieldConfig);
-        
-        html += `
-            <div class="summary-row">
-                <div class="summary-label">${fieldConfig.label}:</div>
-                <div class="summary-value">${mainDisplayValue}</div>
-            </div>
-        `;
-        
-        // Determine which conditional fields to show
-        let showYesFields = false;
-        let showNoFields = false;
-        
-        if (fieldConfig.customOptions && Array.isArray(fieldConfig.customOptions)) {
-            showYesFields = value.main === fieldConfig.customOptions[0].value;
-            showNoFields = value.main === fieldConfig.customOptions[1].value;
-        } else {
-            showYesFields = value.main === true || value.main === 'yes';
-            showNoFields = value.main === false || value.main === 'no';
-        }
-        
-        // FIXED: Display sub-fields with proper HTML capture and field configuration access
-        if (showYesFields) {
-            // Handle both yesFields (array) and yesField (single field)
-            const yesFields = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
-            html = this.renderSubFields(html, yesFields, value.yesValues);
-        } else if (showNoFields) {
-            // Handle both noFields (array) and noField (single field)  
-            const noFields = fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []);
-            html = this.renderSubFields(html, noFields, value.noValues);
-        }
-    } else {
-        // Fallback for simple values
-        const displayValue = this.formatFieldValue(fieldConfig, value);
-        if (displayValue && displayValue !== 'Indifférent' && displayValue !== 'Any') {
-            html += `
-                <div class="summary-row">
-                    <div class="summary-label">${fieldConfig.label}:</div>
-                    <div class="summary-value">${displayValue}</div>
-                </div>
-            `;
-        }
-    }
-    
-    return html;
-}
-
-// FIXED: renderSubFields method to properly return accumulated HTML
-renderSubFields(html, subFields, subValues) {
-    if (!Array.isArray(subFields) || !subValues) return html;
-    
-    let accumulatedHtml = html; // Create a local variable to accumulate HTML
-    
-    subFields.forEach(subField => {
-        const fieldName = subField.name || subField.id; // Handle both name and id
-        const subValue = subValues[fieldName];
-        
-        if (subValue !== undefined && subValue !== null && subValue !== '') {
-            const subDisplayValue = this.formatFieldValue(subField, subValue);
-            if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                accumulatedHtml += `
-                    <div class="summary-row">
-                        <div class="summary-label">${subField.label}:</div>
-                        <div class="summary-value">${subDisplayValue}</div>
-                    </div>
-                `;
-            }
-        }
-    });
-    
-    return accumulatedHtml; // Return the accumulated HTML
-}
-
-    // NEW: Helper method to render sub-fields consistently
-    renderSubFields(html, subFields, subValues) {
-        if (!Array.isArray(subFields) || !subValues) return html;
-        
-        subFields.forEach(subField => {
-            const subValue = subValues[subField.id];
-            if (subValue !== undefined && subValue !== null && subValue !== '') {
-                const subDisplayValue = this.formatFieldValue(subField, subValue);
-                if (subDisplayValue && subDisplayValue !== 'Indifférent' && subDisplayValue !== 'Any') {
-                    html += `
-                        <div class="summary-row">
-                            <div class="summary-label">${subField.label}:</div>
-                            <div class="summary-value">${subDisplayValue}</div>
-                        </div>
-                    `;
-                }
-            }
-        });
-        
-        return html;
-    }
-
-    // UPDATED: formatFieldValue now uses FieldValueFormatter
-    formatFieldValue(fieldConfig, value) {
-        // Use custom formatter if provided (for form-specific logic)
-        if (this.customValueFormatter && typeof this.customValueFormatter === 'function') {
-            try {
-                return this.customValueFormatter(fieldConfig, value, this.formatter);
-            } catch (error) {
-                console.warn('Custom value formatter error:', error);
-                // Fallback to standard formatter
-            }
-        }
-        
-        // Use standard formatter
-        return this.formatter.formatValue(fieldConfig, value, { summaryMode: true });
-    }
-
-    // Helper method to get field instance (unchanged)
-    getFieldInstance(fieldName) {
-        const multiStepForm = this.factory.currentMultiStepForm;
-        if (!multiStepForm) return null;
-        
-        for (let stepInstance of multiStepForm.stepInstances) {
-            if (stepInstance.fieldInstances) {
-                const fieldInstance = stepInstance.fieldInstances.find(field => 
-                    field.name === fieldName || field.id === fieldName
-                );
-                if (fieldInstance) {
-                    return fieldInstance;
-                }
-            }
-        }
+    // ============================================================================
+    // OVERRIDE: Value handling (custom fields typically don't have values)
+    // ============================================================================
+    getValue() {
+        // Custom fields typically don't have values
+        // But return null for consistency
         return null;
     }
 
-    // REMOVED: Old formatFieldValue methods - now using FieldValueFormatter
-    // This eliminates ~100 lines of duplicated formatting logic!
+    setValue(value) {
+        // Custom fields typically don't have settable values
+        // But accept the call for consistency
+        this.value = value;
+    }
+
+    // ============================================================================
+    // CUSTOM FIELD SPECIFIC METHODS
+    // ============================================================================
+    updateContent() {
+        if (!this.container) return;
+
+        // Find the content element and update it
+        const existingContent = this.container.querySelector('.custom-content, .summary-container');
+        if (existingContent) {
+            let newContent;
+            if (this.autoSummary) {
+                newContent = this.createAutoSummary();
+            } else if (this.renderFunction) {
+                newContent = this.createCustomContent();
+            } else {
+                newContent = this.createEmptyContent();
+            }
+            
+            existingContent.replaceWith(newContent);
+            this.element = newContent;
+        }
+    }
+
+    shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
+        return this.formatter.shouldDisplayValue(fieldValue);
+    }
 
     getStepData(multiStepForm, stepIndex) {
         const stepInstance = multiStepForm.stepInstances[stepIndex];
         if (!stepInstance) return {};
-        
         return stepInstance.getStepData();
     }
 
@@ -5575,17 +5242,6 @@ renderSubFields(html, subFields, subValues) {
         );
     }
 
-    updateContent() {
-        if (this.autoSummary && this.container) {
-            this.container.innerHTML = '';
-            const summaryContent = this.createAutoSummary();
-            this.container.appendChild(summaryContent);
-        } else if (this.updateFunction && this.container) {
-            const formData = this.getFormData();
-            this.updateFunction(this.container, formData);
-        }
-    }
-
     getFormData() {
         if (this.factory.currentMultiStepForm) {
             return this.factory.currentMultiStepForm.getFormData();
@@ -5593,20 +5249,39 @@ renderSubFields(html, subFields, subValues) {
         return {};
     }
 
-    getValue() {
-        return null;
-    }
-
-    setValue(value) {
-        // Custom fields don't have settable values
-    }
-    
     setStepData(data) {
         if (this.autoSummary) {
             this.updateContent();
         }
     }
+
+    // ============================================================================
+    // OVERRIDE: Cleanup to include custom field specific cleanup
+    // ============================================================================
+    cleanup() {
+        super.cleanup(); // Call parent cleanup
+        
+        // Custom field specific cleanup
+        if (this.processor) {
+            // No specific cleanup needed for processor
+        }
+    }
+
+    // ============================================================================
+    // OVERRIDE: Reset behavior for custom fields
+    // ============================================================================
+    resetToInitial() {
+        // Custom fields don't typically reset like input fields
+        // But we can refresh the content
+        if (this.autoSummary || this.renderFunction) {
+            this.updateContent();
+        }
+        super.resetToInitial();
+    }
 }
+
+
+
 
 /**
  * SingleSelectWithOtherField - Simple dropdown with "Other" option and personalized error messages
@@ -8471,18 +8146,14 @@ class CreatForm {
             timezone: config.timezone || "America/Toronto",
             
             // ============================================================================
-            // ENHANCED DATA TRANSFORMER CONFIGURATION
+            // SIMPLIFIED DATA TRANSFORMER CONFIGURATION - No more flatData!
             // ============================================================================
             
             // Use structured data format (sections, metadata, etc.)
-            useStructuredData: config.useStructuredData || false,
+            useStructuredData: config.useStructuredData !== false, // Default to true now
             
-            // Data transformer class or instance
-            // Can be: Class constructor, instance, or legacy function
+            // Data transformer class or instance - defaults to BaseDataTransformer
             dataTransformer: config.dataTransformer || null,
-            
-            // Legacy support: Custom function to transform data (kept for backward compatibility)
-            structuredDataTransformer: config.structuredDataTransformer || null,
             
             // Voiceflow-specific data transformer
             voiceflowDataTransformer: config.voiceflowDataTransformer || null,
@@ -8516,21 +8187,26 @@ class CreatForm {
         // Initialize logging
         this.initializeLogging();
         
-        // Initialize data transformer
-        this.initializeDataTransformer();
+        // Initialize data transformer and processor
+        this.initializeDataProcessor();
         
         // Determine form structure
         this.determineFormStructure();
     }
 
     // ============================================================================
-    // NEW: DATA TRANSFORMER INITIALIZATION
+    // NEW: DATA PROCESSOR INITIALIZATION (replaces flatData approach)
     // ============================================================================
-
-    initializeDataTransformer() {
-        this.logger.info('🔧 Initializing data transformer...');
+    initializeDataProcessor() {
+        this.logger.info('🔧 Initializing data processor...');
         
-        // Priority 1: Use provided dataTransformer (class or instance)
+        // Initialize the form data processor (same approach as CustomField)
+        this.dataProcessor = new FormDataProcessor(this);
+        
+        // Initialize field value formatter for backward compatibility
+        this.formatter = new FieldValueFormatter(this);
+        
+        // Initialize data transformer
         if (this.config.dataTransformer) {
             if (typeof this.config.dataTransformer === 'function') {
                 // It's a class constructor
@@ -8542,26 +8218,16 @@ class CreatForm {
                 this.dataTransformerInstance.creatFormInstance = this; // Ensure reference
                 this.logger.info('✅ Custom data transformer instance configured');
             }
-        }
-        // Priority 2: Legacy structuredDataTransformer function
-        else if (this.config.structuredDataTransformer && typeof this.config.structuredDataTransformer === 'function') {
-            this.logger.info('🔄 Using legacy structuredDataTransformer function');
-            this.legacyTransformer = this.config.structuredDataTransformer;
-        }
-        // Priority 3: Default BaseDataTransformer
-        else {
+        } else {
+            // Default to BaseDataTransformer
             this.dataTransformerInstance = new BaseDataTransformer(this);
             this.logger.info('✅ Default BaseDataTransformer initialized');
         }
-
-        // Initialize FieldValueFormatter for backward compatibility methods
-        this.formatter = new FieldValueFormatter(this);
     }
 
     // ============================================================================
-    // ENHANCED LOGGING SYSTEM (unchanged but adding transformer info)
+    // ENHANCED LOGGING SYSTEM
     // ============================================================================
-
     initializeLogging() {
         this.logger = {
             info: (message, data = null) => {
@@ -8615,15 +8281,13 @@ class CreatForm {
             voiceflowEnabled: this.config.voiceflowEnabled,
             useStructuredData: this.config.useStructuredData,
             hasDataTransformer: !!this.dataTransformerInstance,
-            hasLegacyTransformer: !!this.legacyTransformer,
             hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function'
         });
     }
 
     // ============================================================================
-    // UTILITY METHODS (updated to use formatter)
+    // UTILITY METHODS (updated to use formatter - NO MORE extractValue!)
     // ============================================================================
-
     getText(path) {
         return this.getNestedValue(this.formData.translations[this.config.language], path) || path;
     }
@@ -8646,12 +8310,12 @@ class CreatForm {
                this.getText('common.fieldRequired');
     }
 
-    // UPDATED: extractValue now uses FieldValueFormatter
-    extractValue(value) {
-        return this.formatter.formatValue({}, value);
+    // UPDATED: No more extractValue - use formatter directly
+    formatValue(fieldConfig, value) {
+        return this.formatter.formatValue(fieldConfig || {}, value);
     }
 
-    // UPDATED: formatValueForDisplay now uses FieldValueFormatter
+    // UPDATED: formatValueForDisplay now uses FieldValueFormatter consistently
     formatValueForDisplay(fieldId, value, fieldConfig = null) {
         const formattedValue = this.formatter.formatValue(fieldConfig || {}, value);
         
@@ -8661,147 +8325,51 @@ class CreatForm {
         
         return formattedValue;
     }
-    
-    // SIMPLIFIED: generateSummaryData (kept for backward compatibility)
-    generateSummaryData() {
-        const summaryData = {};
-        
-        this.formConfig.steps.forEach((stepConfig, stepIndex) => {
-            if (stepIndex === this.formConfig.steps.length - 1) return;
-            
-            const stepData = {};
-            
-            stepConfig.fields.forEach(fieldConfig => {
-                const fieldValue = this.formValues[fieldConfig.id];
-                
-                if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
-                    stepData[fieldConfig.id] = {
-                        label: this.getText(`fields.${fieldConfig.id}`),
-                        value: this.formatValueForDisplay(fieldConfig.id, fieldValue, fieldConfig),
-                        rawValue: fieldValue
-                    };
-                }
-            });
-            
-            if (Object.keys(stepData).length > 0) {
-                summaryData[`step_${stepIndex}`] = {
-                    title: this.getText(`steps.${stepIndex}.title`),
-                    data: stepData
-                };
-            }
-        });
-        
-        return summaryData;
-    }
 
     // ============================================================================
-    // ENHANCED DATA TRANSFORMATION WITH MULTIPLE STRATEGIES
+    // ENHANCED DATA TRANSFORMATION - NO MORE FLATDATA!
     // ============================================================================
 
     /**
-     * Enhanced data preparation that supports multiple transformer strategies
+     * Enhanced data preparation using FormDataProcessor (same as CustomField approach)
      */
-    prepareDataForSubmission(formValues) {
-        this.logger.info('🔧 Preparing data for submission...', formValues);
+    prepareDataForSubmission(originalFormValues) {
+        this.logger.info('🔧 Preparing data for submission using FormDataProcessor...', originalFormValues);
         
-        // Create base flat data
-        const flatData = this.createFlatData(formValues);
-        
-        // Base submission data
-        const baseSubmissionData = {
-            ...flatData,
-            formLanguage: this.config.language,
-            submissionTimestamp: new Date().toISOString(),
-            formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
-            userAgent: navigator.userAgent,
-            formType: this.state.isSingleStep ? "single_step_form" : "multi_step_form"
-        };
-
-        // Strategy 1: Use data transformer instance
-        if (this.dataTransformerInstance) {
-            this.logger.info('🔄 Using data transformer instance for structured data...');
-            try {
-                const transformedData = this.dataTransformerInstance.transform(flatData, formValues);
-                this.logger.transformation(baseSubmissionData, transformedData);
-                return transformedData;
-            } catch (error) {
-                this.logger.error('❌ Data transformer failed:', error);
-                // Fallback to next strategy
-            }
-        }
-
-        // Strategy 2: Use legacy structured data transformer
-        if (this.legacyTransformer) {
-            this.logger.info('🔄 Using legacy structured data transformer...');
-            try {
-                const transformedData = this.legacyTransformer(flatData, formValues, this);
-                this.logger.transformation(baseSubmissionData, transformedData);
-                return transformedData;
-            } catch (error) {
-                this.logger.error('❌ Legacy transformer failed:', error);
-                // Fallback to default
-            }
-        }
-
-        // Strategy 3: Enhanced default format
-        if (this.config.useStructuredData) {
-            this.logger.info('🔄 Creating default structured format...');
-            const structuredData = this.createDefaultStructuredData(baseSubmissionData, formValues);
-            this.logger.transformation(baseSubmissionData, structuredData);
-            return structuredData;
-        }
-
-        // Strategy 4: Simple flat format with summary (backward compatibility)
-        if (!this.state.isSingleStep) {
-            baseSubmissionData.summaryData = this.generateSummaryData();
-        }
-        
-        this.logger.info('🔧 Final prepared data (flat format):', baseSubmissionData);
-        return baseSubmissionData;
-    }
-
-    /**
-     * Create flat data from form values
-     */
-    createFlatData(formValues) {
-        const flatData = {};
-        Object.keys(formValues).forEach(key => {
-            const value = formValues[key];
-            flatData[key] = this.extractValue(value);
-        });
-        return flatData;
-    }
-
-    /**
-     * Create default structured data format
-     */
-    createDefaultStructuredData(baseData, originalFormValues) {
-        return {
-            submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
-            formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
-            submissionTimestamp: new Date().toISOString(),
-            language: this.config.language,
+        try {
+            // Use the data transformer to process the data
+            const transformedData = this.dataTransformerInstance.transform(originalFormValues);
             
-            // Use BaseDataTransformer for sections
-            sections: this.dataTransformerInstance ? 
-                this.dataTransformerInstance.createSections(baseData, originalFormValues) : {},
+            // Add base submission metadata
+            const submissionData = {
+                ...transformedData,
+                userAgent: navigator.userAgent,
+                submissionUrl: window.location.href,
+                submissionTimestamp: new Date().toISOString()
+            };
+
+            this.logger.transformation(originalFormValues, submissionData);
+            return submissionData;
             
-            // Keep flat data for compatibility
-            flatData: baseData,
+        } catch (error) {
+            this.logger.error('❌ Data transformation failed:', error);
             
-            // Basic metadata
-            metadata: {
-                formStructure: this.state.isSingleStep ? 'single-step' : 'multi-step',
-                totalFields: Object.keys(originalFormValues).length,
-                transformerUsed: 'default'
-            }
-        };
+            // Fallback to basic format
+            return {
+                submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
+                formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
+                submissionTimestamp: new Date().toISOString(),
+                language: this.config.language,
+                userAgent: navigator.userAgent,
+                rawFormData: originalFormValues,
+                transformationError: error.message
+            };
+        }
     }
 
     // ============================================================================
-    // ENHANCED FORM CREATION (updated to pass formatter to CustomField)
+    // ENHANCED FORM CREATION (updated to pass processor to CustomField)
     // ============================================================================
-
     createFields(fieldsConfig) {
         return fieldsConfig.map(fieldConfig => {
             const field = {
@@ -8809,10 +8377,7 @@ class CreatForm {
                 name: fieldConfig.id,
                 label: this.getText(`fields.${fieldConfig.id}`),
                 placeholder: fieldConfig.placeholder || this.getText(`fields.${fieldConfig.id}`) + '...',
-                customErrorMessage: this.getErrorMessage(fieldConfig.id),
-                
-                // NEW: Pass custom value formatter for consistency
-                customValueFormatter: this.config.customValueFormatter || null
+                customErrorMessage: this.getErrorMessage(fieldConfig.id)
             };
 
             // Handle options
@@ -8860,16 +8425,14 @@ class CreatForm {
     }
 
     // ============================================================================
-    // ENHANCED SUBMISSION HANDLING (simplified with new transformer architecture)
+    // ENHANCED SUBMISSION HANDLING (simplified with new processor architecture)
     // ============================================================================
-
     handleSubmission = async (formData) => {
         this.logger.info('🚀 Starting enhanced submission process...', {
             formType: this.config.formType,
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
-            hasDataTransformer: !!this.dataTransformerInstance,
-            hasLegacyTransformer: !!this.legacyTransformer
+            hasDataTransformer: !!this.dataTransformerInstance
         });
 
         const submitButton = this.getSubmitButton();
@@ -8942,7 +8505,7 @@ class CreatForm {
     async sendToWebhook(submissionData) {
         this.logger.webhook('Sending data to webhook...', {
             url: this.config.webhookUrl,
-            dataType: this.config.useStructuredData ? 'structured' : 'flat'
+            dataType: 'structured (no flatData)'
         });
 
         try {
@@ -9017,107 +8580,8 @@ class CreatForm {
     }
 
     // ============================================================================
-    // ENHANCED PUBLIC API (updated with new transformer methods)
-    // ============================================================================
-
-    createPublicAPI() {
-        return {
-            // ... existing methods ...
-            destroy: () => this.destroy(),
-            getCurrentStep: () => this.state.currentStep,
-            getFormData: () => {
-                if (this.state.isSingleStep && this.singleStepForm) {
-                    const data = {};
-                    this.singleStepForm.fieldInstances.forEach(field => {
-                        data[field.name] = field.getValue();
-                    });
-                    return data;
-                }
-                return this.multiStepForm?.getFormData() || {};
-            },
-            
-            // NEW: Enhanced data access methods
-            getTransformerInstance: () => this.dataTransformerInstance,
-            getFormatter: () => this.formatter,
-            
-            // NEW: Test data transformation
-            testDataTransformation: (testData) => {
-                if (this.dataTransformerInstance) {
-                    try {
-                        return this.dataTransformerInstance.transform(testData, testData);
-                    } catch (error) {
-                        this.logger.error('Error testing data transformation:', error);
-                        return null;
-                    }
-                }
-                return null;
-            },
-            
-            // Updated configuration info
-            getConfig: () => ({
-                webhookEnabled: this.config.webhookEnabled,
-                voiceflowEnabled: this.config.voiceflowEnabled,
-                useStructuredData: this.config.useStructuredData,
-                formType: this.config.formType,
-                formStructure: this.state.isSingleStep ? 'single' : 'multistep',
-                showSubmitButton: this.config.showSubmitButton,
-                hasDataTransformer: !!this.dataTransformerInstance,
-                hasLegacyTransformer: !!this.legacyTransformer,
-                hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function',
-                dataTransformerType: this.dataTransformerInstance?.constructor.name || 'none'
-            }),
-            
-            
-            // Enhanced testing and debugging methods
-            testStructuredTransformer: (testData) => {
-                if (this.config.structuredDataTransformer && typeof this.config.structuredDataTransformer === 'function') {
-                    try {
-                        return this.config.structuredDataTransformer(testData, testData, this);
-                    } catch (error) {
-                        this.logger.error('Error testing structured transformer:', error);
-                        return null;
-                    }
-                }
-                return null;
-            },
-            testVoiceflowTransformer: (testData) => {
-                if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
-                    try {
-                        return this.config.voiceflowDataTransformer(testData, testData, this);
-                    } catch (error) {
-                        this.logger.error('Error testing Voiceflow transformer:', error);
-                        return null;
-                    }
-                }
-                return null;
-            },
-            // Logging control methods
-            enableLogging: () => {
-                this.config.enableDetailedLogging = true;
-                this.logger.info('Detailed logging enabled');
-            },
-            disableLogging: () => {
-                this.config.enableDetailedLogging = false;
-                console.log('📋 CreatForm: Detailed logging disabled');
-            },
-            // Data inspection methods
-            inspectFormValues: () => {
-                this.logger.info('Current form values:', this.formValues);
-                return this.formValues;
-            },
-            inspectSubmissionData: () => {
-                const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
-                const prepared = this.prepareDataForSubmission(data);
-                this.logger.info('Prepared submission data:', prepared);
-                return prepared;
-            }
-        };
-    }
-
-        // ============================================================================
     // FORM STRUCTURE DETECTION
     // ============================================================================
-
     determineFormStructure() {
         const steps = this.formConfig.steps || [];
         
@@ -9134,13 +8598,8 @@ class CreatForm {
     }
 
     // ============================================================================
-    // UTILITY METHODS
-    // ============================================================================
-
-   // ============================================================================
     // CSS MANAGEMENT
     // ============================================================================
-
     async loadCSS() {
         if (this.state.cssLoaded) return;
         try {
@@ -9184,7 +8643,6 @@ class CreatForm {
     // ============================================================================
     // FORM CREATION - Enhanced for single/multistep support
     // ============================================================================
-
     createFormSteps() {
         return this.formConfig.steps.map((stepConfig, index) => {
             if (stepConfig.fields.length === 1 && 
@@ -9197,7 +8655,6 @@ class CreatForm {
                         id: 'summary',
                         name: 'summary',
                         autoSummary: true,
-                        getSummaryData: () => this.generateSummaryData(),
                         label: ''
                     }]
                 };
@@ -9210,7 +8667,6 @@ class CreatForm {
             };
         });
     }
-
 
     // ============================================================================
     // ENHANCED SINGLE STEP FORM CREATION WITH ROW SUPPORT AND OPTIONAL SUBMIT BUTTON
@@ -9373,206 +8829,6 @@ class CreatForm {
     }
 
     // ============================================================================
-    // ENHANCED DATA TRANSFORMATION WITH STRUCTURED SECTIONS
-    // ============================================================================
-
-
-    /**
-     * Creates structured submission data with sections
-     */
-    createStructuredSubmissionData(flatData, originalFormValues) {
-        this.logger.info('🏗️ Creating structured submission data...');
-        
-        // Get the structured data transformer function if provided
-        if (this.config.structuredDataTransformer && typeof this.config.structuredDataTransformer === 'function') {
-            try {
-                const structuredData = this.config.structuredDataTransformer(flatData, originalFormValues, this);
-                this.logger.success('✅ Custom structured data transformation completed');
-                return structuredData;
-            } catch (error) {
-                this.logger.error('❌ Error in structured data transformer:', error);
-                // Fallback to default structure
-            }
-        }
-
-        // Default structured format
-        const sections = this.createDefaultStructuredSections(flatData, originalFormValues);
-        
-        const structuredPayload = {
-            submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
-            formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
-            submissionTimestamp: new Date().toISOString(),
-            language: this.config.language,
-            
-            // Structured sections
-            sections: sections,
-            
-            // Legacy flat data for backwards compatibility
-            flatData: flatData,
-            
-            // Metadata
-            metadata: this.generateSubmissionMetadata(flatData, originalFormValues)
-        };
-
-        this.logger.info('🏗️ Structured payload created:', structuredPayload);
-        return structuredPayload;
-    }
-
-    /**
-     * Creates default structured sections based on form configuration
-     */
-    createDefaultStructuredSections(flatData, originalFormValues) {
-        const sections = {};
-        
-        // Group fields by their step configuration
-        this.formConfig.steps?.forEach((stepConfig, stepIndex) => {
-            if (stepConfig.sectionId || stepConfig.fields?.length > 0) {
-                const sectionId = stepConfig.sectionId || `step_${stepIndex}`;
-                const sectionData = {
-                    sectionType: sectionId,
-                    title: this.getText(`steps.${stepIndex}.title`) || stepConfig.title || `Step ${stepIndex + 1}`,
-                    index: stepIndex
-                };
-
-                // Add field data for this section
-                stepConfig.fields?.forEach(fieldConfig => {
-                    const fieldValue = originalFormValues[fieldConfig.id];
-                    if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
-                        sectionData[fieldConfig.id] = this.transformFieldValueForStructure(fieldConfig, fieldValue);
-                    }
-                });
-
-                // Only add section if it has data
-                if (Object.keys(sectionData).length > 3) { // More than just sectionType, title, index
-                    sections[sectionId] = sectionData;
-                }
-            }
-        });
-
-        return sections;
-    }
-
-    /**
-     * Transforms individual field values for structured format
-     */
-    transformFieldValueForStructure(fieldConfig, value) {
-        const baseTransform = {
-            id: fieldConfig.id,
-            type: fieldConfig.type,
-            label: this.getText(`fields.${fieldConfig.id}`) || fieldConfig.label,
-            rawValue: value,
-            displayValue: this.extractValue(value)
-        };
-
-        // Add type-specific transformations
-        switch (fieldConfig.type) {
-            case 'yesno-with-options':
-                if (typeof value === 'object' && value.main !== undefined) {
-                    baseTransform.mainSelection = value.main;
-                    baseTransform.conditionalValues = {
-                        yesValues: value.yesValues || {},
-                        noValues: value.noValues || {}
-                    };
-                }
-                break;
-                
-            case 'multiselect':
-            case 'multiselect-with-other':
-                if (Array.isArray(value)) {
-                    baseTransform.selectedCount = value.length;
-                    baseTransform.selectedItems = value;
-                }
-                break;
-                
-            case 'select-with-other':
-                if (typeof value === 'object' && value.main) {
-                    baseTransform.mainSelection = value.main;
-                    baseTransform.otherValue = value.other || null;
-                    baseTransform.isOther = value.main === 'other';
-                }
-                break;
-        }
-
-        return baseTransform;
-    }
-
-    /**
-     * Generates metadata for the submission
-     */
-    generateSubmissionMetadata(flatData, originalFormValues) {
-        const metadata = {
-            formStructure: this.state.isSingleStep ? 'single-step' : 'multi-step',
-            totalSteps: this.formConfig.steps?.length || 1,
-            completedFields: Object.keys(originalFormValues).filter(key => {
-                const value = originalFormValues[key];
-                return value !== undefined && value !== null && value !== '' && 
-                       !(Array.isArray(value) && value.length === 0);
-            }).length,
-            totalFields: this.getTotalFieldCount(),
-            completionPercentage: this.calculateCompletionPercentage(originalFormValues),
-            submissionQuality: this.assessSubmissionQuality(originalFormValues),
-            deviceInfo: {
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                viewport: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                }
-            }
-        };
-
-        return metadata;
-    }
-
-    /**
-     * Helper methods for metadata generation
-     */
-    getTotalFieldCount() {
-        return this.formConfig.steps?.reduce((total, step) => {
-            return total + (step.fields?.length || 0);
-        }, 0) || 0;
-    }
-
-    calculateCompletionPercentage(formValues) {
-        const totalFields = this.getTotalFieldCount();
-        const completedFields = Object.keys(formValues).filter(key => {
-            const value = formValues[key];
-            return value !== undefined && value !== null && value !== '' && 
-                   !(Array.isArray(value) && value.length === 0);
-        }).length;
-        
-        return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
-    }
-
-    assessSubmissionQuality(formValues) {
-        const completionPercentage = this.calculateCompletionPercentage(formValues);
-        const requiredFieldsCompleted = this.checkRequiredFieldsCompletion(formValues);
-        
-        if (completionPercentage >= 90 && requiredFieldsCompleted) return 'excellent';
-        if (completionPercentage >= 70 && requiredFieldsCompleted) return 'good';
-        if (completionPercentage >= 50) return 'fair';
-        return 'basic';
-    }
-
-    checkRequiredFieldsCompletion(formValues) {
-        const requiredFields = [];
-        this.formConfig.steps?.forEach(step => {
-            step.fields?.forEach(field => {
-                if (field.required) {
-                    requiredFields.push(field.id);
-                }
-            });
-        });
-        
-        return requiredFields.every(fieldId => {
-            const value = formValues[fieldId];
-            return value !== undefined && value !== null && value !== '' && 
-                   !(Array.isArray(value) && value.length === 0);
-        });
-    }
-
-    // ============================================================================
     // BOOKING-SPECIFIC METHODS
     // ============================================================================
 
@@ -9691,68 +8947,13 @@ class CreatForm {
 
     handleFieldChange = (name, value) => {
         this.formValues[name] = value;
-        this.logger.info(`Field ${name} changed:`, { value, extracted: this.extractValue(value) });
+        this.logger.info(`Field ${name} changed:`, { value, formatted: this.formatValue({}, value) });
         
         if (this.isBookingForm && name === 'serviceSelection' && value) {
             this.logger.info('Service selected:', value);
             this.updateCalendarConfiguration(value);
         }
     };
-
-    // ============================================================================
-    // ENHANCED SUBMISSION HANDLING WITH COMPREHENSIVE LOGGING
-    // ============================================================================
-
-    getSubmitButton() {
-        if (this.state.isSingleStep && this.singleStepForm) {
-            return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
-        }
-        return document.querySelector('.btn-submit');
-    }
-
-    // ============================================================================
-    // PUBLIC API FOR EXTERNAL SUBMISSION
-    // ============================================================================
-
-    // Public method to trigger form submission programmatically
-    async submitForm() {
-        if (this.state.isSingleStep && this.singleStepForm) {
-            // Validate all fields
-            let isValid = true;
-            this.singleStepForm.fieldInstances.forEach(field => {
-                if (!field.validate()) {
-                    isValid = false;
-                }
-            });
-
-            if (isValid) {
-                // Collect form data
-                const formData = {};
-                this.singleStepForm.fieldInstances.forEach(field => {
-                    formData[field.name] = field.getValue();
-                });
-
-                // Submit
-                return await this.handleSubmission(formData);
-            } else {
-                throw new Error('Form validation failed');
-            }
-        } else if (this.multiStepForm) {
-            // For multi-step forms, delegate to the multistep form
-            return await this.multiStepForm.submitForm();
-        }
-        throw new Error('Form not initialized');
-    }
-
-    // Public method to validate form without submitting
-    validateForm() {
-        if (this.state.isSingleStep && this.singleStepForm) {
-            return this.singleStepForm.fieldInstances.every(field => field.validate());
-        } else if (this.multiStepForm) {
-            return this.multiStepForm.validateAllSteps();
-        }
-        return false;
-    }
 
     // ============================================================================
     // SESSION MANAGEMENT
@@ -9855,6 +9056,57 @@ class CreatForm {
     }
 
     // ============================================================================
+    // PUBLIC API FOR EXTERNAL SUBMISSION
+    // ============================================================================
+
+    getSubmitButton() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
+        }
+        return document.querySelector('.btn-submit');
+    }
+
+    // Public method to trigger form submission programmatically
+    async submitForm() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            // Validate all fields
+            let isValid = true;
+            this.singleStepForm.fieldInstances.forEach(field => {
+                if (!field.validate()) {
+                    isValid = false;
+                }
+            });
+
+            if (isValid) {
+                // Collect form data
+                const formData = {};
+                this.singleStepForm.fieldInstances.forEach(field => {
+                    formData[field.name] = field.getValue();
+                });
+
+                // Submit
+                return await this.handleSubmission(formData);
+            } else {
+                throw new Error('Form validation failed');
+            }
+        } else if (this.multiStepForm) {
+            // For multi-step forms, delegate to the multistep form
+            return await this.multiStepForm.submitForm();
+        }
+        throw new Error('Form not initialized');
+    }
+
+    // Public method to validate form without submitting
+    validateForm() {
+        if (this.state.isSingleStep && this.singleStepForm) {
+            return this.singleStepForm.fieldInstances.every(field => field.validate());
+        } else if (this.multiStepForm) {
+            return this.multiStepForm.validateAllSteps();
+        }
+        return false;
+    }
+
+    // ============================================================================
     // MAIN RENDER METHOD - Enhanced for single/multistep support
     // ============================================================================
 
@@ -9887,13 +9139,14 @@ class CreatForm {
                 }
             });
 
+            // NEW: Set CreatForm instance in factory to initialize processors
+            this.factory.setCreatFormInstance(this);
+
             if (this.state.isSingleStep) {
-                // Create single step form
-                this.logger.info('Creating single step form with row support and optional submit button');
+                this.logger.info('Creating single step form');
                 const singleStepContainer = this.createSingleStepForm();
                 this.container.appendChild(singleStepContainer);
             } else {
-                // Create multi-step form
                 this.logger.info('Creating multi-step form');
                 const formConfig = {
                     showProgress: true,
@@ -9937,7 +9190,7 @@ class CreatForm {
             this.setupSessionManagement();
             this.state.initialized = true;
 
-            this.logger.success('🎊 Form rendered successfully!');
+            this.logger.success('🎊 Form rendered successfully using FormDataProcessor!');
             return this.createPublicAPI();
         } catch (error) {
             this.logger.error('Failed to render form:', error);
@@ -9948,9 +9201,118 @@ class CreatForm {
     }
 
     // ============================================================================
-    // PUBLIC API
+    // ENHANCED PUBLIC API (updated with new processor methods)
     // ============================================================================
+    createPublicAPI() {
+        return {
+            destroy: () => this.destroy(),
+            getCurrentStep: () => this.state.currentStep,
+            getFormData: () => {
+                if (this.state.isSingleStep && this.singleStepForm) {
+                    const data = {};
+                    this.singleStepForm.fieldInstances.forEach(field => {
+                        data[field.name] = field.getValue();
+                    });
+                    return data;
+                }
+                return this.multiStepForm?.getFormData() || {};
+            },
+            
+            // NEW: Enhanced data access methods using processor
+            getDataProcessor: () => this.dataProcessor,
+            getTransformerInstance: () => this.dataTransformerInstance,
+            getFormatter: () => this.formatter,
+            
+            // NEW: Test data transformation with processor
+            testDataTransformation: (testData) => {
+                if (this.dataTransformerInstance) {
+                    try {
+                        return this.dataTransformerInstance.transform(testData);
+                    } catch (error) {
+                        this.logger.error('Error testing data transformation:', error);
+                        return null;
+                    }
+                }
+                return null;
+            },
 
+            // NEW: Process data like CustomField does
+            processDataLikeCustomField: (testData) => {
+                try {
+                    return this.dataProcessor.processFormData(testData);
+                } catch (error) {
+                    this.logger.error('Error processing data like CustomField:', error);
+                    return null;
+                }
+            },
+            
+            // Updated configuration info
+            getConfig: () => ({
+                webhookEnabled: this.config.webhookEnabled,
+                voiceflowEnabled: this.config.voiceflowEnabled,
+                useStructuredData: this.config.useStructuredData,
+                formType: this.config.formType,
+                formStructure: this.state.isSingleStep ? 'single' : 'multistep',
+                showSubmitButton: this.config.showSubmitButton,
+                hasDataTransformer: !!this.dataTransformerInstance,
+                hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function',
+                dataTransformerType: this.dataTransformerInstance?.constructor.name || 'none',
+                usesFormDataProcessor: true // New flag
+            }),
+            
+            // Enhanced testing and debugging methods
+            testVoiceflowTransformer: (testData) => {
+                if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
+                    try {
+                        return this.config.voiceflowDataTransformer(testData, testData, this);
+                    } catch (error) {
+                        this.logger.error('Error testing Voiceflow transformer:', error);
+                        return null;
+                    }
+                }
+                return null;
+            },
+
+            // Logging control methods
+            enableLogging: () => {
+                this.config.enableDetailedLogging = true;
+                this.logger.info('Detailed logging enabled');
+            },
+            disableLogging: () => {
+                this.config.enableDetailedLogging = false;
+                console.log('📋 CreatForm: Detailed logging disabled');
+            },
+
+            // Data inspection methods
+            inspectFormValues: () => {
+                this.logger.info('Current form values:', this.formValues);
+                return this.formValues;
+            },
+            inspectSubmissionData: () => {
+                const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
+                const prepared = this.prepareDataForSubmission(data);
+                this.logger.info('Prepared submission data:', prepared);
+                return prepared;
+            },
+
+            // NEW: Inspect processed data
+            inspectProcessedData: () => {
+                const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
+                const processed = this.dataProcessor.processFormData(data);
+                this.logger.info('Processed form data (like CustomField):', processed);
+                return processed;
+            },
+
+            // Form manipulation methods
+            submitForm: () => this.submitForm(),
+            validateForm: () => this.validateForm(),
+            reset: () => this.reset()
+        };
+    }
+
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
 
     reset() {
         this.logger.info('Resetting form...');
@@ -9990,6 +9352,8 @@ class CreatForm {
         this.logger.success('Form destroyed successfully');
     }
 }
+
+
 
 /**
  * OPTIMIZED CALENDAR FIELDS - Unified approach using CalendarField as base
