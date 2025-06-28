@@ -417,12 +417,17 @@ class BaseDataTransformer {
 // ============================================================================
 // 3. CHATBOT FORM DATA TRANSFORMER - Specific implementation
 // ============================================================================
+// ============================================================================
+// 3. CHATBOT FORM DATA TRANSFORMER - FIXED VERSION
+// Now properly formats field values using field configurations
+// ============================================================================
 class ChatbotFormDataTransformer extends BaseDataTransformer {
     constructor(creatFormInstance) {
         const fieldConfigMap = {
-            niche: { optionsPath: 'niches' },
-            budget: { optionsPath: 'budgetRanges' },
+            niche: { optionsPath: 'niches', type: 'select-with-other' },
+            budget: { optionsPath: 'budgetRanges', type: 'select-with-other' },
             teamSize: { 
+                type: 'select',
                 customOptions: [
                     { id: 'solo', name: { fr: 'Entrepreneur individuel', en: 'Individual Entrepreneur' } },
                     { id: 'small', name: { fr: 'TPE (2-10 employés)', en: 'Small Business (2-10 employees)' } },
@@ -430,15 +435,15 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                     { id: 'large', name: { fr: 'Grande entreprise (50+ employés)', en: 'Large Enterprise (50+ employees)' } }
                 ]
             },
-            formTypes: { optionsPath: 'formTypes' },
-            websitePlatform: { optionsPath: 'platforms.website' },
-            websiteTraffic: { optionsPath: 'websiteTraffic' },
-            crms: { optionsPath: 'integrations.crms' },
-            bookingSystems: { optionsPath: 'integrations.booking' },
-            databases: { optionsPath: 'integrations.databases' },
-            socialPlatforms: { optionsPath: 'platforms.social' },
-            languages: { optionsPath: 'languages' },
-            language: { optionsPath: 'languages' }
+            formTypes: { optionsPath: 'formTypes', type: 'multiselect-with-other' },
+            websitePlatform: { optionsPath: 'platforms.website', type: 'select-with-other' },
+            websiteTraffic: { optionsPath: 'websiteTraffic', type: 'select' },
+            crms: { optionsPath: 'integrations.crms', type: 'multiselect-with-other' },
+            bookingSystems: { optionsPath: 'integrations.booking', type: 'select-with-other' },
+            databases: { optionsPath: 'integrations.databases', type: 'multiselect-with-other' },
+            socialPlatforms: { optionsPath: 'platforms.social', type: 'multiselect' },
+            languages: { optionsPath: 'languages', type: 'multiselect' },
+            language: { optionsPath: 'languages', type: 'select' }
         };
 
         super(creatFormInstance, fieldConfigMap);
@@ -460,31 +465,31 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     createContactInfoSection(flatData, originalFormValues) {
         return {
             sectionType: "contact_information",
-            firstName: this.safeExtractValue(flatData.firstName),
-            lastName: this.safeExtractValue(flatData.lastName),
-            fullName: `${this.safeExtractValue(flatData.firstName)} ${this.safeExtractValue(flatData.lastName)}`.trim(),
-            email: this.safeExtractValue(flatData.email),
-            phone: this.safeExtractValue(flatData.phone),
-            company: this.safeExtractValue(flatData.company) || 'Non spécifié'
+            firstName: this.safeExtractValue('firstName', flatData.firstName),
+            lastName: this.safeExtractValue('lastName', flatData.lastName),
+            fullName: `${this.safeExtractValue('firstName', flatData.firstName)} ${this.safeExtractValue('lastName', flatData.lastName)}`.trim(),
+            email: this.safeExtractValue('email', flatData.email),
+            phone: this.safeExtractValue('phone', flatData.phone),
+            company: this.safeExtractValue('company', flatData.company) || 'Non spécifié'
         };
     }
 
     createProjectSpecsSection(flatData, originalFormValues) {
         return {
             sectionType: "project_specifications",
-            industry: this.safeExtractValue(flatData.niche) || 'Non spécifié',
-            otherIndustry: this.safeExtractValue(flatData.otherNiche),
-            budget: this.safeExtractValue(flatData.budget) || 'Non spécifié',
-            customBudget: this.safeExtractValue(flatData.customBudget),
-            description: this.safeExtractValue(flatData.description) || 'Non spécifié'
+            industry: this.safeExtractValue('niche', flatData.niche) || 'Non spécifié',
+            otherIndustry: this.safeExtractValue('otherNiche', flatData.otherNiche),
+            budget: this.safeExtractValue('budget', flatData.budget) || 'Non spécifié',
+            customBudget: this.safeExtractValue('customBudget', flatData.customBudget),
+            description: this.safeExtractValue('description', flatData.description) || 'Non spécifié'
         };
     }
 
     createBusinessProfileSection(flatData, originalFormValues) {
         return {
             sectionType: "business_profile",
-            teamSize: this.safeExtractValue(flatData.teamSize) || 'Non spécifié',
-            services: this.safeExtractValue(flatData.services) || 'Non spécifié'
+            teamSize: this.safeExtractValue('teamSize', flatData.teamSize) || 'Non spécifié',
+            services: this.safeExtractValue('services', flatData.services) || 'Non spécifié'
         };
     }
 
@@ -515,7 +520,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "form_integration",
             useForm: useFormResult.mainValue,
             formTypes: formTypesArray,
-            formTypesString: formTypesArray.join(', '), // This will now work because formTypesArray is guaranteed to be an array
+            formTypesString: formTypesArray.join(', '),
             formPurpose: formPurpose
         };
     }
@@ -570,7 +575,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "integrations_apis",
             useCRM: useCRMResult.mainValue,
             crms: crmsArray,
-            crmsString: crmsArray.join(', '), // Now safe
+            crmsString: crmsArray.join(', '),
             
             hasBookingSystem: hasBookingResult.mainValue,
             bookingSystems: this.safeStringValue(hasBookingResult.extractedValues.bookingSystems),
@@ -579,7 +584,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             
             useDatabase: useDatabaseResult.mainValue,
             databases: databasesArray,
-            databasesString: databasesArray.join(', ') // Now safe
+            databasesString: databasesArray.join(', ')
         };
     }
 
@@ -613,14 +618,39 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             sectionType: "communication_channels",
             needSocialBot: needSocialBotResult.mainValue,
             socialPlatforms: socialPlatformsArray,
-            socialPlatformsString: socialPlatformsArray.join(', '), // Now safe
+            socialPlatformsString: socialPlatformsArray.join(', '),
             languageType: this.getLanguageTypeDisplay(languageTypeResult),
             languages: languagesArray,
-            languagesString: languagesArray.join(', ') // Now safe
+            languagesString: languagesArray.join(', ')
         };
     }
 
-    // FIXED: Safe extraction helper methods with comprehensive error handling
+    // ============================================================================
+    // FIXED: Safe extraction helper methods with proper field configuration usage
+    // ============================================================================
+
+    // NEW: Enhanced safeExtractValue that uses field configuration
+    safeExtractValue(fieldName, value) {
+        try {
+            const fieldConfig = this.getFieldConfig(fieldName);
+            
+            // If we have field configuration, use it for proper formatting
+            if (fieldConfig && Object.keys(fieldConfig).length > 0) {
+                // For custom options (like teamSize), add them to the field config
+                if (fieldConfig.customOptions) {
+                    fieldConfig.options = fieldConfig.customOptions;
+                }
+                
+                return this.formatter.formatValue(fieldConfig, value) || '';
+            }
+            
+            // Fallback to basic formatting
+            return this.formatter.formatValue({}, value) || '';
+        } catch (error) {
+            console.error(`Error extracting value for ${fieldName}:`, error);
+            return '';
+        }
+    }
 
     safeExtractYesNoWithOptions(fieldValue, fieldName, subFieldConfigs = {}, mainFieldConfig = {}) {
         let mainValue = false;
@@ -640,7 +670,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                     mainValue = fieldValue.main === true || fieldValue.main === 'yes';
                 }
 
-                // Extract sub-values
+                // Extract sub-values using proper field configurations
                 ['yesValues', 'noValues'].forEach(valueType => {
                     if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
                         Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
@@ -667,10 +697,25 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
 
     safeFormatFieldValue(fieldConfig, value, fieldName) {
         try {
+            // Enhanced field configuration with proper options resolution
+            const enhancedConfig = { ...fieldConfig };
+            
+            // Add options from optionsPath if available
+            if (fieldConfig.optionsPath && this.creatFormInstance) {
+                try {
+                    const options = this.creatFormInstance.getData(fieldConfig.optionsPath);
+                    if (options) {
+                        enhancedConfig.options = options;
+                    }
+                } catch (error) {
+                    console.error(`Error resolving options path ${fieldConfig.optionsPath}:`, error);
+                }
+            }
+
             // Handle multiselect fields - FIXED: Always return arrays for multiselect
             if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
                 if (Array.isArray(value)) {
-                    return value.map(v => this.formatter.formatValue(fieldConfig, v));
+                    return value.map(v => this.formatter.formatValue(enhancedConfig, v));
                 } else if (typeof value === 'string') {
                     return value.split(',').map(v => v.trim()).filter(v => v);
                 } else {
@@ -678,8 +723,8 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                 }
             }
 
-            // Use the formatter for other types
-            return this.formatter.formatValue(fieldConfig, value);
+            // Use the formatter for other types with enhanced config
+            return this.formatter.formatValue(enhancedConfig, value);
         } catch (error) {
             console.error(`Error formatting field ${fieldName}:`, error);
             return value;
@@ -687,14 +732,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     }
 
     // FIXED: Safe value extraction helpers with proper type checking
-    safeExtractValue(value) {
-        try {
-            return this.formatter.formatValue({}, value) || '';
-        } catch (error) {
-            return '';
-        }
-    }
-
     safeArrayValue(value) {
         if (Array.isArray(value)) {
             return value;
