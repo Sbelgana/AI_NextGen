@@ -785,7 +785,7 @@ class FormFieldFactory {
 			of: options.texts?.of || "of",
 			edit: options.texts?.edit || "Edit",
 			noDataEntered: options.texts?.noDataEntered || "No data entered",
-			serviceRequired: options.texts?.serviceRequired || "Please select a service",
+			categoryRequired: options.texts?.categoryRequired || "Please select a category",
 			dateTimeRequired: options.texts?.dateTimeRequired || "Please select a date and time"
 		};
 
@@ -966,8 +966,8 @@ this.SVG_ICONS = {
             case 'options-slider':
                 field = new OptionsSliderField(this, config);
                 break;
-            case 'serviceCard':
-                field = new ServiceCardField(this, config);
+            case 'categoryCard':
+                field = new CategoryCardField(this, config);
                 break;
             case 'calendar':
                 field = new CalendarField(this, config);
@@ -984,17 +984,17 @@ this.SVG_ICONS = {
             case 'category-item-calendar':
                 field = new CategoryAndItemCalendarField  (this, config);
                 break;
-            case 'service-request-calendar':
-            case 'serviceRequestCalendar':
-                field = new ServiceRequestCalendarField(this, config);
+            case 'category-request-calendar':
+            case 'categoryRequestCalendar':
+                field = new CategoryRequestCalendarField(this, config);
                 break;
             case 'terms-checkbox':
             case 'termsCheckbox':
                 field = new TermsCheckboxField(this, config);
                 break;
-            case 'service-request-file-upload':
-            case 'serviceRequestFileUpload':
-                field = new ServiceRequestFileUploadField(this, config);
+            case 'category-request-file-upload':
+            case 'categoryRequestFileUpload':
+                field = new CategoryRequestFileUploadField(this, config);
                 break;
             case 'currentAppointmentCard':
                 field = new CurrentAppointmentCardField(this, config);
@@ -1247,8 +1247,8 @@ this.SVG_ICONS = {
 		return new SlidingWindowSliderField(this, config);
 	}
 
-	createServiceCardField(config) {
-        return new ServiceCardField(this, config);
+	createCategoryCardField(config) {
+        return new CategoryCardField(this, config);
     }
 	
 	createCalendarField(config) {
@@ -1281,16 +1281,16 @@ this.SVG_ICONS = {
     }
 
     // ===== NEW CUSTOM FIELD FACTORY METHODS =====
-    createServiceRequestCalendarField(config) {
-        return new ServiceRequestCalendarField(this, config);
+    createCategoryRequestCalendarField(config) {
+        return new CategoryRequestCalendarField(this, config);
     }
 
     createTermsCheckboxField(config) {
         return new TermsCheckboxField(this, config);
     }
 
-    createServiceRequestFileUploadField(config) {
-        return new ServiceRequestFileUploadField(this, config);
+    createCategoryRequestFileUploadField(config) {
+        return new CategoryRequestFileUploadField(this, config);
     }
 
     createCurrentAppointmentCardField(config) {
@@ -1796,8 +1796,8 @@ class FormStep {
                 return this.factory.createSlidingWindowSliderField(fieldConfig);
             case 'options-slider':
                 return this.factory.createOptionsSliderField(fieldConfig);
-            case 'serviceCard':
-                return this.factory.createServiceCardField(fieldConfig);
+            case 'categoryCard':
+                return this.factory.createCategoryCardField(fieldConfig);
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
             case 'item-calendar':
@@ -1815,15 +1815,15 @@ class FormStep {
             case 'bookingCancellationCard':
                 return this.factory.createBookingCancellationCardField(fieldConfig);
             // ===== NEW CUSTOM FIELD TYPES =====
-            case 'service-request-calendar':
-            case 'serviceRequestCalendar':
-                return this.factory.createServiceRequestCalendarField(fieldConfig);
+            case 'category-request-calendar':
+            case 'categoryRequestCalendar':
+                return this.factory.createCategoryRequestCalendarField(fieldConfig);
             case 'terms-checkbox':
             case 'termsCheckbox':
                 return this.factory.createTermsCheckboxField(fieldConfig);
-            case 'service-request-file-upload':
-            case 'serviceRequestFileUpload':
-                return this.factory.createServiceRequestFileUploadField(fieldConfig);
+            case 'category-request-file-upload':
+            case 'categoryRequestFileUpload':
+                return this.factory.createCategoryRequestFileUploadField(fieldConfig);
             case 'currentAppointmentCard':
                 return this.factory.createCurrentAppointmentCardField(fieldConfig);
             case 'custom':
@@ -9689,7 +9689,7 @@ class CategoryItemFilterField extends BaseField {
                                               this.factory.formData?.[config.categoryItems] || 
                                               this.factory.data?.[config.categoryItems] || {};
                 } else {
-                    this.rawCategoryItems = config.categoryItems || config.categorysInfo || {};
+                    this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
                 }
                 
                 this.availableCategories = [];
@@ -10291,7 +10291,7 @@ class CalendarField extends BaseField {
         // Options: 'none', 'item', 'category-item'
         
         // Category and item data
-        this.rawCategoryItems = config.categoryItems || config.categorysInfo || {};
+        this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
         this.availableCategories = [];
         this.filteredItems = [];
         
@@ -10309,7 +10309,7 @@ class CalendarField extends BaseField {
         this.eventName = config.eventName || '';
         
         // Direct item configuration (for direct mode and reschedule)
-        this.categoryItem = config.categoryItem || '';
+        this.specialist = config.specialist || '';
         
         // UI Configuration
         this.headerIcon = config.headerIcon || 'CALENDAR';
@@ -10960,8 +10960,8 @@ class CalendarField extends BaseField {
             const displayItem = this.currentItem?.displayName || 
                                    this.currentItem?.name || 
                                    this.currentItem?.id || 
-                                   this.categoryItem ||
-                                   'Item';
+                                   this.specialist ||
+                                   'Specialist';
             
             
             return `
@@ -10994,9 +10994,9 @@ class CalendarField extends BaseField {
             if (this.currentItem) {
                 const displayName = this.currentItem.displayName || this.currentItem.name || this.currentItem.id;
                 headerHtml += `<div class="item-name">${displayName}</div>`;
-            } else if (this.categoryItem) {
-                // Fallback to direct categoryItem config
-                headerHtml += `<div class="item-name">${this.categoryItem}</div>`;
+            } else if (this.specialist) {
+                // Fallback to direct specialist config
+                headerHtml += `<div class="item-name">${this.specialist}</div>`;
             }
 
             headerHtml += `
@@ -11336,7 +11336,7 @@ class CalendarField extends BaseField {
             selectedCategory: this.selectedCategory,
             selectedItemId: this.selectedItemId,
             selectedItem: this.currentItem,
-            categoryItem: this.categoryItem,
+            specialist: this.specialist,
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
@@ -11368,7 +11368,7 @@ class CalendarField extends BaseField {
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
             if (value.currentAppointment) this.currentAppointment = value.currentAppointment;
-            if (value.categoryItem) this.categoryItem = value.categoryItem;
+            if (value.specialist) this.specialist = value.specialist;
             if (this.element) {
                 this.updateCalendarHeader();
                 this.renderCalendarData();
@@ -11380,7 +11380,7 @@ class CalendarField extends BaseField {
         this.selectedCategory = '';
         this.selectedItemId = '';
         this.currentItem = null;
-        this.categoryItem = '';
+        this.specialist = '';
         this.filteredItems = [];
         this.resetCalendarState();
         
@@ -11457,6 +11457,8 @@ class CategoryAndItemCalendarField extends CalendarField {
         super(factory, enhancedConfig);
     }
 }
+
+
 
 
 class ServiceRequestCalendarField extends BaseField {
