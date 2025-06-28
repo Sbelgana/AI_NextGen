@@ -10960,11 +10960,7 @@ class ServiceRequestCalendarField extends BaseField {
                         <div class="weekdays-container"></div>
                         <div class="calendar-days"></div>
                     </div>
-                </div>
-                
-                <!-- Availability Column -->
-                <div class="availability-column">
-                    <div class="time-choice-container">
+		    <div class="time-choice-container">
                         <div class="time-choice-label">${this.getText('chooseOption')}</div>
                         <div class="time-choice-options"></div>
                         
@@ -10979,6 +10975,11 @@ class ServiceRequestCalendarField extends BaseField {
                             ${this.getText('maxSlotsReached')}
                         </div>
                     </div>
+                </div>
+                
+                <!-- Availability Column -->
+                <div class="availability-column">
+                    
                     
                     <div class="selected-slots-container" style="display: none;">
                         <div class="selected-slots-title">
