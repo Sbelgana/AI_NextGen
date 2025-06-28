@@ -5291,7 +5291,7 @@ class CustomField extends BaseField {
 
                 html += `
                     <div class="summary-row sub-field">
-                        <div class="summary-label">↳ ${subFieldLabel}:</div>
+                        <div class="summary-label">${subFieldLabel}:</div>
                         <div class="summary-value">${displayValue}</div>
                     </div>
                 `;
