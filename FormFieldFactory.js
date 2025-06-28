@@ -76,6 +76,7 @@ class FieldValueFormatter {
 
     /**
      * Extract structured data for complex fields (like yesno-with-options)
+     * FIXED: No circular calls to formatValue()
      */
     extractStructuredValue(fieldConfig, value) {
         if (!this.shouldDisplayValue(value)) {
@@ -83,7 +84,7 @@ class FieldValueFormatter {
         }
 
         const result = {
-            displayValue: this.formatValue(fieldConfig, value),
+            displayValue: this.formatValueDirectly(fieldConfig, value), // FIXED: Use direct formatting
             rawValue: value,
             hasSubFields: false,
             subFields: {}
@@ -132,7 +133,7 @@ class FieldValueFormatter {
             if (this.shouldDisplayValue(fieldValue)) {
                 extracted[fieldName] = {
                     label: subFieldConfig.label,
-                    displayValue: this.formatValue(subFieldConfig, fieldValue),
+                    displayValue: this.formatValueDirectly(subFieldConfig, fieldValue), // FIXED: Use direct formatting
                     rawValue: fieldValue,
                     fieldType: subFieldConfig.type
                 };
@@ -140,6 +141,62 @@ class FieldValueFormatter {
         });
 
         return extracted;
+    }
+
+    // ============================================================================
+    // NEW: Direct formatting method without circular calls
+    // ============================================================================
+    
+    /**
+     * Format value directly without calling extractStructuredValue (prevents recursion)
+     */
+    formatValueDirectly(fieldConfig, value, context = {}) {
+        if (!this.shouldDisplayValue(value)) {
+            return context.returnEmpty ? '' : this.getTranslatedText('common.notSpecified');
+        }
+
+        const fieldType = fieldConfig?.type;
+        
+        try {
+            switch (fieldType) {
+                case 'yesno':
+                    return this.formatYesNoValue(value, fieldConfig);
+                case 'yesno-with-options':
+                    // FIXED: Don't call extractStructuredValue, just format the main value
+                    if (typeof value === 'object' && value.main !== undefined) {
+                        return this.formatYesNoValue(value.main, fieldConfig);
+                    }
+                    return this.formatYesNoValue(value, fieldConfig);
+                case 'select':
+                case 'select-subsections':
+                    return this.formatSelectValue(value, fieldConfig);
+                case 'multiselect':
+                case 'multiselect-subsections':
+                    return this.formatMultiSelectValue(value, fieldConfig);
+                case 'select-with-other':
+                    return this.formatSelectWithOtherValue(value, fieldConfig);
+                case 'multiselect-with-other':
+                    return this.formatMultiSelectWithOtherValue(value, fieldConfig);
+                case 'sliding-window-range':
+                    return this.formatSlidingWindowRangeValue(value, fieldConfig);
+                case 'options-slider':
+                    return this.formatOptionsSliderValue(value, fieldConfig);
+                case 'textarea':
+                    return this.formatTextareaValue(value, context);
+                case 'email':
+                case 'phone':
+                case 'url':
+                    return this.formatContactValue(value);
+                case 'number':
+                case 'percentage':
+                    return this.formatNumericValue(value, fieldConfig);
+                default:
+                    return this.formatDefaultValue(value);
+            }
+        } catch (error) {
+            console.error('🎨 Error in direct formatting:', error);
+            return this.formatDefaultValue(value);
+        }
     }
 
     // ============================================================================
@@ -171,14 +228,9 @@ class FieldValueFormatter {
             return this.formatYesNoValue(value, fieldConfig);
         }
 
-        // For summary context, return just the main value
-        if (context.summaryMode) {
-            return this.formatYesNoValue(value.main, fieldConfig);
-        }
-
-        // For detailed context, include sub-field information
-        const structured = this.extractStructuredValue(fieldConfig, value);
-        return structured.mainDisplayValue;
+        // FIXED: Don't call extractStructuredValue to avoid recursion
+        // Just format the main value for summary mode or detailed contexts
+        return this.formatYesNoValue(value.main, fieldConfig);
     }
 
     formatSelectValue(value, fieldConfig) {
@@ -693,6 +745,8 @@ class BaseDataTransformer {
         return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
     }
 }
+
+
 
 class FormFieldFactory {
     constructor(options = {}) {
