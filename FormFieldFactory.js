@@ -1,5 +1,5 @@
 // ============================================================================
-// 1. ENHANCED FIELD VALUE FORMATTER - More robust formatting logic
+// ENHANCED FIELD VALUE FORMATTER - More robust formatting logic
 // ============================================================================
 class FieldValueFormatter {
     constructor(creatFormInstance) {
@@ -27,7 +27,7 @@ class FieldValueFormatter {
     }
 
     /**
-     * Main formatting method - handles all field types consistently
+     * UPDATED: Main formatting method with enhanced object handling
      */
     formatValue(fieldConfig, value, context = {}) {
         if (!this.shouldDisplayValue(value)) {
@@ -37,6 +37,21 @@ class FieldValueFormatter {
         const fieldType = fieldConfig?.type;
         
         try {
+            // FIX: Handle special field types first
+            if (fieldType === 'category-item-filter') {
+                return this.formatCategoryItemFilterValue(value, fieldConfig);
+            }
+            
+            if (fieldType === 'service-request-calendar') {
+                return this.formatServiceRequestCalendarValue(value, fieldConfig);
+            }
+            
+            // Handle complex objects with special formatting
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                return this.formatComplexObjectValue(value, fieldConfig);
+            }
+            
+            // Regular field type handling
             switch (fieldType) {
                 case 'yesno':
                     return this.formatYesNoValue(value, fieldConfig);
@@ -69,8 +84,8 @@ class FieldValueFormatter {
                     return this.formatDefaultValue(value);
             }
         } catch (error) {
-            console.error('🎨 Error formatting value:', error);
-            return this.formatDefaultValue(value);
+            console.error('🎨 Error formatting value:', error, { fieldType, value });
+            return this.safeStringConversion(value);
         }
     }
 
@@ -158,6 +173,15 @@ class FieldValueFormatter {
         const fieldType = fieldConfig?.type;
         
         try {
+            // FIX: Handle special field types first
+            if (fieldType === 'category-item-filter') {
+                return this.formatCategoryItemFilterValue(value, fieldConfig);
+            }
+            
+            if (fieldType === 'service-request-calendar') {
+                return this.formatServiceRequestCalendarValue(value, fieldConfig);
+            }
+            
             switch (fieldType) {
                 case 'yesno':
                     return this.formatYesNoValue(value, fieldConfig);
@@ -200,6 +224,124 @@ class FieldValueFormatter {
     }
 
     // ============================================================================
+    // NEW METHODS FOR SPECIAL FIELD TYPES
+    // ============================================================================
+
+    /**
+     * NEW: Format CategoryItemFilterField values
+     */
+    formatCategoryItemFilterValue(value, fieldConfig) {
+        if (typeof value === 'object' && value !== null) {
+            // Handle the structured object from CategoryItemFilterField
+            if (value._separateFields) {
+                const parts = [];
+                if (value.category && String(value.category).trim() !== '') {
+                    parts.push(String(value.category));
+                }
+                if (value.item && String(value.item).trim() !== '') {
+                    parts.push(String(value.item));
+                }
+                return parts.join(' - ');
+            }
+            
+            // Handle other object formats
+            if (value.selectedCategory && value.selectedItem) {
+                const itemName = value.selectedItem.displayName || value.selectedItem.name || String(value.selectedItem);
+                return `${value.selectedCategory} - ${itemName}`;
+            }
+            
+            if (value.displayText) {
+                return String(value.displayText);
+            }
+            
+            // Try toString method
+            if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+                return value.toString();
+            }
+        }
+        
+        return this.safeStringConversion(value);
+    }
+
+    /**
+     * NEW: Format ServiceRequestCalendar values
+     */
+    formatServiceRequestCalendarValue(value, fieldConfig) {
+        if (Array.isArray(value)) {
+            return value.map(slot => {
+                if (typeof slot === 'object' && slot.displayText) {
+                    return slot.displayText;
+                }
+                if (typeof slot === 'object' && slot.date && slot.timeOfDay) {
+                    return `${slot.date} - ${slot.timeOfDay}`;
+                }
+                return this.safeStringConversion(slot);
+            });
+        }
+        
+        return this.safeStringConversion(value);
+    }
+
+    /**
+     * NEW: Format complex object values
+     */
+    formatComplexObjectValue(value, fieldConfig) {
+        // Check for common display properties
+        if (value.displayText) {
+            return String(value.displayText);
+        }
+        
+        if (value.display) {
+            return String(value.display);
+        }
+        
+        if (value.label) {
+            return this.getLocalizedLabel(value.label);
+        }
+        
+        if (value.name) {
+            return String(value.name);
+        }
+        
+        if (value.value !== undefined) {
+            return this.safeStringConversion(value.value);
+        }
+        
+        // Handle objects with toString method
+        if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+            try {
+                const result = value.toString();
+                if (result && result !== '[object Object]') {
+                    return result;
+                }
+            } catch (error) {
+                console.warn('Error calling toString:', error);
+            }
+        }
+        
+        // Handle structured objects with multiple fields
+        if (typeof value === 'object') {
+            const meaningfulFields = [];
+            
+            // Common field names to extract
+            const fieldNames = ['title', 'description', 'category', 'item', 'type', 'status'];
+            
+            fieldNames.forEach(fieldName => {
+                if (value[fieldName] && this.shouldDisplayValue(value[fieldName])) {
+                    meaningfulFields.push(this.safeStringConversion(value[fieldName]));
+                }
+            });
+            
+            if (meaningfulFields.length > 0) {
+                return meaningfulFields.join(' - ');
+            }
+        }
+        
+        // Last resort
+        return this.safeStringConversion(value);
+    }
+
+    // ============================================================================
     // ENHANCED FIELD-SPECIFIC FORMATTING METHODS
     // ============================================================================
 
@@ -220,7 +362,7 @@ class FieldValueFormatter {
             return this.getTranslatedText('common.no');
         }
         
-        return value;
+        return this.safeStringConversion(value);
     }
 
     formatYesNoWithOptionsValue(value, fieldConfig, context = {}) {
@@ -247,7 +389,7 @@ class FieldValueFormatter {
     formatSelectWithOtherValue(value, fieldConfig) {
         if (typeof value === 'object' && value.main) {
             if (value.main === 'other' && value.other) {
-                return value.other.trim();
+                return String(value.other).trim();
             }
             return this.getOptionDisplayName(fieldConfig?.options, value.main, fieldConfig);
         }
@@ -259,8 +401,8 @@ class FieldValueFormatter {
             const mainValues = Array.isArray(value.main) ? 
                 value.main.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig)) : [];
             
-            if (value.other && value.other.trim()) {
-                mainValues.push(value.other.trim());
+            if (value.other && String(value.other).trim()) {
+                mainValues.push(String(value.other).trim());
             }
             
             return mainValues;
@@ -269,14 +411,15 @@ class FieldValueFormatter {
     }
 
     formatContactValue(value) {
-        return value ? value.toString().trim() : '';
+        return value ? String(value).trim() : '';
     }
 
     formatNumericValue(value, fieldConfig) {
         if (typeof value === 'number') {
-            return fieldConfig?.type === 'percentage' ? `${value}%` : value.toString();
+            const formatted = fieldConfig?.type === 'percentage' ? `${value}%` : value.toString();
+            return formatted;
         }
-        return value;
+        return this.safeStringConversion(value);
     }
 
     formatTextareaValue(value, context = {}) {
@@ -285,7 +428,7 @@ class FieldValueFormatter {
                 return value.substring(0, 100) + '...';
             }
         }
-        return value;
+        return this.safeStringConversion(value);
     }
 
     formatSlidingWindowRangeValue(value, fieldConfig) {
@@ -293,39 +436,121 @@ class FieldValueFormatter {
             const formatValue = fieldConfig?.formatValue || ((val) => `${parseInt(val).toLocaleString()}`);
             return `${formatValue(value.min)} - ${formatValue(value.max)}`;
         }
-        return value;
+        return this.safeStringConversion(value);
     }
 
     formatOptionsSliderValue(value, fieldConfig) {
         if (typeof value === 'object' && value.display) {
-            return value.display;
+            return String(value.display);
         }
         
         if (fieldConfig?.options && Array.isArray(fieldConfig.options)) {
             const option = fieldConfig.options.find(opt => opt.value === value);
             if (option) {
-                return option.display || option.label || value;
+                return option.display || option.label || String(value);
             }
         }
         
-        return value;
+        return this.safeStringConversion(value);
     }
 
     formatDefaultValue(value) {
-        return value;
+        return this.safeStringConversion(value);
+    }
+
+    // ============================================================================
+    // NEW: Safe string conversion method
+    // ============================================================================
+
+    /**
+     * NEW: Safe string conversion method
+     */
+    safeStringConversion(value) {
+        // Handle null/undefined
+        if (value === null || value === undefined) {
+            return '';
+        }
+        
+        // Handle arrays
+        if (Array.isArray(value)) {
+            return value.map(item => this.safeStringConversion(item)).filter(item => item !== '').join(', ');
+        }
+        
+        // Handle objects
+        if (typeof value === 'object' && value !== null) {
+            // Try toString first
+            if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+                try {
+                    const result = value.toString();
+                    if (result && result !== '[object Object]') {
+                        return result;
+                    }
+                } catch (error) {
+                    console.warn('Error calling toString:', error);
+                }
+            }
+            
+            // Try JSON.stringify as last resort
+            try {
+                const jsonStr = JSON.stringify(value);
+                if (jsonStr && jsonStr !== '{}' && jsonStr !== 'null') {
+                    return jsonStr;
+                }
+            } catch (error) {
+                console.warn('Error stringifying object:', error);
+            }
+            
+            return String(value);
+        }
+        
+        // Handle primitives
+        return String(value);
     }
 
     // ============================================================================
     // UTILITY METHODS
     // ============================================================================
 
+    /**
+     * UPDATED: shouldDisplayValue with better object checking
+     */
     shouldDisplayValue(value) {
         if (value === undefined || value === null || value === '') {
             return false;
         }
+        
         if (Array.isArray(value) && value.length === 0) {
             return false;
         }
+        
+        // Handle objects
+        if (typeof value === 'object' && value !== null) {
+            // Check if object has meaningful content
+            if (value._separateFields) {
+                // For CategoryItemFilterField-like objects
+                return !!(value.category || value.item);
+            }
+            
+            // Check for common meaningful properties
+            const meaningfulProps = ['displayText', 'display', 'label', 'name', 'value', 'selectedCategory', 'selectedItem'];
+            const hasMeaningfulContent = meaningfulProps.some(prop => {
+                const propValue = value[prop];
+                return propValue !== undefined && propValue !== null && propValue !== '';
+            });
+            
+            if (hasMeaningfulContent) {
+                return true;
+            }
+            
+            // Check if object has any non-empty values
+            try {
+                const stringified = JSON.stringify(value);
+                return stringified !== '{}' && stringified !== 'null' && stringified !== '[]';
+            } catch (error) {
+                return true; // If we can't stringify, assume it has content
+            }
+        }
+        
         return true;
     }
 
@@ -344,7 +569,7 @@ class FieldValueFormatter {
     }
 
     getOptionDisplayName(options, value, fieldConfig) {
-        if (!options || !value) return value;
+        if (!options || !value) return this.safeStringConversion(value);
         
         // Handle data path resolution
         if (typeof options === 'string' && this.creatFormInstance) {
@@ -352,7 +577,7 @@ class FieldValueFormatter {
                 options = this.creatFormInstance.getData(options);
             } catch (error) {
                 console.error('Error getting data for options path:', options, error);
-                return value;
+                return this.safeStringConversion(value);
             }
         }
         
@@ -379,14 +604,14 @@ class FieldValueFormatter {
             }
         }
         
-        return value;
+        return this.safeStringConversion(value);
     }
 
     getLocalizedLabel(label) {
         if (typeof label === 'object' && label !== null) {
             return label[this.language] || label.en || label.fr || Object.values(label)[0];
         }
-        return label;
+        return String(label || '');
     }
 
     getTranslatedText(path) {
@@ -5168,6 +5393,78 @@ class CustomField extends BaseField {
     }
 
     // ============================================================================
+    // NEW: Safe string conversion method
+    // ============================================================================
+
+    /**
+     * NEW: Safe method to convert any value to string for display
+     */
+    safeConvertToString(value) {
+        // Handle null/undefined
+        if (value === null || value === undefined) {
+            return '';
+        }
+        
+        // Handle arrays
+        if (Array.isArray(value)) {
+            // Recursively convert array elements to strings
+            return value.map(item => this.safeConvertToString(item)).join(', ');
+        }
+        
+        // Handle objects with toString method
+        if (typeof value === 'object' && value !== null) {
+            // Check if object has a custom toString method
+            if (typeof value.toString === 'function' && value.toString !== Object.prototype.toString) {
+                try {
+                    const result = value.toString();
+                    if (result && result !== '[object Object]') {
+                        return result;
+                    }
+                } catch (error) {
+                    console.warn('Error calling toString:', error);
+                }
+            }
+            
+            // Handle objects with _separateFields flag (like CategoryItemFilterField)
+            if (value._separateFields && value._fieldLabels) {
+                const parts = [];
+                Object.keys(value._fieldLabels).forEach(key => {
+                    if (value[key] && typeof value[key] === 'string' && value[key].trim() !== '') {
+                        parts.push(`${value._fieldLabels[key]}: ${value[key]}`);
+                    } else if (value[key] && typeof value[key] !== 'string') {
+                        parts.push(`${value._fieldLabels[key]}: ${String(value[key])}`);
+                    }
+                });
+                return parts.join(' | ');
+            }
+            
+            // Handle regular objects by converting to JSON or extracting meaningful fields
+            try {
+                // Check for common display fields
+                if (value.displayText) return String(value.displayText);
+                if (value.display) return String(value.display);
+                if (value.label) return String(value.label);
+                if (value.name) return String(value.name);
+                if (value.value !== undefined) return String(value.value);
+                
+                // Last resort: JSON stringify (but clean it up)
+                const jsonStr = JSON.stringify(value);
+                if (jsonStr && jsonStr !== '{}' && jsonStr !== 'null') {
+                    return jsonStr;
+                }
+                
+                return String(value);
+            } catch (error) {
+                console.warn('Error converting object to string:', error);
+                return String(value);
+            }
+        }
+        
+        // Handle primitives (string, number, boolean)
+        return String(value);
+    }
+
+    // ============================================================================
     // OVERRIDE: Custom validation behavior
     // ============================================================================
     validate() {
@@ -5303,7 +5600,7 @@ class CustomField extends BaseField {
     }
 
     /**
-     * UPDATED: populateStepContent now properly handles indifferent values and filters them out
+     * UPDATED: populateStepContent now properly handles all value types and converts them to strings
      */
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
@@ -5322,11 +5619,10 @@ class CustomField extends BaseField {
                 } else {
                     // Regular field processing
                     const processedField = this.processor.processFormData({ [fieldName]: fieldValue })[fieldName];
-                    if (processedField && processedField.displayValue) {
-                        // Additional check to ensure display value is meaningful
-                        const displayValue = Array.isArray(processedField.displayValue) 
-                            ? processedField.displayValue.join(', ')
-                            : processedField.displayValue;
+                    if (processedField && processedField.displayValue !== undefined && processedField.displayValue !== null) {
+                        
+                        // FIX: Safely convert displayValue to string
+                        let displayValue = this.safeConvertToString(processedField.displayValue);
 
                         // Skip if display value is empty or indicates indifference
                         if (displayValue && displayValue.trim() !== '' && 
@@ -5372,13 +5668,13 @@ class CustomField extends BaseField {
         const mainDisplayValue = this.formatter.formatYesNoValue(fieldValue.main, fieldConfig);
 
         // Only show if main display value is meaningful
-        if (mainDisplayValue && mainDisplayValue.trim() !== '' && 
+        if (mainDisplayValue && String(mainDisplayValue).trim() !== '' && 
             !this.isIndifferentValue(mainDisplayValue, fieldConfig)) {
             
             html += `
                 <div class="summary-row">
                     <div class="summary-label">${mainLabel}:</div>
-                    <div class="summary-value">${mainDisplayValue}</div>
+                    <div class="summary-value">${this.safeConvertToString(mainDisplayValue)}</div>
                 </div>
             `;
 
@@ -5415,19 +5711,10 @@ class CustomField extends BaseField {
 
             if (this.shouldDisplayFieldInSummary(subFieldConfig, subFieldValue)) {
                 const subFieldLabel = this.getSubFieldLabel(subFieldConfig);
-                const subFieldDisplayValue = this.formatter.formatValueDirectly(subFieldConfig, subFieldValue);
+                const rawDisplayValue = this.formatter.formatValueDirectly(subFieldConfig, subFieldValue);
 
-                // Handle different types of sub-field values
-                let displayValue;
-                if (Array.isArray(subFieldDisplayValue)) {
-                    // Filter out indifferent values from arrays
-                    const filteredValues = subFieldDisplayValue.filter(val => 
-                        !this.isIndifferentValue(val, subFieldConfig)
-                    );
-                    displayValue = filteredValues.join(', ');
-                } else {
-                    displayValue = subFieldDisplayValue;
-                }
+                // FIX: Use safe string conversion
+                let displayValue = this.safeConvertToString(rawDisplayValue);
 
                 // Only show if display value is meaningful and not indifferent
                 if (displayValue && displayValue.trim() !== '' && 
@@ -5589,9 +5876,6 @@ class CustomField extends BaseField {
         super.resetToInitial();
     }
 }
-
-
-
 /**
  * SingleSelectWithOtherField - Simple dropdown with "Other" option and personalized error messages
  */
@@ -9675,603 +9959,719 @@ class CreatForm {
  */
 
 class CategoryItemFilterField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                
-                // Core configuration
-                this.language = config.language || 'fr';
-                this.mode = config.mode || 'both'; // 'category-only', 'item-only', 'both'
-                
-                // Data configuration - FIX: Properly handle data reference
-                if (typeof config.categoryItems === 'string') {
-                    // Reference to data in form - need to get it from factory or form
-                    this.rawCategoryItems = this.factory.getFormData?.(config.categoryItems) || 
-                                              this.factory.formData?.[config.categoryItems] || 
-                                              this.factory.data?.[config.categoryItems] || {};
-                } else {
-                    this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
-                }
-                
-                this.availableCategories = [];
-                this.filteredItems = [];
-                this.allItems = [];
-                
-                // Selection state
-                this.selectedCategory = config.selectedCategory || config.categoryName || '';
-                this.selectedItemId = config.selectedItemId || '';
-                this.selectedItem = null;
-                
-                // UI Configuration
-                this.categoryLabel = config.categoryLabel || this.getText('selectCategory');
-                this.categoryPlaceholder = config.categoryPlaceholder || this.getText('selectCategoryPlaceholder');
-                this.itemLabel = config.itemLabel || this.getText('selectItem');
-                this.itemPlaceholder = config.itemPlaceholder || this.getText('selectItemPlaceholder');
-                
-                // Show/hide options
-                this.showCategoryField = config.showCategoryField !== false && (this.mode === 'both' || this.mode === 'category-only');
-                this.showItemField = config.showItemField !== false && (this.mode === 'both' || this.mode === 'item-only');
-                
-                // Auto-selection behavior
-                this.autoSelectSingleCategory = config.autoSelectSingleCategory !== false;
-                this.autoSelectSingleItem = config.autoSelectSingleItem !== false;
-                
-                // Callback functions
-                this.onCategoryChange = config.onCategoryChange || null;
-                this.onItemChange = config.onItemChange || null;
-                this.onSelectionComplete = config.onSelectionComplete || null;
-                
-                // Field instances
-                this.categorySelectField = null;
-                this.itemSelectField = null;
-                
-                this.init();
-            }
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Core configuration
+        this.language = config.language || 'fr';
+        this.mode = config.mode || 'both'; // 'category-only', 'item-only', 'both'
+        
+        // Data configuration - FIX: Properly handle data reference
+        if (typeof config.categoryItems === 'string') {
+            // Reference to data in form - need to get it from factory or form
+            this.rawCategoryItems = this.factory.getFormData?.(config.categoryItems) || 
+                                      this.factory.formData?.[config.categoryItems] || 
+                                      this.factory.data?.[config.categoryItems] || {};
+        } else {
+            this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
+        }
+        
+        this.availableCategories = [];
+        this.filteredItems = [];
+        this.allItems = [];
+        
+        // Selection state
+        this.selectedCategory = config.selectedCategory || config.categoryName || '';
+        this.selectedItemId = config.selectedItemId || '';
+        this.selectedItem = null;
+        
+        // UI Configuration
+        this.categoryLabel = config.categoryLabel || this.getText('selectCategory');
+        this.categoryPlaceholder = config.categoryPlaceholder || this.getText('selectCategoryPlaceholder');
+        this.itemLabel = config.itemLabel || this.getText('selectItem');
+        this.itemPlaceholder = config.itemPlaceholder || this.getText('selectItemPlaceholder');
+        
+        // Show/hide options
+        this.showCategoryField = config.showCategoryField !== false && (this.mode === 'both' || this.mode === 'category-only');
+        this.showItemField = config.showItemField !== false && (this.mode === 'both' || this.mode === 'item-only');
+        
+        // Auto-selection behavior
+        this.autoSelectSingleCategory = config.autoSelectSingleCategory !== false;
+        this.autoSelectSingleItem = config.autoSelectSingleItem !== false;
+        
+        // Callback functions
+        this.onCategoryChange = config.onCategoryChange || null;
+        this.onItemChange = config.onItemChange || null;
+        this.onSelectionComplete = config.onSelectionComplete || null;
+        
+        // Field instances
+        this.categorySelectField = null;
+        this.itemSelectField = null;
+        
+        this.init();
+    }
 
-            // FIX: Method to get data from form context
-            getDataFromForm() {
-                if (this.factory && this.factory.form && this.factory.form.data) {
-                    return this.factory.form.data.categoryItems || {};
-                }
-                if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
-                    return window.ContactFormExtension.FORM_DATA.categoryItems || {};
-                }
-                return this.rawCategoryItems;
-            }
+    // FIX: Method to get data from form context
+    getDataFromForm() {
+        if (this.factory && this.factory.form && this.factory.form.data) {
+            return this.factory.form.data.categoryItems || {};
+        }
+        if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
+            return window.ContactFormExtension.FORM_DATA.categoryItems || {};
+        }
+        return this.rawCategoryItems;
+    }
 
-            init() {
-                // FIX: Ensure we have the correct data
-                if (!this.rawCategoryItems || Object.keys(this.rawCategoryItems).length === 0) {
-                    this.rawCategoryItems = this.getDataFromForm();
-                }
-                
-                this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
-                this.allItems = this.extractAllItems(this.rawCategoryItems);
-                
-                if (this.autoSelectSingleCategory && this.availableCategories.length === 1 && !this.selectedCategory) {
-                    this.selectedCategory = this.availableCategories[0].name;
-                }
-                
-                if (this.selectedCategory) {
-                    this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
-                    
-                    if (this.autoSelectSingleItem && this.filteredItems.length === 1 && !this.selectedItemId) {
-                        this.selectedItemId = this.filteredItems[0].id;
-                        this.selectedItem = this.filteredItems[0];
-                    }
-                } else {
-                    this.filteredItems = this.allItems;
-                }
-                
-                if (this.selectedItemId && !this.selectedItem) {
-                    this.selectedItem = this.filteredItems.find(p => p.id === this.selectedItemId);
-                }
+    init() {
+        // FIX: Ensure we have the correct data
+        if (!this.rawCategoryItems || Object.keys(this.rawCategoryItems).length === 0) {
+            this.rawCategoryItems = this.getDataFromForm();
+        }
+        
+        this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
+        this.allItems = this.extractAllItems(this.rawCategoryItems);
+        
+        if (this.autoSelectSingleCategory && this.availableCategories.length === 1 && !this.selectedCategory) {
+            this.selectedCategory = this.availableCategories[0].name;
+        }
+        
+        if (this.selectedCategory) {
+            this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
+            
+            if (this.autoSelectSingleItem && this.filteredItems.length === 1 && !this.selectedItemId) {
+                this.selectedItemId = this.filteredItems[0].id;
+                this.selectedItem = this.filteredItems[0];
             }
+        } else {
+            this.filteredItems = this.allItems;
+        }
+        
+        if (this.selectedItemId && !this.selectedItem) {
+            this.selectedItem = this.filteredItems.find(p => p.id === this.selectedItemId);
+        }
+    }
 
-            extractAvailableCategories(rawItems) {
-                const categorySet = new Set();
+    extractAvailableCategories(rawItems) {
+        const categorySet = new Set();
+        
+        try {
+            // Handle object format: { 'Item Name': { categories: {...} } }
+            Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                console.log('Processing item:', itemName, itemData);
                 
-                try {
-                    // Handle object format: { 'Item Name': { categories: {...} } }
-                    Object.entries(rawItems).forEach(([itemName, itemData]) => {
-                        console.log('Processing item:', itemName, itemData);
-                        
-                        if (itemData && itemData.categories) {
-                            Object.keys(itemData.categories).forEach(category => {
-                                categorySet.add(category);
-                            });
-                        }
+                if (itemData && itemData.categories) {
+                    Object.keys(itemData.categories).forEach(category => {
+                        categorySet.add(category);
                     });
-                } catch (error) {
-                    console.error('Error extracting categories:', error);
                 }
-                
-                const categories = Array.from(categorySet).sort().map(category => ({
-                    id: this.slugify(category),
-                    name: category,
-                    displayName: category
-                }));
-                
-                return categories;
-            }
+            });
+        } catch (error) {
+            console.error('Error extracting categories:', error);
+        }
+        
+        const categories = Array.from(categorySet).sort().map(category => ({
+            id: this.slugify(category),
+            name: category,
+            displayName: category
+        }));
+        
+        return categories;
+    }
 
-            extractAllItems(rawItems) {
-                const allItems = [];
-                
-                try {
-                    Object.entries(rawItems).forEach(([itemName, itemData]) => {
-                        if (itemData) {
-                            allItems.push({
-                                id: this.slugify(itemName),
-                                name: itemName,
-                                displayName: itemName,
-                                description: itemData.description || itemData.specialty || "",
-                                categories: itemData.categories || {},
-                                rawData: itemData
-                            });
-                        }
+    extractAllItems(rawItems) {
+        const allItems = [];
+        
+        try {
+            Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                if (itemData) {
+                    allItems.push({
+                        id: this.slugify(itemName),
+                        name: itemName,
+                        displayName: itemName,
+                        description: itemData.description || itemData.specialty || "",
+                        categories: itemData.categories || {},
+                        rawData: itemData
                     });
-                } catch (error) {
-                    console.error('Error extracting items:', error);
                 }
-                
-                return allItems;
-            }
+            });
+        } catch (error) {
+            console.error('Error extracting items:', error);
+        }
+        
+        return allItems;
+    }
 
-            filterItemsByCategory(categoryName) {
-                if (!categoryName || !this.rawCategoryItems) {
-                    return this.allItems;
-                }
+    filterItemsByCategory(categoryName) {
+        if (!categoryName || !this.rawCategoryItems) {
+            return this.allItems;
+        }
 
-                const filteredItems = [];
+        const filteredItems = [];
+        
+        Object.entries(this.rawCategoryItems).forEach(([itemName, itemData]) => {
+            if (itemData.categories && itemData.categories[categoryName]) {
+                const categoryConfig = itemData.categories[categoryName];
                 
-                Object.entries(this.rawCategoryItems).forEach(([itemName, itemData]) => {
-                    if (itemData.categories && itemData.categories[categoryName]) {
-                        const categoryConfig = itemData.categories[categoryName];
-                        
-                        filteredItems.push({
-                            id: this.slugify(itemName),
-                            name: itemName,
-                            displayName: itemName,
-                            description: itemData.description || itemData.specialty || "",
-                            categoryConfig: categoryConfig,
-                            allCategories: itemData.categories,
-                            rawData: itemData
-                        });
-                    }
+                filteredItems.push({
+                    id: this.slugify(itemName),
+                    name: itemName,
+                    displayName: itemName,
+                    description: itemData.description || itemData.specialty || "",
+                    categoryConfig: categoryConfig,
+                    allCategories: itemData.categories,
+                    rawData: itemData
                 });
-                
-                return filteredItems;
             }
+        });
+        
+        return filteredItems;
+    }
 
-            slugify(text) {
-                return text
-                    .toLowerCase()
-                    .replace(/[^\w\s-]/g, '') 
-                    .replace(/[\s_-]+/g, '-') 
-                    .replace(/^-+|-+$/g, '');
-            }
+    slugify(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '') 
+            .replace(/[\s_-]+/g, '-') 
+            .replace(/^-+|-+$/g, '');
+    }
 
-            selectCategory(categoryId) {
-                const category = this.availableCategories.find(s => s.id === categoryId);
-                if (!category) {
-                    console.error('Category not found:', categoryId);
-                    return;
-                }
-                
-                this.selectedCategory = category.name;
-                this.filteredItems = this.filterItemsByCategory(category.name);
-                
-                if (this.selectedItemId) {
-                    const stillValid = this.filteredItems.find(p => p.id === this.selectedItemId);
-                    if (!stillValid) {
-                        this.selectedItemId = '';
-                        this.selectedItem = null;
-                    }
-                }
-                
-                if (this.autoSelectSingleItem && this.filteredItems.length === 1) {
-                    this.selectedItemId = this.filteredItems[0].id;
-                    this.selectedItem = this.filteredItems[0];
-                    
-                    if (this.itemSelectField) {
-                        this.itemSelectField.setValue(this.selectedItemId);
-                    }
-                }
-                
-                this.showItemSelection();
-                this.updateItemOptions();
-                
-                if (this.onCategoryChange) {
-                    this.onCategoryChange(category, this.filteredItems);
-                }
-                
-                this.checkSelectionComplete();
-                this.updateValue();
-            }
-
-            selectItem(itemId) {
-                const item = this.filteredItems.find(p => p.id === itemId) || 
-                                this.allItems.find(p => p.id === itemId);
-                
-                if (!item) {
-                    console.error('Item not found:', itemId);
-                    return;
-                }
-                
-                this.selectedItemId = itemId;
-                this.selectedItem = item;
-                
-                if (this.onItemChange) {
-                    this.onItemChange(item);
-                }
-                
-                this.checkSelectionComplete();
-                this.updateValue();
-            }
-
-            checkSelectionComplete() {
-                const isComplete = this.isSelectionComplete();
-                
-                if (isComplete && this.onSelectionComplete) {
-                    this.onSelectionComplete({
-                        category: this.selectedCategory,
-                        item: this.selectedItem,
-                        categoryConfig: this.selectedItem?.categoryConfig
-                    });
-                }
-            }
-
-            isSelectionComplete() {
-                let complete = true;
-                
-                if (this.showCategoryField && this.required && !this.selectedCategory) {
-                    complete = false;
-                }
-                
-                if (this.showItemField && this.required && !this.selectedItemId) {
-                    complete = false;
-                }
-                
-                return complete;
-            }
-
-            createCategorySelectField() {
-                if (!this.showCategoryField) return null;
-                
-                this.categorySelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-category`,
-                    name: `${this.name}_category`,
-                    label: this.categoryLabel,
-                    placeholder: this.categoryPlaceholder,
-                    options: this.availableCategories,
-                    required: this.required,
-                    row:'categorySelectField',
-                    onChange: (value) => this.selectCategory(value)
-                });
-
-                if (this.selectedCategory) {
-                    const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
-                    if (categoryOption) {
-                        this.categorySelectField.setValue(categoryOption.id);
-                    }
-                }
-
-                return this.categorySelectField;
-            }
-
-            createItemSelectField() {
-                if (!this.showItemField) return null;
-                
-                this.itemSelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-item`,
-                    name: `${this.name}_item`,
-                    label: this.itemLabel,
-                    placeholder: this.itemPlaceholder,
-                    options: this.filteredItems,
-                    required: this.required,
-                    row:'itemSelectField',
-                    onChange: (value) => this.selectItem(value)
-                });
-
-                if (this.selectedItemId) {
-                    this.itemSelectField.setValue(this.selectedItemId);
-                }
-
-                return this.itemSelectField;
-            }
-
-            showItemSelection() {
-                const itemContainer = this.element.querySelector('.item-select-container');
-                if (itemContainer) {
-                    itemContainer.style.display = 'block';
-                    // Add smooth transition effect
-                    itemContainer.style.opacity = '0';
-                    itemContainer.style.transform = 'translateY(-10px)';
-                    
-                    // Animate in
-                    setTimeout(() => {
-                        itemContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                        itemContainer.style.opacity = '1';
-                        itemContainer.style.transform = 'translateY(0)';
-                    }, 10);
-                }
-            }
-
-            updateItemOptions() {
-                if (!this.itemSelectField) return;
-
-                const itemContainer = this.element.querySelector('.item-select-container');
-                if (!itemContainer) return;
-
-                const currentValue = this.selectedItemId;
-                itemContainer.innerHTML = '';
-
-                this.itemSelectField = new SingleSelectField(this.factory, {
-                    id: `${this.id}-item`,
-                    name: `${this.name}_item`,
-                    label: this.itemLabel,
-                    placeholder: this.itemPlaceholder,
-                    options: this.filteredItems,
-                    required: this.required,
-                    onChange: (value) => this.selectItem(value)
-                });
-
-                const newFieldElement = this.itemSelectField.render();
-                itemContainer.appendChild(newFieldElement);
-
-                if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
-                    this.itemSelectField.setValue(currentValue);
-                }
-            }
-
-            getText(key) {
-                const translations = {
-                    en: {
-                        selectCategory: "Select a category",
-                        selectCategoryPlaceholder: "-- Select a category --",
-                        selectItem: "Select an item",
-                        selectItemPlaceholder: "-- Select an item --",
-                        pleaseSelectCategory: "Please select a category",
-                        pleaseSelectItem: "Please select an item"
-                    },
-                    fr: {
-                        selectCategory: "Sélectionner une catégorie",
-                        selectCategoryPlaceholder: "-- Sélectionner une catégorie --",
-                        selectItem: "Sélectionner un élément",
-                        selectItemPlaceholder: "-- Sélectionner un élément --",
-                        pleaseSelectCategory: "Veuillez sélectionner une catégorie",
-                        pleaseSelectItem: "Veuillez sélectionner un élément"
-                    }
-                };
-                return translations[this.language]?.[key] || key;
-            }
-
-            validate() {
-                if (!this.required) return true;
-                
-                if (this.showCategoryField && !this.selectedCategory) {
-                    this.showError(this.getText('pleaseSelectCategory'));
-                    return false;
-                }
-                
-                if (this.showItemField && !this.selectedItemId) {
-                    this.showError(this.getText('pleaseSelectItem'));
-                    return false;
-                }
-                
-                this.hideError();
-                return true;
-            }
-
-            render() {
-                const container = this.createContainer();
-                
-                // Add vertical spacing styles
-                const styles = `
-                    <style>
-                        .category-item-filter {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 10px;
-                        }
-                        .category-item-filter .category-select-container {
-                            margin-bottom: 0;
-                        }
-                        .category-item-filter .item-select-container {
-                            margin-top: 0;
-                            transition: opacity 0.3s ease, transform 0.3s ease;
-                        }
-                    </style>
-                `;
-                
-                if (!document.querySelector('#category-item-filter-styles')) {
-                    const styleElement = document.createElement('div');
-                    styleElement.id = 'category-item-filter-styles';
-                    styleElement.innerHTML = styles;
-                    document.head.appendChild(styleElement.firstElementChild);
-                }
-                
-                if (this.showCategoryField) {
-                    this.createCategorySelectField();
-                    const categoryFieldElement = this.categorySelectField.render();
-                    categoryFieldElement.classList.add('category-select-container');
-                    container.appendChild(categoryFieldElement);
-                }
-                
-                if (this.showItemField) {
-                    this.createItemSelectField();
-                    const itemFieldElement = this.itemSelectField.render();
-                    itemFieldElement.classList.add('item-select-container');
-                    
-                    if (!this.selectedCategory) {
-                        itemFieldElement.style.display = 'none';
-                    }
-                    
-                    container.appendChild(itemFieldElement);
-                }
-                
-                const filterContainer = document.createElement('div');
-                filterContainer.className = 'category-item-filter';
-                
-                while (container.firstChild) {
-                    filterContainer.appendChild(container.firstChild);
-                }
-                
-                container.appendChild(filterContainer);
-                
-                const errorElement = this.createErrorElement();
-                container.appendChild(errorElement);
-                
-                this.element = container;
-                this.element.fieldInstance = this;
-                
-                return this.element;
-            }
-
-            // UPDATED: Return structured object for separate summary display
-            getValue() {
-                return {
-                    category: this.selectedCategory || '',
-                    item: this.selectedItem?.displayName || '',
-                    // Flag to indicate this should be displayed as separate fields
-                    _separateFields: true,
-                    // Provide field labels for display
-                    _fieldLabels: {
-                        category: 'Category',
-                        item: 'Item'
-                    },
-                    toString: () => this.getDisplayText() // Fallback for string conversion
-                };
-            }
-
-            // NEW: Method to get separate summary fields
-            getSummaryFields() {
-                const fields = [];
-                
-                if (this.selectedCategory) {
-                    fields.push({
-                        label: 'Category',
-                        value: this.selectedCategory
-                    });
-                }
-                
-                if (this.selectedItem?.displayName) {
-                    fields.push({
-                        label: 'Item', 
-                        value: this.selectedItem.displayName
-                    });
-                }
-                
-                return fields;
-            }
-
-            // Method to get display-friendly text
-            getDisplayText() {
-                const parts = [];
-                
-                if (this.selectedCategory) {
-                    parts.push(this.selectedCategory);
-                }
-                
-                if (this.selectedItem && this.selectedItem.displayName) {
-                    parts.push(this.selectedItem.displayName);
-                }
-                
-                return parts.length > 0 ? parts.join(' - ') : '';
-            }
-
-            // Method specifically for summary display
-            getSummaryValue() {
-                const parts = [];
-                if (this.selectedCategory) {
-                    parts.push(`Category: ${this.selectedCategory}`);
-                }
-                if (this.selectedItem && this.selectedItem.displayName) {
-                    parts.push(`Item: ${this.selectedItem.displayName}`);
-                }
-                return parts.join('\n');
-            }
-
-            // Method specifically for getting full data object when needed
-            getDataValue() {
-                return {
-                    selectedCategory: this.selectedCategory,
-                    selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
-                    selectedItemId: this.selectedItemId,
-                    selectedItem: this.selectedItem,
-                    filteredItems: this.filteredItems,
-                    categoryConfig: this.selectedItem?.categoryConfig || null,
-                    isComplete: this.isSelectionComplete(),
-                    displayText: this.getDisplayText()
-                };
-            }
-
-            // Override toString for automatic string conversion
-            toString() {
-                return this.getDisplayText();
-            }
-
-            setValue(value) {
-                if (value && typeof value === 'object') {
-                    if (value.selectedCategory && this.showCategoryField) {
-                        const categoryOption = this.availableCategories.find(s => s.name === value.selectedCategory);
-                        if (categoryOption) {
-                            this.selectCategory(categoryOption.id);
-                            if (this.categorySelectField) {
-                                this.categorySelectField.setValue(categoryOption.id);
-                            }
-                        }
-                    }
-                    
-                    if (value.selectedItemId && this.showItemField) {
-                        this.selectItem(value.selectedItemId);
-                        if (this.itemSelectField) {
-                            this.itemSelectField.setValue(value.selectedItemId);
-                        }
-                    }
-                } else if (typeof value === 'string') {
-                    console.log('String value set:', value);
-                }
-            }
-
-            updateValue() {
-                this.handleChange();
-            }
-
-            reset() {
-                this.selectedCategory = '';
+    selectCategory(categoryId) {
+        const category = this.availableCategories.find(s => s.id === categoryId);
+        if (!category) {
+            console.error('Category not found:', categoryId);
+            return;
+        }
+        
+        this.selectedCategory = category.name;
+        this.filteredItems = this.filterItemsByCategory(category.name);
+        
+        if (this.selectedItemId) {
+            const stillValid = this.filteredItems.find(p => p.id === this.selectedItemId);
+            if (!stillValid) {
                 this.selectedItemId = '';
                 this.selectedItem = null;
-                this.filteredItems = this.allItems;
-                
-                if (this.categorySelectField) {
-                    this.categorySelectField.setValue('');
-                }
-                
-                if (this.itemSelectField) {
-                    this.itemSelectField.setValue('');
-                    this.updateItemOptions();
-                }
-                
-                const itemContainer = this.element?.querySelector('.item-select-container');
-                if (itemContainer) {
-                    itemContainer.style.display = 'none';
-                }
-                
-                this.updateValue();
             }
+        }
+        
+        if (this.autoSelectSingleItem && this.filteredItems.length === 1) {
+            this.selectedItemId = this.filteredItems[0].id;
+            this.selectedItem = this.filteredItems[0];
+            
+            if (this.itemSelectField) {
+                this.itemSelectField.setValue(this.selectedItemId);
+            }
+        }
+        
+        this.showItemSelection();
+        this.updateItemOptions();
+        
+        if (this.onCategoryChange) {
+            this.onCategoryChange(category, this.filteredItems);
+        }
+        
+        this.checkSelectionComplete();
+        this.updateValue();
+    }
 
-            destroy() {
-                if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
-                    this.categorySelectField.destroy();
-                }
-                if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
-                    this.itemSelectField.destroy();
-                }
-                super.destroy();
+    selectItem(itemId) {
+        const item = this.filteredItems.find(p => p.id === itemId) || 
+                        this.allItems.find(p => p.id === itemId);
+        
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+        
+        this.selectedItemId = itemId;
+        this.selectedItem = item;
+        
+        if (this.onItemChange) {
+            this.onItemChange(item);
+        }
+        
+        this.checkSelectionComplete();
+        this.updateValue();
+    }
+
+    checkSelectionComplete() {
+        const isComplete = this.isSelectionComplete();
+        
+        if (isComplete && this.onSelectionComplete) {
+            this.onSelectionComplete({
+                category: this.selectedCategory,
+                item: this.selectedItem,
+                categoryConfig: this.selectedItem?.categoryConfig
+            });
+        }
+    }
+
+    isSelectionComplete() {
+        let complete = true;
+        
+        if (this.showCategoryField && this.required && !this.selectedCategory) {
+            complete = false;
+        }
+        
+        if (this.showItemField && this.required && !this.selectedItemId) {
+            complete = false;
+        }
+        
+        return complete;
+    }
+
+    createCategorySelectField() {
+        if (!this.showCategoryField) return null;
+        
+        this.categorySelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-category`,
+            name: `${this.name}_category`,
+            label: this.categoryLabel,
+            placeholder: this.categoryPlaceholder,
+            options: this.availableCategories,
+            required: this.required,
+            row:'categorySelectField',
+            onChange: (value) => this.selectCategory(value)
+        });
+
+        if (this.selectedCategory) {
+            const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
+            if (categoryOption) {
+                this.categorySelectField.setValue(categoryOption.id);
             }
         }
 
+        return this.categorySelectField;
+    }
+
+    createItemSelectField() {
+        if (!this.showItemField) return null;
+        
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.itemLabel,
+            placeholder: this.itemPlaceholder,
+            options: this.filteredItems,
+            required: this.required,
+            row:'itemSelectField',
+            onChange: (value) => this.selectItem(value)
+        });
+
+        if (this.selectedItemId) {
+            this.itemSelectField.setValue(this.selectedItemId);
+        }
+
+        return this.itemSelectField;
+    }
+
+    showItemSelection() {
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (itemContainer) {
+            itemContainer.style.display = 'block';
+            // Add smooth transition effect
+            itemContainer.style.opacity = '0';
+            itemContainer.style.transform = 'translateY(-10px)';
+            
+            // Animate in
+            setTimeout(() => {
+                itemContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                itemContainer.style.opacity = '1';
+                itemContainer.style.transform = 'translateY(0)';
+            }, 10);
+        }
+    }
+
+    updateItemOptions() {
+        if (!this.itemSelectField) return;
+
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (!itemContainer) return;
+
+        const currentValue = this.selectedItemId;
+        itemContainer.innerHTML = '';
+
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.itemLabel,
+            placeholder: this.itemPlaceholder,
+            options: this.filteredItems,
+            required: this.required,
+            onChange: (value) => this.selectItem(value)
+        });
+
+        const newFieldElement = this.itemSelectField.render();
+        itemContainer.appendChild(newFieldElement);
+
+        if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
+            this.itemSelectField.setValue(currentValue);
+        }
+    }
+
+    getText(key) {
+        const translations = {
+            en: {
+                selectCategory: "Select a category",
+                selectCategoryPlaceholder: "-- Select a category --",
+                selectItem: "Select an item",
+                selectItemPlaceholder: "-- Select an item --",
+                pleaseSelectCategory: "Please select a category",
+                pleaseSelectItem: "Please select an item"
+            },
+            fr: {
+                selectCategory: "Sélectionner une catégorie",
+                selectCategoryPlaceholder: "-- Sélectionner une catégorie --",
+                selectItem: "Sélectionner un élément",
+                selectItemPlaceholder: "-- Sélectionner un élément --",
+                pleaseSelectCategory: "Veuillez sélectionner une catégorie",
+                pleaseSelectItem: "Veuillez sélectionner un élément"
+            }
+        };
+        return translations[this.language]?.[key] || key;
+    }
+
+    validate() {
+        if (!this.required) return true;
+        
+        if (this.showCategoryField && !this.selectedCategory) {
+            this.showError(this.getText('pleaseSelectCategory'));
+            return false;
+        }
+        
+        if (this.showItemField && !this.selectedItemId) {
+            this.showError(this.getText('pleaseSelectItem'));
+            return false;
+        }
+        
+        this.hideError();
+        return true;
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        // Add vertical spacing styles
+        const styles = `
+            <style>
+                .category-item-filter {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .category-item-filter .category-select-container {
+                    margin-bottom: 0;
+                }
+                .category-item-filter .item-select-container {
+                    margin-top: 0;
+                    transition: opacity 0.3s ease, transform 0.3s ease;
+                }
+            </style>
+        `;
+        
+        if (!document.querySelector('#category-item-filter-styles')) {
+            const styleElement = document.createElement('div');
+            styleElement.id = 'category-item-filter-styles';
+            styleElement.innerHTML = styles;
+            document.head.appendChild(styleElement.firstElementChild);
+        }
+        
+        if (this.showCategoryField) {
+            this.createCategorySelectField();
+            const categoryFieldElement = this.categorySelectField.render();
+            categoryFieldElement.classList.add('category-select-container');
+            container.appendChild(categoryFieldElement);
+        }
+        
+        if (this.showItemField) {
+            this.createItemSelectField();
+            const itemFieldElement = this.itemSelectField.render();
+            itemFieldElement.classList.add('item-select-container');
+            
+            if (!this.selectedCategory) {
+                itemFieldElement.style.display = 'none';
+            }
+            
+            container.appendChild(itemFieldElement);
+        }
+        
+        const filterContainer = document.createElement('div');
+        filterContainer.className = 'category-item-filter';
+        
+        while (container.firstChild) {
+            filterContainer.appendChild(container.firstChild);
+        }
+        
+        container.appendChild(filterContainer);
+        
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        return this.element;
+    }
+
+    // ============================================================================
+    // UPDATED: getValue method with enhanced toString and display methods
+    // ============================================================================
+
+    /**
+     * UPDATED: Return structured object with enhanced toString and display methods
+     */
+    getValue() {
+        const value = {
+            category: this.selectedCategory || '',
+            item: this.selectedItem?.displayName || '',
+            // Flag to indicate this should be displayed as separate fields
+            _separateFields: true,
+            // Provide field labels for display  
+            _fieldLabels: {
+                category: this.categoryLabel || 'Category',
+                item: this.itemLabel || 'Item'
+            },
+            
+            // Enhanced toString method for better string conversion
+            toString: function() {
+                const parts = [];
+                if (this.category && String(this.category).trim() !== '') {
+                    parts.push(String(this.category));
+                }
+                if (this.item && String(this.item).trim() !== '') {
+                    parts.push(String(this.item));
+                }
+                return parts.length > 0 ? parts.join(' - ') : '';
+            },
+            
+            // Display text property for formatters
+            get displayText() {
+                return this.toString();
+            },
+            
+            // For summary display
+            getSummaryDisplay: function() {
+                const parts = [];
+                if (this.category && String(this.category).trim() !== '') {
+                    parts.push(`${this._fieldLabels.category}: ${this.category}`);
+                }
+                if (this.item && String(this.item).trim() !== '') {
+                    parts.push(`${this._fieldLabels.item}: ${this.item}`);
+                }
+                return parts.join('\n');
+            },
+            
+            // Check if has meaningful content
+            hasContent: function() {
+                return !!(this.category || this.item);
+            },
+            
+            // Get simple string representation
+            getSimpleString: function() {
+                return this.toString();
+            }
+        };
+        
+        // Ensure the toString method is properly bound
+        Object.defineProperty(value, 'toString', {
+            value: value.toString.bind(value),
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+        
+        return value;
+    }
+
+    /**
+     * NEW: Get value specifically for form data processing
+     */
+    getProcessedValue() {
+        return {
+            selectedCategory: this.selectedCategory || '',
+            selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
+            selectedItemId: this.selectedItemId || '',
+            selectedItem: this.selectedItem ? {
+                id: this.selectedItem.id,
+                name: this.selectedItem.name,
+                displayName: this.selectedItem.displayName
+            } : null,
+            displayText: this.getDisplayText(),
+            isComplete: this.isSelectionComplete()
+        };
+    }
+
+    /**
+     * UPDATED: Enhanced getDisplayText method
+     */
+    getDisplayText() {
+        const parts = [];
+        
+        if (this.selectedCategory && String(this.selectedCategory).trim() !== '') {
+            parts.push(String(this.selectedCategory));
+        }
+        
+        if (this.selectedItem && this.selectedItem.displayName && String(this.selectedItem.displayName).trim() !== '') {
+            parts.push(String(this.selectedItem.displayName));
+        }
+        
+        return parts.length > 0 ? parts.join(' - ') : '';
+    }
+
+    /**
+     * NEW: Get separate summary fields for better display
+     */
+    getSummaryFields() {
+        const fields = [];
+        
+        if (this.selectedCategory && String(this.selectedCategory).trim() !== '') {
+            fields.push({
+                label: this.categoryLabel || 'Category',
+                value: this.selectedCategory,
+                key: 'category'
+            });
+        }
+        
+        if (this.selectedItem?.displayName && String(this.selectedItem.displayName).trim() !== '') {
+            fields.push({
+                label: this.itemLabel || 'Item', 
+                value: this.selectedItem.displayName,
+                key: 'item'
+            });
+        }
+        
+        return fields;
+    }
+
+    /**
+     * UPDATED: setValue with better object handling
+     */
+    setValue(value) {
+        // Reset first
+        this.selectedCategory = '';
+        this.selectedItemId = '';
+        this.selectedItem = null;
+        
+        if (value && typeof value === 'object') {
+            // Handle processed value format
+            if (value.selectedCategory && this.showCategoryField) {
+                const categoryOption = this.availableCategories.find(s => s.name === value.selectedCategory);
+                if (categoryOption) {
+                    this.selectCategory(categoryOption.id);
+                    if (this.categorySelectField) {
+                        this.categorySelectField.setValue(categoryOption.id);
+                    }
+                }
+            }
+            
+            // Handle category field from getValue format
+            if (value.category && this.showCategoryField && !value.selectedCategory) {
+                const categoryOption = this.availableCategories.find(s => s.name === value.category);
+                if (categoryOption) {
+                    this.selectCategory(categoryOption.id);
+                    if (this.categorySelectField) {
+                        this.categorySelectField.setValue(categoryOption.id);
+                    }
+                }
+            }
+            
+            if (value.selectedItemId && this.showItemField) {
+                this.selectItem(value.selectedItemId);
+                if (this.itemSelectField) {
+                    this.itemSelectField.setValue(value.selectedItemId);
+                }
+            }
+        } else if (typeof value === 'string') {
+            // Handle string values (might be display text)
+            console.log('CategoryItemFilterField: String value set:', value);
+            // Could parse the string and try to set values, but for now just log
+        }
+        
+        this.updateValue();
+    }
+
+    // Method to get display-friendly text (legacy compatibility)
+    getDisplayText() {
+        const parts = [];
+        
+        if (this.selectedCategory) {
+            parts.push(this.selectedCategory);
+        }
+        
+        if (this.selectedItem && this.selectedItem.displayName) {
+            parts.push(this.selectedItem.displayName);
+        }
+        
+        return parts.length > 0 ? parts.join(' - ') : '';
+    }
+
+    // Method specifically for summary display (legacy compatibility)
+    getSummaryValue() {
+        const parts = [];
+        if (this.selectedCategory) {
+            parts.push(`Category: ${this.selectedCategory}`);
+        }
+        if (this.selectedItem && this.selectedItem.displayName) {
+            parts.push(`Item: ${this.selectedItem.displayName}`);
+        }
+        return parts.join('\n');
+    }
+
+    // Method specifically for getting full data object when needed (legacy compatibility)
+    getDataValue() {
+        return {
+            selectedCategory: this.selectedCategory,
+            selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
+            selectedItemId: this.selectedItemId,
+            selectedItem: this.selectedItem,
+            filteredItems: this.filteredItems,
+            categoryConfig: this.selectedItem?.categoryConfig || null,
+            isComplete: this.isSelectionComplete(),
+            displayText: this.getDisplayText()
+        };
+    }
+
+    // Override toString for automatic string conversion (legacy compatibility)
+    toString() {
+        return this.getDisplayText();
+    }
+
+    updateValue() {
+        this.handleChange();
+    }
+
+    reset() {
+        this.selectedCategory = '';
+        this.selectedItemId = '';
+        this.selectedItem = null;
+        this.filteredItems = this.allItems;
+        
+        if (this.categorySelectField) {
+            this.categorySelectField.setValue('');
+        }
+        
+        if (this.itemSelectField) {
+            this.itemSelectField.setValue('');
+            this.updateItemOptions();
+        }
+        
+        const itemContainer = this.element?.querySelector('.item-select-container');
+        if (itemContainer) {
+            itemContainer.style.display = 'none';
+        }
+        
+        this.updateValue();
+    }
+
+    destroy() {
+        if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
+            this.categorySelectField.destroy();
+        }
+        if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
+            this.itemSelectField.destroy();
+        }
+        super.destroy();
+    }
+}
 
 class CalendarField extends BaseField {
     constructor(factory, config) {
