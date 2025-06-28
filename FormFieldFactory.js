@@ -12955,7 +12955,7 @@ class CurrentAppointmentCardField extends BaseField {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { 
         FieldValueFormatter,           // ← Add
-        BaseDataTransformer,          // ← Add  
+        FormDataProcessor,          // ← Add  
         ChatbotFormDataTransformer,   // ← Add
         FormFieldFactory, 
         CreatForm, 
@@ -12964,7 +12964,7 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.FieldValueFormatter = FieldValueFormatter;      // ← Add
     window.BaseDataTransformer = BaseDataTransformer;      // ← Add
-    window.ChatbotFormDataTransformer = ChatbotFormDataTransformer; // ← Add
+    window.FormDataProcessor = FormDataProcessor; // ← Add
     window.FormFieldFactory = FormFieldFactory;
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
