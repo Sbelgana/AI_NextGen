@@ -421,20 +421,16 @@ class BaseDataTransformer {
 // 3. CHATBOT FORM DATA TRANSFORMER - FIXED VERSION
 // Now properly formats field values using field configurations
 // ============================================================================
+// ============================================================================
+// 3. CHATBOT FORM DATA TRANSFORMER - UPDATED VERSION
+// Now uses teamSize from FORM_DATA.options with optionsPath
+// ============================================================================
 class ChatbotFormDataTransformer extends BaseDataTransformer {
     constructor(creatFormInstance) {
         const fieldConfigMap = {
             niche: { optionsPath: 'niches', type: 'select-with-other' },
             budget: { optionsPath: 'budgetRanges', type: 'select-with-other' },
-            teamSize: { 
-                type: 'select',
-                customOptions: [
-                    { id: 'solo', name: { fr: 'Entrepreneur individuel', en: 'Individual Entrepreneur' } },
-                    { id: 'small', name: { fr: 'TPE (2-10 employés)', en: 'Small Business (2-10 employees)' } },
-                    { id: 'medium', name: { fr: 'PME (11-50 employés)', en: 'Medium Business (11-50 employees)' } },
-                    { id: 'large', name: { fr: 'Grande entreprise (50+ employés)', en: 'Large Enterprise (50+ employees)' } }
-                ]
-            },
+            teamSize: { optionsPath: 'teamSize', type: 'select' }, // UPDATED: Now uses optionsPath
             formTypes: { optionsPath: 'formTypes', type: 'multiselect-with-other' },
             websitePlatform: { optionsPath: 'platforms.website', type: 'select-with-other' },
             websiteTraffic: { optionsPath: 'websiteTraffic', type: 'select' },
@@ -488,7 +484,7 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     createBusinessProfileSection(flatData, originalFormValues) {
         return {
             sectionType: "business_profile",
-            teamSize: this.safeExtractValue('teamSize', flatData.teamSize) || 'Non spécifié',
+            teamSize: this.safeExtractValue('teamSize', flatData.teamSize) || 'Non spécifié', // FIXED: Now properly formats teamSize
             services: this.safeExtractValue('services', flatData.services) || 'Non spécifié'
         };
     }
@@ -512,7 +508,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             }
         );
 
-        // FIXED: Safe array extraction with proper type checking
         const formTypesArray = this.safeArrayValue(useFormResult.extractedValues.formTypes);
         const formPurpose = this.safeStringValue(useFormResult.extractedValues.formPurpose);
 
@@ -567,7 +562,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             { databases: { type: 'multiselect-with-other', optionsPath: 'integrations.databases' } }
         );
 
-        // FIXED: Safe array extraction
         const crmsArray = this.safeArrayValue(useCRMResult.extractedValues.crms);
         const databasesArray = this.safeArrayValue(useDatabaseResult.extractedValues.databases);
 
@@ -610,7 +604,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
             }
         );
 
-        // FIXED: Safe array extraction
         const socialPlatformsArray = this.safeArrayValue(needSocialBotResult.extractedValues.socialPlatforms);
         const languagesArray = this.getLanguagesArray(languageTypeResult);
 
@@ -626,25 +619,17 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
     }
 
     // ============================================================================
-    // FIXED: Safe extraction helper methods with proper field configuration usage
+    // Safe extraction helper methods (unchanged from previous version)
     // ============================================================================
 
-    // NEW: Enhanced safeExtractValue that uses field configuration
     safeExtractValue(fieldName, value) {
         try {
             const fieldConfig = this.getFieldConfig(fieldName);
             
-            // If we have field configuration, use it for proper formatting
             if (fieldConfig && Object.keys(fieldConfig).length > 0) {
-                // For custom options (like teamSize), add them to the field config
-                if (fieldConfig.customOptions) {
-                    fieldConfig.options = fieldConfig.customOptions;
-                }
-                
                 return this.formatter.formatValue(fieldConfig, value) || '';
             }
             
-            // Fallback to basic formatting
             return this.formatter.formatValue({}, value) || '';
         } catch (error) {
             console.error(`Error extracting value for ${fieldName}:`, error);
@@ -658,7 +643,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
 
         try {
             if (typeof fieldValue === 'object' && fieldValue !== null && fieldValue.main !== undefined) {
-                // Handle main value
                 if (mainFieldConfig.customOptions && Array.isArray(mainFieldConfig.customOptions)) {
                     const option = mainFieldConfig.customOptions.find(opt => opt.value === fieldValue.main);
                     if (option) {
@@ -670,7 +654,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                     mainValue = fieldValue.main === true || fieldValue.main === 'yes';
                 }
 
-                // Extract sub-values using proper field configurations
                 ['yesValues', 'noValues'].forEach(valueType => {
                     if (fieldValue[valueType] && typeof fieldValue[valueType] === 'object') {
                         Object.entries(fieldValue[valueType]).forEach(([key, subValue]) => {
@@ -697,10 +680,8 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
 
     safeFormatFieldValue(fieldConfig, value, fieldName) {
         try {
-            // Enhanced field configuration with proper options resolution
             const enhancedConfig = { ...fieldConfig };
             
-            // Add options from optionsPath if available
             if (fieldConfig.optionsPath && this.creatFormInstance) {
                 try {
                     const options = this.creatFormInstance.getData(fieldConfig.optionsPath);
@@ -712,7 +693,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                 }
             }
 
-            // Handle multiselect fields - FIXED: Always return arrays for multiselect
             if (fieldConfig.type === 'multiselect' || fieldConfig.type === 'multiselect-with-other') {
                 if (Array.isArray(value)) {
                     return value.map(v => this.formatter.formatValue(enhancedConfig, v));
@@ -723,7 +703,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
                 }
             }
 
-            // Use the formatter for other types with enhanced config
             return this.formatter.formatValue(enhancedConfig, value);
         } catch (error) {
             console.error(`Error formatting field ${fieldName}:`, error);
@@ -731,14 +710,13 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         }
     }
 
-    // FIXED: Safe value extraction helpers with proper type checking
     safeArrayValue(value) {
         if (Array.isArray(value)) {
             return value;
         } else if (typeof value === 'string' && value) {
             return [value];
         } else {
-            return []; // Always return an array
+            return [];
         }
     }
 
@@ -793,7 +771,6 @@ class ChatbotFormDataTransformer extends BaseDataTransformer {
         }
     }
 }
-
 
 class FormFieldFactory {
     constructor(options = {}) {
