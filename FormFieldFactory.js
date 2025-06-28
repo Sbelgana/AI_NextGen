@@ -4,6 +4,9 @@
 // ============================================================================
 // ENHANCED FIELD VALUE FORMATTER - Complete with bullet points for calendar
 // ============================================================================
+// ============================================================================
+// ENHANCED FIELD VALUE FORMATTER - Complete with HTML line breaks for calendar
+// ============================================================================
 class FieldValueFormatter {
     constructor(creatFormInstance) {
         this.creatFormInstance = creatFormInstance;
@@ -267,7 +270,7 @@ class FieldValueFormatter {
     }
 
     /**
-     * UPDATED: Format ServiceRequestCalendar values with bullet points
+     * UPDATED: Format ServiceRequestCalendar values with HTML line breaks
      */
     formatServiceRequestCalendarValue(value, fieldConfig) {
         if (Array.isArray(value)) {
@@ -281,9 +284,9 @@ class FieldValueFormatter {
                 return this.safeStringConversion(slot);
             });
             
-            // Add bullet points for multiple slots
+            // FIX: Use HTML line breaks instead of \n for proper display
             if (formattedSlots.length > 1) {
-                return formattedSlots.map(slot => `• ${slot}`).join('\n');
+                return formattedSlots.map(slot => `• ${slot}`).join('<br>');
             } else if (formattedSlots.length === 1) {
                 return formattedSlots[0]; // Single item doesn't need bullet
             }
@@ -470,11 +473,11 @@ class FieldValueFormatter {
     }
 
     // ============================================================================
-    // ENHANCED: Safe string conversion method with calendar support
+    // ENHANCED: Safe string conversion method with HTML line breaks for calendars
     // ============================================================================
 
     /**
-     * UPDATED: Safe string conversion method with better calendar array handling
+     * UPDATED: Safe string conversion method with HTML line breaks for calendar arrays
      */
     safeStringConversion(value, fieldConfig = null) {
         // Handle null/undefined
@@ -490,11 +493,11 @@ class FieldValueFormatter {
             );
             
             if (isCalendarArray && value.length > 1) {
-                // Use bullet points for calendar arrays with multiple items
+                // FIX: Use HTML line breaks for calendar arrays with multiple items
                 return value.map(item => {
                     const formatted = this.safeStringConversion(item);
                     return formatted ? `• ${formatted}` : '';
-                }).filter(item => item !== '').join('\n');
+                }).filter(item => item !== '').join('<br>');
             } else {
                 // Regular array formatting with commas
                 return value.map(item => this.safeStringConversion(item)).filter(item => item !== '').join(', ');
