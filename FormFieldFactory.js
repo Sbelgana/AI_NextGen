@@ -5055,6 +5055,119 @@ class CustomField extends BaseField {
     }
 
     // ============================================================================
+    // NEW: INDIFFERENT VALUE DETECTION
+    // ============================================================================
+    
+    /**
+     * Check if value represents "indifferent" or "any" choice
+     */
+    isIndifferentValue(value, fieldConfig) {
+        // Handle null/undefined values
+        if (value === null || value === undefined || value === '') {
+            return true;
+        }
+        
+        // Handle options-slider fields with value 0 (indifferent)
+        if (fieldConfig?.type === 'options-slider') {
+            if (typeof value === 'object' && value !== null) {
+                if (value.value !== undefined) {
+                    return value.value === 0;
+                }
+                if (value.display && typeof value.display === 'string') {
+                    const display = value.display.toLowerCase();
+                    return display.includes('indifférent') || display.includes('indifferent') || display.includes('any');
+                }
+            }
+            return value === 0;
+        }
+        
+        // Handle string values that explicitly indicate indifference
+        if (typeof value === 'string') {
+            const lowerValue = value.toLowerCase().trim();
+            return lowerValue === '' ||
+                   lowerValue === 'null' ||
+                   lowerValue.includes('indifférent') || 
+                   lowerValue.includes('indifferent') ||
+                   lowerValue.includes('any') ||
+                   lowerValue === '0';
+        }
+        
+        // Handle numeric values (0 typically means indifferent)
+        if (typeof value === 'number') {
+            return value === 0;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if yes/no field has been properly answered
+     */
+    isYesNoFieldAnswered(value, fieldConfig) {
+        if (fieldConfig?.type === 'yesno' || fieldConfig?.type === 'yesno-with-options') {
+            // Consider null, undefined, empty string as not answered
+            if (value === null || value === undefined || value === '') {
+                return false;
+            }
+            
+            // For yesno-with-options, check if main value is set
+            if (fieldConfig.type === 'yesno-with-options' && typeof value === 'object') {
+                return value.main !== null && value.main !== undefined && value.main !== '';
+            }
+            
+            // For regular yesno, check if it's a valid boolean or string response
+            if (typeof value === 'boolean') {
+                return true;
+            }
+            
+            if (typeof value === 'string') {
+                const lowerValue = value.toLowerCase().trim();
+                return lowerValue === 'yes' || lowerValue === 'no' || 
+                       lowerValue === 'oui' || lowerValue === 'non' ||
+                       lowerValue === 'true' || lowerValue === 'false';
+            }
+        }
+        
+        return true; // Not a yes/no field, consider it answered
+    }
+
+    /**
+     * Enhanced shouldDisplayFieldInSummary with indifferent value filtering
+     */
+    shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
+        // First check basic display conditions
+        if (!this.formatter.shouldDisplayValue(fieldValue)) {
+            return false;
+        }
+        
+        // Check if it's an indifferent value
+        if (this.isIndifferentValue(fieldValue, fieldConfig)) {
+            return false;
+        }
+        
+        // Check if yes/no field is properly answered
+        if (!this.isYesNoFieldAnswered(fieldValue, fieldConfig)) {
+            return false;
+        }
+        
+        // For yesno-with-options, check if any meaningful data exists
+        if (fieldConfig?.type === 'yesno-with-options' && typeof fieldValue === 'object' && fieldValue !== null) {
+            // If main is answered but no sub-values, still show the main answer
+            if (fieldValue.main !== null && fieldValue.main !== undefined && fieldValue.main !== '') {
+                return true;
+            }
+            return false;
+        }
+        
+        // For arrays, check if there are actual non-indifferent values
+        if (Array.isArray(fieldValue)) {
+            return fieldValue.some(item => !this.isIndifferentValue(item, fieldConfig));
+        }
+        
+        return true;
+    }
+
+    // ============================================================================
     // OVERRIDE: Custom validation behavior
     // ============================================================================
     validate() {
@@ -5154,7 +5267,7 @@ class CustomField extends BaseField {
             if (stepIndex === currentStepIndex) return;
 
             const stepData = this.getStepData(multiStepForm, stepIndex);
-            if (this.hasVisibleData(stepData)) {
+            if (this.hasVisibleData(stepData, step)) {
                 const stepSection = this.createStepSummarySection(step, stepData, stepIndex);
                 summaryContainer.appendChild(stepSection);
             }
@@ -5190,43 +5303,57 @@ class CustomField extends BaseField {
     }
 
     /**
-     * UPDATED: populateStepContent now properly handles yesno-with-options sub-fields
+     * UPDATED: populateStepContent now properly handles indifferent values and filters them out
      */
     populateStepContent(contentDiv, step, stepData) {
         let contentHtml = '';
+        let hasVisibleContent = false;
 
         step.fields.forEach(fieldConfig => {
             const fieldName = fieldConfig.name || fieldConfig.id;
             const fieldValue = stepData[fieldName];
 
             if (this.shouldDisplayFieldInSummary(fieldConfig, fieldValue)) {
+                hasVisibleContent = true;
+                
                 // Special handling for yesno-with-options fields
                 if (fieldConfig.type === 'yesno-with-options') {
                     contentHtml += this.renderYesNoWithOptionsField(fieldConfig, fieldValue, stepData);
                 } else {
                     // Regular field processing
                     const processedField = this.processor.processFormData({ [fieldName]: fieldValue })[fieldName];
-                    if (processedField) {
+                    if (processedField && processedField.displayValue) {
+                        // Additional check to ensure display value is meaningful
                         const displayValue = Array.isArray(processedField.displayValue) 
                             ? processedField.displayValue.join(', ')
                             : processedField.displayValue;
 
-                        contentHtml += `
-                            <div class="summary-row">
-                                <div class="summary-label">${processedField.label}:</div>
-                                <div class="summary-value">${displayValue}</div>
-                            </div>
-                        `;
+                        // Skip if display value is empty or indicates indifference
+                        if (displayValue && displayValue.trim() !== '' && 
+                            !this.isIndifferentValue(displayValue, fieldConfig)) {
+                            
+                            contentHtml += `
+                                <div class="summary-row">
+                                    <div class="summary-label">${processedField.label}:</div>
+                                    <div class="summary-value">${displayValue}</div>
+                                </div>
+                            `;
+                        }
                     }
                 }
             }
         });
 
-        contentDiv.innerHTML = contentHtml || '<div class="summary-empty">Aucune donnée saisie</div>';
+        // Only show content if there's meaningful data
+        if (hasVisibleContent && contentHtml.trim() !== '') {
+            contentDiv.innerHTML = contentHtml;
+        } else {
+            contentDiv.innerHTML = '<div class="summary-empty">Aucune donnée saisie</div>';
+        }
     }
 
     /**
-     * NEW: Special rendering for yesno-with-options fields with nested sub-fields
+     * UPDATED: Special rendering for yesno-with-options fields with enhanced filtering
      */
     renderYesNoWithOptionsField(fieldConfig, fieldValue, stepData) {
         let html = '';
@@ -5235,36 +5362,45 @@ class CustomField extends BaseField {
             return '';
         }
 
+        // Check if main value is actually answered (not null/undefined)
+        if (!this.isYesNoFieldAnswered(fieldValue, fieldConfig)) {
+            return '';
+        }
+
         // Get the main field label and display value
         const mainLabel = this.getFieldLabel(fieldConfig);
         const mainDisplayValue = this.formatter.formatYesNoValue(fieldValue.main, fieldConfig);
 
-        // Always show the main field
-        html += `
-            <div class="summary-row">
-                <div class="summary-label">${mainLabel}:</div>
-                <div class="summary-value">${mainDisplayValue}</div>
-            </div>
-        `;
+        // Only show if main display value is meaningful
+        if (mainDisplayValue && mainDisplayValue.trim() !== '' && 
+            !this.isIndifferentValue(mainDisplayValue, fieldConfig)) {
+            
+            html += `
+                <div class="summary-row">
+                    <div class="summary-label">${mainLabel}:</div>
+                    <div class="summary-value">${mainDisplayValue}</div>
+                </div>
+            `;
 
-        // Determine which conditional fields to show
-        const showYesFields = this.formatter.isYesValue(fieldValue.main, fieldConfig);
-        const showNoFields = this.formatter.isNoValue(fieldValue.main, fieldConfig);
+            // Determine which conditional fields to show
+            const showYesFields = this.formatter.isYesValue(fieldValue.main, fieldConfig);
+            const showNoFields = this.formatter.isNoValue(fieldValue.main, fieldConfig);
 
-        // Show conditional sub-fields
-        if (showYesFields && fieldValue.yesValues) {
-            const subFieldConfigs = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
-            html += this.renderSubFields(subFieldConfigs, fieldValue.yesValues, stepData);
-        } else if (showNoFields && fieldValue.noValues) {
-            const subFieldConfigs = fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []);
-            html += this.renderSubFields(subFieldConfigs, fieldValue.noValues, stepData);
+            // Show conditional sub-fields
+            if (showYesFields && fieldValue.yesValues) {
+                const subFieldConfigs = fieldConfig.yesFields || (fieldConfig.yesField ? [fieldConfig.yesField] : []);
+                html += this.renderSubFields(subFieldConfigs, fieldValue.yesValues, stepData);
+            } else if (showNoFields && fieldValue.noValues) {
+                const subFieldConfigs = fieldConfig.noFields || (fieldConfig.noField ? [fieldConfig.noField] : []);
+                html += this.renderSubFields(subFieldConfigs, fieldValue.noValues, stepData);
+            }
         }
 
         return html;
     }
 
     /**
-     * NEW: Render sub-fields for conditional yesno-with-options fields
+     * UPDATED: Render sub-fields with enhanced indifferent value filtering
      */
     renderSubFields(subFieldConfigs, subFieldValues, stepData) {
         let html = '';
@@ -5284,17 +5420,26 @@ class CustomField extends BaseField {
                 // Handle different types of sub-field values
                 let displayValue;
                 if (Array.isArray(subFieldDisplayValue)) {
-                    displayValue = subFieldDisplayValue.join(', ');
+                    // Filter out indifferent values from arrays
+                    const filteredValues = subFieldDisplayValue.filter(val => 
+                        !this.isIndifferentValue(val, subFieldConfig)
+                    );
+                    displayValue = filteredValues.join(', ');
                 } else {
                     displayValue = subFieldDisplayValue;
                 }
 
-                html += `
-                    <div class="summary-row sub-field">
-                        <div class="summary-label">${subFieldLabel}:</div>
-                        <div class="summary-value">${displayValue}</div>
-                    </div>
-                `;
+                // Only show if display value is meaningful and not indifferent
+                if (displayValue && displayValue.trim() !== '' && 
+                    !this.isIndifferentValue(displayValue, subFieldConfig)) {
+                    
+                    html += `
+                        <div class="summary-row sub-field">
+                            <div class="summary-label">${subFieldLabel}:</div>
+                            <div class="summary-value">${displayValue}</div>
+                        </div>
+                    `;
+                }
             }
         });
 
@@ -5383,20 +5528,28 @@ class CustomField extends BaseField {
         }
     }
 
-    shouldDisplayFieldInSummary(fieldConfig, fieldValue) {
-        return this.formatter.shouldDisplayValue(fieldValue);
-    }
-
     getStepData(multiStepForm, stepIndex) {
         const stepInstance = multiStepForm.stepInstances[stepIndex];
         if (!stepInstance) return {};
         return stepInstance.getStepData();
     }
 
-    hasVisibleData(stepData) {
-        return Object.values(stepData).some(value => 
-            this.formatter.shouldDisplayValue(value)
-        );
+    /**
+     * UPDATED: hasVisibleData now checks for meaningful data using field configurations
+     */
+    hasVisibleData(stepData, step) {
+        if (!step || !step.fields) {
+            return Object.values(stepData).some(value => 
+                this.formatter.shouldDisplayValue(value)
+            );
+        }
+
+        // Check each field with its configuration
+        return step.fields.some(fieldConfig => {
+            const fieldName = fieldConfig.name || fieldConfig.id;
+            const fieldValue = stepData[fieldName];
+            return this.shouldDisplayFieldInSummary(fieldConfig, fieldValue);
+        });
     }
 
     getFormData() {
@@ -5436,7 +5589,6 @@ class CustomField extends BaseField {
         super.resetToInitial();
     }
 }
-
 
 
 
