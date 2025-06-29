@@ -2085,6 +2085,7 @@ input:disabled,
   justify-content: space-between;
   align-items: center;
   gap: 15px;
+	padding: 0 4px;
 }
 
 /* ========================================
