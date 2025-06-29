@@ -14162,6 +14162,11 @@ class CurrentAppointmentCardField extends BaseField {
 // Use this for all future Cal.com extensions (booking, cancellation, rescheduling, etc.)
 // ============================================================================
 
+// ============================================================================
+// REUSABLE CAL.COM BASE UTILITY CLASS - COMPLETE WITH RESCHEDULE HANDLER
+// Use this for all future Cal.com extensions (booking, cancellation, rescheduling, etc.)
+// ============================================================================
+
 class CalComBaseUtility {
     constructor(config = {}) {
         this.apiKey = config.apiKey || "";
@@ -14177,6 +14182,9 @@ class CalComBaseUtility {
             bookingNotFound: "Booking not found",
             invalidResponse: "Invalid API response",
             networkError: "Network error occurred",
+            missingReason: "Reason is required",
+            missingNewTime: "New appointment time is required",
+            missingRescheduledBy: "rescheduledBy email is required",
             ...config.errorMessages
         };
     }
@@ -14279,9 +14287,9 @@ class CalComBaseUtility {
     }
 
     /**
-     * Reschedule booking by UID
+     * FIXED: Reschedule booking by UID with all required parameters
      */
-    async rescheduleBooking(uid, newStartTime, newEndTime = null) {
+    async rescheduleBooking(uid, newStartTime, rescheduledBy, reschedulingReason = "") {
         if (!uid) {
             throw new Error(this.errorMessages.missingBookingId);
         }
@@ -14289,12 +14297,16 @@ class CalComBaseUtility {
             throw new Error(this.errorMessages.missingApiKey);
         }
         if (!newStartTime) {
-            throw new Error("New start time is required");
+            throw new Error(this.errorMessages.missingNewTime);
+        }
+        if (!rescheduledBy) {
+            throw new Error(this.errorMessages.missingRescheduledBy);
         }
 
         const body = {
-            start: newStartTime,
-            ...(newEndTime && { end: newEndTime })
+            rescheduledBy: rescheduledBy,
+            reschedulingReason: reschedulingReason,
+            start: newStartTime
         };
 
         try {
@@ -14302,6 +14314,11 @@ class CalComBaseUtility {
                 method: 'POST',
                 body: JSON.stringify(body)
             });
+
+            // Check for Cal.com specific error responses
+            if (response.status && response.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(response)}`);
+            }
 
             this.log('Booking rescheduled successfully:', response);
             return response;
@@ -14480,7 +14497,7 @@ class CalComBaseUtility {
                                      formData.cancel_reason;
             
             if (!cancellationReason || cancellationReason.trim() === '') {
-                throw new Error('Cancellation reason is required');
+                throw new Error(this.errorMessages.missingReason);
             }
 
             // Use the instance's API key if not provided in config
@@ -14532,17 +14549,18 @@ class CalComBaseUtility {
     }
 
     /**
-     * Standard rescheduling handler
+     * NEW: Standard rescheduling handler - Similar to handleCancellation
      */
-    async handleRescheduling(formData, config) {
+    async handleReschedule(formData, config) {
         this.log('Handling rescheduling with data:', formData);
         
         try {
-            const newStartTime = formData.newStartTime || formData.newDateTime || formData.reschedule_time;
+            // Extract the new appointment time from the calendar field
+            const newAppointmentData = formData.newAppointment;
             const rescheduleReason = formData.rescheduleReason || formData.reason || '';
             
-            if (!newStartTime) {
-                throw new Error('New appointment time is required');
+            if (!newAppointmentData || !newAppointmentData.selectedTime) {
+                throw new Error(this.errorMessages.missingNewTime);
             }
 
             // Use the instance's API key if not provided in config
@@ -14550,26 +14568,45 @@ class CalComBaseUtility {
             const originalApiKey = this.apiKey;
             this.apiKey = effectiveApiKey;
 
-            // Reschedule the booking
-            const rescheduleResult = await this.rescheduleBooking(config.uid, newStartTime);
+            this.log('Calling rescheduleBooking API with:', {
+                uid: config.uid,
+                newTime: newAppointmentData.selectedTime,
+                rescheduledBy: config.email,
+                reason: rescheduleReason,
+                apiKeyPresent: !!this.apiKey
+            });
+
+            // Reschedule the booking with all required parameters
+            const rescheduleResult = await this.rescheduleBooking(
+                config.uid,
+                newAppointmentData.selectedTime,
+                config.email, // rescheduledBy parameter
+                rescheduleReason // reschedulingReason parameter
+            );
             
             // Restore original API key
             this.apiKey = originalApiKey;
 
             this.log('Rescheduling API call completed:', rescheduleResult);
 
-            // Prepare structured data
+            // Prepare structured data for Voiceflow
             const submissionData = this.createSubmissionData('rescheduling', {
                 bookingUid: config.uid,
                 originalDateTime: config.startTime,
-                newDateTime: newStartTime,
+                newDateTime: newAppointmentData.selectedTime,
                 rescheduleReason: rescheduleReason,
                 serviceProvider: config.serviceProvider,
                 rescheduleDateTime: new Date().toISOString(),
                 email: config.email,
                 eventTypeSlug: config.eventTypeSlug,
-                rescheduleResult: rescheduleResult
+                rescheduleResult: rescheduleResult,
+                // Additional calendar data
+                formattedOriginalDate: config.startTime,
+                formattedNewDate: newAppointmentData.formattedDate,
+                formattedNewTime: newAppointmentData.formattedTime
             }, config);
+
+            this.log('Prepared rescheduling submission data:', submissionData);
 
             // Send to Voiceflow if enabled
             this.sendToVoiceflow(config, 'reschedule_success', submissionData);
@@ -14646,7 +14683,6 @@ class CalComBaseUtility {
         this.logPrefix = prefix;
     }
 }
-
 // ============================================================================
 // EXPORT FOR GLOBAL USE
 // ============================================================================
