@@ -14156,6 +14156,501 @@ class CurrentAppointmentCardField extends BaseField {
     }
 }
 
+
+// ============================================================================
+// REUSABLE CAL.COM BASE UTILITY CLASS
+// Use this for all future Cal.com extensions (booking, cancellation, rescheduling, etc.)
+// ============================================================================
+
+class CalComBaseUtility {
+    constructor(config = {}) {
+        this.apiKey = config.apiKey || "";
+        this.apiVersion = config.apiVersion || "2024-08-13";
+        this.baseUrl = config.baseUrl || "https://api.cal.com/v2";
+        this.logPrefix = config.logPrefix || "🗓️ CalCom";
+        this.enableLogging = config.enableLogging !== false;
+        
+        // Default error messages
+        this.errorMessages = {
+            missingApiKey: "API key is required",
+            missingBookingId: "Booking ID/UID is required",
+            bookingNotFound: "Booking not found",
+            invalidResponse: "Invalid API response",
+            networkError: "Network error occurred",
+            ...config.errorMessages
+        };
+    }
+
+    // ============================================================================
+    // CORE API METHODS
+    // ============================================================================
+
+    /**
+     * Generic API request method
+     */
+    async makeApiRequest(endpoint, options = {}) {
+        const url = `${this.baseUrl}${endpoint}`;
+        const defaultOptions = {
+            headers: {
+                "Authorization": `Bearer ${this.apiKey}`,
+                "cal-api-version": this.apiVersion,
+                "Content-Type": "application/json"
+            }
+        };
+
+        const requestOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: { ...defaultOptions.headers, ...options.headers }
+        };
+
+        this.log('API Request:', { url, method: requestOptions.method || 'GET' });
+
+        try {
+            const response = await fetch(url, requestOptions);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+            this.log('API Response:', responseData);
+            
+            return responseData;
+        } catch (error) {
+            this.logError('API Request failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetch booking details by UID
+     */
+    async fetchBooking(uid) {
+        if (!uid) {
+            throw new Error(this.errorMessages.missingBookingId);
+        }
+        if (!this.apiKey) {
+            throw new Error(this.errorMessages.missingApiKey);
+        }
+
+        try {
+            const response = await this.makeApiRequest(`/bookings/${uid}`, {
+                method: 'GET'
+            });
+
+            return response.data || null;
+        } catch (error) {
+            this.logError('Error fetching booking:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Cancel booking by UID
+     */
+    async cancelBooking(uid, reason = "") {
+        if (!uid) {
+            throw new Error(this.errorMessages.missingBookingId);
+        }
+        if (!this.apiKey) {
+            throw new Error(this.errorMessages.missingApiKey);
+        }
+
+        const body = reason ? { cancellationReason: reason } : {};
+
+        try {
+            const response = await this.makeApiRequest(`/bookings/${uid}/cancel`, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+
+            // Check for Cal.com specific error responses
+            if (response.status && response.status !== "success") {
+                throw new Error(`Cal.com returned error: ${JSON.stringify(response)}`);
+            }
+
+            this.log('Booking cancelled successfully:', response);
+            return response;
+        } catch (error) {
+            this.logError('Error cancelling booking:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Reschedule booking by UID
+     */
+    async rescheduleBooking(uid, newStartTime, newEndTime = null) {
+        if (!uid) {
+            throw new Error(this.errorMessages.missingBookingId);
+        }
+        if (!this.apiKey) {
+            throw new Error(this.errorMessages.missingApiKey);
+        }
+        if (!newStartTime) {
+            throw new Error("New start time is required");
+        }
+
+        const body = {
+            start: newStartTime,
+            ...(newEndTime && { end: newEndTime })
+        };
+
+        try {
+            const response = await this.makeApiRequest(`/bookings/${uid}/reschedule`, {
+                method: 'POST',
+                body: JSON.stringify(body)
+            });
+
+            this.log('Booking rescheduled successfully:', response);
+            return response;
+        } catch (error) {
+            this.logError('Error rescheduling booking:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Create new booking
+     */
+    async createBooking(eventTypeId, bookingData) {
+        if (!eventTypeId) {
+            throw new Error("Event type ID is required");
+        }
+        if (!this.apiKey) {
+            throw new Error(this.errorMessages.missingApiKey);
+        }
+
+        try {
+            const response = await this.makeApiRequest('/bookings', {
+                method: 'POST',
+                body: JSON.stringify({
+                    eventTypeId,
+                    ...bookingData
+                })
+            });
+
+            this.log('Booking created successfully:', response);
+            return response;
+        } catch (error) {
+            this.logError('Error creating booking:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get available slots for event type
+     */
+    async getAvailableSlots(eventTypeId, startDate, endDate, timezone = "UTC") {
+        if (!eventTypeId) {
+            throw new Error("Event type ID is required");
+        }
+        if (!this.apiKey) {
+            throw new Error(this.errorMessages.missingApiKey);
+        }
+
+        const params = new URLSearchParams({
+            startTime: startDate,
+            endTime: endDate,
+            timeZone: timezone
+        });
+
+        try {
+            const response = await this.makeApiRequest(`/slots/available?${params}`, {
+                method: 'GET'
+            });
+
+            return response.slots || [];
+        } catch (error) {
+            this.logError('Error fetching available slots:', error);
+            throw error;
+        }
+    }
+
+    // ============================================================================
+    // FORM INTEGRATION HELPERS
+    // ============================================================================
+
+    /**
+     * Load and populate booking data into a form field
+     */
+    async loadAndPopulateBookingData(extension, config) {
+        if (!config.uid) {
+            this.logError('Missing UID for booking data');
+            return;
+        }
+
+        try {
+            // Use the instance's API key if not provided in config
+            const effectiveApiKey = config.apiKey || this.apiKey;
+            
+            // Temporarily set API key for this operation
+            const originalApiKey = this.apiKey;
+            this.apiKey = effectiveApiKey;
+
+            const bookingData = await this.fetchBooking(config.uid);
+            
+            // Restore original API key
+            this.apiKey = originalApiKey;
+
+            if (bookingData && extension.factory) {
+                // Find the booking card field
+                const bookingCardField = this.findBookingCardField(extension);
+                
+                if (bookingCardField && bookingCardField.updateConfig) {
+                    // Format booking data for the card
+                    const cardData = this.formatBookingDataForCard(bookingData, config);
+                    bookingCardField.updateConfig(cardData);
+                }
+            }
+        } catch (error) {
+            this.logError('Error loading booking data:', error);
+        }
+    }
+
+    /**
+     * Find booking card field in extension
+     */
+    findBookingCardField(extension) {
+        // Try multiple ways to find the booking card field
+        return extension.factory?.fieldRegistry?.currentAppointmentDisplay || 
+               extension.singleStepForm?.fieldInstances?.find(f => 
+                   f.id === 'currentAppointmentDisplay' || 
+                   f.constructor.name === 'BookingCancellationCardField' ||
+                   f.constructor.name === 'CurrentAppointmentCardField'
+               ) ||
+               extension.multiStepForm?.getAllFieldInstances?.()?.find(f => 
+                   f.id === 'currentAppointmentDisplay' ||
+                   f.constructor.name === 'BookingCancellationCardField' ||
+                   f.constructor.name === 'CurrentAppointmentCardField'
+               );
+    }
+
+    /**
+     * Format booking data for card display
+     */
+    formatBookingDataForCard(bookingData, config) {
+        return {
+            meetingName: bookingData.hosts?.[0]?.name || config.serviceProvider || 'Provider',
+            startTime: bookingData.start || config.startTime,
+            serviceName: this.getServiceName(config.eventTypeSlug, config.serviceProvider),
+            bookingId: bookingData.id || '',
+            bookingUid: bookingData.uid || config.uid,
+            status: bookingData.status || 'confirmed',
+            attendeeEmail: bookingData.attendees?.[0]?.email || config.email,
+            attendeeName: bookingData.attendees?.[0]?.name || '',
+            language: config.language || 'en',
+            ...config.additionalCardData // Allow custom card data
+        };
+    }
+
+    /**
+     * Get service name from mapping or generate from slug
+     */
+    getServiceName(eventTypeSlug, serviceProvider, serviceMapping = {}) {
+        if (serviceMapping[eventTypeSlug]) {
+            return serviceMapping[eventTypeSlug];
+        }
+        
+        if (eventTypeSlug) {
+            return eventTypeSlug
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        return serviceProvider || 'Appointment';
+    }
+
+    // ============================================================================
+    // STANDARDIZED SUBMISSION HANDLERS
+    // ============================================================================
+
+    /**
+     * Standard cancellation handler
+     */
+    async handleCancellation(formData, config) {
+        this.log('Handling cancellation with data:', formData);
+        
+        try {
+            // Extract cancellation reason from various possible field names
+            const cancellationReason = formData.cancellationReason || 
+                                     formData.reason || 
+                                     formData.cancellation_reason ||
+                                     formData.cancel_reason;
+            
+            if (!cancellationReason || cancellationReason.trim() === '') {
+                throw new Error('Cancellation reason is required');
+            }
+
+            // Use the instance's API key if not provided in config
+            const effectiveApiKey = config.apiKey || this.apiKey;
+            
+            // Temporarily set API key for this operation
+            const originalApiKey = this.apiKey;
+            this.apiKey = effectiveApiKey;
+
+            this.log('Calling cancelBooking API with:', {
+                uid: config.uid,
+                reason: cancellationReason,
+                apiKeyPresent: !!this.apiKey
+            });
+
+            // Cancel the booking
+            const cancellationResult = await this.cancelBooking(config.uid, cancellationReason);
+            
+            // Restore original API key
+            this.apiKey = originalApiKey;
+
+            this.log('Cancellation API call completed:', cancellationResult);
+
+            // Prepare structured data for Voiceflow
+            const submissionData = this.createSubmissionData('cancellation', {
+                bookingUid: config.uid,
+                cancellationReason: cancellationReason,
+                serviceProvider: config.serviceProvider,
+                originalDateTime: config.startTime,
+                cancellationDateTime: new Date().toISOString(),
+                email: config.email,
+                eventTypeSlug: config.eventTypeSlug,
+                cancellationResult: cancellationResult
+            }, config);
+
+            // Send to Voiceflow if enabled
+            this.sendToVoiceflow(config, 'cancellation_success', submissionData);
+
+            return submissionData;
+            
+        } catch (error) {
+            this.logError('Cancellation error:', error);
+            
+            // Send error to Voiceflow if enabled
+            this.sendToVoiceflow(config, 'cancellation_error', { error: error.message });
+            
+            throw error;
+        }
+    }
+
+    /**
+     * Standard rescheduling handler
+     */
+    async handleRescheduling(formData, config) {
+        this.log('Handling rescheduling with data:', formData);
+        
+        try {
+            const newStartTime = formData.newStartTime || formData.newDateTime || formData.reschedule_time;
+            const rescheduleReason = formData.rescheduleReason || formData.reason || '';
+            
+            if (!newStartTime) {
+                throw new Error('New appointment time is required');
+            }
+
+            // Use the instance's API key if not provided in config
+            const effectiveApiKey = config.apiKey || this.apiKey;
+            const originalApiKey = this.apiKey;
+            this.apiKey = effectiveApiKey;
+
+            // Reschedule the booking
+            const rescheduleResult = await this.rescheduleBooking(config.uid, newStartTime);
+            
+            // Restore original API key
+            this.apiKey = originalApiKey;
+
+            this.log('Rescheduling API call completed:', rescheduleResult);
+
+            // Prepare structured data
+            const submissionData = this.createSubmissionData('rescheduling', {
+                bookingUid: config.uid,
+                originalDateTime: config.startTime,
+                newDateTime: newStartTime,
+                rescheduleReason: rescheduleReason,
+                serviceProvider: config.serviceProvider,
+                rescheduleDateTime: new Date().toISOString(),
+                email: config.email,
+                eventTypeSlug: config.eventTypeSlug,
+                rescheduleResult: rescheduleResult
+            }, config);
+
+            // Send to Voiceflow if enabled
+            this.sendToVoiceflow(config, 'reschedule_success', submissionData);
+
+            return submissionData;
+            
+        } catch (error) {
+            this.logError('Rescheduling error:', error);
+            this.sendToVoiceflow(config, 'reschedule_error', { error: error.message });
+            throw error;
+        }
+    }
+
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
+
+    /**
+     * Create standardized submission data structure
+     */
+    createSubmissionData(operationType, data, config) {
+        return {
+            sections: {
+                [`${operationType}_details`]: data
+            },
+            submissionType: `${operationType}_form`,
+            language: config.language || 'en',
+            metadata: {
+                transformerType: "BaseDataTransformer",
+                formVersion: config.formVersion || '5.0.0',
+                operationType: operationType,
+                timestamp: new Date().toISOString()
+            }
+        };
+    }
+
+    /**
+     * Send data to Voiceflow
+     */
+    sendToVoiceflow(config, interactionType, payload) {
+        if (config.voiceflowEnabled && window.voiceflow) {
+            this.log('Sending data to Voiceflow');
+            window.voiceflow.chat.interact({ 
+                type: interactionType, 
+                payload: payload 
+            });
+        }
+    }
+
+    /**
+     * Logging methods
+     */
+    log(message, data = null) {
+        if (this.enableLogging) {
+            console.log(`${this.logPrefix}`, message, data || '');
+        }
+    }
+
+    logError(message, error = null) {
+        console.error(`${this.logPrefix} ❌`, message, error || '');
+    }
+
+    /**
+     * Set API key (useful for dynamic API key setting)
+     */
+    setApiKey(apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    /**
+     * Set log prefix (useful for different extensions)
+     */
+    setLogPrefix(prefix) {
+        this.logPrefix = prefix;
+    }
+}
+
+// ============================================================================
+// EXPORT FOR GLOBAL USE
+// ============================================================================
+
      
 
 
@@ -14167,7 +14662,8 @@ if (typeof module !== 'undefined' && module.exports) {
         ChatbotFormDataTransformer,   // ← Add
         FormFieldFactory, 
         CreatForm, 
-        MultiStepForm 
+        MultiStepForm ,
+	    CalComBaseUtility
     };
 } else {
     window.FieldValueFormatter = FieldValueFormatter;      // ← Add
@@ -14176,4 +14672,5 @@ if (typeof module !== 'undefined' && module.exports) {
     window.FormFieldFactory = FormFieldFactory;
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
+	window.CalComBaseUtility = CalComBaseUtility;
 }
