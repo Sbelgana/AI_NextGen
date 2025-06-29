@@ -9910,7 +9910,6 @@ class CreatForm {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 400px;
             padding: 60px 40px;
             text-align: center;
             background: linear-gradient(135deg, #b0cee2, #faded4);
@@ -9981,7 +9980,6 @@ class CreatForm {
                     font-size: 16px;
                     line-height: 1.6;
                     margin: 0;
-                    max-width: 400px;
                     opacity: 0.9;
                 ">
                     ${this.getText('success.message')}
