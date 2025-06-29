@@ -9755,13 +9755,14 @@ class CreatForm {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             animation: fadeIn 0.3s ease-out;
+            border-radius: 20px;
         `;
         
         overlay.innerHTML = `
