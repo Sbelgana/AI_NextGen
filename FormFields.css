@@ -211,6 +211,8 @@ body {
   font-weight: 600;
   margin-bottom: 10px;
   position: relative;
+	
+    padding: 0 0 10px 0;
 }
 
 .step-title::after {
