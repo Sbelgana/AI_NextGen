@@ -9886,9 +9886,8 @@ class CreatForm {
     }
 
     // ============================================================================
-    // UI STATES
+    // ENHANCED SUCCESS SCREEN - Beautiful Modern UI/UX
     // ============================================================================
-
     showSuccessScreen() {
         const formContainer = this.state.isSingleStep ? 
             this.singleStepForm?.container : 
@@ -9898,16 +9897,188 @@ class CreatForm {
         
         const successScreen = document.createElement('div');
         successScreen.className = 'success-state';
-        successScreen.innerHTML = `
-            <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
-            <h2>${this.getText('success.title')}</h2>
-            <p style="margin: 20px 0;">${this.getText('success.message')}</p>
-            <button type="button" class="btn btn-next" onclick="location.reload()">
-                ${this.isBookingForm ? 'Retour au formulaire' : 'Retour au formulaire'}
-            </button>
+        
+        // Get the SVG check mark from factory, with fallback
+        const checkMarkSvg = this.factory?.SVG_ICONS?.CHECK || `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="80px" height="80px">
+                <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
+            </svg>
         `;
+        
+        successScreen.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            padding: 60px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #b0cee2, #faded4);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        `;
+        
+        successScreen.innerHTML = `
+            <!-- Animated background elements -->
+            <div style="
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+                background-size: 50px 50px;
+                animation: float 20s linear infinite;
+                pointer-events: none;
+            "></div>
+            
+            <!-- Success icon container -->
+            <div style="
+                width: 120px;
+                height: 120px;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 32px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+                backdrop-filter: blur(10px);
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                animation: successPulse 2s ease-in-out infinite alternate;
+                position: relative;
+                z-index: 2;
+            ">
+                <div style="
+                    color: #22c55e;
+                    width: 80px;
+                    height: 80px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    animation: checkmark 1s ease-in-out;
+                ">
+                    ${checkMarkSvg.replace('width="12px" height="12px"', 'width="60px" height="60px"')}
+                </div>
+            </div>
+            
+            <!-- Success message -->
+            <div style="position: relative; z-index: 2;">
+                <h2 style="
+                    color: #1f2937;
+                    font-size: 28px;
+                    font-weight: 700;
+                    margin: 0 0 16px 0;
+                    letter-spacing: -0.5px;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                ">
+                    ${this.getText('success.title')}
+                </h2>
+                
+                <p style="
+                    color: #4b5563;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    margin: 0;
+                    max-width: 400px;
+                    opacity: 0.9;
+                ">
+                    ${this.getText('success.message')}
+                </p>
+            </div>
+            
+            <!-- Decorative elements -->
+            <div style="
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                width: 6px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.6);
+                border-radius: 50%;
+                animation: twinkle 3s ease-in-out infinite;
+            "></div>
+            
+            <div style="
+                position: absolute;
+                bottom: 30px;
+                left: 30px;
+                width: 4px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.4);
+                border-radius: 50%;
+                animation: twinkle 2s ease-in-out infinite 1s;
+            "></div>
+            
+            <div style="
+                position: absolute;
+                top: 60px;
+                left: 20px;
+                width: 8px;
+                height: 8px;
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                animation: twinkle 4s ease-in-out infinite 0.5s;
+            "></div>
+        `;
+        
+        // Add CSS animations if not already present
+        if (!document.querySelector('#success-screen-styles')) {
+            const style = document.createElement('style');
+            style.id = 'success-screen-styles';
+            style.textContent = `
+                @keyframes successPulse {
+                    0% { transform: scale(1); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1); }
+                    100% { transform: scale(1.05); box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15); }
+                }
+                
+                @keyframes checkmark {
+                    0% { 
+                        transform: scale(0) rotate(45deg); 
+                        opacity: 0; 
+                    }
+                    50% { 
+                        transform: scale(1.2) rotate(45deg); 
+                        opacity: 1; 
+                    }
+                    100% { 
+                        transform: scale(1) rotate(0deg); 
+                        opacity: 1; 
+                    }
+                }
+                
+                @keyframes float {
+                    0% { transform: translate(-50%, -50%) rotate(0deg); }
+                    100% { transform: translate(-50%, -50%) rotate(360deg); }
+                }
+                
+                @keyframes twinkle {
+                    0%, 100% { opacity: 0.3; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.2); }
+                }
+                
+                /* Responsive design */
+                @media (max-width: 480px) {
+                    .success-state {
+                        padding: 40px 20px !important;
+                        min-height: 300px !important;
+                    }
+                    .success-state h2 {
+                        font-size: 24px !important;
+                    }
+                    .success-state p {
+                        font-size: 14px !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
         this.container.appendChild(successScreen);
-        this.logger.success('Success screen displayed');
+        this.logger.success('Enhanced success screen displayed with beautiful UI/UX');
     }
 
     // ============================================================================
@@ -10231,6 +10402,7 @@ class CreatForm {
         // Clean up injected styles
         document.querySelector('#session-warning-styles')?.remove();
         document.querySelector('#timeout-overlay-styles')?.remove();
+        document.querySelector('#success-screen-styles')?.remove();
         
         this.logger.success('Form destroyed successfully');
     }
