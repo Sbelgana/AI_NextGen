@@ -9627,7 +9627,7 @@ class CreatForm {
     };
 
     // ============================================================================
-    // SESSION MANAGEMENT
+    // FIXED SESSION MANAGEMENT - Container-scoped and Voiceflow-integrated
     // ============================================================================
 
     setupSessionManagement() {
@@ -9645,14 +9645,74 @@ class CreatForm {
         this.sessionTimer = setTimeout(() => this.disableFormOnTimeout(), this.config.sessionTimeout);
     }
 
+    // FIXED: Show warning inside the form container (not document.body)
     showSessionWarning() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.logger.warning('Session warning displayed');
+        
+        // Remove any existing warning first
+        const existingWarning = this.container?.querySelector('.session-warning');
+        if (existingWarning) {
+            existingWarning.remove();
+        }
+        
+        // Create warning div
         const warningDiv = document.createElement('div');
         warningDiv.className = 'session-warning';
-        warningDiv.innerHTML = `<div style="display: flex; align-items: center; margin-bottom: 10px;"><span style="font-size: 20px; margin-right: 10px;">⚠️</span><strong>Session Warning</strong></div><p style="margin: 0; font-size: 14px;">Your session will expire in 2 minutes.</p>`;
-        document.body.appendChild(warningDiv);
-        setTimeout(() => warningDiv.remove(), 30000);
+        warningDiv.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #856404;
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        warningDiv.innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 18px; margin-right: 8px;">⚠️</span>
+                <strong style="font-size: 14px;">Session Warning</strong>
+            </div>
+            <p style="margin: 0; font-size: 13px; line-height: 1.4;">
+                Your session will expire in 2 minutes. Please complete the form soon.
+            </p>
+        `;
+        
+        // Add CSS animation if not already present
+        if (!document.querySelector('#session-warning-styles')) {
+            const style = document.createElement('style');
+            style.id = 'session-warning-styles';
+            style.textContent = `
+                @keyframes slideDown {
+                    from { transform: translateY(-100%); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Append to form container instead of document.body
+        if (this.container) {
+            this.container.style.position = 'relative'; // Ensure container can contain positioned elements
+            this.container.appendChild(warningDiv);
+        } else {
+            // Fallback if container not available
+            document.body.appendChild(warningDiv);
+        }
+        
+        // Auto-remove after 30 seconds
+        setTimeout(() => {
+            if (warningDiv.parentNode) {
+                warningDiv.remove();
+            }
+        }, 30000);
     }
 
     disableFormOnTimeout() {
@@ -9671,7 +9731,135 @@ class CreatForm {
                     el.style.opacity = '0.5';
                     el.style.pointerEvents = 'none';
                 });
-            this.showTimeoutOverlay();
+        }
+        
+        // Show timeout overlay and send to Voiceflow
+        this.showTimeoutOverlay();
+    }
+
+    // FIXED: Better container positioning and Voiceflow integration
+    showTimeoutOverlay() {
+        // Remove any existing timeout overlay
+        const existingOverlay = this.container?.querySelector('.timeout-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'timeout-overlay';
+        
+        // Enhanced styling for better container containment
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            animation: fadeIn 0.3s ease-out;
+        `;
+        
+        overlay.innerHTML = `
+            <div style="
+                background: white; 
+                padding: 40px; 
+                border-radius: 12px; 
+                text-align: center; 
+                max-width: 400px; 
+                margin: 20px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                position: relative;
+            ">
+                <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
+                <h3 style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Session Expired</h3>
+                <p style="color: #666; margin: 0; line-height: 1.5; font-size: 14px;">
+                    Your session has expired after ${this.config.sessionTimeout / 60000} minutes of inactivity. 
+                    The form is no longer available.
+                </p>
+            </div>
+        `;
+        
+        // Add CSS animation if not already present
+        if (!document.querySelector('#timeout-overlay-styles')) {
+            const style = document.createElement('style');
+            style.id = 'timeout-overlay-styles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Ensure container can contain the overlay
+        if (this.container) {
+            this.container.style.position = 'relative';
+            this.container.appendChild(overlay);
+        }
+        
+        // FIXED: Send timeout data to Voiceflow
+        this.sendTimeoutToVoiceflow();
+    }
+
+    // NEW: Send timeout notification to Voiceflow
+    sendTimeoutToVoiceflow() {
+        this.logger.voiceflow('Sending session timeout notification to Voiceflow...');
+        
+        if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
+            try {
+                const timeoutPayload = {
+                    type: "timeEnd",
+                    payload: {
+                        message: "Time expired",
+                        sessionDuration: this.config.sessionTimeout / 60000, // in minutes
+                        formType: this.config.formType,
+                        currentStep: this.state.currentStep,
+                        formData: this.getFormDataForTimeout(), // Get current form state
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                window.voiceflow.chat.interact(timeoutPayload);
+                
+                this.logger.voiceflow('✅ Session timeout sent to Voiceflow successfully', timeoutPayload);
+                
+            } catch (voiceflowError) {
+                this.logger.voiceflow('❌ Error sending timeout to Voiceflow:', voiceflowError);
+            }
+        } else {
+            this.logger.warning('Voiceflow not available - cannot send timeout notification');
+        }
+    }
+
+    // NEW: Get current form data for timeout (non-intrusive)
+    getFormDataForTimeout() {
+        try {
+            if (this.state.isSingleStep && this.singleStepForm) {
+                const data = {};
+                this.singleStepForm.fieldInstances.forEach(field => {
+                    try {
+                        const value = field.getValue();
+                        if (value !== null && value !== undefined && value !== '') {
+                            data[field.name] = value;
+                        }
+                    } catch (err) {
+                        // Skip fields that can't be read
+                    }
+                });
+                return data;
+            } else if (this.multiStepForm) {
+                return this.multiStepForm.getFormData() || {};
+            }
+            return {};
+        } catch (error) {
+            this.logger.warning('Could not retrieve form data for timeout:', error);
+            return {};
         }
     }
 
@@ -9685,6 +9873,14 @@ class CreatForm {
             clearTimeout(this.warningTimer);
             this.warningTimer = null;
         }
+        
+        // Remove session warning from container (not document.body)
+        const sessionWarning = this.container?.querySelector('.session-warning');
+        if (sessionWarning) {
+            sessionWarning.remove();
+        }
+        
+        // Also remove any global session warnings (fallback cleanup)
         document.querySelector('.session-warning')?.remove();
     }
 
@@ -9711,19 +9907,6 @@ class CreatForm {
         `;
         this.container.appendChild(successScreen);
         this.logger.success('Success screen displayed');
-    }
-
-    showTimeoutOverlay() {
-        const overlay = document.createElement('div');
-        overlay.className = 'timeout-overlay';
-        overlay.innerHTML = `
-            <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 400px; margin: 20px;">
-                <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
-                <h3 style="color: #333; margin: 0 0 15px 0;">Session Expired</h3>
-                <p style="color: #666; margin: 0;">Your session has expired after ${this.config.sessionTimeout / 60000} minutes of inactivity. The form is no longer available.</p>
-            </div>
-        `;
-        this.container.appendChild(overlay);
     }
 
     // ============================================================================
@@ -9864,7 +10047,7 @@ class CreatForm {
             this.setupSessionManagement();
             this.state.initialized = true;
 
-            this.logger.success('🎊 Form rendered successfully with container-scoped CSS!');
+            this.logger.success('🎊 Form rendered successfully with container-scoped CSS and session management!');
             return this.createPublicAPI();
         } catch (error) {
             this.logger.error('Failed to render form:', error);
@@ -10012,6 +10195,7 @@ class CreatForm {
         this.logger.success('Form reset completed');
     }
 
+    // UPDATED: Enhanced destroy method to clean up session elements
     destroy() {
         this.logger.info('Destroying form...');
         this.clearSessionTimers();
@@ -10021,19 +10205,31 @@ class CreatForm {
         }
         this.elements.clear();
         
-        // Clean up container-specific styles
+        // Clean up container-specific styles and session elements
         if (this.container) {
             const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
             const containerStyle = this.container.querySelector(`.${styleClass}`);
             if (containerStyle) {
                 containerStyle.remove();
             }
+            
+            // Remove session-related elements
+            const sessionWarning = this.container.querySelector('.session-warning');
+            const timeoutOverlay = this.container.querySelector('.timeout-overlay');
+            if (sessionWarning) sessionWarning.remove();
+            if (timeoutOverlay) timeoutOverlay.remove();
+            
             this.container.remove();
         }
         
-        // Also clean up any global styles (fallback cleanup)
+        // Clean up global styles and session elements (fallback)
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
+        document.querySelector('.session-warning')?.remove();
+        
+        // Clean up injected styles
+        document.querySelector('#session-warning-styles')?.remove();
+        document.querySelector('#timeout-overlay-styles')?.remove();
         
         this.logger.success('Form destroyed successfully');
     }
