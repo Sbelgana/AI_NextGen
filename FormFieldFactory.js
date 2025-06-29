@@ -9777,7 +9777,7 @@ class CreatForm {
                 position: relative;
             ">
                 <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
-                <span style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Session Expired</span>
+                <h3 style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Session Expired</h3>
                 <p style="color: #666; margin: 0; line-height: 1.5; font-size: 14px;">
                     Your session has expired after ${this.config.sessionTimeout / 60000} minutes of inactivity. 
                     The form is no longer available.
@@ -9900,7 +9900,7 @@ class CreatForm {
         successScreen.className = 'success-state';
         successScreen.innerHTML = `
             <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
-            <span>${this.getText('success.title')}</span>
+            <h2>${this.getText('success.title')}</h2>
             <p style="margin: 20px 0;">${this.getText('success.message')}</p>
             <button type="button" class="btn btn-next" onclick="location.reload()">
                 ${this.isBookingForm ? 'Retour au formulaire' : 'Retour au formulaire'}
@@ -12650,7 +12650,7 @@ class TermsCheckboxField extends BaseField {
         const termsContainer = document.createElement('div');
         termsContainer.className = 'terms-container';
         termsContainer.innerHTML = `
-            <span class="terms-title required">${this.termsTitle}</span>
+            <h3 class="terms-title required">${this.termsTitle}</h3>
             <div class="terms-content">${this.termsContent}</div>
             <ul class="terms-list">
                 <li><strong>${this.language === 'fr' ? 'Frais de déplacement' : 'Travel fees'}</strong>: ${this.language === 'fr' ? '125 $' : '$125'}</li>
