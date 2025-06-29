@@ -1242,8 +1242,8 @@ this.SVG_ICONS = {
             case 'options-slider':
                 field = new OptionsSliderField(this, config);
                 break;
-            case 'categoryCard':
-                field = new CategoryCardField(this, config);
+            case 'serviceCard':
+                field = new ServiceCardField(this, config);
                 break;
             case 'calendar':
                 field = new CalendarField(this, config);
@@ -1523,8 +1523,8 @@ this.SVG_ICONS = {
 		return new SlidingWindowSliderField(this, config);
 	}
 
-	createCategoryCardField(config) {
-        return new CategoryCardField(this, config);
+	createServiceCardField(config) {
+        return new ServiceCardField(this, config);
     }
 	
 	createCalendarField(config) {
@@ -2072,8 +2072,8 @@ class FormStep {
                 return this.factory.createSlidingWindowSliderField(fieldConfig);
             case 'options-slider':
                 return this.factory.createOptionsSliderField(fieldConfig);
-            case 'categoryCard':
-                return this.factory.createCategoryCardField(fieldConfig);
+            case 'serviceCard':
+                return this.factory.createServiceCardField(fieldConfig);
             case 'calendar':
                 return this.factory.createCalendarField(fieldConfig);
             case 'item-calendar':
