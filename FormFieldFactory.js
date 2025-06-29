@@ -14175,6 +14175,10 @@ class CurrentAppointmentCardField extends BaseField {
 // COMPLETE CAL.COM BASE UTILITY WITH BOOKING HANDLER
 // ============================================================================
 
+// ============================================================================
+// COMPLETE FIXED CAL.COM BASE UTILITY WITH CORRECTED BOOKING HANDLER
+// ============================================================================
+
 class CalComBaseUtility {
     constructor(config = {}) {
         this.apiKey = config.apiKey || "";
@@ -14317,7 +14321,7 @@ class CalComBaseUtility {
     }
 
     // ============================================================================
-    // NEW: CREATE BOOKING METHOD
+    // FIXED: CREATE BOOKING METHOD - ONLY SENDS ALLOWED FIELDS
     // ============================================================================
 
     async createBooking(eventTypeId, bookingData, timezone = "UTC") {
@@ -14325,6 +14329,7 @@ class CalComBaseUtility {
         if (!this.apiKey) throw new Error(this.errorMessages.missingApiKey);
         if (!bookingData) throw new Error(this.errorMessages.missingBookingData);
 
+        // FIXED: Only send fields that Cal.com API accepts
         const body = {
             eventTypeId: Number(eventTypeId),
             start: bookingData.start,
@@ -14332,12 +14337,12 @@ class CalComBaseUtility {
                 name: bookingData.attendeeName,
                 email: bookingData.attendeeEmail,
                 timeZone: timezone
-            },
-            // Add any additional booking data
-            ...bookingData.additionalData
+            }
+            // REMOVED: ...bookingData.additionalData (was causing 400 error)
+            // Cal.com API doesn't accept notes, serviceType, or other custom fields
         };
 
-        this.log('📅 Creating booking with data:', body);
+        this.log('📅 Creating booking with CLEAN data:', body);
 
         try {
             const response = await this.makeApiRequest('/bookings', {
@@ -14452,7 +14457,7 @@ class CalComBaseUtility {
     }
 
     // ============================================================================
-    // NEW: STANDARD BOOKING HANDLER
+    // FIXED: STANDARD BOOKING HANDLER - REMOVED ADDITIONAL DATA
     // ============================================================================
 
     async handleBooking(formData, config) {
@@ -14501,18 +14506,14 @@ class CalComBaseUtility {
                 timezone: config.timezone
             });
 
-            // Create the booking
+            // FIXED: Create the booking with only allowed fields
             const bookingResult = await this.createBooking(
                 serviceSelection.eventTypeId,
                 {
                     start: appointmentData.selectedTime,
                     attendeeName: `${firstName} ${lastName}`,
-                    attendeeEmail: email,
-                    additionalData: {
-                        // Add any additional booking data here
-                        notes: formData.notes || '',
-                        serviceType: serviceSelection.eventTypeSlug || ''
-                    }
+                    attendeeEmail: email
+                    // REMOVED: additionalData that was causing the 400 error
                 },
                 config.timezone
             );
@@ -14540,7 +14541,10 @@ class CalComBaseUtility {
                 formattedTime: appointmentData.formattedTime,
                 timezone: config.timezone,
                 bookingDateTime: new Date().toISOString(),
-                bookingResult: bookingResult
+                bookingResult: bookingResult,
+                // Store additional data in submission data (for Voiceflow) but not sent to Cal.com
+                notes: formData.notes || '',
+                serviceType: serviceSelection.eventTypeSlug || ''
             }, config);
 
             this.log('📊 Prepared booking submission data:', submissionData);
@@ -14678,7 +14682,6 @@ class CalComBaseUtility {
         };
     }
 }
-
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
