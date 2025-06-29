@@ -8804,7 +8804,10 @@ class CreatForm {
             
             // Enhanced logging configuration
             enableDetailedLogging: config.enableDetailedLogging !== false,
-            logPrefix: config.logPrefix || "📋 CreatForm"
+            logPrefix: config.logPrefix || "📋 CreatForm",
+            
+            // FIXED: Add custom onSubmit handler to config
+            onSubmit: config.onSubmit || null
         };
         
         // Store the passed data
@@ -9070,14 +9073,15 @@ class CreatForm {
     }
 
     // ============================================================================
-    // ENHANCED SUBMISSION HANDLING (simplified with new processor architecture)
+    // ENHANCED SUBMISSION HANDLING (FIXED to call custom onSubmit)
     // ============================================================================
     handleSubmission = async (formData) => {
         this.logger.info('🚀 Starting enhanced submission process...', {
             formType: this.config.formType,
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
-            hasDataTransformer: !!this.dataTransformerInstance
+            hasDataTransformer: !!this.dataTransformerInstance,
+            hasCustomOnSubmit: typeof this.config.onSubmit === 'function' // NEW: Log if custom handler exists
         });
 
         const submitButton = this.getSubmitButton();
@@ -9090,7 +9094,25 @@ class CreatForm {
             let submissionData;
             let shouldSendToWebhook = false;
             
-            if (this.isBookingForm) {
+            // NEW: Check for custom onSubmit handler first (for cancellation, custom forms, etc.)
+            if (typeof this.config.onSubmit === 'function') {
+                this.logger.info('🔧 Calling custom onSubmit handler...');
+                
+                try {
+                    // Call the custom submission handler (e.g., cancellation API call)
+                    submissionData = await this.config.onSubmit(formData);
+                    this.logger.success('✅ Custom onSubmit handler completed successfully');
+                    
+                    // Don't send to webhook for custom handlers unless explicitly enabled
+                    shouldSendToWebhook = false;
+                    
+                } catch (customError) {
+                    this.logger.error('❌ Custom onSubmit handler failed:', customError);
+                    throw customError;
+                }
+            }
+            // Regular submission logic for booking and standard forms
+            else if (this.isBookingForm) {
                 this.logger.info('Processing booking form submission...');
                 const calendarField = this.getCalendarFieldInstance();
                 if (!calendarField) {
@@ -9115,7 +9137,7 @@ class CreatForm {
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             }
 
-            // Webhook submission
+            // Webhook submission (only if no custom handler or explicitly enabled)
             if (shouldSendToWebhook) {
                 await this.sendToWebhook(submissionData);
             }
@@ -9124,7 +9146,7 @@ class CreatForm {
             this.state.formSubmitted = true;
             this.showSuccessScreen();
             
-            // Voiceflow submission
+            // Voiceflow submission (always send if enabled, regardless of custom handler)
             if (this.config.voiceflowEnabled) {
                 await this.sendToVoiceflow(submissionData, formData);
             }
@@ -9138,7 +9160,7 @@ class CreatForm {
             if (submitButton) {
                 const errorMessage = this.isBookingForm ? 
                     (this.getText('errors.bookingError') || 'Booking error. Please try again.') :
-                    'Submission error. Please try again.';
+                    (this.getText('errors.cancellationError') || 'Submission error. Please try again.');
                 submitButton.textContent = errorMessage;
                 submitButton.disabled = false;
             }
@@ -10403,7 +10425,6 @@ class CreatForm {
         this.logger.success('Form destroyed successfully');
     }
 }
-
 /**
  * OPTIMIZED CALENDAR FIELDS - Unified approach using CalendarField as base
  * Eliminates code duplication and provides consistent interface
