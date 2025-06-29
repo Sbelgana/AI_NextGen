@@ -11843,11 +11843,11 @@ class CalendarField extends BaseField {
             
             return `
                 <div class="calendar-title-content">
-                    <div class="category-item">
-                        <span class="item-icon">${iconSvg}</span>
+                    <div class="service-provider">
+                        <span class="provider-icon">${iconSvg}</span>
                         <div class="appointment-details">
-                            <div class="item-name">${displayItem}</div>
-                            ${this.selectedCategory ? `<div class="category-name">${this.selectedCategory}</div>` : ''}
+                            <div class="provider-name">${displayItem}</div>
+                            ${this.selectedCategory ? `<div class="service-name">${this.selectedCategory}</div>` : ''}
                             <div class="current-appointment">${this.formatCurrentAppointment()}</div>
                         </div>
                     </div>
@@ -11857,23 +11857,23 @@ class CalendarField extends BaseField {
         // BOOKING MODE - Show category and item selection
         else {
             let headerHtml = `
-                <div class="category-item">
-                    <span class="item-icon">${iconSvg}</span>
+                <div class="service-provider">
+                    <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
             `;
             
             // Show selected category
             if (this.selectedCategory) {
-                headerHtml += `<div class="category-name">${this.selectedCategory}</div>`;
+                headerHtml += `<div class="service-name">${this.selectedCategory}</div>`;
             }
             
             // Show selected item
             if (this.currentItem) {
                 const displayName = this.currentItem.displayName || this.currentItem.name || this.currentItem.id;
-                headerHtml += `<div class="item-name">${displayName}</div>`;
+                headerHtml += `<div class="provider-name">${displayName}</div>`;
             } else if (this.specialist) {
                 // Fallback to direct specialist config
-                headerHtml += `<div class="item-name">${this.specialist}</div>`;
+                headerHtml += `<div class="provider-name">${this.specialist}</div>`;
             }
 
             headerHtml += `
