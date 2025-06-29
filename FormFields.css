@@ -140,8 +140,8 @@ body {
 
 /* Main Form Container */
 .multistep-form {
-  width: 100%;
-  max-width: 900px;
+  width: 100% !important;
+  min-width: 800px;
   margin: 0 auto;
   padding: 10px;
   border-radius: 12px;
@@ -2136,7 +2136,7 @@ select:focus-visible,
 /* Large Desktop (1200px and up) */
 @media (min-width: 1200px) {
   .multistep-form {
-    max-width: 1000px;
+    min-width: 800px;
   }
   
   .step-title {
@@ -2277,6 +2277,7 @@ select:focus-visible,
 @media (max-width: 767px) and (min-width: 481px) {
   .multistep-form {
     border-radius: 8px;
+    min-width: 220px;	  
   }
 
 	.time-choice-container {
@@ -2495,6 +2496,8 @@ select:focus-visible,
   .multistep-form {
     margin: 4px;
     border-radius: 8px;
+	  
+    min-width: 220px;	 
   }
 
 		.time-choice-container {
