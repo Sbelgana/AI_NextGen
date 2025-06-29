@@ -14171,6 +14171,10 @@ class CurrentAppointmentCardField extends BaseField {
 // COMPLETE CAL.COM BASE UTILITY WITH BOOKING HANDLER
 // ============================================================================
 
+// ============================================================================
+// COMPLETE CAL.COM BASE UTILITY WITH BOOKING HANDLER
+// ============================================================================
+
 class CalComBaseUtility {
     constructor(config = {}) {
         this.apiKey = config.apiKey || "";
@@ -14191,6 +14195,7 @@ class CalComBaseUtility {
             missingRescheduledBy: "rescheduledBy email is required",
             missingBookingData: "Booking data is required",
             missingEventTypeId: "Event type ID is required",
+            bookingFailed: "Failed to create booking",
             ...config.errorMessages
         };
     }
@@ -14215,7 +14220,11 @@ class CalComBaseUtility {
             headers: { ...defaultOptions.headers, ...options.headers }
         };
 
-        this.log('🔍 API Request:', { url, method: requestOptions.method || 'GET' });
+        this.log('🔍 API Request:', { 
+            url, 
+            method: requestOptions.method || 'GET',
+            bodyParsed: options.body ? JSON.parse(options.body) : null
+        });
 
         try {
             const response = await fetch(url, requestOptions);
@@ -14224,9 +14233,8 @@ class CalComBaseUtility {
                 let errorDetails = null;
                 try {
                     errorDetails = await response.text();
-                    this.logError('📄 Response Error:', errorDetails);
                 } catch (e) {
-                    this.logError('Could not read error response body');
+                    // Ignore error reading response
                 }
                 throw new Error(`HTTP error! status: ${response.status}${errorDetails ? ` - ${errorDetails}` : ''}`);
             }
@@ -14241,59 +14249,48 @@ class CalComBaseUtility {
         }
     }
 
-    /**
-     * Create new booking
-     */
-    async createBooking(eventTypeId, bookingData) {
-        if (!eventTypeId) {
-            throw new Error(this.errorMessages.missingEventTypeId);
-        }
-        if (!this.apiKey) {
-            throw new Error(this.errorMessages.missingApiKey);
-        }
-
-        const body = {
-            eventTypeId: Number(eventTypeId),
-            ...bookingData
-        };
-
-        this.log('📤 Creating booking with:', body);
+    async fetchBooking(uid) {
+        if (!uid) throw new Error(this.errorMessages.missingBookingId);
+        if (!this.apiKey) throw new Error(this.errorMessages.missingApiKey);
 
         try {
-            const response = await this.makeApiRequest('/bookings', {
+            const response = await this.makeApiRequest(`/bookings/${uid}`, { method: 'GET' });
+            return response.data || null;
+        } catch (error) {
+            this.logError('Error fetching booking:', error);
+            return null;
+        }
+    }
+
+    async cancelBooking(uid, reason = "") {
+        if (!uid) throw new Error(this.errorMessages.missingBookingId);
+        if (!this.apiKey) throw new Error(this.errorMessages.missingApiKey);
+
+        const body = reason ? { cancellationReason: reason } : {};
+
+        try {
+            const response = await this.makeApiRequest(`/bookings/${uid}/cancel`, {
                 method: 'POST',
                 body: JSON.stringify(body)
             });
 
-            // Check for Cal.com specific error responses
             if (response.status && response.status !== "success") {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(response)}`);
             }
 
-            this.log('✅ Booking created successfully:', response);
+            this.log('Booking cancelled successfully:', response);
             return response;
         } catch (error) {
-            this.logError('❌ Error creating booking:', error);
+            this.logError('Error cancelling booking:', error);
             throw error;
         }
     }
 
-    /**
-     * Reschedule booking by UID with all required parameters
-     */
     async rescheduleBooking(uid, newStartTime, rescheduledBy, reschedulingReason = "") {
-        if (!uid) {
-            throw new Error(this.errorMessages.missingBookingId);
-        }
-        if (!this.apiKey) {
-            throw new Error(this.errorMessages.missingApiKey);
-        }
-        if (!newStartTime) {
-            throw new Error(this.errorMessages.missingNewTime);
-        }
-        if (!rescheduledBy) {
-            throw new Error(this.errorMessages.missingRescheduledBy);
-        }
+        if (!uid) throw new Error(this.errorMessages.missingBookingId);
+        if (!this.apiKey) throw new Error(this.errorMessages.missingApiKey);
+        if (!newStartTime) throw new Error(this.errorMessages.missingNewTime);
+        if (!rescheduledBy) throw new Error(this.errorMessages.missingRescheduledBy);
 
         const body = {
             rescheduledBy: rescheduledBy,
@@ -14311,29 +14308,39 @@ class CalComBaseUtility {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(response)}`);
             }
 
-            this.log('✅ Booking rescheduled successfully:', response);
+            this.log('Booking rescheduled successfully:', response);
             return response;
         } catch (error) {
-            this.logError('❌ Error rescheduling booking:', error);
+            this.logError('Error rescheduling booking:', error);
             throw error;
         }
     }
 
-    /**
-     * Cancel booking by UID
-     */
-    async cancelBooking(uid, reason = "") {
-        if (!uid) {
-            throw new Error(this.errorMessages.missingBookingId);
-        }
-        if (!this.apiKey) {
-            throw new Error(this.errorMessages.missingApiKey);
-        }
+    // ============================================================================
+    // NEW: CREATE BOOKING METHOD
+    // ============================================================================
 
-        const body = reason ? { cancellationReason: reason } : {};
+    async createBooking(eventTypeId, bookingData, timezone = "UTC") {
+        if (!eventTypeId) throw new Error(this.errorMessages.missingEventTypeId);
+        if (!this.apiKey) throw new Error(this.errorMessages.missingApiKey);
+        if (!bookingData) throw new Error(this.errorMessages.missingBookingData);
+
+        const body = {
+            eventTypeId: Number(eventTypeId),
+            start: bookingData.start,
+            attendee: {
+                name: bookingData.attendeeName,
+                email: bookingData.attendeeEmail,
+                timeZone: timezone
+            },
+            // Add any additional booking data
+            ...bookingData.additionalData
+        };
+
+        this.log('📅 Creating booking with data:', body);
 
         try {
-            const response = await this.makeApiRequest(`/bookings/${uid}/cancel`, {
+            const response = await this.makeApiRequest('/bookings', {
                 method: 'POST',
                 body: JSON.stringify(body)
             });
@@ -14342,10 +14349,10 @@ class CalComBaseUtility {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(response)}`);
             }
 
-            this.log('✅ Booking cancelled successfully:', response);
+            this.log('✅ Booking created successfully:', response);
             return response;
         } catch (error) {
-            this.logError('❌ Error cancelling booking:', error);
+            this.logError('❌ Error creating booking:', error);
             throw error;
         }
     }
@@ -14354,111 +14361,6 @@ class CalComBaseUtility {
     // STANDARDIZED SUBMISSION HANDLERS
     // ============================================================================
 
-    /**
-     * NEW: Standard booking handler - Similar to handleCancellation and handleReschedule
-     */
-    async handleBooking(formData, config) {
-        this.log('🚀 Handling booking with data:', formData);
-        
-        try {
-            // Extract booking data from form
-            const serviceSelection = formData.serviceSelection;
-            const firstName = formData.firstName || '';
-            const lastName = formData.lastName || '';
-            const email = formData.email || '';
-            const appointmentData = formData.appointment;
-            
-            this.log('📋 Extracted booking data:', {
-                serviceSelection: serviceSelection,
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                appointmentData: appointmentData
-            });
-
-            // Validate required fields
-            if (!serviceSelection || !serviceSelection.eventTypeId) {
-                throw new Error('Service selection is required');
-            }
-            if (!firstName || !lastName) {
-                throw new Error('First name and last name are required');
-            }
-            if (!email) {
-                throw new Error('Email is required');
-            }
-            if (!appointmentData || !appointmentData.selectedTime) {
-                throw new Error('Appointment date and time are required');
-            }
-
-            // Use the instance's API key if not provided in config
-            const effectiveApiKey = config.apiKey || this.apiKey;
-            const originalApiKey = this.apiKey;
-            this.apiKey = effectiveApiKey;
-
-            this.log('📞 Calling createBooking API with:', {
-                eventTypeId: serviceSelection.eventTypeId,
-                attendeeName: `${firstName} ${lastName}`,
-                attendeeEmail: email,
-                startTime: appointmentData.selectedTime,
-                timezone: config.timezone
-            });
-
-            // Create the booking
-            const bookingData = {
-                start: appointmentData.selectedTime,
-                attendee: {
-                    name: `${firstName} ${lastName}`,
-                    email: email,
-                    timeZone: config.timezone
-                }
-            };
-
-            const bookingResult = await this.createBooking(serviceSelection.eventTypeId, bookingData);
-            
-            // Restore original API key
-            this.apiKey = originalApiKey;
-
-            this.log('✅ Booking API call completed successfully:', bookingResult);
-
-            // Prepare structured data for Voiceflow
-            const submissionData = this.createSubmissionData('booking', {
-                bookingId: bookingResult.data?.id,
-                bookingUid: bookingResult.data?.uid,
-                firstName: firstName,
-                lastName: lastName,
-                fullName: `${firstName} ${lastName}`,
-                email: email,
-                serviceSelection: serviceSelection,
-                serviceName: serviceSelection.title || serviceSelection.eventName,
-                serviceProvider: config.serviceProvider,
-                appointmentDateTime: appointmentData.selectedTime,
-                appointmentDate: appointmentData.formattedDate,
-                appointmentTime: appointmentData.formattedTime,
-                timezone: config.timezone,
-                eventTypeId: serviceSelection.eventTypeId,
-                eventTypeSlug: serviceSelection.eventTypeSlug,
-                bookingResult: bookingResult,
-                // Additional formatted data
-                formattedDateTime: `${appointmentData.formattedDate} ${config.language === "fr" ? "à" : "at"} ${appointmentData.formattedTime}`
-            }, config);
-
-            this.log('📊 Prepared booking submission data:', submissionData);
-
-            // Send to Voiceflow if enabled
-            this.sendToVoiceflow(config, 'booking_success', submissionData);
-
-            return submissionData;
-            
-        } catch (error) {
-            this.logError('❌ Booking error:', error);
-            this.sendToVoiceflow(config, 'booking_error', { error: error.message });
-            throw error;
-        }
-    }
-
-    /**
-     * Standard cancellation handler
-     */
     async handleCancellation(formData, config) {
         this.log('Handling cancellation with data:', formData);
         
@@ -14500,9 +14402,6 @@ class CalComBaseUtility {
         }
     }
 
-    /**
-     * Standard rescheduling handler
-     */
     async handleReschedule(formData, config) {
         this.log('Handling rescheduling with data:', formData);
         
@@ -14553,12 +14452,129 @@ class CalComBaseUtility {
     }
 
     // ============================================================================
+    // NEW: STANDARD BOOKING HANDLER
+    // ============================================================================
+
+    async handleBooking(formData, config) {
+        this.log('🚀 Handling booking with data:', formData);
+        
+        try {
+            // Extract appointment data from calendar field
+            const appointmentData = formData.appointment;
+            const serviceSelection = formData.serviceSelection;
+            const firstName = formData.firstName || '';
+            const lastName = formData.lastName || '';
+            const email = formData.email || '';
+            
+            this.log('📋 Extracted booking data:', {
+                appointmentData: appointmentData,
+                serviceSelection: serviceSelection,
+                firstName: firstName,
+                lastName: lastName,
+                email: email
+            });
+
+            // Validate required data
+            if (!appointmentData || !appointmentData.selectedTime) {
+                throw new Error('Appointment time is required');
+            }
+            if (!serviceSelection || !serviceSelection.eventTypeId) {
+                throw new Error('Service selection is required');
+            }
+            if (!firstName || !lastName) {
+                throw new Error('Full name is required');
+            }
+            if (!email) {
+                throw new Error('Email is required');
+            }
+
+            // Use the instance's API key if not provided in config
+            const effectiveApiKey = config.apiKey || this.apiKey;
+            const originalApiKey = this.apiKey;
+            this.apiKey = effectiveApiKey;
+
+            this.log('📞 Creating booking with Cal.com API:', {
+                eventTypeId: serviceSelection.eventTypeId,
+                startTime: appointmentData.selectedTime,
+                attendeeName: `${firstName} ${lastName}`,
+                attendeeEmail: email,
+                timezone: config.timezone
+            });
+
+            // Create the booking
+            const bookingResult = await this.createBooking(
+                serviceSelection.eventTypeId,
+                {
+                    start: appointmentData.selectedTime,
+                    attendeeName: `${firstName} ${lastName}`,
+                    attendeeEmail: email,
+                    additionalData: {
+                        // Add any additional booking data here
+                        notes: formData.notes || '',
+                        serviceType: serviceSelection.eventTypeSlug || ''
+                    }
+                },
+                config.timezone
+            );
+            
+            // Restore original API key
+            this.apiKey = originalApiKey;
+
+            this.log('✅ Booking API call completed successfully:', bookingResult);
+
+            // Prepare structured data for Voiceflow
+            const submissionData = this.createSubmissionData('booking', {
+                bookingId: bookingResult.data?.id || null,
+                bookingUid: bookingResult.data?.uid || null,
+                firstName: firstName,
+                lastName: lastName,
+                fullName: `${firstName} ${lastName}`,
+                email: email,
+                serviceTitle: serviceSelection.title || serviceSelection.name,
+                serviceName: serviceSelection.eventName || serviceSelection.serviceName,
+                serviceProvider: config.serviceProvider,
+                eventTypeId: serviceSelection.eventTypeId,
+                eventTypeSlug: serviceSelection.eventTypeSlug,
+                appointmentDateTime: appointmentData.selectedTime,
+                formattedDate: appointmentData.formattedDate,
+                formattedTime: appointmentData.formattedTime,
+                timezone: config.timezone,
+                bookingDateTime: new Date().toISOString(),
+                bookingResult: bookingResult
+            }, config);
+
+            this.log('📊 Prepared booking submission data:', submissionData);
+
+            // Send to Voiceflow if enabled
+            this.sendToVoiceflow(config, 'booking_success', submissionData);
+
+            return submissionData;
+            
+        } catch (error) {
+            this.logError('❌ Booking error:', error);
+            this.sendToVoiceflow(config, 'booking_error', { error: error.message });
+            throw error;
+        }
+    }
+
+    // ============================================================================
     // UTILITY METHODS
     // ============================================================================
 
-    /**
-     * Create standardized submission data structure
-     */
+    getServiceName(eventTypeSlug, serviceProvider, serviceMapping = {}) {
+        if (serviceMapping[eventTypeSlug]) {
+            return serviceMapping[eventTypeSlug];
+        }
+        
+        if (eventTypeSlug) {
+            return eventTypeSlug
+                .replace(/-/g, ' ')
+                .replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        return serviceProvider || 'Appointment';
+    }
+
     createSubmissionData(operationType, data, config) {
         return {
             sections: {
@@ -14575,9 +14591,6 @@ class CalComBaseUtility {
         };
     }
 
-    /**
-     * Send data to Voiceflow
-     */
     sendToVoiceflow(config, interactionType, payload) {
         if (config.voiceflowEnabled && window.voiceflow) {
             this.log('Sending data to Voiceflow');
@@ -14588,26 +14601,6 @@ class CalComBaseUtility {
         }
     }
 
-    /**
-     * Get service name from mapping or generate from slug
-     */
-    getServiceName(eventTypeSlug, serviceProvider, serviceMapping = {}) {
-        if (serviceMapping[eventTypeSlug]) {
-            return serviceMapping[eventTypeSlug];
-        }
-        
-        if (eventTypeSlug) {
-            return eventTypeSlug
-                .replace(/-/g, ' ')
-                .replace(/\b\w/g, l => l.toUpperCase());
-        }
-        
-        return serviceProvider || 'Appointment';
-    }
-
-    /**
-     * Logging methods
-     */
     log(message, data = null) {
         if (this.enableLogging) {
             console.log(`${this.logPrefix}`, message, data || '');
@@ -14618,18 +14611,71 @@ class CalComBaseUtility {
         console.error(`${this.logPrefix} ❌`, message, error || '');
     }
 
-    /**
-     * Set API key (useful for dynamic API key setting)
-     */
     setApiKey(apiKey) {
         this.apiKey = apiKey;
     }
 
-    /**
-     * Set log prefix (useful for different extensions)
-     */
     setLogPrefix(prefix) {
         this.logPrefix = prefix;
+    }
+
+    // ============================================================================
+    // FORM INTEGRATION HELPERS (for backward compatibility)
+    // ============================================================================
+
+    async loadAndPopulateBookingData(extension, config) {
+        // This method is mainly for cancellation/reschedule extensions
+        // Booking extensions don't need to load existing booking data
+        if (config.uid) {
+            try {
+                const effectiveApiKey = config.apiKey || this.apiKey;
+                const originalApiKey = this.apiKey;
+                this.apiKey = effectiveApiKey;
+
+                const bookingData = await this.fetchBooking(config.uid);
+                this.apiKey = originalApiKey;
+
+                if (bookingData && extension.factory) {
+                    const bookingCardField = this.findBookingCardField(extension);
+                    
+                    if (bookingCardField && bookingCardField.updateConfig) {
+                        const cardData = this.formatBookingDataForCard(bookingData, config);
+                        bookingCardField.updateConfig(cardData);
+                    }
+                }
+            } catch (error) {
+                this.logError('Error loading booking data:', error);
+            }
+        }
+    }
+
+    findBookingCardField(extension) {
+        return extension.factory?.fieldRegistry?.currentAppointmentDisplay || 
+               extension.singleStepForm?.fieldInstances?.find(f => 
+                   f.id === 'currentAppointmentDisplay' || 
+                   f.constructor.name === 'BookingCancellationCardField' ||
+                   f.constructor.name === 'CurrentAppointmentCardField'
+               ) ||
+               extension.multiStepForm?.getAllFieldInstances?.()?.find(f => 
+                   f.id === 'currentAppointmentDisplay' ||
+                   f.constructor.name === 'BookingCancellationCardField' ||
+                   f.constructor.name === 'CurrentAppointmentCardField'
+               );
+    }
+
+    formatBookingDataForCard(bookingData, config) {
+        return {
+            meetingName: bookingData.hosts?.[0]?.name || config.serviceProvider || 'Provider',
+            startTime: bookingData.start || config.startTime,
+            serviceName: this.getServiceName(config.eventTypeSlug, config.serviceProvider),
+            bookingId: bookingData.id || '',
+            bookingUid: bookingData.uid || config.uid,
+            status: bookingData.status || 'confirmed',
+            attendeeEmail: bookingData.attendees?.[0]?.email || config.email,
+            attendeeName: bookingData.attendees?.[0]?.name || '',
+            language: config.language || 'en',
+            ...config.additionalCardData
+        };
     }
 }
 
