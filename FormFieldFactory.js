@@ -9927,8 +9927,6 @@ class CreatForm {
                 position: absolute;
                 top: -50%;
                 left: -50%;
-                width: 200%;
-                height: 200%;
                 background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
                 background-size: 50px 50px;
                 animation: float 20s linear infinite;
@@ -9953,7 +9951,7 @@ class CreatForm {
                 z-index: 2;
             ">
                 <div style="
-                    color: #22c55e;
+                    color: #e95d2c;
                     width: 80px;
                     height: 80px;
                     display: flex;
