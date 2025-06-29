@@ -9934,8 +9934,8 @@ class CreatForm {
             
             <!-- Success icon container -->
             <div style="
-                width: 100px;
-                height: 100px;
+                width: 80px;
+                height: 80px;
                 background: rgba(255, 255, 255, 0.95);
                 border-radius: 50%;
                 display: flex;
