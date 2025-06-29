@@ -8825,6 +8825,7 @@ class CreatForm {
         this.sessionTimer = null;
         this.warningTimer = null;
         this.cssCache = new Map();
+        this.combinedCSS = null; // NEW: Store combined CSS for container injection
 
         this.isBookingForm = this.config.formType === "booking";
         
@@ -9242,7 +9243,7 @@ class CreatForm {
     }
 
     // ============================================================================
-    // CSS MANAGEMENT
+    // FIXED CSS MANAGEMENT - Container-scoped injection for Voiceflow compatibility
     // ============================================================================
     async loadCSS() {
         if (this.state.cssLoaded) return;
@@ -9254,7 +9255,10 @@ class CreatForm {
                 .filter(result => result.status === 'fulfilled' && result.value)
                 .map(result => result.value).join('\n');
             
-            if (validCSS.trim()) this.injectCSS(validCSS);
+            if (validCSS.trim()) {
+                // Store the CSS for container injection
+                this.combinedCSS = validCSS;
+            }
             this.state.cssLoaded = true;
             this.logger.success('CSS loaded successfully');
         } catch (error) {
@@ -9275,7 +9279,30 @@ class CreatForm {
         }
     }
 
+    // NEW: Inject CSS into container instead of document.head (Voiceflow-compatible)
+    injectCSSIntoContainer(container) {
+        if (!this.combinedCSS) return;
+        
+        const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
+        
+        // Remove existing styles from this container
+        const existingStyle = container.querySelector(`.${styleClass}`);
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        
+        // Create new style element and inject into container
+        const styleElement = document.createElement('style');
+        styleElement.className = styleClass;
+        styleElement.textContent = this.combinedCSS;
+        container.appendChild(styleElement); // ← Inject into container, not document.head
+        
+        this.logger.success('CSS injected into container successfully');
+    }
+
+    // DEPRECATED: Keep for backward compatibility but prefer container injection
     injectCSS(css) {
+        // Fallback to old method if container injection fails
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
         const styleElement = document.createElement('style');
@@ -9751,17 +9778,20 @@ class CreatForm {
     }
 
     // ============================================================================
-    // MAIN RENDER METHOD - Enhanced for single/multistep support
+    // MAIN RENDER METHOD - Enhanced for single/multistep support with fixed CSS
     // ============================================================================
 
     async render(element) {
         try {
             this.logger.info('🎬 Starting form render process...');
-            await this.loadCSS();
+            await this.loadCSS(); // Load CSS but don't inject globally
             
             this.container = document.createElement('div');
             this.container.className = this.isBookingForm ? 'booking-form-extension' : 'submission-form-extension';
             this.container.id = this.isBookingForm ? 'booking-form-root' : 'submission-form-root';
+
+            // NEW: Inject CSS into the container after creating it (Voiceflow-compatible)
+            this.injectCSSIntoContainer(this.container);
 
             // Enhanced FormFieldFactory configuration
             this.factory = new FormFieldFactory({
@@ -9834,7 +9864,7 @@ class CreatForm {
             this.setupSessionManagement();
             this.state.initialized = true;
 
-            this.logger.success('🎊 Form rendered successfully using FormDataProcessor!');
+            this.logger.success('🎊 Form rendered successfully with container-scoped CSS!');
             return this.createPublicAPI();
         } catch (error) {
             this.logger.error('Failed to render form:', error);
@@ -9990,14 +10020,24 @@ class CreatForm {
             this.multiStepForm.clearSavedProgress();
         }
         this.elements.clear();
-        this.container?.remove();
+        
+        // Clean up container-specific styles
+        if (this.container) {
+            const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
+            const containerStyle = this.container.querySelector(`.${styleClass}`);
+            if (containerStyle) {
+                containerStyle.remove();
+            }
+            this.container.remove();
+        }
+        
+        // Also clean up any global styles (fallback cleanup)
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
+        
         this.logger.success('Form destroyed successfully');
     }
 }
-
-
 
 /**
  * OPTIMIZED CALENDAR FIELDS - Unified approach using CalendarField as base
