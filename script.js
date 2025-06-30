@@ -1,9 +1,10 @@
-// ============================================================================
+/ ============================================================================
 // CONFIGURATION CONSTANTS
 // ============================================================================
 const CONFIG = {
     DEFAULT_WEBHOOK: "",
-    DEFAULT_CSS: ['https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@7881a02/FormFields.css'],
+    DEFAULT_API_KEY: "",
+    DEFAULT_CSS: ['https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@1bf81c8/FormFields.css'],
     SESSION_TIMEOUT: 900000, // 15 minutes
     SESSION_WARNING: 780000, // 13 minutes
     DEBOUNCE_DELAY: 50,
@@ -2409,9 +2410,807 @@ const BookingDirectExtension = {
     }
 };
 // ============================================================================
+// ENHANCED RESCHEDULE CALENDAR EXTENSION - RESTRUCTURED ARCHITECTURE
+// ============================================================================
+const RescheduleCalendarExtension = {
+    name: "ModernRescheduleCalendar",
+    type: "response",
+    match: ({
+        trace
+    }) => trace.type === "ext_reschedule_calendar" || trace.payload?.name === "ext_reschedule_calendar",
+    // ============================================================================
+    // INITIALIZE REUSABLE CAL.COM UTILITY
+    // ============================================================================
+    initializeCalComUtility(config) {
+        if (!this.calComUtility) {
+            this.calComUtility = new CalComBaseUtility({
+                apiKey: config.apiKey,
+                logPrefix: "📅 RescheduleCalendar",
+                enableLogging: config.enableDetailedLogging !== false,
+                errorMessages: {
+                    missingNewTime: "New appointment time is required",
+                    reschedulingFailed: "Failed to reschedule booking"
+                }
+            });
+        } else {
+            if (config.apiKey) {
+                this.calComUtility.setApiKey(config.apiKey);
+            }
+        }
+        return this.calComUtility;
+    },
+    render: async ({
+        trace,
+        element
+    }) => {
+        // ============================================================================
+        // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
+        // ============================================================================
+        let {
+            language = "fr",
+                vf,
+                apiKey = CONFIG.DEFAULT_API_KEY,
+                uid = "",
+                email = "",
+                serviceProvider = "Dr. Sophie Martin",
+                startTime = "",
+                scheduleId = "",
+                eventTypeId = "",
+                eventTypeSlug = "",
+                timezone = "America/Toronto",
+                voiceflowEnabled = true,
+                voiceflowDataTransformer = null,
+                enableDetailedLogging = true,
+                logPrefix = "📅 RescheduleCalendar",
+                enableSessionTimeout = true,
+                sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                sessionWarning = CONFIG.SESSION_WARNING,
+                cssUrls = CONFIG.DEFAULT_CSS,
+                formType = "reschedule",
+                formStructure = "multistep",
+                useStructuredData = true,
+                dataTransformer = BaseDataTransformer
+        } = trace.payload || {};
+        // Extract reschedule details from extracted variables
+        const rescheduleData = {
+            uid: uid,
+            email: email,
+            serviceProvider: serviceProvider,
+            startTime: startTime,
+            scheduleId: scheduleId,
+            eventTypeId: eventTypeId,
+            eventTypeSlug: eventTypeSlug
+        };
+        // Initialize Cal.com utility using extracted variables
+        const calComUtility = RescheduleCalendarExtension.initializeCalComUtility({
+            apiKey: apiKey,
+            enableDetailedLogging: enableDetailedLogging
+        });
+        // Helper function to get translated text
+        const getTranslatedText = (key, lang = language) => {
+            const keys = key.split('.');
+            let value = RescheduleCalendarExtension.FORM_DATA.translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        };
+        // Get service name for display using utility
+        const serviceName = calComUtility.getServiceName(
+            rescheduleData.eventTypeSlug,
+            rescheduleData.serviceProvider,
+            RescheduleCalendarExtension.FORM_DATA.serviceMapping
+        );
+        // Clone the form config and populate variables dynamically
+        const formConfig = JSON.parse(JSON.stringify(RescheduleCalendarExtension.FORM_CONFIG));
+        // Populate currentAppointmentCard field in step 1
+        const appointmentCardField = formConfig.steps[0].fields[0];
+        appointmentCardField.serviceProvider = rescheduleData.serviceProvider;
+        appointmentCardField.startTime = rescheduleData.startTime;
+        appointmentCardField.serviceName = serviceName;
+        appointmentCardField.eventTypeSlug = rescheduleData.eventTypeSlug;
+        appointmentCardField.language = language;
+        appointmentCardField.translations = RescheduleCalendarExtension.FORM_DATA.translations;
+        appointmentCardField.serviceMapping = RescheduleCalendarExtension.FORM_DATA.serviceMapping;
+        // Populate textarea field with translations
+        const textareaField = formConfig.steps[0].fields[1];
+        textareaField.placeholder = getTranslatedText('fields.rescheduleReasonPlaceholder');
+        textareaField.customErrorMessage = getTranslatedText('errors.reasonRequired');
+        textareaField.customErrorMessages = {
+            required: getTranslatedText('errors.reasonRequired')
+        };
+        // Populate calendar field variables dynamically
+        const calendarField = formConfig.steps[1].fields[0];
+        // Set calendar configuration variables
+        calendarField.apiKey = apiKey;
+        calendarField.timezone = timezone;
+        calendarField.language = language;
+        calendarField.locale = language === 'fr' ? 'fr-FR' : 'en-US';
+        calendarField.serviceProvider = rescheduleData.serviceProvider;
+        // Set reschedule-specific variables
+        calendarField.eventTypeId = parseInt(rescheduleData.eventTypeId);
+        calendarField.eventTypeSlug = rescheduleData.eventTypeSlug;
+        calendarField.scheduleId = rescheduleData.scheduleId;
+        calendarField.serviceName = serviceName;
+        calendarField.eventName = serviceName;
+        calendarField.currentAppointment = rescheduleData.startTime;
+        calendarField.uid = rescheduleData.uid;
+        calendarField.email = rescheduleData.email;
+        calendarField.mode = 'reschedule'; // IMPORTANT: Set mode to reschedule
+        // Provide all translated texts to calendar field
+        const calendarTranslations = RescheduleCalendarExtension.FORM_DATA.translations[language].calendar;
+        calendarField.texts = {
+            selectDate: calendarTranslations.selectDate,
+            availableTimesFor: calendarTranslations.availableTimesFor,
+            noAvailableSlots: calendarTranslations.noAvailableSlots,
+            pleaseSelectDate: calendarTranslations.pleaseSelectDate,
+            currentAppointment: calendarTranslations.currentAppointment,
+            newAppointment: calendarTranslations.newAppointment,
+            loadingAvailability: calendarTranslations.loadingAvailability,
+            loading: calendarTranslations.loading,
+            weekdays: calendarTranslations.weekdays
+        };
+        // Provide error texts to calendar field
+        calendarField.errorTexts = {
+            dateTimeRequired: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.dateTimeRequired,
+            rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.rescheduleError
+        };
+        // ============================================================================
+        // DRAMATICALLY SIMPLIFIED: Uses generic FormDataProcessor and BaseDataTransformer
+        // Same structure as SubmissionFormExtension and CancellationDirectExtension
+        // ============================================================================
+        // Create the form with the new generic architecture using extracted variables
+        const extension = new CreatForm({
+                language: language,
+                formType: formType,
+                formStructure: formStructure,
+                // ============================================================================
+                // NEW: Generic approach - no specific field transformers needed!
+                // BaseDataTransformer + FormDataProcessor handle everything automatically
+                // ============================================================================
+                useStructuredData: useStructuredData,
+                dataTransformer: dataTransformer, // Generic transformer works with any form!
+                // DISABLED: Webhook integration (reschedule goes directly to Cal.com)
+                webhookEnabled: false,
+                webhookUrl: null,
+                // ENABLED: Voiceflow integration with optional custom transformer
+                voiceflowEnabled: voiceflowEnabled,
+                voiceflowDataTransformer: voiceflowDataTransformer,
+                // Enhanced logging using extracted variables
+                enableDetailedLogging: enableDetailedLogging,
+                logPrefix: logPrefix,
+                // Session management using extracted variables
+                enableSessionTimeout: enableSessionTimeout,
+                sessionTimeout: sessionTimeout,
+                sessionWarning: sessionWarning,
+                // Reschedule-specific configuration using extracted variables
+                apiKey: apiKey,
+                timezone: timezone,
+                serviceProvider: rescheduleData.serviceProvider,
+                // Reschedule appointment data
+                uid: rescheduleData.uid,
+                email: rescheduleData.email,
+                currentStartTime: rescheduleData.startTime,
+                eventTypeId: rescheduleData.eventTypeId,
+                eventTypeSlug: rescheduleData.eventTypeSlug,
+                scheduleId: rescheduleData.scheduleId,
+                // ============================================================================
+                // SIMPLIFIED: Just use the utility's handleReschedule method!
+                // ============================================================================
+                onSubmit: async (formData) => {
+                    return await calComUtility.handleReschedule(formData, {
+                        language: language,
+                        uid: rescheduleData.uid,
+                        apiKey: apiKey,
+                        serviceProvider: rescheduleData.serviceProvider,
+                        startTime: rescheduleData.startTime,
+                        eventTypeSlug: rescheduleData.eventTypeSlug,
+                        email: rescheduleData.email,
+                        voiceflowEnabled: voiceflowEnabled,
+                        formVersion: CONFIG.FORM_VERSION
+                    });
+                },
+                // CSS configuration using extracted variables
+                cssUrls: cssUrls
+            },
+            RescheduleCalendarExtension.FORM_DATA,
+            formConfig
+        );
+        return await extension.render(element);
+    },
+    // ============================================================================
+    // FORM DATA CONFIGURATION - Same as before, no changes needed
+    // ============================================================================
+    FORM_DATA: {
+        serviceMapping: {
+            'nettoyages-et-examens-dentaires': 'Nettoyages et examens dentaires',
+            'consultation-dentaire': 'Consultation dentaire',
+            'chirurgie-dentaire': 'Chirurgie dentaire',
+            'orthodontie': 'Orthodontie',
+            'implants-dentaires': 'Implants dentaires',
+            'blanchiment-dentaire': 'Blanchiment dentaire',
+            'discovery-call-15-minutes': 'Entretien Exploratoire',
+            'demonstration-chatbot-15min': 'Démonstration de l\'Agent IA',
+            'reunion-45min': 'Présentation Détaillée',
+            'reunion-projet': 'Session de Travail'
+        },
+        translations: {
+            fr: {
+                nav: {
+                    next: "Suivant",
+                    previous: "Précédent",
+                    submit: "Replanifier le rendez-vous",
+                    processing: "Traitement en cours..."
+                },
+                common: {
+                    yes: "Oui",
+                    no: "Non",
+                    other: "Autre",
+                    required: "requis",
+                    fieldRequired: "Ce champ est requis",
+                    edit: "Modifier",
+                    notSpecified: "Non spécifié",
+                    none: "Aucun",
+                    pleaseSpecify: "Veuillez préciser...",
+                    selectAtLeastOne: "Veuillez sélectionner au moins une option"
+                },
+                labels: {
+                    serviceProvider: "Prestataire de service",
+                    currentAppointment: "Rendez-vous actuel",
+                    newAppointment: "Nouveau rendez-vous",
+                    rescheduleDetails: "Détails de la replanification"
+                },
+                placeholders: {
+                    rescheduleReason: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?"
+                },
+                steps: [
+                    {
+                        title: "Informations Actuelles",
+                        desc: "Consultez les informations actuelles et indiquez la raison de la replanification"
+                    },
+                    {
+                        title: "Nouvelle Date et Heure",
+                        desc: "Choisissez votre nouveau créneau préféré"
+                    }
+                        ],
+                fields: {
+                    currentAppointment: "Rendez-vous Actuel",
+                    scheduledWith: "Programmé avec",
+                    currentDateTime: "Date et heure actuelles",
+                    serviceName: "Service",
+                    reschedulingFrom: "Replanification de",
+                    rescheduleReason: "Raison de la replanification",
+                    rescheduleReasonPlaceholder: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?",
+                    selectDateTime: "Sélectionner nouvelle date et heure"
+                },
+                errors: {
+                    reasonRequired: "Veuillez indiquer la raison de la replanification",
+                    dateTimeRequired: "Veuillez sélectionner une nouvelle date et heure",
+                    rescheduleError: "Erreur lors de la replanification. Veuillez réessayer."
+                },
+                success: {
+                    title: "Rendez-vous replanifié !",
+                    message: "Votre rendez-vous a été replanifié avec succès. Vous recevrez sous peu un email de confirmation."
+                },
+                calendar: {
+                    selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                    availableTimesFor: "Disponibilités pour",
+                    noAvailableSlots: "Aucun horaire disponible pour cette date",
+                    pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                    currentAppointment: "Rendez-vous Actuel",
+                    newAppointment: "Nouveau Rendez-vous",
+                    loadingAvailability: "Chargement des disponibilités...",
+                    loading: "Chargement...",
+                    weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                }
+            },
+            en: {
+                nav: {
+                    next: "Next",
+                    previous: "Previous",
+                    submit: "Reschedule Appointment",
+                    processing: "Processing..."
+                },
+                common: {
+                    yes: "Yes",
+                    no: "No",
+                    other: "Other",
+                    required: "required",
+                    fieldRequired: "This field is required",
+                    edit: "Edit",
+                    notSpecified: "Not specified",
+                    none: "None",
+                    pleaseSpecify: "Please specify...",
+                    selectAtLeastOne: "Please select at least one option"
+                },
+                labels: {
+                    serviceProvider: "Service Provider",
+                    currentAppointment: "Current Appointment",
+                    newAppointment: "New Appointment",
+                    rescheduleDetails: "Reschedule Details"
+                },
+                placeholders: {
+                    rescheduleReason: "Why do you want to reschedule this appointment?"
+                },
+                steps: [
+                    {
+                        title: "Current Information",
+                        desc: "Review current information and provide reason for rescheduling"
+                    },
+                    {
+                        title: "New Date & Time",
+                        desc: "Choose your new preferred time slot"
+                    }
+                        ],
+                fields: {
+                    currentAppointment: "Current Appointment",
+                    scheduledWith: "Scheduled with",
+                    currentDateTime: "Current date and time",
+                    serviceName: "Service",
+                    reschedulingFrom: "Rescheduling from",
+                    rescheduleReason: "Reason for rescheduling",
+                    rescheduleReasonPlaceholder: "Why do you want to reschedule this appointment?",
+                    selectDateTime: "Select new date and time"
+                },
+                errors: {
+                    reasonRequired: "Please provide a reason for rescheduling",
+                    dateTimeRequired: "Please select a new date and time",
+                    rescheduleError: "Rescheduling error. Please try again."
+                },
+                success: {
+                    title: "Appointment Rescheduled!",
+                    message: "Your appointment has been successfully rescheduled. You will receive a confirmation email shortly."
+                },
+                calendar: {
+                    selectDate: "Select a date to view available times",
+                    availableTimesFor: "Available times for",
+                    noAvailableSlots: "No available time slots for this date",
+                    pleaseSelectDate: "Please select a date first",
+                    currentAppointment: "Current Appointment",
+                    newAppointment: "New Appointment",
+                    loadingAvailability: "Loading availability...",
+                    loading: "Loading...",
+                    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                }
+            }
+        }
+    },
+    // ============================================================================
+    // FORM CONFIGURATION - Same as before, no changes needed
+    // ============================================================================
+    FORM_CONFIG: {
+        steps: [
+                    // Step 1: Current Appointment Info + Reason
+            {
+                sectionId: "current_appointment_info", // NEW: Explicit section ID for generic processing
+                fields: [
+                    {
+                        type: 'currentAppointmentCard',
+                        id: 'currentAppointmentDisplay',
+                        required: false,
+                        serviceProvider: '{{serviceProvider}}',
+                        startTime: '{{startTime}}',
+                        serviceName: '{{serviceName}}',
+                        eventTypeSlug: '{{eventTypeSlug}}',
+                        language: '{{language}}',
+                        cardStyle: 'default',
+                        iconType: 'reschedule',
+                        showServiceName: true,
+                        showDateTime: true,
+                        showProvider: true,
+                        translations: '{{translations}}',
+                        serviceMapping: '{{serviceMapping}}'
+                            },
+                    {
+                        type: 'textarea',
+                        id: 'rescheduleReason',
+                        required: true,
+                        row: 'rescheduleReason',
+                        rows: 4,
+                        maxLength: 500,
+                        showCounter: true,
+                        placeholder: '{{placeholder}}',
+                        getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.reasonRequired
+                            }
+                        ]
+                    },
+
+                    // Step 2: New Date/Time Selection
+            {
+                sectionId: "new_appointment_scheduling", // NEW: Explicit section ID for generic processing
+                fields: [
+                    {
+                        type: 'calendar',
+                        id: 'newAppointment',
+                        row: 'newAppointment',
+                        required: true,
+                        mode: 'reschedule',
+                        headerIcon: 'RESCHEDULE',
+                        apiKey: '{{apiKey}}',
+                        timezone: '{{timezone}}',
+                        language: '{{language}}',
+                        eventTypeId: '{{eventTypeId}}',
+                        eventTypeSlug: '{{eventTypeSlug}}',
+                        scheduleId: '{{scheduleId}}',
+                        serviceProvider: '{{serviceProvider}}',
+                        serviceName: '{{serviceName}}',
+                        currentAppointment: '{{startTime}}',
+                        eventName: '{{serviceName}}',
+                        uid: '{{uid}}',
+                        email: '{{email}}',
+                        getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                        getCustomErrorMessages: (lang) => ({
+                            required: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                            rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.rescheduleError
+                        })
+                            }
+                        ]
+                    }
+                ]
+    }
+};
+// ============================================================================
+// ENHANCED CANCELLATION DIRECT EXTENSION - RESTRUCTURED ARCHITECTURE
+// ============================================================================
+const CancellationDirectExtension = {
+    name: "ModernCancellationDirect",
+    type: "response",
+    match: ({
+        trace
+    }) => trace.type === "ext_cancellation_direct" || trace.payload?.name === "ext_cancellation_direct",
+    // ============================================================================
+    // INITIALIZE REUSABLE CAL.COM UTILITY
+    // ============================================================================
+    initializeCalComUtility(config) {
+        if (!this.calComUtility) {
+            this.calComUtility = new CalComBaseUtility({
+                apiKey: config.apiKey,
+                logPrefix: "❌ CancellationDirect",
+                enableLogging: config.enableDetailedLogging !== false,
+                errorMessages: {
+                    // Custom error messages for cancellation
+                    missingReason: "Cancellation reason is required",
+                    cancellationFailed: "Failed to cancel booking"
+                }
+            });
+        } else {
+            // Update API key if provided
+            if (config.apiKey) {
+                this.calComUtility.setApiKey(config.apiKey);
+            }
+        }
+        return this.calComUtility;
+    },
+    render: async ({
+        trace,
+        element
+    }) => {
+        // ============================================================================
+        // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
+        // ============================================================================
+        let {
+            language = "fr",
+                vf,
+                apiKey = CONFIG.DEFAULT_API_KEY,
+                uid = "",
+                email = "",
+                serviceProvider = "Dr. Sophie Martin",
+                startTime = "",
+                eventTypeSlug = "",
+                timezone = "America/Toronto",
+                voiceflowEnabled = true,
+                voiceflowDataTransformer = null,
+                enableDetailedLogging = true,
+                logPrefix = "❌ CancellationDirect",
+                enableSessionTimeout = true,
+                sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                sessionWarning = CONFIG.SESSION_WARNING,
+                cssUrls = CONFIG.DEFAULT_CSS,
+                formType = "cancellation",
+                formStructure = "single",
+                useStructuredData = true,
+                dataTransformer = BaseDataTransformer
+        } = trace.payload || {};
+        // Extract cancellation details from extracted variables
+        const cancellationData = {
+            uid: uid,
+            email: email,
+            serviceProvider: serviceProvider,
+            startTime: startTime,
+            eventTypeSlug: eventTypeSlug
+        };
+        // Initialize Cal.com utility using extracted variables
+        const calComUtility = CancellationDirectExtension.initializeCalComUtility({
+            apiKey: apiKey,
+            enableDetailedLogging: enableDetailedLogging
+        });
+        // Helper function to get translated text
+        const getTranslatedText = (key, lang = language) => {
+            const keys = key.split('.');
+            let value = CancellationDirectExtension.FORM_DATA.translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        };
+        // Get service name for display using utility
+        const serviceName = calComUtility.getServiceName(
+            cancellationData.eventTypeSlug,
+            cancellationData.serviceProvider,
+            CancellationDirectExtension.FORM_DATA.serviceMapping
+        );
+        // Clone the form config and populate variables dynamically
+        const formConfig = JSON.parse(JSON.stringify(CancellationDirectExtension.FORM_CONFIG));
+        // Populate booking cancellation card field
+        const bookingCardField = formConfig.steps[0].fields[0];
+        bookingCardField.serviceProvider = cancellationData.serviceProvider;
+        bookingCardField.startTime = cancellationData.startTime;
+        bookingCardField.serviceName = serviceName;
+        bookingCardField.eventTypeSlug = cancellationData.eventTypeSlug;
+        bookingCardField.language = language;
+        bookingCardField.uid = cancellationData.uid;
+        bookingCardField.email = cancellationData.email;
+        bookingCardField.translations = CancellationDirectExtension.FORM_DATA.translations;
+        bookingCardField.serviceMapping = CancellationDirectExtension.FORM_DATA.serviceMapping;
+        // Populate textarea field with translations
+        const textareaField = formConfig.steps[0].fields[1];
+        textareaField.placeholder = getTranslatedText('fields.cancellationReasonPlaceholder');
+        textareaField.customErrorMessage = getTranslatedText('errors.reasonRequired');
+        textareaField.customErrorMessages = {
+            required: getTranslatedText('errors.reasonRequired')
+        };
+        // ============================================================================
+        // DRAMATICALLY SIMPLIFIED: Uses generic FormDataProcessor and BaseDataTransformer
+        // Same structure as SubmissionFormExtension
+        // ============================================================================
+        // Create the form with the new generic architecture using extracted variables
+        const extension = new CreatForm({
+                language: language,
+                formType: formType,
+                formStructure: formStructure,
+                // ============================================================================
+                // NEW: Generic approach - no specific field transformers needed!
+                // BaseDataTransformer + FormDataProcessor handle everything automatically
+                // ============================================================================
+                useStructuredData: useStructuredData,
+                dataTransformer: dataTransformer, // Generic transformer works with any form!
+                // DISABLED: Webhook integration for cancellation forms
+                webhookEnabled: false,
+                webhookUrl: null,
+                // ENABLED: Voiceflow integration with optional custom transformer
+                voiceflowEnabled: voiceflowEnabled,
+                voiceflowDataTransformer: voiceflowDataTransformer,
+                // Enhanced logging using extracted variables
+                enableDetailedLogging: enableDetailedLogging,
+                logPrefix: logPrefix,
+                // Session management using extracted variables
+                enableSessionTimeout: enableSessionTimeout,
+                sessionTimeout: sessionTimeout,
+                sessionWarning: sessionWarning,
+                // Cal.com specific configuration using extracted variables
+                apiKey: apiKey,
+                timezone: timezone,
+                serviceProvider: cancellationData.serviceProvider,
+                uid: cancellationData.uid,
+                email: cancellationData.email,
+                startTime: cancellationData.startTime,
+                eventTypeSlug: cancellationData.eventTypeSlug,
+                // ============================================================================
+                // SIMPLIFIED: Just use the utility's handleCancellation method!
+                // ============================================================================
+                onSubmit: async (formData) => {
+                    return await calComUtility.handleCancellation(formData, {
+                        language: language,
+                        uid: cancellationData.uid,
+                        apiKey: apiKey,
+                        serviceProvider: cancellationData.serviceProvider,
+                        startTime: cancellationData.startTime,
+                        eventTypeSlug: cancellationData.eventTypeSlug,
+                        email: cancellationData.email,
+                        voiceflowEnabled: voiceflowEnabled,
+                        formVersion: CONFIG.FORM_VERSION
+                    });
+                },
+                // CSS configuration using extracted variables
+                cssUrls: cssUrls
+            },
+            CancellationDirectExtension.FORM_DATA,
+            formConfig
+        );
+        // ============================================================================
+        // SIMPLIFIED: Just use the utility's loadAndPopulateBookingData method!
+        // ============================================================================
+        await calComUtility.loadAndPopulateBookingData(extension, {
+            uid: cancellationData.uid,
+            apiKey: apiKey,
+            language: language,
+            serviceProvider: cancellationData.serviceProvider,
+            eventTypeSlug: cancellationData.eventTypeSlug,
+            email: cancellationData.email,
+            startTime: cancellationData.startTime
+        });
+        return await extension.render(element);
+    },
+    // ============================================================================
+    // FORM DATA CONFIGURATION - Same as before, no changes needed
+    // ============================================================================
+    FORM_DATA: {
+        serviceMapping: {
+            'nettoyages-et-examens-dentaires': 'Nettoyages et examens dentaires',
+            'consultation-dentaire': 'Consultation dentaire',
+            'chirurgie-dentaire': 'Chirurgie dentaire',
+            'orthodontie': 'Orthodontie',
+            'implants-dentaires': 'Implants dentaires',
+            'blanchiment-dentaire': 'Blanchiment dentaire',
+            'discovery-call-15-minutes': 'Entretien Exploratoire',
+            'demonstration-chatbot-15min': 'Démonstration de l\'Agent IA',
+            'reunion-45min': 'Présentation Détaillée',
+            'reunion-projet': 'Session de Travail'
+        },
+        translations: {
+            fr: {
+                nav: {
+                    next: "Suivant",
+                    previous: "Précédent",
+                    submit: "Annuler le rendez-vous",
+                    processing: "Annulation en cours..."
+                },
+                common: {
+                    yes: "Oui",
+                    no: "Non",
+                    other: "Autre",
+                    required: "requis",
+                    fieldRequired: "Ce champ est requis",
+                    edit: "Modifier",
+                    notSpecified: "Non spécifié",
+                    none: "Aucun",
+                    pleaseSpecify: "Veuillez préciser...",
+                    selectAtLeastOne: "Veuillez sélectionner au moins une option"
+                },
+                labels: {
+                    serviceProvider: "Prestataire de service",
+                    bookingToCancel: "Rendez-vous à annuler",
+                    cancellationDetails: "Détails de l'annulation"
+                },
+                placeholders: {
+                    cancellationReason: "Pourquoi souhaitez-vous annuler ce rendez-vous ?"
+                },
+                steps: [
+                    {
+                        title: "Annuler Votre Rendez-vous",
+                        desc: "Consultez les informations de votre rendez-vous et indiquez la raison de l'annulation"
+                    }
+                        ],
+                fields: {
+                    bookingToCancel: "Rendez-vous à Annuler",
+                    scheduledWith: "Programmé avec",
+                    currentDateTime: "Date et heure",
+                    serviceName: "Service",
+                    bookingNumber: "Numéro de Réservation",
+                    status: "Statut",
+                    confirmed: "Confirmé",
+                    attendee: "Participant",
+                    email: "Courriel",
+                    cancellationReason: "Raison de l'annulation",
+                    cancellationReasonPlaceholder: "Pourquoi souhaitez-vous annuler ce rendez-vous ?"
+                },
+                errors: {
+                    reasonRequired: "Veuillez indiquer la raison de l'annulation",
+                    cancellationError: "Erreur lors de l'annulation. Veuillez réessayer."
+                },
+                success: {
+                    title: "Rendez-vous annulé !",
+                    message: "Votre rendez-vous a été annulé avec succès. Vous recevrez sous peu un email de confirmation."
+                }
+            },
+            en: {
+                nav: {
+                    next: "Next",
+                    previous: "Previous",
+                    submit: "Cancel Appointment",
+                    processing: "Cancelling..."
+                },
+                common: {
+                    yes: "Yes",
+                    no: "No",
+                    other: "Other",
+                    required: "required",
+                    fieldRequired: "This field is required",
+                    edit: "Edit",
+                    notSpecified: "Not specified",
+                    none: "None",
+                    pleaseSpecify: "Please specify...",
+                    selectAtLeastOne: "Please select at least one option"
+                },
+                labels: {
+                    serviceProvider: "Service Provider",
+                    bookingToCancel: "Appointment to Cancel",
+                    cancellationDetails: "Cancellation Details"
+                },
+                placeholders: {
+                    cancellationReason: "Why do you want to cancel this appointment?"
+                },
+                steps: [
+                    {
+                        title: "Cancel Your Appointment",
+                        desc: "Review your appointment information and provide a reason for cancellation"
+                    }
+                        ],
+                fields: {
+                    bookingToCancel: "Appointment to Cancel",
+                    scheduledWith: "Scheduled with",
+                    currentDateTime: "Date and time",
+                    serviceName: "Service",
+                    bookingNumber: "Booking Number",
+                    status: "Status",
+                    confirmed: "Confirmed",
+                    attendee: "Attendee",
+                    email: "Email",
+                    cancellationReason: "Reason for cancellation",
+                    cancellationReasonPlaceholder: "Why do you want to cancel this appointment?"
+                },
+                errors: {
+                    reasonRequired: "Please provide a reason for cancellation",
+                    cancellationError: "Cancellation error. Please try again."
+                },
+                success: {
+                    title: "Appointment Cancelled!",
+                    message: "Your appointment has been successfully cancelled. You will receive a confirmation email shortly."
+                }
+            }
+        }
+    },
+    // ============================================================================
+    // FORM CONFIGURATION - Same as before, no changes needed
+    // ============================================================================
+    FORM_CONFIG: {
+        steps: [
+            {
+                sectionId: "cancellation_details", // NEW: Explicit section ID for generic processing
+                fields: [
+                    {
+                        type: 'booking-cancellation-card',
+                        id: 'currentAppointmentDisplay',
+                        required: false,
+                        serviceProvider: '{{serviceProvider}}',
+                        startTime: '{{startTime}}',
+                        serviceName: '{{serviceName}}',
+                        eventTypeSlug: '{{eventTypeSlug}}',
+                        language: '{{language}}',
+                        uid: '{{uid}}',
+                        email: '{{email}}',
+                        cardStyle: 'default',
+                        iconType: 'calendar',
+                        showServiceName: true,
+                        showDateTime: true,
+                        showProvider: true,
+                        showBookingInfo: true,
+                        showAttendeeInfo: true,
+                        translations: '{{translations}}',
+                        serviceMapping: '{{serviceMapping}}'
+                            },
+                    {
+                        type: 'textarea',
+                        id: 'cancellationReason',
+                        required: true,
+                        row: 'cancellationReason',
+                        rows: 4,
+                        maxLength: 500,
+                        showCounter: true,
+                        placeholder: '{{placeholder}}',
+                        getCustomErrorMessage: (lang) => CancellationDirectExtension.FORM_DATA.translations[lang].errors.reasonRequired
+                    }
+                ]
+            }
+        ]
+    }
+};
+// ============================================================================
 // SETUP AND INITIALIZATION
 // ============================================================================
 // Set up extension for global access
 window.SubmissionFormExtension = SubmissionFormExtension;
 window.ContactFormExtension = ContactFormExtension;
 window.BookingDirectExtension = BookingDirectExtension;
+window.RescheduleCalendarExtension = RescheduleCalendarExtension;
+window.CancellationDirectExtension = CancellationDirectExtension;
