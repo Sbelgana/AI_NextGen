@@ -1788,1067 +1788,1113 @@ const ContactFormExtension = {
 // ENHANCED BOOKING DIRECT EXTENSION - RESTRUCTURED ARCHITECTURE
 // ============================================================================
 const BookingDirectExtension = {
-    name: "ModernBookingDirect",
-    type: "response",
-    match: ({
-        trace
-    }) => trace.type === "ext_booking_direct" || trace.payload?.name === "ext_booking_direct",
-    // ============================================================================
-    // INITIALIZE REUSABLE CAL.COM UTILITY
-    // ============================================================================
-    initializeCalComUtility(config) {
-        if (!this.calComUtility) {
-            this.calComUtility = new CalComBaseUtility({
-                apiKey: config.apiKey,
-                logPrefix: "📅 BookingDirect",
-                enableLogging: config.enableDetailedLogging !== false,
-                errorMessages: {
-                    missingServiceSelection: "Service selection is required",
-                    missingContactInfo: "Contact information is required",
-                    bookingFailed: "Failed to create booking"
+            name: "ModernBookingDirect",
+            type: "response",
+            match: ({ trace }) => trace.type === "ext_booking_direct" || trace.payload?.name === "ext_booking_direct",
+            
+            // ============================================================================
+            // INITIALIZE REUSABLE CAL.COM UTILITY
+            // ============================================================================
+            initializeCalComUtility(config) {
+                if (!this.calComUtility) {
+                    this.calComUtility = new CalComBaseUtility({
+                        apiKey: config.apiKey,
+                        logPrefix: "📅 BookingDirect",
+                        enableLogging: config.enableDetailedLogging !== false,
+                        errorMessages: {
+                            missingServiceSelection: "Service selection is required",
+                            missingContactInfo: "Contact information is required",
+                            bookingFailed: "Failed to create booking"
+                        }
+                    });
+                } else {
+                    if (config.apiKey) {
+                        this.calComUtility.setApiKey(config.apiKey);
+                    }
                 }
-            });
-        } else {
-            if (config.apiKey) {
-                this.calComUtility.setApiKey(config.apiKey);
-            }
-        }
-        return this.calComUtility;
-    },
-    render: async ({
-        trace,
-        element
-    }) => {
-        // ============================================================================
-        // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
-        // ============================================================================
-        let {
-            language = "fr",
-                vf,
-                apiKey = CONFIG.DEFAULT_API_KEY,
-                timezone = "America/Toronto",
-                serviceProvider = "SkaLean",
-                voiceflowEnabled = true,
-                voiceflowDataTransformer = null,
-                enableDetailedLogging = true,
-                logPrefix = "📅 BookingDirect",
-                enableSessionTimeout = true,
-                sessionTimeout = CONFIG.SESSION_TIMEOUT,
-                sessionWarning = CONFIG.SESSION_WARNING,
-                cssUrls = CONFIG.DEFAULT_CSS,
-                formType = "booking",
-                formStructure = "multistep",
-                useStructuredData = true,
-                dataTransformer = BaseDataTransformer
-        } = trace.payload || {};
-        // Initialize Cal.com utility using extracted variables
-        const calComUtility = BookingDirectExtension.initializeCalComUtility({
-            apiKey: apiKey,
-            enableDetailedLogging: enableDetailedLogging
-        });
-        // Helper function to get translated text
-        const getTranslatedText = (key, lang = language) => {
-            const keys = key.split('.');
-            let value = BookingDirectExtension.FORM_DATA.translations[lang];
-            for (const k of keys) {
-                value = value?.[k];
-            }
-            return value || key;
-        };
-        // Update services with the provider from payload and extract correct language
-        const updatedFormData = JSON.parse(JSON.stringify(BookingDirectExtension.FORM_DATA));
-        updatedFormData.options.services = updatedFormData.options.services.map(service => {
-            // Extract language-specific text
-            const eventName = typeof service.eventName === 'object' ? service.eventName[language] : service.eventName;
-            const title = typeof service.title === 'object' ? service.title[language] : service.title;
-            const description = typeof service.description === 'object' ? service.description[language] : service.description;
-            const duration = typeof service.duration === 'object' ? service.duration[language] : service.duration;
-            return {
-                id: service.id,
-                eventTypeId: service.eventTypeId,
-                eventTypeSlug: service.eventTypeSlug,
-                scheduleId: service.scheduleId,
-                provider: serviceProvider,
-                eventName: eventName,
-                title: title,
-                description: description,
-                duration: duration,
-                serviceName: eventName,
-                name: title, // Simple string for form field
-                displayName: title
-            };
-        });
-        // Clone the form config and populate variables dynamically
-        const formConfig = JSON.parse(JSON.stringify(BookingDirectExtension.FORM_CONFIG));
-        // ============================================================================
-        // FIX 1: ADD PERSONALIZED ERROR MESSAGES FOR EACH FIELD
-        // ============================================================================
-        // Update firstName field with personalized error message
-        const firstNameField = formConfig.steps[1].fields[0];
-        firstNameField.placeholder = getTranslatedText('placeholders.firstName');
-        firstNameField.customErrorMessage = getTranslatedText('errors.firstName');
-        // Update lastName field with personalized error message  
-        const lastNameField = formConfig.steps[1].fields[1];
-        lastNameField.placeholder = getTranslatedText('placeholders.lastName');
-        lastNameField.customErrorMessage = getTranslatedText('errors.lastName');
-        // Update email field with personalized error messages
-        const emailField = formConfig.steps[1].fields[2];
-        emailField.placeholder = getTranslatedText('placeholders.email');
-        emailField.customErrorMessage = getTranslatedText('errors.email');
-        emailField.customErrorMessages = {
-            required: getTranslatedText('errors.email'),
-            invalid: getTranslatedText('errors.emailInvalid')
-        };
-        // ✅ FIX: Update service selection field with correct error message
-        const serviceField = formConfig.steps[0].fields[0];
-        serviceField.customErrorMessage = getTranslatedText('errors.serviceRequired');
-        serviceField.customErrorMessages = {
-            serviceRequired: getTranslatedText('errors.serviceRequired'),
-            required: getTranslatedText('errors.serviceRequired')
-        };
-        // ============================================================================
-        // FIX 2: CONFIGURE CALENDAR TO SHOW SELECTED SERVICE AND PROVIDER
-        // ============================================================================
-        // Populate calendar field variables dynamically
-        const calendarField = formConfig.steps[2].fields[0];
-        const defaultService = updatedFormData.options.services[0];
-        // Set calendar configuration variables
-        calendarField.apiKey = apiKey;
-        calendarField.timezone = timezone;
-        calendarField.language = language;
-        calendarField.locale = language === 'fr' ? 'fr-FR' : 'en-US';
-        // ✅ FIX: Use the correct property names for the new CalendarField
-        calendarField.specialist = serviceProvider; // "Dr. Sophie Martin" -> this.specialist
-        calendarField.selectedCategory = defaultService.eventName; // "Discovery Call" -> this.selectedCategory  
-        calendarField.selectionMode = 'none'; // Direct calendar mode (no dropdowns)
-        calendarField.availableServices = updatedFormData.options.services;
-        calendarField.dynamicServiceUpdate = true; // Enable dynamic updates
-        // Set default service variables
-        calendarField.eventTypeId = defaultService.eventTypeId;
-        calendarField.eventTypeSlug = defaultService.eventTypeSlug;
-        calendarField.scheduleId = defaultService.scheduleId;
-        calendarField.eventName = defaultService.eventName;
-        // ============================================================================
-        // PROVIDE ALL TRANSLATED TEXTS TO CALENDAR FIELD
-        // ============================================================================
-        const calendarTranslations = BookingDirectExtension.FORM_DATA.translations[language].calendar;
-        calendarField.texts = {
-            selectCategory: calendarTranslations.selectService, // Maps to selectService for UI
-            selectCategoryPlaceholder: calendarTranslations.selectServicePlaceholder,
-            selectItem: calendarTranslations.selectProvider, // Maps to selectProvider for UI
-            selectItemPlaceholder: calendarTranslations.selectProviderPlaceholder,
-            selectDate: calendarTranslations.selectDate,
-            availableTimesFor: calendarTranslations.availableTimesFor,
-            noAvailableSlots: calendarTranslations.noAvailableSlots,
-            pleaseSelectDate: calendarTranslations.pleaseSelectDate,
-            pleaseSelectCategory: calendarTranslations.pleaseSelectService,
-            pleaseSelectItem: calendarTranslations.pleaseSelectProvider,
-            currentAppointment: calendarTranslations.currentAppointment,
-            newAppointment: calendarTranslations.newAppointment,
-            loadingAvailability: calendarTranslations.loadingAvailability,
-            loading: calendarTranslations.loading,
-            weekdays: calendarTranslations.weekdays
-        };
-        // Provide error texts to calendar field
-        calendarField.errorTexts = {
-            categoryRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.serviceSelection,
-            itemRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.providerRequired || 'Please select a provider',
-            dateTimeRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.dateTimeRequired
-        };
-        // ============================================================================
-        // DRAMATICALLY SIMPLIFIED: Uses generic FormDataProcessor and BaseDataTransformer
-        // Same structure as SubmissionFormExtension, CancellationDirectExtension, and RescheduleCalendarExtension
-        // ============================================================================
-        // Create the form with the new generic architecture using extracted variables
-        const extension = new CreatForm({
-                language: language,
-                formType: formType,
-                formStructure: formStructure,
+                return this.calComUtility;
+            },
+            
+            render: async ({ trace, element }) => {
                 // ============================================================================
-                // NEW: Generic approach - no specific field transformers needed!
-                // BaseDataTransformer + FormDataProcessor handle everything automatically
+                // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
                 // ============================================================================
-                useStructuredData: useStructuredData,
-                dataTransformer: dataTransformer, // Generic transformer works with any form!
-                // DISABLED: Webhook integration (booking goes directly to Cal.com)
-                webhookEnabled: false,
-                webhookUrl: null,
-                // ENABLED: Voiceflow integration with optional custom transformer
-                voiceflowEnabled: voiceflowEnabled,
-                voiceflowDataTransformer: voiceflowDataTransformer,
-                // Enhanced logging using extracted variables
-                enableDetailedLogging: enableDetailedLogging,
-                logPrefix: logPrefix,
-                // Session management using extracted variables
-                enableSessionTimeout: enableSessionTimeout,
-                sessionTimeout: sessionTimeout,
-                sessionWarning: sessionWarning,
-                // Booking-specific configuration using extracted variables
-                apiKey: apiKey,
-                timezone: timezone,
-                serviceProvider: serviceProvider,
+                let { 
+                    language = "fr", 
+                    vf,
+                    apiKey = CONFIG.DEFAULT_API_KEY,
+                    timezone = "America/Toronto",
+                    serviceProvider = "SkaLean",
+                    voiceflowEnabled = true,
+                    voiceflowDataTransformer = null,
+                    enableDetailedLogging = true,
+                    logPrefix = "📅 BookingDirect",
+                    enableSessionTimeout = true,
+                    sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                    sessionWarning = CONFIG.SESSION_WARNING,
+                    cssUrls = CONFIG.DEFAULT_CSS,
+                    formType = "booking",
+                    formStructure = "multistep",
+                    useStructuredData = true,
+                    dataTransformer = BaseDataTransformer
+                } = trace.payload || {};
+
+                // Initialize Cal.com utility using extracted variables
+                const calComUtility = BookingDirectExtension.initializeCalComUtility({
+                    apiKey: apiKey,
+                    enableDetailedLogging: enableDetailedLogging
+                });
+
+                // Helper function to get translated text
+                const getTranslatedText = (key, lang = language) => {
+                    const keys = key.split('.');
+                    let value = BookingDirectExtension.FORM_DATA.translations[lang];
+                    for (const k of keys) {
+                        value = value?.[k];
+                    }
+                    return value || key;
+                };
+
+                // Update services with the provider from payload and extract correct language
+                const updatedFormData = JSON.parse(JSON.stringify(BookingDirectExtension.FORM_DATA));
+                updatedFormData.options.services = updatedFormData.options.services.map(service => {
+                    // Extract language-specific text
+                    const eventName = typeof service.eventName === 'object' ? service.eventName[language] : service.eventName;
+                    const title = typeof service.title === 'object' ? service.title[language] : service.title;
+                    const description = typeof service.description === 'object' ? service.description[language] : service.description;
+                    const duration = typeof service.duration === 'object' ? service.duration[language] : service.duration;
+                    
+                    return {
+                        id: service.id,
+                        eventTypeId: service.eventTypeId,
+                        eventTypeSlug: service.eventTypeSlug,
+                        scheduleId: service.scheduleId,
+                        provider: serviceProvider,
+                        eventName: eventName,
+                        title: title,
+                        description: description,
+                        duration: duration,
+                        serviceName: eventName,
+                        name: title, // Simple string for form field
+                        displayName: title
+                    };
+                });
+
+                // Clone the form config and populate variables dynamically
+                const formConfig = JSON.parse(JSON.stringify(BookingDirectExtension.FORM_CONFIG));
+                
                 // ============================================================================
-                // SIMPLIFIED: Just use the utility's handleBooking method!
+                // FIX 1: ADD PERSONALIZED ERROR MESSAGES FOR EACH FIELD
                 // ============================================================================
-                onSubmit: async (formData) => {
-                    return await calComUtility.handleBooking(formData, {
+                
+                // Update firstName field with personalized error message
+                const firstNameField = formConfig.steps[1].fields[0];
+                firstNameField.placeholder = getTranslatedText('placeholders.firstName');
+                firstNameField.customErrorMessage = getTranslatedText('errors.firstName');
+                
+                // Update lastName field with personalized error message  
+                const lastNameField = formConfig.steps[1].fields[1];
+                lastNameField.placeholder = getTranslatedText('placeholders.lastName');
+                lastNameField.customErrorMessage = getTranslatedText('errors.lastName');
+                
+                // Update email field with personalized error messages
+                const emailField = formConfig.steps[1].fields[2];
+                emailField.placeholder = getTranslatedText('placeholders.email');
+                emailField.customErrorMessage = getTranslatedText('errors.email');
+                emailField.customErrorMessages = {
+                    required: getTranslatedText('errors.email'),
+                    invalid: getTranslatedText('errors.emailInvalid')
+                };
+
+                // ✅ FIX: Update service selection field with correct error message
+                const serviceField = formConfig.steps[0].fields[0];
+                serviceField.customErrorMessage = getTranslatedText('errors.serviceRequired');
+                serviceField.customErrorMessages = {
+                    serviceRequired: getTranslatedText('errors.serviceRequired'),
+                    required: getTranslatedText('errors.serviceRequired')
+                };
+                
+                // ============================================================================
+                // FIX 2: CONFIGURE CALENDAR TO SHOW SELECTED SERVICE AND PROVIDER
+                // ============================================================================
+                
+                // Populate calendar field variables dynamically
+                const calendarField = formConfig.steps[2].fields[0];
+                const defaultService = updatedFormData.options.services[0];
+                
+                // Set calendar configuration variables
+                calendarField.apiKey = apiKey;
+                calendarField.timezone = timezone;
+                calendarField.language = language;
+                calendarField.locale = language === 'fr' ? 'fr-FR' : 'en-US';
+
+                // ✅ FIX: Use the correct property names for the new CalendarField
+                calendarField.specialist = serviceProvider; // "Dr. Sophie Martin" -> this.specialist
+                calendarField.selectedCategory = defaultService.eventName; // "Discovery Call" -> this.selectedCategory  
+                calendarField.selectionMode = 'none'; // Direct calendar mode (no dropdowns)
+
+                calendarField.availableServices = updatedFormData.options.services;
+                calendarField.dynamicServiceUpdate = true; // Enable dynamic updates
+                
+                // Set default service variables
+                calendarField.eventTypeId = defaultService.eventTypeId;
+                calendarField.eventTypeSlug = defaultService.eventTypeSlug;
+                calendarField.scheduleId = defaultService.scheduleId;
+                calendarField.eventName = defaultService.eventName;
+                
+                // ============================================================================
+                // PROVIDE ALL TRANSLATED TEXTS TO CALENDAR FIELD
+                // ============================================================================
+                const calendarTranslations = BookingDirectExtension.FORM_DATA.translations[language].calendar;
+                calendarField.texts = {
+                    selectCategory: calendarTranslations.selectService, // Maps to selectService for UI
+                    selectCategoryPlaceholder: calendarTranslations.selectServicePlaceholder,
+                    selectItem: calendarTranslations.selectProvider, // Maps to selectProvider for UI
+                    selectItemPlaceholder: calendarTranslations.selectProviderPlaceholder,
+                    selectDate: calendarTranslations.selectDate,
+                    availableTimesFor: calendarTranslations.availableTimesFor,
+                    noAvailableSlots: calendarTranslations.noAvailableSlots,
+                    pleaseSelectDate: calendarTranslations.pleaseSelectDate,
+                    pleaseSelectCategory: calendarTranslations.pleaseSelectService,
+                    pleaseSelectItem: calendarTranslations.pleaseSelectProvider,
+                    currentAppointment: calendarTranslations.currentAppointment,
+                    newAppointment: calendarTranslations.newAppointment,
+                    loadingAvailability: calendarTranslations.loadingAvailability,
+                    loading: calendarTranslations.loading,
+                    weekdays: calendarTranslations.weekdays
+                };
+                
+                // Provide error texts to calendar field
+                calendarField.errorTexts = {
+                    categoryRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.serviceSelection,
+                    itemRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.providerRequired || 'Please select a provider',
+                    dateTimeRequired: BookingDirectExtension.FORM_DATA.translations[language].errors.dateTimeRequired
+                };
+
+                // ============================================================================
+                // FIXED: Disable CreatForm's Voiceflow - CalComBaseUtility handles it
+                // This prevents double-sending to Voiceflow
+                // ============================================================================
+                
+                // Create the form with the new generic architecture using extracted variables
+                const extension = new CreatForm(
+                    {
                         language: language,
+                        formType: formType,
+                        formStructure: formStructure,
+                        
+                        // ============================================================================
+                        // NEW: Generic approach - no specific field transformers needed!
+                        // BaseDataTransformer + FormDataProcessor handle everything automatically
+                        // ============================================================================
+                        useStructuredData: useStructuredData,
+                        dataTransformer: dataTransformer, // Generic transformer works with any form!
+                        
+                        // DISABLED: Webhook integration (booking goes directly to Cal.com)
+                        webhookEnabled: false,
+                        webhookUrl: null,
+                        
+                        // FIXED: Disable CreatForm's Voiceflow - CalComBaseUtility handles it properly
+                        voiceflowEnabled: false, // ← CHANGED: was voiceflowEnabled, now false
+                        voiceflowDataTransformer: null, // ← This is ignored when voiceflowEnabled is false
+                        
+                        // Enhanced logging using extracted variables
+                        enableDetailedLogging: enableDetailedLogging,
+                        logPrefix: logPrefix,
+                        
+                        // Session management using extracted variables
+                        enableSessionTimeout: enableSessionTimeout,
+                        sessionTimeout: sessionTimeout,
+                        sessionWarning: sessionWarning,
+                        
+                        // Booking-specific configuration using extracted variables
                         apiKey: apiKey,
                         timezone: timezone,
                         serviceProvider: serviceProvider,
-                        voiceflowEnabled: voiceflowEnabled,
-                        formVersion: CONFIG.FORM_VERSION
-                    });
-                },
-                // CSS configuration using extracted variables
-                cssUrls: cssUrls
+                        
+                        // ============================================================================
+                        // SIMPLIFIED: Just use the utility's handleBooking method!
+                        // ============================================================================
+                        onSubmit: async (formData) => {
+                            return await calComUtility.handleBooking(formData, {
+                                language: language,
+                                apiKey: apiKey,
+                                timezone: timezone,
+                                serviceProvider: serviceProvider,
+                                voiceflowEnabled: voiceflowEnabled, // ← This controls CalComBaseUtility's Voiceflow
+                                formVersion: CONFIG.FORM_VERSION
+                            });
+                        },
+                        
+                        // CSS configuration using extracted variables
+                        cssUrls: cssUrls
+                    },
+                    updatedFormData,
+                    formConfig
+                );
+
+                return await extension.render(element);
             },
-            updatedFormData,
-            formConfig
-        );
-        return await extension.render(element);
-    },
-    // ============================================================================
-    // FORM DATA CONFIGURATION - Enhanced with better error messages
-    // ============================================================================
-    FORM_DATA: {
-        options: {
-            services: [
-                {
-                    id: 1,
-                    eventName: {
-                        fr: "Entretien Exploratoire",
-                        en: "Discovery Call"
-                    },
-                    title: {
-                        fr: "Entretien exploratoire",
-                        en: "Discovery Call"
-                    },
-                    description: {
-                        fr: "Entretien de 15 minutes visant à analyser vos besoins, définir vos objectifs et déterminer comment nos services peuvent y répondre efficacement.",
-                        en: "15-minute consultation to analyze your needs, define your objectives and determine how our services can respond effectively."
-                    },
-                    duration: {
-                        fr: "15 minutes",
-                        en: "15 minutes"
-                    },
-                    eventTypeId: 2355643,
-                    eventTypeSlug: "discovery-call-15-minutes",
-                    scheduleId: 628047,
-                    provider: "SkaLean"
+
+            // ============================================================================
+            // FORM DATA CONFIGURATION - Enhanced with better error messages
+            // ============================================================================
+            FORM_DATA: {
+                options: {
+                    services: [
+                        {
+                            id: 1,
+                            eventName: { 
+                                fr: "Entretien Exploratoire",
+                                en: "Discovery Call"
+                            },
+                            title: { 
+                                fr: "Entretien exploratoire",
+                                en: "Discovery Call"
+                            },
+                            description: { 
+                                fr: "Entretien de 15 minutes visant à analyser vos besoins, définir vos objectifs et déterminer comment nos services peuvent y répondre efficacement.",
+                                en: "15-minute consultation to analyze your needs, define your objectives and determine how our services can respond effectively."
+                            },
+                            duration: { 
+                                fr: "15 minutes",
+                                en: "15 minutes"
+                            },
+                            eventTypeId: 2355643,
+                            eventTypeSlug: "discovery-call-15-minutes",
+                            scheduleId: 628047,
+                            provider: "SkaLean"
                         },
-                {
-                    id: 2,
-                    eventName: {
-                        fr: "Démonstration de l'Agent IA",
-                        en: "AI Agent Demonstration"
-                    },
-                    title: {
-                        fr: "Démonstration de l'Agent IA",
-                        en: "AI Agent Demonstration"
-                    },
-                    description: {
-                        fr: "Démonstration détaillée illustrant les capacités et les applications pratiques de notre technologie d'Agent IA en 15 minutes.",
-                        en: "Detailed demonstration showcasing the capabilities and practical applications of our AI Agent technology in 15 minutes."
-                    },
-                    duration: {
-                        fr: "15 minutes",
-                        en: "15 minutes"
-                    },
-                    eventTypeId: 2355602,
-                    eventTypeSlug: "demonstration-chatbot-15min",
-                    scheduleId: 628047,
-                    provider: "SkaLean"
+                        {
+                            id: 2,
+                            eventName: { 
+                                fr: "Démonstration de l'Agent IA",
+                                en: "AI Agent Demonstration"
+                            },
+                            title: { 
+                                fr: "Démonstration de l'Agent IA",
+                                en: "AI Agent Demonstration"
+                            },
+                            description: { 
+                                fr: "Démonstration détaillée illustrant les capacités et les applications pratiques de notre technologie d'Agent IA en 15 minutes.",
+                                en: "Detailed demonstration showcasing the capabilities and practical applications of our AI Agent technology in 15 minutes."
+                            },
+                            duration: { 
+                                fr: "15 minutes",
+                                en: "15 minutes"
+                            },
+                            eventTypeId: 2355602,
+                            eventTypeSlug: "demonstration-chatbot-15min",
+                            scheduleId: 628047,
+                            provider: "SkaLean"
                         },
-                {
-                    id: 3,
-                    eventName: {
-                        fr: "Présentation Détaillée",
-                        en: "Detailed Presentation"
-                    },
-                    title: {
-                        fr: "Présentation",
-                        en: "Presentation"
-                    },
-                    description: {
-                        fr: "Session de 45 minutes réservée aux clients ayant déjà effectué un entretien exploratoire ou rencontré notre équipe en personne, destinée à présenter des solutions personnalisées et des recommandations stratégiques.",
-                        en: "45-minute session reserved for clients who have already completed a discovery call or met our team in person, designed to present personalized solutions and strategic recommendations."
-                    },
-                    duration: {
-                        fr: "45 minutes",
-                        en: "45 minutes"
-                    },
-                    eventTypeId: 2355601,
-                    eventTypeSlug: "reunion-45min",
-                    scheduleId: 631172,
-                    provider: "SkaLean"
+                        {
+                            id: 3,
+                            eventName: { 
+                                fr: "Présentation Détaillée",
+                                en: "Detailed Presentation"
+                            },
+                            title: { 
+                                fr: "Présentation",
+                                en: "Presentation"
+                            },
+                            description: { 
+                                fr: "Session de 45 minutes réservée aux clients ayant déjà effectué un entretien exploratoire ou rencontré notre équipe en personne, destinée à présenter des solutions personnalisées et des recommandations stratégiques.",
+                                en: "45-minute session reserved for clients who have already completed a discovery call or met our team in person, designed to present personalized solutions and strategic recommendations."
+                            },
+                            duration: { 
+                                fr: "45 minutes",
+                                en: "45 minutes"
+                            },
+                            eventTypeId: 2355601,
+                            eventTypeSlug: "reunion-45min",
+                            scheduleId: 631172,
+                            provider: "SkaLean"
                         },
-                {
-                    id: 4,
-                    eventName: {
-                        fr: "Session de Travail",
-                        en: "Working Session"
-                    },
-                    title: {
-                        fr: "Session de travail",
-                        en: "Working Session"
-                    },
-                    description: {
-                        fr: "Session collaborative de 60 minutes dédiée aux projets en cours, aux suivis approfondis et aux séances de réflexion stratégique.",
-                        en: "60-minute collaborative session dedicated to ongoing projects, in-depth follow-ups and strategic brainstorming sessions."
-                    },
-                    duration: {
-                        fr: "60 minutes",
-                        en: "60 minutes"
-                    },
-                    eventTypeId: 2355663,
-                    eventTypeSlug: "reunion-projet",
-                    scheduleId: 628644,
-                    provider: "SkaLean"
+                        {
+                            id: 4,
+                            eventName: { 
+                                fr: "Session de Travail",
+                                en: "Working Session"
+                            },
+                            title: { 
+                                fr: "Session de travail",
+                                en: "Working Session"
+                            },
+                            description: { 
+                                fr: "Session collaborative de 60 minutes dédiée aux projets en cours, aux suivis approfondis et aux séances de réflexion stratégique.",
+                                en: "60-minute collaborative session dedicated to ongoing projects, in-depth follow-ups and strategic brainstorming sessions."
+                            },
+                            duration: { 
+                                fr: "60 minutes",
+                                en: "60 minutes"
+                            },
+                            eventTypeId: 2355663,
+                            eventTypeSlug: "reunion-projet",
+                            scheduleId: 628644,
+                            provider: "SkaLean"
                         }
                     ]
-        },
-        translations: {
-            fr: {
-                nav: {
-                    next: "Suivant",
-                    previous: "Précédent",
-                    submit: "Confirmer la réservation",
-                    processing: "Traitement en cours..."
                 },
-                common: {
-                    yes: "Oui",
-                    no: "Non",
-                    other: "Autre",
-                    required: "requis",
-                    fieldRequired: "Ce champ est requis",
-                    edit: "Modifier",
-                    notSpecified: "Non spécifié",
-                    none: "Aucun",
-                    pleaseSpecify: "Veuillez préciser...",
-                    selectAtLeastOne: "Veuillez sélectionner au moins une option"
-                },
-                labels: {
-                    serviceProvider: "Prestataire de service",
-                    selectedService: "Service sélectionné",
-                    appointmentDetails: "Détails du rendez-vous"
-                },
-                placeholders: {
-                    firstName: "Entrez votre prénom",
-                    lastName: "Entrez votre nom de famille",
-                    email: "votre.email@example.com"
-                },
-                steps: [
-                    {
-                        title: "Sélection du Service",
-                        desc: "Choisissez le service qui vous intéresse le plus"
-                    },
-                    {
-                        title: "Informations de Contact",
-                        desc: "Renseignez vos informations de contact"
-                    },
-                    {
-                        title: "Date et Heure",
-                        desc: "Choisissez votre créneau préféré"
-                    }
+                
+                translations: {
+                    fr: {
+                        nav: { 
+                            next: "Suivant", 
+                            previous: "Précédent", 
+                            submit: "Confirmer la réservation", 
+                            processing: "Traitement en cours..." 
+                        },
+                        common: { 
+                            yes: "Oui", 
+                            no: "Non", 
+                            other: "Autre", 
+                            required: "requis", 
+                            fieldRequired: "Ce champ est requis", 
+                            edit: "Modifier", 
+                            notSpecified: "Non spécifié", 
+                            none: "Aucun",
+                            pleaseSpecify: "Veuillez préciser...",
+                            selectAtLeastOne: "Veuillez sélectionner au moins une option"
+                        },
+                        labels: {
+                            serviceProvider: "Prestataire de service",
+                            selectedService: "Service sélectionné",
+                            appointmentDetails: "Détails du rendez-vous"
+                        },
+                        placeholders: {
+                            firstName: "Entrez votre prénom",
+                            lastName: "Entrez votre nom de famille",
+                            email: "votre.email@example.com"
+                        },
+                        steps: [
+                            { title: "Sélection du Service", desc: "Choisissez le service qui vous intéresse le plus" },
+                            { title: "Informations de Contact", desc: "Renseignez vos informations de contact" },
+                            { title: "Date et Heure", desc: "Choisissez votre créneau préféré" }
                         ],
-                fields: {
-                    serviceSelection: "Sélectionnez un service",
-                    firstName: "Prénom",
-                    lastName: "Nom de famille",
-                    email: "Adresse électronique",
-                    appointment: "Sélectionnez date et heure",
-                    scheduledWith: "Programmé avec",
-                    serviceName: "Service"
-                },
-                errors: {
-                    serviceSelection: "Veuillez sélectionner un service",
-                    serviceRequired: "Veuillez sélectionner un service", // ✅ FIX: Add the key that ServiceCardField expects
-                    // FIX 1: More personalized error messages
-                    firstName: "Le prénom est requis",
-                    lastName: "Le nom de famille est requis",
-                    email: "Une adresse email valide est requise",
-                    emailInvalid: "Le format de l'adresse email n'est pas valide",
-                    appointment: "Veuillez sélectionner une date et une heure",
-                    dateTimeRequired: "Veuillez sélectionner une date et une heure",
-                    bookingError: "Erreur lors de la réservation. Veuillez réessayer.",
-                    providerRequired: "Veuillez sélectionner un fournisseur de services"
-                },
-                success: {
-                    title: "Rendez-vous confirmé !",
-                    message: "Votre rendez-vous a été programmé avec succès. Vous recevrez sous peu un email de confirmation."
-                },
-                calendar: {
-                    selectService: "Sélectionner un service",
-                    selectServicePlaceholder: "-- Sélectionner un service --",
-                    selectProvider: "Sélectionner un fournisseur de services",
-                    selectProviderPlaceholder: "-- Sélectionner un fournisseur --",
-                    selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-                    availableTimesFor: "Disponibilités pour",
-                    noAvailableSlots: "Aucun horaire disponible pour cette date",
-                    pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-                    pleaseSelectService: "Veuillez d'abord sélectionner un service",
-                    pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
-                    currentAppointment: "Rendez-vous Actuel",
-                    newAppointment: "Nouveau Rendez-vous",
-                    loadingAvailability: "Chargement des disponibilités...",
-                    loading: "Chargement...",
-                    weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                        fields: {
+                            serviceSelection: "Sélectionnez un service",
+                            firstName: "Prénom",
+                            lastName: "Nom de famille",
+                            email: "Adresse électronique",
+                            appointment: "Sélectionnez date et heure",
+                            scheduledWith: "Programmé avec",
+                            serviceName: "Service"
+                        },
+                        errors: {
+                            serviceSelection: "Veuillez sélectionner un service",
+                            serviceRequired: "Veuillez sélectionner un service", // ✅ FIX: Add the key that ServiceCardField expects
+                            // FIX 1: More personalized error messages
+                            firstName: "Le prénom est requis",
+                            lastName: "Le nom de famille est requis", 
+                            email: "Une adresse email valide est requise",
+                            emailInvalid: "Le format de l'adresse email n'est pas valide",
+                            appointment: "Veuillez sélectionner une date et une heure",
+                            dateTimeRequired: "Veuillez sélectionner une date et une heure",
+                            bookingError: "Erreur lors de la réservation. Veuillez réessayer.",
+                            providerRequired: "Veuillez sélectionner un fournisseur de services"
+                        },
+                        success: { 
+                            title: "Rendez-vous confirmé !", 
+                            message: "Votre rendez-vous a été programmé avec succès. Vous recevrez sous peu un email de confirmation." 
+                        },
+                        calendar: {
+                            selectService: "Sélectionner un service",
+                            selectServicePlaceholder: "-- Sélectionner un service --",
+                            selectProvider: "Sélectionner un fournisseur de services",
+                            selectProviderPlaceholder: "-- Sélectionner un fournisseur --",
+                            selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                            availableTimesFor: "Disponibilités pour",
+                            noAvailableSlots: "Aucun horaire disponible pour cette date",
+                            pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                            pleaseSelectService: "Veuillez d'abord sélectionner un service",
+                            pleaseSelectProvider: "Veuillez d'abord sélectionner un fournisseur de services",
+                            currentAppointment: "Rendez-vous Actuel",
+                            newAppointment: "Nouveau Rendez-vous",
+                            loadingAvailability: "Chargement des disponibilités...",
+                            loading: "Chargement...",
+                            weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                        }
+                    },
+                    
+                    en: {
+                        nav: { 
+                            next: "Next", 
+                            previous: "Previous", 
+                            submit: "Confirm Booking", 
+                            processing: "Processing..." 
+                        },
+                        common: { 
+                            yes: "Yes", 
+                            no: "No", 
+                            other: "Other", 
+                            required: "required", 
+                            fieldRequired: "This field is required", 
+                            edit: "Edit", 
+                            notSpecified: "Not specified", 
+                            none: "None",
+                            pleaseSpecify: "Please specify...",
+                            selectAtLeastOne: "Please select at least one option"
+                        },
+                        labels: {
+                            serviceProvider: "Service Provider",
+                            selectedService: "Selected Service",
+                            appointmentDetails: "Appointment Details"
+                        },
+                        placeholders: {
+                            firstName: "Enter your first name",
+                            lastName: "Enter your last name",
+                            email: "your.email@example.com"
+                        },
+                        steps: [
+                            { title: "Service Selection", desc: "Choose the service that interests you most" },
+                            { title: "Contact Information", desc: "Enter your contact information" },
+                            { title: "Date & Time", desc: "Choose your preferred time slot" }
+                        ],
+                        fields: {
+                            serviceSelection: "Select a Service",
+                            firstName: "First Name",
+                            lastName: "Last Name",
+                            email: "Email Address",
+                            appointment: "Select date and time",
+                            scheduledWith: "Scheduled with",
+                            serviceName: "Service"
+                        },
+                        errors: {
+                            serviceSelection: "Please select a service",
+                            serviceRequired: "Please select a service", // ✅ FIX: Add the key that ServiceCardField expects
+                            // FIX 1: More personalized error messages
+                            firstName: "First name is required",
+                            lastName: "Last name is required",
+                            email: "A valid email address is required",
+                            emailInvalid: "Email format is not valid",
+                            appointment: "Please select a date and time",
+                            dateTimeRequired: "Please select a date and time",
+                            bookingError: "Booking error. Please try again.",
+                            providerRequired: "Please select a service provider"
+                        },
+                        success: { 
+                            title: "Appointment Confirmed!", 
+                            message: "Your appointment has been successfully scheduled. You will receive a confirmation email shortly." 
+                        },
+                        calendar: {
+                            selectService: "Select a service",
+                            selectServicePlaceholder: "-- Select a service --",
+                            selectProvider: "Select a service provider",
+                            selectProviderPlaceholder: "-- Select a provider --",
+                            selectDate: "Select a date to view available times",
+                            availableTimesFor: "Available times for",
+                            noAvailableSlots: "No available time slots for this date",
+                            pleaseSelectDate: "Please select a date first",
+                            pleaseSelectService: "Please select a service first",
+                            pleaseSelectProvider: "Please select a service provider first",
+                            currentAppointment: "Current Appointment",
+                            newAppointment: "New Appointment",
+                            loadingAvailability: "Loading availability...",
+                            loading: "Loading...",
+                            weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                        }
+                    }
                 }
             },
-            en: {
-                nav: {
-                    next: "Next",
-                    previous: "Previous",
-                    submit: "Confirm Booking",
-                    processing: "Processing..."
-                },
-                common: {
-                    yes: "Yes",
-                    no: "No",
-                    other: "Other",
-                    required: "required",
-                    fieldRequired: "This field is required",
-                    edit: "Edit",
-                    notSpecified: "Not specified",
-                    none: "None",
-                    pleaseSpecify: "Please specify...",
-                    selectAtLeastOne: "Please select at least one option"
-                },
-                labels: {
-                    serviceProvider: "Service Provider",
-                    selectedService: "Selected Service",
-                    appointmentDetails: "Appointment Details"
-                },
-                placeholders: {
-                    firstName: "Enter your first name",
-                    lastName: "Enter your last name",
-                    email: "your.email@example.com"
-                },
+
+            // ============================================================================
+            // FORM CONFIGURATION - Enhanced with better field configuration
+            // ============================================================================
+            FORM_CONFIG: {
                 steps: [
-                    {
-                        title: "Service Selection",
-                        desc: "Choose the service that interests you most"
-                    },
-                    {
-                        title: "Contact Information",
-                        desc: "Enter your contact information"
-                    },
-                    {
-                        title: "Date & Time",
-                        desc: "Choose your preferred time slot"
-                    }
-                        ],
-                fields: {
-                    serviceSelection: "Select a Service",
-                    firstName: "First Name",
-                    lastName: "Last Name",
-                    email: "Email Address",
-                    appointment: "Select date and time",
-                    scheduledWith: "Scheduled with",
-                    serviceName: "Service"
-                },
-                errors: {
-                    serviceSelection: "Please select a service",
-                    serviceRequired: "Please select a service", // ✅ FIX: Add the key that ServiceCardField expects
-                    // FIX 1: More personalized error messages
-                    firstName: "First name is required",
-                    lastName: "Last name is required",
-                    email: "A valid email address is required",
-                    emailInvalid: "Email format is not valid",
-                    appointment: "Please select a date and time",
-                    dateTimeRequired: "Please select a date and time",
-                    bookingError: "Booking error. Please try again.",
-                    providerRequired: "Please select a service provider"
-                },
-                success: {
-                    title: "Appointment Confirmed!",
-                    message: "Your appointment has been successfully scheduled. You will receive a confirmation email shortly."
-                },
-                calendar: {
-                    selectService: "Select a service",
-                    selectServicePlaceholder: "-- Select a service --",
-                    selectProvider: "Select a service provider",
-                    selectProviderPlaceholder: "-- Select a provider --",
-                    selectDate: "Select a date to view available times",
-                    availableTimesFor: "Available times for",
-                    noAvailableSlots: "No available time slots for this date",
-                    pleaseSelectDate: "Please select a date first",
-                    pleaseSelectService: "Please select a service first",
-                    pleaseSelectProvider: "Please select a service provider first",
-                    currentAppointment: "Current Appointment",
-                    newAppointment: "New Appointment",
-                    loadingAvailability: "Loading availability...",
-                    loading: "Loading...",
-                    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-                }
-            }
-        }
-    },
-    // ============================================================================
-    // FORM CONFIGURATION - Enhanced with better field configuration
-    // ============================================================================
-    FORM_CONFIG: {
-        steps: [
                     // Step 1: Service Selection
-            {
-                sectionId: "service_selection", // NEW: Explicit section ID for generic processing
-                fields: [
                     {
-                        type: 'serviceCard',
-                        id: 'serviceSelection',
-                        required: true,
-                        options: 'services',
-                        layout: 'grid',
-                        columns: 'auto',
-                        showDuration: true,
-                        showDescription: true,
-                        selectionMode: 'single',
-                        allowDeselect: false,
-                        // ✅ FIX: Error messages will be set dynamically in render()
-                        // Add callback to update calendar when service is selected
-                        onChange: function (selectedService) {
-                            if (selectedService && this.factory) {
-                                // Find calendar field in the form and update it
-                                const calendarField = this.factory.findCalendarField();
-                                if (calendarField) {
-                                    calendarField.updateServiceConfiguration(selectedService);
+                        sectionId: "service_selection", // NEW: Explicit section ID for generic processing
+                        fields: [
+                            {
+                                type: 'serviceCard',
+                                id: 'serviceSelection',
+                                required: true,
+                                options: 'services',
+                                layout: 'grid',
+                                columns: 'auto',
+                                showDuration: true,
+                                showDescription: true,
+                                selectionMode: 'single',
+                                allowDeselect: false,
+                                // ✅ FIX: Error messages will be set dynamically in render()
+                                
+                                // Add callback to update calendar when service is selected
+                                onChange: function(selectedService) {
+                                    if (selectedService && this.factory) {
+                                        // Find calendar field in the form and update it
+                                        const calendarField = this.factory.findCalendarField();
+                                        if (calendarField) {
+                                            calendarField.updateServiceConfiguration(selectedService);
+                                        }
+                                    }
                                 }
                             }
-                        }
-                            }
                         ]
                     },
-
+                    
                     // Step 2: Contact Information
-            {
-                sectionId: "contact_information", // NEW: Explicit section ID for generic processing
-                fields: [
                     {
-                        type: 'text',
-                        id: 'firstName',
-                        required: true,
-                        row: 'name',
-                        placeholder: '{{placeholder}}', // Will be populated dynamically
-                        customErrorMessage: '{{customErrorMessage}}' // Will be populated dynamically
+                        sectionId: "contact_information", // NEW: Explicit section ID for generic processing
+                        fields: [
+                            {
+                                type: 'text',
+                                id: 'firstName',
+                                required: true,
+                                row: 'name',
+                                placeholder: '{{placeholder}}', // Will be populated dynamically
+                                customErrorMessage: '{{customErrorMessage}}' // Will be populated dynamically
                             },
-                    {
-                        type: 'text',
-                        id: 'lastName',
-                        required: true,
-                        row: 'name',
-                        placeholder: '{{placeholder}}', // Will be populated dynamically
-                        customErrorMessage: '{{customErrorMessage}}' // Will be populated dynamically
+                            {
+                                type: 'text',
+                                id: 'lastName',
+                                required: true,
+                                row: 'name',
+                                placeholder: '{{placeholder}}', // Will be populated dynamically
+                                customErrorMessage: '{{customErrorMessage}}' // Will be populated dynamically
                             },
-                    {
-                        type: 'email',
-                        id: 'email',
-                        required: true,
-                        row: 'email',
-                        placeholder: '{{placeholder}}', // Will be populated dynamically
-                        customErrorMessage: '{{customErrorMessage}}', // Will be populated dynamically
-                        customErrorMessages: '{{customErrorMessages}}' // Will be populated dynamically
+                            {
+                                type: 'email',
+                                id: 'email',
+                                required: true,
+                                row: 'email',
+                                placeholder: '{{placeholder}}', // Will be populated dynamically
+                                customErrorMessage: '{{customErrorMessage}}', // Will be populated dynamically
+                                customErrorMessages: '{{customErrorMessages}}' // Will be populated dynamically
                             }
                         ]
                     },
-
+                    
                     // Step 3: Calendar - Variables will be populated dynamically during render()
-            {
-                sectionId: "appointment_scheduling", // NEW: Explicit section ID for generic processing
-                fields: [
                     {
-                        type: 'calendar',
-                        id: 'appointment',
-                        row: 'appointment',
-                        required: true,
-                        mode: 'booking',
-                        headerIcon: 'CALENDAR',
-                        // These parameters will be dynamically populated during render()
-                        apiKey: '{{apiKey}}',
-                        timezone: '{{timezone}}',
-                        language: '{{language}}',
-                        eventTypeId: '{{eventTypeId}}',
-                        eventTypeSlug: '{{eventTypeSlug}}',
-                        scheduleId: '{{scheduleId}}',
-                        specialist: '{{specialist}}',
-                        selectedCategory: '{{selectedCategory}}',
-                        eventName: '{{eventName}}',
-                        availableServices: '{{availableServices}}',
-                        dynamicServiceUpdate: true,
-                        getCustomErrorMessage: (lang) => BookingDirectExtension.FORM_DATA.translations[lang].errors.appointment,
-                        getCustomErrorMessages: (lang) => ({
-                            required: BookingDirectExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
-                            bookingError: BookingDirectExtension.FORM_DATA.translations[lang].errors.bookingError
-                        })
+                        sectionId: "appointment_scheduling", // NEW: Explicit section ID for generic processing
+                        fields: [
+                            {
+                                type: 'calendar',
+                                id: 'appointment',
+                                row: 'appointment',
+                                required: true,
+                                mode: 'booking',
+                                headerIcon: 'CALENDAR',
+                                
+                                // These parameters will be dynamically populated during render()
+                                apiKey: '{{apiKey}}',
+                                timezone: '{{timezone}}',
+                                language: '{{language}}',
+                                eventTypeId: '{{eventTypeId}}',
+                                eventTypeSlug: '{{eventTypeSlug}}',
+                                scheduleId: '{{scheduleId}}',
+                                specialist: '{{specialist}}',
+                                selectedCategory: '{{selectedCategory}}',
+                                eventName: '{{eventName}}',
+                                availableServices: '{{availableServices}}',
+                                dynamicServiceUpdate: true,
+                                
+                                getCustomErrorMessage: (lang) => BookingDirectExtension.FORM_DATA.translations[lang].errors.appointment,
+                                getCustomErrorMessages: (lang) => ({
+                                    required: BookingDirectExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                                    bookingError: BookingDirectExtension.FORM_DATA.translations[lang].errors.bookingError
+                                })
                             }
                         ]
                     }
                 ]
-    },
-    // ============================================================================
-    // HELPER METHODS - Same as before, no changes needed
-    // ============================================================================
-    getServiceName: (eventTypeSlug, language = 'fr') => {
-        // Find service by eventTypeSlug in the services array
-        const service = BookingDirectExtension.FORM_DATA.options.services.find(
-            s => s.eventTypeSlug === eventTypeSlug
-        );
-        if (service && service.eventName) {
-            // Return the correct language version
-            if (typeof service.eventName === 'object') {
-                return service.eventName[language] || service.eventName.fr || service.eventName.en;
+            },
+
+            // ============================================================================
+            // HELPER METHODS - Same as before, no changes needed
+            // ============================================================================
+            
+            getServiceName: (eventTypeSlug, language = 'fr') => {
+                // Find service by eventTypeSlug in the services array
+                const service = BookingDirectExtension.FORM_DATA.options.services.find(
+                    s => s.eventTypeSlug === eventTypeSlug
+                );
+                
+                if (service && service.eventName) {
+                    // Return the correct language version
+                    if (typeof service.eventName === 'object') {
+                        return service.eventName[language] || service.eventName.fr || service.eventName.en;
+                    }
+                    return service.eventName;
+                }
+                
+                // Fallback: format the slug nicely
+                if (eventTypeSlug) {
+                    return eventTypeSlug
+                        .replace(/-/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                }
+                
+                return 'Service';
             }
-            return service.eventName;
-        }
-        // Fallback: format the slug nicely
-        if (eventTypeSlug) {
-            return eventTypeSlug
-                .replace(/-/g, ' ')
-                .replace(/\b\w/g, l => l.toUpperCase());
-        }
-        return 'Service';
-    }
-};
+        };
+
+
+
 // ============================================================================
 // ENHANCED RESCHEDULE CALENDAR EXTENSION - RESTRUCTURED ARCHITECTURE
 // ============================================================================
 const RescheduleCalendarExtension = {
-    name: "ModernRescheduleCalendar",
-    type: "response",
-    match: ({
-        trace
-    }) => trace.type === "ext_reschedule_calendar" || trace.payload?.name === "ext_reschedule_calendar",
-    // ============================================================================
-    // INITIALIZE REUSABLE CAL.COM UTILITY
-    // ============================================================================
-    initializeCalComUtility(config) {
-        if (!this.calComUtility) {
-            this.calComUtility = new CalComBaseUtility({
-                apiKey: config.apiKey,
-                logPrefix: "📅 RescheduleCalendar",
-                enableLogging: config.enableDetailedLogging !== false,
-                errorMessages: {
-                    missingNewTime: "New appointment time is required",
-                    reschedulingFailed: "Failed to reschedule booking"
-                }
-            });
-        } else {
-            if (config.apiKey) {
-                this.calComUtility.setApiKey(config.apiKey);
-            }
-        }
-        return this.calComUtility;
-    },
-    render: async ({
-        trace,
-        element
-    }) => {
-        // ============================================================================
-        // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
-        // ============================================================================
-        let {
-            language = "fr",
-                vf,
-                apiKey = CONFIG.DEFAULT_API_KEY,
-                uid = "",
-                email = "",
-                serviceProvider = "Dr. Sophie Martin",
-                startTime = "",
-                scheduleId = "",
-                eventTypeId = "",
-                eventTypeSlug = "",
-                timezone = "America/Toronto",
-                voiceflowEnabled = true,
-                voiceflowDataTransformer = null,
-                enableDetailedLogging = true,
-                logPrefix = "📅 RescheduleCalendar",
-                enableSessionTimeout = true,
-                sessionTimeout = CONFIG.SESSION_TIMEOUT,
-                sessionWarning = CONFIG.SESSION_WARNING,
-                cssUrls = CONFIG.DEFAULT_CSS,
-                formType = "reschedule",
-                formStructure = "multistep",
-                useStructuredData = true,
-                dataTransformer = BaseDataTransformer
-        } = trace.payload || {};
-        // Extract reschedule details from extracted variables
-        const rescheduleData = {
-            uid: uid,
-            email: email,
-            serviceProvider: serviceProvider,
-            startTime: startTime,
-            scheduleId: scheduleId,
-            eventTypeId: eventTypeId,
-            eventTypeSlug: eventTypeSlug
-        };
-        // Initialize Cal.com utility using extracted variables
-        const calComUtility = RescheduleCalendarExtension.initializeCalComUtility({
-            apiKey: apiKey,
-            enableDetailedLogging: enableDetailedLogging
-        });
-        // Helper function to get translated text
-        const getTranslatedText = (key, lang = language) => {
-            const keys = key.split('.');
-            let value = RescheduleCalendarExtension.FORM_DATA.translations[lang];
-            for (const k of keys) {
-                value = value?.[k];
-            }
-            return value || key;
-        };
-        // Get service name for display using utility
-        const serviceName = calComUtility.getServiceName(
-            rescheduleData.eventTypeSlug,
-            rescheduleData.serviceProvider,
-            RescheduleCalendarExtension.FORM_DATA.serviceMapping
-        );
-        // Clone the form config and populate variables dynamically
-        const formConfig = JSON.parse(JSON.stringify(RescheduleCalendarExtension.FORM_CONFIG));
-        // Populate currentAppointmentCard field in step 1
-        const appointmentCardField = formConfig.steps[0].fields[0];
-        appointmentCardField.serviceProvider = rescheduleData.serviceProvider;
-        appointmentCardField.startTime = rescheduleData.startTime;
-        appointmentCardField.serviceName = serviceName;
-        appointmentCardField.eventTypeSlug = rescheduleData.eventTypeSlug;
-        appointmentCardField.language = language;
-        appointmentCardField.translations = RescheduleCalendarExtension.FORM_DATA.translations;
-        appointmentCardField.serviceMapping = RescheduleCalendarExtension.FORM_DATA.serviceMapping;
-        // Populate textarea field with translations
-        const textareaField = formConfig.steps[0].fields[1];
-        textareaField.placeholder = getTranslatedText('fields.rescheduleReasonPlaceholder');
-        textareaField.customErrorMessage = getTranslatedText('errors.reasonRequired');
-        textareaField.customErrorMessages = {
-            required: getTranslatedText('errors.reasonRequired')
-        };
-        // Populate calendar field variables dynamically
-        const calendarField = formConfig.steps[1].fields[0];
-        // Set calendar configuration variables
-        calendarField.apiKey = apiKey;
-        calendarField.timezone = timezone;
-        calendarField.language = language;
-        calendarField.locale = language === 'fr' ? 'fr-FR' : 'en-US';
-        calendarField.serviceProvider = rescheduleData.serviceProvider;
-        // Set reschedule-specific variables
-        calendarField.eventTypeId = parseInt(rescheduleData.eventTypeId);
-        calendarField.eventTypeSlug = rescheduleData.eventTypeSlug;
-        calendarField.scheduleId = rescheduleData.scheduleId;
-        calendarField.serviceName = serviceName;
-        calendarField.eventName = serviceName;
-        calendarField.currentAppointment = rescheduleData.startTime;
-        calendarField.uid = rescheduleData.uid;
-        calendarField.email = rescheduleData.email;
-        calendarField.mode = 'reschedule'; // IMPORTANT: Set mode to reschedule
-        // Provide all translated texts to calendar field
-        const calendarTranslations = RescheduleCalendarExtension.FORM_DATA.translations[language].calendar;
-        calendarField.texts = {
-            selectDate: calendarTranslations.selectDate,
-            availableTimesFor: calendarTranslations.availableTimesFor,
-            noAvailableSlots: calendarTranslations.noAvailableSlots,
-            pleaseSelectDate: calendarTranslations.pleaseSelectDate,
-            currentAppointment: calendarTranslations.currentAppointment,
-            newAppointment: calendarTranslations.newAppointment,
-            loadingAvailability: calendarTranslations.loadingAvailability,
-            loading: calendarTranslations.loading,
-            weekdays: calendarTranslations.weekdays
-        };
-        // Provide error texts to calendar field
-        calendarField.errorTexts = {
-            dateTimeRequired: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.dateTimeRequired,
-            rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.rescheduleError
-        };
-        // ============================================================================
-        // DRAMATICALLY SIMPLIFIED: Uses generic FormDataProcessor and BaseDataTransformer
-        // Same structure as SubmissionFormExtension and CancellationDirectExtension
-        // ============================================================================
-        // Create the form with the new generic architecture using extracted variables
-        const extension = new CreatForm({
-                language: language,
-                formType: formType,
-                formStructure: formStructure,
-                // ============================================================================
-                // NEW: Generic approach - no specific field transformers needed!
-                // BaseDataTransformer + FormDataProcessor handle everything automatically
-                // ============================================================================
-                useStructuredData: useStructuredData,
-                dataTransformer: dataTransformer, // Generic transformer works with any form!
-                // DISABLED: Webhook integration (reschedule goes directly to Cal.com)
-                webhookEnabled: false,
-                webhookUrl: null,
-                // ENABLED: Voiceflow integration with optional custom transformer
-                voiceflowEnabled: voiceflowEnabled,
-                voiceflowDataTransformer: voiceflowDataTransformer,
-                // Enhanced logging using extracted variables
-                enableDetailedLogging: enableDetailedLogging,
-                logPrefix: logPrefix,
-                // Session management using extracted variables
-                enableSessionTimeout: enableSessionTimeout,
-                sessionTimeout: sessionTimeout,
-                sessionWarning: sessionWarning,
-                // Reschedule-specific configuration using extracted variables
-                apiKey: apiKey,
-                timezone: timezone,
-                serviceProvider: rescheduleData.serviceProvider,
-                // Reschedule appointment data
-                uid: rescheduleData.uid,
-                email: rescheduleData.email,
-                currentStartTime: rescheduleData.startTime,
-                eventTypeId: rescheduleData.eventTypeId,
-                eventTypeSlug: rescheduleData.eventTypeSlug,
-                scheduleId: rescheduleData.scheduleId,
-                // ============================================================================
-                // SIMPLIFIED: Just use the utility's handleReschedule method!
-                // ============================================================================
-                onSubmit: async (formData) => {
-                    return await calComUtility.handleReschedule(formData, {
-                        language: language,
-                        uid: rescheduleData.uid,
-                        apiKey: apiKey,
-                        serviceProvider: rescheduleData.serviceProvider,
-                        startTime: rescheduleData.startTime,
-                        eventTypeSlug: rescheduleData.eventTypeSlug,
-                        email: rescheduleData.email,
-                        voiceflowEnabled: voiceflowEnabled,
-                        formVersion: CONFIG.FORM_VERSION
+            name: "ModernRescheduleCalendar",
+            type: "response",
+            match: ({ trace }) => trace.type === "ext_reschedule_calendar" || trace.payload?.name === "ext_reschedule_calendar",
+            
+            // ============================================================================
+            // INITIALIZE REUSABLE CAL.COM UTILITY
+            // ============================================================================
+            initializeCalComUtility(config) {
+                if (!this.calComUtility) {
+                    this.calComUtility = new CalComBaseUtility({
+                        apiKey: config.apiKey,
+                        logPrefix: "📅 RescheduleCalendar",
+                        enableLogging: config.enableDetailedLogging !== false,
+                        errorMessages: {
+                            missingNewTime: "New appointment time is required",
+                            reschedulingFailed: "Failed to reschedule booking"
+                        }
                     });
-                },
-                // CSS configuration using extracted variables
-                cssUrls: cssUrls
-            },
-            RescheduleCalendarExtension.FORM_DATA,
-            formConfig
-        );
-        return await extension.render(element);
-    },
-    // ============================================================================
-    // FORM DATA CONFIGURATION - Same as before, no changes needed
-    // ============================================================================
-    FORM_DATA: {
-        serviceMapping: {
-            'nettoyages-et-examens-dentaires': 'Nettoyages et examens dentaires',
-            'consultation-dentaire': 'Consultation dentaire',
-            'chirurgie-dentaire': 'Chirurgie dentaire',
-            'orthodontie': 'Orthodontie',
-            'implants-dentaires': 'Implants dentaires',
-            'blanchiment-dentaire': 'Blanchiment dentaire',
-            'discovery-call-15-minutes': 'Entretien Exploratoire',
-            'demonstration-chatbot-15min': 'Démonstration de l\'Agent IA',
-            'reunion-45min': 'Présentation Détaillée',
-            'reunion-projet': 'Session de Travail'
-        },
-        translations: {
-            fr: {
-                nav: {
-                    next: "Suivant",
-                    previous: "Précédent",
-                    submit: "Replanifier le rendez-vous",
-                    processing: "Traitement en cours..."
-                },
-                common: {
-                    yes: "Oui",
-                    no: "Non",
-                    other: "Autre",
-                    required: "requis",
-                    fieldRequired: "Ce champ est requis",
-                    edit: "Modifier",
-                    notSpecified: "Non spécifié",
-                    none: "Aucun",
-                    pleaseSpecify: "Veuillez préciser...",
-                    selectAtLeastOne: "Veuillez sélectionner au moins une option"
-                },
-                labels: {
-                    serviceProvider: "Prestataire de service",
-                    currentAppointment: "Rendez-vous actuel",
-                    newAppointment: "Nouveau rendez-vous",
-                    rescheduleDetails: "Détails de la replanification"
-                },
-                placeholders: {
-                    rescheduleReason: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?"
-                },
-                steps: [
-                    {
-                        title: "Informations Actuelles",
-                        desc: "Consultez les informations actuelles et indiquez la raison de la replanification"
-                    },
-                    {
-                        title: "Nouvelle Date et Heure",
-                        desc: "Choisissez votre nouveau créneau préféré"
+                } else {
+                    if (config.apiKey) {
+                        this.calComUtility.setApiKey(config.apiKey);
                     }
+                }
+                return this.calComUtility;
+            },
+            
+            render: async ({ trace, element }) => {
+                // ============================================================================
+                // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
+                // ============================================================================
+                let { 
+                    language = "fr", 
+                    vf,
+                    apiKey = CONFIG.DEFAULT_API_KEY,
+                    uid = "",
+                    email = "",
+                    serviceProvider = "Dr. Sophie Martin",
+                    startTime = "",
+                    scheduleId = "",
+                    eventTypeId = "",
+                    eventTypeSlug = "",
+                    timezone = "America/Toronto",
+                    voiceflowEnabled = true,
+                    voiceflowDataTransformer = null,
+                    enableDetailedLogging = true,
+                    logPrefix = "📅 RescheduleCalendar",
+                    enableSessionTimeout = true,
+                    sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                    sessionWarning = CONFIG.SESSION_WARNING,
+                    cssUrls = CONFIG.DEFAULT_CSS,
+                    formType = "reschedule",
+                    formStructure = "multistep",
+                    useStructuredData = true,
+                    dataTransformer = BaseDataTransformer
+                } = trace.payload || {};
+
+                // Extract reschedule details from extracted variables
+                const rescheduleData = {
+                    uid: uid,
+                    email: email,
+                    serviceProvider: serviceProvider,
+                    startTime: startTime,
+                    scheduleId: scheduleId,
+                    eventTypeId: eventTypeId,
+                    eventTypeSlug: eventTypeSlug
+                };
+
+                // Initialize Cal.com utility using extracted variables
+                const calComUtility = RescheduleCalendarExtension.initializeCalComUtility({
+                    apiKey: apiKey,
+                    enableDetailedLogging: enableDetailedLogging
+                });
+
+                // Helper function to get translated text
+                const getTranslatedText = (key, lang = language) => {
+                    const keys = key.split('.');
+                    let value = RescheduleCalendarExtension.FORM_DATA.translations[lang];
+                    for (const k of keys) {
+                        value = value?.[k];
+                    }
+                    return value || key;
+                };
+
+                // Get service name for display using utility
+                const serviceName = calComUtility.getServiceName(
+                    rescheduleData.eventTypeSlug, 
+                    rescheduleData.serviceProvider,
+                    RescheduleCalendarExtension.FORM_DATA.serviceMapping
+                );
+
+                // Clone the form config and populate variables dynamically
+                const formConfig = JSON.parse(JSON.stringify(RescheduleCalendarExtension.FORM_CONFIG));
+                
+                // Populate currentAppointmentCard field in step 1
+                const appointmentCardField = formConfig.steps[0].fields[0];
+                appointmentCardField.serviceProvider = rescheduleData.serviceProvider;
+                appointmentCardField.startTime = rescheduleData.startTime;
+                appointmentCardField.serviceName = serviceName;
+                appointmentCardField.eventTypeSlug = rescheduleData.eventTypeSlug;
+                appointmentCardField.language = language;
+                appointmentCardField.translations = RescheduleCalendarExtension.FORM_DATA.translations;
+                appointmentCardField.serviceMapping = RescheduleCalendarExtension.FORM_DATA.serviceMapping;
+                
+                // Populate textarea field with translations
+                const textareaField = formConfig.steps[0].fields[1];
+                textareaField.placeholder = getTranslatedText('fields.rescheduleReasonPlaceholder');
+                textareaField.customErrorMessage = getTranslatedText('errors.reasonRequired');
+                textareaField.customErrorMessages = {
+                    required: getTranslatedText('errors.reasonRequired')
+                };
+                
+                // Populate calendar field variables dynamically
+                const calendarField = formConfig.steps[1].fields[0];
+                
+                // Set calendar configuration variables
+                calendarField.apiKey = apiKey;
+                calendarField.timezone = timezone;
+                calendarField.language = language;
+                calendarField.locale = language === 'fr' ? 'fr-FR' : 'en-US';
+                calendarField.serviceProvider = rescheduleData.serviceProvider;
+                
+                // Set reschedule-specific variables
+                calendarField.eventTypeId = parseInt(rescheduleData.eventTypeId);
+                calendarField.eventTypeSlug = rescheduleData.eventTypeSlug;
+                calendarField.scheduleId = rescheduleData.scheduleId;
+                calendarField.serviceName = serviceName;
+                calendarField.eventName = serviceName;
+                calendarField.currentAppointment = rescheduleData.startTime;
+                calendarField.uid = rescheduleData.uid;
+                calendarField.email = rescheduleData.email;
+                calendarField.mode = 'reschedule'; // IMPORTANT: Set mode to reschedule
+                
+                // Provide all translated texts to calendar field
+                const calendarTranslations = RescheduleCalendarExtension.FORM_DATA.translations[language].calendar;
+                calendarField.texts = {
+                    selectDate: calendarTranslations.selectDate,
+                    availableTimesFor: calendarTranslations.availableTimesFor,
+                    noAvailableSlots: calendarTranslations.noAvailableSlots,
+                    pleaseSelectDate: calendarTranslations.pleaseSelectDate,
+                    currentAppointment: calendarTranslations.currentAppointment,
+                    newAppointment: calendarTranslations.newAppointment,
+                    loadingAvailability: calendarTranslations.loadingAvailability,
+                    loading: calendarTranslations.loading,
+                    weekdays: calendarTranslations.weekdays
+                };
+                
+                // Provide error texts to calendar field
+                calendarField.errorTexts = {
+                    dateTimeRequired: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.dateTimeRequired,
+                    rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[language].errors.rescheduleError
+                };
+                
+                // ============================================================================
+                // FIXED: Disable CreatForm's Voiceflow - CalComBaseUtility handles it
+                // This prevents double-sending to Voiceflow
+                // ============================================================================
+                
+                // Create the form with the new generic architecture using extracted variables
+                const extension = new CreatForm(
+                    {
+                        language: language,
+                        formType: formType,
+                        formStructure: formStructure,
+                        
+                        // ============================================================================
+                        // NEW: Generic approach - no specific field transformers needed!
+                        // BaseDataTransformer + FormDataProcessor handle everything automatically
+                        // ============================================================================
+                        useStructuredData: useStructuredData,
+                        dataTransformer: dataTransformer, // Generic transformer works with any form!
+                        
+                        // DISABLED: Webhook integration (reschedule goes directly to Cal.com)
+                        webhookEnabled: false,
+                        webhookUrl: null,
+                        
+                        // FIXED: Disable CreatForm's Voiceflow - CalComBaseUtility handles it properly
+                        voiceflowEnabled: false, // ← CHANGED: was voiceflowEnabled, now false
+                        voiceflowDataTransformer: null, // ← This is ignored when voiceflowEnabled is false
+                        
+                        // Enhanced logging using extracted variables
+                        enableDetailedLogging: enableDetailedLogging,
+                        logPrefix: logPrefix,
+                        
+                        // Session management using extracted variables
+                        enableSessionTimeout: enableSessionTimeout,
+                        sessionTimeout: sessionTimeout,
+                        sessionWarning: sessionWarning,
+                        
+                        // Reschedule-specific configuration using extracted variables
+                        apiKey: apiKey,
+                        timezone: timezone,
+                        serviceProvider: rescheduleData.serviceProvider,
+                        
+                        // Reschedule appointment data
+                        uid: rescheduleData.uid,
+                        email: rescheduleData.email,
+                        currentStartTime: rescheduleData.startTime,
+                        eventTypeId: rescheduleData.eventTypeId,
+                        eventTypeSlug: rescheduleData.eventTypeSlug,
+                        scheduleId: rescheduleData.scheduleId,
+                        
+                        // ============================================================================
+                        // SIMPLIFIED: Just use the utility's handleReschedule method!
+                        // ============================================================================
+                        onSubmit: async (formData) => {
+                            return await calComUtility.handleReschedule(formData, {
+                                language: language,
+                                uid: rescheduleData.uid,
+                                apiKey: apiKey,
+                                serviceProvider: rescheduleData.serviceProvider,
+                                startTime: rescheduleData.startTime,
+                                eventTypeSlug: rescheduleData.eventTypeSlug,
+                                email: rescheduleData.email,
+                                voiceflowEnabled: voiceflowEnabled, // ← This controls CalComBaseUtility's Voiceflow
+                                formVersion: CONFIG.FORM_VERSION
+                            });
+                        },
+                        
+                        // CSS configuration using extracted variables
+                        cssUrls: cssUrls
+                    },
+                    RescheduleCalendarExtension.FORM_DATA,
+                    formConfig
+                );
+
+                return await extension.render(element);
+            },
+
+            // ============================================================================
+            // FORM DATA CONFIGURATION - Same as before, no changes needed
+            // ============================================================================
+            FORM_DATA: {
+                serviceMapping: {
+                    'nettoyages-et-examens-dentaires': 'Nettoyages et examens dentaires',
+                    'consultation-dentaire': 'Consultation dentaire',
+                    'chirurgie-dentaire': 'Chirurgie dentaire',
+                    'orthodontie': 'Orthodontie',
+                    'implants-dentaires': 'Implants dentaires',
+                    'blanchiment-dentaire': 'Blanchiment dentaire',
+                    'discovery-call-15-minutes': 'Entretien Exploratoire',
+                    'demonstration-chatbot-15min': 'Démonstration de l\'Agent IA',
+                    'reunion-45min': 'Présentation Détaillée',
+                    'reunion-projet': 'Session de Travail'
+                },
+                
+                translations: {
+                    fr: {
+                        nav: { 
+                            next: "Suivant", 
+                            previous: "Précédent", 
+                            submit: "Replanifier le rendez-vous", 
+                            processing: "Traitement en cours..." 
+                        },
+                        common: { 
+                            yes: "Oui", 
+                            no: "Non", 
+                            other: "Autre", 
+                            required: "requis", 
+                            fieldRequired: "Ce champ est requis", 
+                            edit: "Modifier", 
+                            notSpecified: "Non spécifié", 
+                            none: "Aucun",
+                            pleaseSpecify: "Veuillez préciser...",
+                            selectAtLeastOne: "Veuillez sélectionner au moins une option"
+                        },
+                        labels: {
+                            serviceProvider: "Prestataire de service",
+                            currentAppointment: "Rendez-vous actuel",
+                            newAppointment: "Nouveau rendez-vous",
+                            rescheduleDetails: "Détails de la replanification"
+                        },
+                        placeholders: {
+                            rescheduleReason: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?"
+                        },
+                        steps: [
+                            { title: "Informations Actuelles", desc: "Consultez les informations actuelles et indiquez la raison de la replanification" },
+                            { title: "Nouvelle Date et Heure", desc: "Choisissez votre nouveau créneau préféré" }
                         ],
-                fields: {
-                    currentAppointment: "Rendez-vous Actuel",
-                    scheduledWith: "Programmé avec",
-                    currentDateTime: "Date et heure actuelles",
-                    serviceName: "Service",
-                    reschedulingFrom: "Replanification de",
-                    rescheduleReason: "Raison de la replanification",
-                    rescheduleReasonPlaceholder: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?",
-                    selectDateTime: "Sélectionner nouvelle date et heure"
-                },
-                errors: {
-                    reasonRequired: "Veuillez indiquer la raison de la replanification",
-                    dateTimeRequired: "Veuillez sélectionner une nouvelle date et heure",
-                    rescheduleError: "Erreur lors de la replanification. Veuillez réessayer."
-                },
-                success: {
-                    title: "Rendez-vous replanifié !",
-                    message: "Votre rendez-vous a été replanifié avec succès. Vous recevrez sous peu un email de confirmation."
-                },
-                calendar: {
-                    selectDate: "Sélectionnez une date pour voir les horaires disponibles",
-                    availableTimesFor: "Disponibilités pour",
-                    noAvailableSlots: "Aucun horaire disponible pour cette date",
-                    pleaseSelectDate: "Veuillez d'abord sélectionner une date",
-                    currentAppointment: "Rendez-vous Actuel",
-                    newAppointment: "Nouveau Rendez-vous",
-                    loadingAvailability: "Chargement des disponibilités...",
-                    loading: "Chargement...",
-                    weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                        fields: {
+                            currentAppointment: "Rendez-vous Actuel",
+                            scheduledWith: "Programmé avec",
+                            currentDateTime: "Date et heure actuelles",
+                            serviceName: "Service",
+                            reschedulingFrom: "Replanification de",
+                            rescheduleReason: "Raison de la replanification",
+                            rescheduleReasonPlaceholder: "Pourquoi souhaitez-vous replanifier ce rendez-vous ?",
+                            selectDateTime: "Sélectionner nouvelle date et heure"
+                        },
+                        errors: {
+                            reasonRequired: "Veuillez indiquer la raison de la replanification",
+                            dateTimeRequired: "Veuillez sélectionner une nouvelle date et heure",
+                            rescheduleError: "Erreur lors de la replanification. Veuillez réessayer."
+                        },
+                        success: { 
+                            title: "Rendez-vous replanifié !", 
+                            message: "Votre rendez-vous a été replanifié avec succès. Vous recevrez sous peu un email de confirmation." 
+                        },
+                        calendar: {
+                            selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                            availableTimesFor: "Disponibilités pour",
+                            noAvailableSlots: "Aucun horaire disponible pour cette date",
+                            pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                            currentAppointment: "Rendez-vous Actuel",
+                            newAppointment: "Nouveau Rendez-vous",
+                            loadingAvailability: "Chargement des disponibilités...",
+                            loading: "Chargement...",
+                            weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                        }
+                    },
+                    
+                    en: {
+                        nav: { 
+                            next: "Next", 
+                            previous: "Previous", 
+                            submit: "Reschedule Appointment", 
+                            processing: "Processing..." 
+                        },
+                        common: { 
+                            yes: "Yes", 
+                            no: "No", 
+                            other: "Other", 
+                            required: "required", 
+                            fieldRequired: "This field is required", 
+                            edit: "Edit", 
+                            notSpecified: "Not specified", 
+                            none: "None",
+                            pleaseSpecify: "Please specify...",
+                            selectAtLeastOne: "Please select at least one option"
+                        },
+                        labels: {
+                            serviceProvider: "Service Provider",
+                            currentAppointment: "Current Appointment",
+                            newAppointment: "New Appointment",
+                            rescheduleDetails: "Reschedule Details"
+                        },
+                        placeholders: {
+                            rescheduleReason: "Why do you want to reschedule this appointment?"
+                        },
+                        steps: [
+                            { title: "Current Information", desc: "Review current information and provide reason for rescheduling" },
+                            { title: "New Date & Time", desc: "Choose your new preferred time slot" }
+                        ],
+                        fields: {
+                            currentAppointment: "Current Appointment",
+                            scheduledWith: "Scheduled with",
+                            currentDateTime: "Current date and time",
+                            serviceName: "Service",
+                            reschedulingFrom: "Rescheduling from",
+                            rescheduleReason: "Reason for rescheduling",
+                            rescheduleReasonPlaceholder: "Why do you want to reschedule this appointment?",
+                            selectDateTime: "Select new date and time"
+                        },
+                        errors: {
+                            reasonRequired: "Please provide a reason for rescheduling",
+                            dateTimeRequired: "Please select a new date and time",
+                            rescheduleError: "Rescheduling error. Please try again."
+                        },
+                        success: { 
+                            title: "Appointment Rescheduled!", 
+                            message: "Your appointment has been successfully rescheduled. You will receive a confirmation email shortly." 
+                        },
+                        calendar: {
+                            selectDate: "Select a date to view available times",
+                            availableTimesFor: "Available times for",
+                            noAvailableSlots: "No available time slots for this date",
+                            pleaseSelectDate: "Please select a date first",
+                            currentAppointment: "Current Appointment",
+                            newAppointment: "New Appointment",
+                            loadingAvailability: "Loading availability...",
+                            loading: "Loading...",
+                            weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                        }
+                    }
                 }
             },
-            en: {
-                nav: {
-                    next: "Next",
-                    previous: "Previous",
-                    submit: "Reschedule Appointment",
-                    processing: "Processing..."
-                },
-                common: {
-                    yes: "Yes",
-                    no: "No",
-                    other: "Other",
-                    required: "required",
-                    fieldRequired: "This field is required",
-                    edit: "Edit",
-                    notSpecified: "Not specified",
-                    none: "None",
-                    pleaseSpecify: "Please specify...",
-                    selectAtLeastOne: "Please select at least one option"
-                },
-                labels: {
-                    serviceProvider: "Service Provider",
-                    currentAppointment: "Current Appointment",
-                    newAppointment: "New Appointment",
-                    rescheduleDetails: "Reschedule Details"
-                },
-                placeholders: {
-                    rescheduleReason: "Why do you want to reschedule this appointment?"
-                },
+
+            // ============================================================================
+            // FORM CONFIGURATION - Same as before, no changes needed
+            // ============================================================================
+            FORM_CONFIG: {
                 steps: [
-                    {
-                        title: "Current Information",
-                        desc: "Review current information and provide reason for rescheduling"
-                    },
-                    {
-                        title: "New Date & Time",
-                        desc: "Choose your new preferred time slot"
-                    }
-                        ],
-                fields: {
-                    currentAppointment: "Current Appointment",
-                    scheduledWith: "Scheduled with",
-                    currentDateTime: "Current date and time",
-                    serviceName: "Service",
-                    reschedulingFrom: "Rescheduling from",
-                    rescheduleReason: "Reason for rescheduling",
-                    rescheduleReasonPlaceholder: "Why do you want to reschedule this appointment?",
-                    selectDateTime: "Select new date and time"
-                },
-                errors: {
-                    reasonRequired: "Please provide a reason for rescheduling",
-                    dateTimeRequired: "Please select a new date and time",
-                    rescheduleError: "Rescheduling error. Please try again."
-                },
-                success: {
-                    title: "Appointment Rescheduled!",
-                    message: "Your appointment has been successfully rescheduled. You will receive a confirmation email shortly."
-                },
-                calendar: {
-                    selectDate: "Select a date to view available times",
-                    availableTimesFor: "Available times for",
-                    noAvailableSlots: "No available time slots for this date",
-                    pleaseSelectDate: "Please select a date first",
-                    currentAppointment: "Current Appointment",
-                    newAppointment: "New Appointment",
-                    loadingAvailability: "Loading availability...",
-                    loading: "Loading...",
-                    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-                }
-            }
-        }
-    },
-    // ============================================================================
-    // FORM CONFIGURATION - Same as before, no changes needed
-    // ============================================================================
-    FORM_CONFIG: {
-        steps: [
                     // Step 1: Current Appointment Info + Reason
-            {
-                sectionId: "current_appointment_info", // NEW: Explicit section ID for generic processing
-                fields: [
                     {
-                        type: 'currentAppointmentCard',
-                        id: 'currentAppointmentDisplay',
-                        required: false,
-                        serviceProvider: '{{serviceProvider}}',
-                        startTime: '{{startTime}}',
-                        serviceName: '{{serviceName}}',
-                        eventTypeSlug: '{{eventTypeSlug}}',
-                        language: '{{language}}',
-                        cardStyle: 'default',
-                        iconType: 'reschedule',
-                        showServiceName: true,
-                        showDateTime: true,
-                        showProvider: true,
-                        translations: '{{translations}}',
-                        serviceMapping: '{{serviceMapping}}'
+                        sectionId: "current_appointment_info", // NEW: Explicit section ID for generic processing
+                        fields: [
+                            {
+                                type: 'currentAppointmentCard',
+                                id: 'currentAppointmentDisplay',
+                                required: false,
+                                
+                                serviceProvider: '{{serviceProvider}}',
+                                startTime: '{{startTime}}',
+                                serviceName: '{{serviceName}}',
+                                eventTypeSlug: '{{eventTypeSlug}}',
+                                language: '{{language}}',
+                                
+                                cardStyle: 'default',
+                                iconType: 'reschedule',
+                                showServiceName: true,
+                                showDateTime: true,
+                                showProvider: true,
+                                
+                                translations: '{{translations}}',
+                                serviceMapping: '{{serviceMapping}}'
                             },
-                    {
-                        type: 'textarea',
-                        id: 'rescheduleReason',
-                        required: true,
-                        row: 'rescheduleReason',
-                        rows: 4,
-                        maxLength: 500,
-                        showCounter: true,
-                        placeholder: '{{placeholder}}',
-                        getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.reasonRequired
+                            {
+                                type: 'textarea',
+                                id: 'rescheduleReason',
+                                required: true,
+                                row: 'rescheduleReason',
+                                rows: 4,
+                                maxLength: 500,
+                                showCounter: true,
+                                
+                                placeholder: '{{placeholder}}',
+                                getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.reasonRequired
                             }
                         ]
                     },
-
+                    
                     // Step 2: New Date/Time Selection
-            {
-                sectionId: "new_appointment_scheduling", // NEW: Explicit section ID for generic processing
-                fields: [
                     {
-                        type: 'calendar',
-                        id: 'newAppointment',
-                        row: 'newAppointment',
-                        required: true,
-                        mode: 'reschedule',
-                        headerIcon: 'RESCHEDULE',
-                        apiKey: '{{apiKey}}',
-                        timezone: '{{timezone}}',
-                        language: '{{language}}',
-                        eventTypeId: '{{eventTypeId}}',
-                        eventTypeSlug: '{{eventTypeSlug}}',
-                        scheduleId: '{{scheduleId}}',
-                        serviceProvider: '{{serviceProvider}}',
-                        serviceName: '{{serviceName}}',
-                        currentAppointment: '{{startTime}}',
-                        eventName: '{{serviceName}}',
-                        uid: '{{uid}}',
-                        email: '{{email}}',
-                        getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
-                        getCustomErrorMessages: (lang) => ({
-                            required: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
-                            rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.rescheduleError
-                        })
+                        sectionId: "new_appointment_scheduling", // NEW: Explicit section ID for generic processing
+                        fields: [
+                            {
+                                type: 'calendar',
+                                id: 'newAppointment',
+                                row: 'newAppointment',
+                                required: true,
+                                mode: 'reschedule',
+                                headerIcon: 'RESCHEDULE',
+                                
+                                apiKey: '{{apiKey}}',
+                                timezone: '{{timezone}}',
+                                language: '{{language}}',
+                                eventTypeId: '{{eventTypeId}}',
+                                eventTypeSlug: '{{eventTypeSlug}}',
+                                scheduleId: '{{scheduleId}}',
+                                serviceProvider: '{{serviceProvider}}',
+                                serviceName: '{{serviceName}}',
+                                currentAppointment: '{{startTime}}',
+                                eventName: '{{serviceName}}',
+                                uid: '{{uid}}',
+                                email: '{{email}}',
+                                
+                                getCustomErrorMessage: (lang) => RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                                getCustomErrorMessages: (lang) => ({
+                                    required: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                                    rescheduleError: RescheduleCalendarExtension.FORM_DATA.translations[lang].errors.rescheduleError
+                                })
                             }
                         ]
                     }
                 ]
-    }
-};
+            }
+        };
+
+        
 // ============================================================================
 // ENHANCED CANCELLATION DIRECT EXTENSION - RESTRUCTURED ARCHITECTURE
 // ============================================================================
