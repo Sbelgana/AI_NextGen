@@ -3,7 +3,7 @@
 // ============================================================================
 const CONFIG = {
     DEFAULT_WEBHOOK: "",
-    DEFAULT_CSS: ['https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@1bf81c8/FormFields.css'],
+    DEFAULT_CSS: ['https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@7881a02/FormFields.css'],
     SESSION_TIMEOUT: 900000, // 15 minutes
     SESSION_WARNING: 780000, // 13 minutes
     DEBOUNCE_DELAY: 50,
