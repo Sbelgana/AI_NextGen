@@ -1933,7 +1933,7 @@ class FormStep {
         this.container.setAttribute('data-step', this.index);
 
         if (this.title) {
-            const titleElement = document.createElement('h2');
+            const titleElement = document.createElement('span');
             titleElement.className = 'step-title';
             titleElement.textContent = this.title;
             this.container.appendChild(titleElement);
