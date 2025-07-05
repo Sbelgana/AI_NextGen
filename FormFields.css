@@ -1393,7 +1393,7 @@ padding: 10px;
 
 /* Grid Layouts */
 .service-cards-container.columns-auto {
-  grid-template-columns: repeat(2, minmax(auto, 400px));
+  grid-template-columns: repeat(2, auto);
 }
 
 .service-cards-container.columns-1 { grid-template-columns: 1fr; }
@@ -2147,7 +2147,7 @@ select:focus-visible,
   }
   
   .service-cards-container.columns-auto {
-  grid-template-columns: repeat(2, minmax(auto, 400px));
+  grid-template-columns: repeat(2, auto);
   }
   
   .calendar-container {
