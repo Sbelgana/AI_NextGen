@@ -222,7 +222,6 @@ body {
   height: 4px;
   background: linear-gradient(90deg, #e95d2c, #b0cee2);
   border-radius: 6px;
-    padding: 0 0 10px 0;
 }
 
 .step-description {
@@ -235,6 +234,7 @@ body {
 .step-fields {
   display: flex;
   flex-direction: column;
+    margin-top: 10px;
 }
 
 /* Layout Components */
