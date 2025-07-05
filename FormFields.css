@@ -2147,7 +2147,7 @@ select:focus-visible,
   }
   
   .service-cards-container.columns-auto {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(2, minmax(auto, 400px));
   }
   
   .calendar-container {
