@@ -1393,7 +1393,7 @@ padding: 10px;
 
 /* Grid Layouts */
 .service-cards-container.columns-auto {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
 .service-cards-container.columns-1 { grid-template-columns: 1fr; }
