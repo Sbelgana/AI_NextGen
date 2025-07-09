@@ -4589,3 +4589,558 @@ submission-form-extension {
     transform: none;
   }
 }
+
+        /* ============================================================================
+           IMAGE GALLERY FIELD EXTENSIONS - Using FormFields.css base styles
+           ============================================================================ */
+
+        /* Image Gallery Field Container - Extends multistep-form pattern */
+        .image-gallery-field {
+            width: 100%;
+            margin-bottom: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .image-gallery-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(233, 93, 44, 0.15);
+            border: 3px solid #e0e0e0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            animation: fadeIn 0.6s;
+        }
+
+        .image-gallery-container:hover {
+            box-shadow: 0 12px 40px rgba(233, 93, 44, 0.15);
+            transform: translateY(-2px);
+            border-color: #e95d2c;
+        }
+
+        /* Content Wrapper - Responsive Layout */
+        .gallery-content-wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 300px;
+        }
+
+        /* Desktop layout: thumbnails on left, main image on right */
+        @media (min-width: 769px) {
+            .gallery-content-wrapper {
+                flex-direction: row;
+            }
+            
+            .thumbnail-container {
+                flex: 0 0 120px;
+                order: 1;
+            }
+            
+            .gallery-image-container {
+                flex: 1;
+                order: 2;
+            }
+        }
+
+        /* Mobile/tablet layout: thumbnails on bottom, main image on top */
+        @media (max-width: 768px) {
+            .gallery-content-wrapper {
+                flex-direction: column;
+            }
+            
+            .thumbnail-container {
+                order: 2;
+            }
+            
+            .gallery-image-container {
+                order: 1;
+            }
+        }
+
+        /* Image Counter - Using btn styling pattern */
+        .image-counter {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            z-index: 12;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Main Image Container */
+        .gallery-image-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            min-height: 300px;
+            max-height: 500px;
+            overflow: hidden;
+        }
+
+        .gallery-image {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+            display: block;
+            transition: all 0.3s ease;
+            border-radius: 0;
+        }
+
+        .gallery-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* Navigation Buttons - Using CalendarField nav-btn pattern */
+        .image-gallery-container .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #374151;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            user-select: none;
+        }
+
+        .image-gallery-container .nav-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e95d2c 0%, #a63e1b 100%);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 6px 20px rgba(233, 93, 44, 0.4);
+        }
+
+        .image-gallery-container .nav-btn:active:not(:disabled) {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .image-gallery-container .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: translateY(-50%);
+        }
+
+        /* Navigation button positioning */
+        .image-gallery-container .nav-btn.prev-btn {
+            left: 16px;
+        }
+
+        .image-gallery-container .nav-btn.next-btn {
+            right: 16px;
+        }
+
+        /* SVG arrow rotations - Following CalendarField pattern */
+        .image-gallery-container .nav-btn.prev-btn svg {
+            transform: rotate(90deg);
+        }
+
+        .image-gallery-container .nav-btn.next-btn svg {
+            transform: rotate(-90deg);
+        }
+
+        /* Hide navigation buttons for single images */
+        .image-gallery-container.single-image .nav-btn {
+            display: none;
+        }
+
+        /* Fullscreen Button - Extends btn pattern */
+        .fullscreen-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            z-index: 15;
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        .fullscreen-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Thumbnail Navigation - Extends FormFields scrollbar styling */
+        .thumbnail-container {
+            background: #f8fafc;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+
+        /* Desktop: Vertical column layout on left */
+        @media (min-width: 769px) {
+            .thumbnail-container {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 16px 8px;
+                overflow-y: auto;
+                max-height: 500px;
+                border-right: 1px solid rgba(0, 0, 0, 0.05);
+                border-radius: 12px 0 0 12px;
+            }
+            
+            .thumbnail {
+                width: 80px;
+                height: 60px;
+                object-fit: cover;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+                flex-shrink: 0;
+            }
+        }
+
+        /* Mobile/Tablet: Horizontal strip layout on bottom */
+        @media (max-width: 768px) {
+            .thumbnail-container {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                padding: 12px 16px;
+                overflow-x: auto;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+                border-radius: 0 0 12px 12px;
+            }
+            
+            .thumbnail {
+                width: 60px;
+                height: 45px;
+                object-fit: cover;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+                flex-shrink: 0;
+            }
+        }
+
+        /* Thumbnail interactions - Using FormFields hover patterns */
+        .thumbnail:hover {
+            transform: scale(1.1);
+            border-color: #e95d2c;
+            box-shadow: 0 4px 12px rgba(233, 93, 44, 0.3);
+        }
+
+        .thumbnail.active {
+            border-color: #e95d2c;
+            box-shadow: 0 0 0 2px rgba(233, 93, 44, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Scrollbar styling - Using FormFields patterns */
+        .thumbnail-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .thumbnail-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .thumbnail-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .thumbnail-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Fullscreen Styles - Extends FormFields overlay patterns */
+        .image-gallery-container.fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            border-radius: 0 !important;
+            background: #000;
+        }
+
+        .image-gallery-container.fullscreen .gallery-content-wrapper {
+            flex-direction: column !important;
+            height: 100vh;
+        }
+
+        .image-gallery-container.fullscreen .gallery-image-container {
+            background: #000;
+            max-height: none;
+            height: calc(100vh - 80px);
+            order: 1 !important;
+        }
+
+        .image-gallery-container.fullscreen .gallery-image {
+            max-height: calc(100vh - 120px);
+            max-width: 100vw;
+        }
+
+        .image-gallery-container.fullscreen .thumbnail-container {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            flex-direction: row !important;
+            height: 80px;
+            order: 2 !important;
+            border: none;
+            border-radius: 0;
+            padding: 8px 16px;
+        }
+
+        .image-gallery-container.fullscreen .thumbnail {
+            width: 60px !important;
+            height: 45px !important;
+        }
+
+        .image-gallery-container.fullscreen .image-counter {
+            background: rgba(255, 255, 255, 0.9);
+            color: #374151;
+        }
+
+        .image-gallery-container.fullscreen .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            width: 56px;
+            height: 56px;
+        }
+
+        .image-gallery-container.fullscreen .fullscreen-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #374151;
+        }
+
+        /* Error States - Using FormFields error patterns */
+        .image-gallery-error {
+            padding: 40px 20px;
+            text-align: center;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            color: #dc2626;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .image-gallery-error::before {
+            content: "⚠️";
+            display: block;
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        /* Loading state - Using FormFields animation patterns */
+        .gallery-image[src=""] {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Focus states - Using FormFields accessibility patterns */
+        .image-gallery-container .nav-btn:focus,
+        .fullscreen-btn:focus,
+        .thumbnail:focus {
+            outline: 2px solid #e95d2c;
+            outline-offset: 2px;
+        }
+
+        .image-gallery-container .nav-btn:focus:not(:focus-visible),
+        .fullscreen-btn:focus:not(:focus-visible),
+        .thumbnail:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        /* Responsive Design - Following FormFields breakpoints */
+        @media (max-width: 768px) {
+            .gallery-content-wrapper {
+                min-height: 250px;
+            }
+            
+            .gallery-image-container {
+                min-height: 200px;
+                max-height: 350px;
+            }
+            
+            .image-counter {
+                bottom: 12px;
+                right: 12px;
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+            
+            .image-gallery-container .nav-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .image-gallery-container .nav-btn.prev-btn {
+                left: 12px;
+            }
+            
+            .image-gallery-container .nav-btn.next-btn {
+                right: 12px;
+            }
+            
+            .fullscreen-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+                top: 12px;
+                right: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .image-gallery-container {
+                border-radius: 8px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .gallery-content-wrapper {
+                min-height: 200px;
+            }
+            
+            .gallery-image-container {
+                min-height: 180px;
+                max-height: 280px;
+            }
+            
+            .image-counter {
+                bottom: 8px;
+                right: 8px;
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+            
+            .image-gallery-container .nav-btn {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .image-gallery-container .nav-btn.prev-btn {
+                left: 8px;
+            }
+            
+            .image-gallery-container .nav-btn.next-btn {
+                right: 8px;
+            }
+            
+            .fullscreen-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                top: 8px;
+                right: 8px;
+            }
+            
+            .thumbnail-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .thumbnail {
+                width: 50px !important;
+                height: 38px !important;
+            }
+            
+            .image-gallery-container.fullscreen .nav-btn {
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+        /* High contrast mode support - Following FormFields patterns */
+        @media (prefers-contrast: high) {
+            .image-gallery-container {
+                border: 2px solid;
+            }
+            
+            .image-gallery-container .nav-btn {
+                border-width: 3px;
+            }
+            
+            .thumbnail {
+                border-width: 3px;
+            }
+        }
+
+        /* Reduced motion support - Following FormFields patterns */
+        @media (prefers-reduced-motion: reduce) {
+            .image-gallery-container,
+            .gallery-image,
+            .image-gallery-container .nav-btn,
+            .fullscreen-btn,
+            .thumbnail {
+                animation: none;
+                transition: none;
+            }
+            
+            .image-gallery-container .nav-btn:hover,
+            .fullscreen-btn:hover,
+            .thumbnail:hover {
+                transform: none;
+            }
+        }
+
+        /* Print styles - Following FormFields patterns */
+        @media print {
+            .image-gallery-container {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .image-gallery-container .nav-btn,
+            .fullscreen-btn,
+            .thumbnail-container {
+                display: none !important;
+            }
+            
+            .gallery-image-container {
+                min-height: auto;
+                max-height: none;
+            }
+            
+            .gallery-image {
+                max-height: 500px;
+            }
+        }
+    
