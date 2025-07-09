@@ -1260,6 +1260,9 @@ this.SVG_ICONS = {
             case 'category-item-calendar':
                 field = new CategoryAndItemCalendarField  (this, config);
                 break;
+            case 'image-gallery':
+                field = new ImageGalleryField(this, config);
+                break;
             case 'service-request-calendar':
             case 'serviceRequestCalendar':
                 field = new ServiceRequestCalendarField(this, config);
@@ -1534,6 +1537,14 @@ this.SVG_ICONS = {
 	createItemCalendarField  (config) {
         return new ItemCalendarField  (this, config);
     }
+
+	
+	createImageGalleryField  (config) {
+        return new ImageGalleryField  (this, config);
+    }
+
+	
+            
 	
 	createTabManager (config) {
         return new TabManager (this, config);
@@ -2078,6 +2089,8 @@ class FormStep {
                 return this.factory.createCalendarField(fieldConfig);
             case 'item-calendar':
                 return this.factory.createItemCalendarField (fieldConfig);
+            case 'image-gallery':
+                return this.factory.createImageGalleryField (fieldConfig);
             case 'manager':
                 return this.factory.createTabManager(fieldConfig);
             case 'category-item-filter':
@@ -12297,6 +12310,347 @@ class CalendarField extends BaseField {
         super.destroy();
     }
 }
+
+ // ============================================================================
+        // IMAGE GALLERY FIELD - Extending BaseField (FormFields pattern)
+        // ============================================================================
+
+        class ImageGalleryField extends BaseField {
+            constructor(factory, config) {
+                super(factory, config);
+                
+                this.images = config.images || [];
+                this.currentIndex = 0;
+                this.autoPlay = config.autoPlay || false;
+                this.autoPlayInterval = config.autoPlayInterval || 3000;
+                this.showThumbnails = config.showThumbnails || false;
+                this.allowFullscreen = config.allowFullscreen !== false;
+                this.enableKeyboardNavigation = config.enableKeyboardNavigation !== false;
+                this.language = config.language || 'en';
+                
+                this.autoPlayTimer = null;
+                this.isFullscreen = false;
+                this.keyboardHandler = null;
+                
+                this.galleryContainer = null;
+                this.mainImage = null;
+                this.imageCounter = null;
+                this.prevButton = null;
+                this.nextButton = null;
+                this.fullscreenButton = null;
+                this.thumbnailContainer = null;
+            }
+
+            render() {
+                this.container = this.createContainer();
+                this.container.className += ' image-gallery-field';
+
+                this.createGalleryStructure();
+                this.setupEventListeners();
+                this.updateDisplay();
+                
+                if (this.autoPlay) {
+                    this.startAutoPlay();
+                }
+
+                return this.container;
+            }
+
+            createGalleryStructure() {
+                this.galleryContainer = document.createElement('div');
+                this.galleryContainer.className = 'image-gallery-container';
+                this.galleryContainer.setAttribute('data-images', this.images.length);
+                
+                // Add single-image class if only one image
+                if (this.images.length === 1) {
+                    this.galleryContainer.classList.add('single-image');
+                }
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'gallery-content-wrapper';
+                
+                if (this.showThumbnails && this.images.length > 1) {
+                    this.createThumbnailNavigation();
+                    contentWrapper.appendChild(this.thumbnailContainer);
+                }
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'gallery-image-container';
+                
+                this.mainImage = document.createElement('img');
+                this.mainImage.className = 'gallery-image';
+                this.mainImage.alt = 'Gallery image';
+                this.mainImage.addEventListener('error', () => this.handleImageError());
+                this.mainImage.addEventListener('load', () => this.handleImageLoad());
+                imageContainer.appendChild(this.mainImage);
+                
+                // Navigation buttons using CalendarField structure
+                if (this.images.length > 1) {
+                    this.prevButton = document.createElement('button');
+                    this.prevButton.type = 'button';
+                    this.prevButton.className = 'nav-btn prev-btn';
+                    this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+                    this.prevButton.setAttribute('aria-label', this.getTranslatedText('imageGallery.previous'));
+                    imageContainer.appendChild(this.prevButton);
+                    
+                    this.nextButton = document.createElement('button');
+                    this.nextButton.type = 'button';
+                    this.nextButton.className = 'nav-btn next-btn';
+                    this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+                    this.nextButton.setAttribute('aria-label', this.getTranslatedText('imageGallery.next'));
+                    imageContainer.appendChild(this.nextButton);
+                }
+                
+                this.imageCounter = document.createElement('div');
+                this.imageCounter.className = 'image-counter';
+                imageContainer.appendChild(this.imageCounter);
+                
+                if (this.allowFullscreen) {
+                    this.fullscreenButton = document.createElement('button');
+                    this.fullscreenButton.type = 'button';
+                    this.fullscreenButton.className = 'fullscreen-btn';
+                    this.fullscreenButton.innerHTML = '⛶';
+                    this.fullscreenButton.setAttribute('aria-label', this.getTranslatedText('imageGallery.fullscreen'));
+                    imageContainer.appendChild(this.fullscreenButton);
+                }
+                
+                contentWrapper.appendChild(imageContainer);
+                this.galleryContainer.appendChild(contentWrapper);
+                this.container.appendChild(this.galleryContainer);
+            }
+
+            createThumbnailNavigation() {
+                this.thumbnailContainer = document.createElement('div');
+                this.thumbnailContainer.className = 'thumbnail-container';
+                
+                this.images.forEach((imageUrl, index) => {
+                    const thumbnail = document.createElement('img');
+                    thumbnail.className = 'thumbnail';
+                    thumbnail.src = imageUrl;
+                    thumbnail.alt = `Thumbnail ${index + 1}`;
+                    thumbnail.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.goToImage(index);
+                    });
+                    thumbnail.addEventListener('error', () => {
+                        thumbnail.style.display = 'none';
+                    });
+                    
+                    this.thumbnailContainer.appendChild(thumbnail);
+                });
+            }
+
+            setupEventListeners() {
+                if (this.prevButton) {
+                    this.prevButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.previousImage();
+                    });
+                }
+                
+                if (this.nextButton) {
+                    this.nextButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.nextImage();
+                    });
+                }
+                
+                if (this.fullscreenButton) {
+                    this.fullscreenButton.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        this.toggleFullscreen();
+                    });
+                }
+                
+                if (this.enableKeyboardNavigation) {
+                    this.keyboardHandler = (event) => {
+                        if (event.key === 'ArrowLeft') {
+                            event.preventDefault();
+                            this.previousImage();
+                        } else if (event.key === 'ArrowRight') {
+                            event.preventDefault();
+                            this.nextImage();
+                        } else if (event.key === 'Escape' && this.isFullscreen) {
+                            event.preventDefault();
+                            this.exitFullscreen();
+                        }
+                    };
+                    
+                    document.addEventListener('keydown', this.keyboardHandler);
+                }
+                
+                document.addEventListener('fullscreenchange', () => {
+                    this.isFullscreen = !!document.fullscreenElement;
+                    this.updateFullscreenButton();
+                });
+            }
+
+            updateDisplay() {
+                if (this.images.length === 0) return;
+                
+                this.mainImage.src = this.images[this.currentIndex];
+                
+                const counterText = this.getTranslatedText('imageGallery.imageCounter')
+                    .replace('{current}', this.currentIndex + 1)
+                    .replace('{total}', this.images.length);
+                this.imageCounter.textContent = counterText;
+                
+                if (this.thumbnailContainer) {
+                    const thumbnails = this.thumbnailContainer.querySelectorAll('.thumbnail');
+                    thumbnails.forEach((thumb, index) => {
+                        thumb.classList.toggle('active', index === this.currentIndex);
+                    });
+                }
+                
+                if (this.prevButton) {
+                    this.prevButton.disabled = false;
+                }
+                if (this.nextButton) {
+                    this.nextButton.disabled = false;
+                }
+            }
+
+            nextImage() {
+                if (this.currentIndex < this.images.length - 1) {
+                    this.currentIndex++;
+                } else {
+                    this.currentIndex = 0;
+                }
+                this.updateDisplay();
+                this.resetAutoPlay();
+            }
+
+            previousImage() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                } else {
+                    this.currentIndex = this.images.length - 1;
+                }
+                this.updateDisplay();
+                this.resetAutoPlay();
+            }
+
+            goToImage(index) {
+                if (index >= 0 && index < this.images.length) {
+                    this.currentIndex = index;
+                    this.updateDisplay();
+                    this.resetAutoPlay();
+                }
+            }
+
+            startAutoPlay() {
+                if (this.images.length <= 1) return;
+                
+                this.autoPlayTimer = setInterval(() => {
+                    if (this.currentIndex === this.images.length - 1) {
+                        this.currentIndex = 0;
+                    } else {
+                        this.currentIndex++;
+                    }
+                    this.updateDisplay();
+                }, this.autoPlayInterval);
+            }
+
+            stopAutoPlay() {
+                if (this.autoPlayTimer) {
+                    clearInterval(this.autoPlayTimer);
+                    this.autoPlayTimer = null;
+                }
+            }
+
+            resetAutoPlay() {
+                if (this.autoPlay) {
+                    this.stopAutoPlay();
+                    this.startAutoPlay();
+                }
+            }
+
+            toggleFullscreen() {
+                if (this.isFullscreen) {
+                    this.exitFullscreen();
+                } else {
+                    this.enterFullscreen();
+                }
+            }
+
+            enterFullscreen() {
+                if (this.galleryContainer.requestFullscreen) {
+                    this.galleryContainer.requestFullscreen();
+                }
+            }
+
+            exitFullscreen() {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+
+            updateFullscreenButton() {
+                if (this.fullscreenButton) {
+                    this.fullscreenButton.innerHTML = this.isFullscreen ? '⛷' : '⛶';
+                    this.fullscreenButton.setAttribute('aria-label', 
+                        this.getTranslatedText(this.isFullscreen ? 'imageGallery.exitFullscreen' : 'imageGallery.fullscreen')
+                    );
+                }
+                
+                this.galleryContainer.classList.toggle('fullscreen', this.isFullscreen);
+            }
+
+            handleImageError() {
+                console.error('🖼️ ImageGallery: Failed to load image:', this.images[this.currentIndex]);
+            }
+
+            handleImageLoad() {
+                console.log('🖼️ ImageGallery: Image loaded successfully:', this.images[this.currentIndex]);
+            }
+
+            getTranslatedText(path) {
+                try {
+                    const keys = path.split('.');
+                    let value = ImageGalleryExtension.FORM_DATA.translations[this.language];
+                    for (const key of keys) {
+                        value = value?.[key];
+                    }
+                    return value || path;
+                } catch (error) {
+                    return path;
+                }
+            }
+
+            getValue() {
+                return {
+                    currentIndex: this.currentIndex,
+                    currentImage: this.images[this.currentIndex],
+                    totalImages: this.images.length,
+                    images: this.images
+                };
+            }
+
+            setValue(value) {
+                if (typeof value === 'number' && value >= 0 && value < this.images.length) {
+                    this.goToImage(value);
+                }
+            }
+
+            cleanup() {
+                super.cleanup();
+                this.stopAutoPlay();
+                
+                if (this.keyboardHandler) {
+                    document.removeEventListener('keydown', this.keyboardHandler);
+                }
+                
+                if (this.isFullscreen) {
+                    this.exitFullscreen();
+                }
+            }
+        }
+
+        
 
 // ===============================
 // LEGACY COMPATIBILITY CLASSES
