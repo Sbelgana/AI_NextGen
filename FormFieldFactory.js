@@ -12480,13 +12480,16 @@ class CalendarField extends BaseField {
                         }
                     };
                     
-                    document.addEventListener('keydown', this.keyboardHandler);
+                    this.container.addEventListener('keydown', this.keyboardHandler);
                 }
                 
-                document.addEventListener('fullscreenchange', () => {
-                    this.isFullscreen = !!document.fullscreenElement;
-                    this.updateFullscreenButton();
-                });
+                // Fullscreen events need to stay on document for proper functionality
+                if (typeof document !== 'undefined') {
+                    document.addEventListener('fullscreenchange', () => {
+                        this.isFullscreen = !!document.fullscreenElement;
+                        this.updateFullscreenButton();
+                    });
+                }
             }
 
             updateDisplay() {
@@ -12494,10 +12497,8 @@ class CalendarField extends BaseField {
                 
                 this.mainImage.src = this.images[this.currentIndex];
                 
-                const counterText = this.getTranslatedText('imageGallery.imageCounter')
-                    .replace('{current}', this.currentIndex + 1)
-                    .replace('{total}', this.images.length);
-                this.imageCounter.textContent = counterText;
+                // Direct counter format without translation
+                this.imageCounter.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
                 
                 if (this.thumbnailContainer) {
                     const thumbnails = this.thumbnailContainer.querySelectorAll('.thumbnail');
@@ -12584,7 +12585,7 @@ class CalendarField extends BaseField {
             }
 
             exitFullscreen() {
-                if (document.exitFullscreen) {
+                if (typeof document !== 'undefined' && document.exitFullscreen) {
                     document.exitFullscreen();
                 }
             }
@@ -12611,7 +12612,7 @@ class CalendarField extends BaseField {
             getTranslatedText(path) {
                 try {
                     const keys = path.split('.');
-                    let value = ImageGalleryExtension.FORM_DATA.translations[this.language];
+                    let value = ImageExtension.FORM_DATA.translations[this.language];
                     for (const key of keys) {
                         value = value?.[key];
                     }
@@ -12640,8 +12641,8 @@ class CalendarField extends BaseField {
                 super.cleanup();
                 this.stopAutoPlay();
                 
-                if (this.keyboardHandler) {
-                    document.removeEventListener('keydown', this.keyboardHandler);
+                if (this.keyboardHandler && this.container) {
+                    this.container.removeEventListener('keydown', this.keyboardHandler);
                 }
                 
                 if (this.isFullscreen) {
