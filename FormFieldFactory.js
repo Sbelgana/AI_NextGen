@@ -12831,7 +12831,7 @@ class CalComBaseUtility {
 class CarouselField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
-                this.config = config; // Store full config for callbacks
+                this.config = config;
                 this.items = config.items || [];
                 this.selectedItem = null;
                 this.currentIndex = 0;
@@ -12840,7 +12840,7 @@ class CarouselField extends BaseField {
                 this.showIndicators = config.showIndicators !== false;
                 this.title = config.title || '';
                 this.subtitle = config.subtitle || '';
-                this.itemType = config.itemType || 'generic'; // 'service', 'staff', 'generic'
+                this.itemType = config.itemType || 'generic';
                 this.allowMultiple = config.allowMultiple || false;
                 this.selectedItems = [];
                 this.showDetails = config.showDetails !== false;
@@ -12851,7 +12851,6 @@ class CarouselField extends BaseField {
             render() {
                 const container = this.createContainer();
                 
-                // Create carousel
                 const carousel = document.createElement('div');
                 carousel.className = 'carousel-field';
                 
@@ -12879,13 +12878,11 @@ class CarouselField extends BaseField {
                 const carouselContainer = document.createElement('div');
                 carouselContainer.className = 'carousel-container';
 
-                // Create track
                 this.track = document.createElement('div');
                 this.track.className = 'carousel-track';
                 this.renderItems();
                 carouselContainer.appendChild(this.track);
 
-                // Create navigation
                 if (this.showNavigation && this.items.length > this.itemsPerView) {
                     const navigation = this.createNavigation();
                     carouselContainer.appendChild(navigation);
@@ -12893,13 +12890,12 @@ class CarouselField extends BaseField {
 
                 carousel.appendChild(carouselContainer);
                 
-                // Create error element
                 const errorElement = this.createErrorElement();
                 carousel.appendChild(errorElement);
 
                 container.appendChild(carousel);
                 this.element = container;
-                this.element.fieldInstance = this; // Attach field instance to DOM element
+                this.element.fieldInstance = this;
                 return container;
             }
 
@@ -12919,7 +12915,6 @@ class CarouselField extends BaseField {
                 itemEl.className = 'carousel-item';
                 itemEl.dataset.index = index;
 
-                // Image
                 if (item.image) {
                     const img = document.createElement('img');
                     img.className = 'carousel-item-image';
@@ -12928,7 +12923,6 @@ class CarouselField extends BaseField {
                     itemEl.appendChild(img);
                 }
 
-                // Title
                 if (item.title || item.name) {
                     const title = document.createElement('h4');
                     title.className = 'carousel-item-title';
@@ -12936,7 +12930,6 @@ class CarouselField extends BaseField {
                     itemEl.appendChild(title);
                 }
 
-                // Subtitle (position for staff, category for services)
                 if (item.position || item.category) {
                     const subtitle = document.createElement('p');
                     subtitle.className = 'carousel-item-subtitle';
@@ -12944,7 +12937,6 @@ class CarouselField extends BaseField {
                     itemEl.appendChild(subtitle);
                 }
 
-                // Description
                 if (item.description) {
                     const desc = document.createElement('p');
                     desc.className = 'carousel-item-description';
@@ -12952,12 +12944,10 @@ class CarouselField extends BaseField {
                     itemEl.appendChild(desc);
                 }
 
-                // Details section
                 if (this.showDetails) {
                     const details = document.createElement('div');
                     details.className = 'carousel-item-details';
 
-                    // Price (for services)
                     if (item.price) {
                         const price = document.createElement('span');
                         price.className = 'carousel-item-price';
@@ -12965,7 +12955,6 @@ class CarouselField extends BaseField {
                         details.appendChild(price);
                     }
 
-                    // Duration (for services)
                     if (item.duration) {
                         const duration = document.createElement('span');
                         duration.className = 'carousel-item-duration';
@@ -12973,7 +12962,6 @@ class CarouselField extends BaseField {
                         details.appendChild(duration);
                     }
 
-                    // Experience (for staff)
                     if (item.experience) {
                         const experience = document.createElement('span');
                         experience.className = 'carousel-item-experience';
@@ -12986,9 +12974,7 @@ class CarouselField extends BaseField {
                     }
                 }
 
-                // Click handler
                 itemEl.addEventListener('click', () => this.selectItem(index));
-
                 return itemEl;
             }
 
@@ -12996,19 +12982,16 @@ class CarouselField extends BaseField {
                 const nav = document.createElement('div');
                 nav.className = 'carousel-navigation';
 
-                // Previous button
                 this.prevBtn = document.createElement('button');
                 this.prevBtn.className = 'carousel-nav-btn';
                 this.prevBtn.innerHTML = '‹';
                 this.prevBtn.addEventListener('click', () => this.previousSlide());
 
-                // Next button
                 this.nextBtn = document.createElement('button');
                 this.nextBtn.className = 'carousel-nav-btn';
                 this.nextBtn.innerHTML = '›';
                 this.nextBtn.addEventListener('click', () => this.nextSlide());
 
-                // Indicators
                 const indicators = document.createElement('div');
                 indicators.className = 'carousel-indicators';
                 
@@ -13057,16 +13040,14 @@ class CarouselField extends BaseField {
                 });
             }
 
-            // Method to update items (for filtering)
             updateItems(newItems) {
-                console.log('Updating carousel items:', newItems);
+                console.log('🔄 Updating carousel items:', newItems.map(d => d.name));
                 this.items = newItems;
                 this.selectedItem = null;
                 this.selectedItems = [];
                 this.currentIndex = 0;
                 this.renderItems();
                 if (this.showNavigation && this.indicators) {
-                    // Rebuild navigation for new item count
                     const navigation = this.element.querySelector('.carousel-navigation');
                     if (navigation) {
                         navigation.remove();
