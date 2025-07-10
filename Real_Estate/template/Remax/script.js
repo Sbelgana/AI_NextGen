@@ -3321,8 +3321,76 @@ const BookingCalendarExtension = {
         // FIX: HANDLE STRINGIFIED JSON FOR AGENTS INFORMATION
         // ============================================================================
         
-        agentsInformation = JSON.parse(agentsInformation);
+        // Parse agentsInformation if it's a string (stringified JSON)
+        if (typeof agentsInformation === 'string' && agentsInformation.trim()) {
+            try {
+                agentsInformation = JSON.parse(agentsInformation);
+                console.log('🏠 RealEstateBooking ✅ Successfully parsed agentsInformation from stringified JSON');
+            } catch (error) {
+                console.error('🏠 RealEstateBooking ❌ Failed to parse agentsInformation JSON:', error);
+                console.error('🏠 RealEstateBooking 📄 Raw agentsInformation string:', agentsInformation);
+                // Set to null so it will fall back to default agents
+                agentsInformation = null;
+            }
+        }
+        
+        // Parse specialistsInfo if it's a string (fallback option)
+        if (typeof specialistsInfo === 'string' && specialistsInfo.trim()) {
+            try {
+                specialistsInfo = JSON.parse(specialistsInfo);
+                console.log('🏠 RealEstateBooking ✅ Successfully parsed specialistsInfo from stringified JSON');
+            } catch (error) {
+                console.error('🏠 RealEstateBooking ❌ Failed to parse specialistsInfo JSON:', error);
+                specialistsInfo = null;
+            }
+        }
+        
+        // Parse categoryItems if it's a string (fallback option)
+        if (typeof categoryItems === 'string' && categoryItems.trim()) {
+            try {
+                categoryItems = JSON.parse(categoryItems);
+                console.log('🏠 RealEstateBooking ✅ Successfully parsed categoryItems from stringified JSON');
+            } catch (error) {
+                console.error('🏠 RealEstateBooking ❌ Failed to parse categoryItems JSON:', error);
+                categoryItems = null;
+            }
+        }
 
+        // Handle alternative naming for agents information
+        if (!agentsInformation && specialistsInfo) {
+            agentsInformation = specialistsInfo;
+        }
+        if (!agentsInformation && categoryItems) {
+            agentsInformation = categoryItems;
+        }
+        
+        // Fallback to generated default agents if none provided
+        if (!agentsInformation) {
+            console.log('🏠 RealEstateBooking ⚠️ No agentsInformation provided, using default agents');
+            agentsInformation = BookingCalendarExtension.generateDefaultAgents();
+        }
+        
+        // Validate that agentsInformation is now an object with content
+        if (!agentsInformation || typeof agentsInformation !== 'object' || Object.keys(agentsInformation).length === 0) {
+            console.error('🏠 RealEstateBooking ❌ agentsInformation is still invalid after parsing attempts');
+            element.innerHTML = `
+                <div class="error-state" style="padding: 20px; text-align: center; color: #e74c3c;">
+                    <h3>${BookingCalendarExtension.getTranslatedText('errors.configurationError', language)}</h3>
+                    <p>${BookingCalendarExtension.getTranslatedText('errors.agentsInformationRequired', language)}</p>
+                    <details style="margin-top: 10px;">
+                        <summary>Debug Info</summary>
+                        <pre style="text-align: left; font-size: 12px; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px;">
+Original agentsInformation type: ${typeof trace.payload?.agentsInformation}
+Original agentsInformation value: ${JSON.stringify(trace.payload?.agentsInformation, null, 2)}
+Parsed agentsInformation: ${JSON.stringify(agentsInformation, null, 2)}
+                        </pre>
+                    </details>
+                </div>
+            `;
+            return;
+        }
+        
+        console.log('🏠 RealEstateBooking 📋 Final agentsInformation:', agentsInformation);
         
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
@@ -3663,7 +3731,56 @@ const BookingCalendarExtension = {
         ]
     },
 
-
+    // ============================================================================
+    // HELPER METHODS
+    // ============================================================================
+    
+    generateDefaultAgents: () => {
+        return {
+            "Sophia Martinez": {
+                "eventSlug": "meeting",
+                "scheduleId": 552412,
+                "eventId": 2054696,
+                "apikey": "cal_live_fb2a70f7700112674cf26acb33ebe141"
+            },
+            "Emma Thompson": {
+                "eventSlug": "meeting",
+                "scheduleId": 552447,
+                "eventId": 2054894,
+                "apikey": "cal_live_2bb06ee039ec6c015b8cf8350419d9dc"
+            },
+            "Liam Carter": {
+                "eventSlug": "meeting",
+                "scheduleId": 552361,
+                "eventId": 2054403,
+                "apikey": "cal_live_9e2a8a8513a4b70529b515cb01e9b537"
+            },
+            "Ethan Brown": {
+                "eventSlug": "meeting",
+                "scheduleId": 552433,
+                "eventId": 2054834,
+                "apikey": "cal_live_2839e4f6a175f815472f06793772f07c"
+            },
+            "Olivia Davis": {
+                "eventSlug": "meeting",
+                "scheduleId": 552540,
+                "eventId": 2055142,
+                "apikey": "cal_live_0df9982ee588956d1e4fbb1cf57a203c"
+            },
+            "Noah Wilson": {
+                "eventSlug": "meeting",
+                "scheduleId": 552464,
+                "eventId": 2054946,
+                "apikey": "cal_live_0524b9d5b19ad001f1b012f8c28c3c18"
+            },
+            "Ava Johnson": {
+                "eventSlug": "meeting",
+                "scheduleId": 552390,
+                "eventId": 2054563,
+                "apikey": "cal_live_79f11b5eab6614966a45af66f1bab18f"
+            }
+        };
+    },
 
     // Convert agentsInformation to format expected by ItemCalendarField
     convertAgentsInformation: (agentsInformation) => {
@@ -3686,7 +3803,6 @@ const BookingCalendarExtension = {
         return converted;
     }
 };
-
 // ============================================================================
 // ENHANCED RESCHEDULE CALENDAR EXTENSION - RESTRUCTURED ARCHITECTURE
 // ============================================================================
