@@ -12831,6 +12831,7 @@ class CalComBaseUtility {
 class CarouselField extends BaseField {
             constructor(factory, config) {
                 super(factory, config);
+                this.config = config; // Store full config for callbacks
                 this.items = config.items || [];
                 this.selectedItem = null;
                 this.currentIndex = 0;
@@ -12898,6 +12899,7 @@ class CarouselField extends BaseField {
 
                 container.appendChild(carousel);
                 this.element = container;
+                this.element.fieldInstance = this; // Attach field instance to DOM element
                 return container;
             }
 
@@ -13057,13 +13059,22 @@ class CarouselField extends BaseField {
 
             // Method to update items (for filtering)
             updateItems(newItems) {
+                console.log('Updating carousel items:', newItems);
                 this.items = newItems;
                 this.selectedItem = null;
                 this.selectedItems = [];
                 this.currentIndex = 0;
                 this.renderItems();
-                if (this.indicators) {
-                    this.createNavigation();
+                if (this.showNavigation && this.indicators) {
+                    // Rebuild navigation for new item count
+                    const navigation = this.element.querySelector('.carousel-navigation');
+                    if (navigation) {
+                        navigation.remove();
+                        if (this.items.length > this.itemsPerView) {
+                            const newNavigation = this.createNavigation();
+                            this.element.querySelector('.carousel-container').appendChild(newNavigation);
+                        }
+                    }
                 }
             }
 
