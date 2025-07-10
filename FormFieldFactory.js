@@ -14060,6 +14060,9 @@ class ProviderSelectionField extends BaseField {
 // ============================================================================
 // SERVICE PROVIDER CALENDAR HELPER - Injects 3 steps into main form config
 // ============================================================================
+// ============================================================================
+// SERVICE PROVIDER CALENDAR HELPER - Fixed version
+// ============================================================================
 class ServiceProviderCalendarHelper {
     static createSteps(config) {
         const {
@@ -14100,7 +14103,11 @@ class ServiceProviderCalendarHelper {
                         layout: 'grid',
                         columns: 'auto',
                         showDetails: true,
-                        itemType: 'service'
+                        itemType: 'service',
+                        // Store reference data for filtering
+                        _servicesData: servicesData,
+                        _providersData: providersData,
+                        _providersInfo: providersInfo
                     }
                 ]
             },
@@ -14147,6 +14154,8 @@ class ServiceProviderCalendarHelper {
                         timezone: timezone,
                         language: language,
                         locale: language === 'fr' ? 'fr-FR' : 'en-US',
+                        // Store reference data
+                        _providersInfo: providersInfo,
                         // Will be configured dynamically when service/provider are selected
                         apiKey: '',
                         eventTypeId: null,
@@ -14160,7 +14169,7 @@ class ServiceProviderCalendarHelper {
             }
         ];
     }
-};
+}
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
