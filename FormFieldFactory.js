@@ -1103,6 +1103,9 @@ class FormFieldFactory {
         case 'serviceCard':
             field = new ServiceCardField(this, config);
             break;
+        case 'carousel':
+            field = new CarouselField(this, config);
+            break;
         case 'calendar':
             field = new CalendarField(this, config);
             break;
@@ -1337,6 +1340,9 @@ class FormFieldFactory {
     }
     createServiceCardField(config) {
         return new ServiceCardField(this, config);
+    }
+    createCarouselField(config) {
+        return new CarouselField(this, config);
     }
     createCalendarField(config) {
         return new CalendarField(this, config);
@@ -1804,6 +1810,8 @@ class FormStep {
             return this.factory.createOptionsSliderField(fieldConfig);
         case 'serviceCard':
             return this.factory.createServiceCardField(fieldConfig);
+        case 'carousel':
+            return this.factory.createCarouselField(fieldConfig);
         case 'calendar':
             return this.factory.createCalendarField(fieldConfig);
         case 'item-calendar':
@@ -12819,6 +12827,334 @@ class CalComBaseUtility {
         };
     }
 }
+
+class CarouselField extends BaseField {
+            constructor(factory, config) {
+                super(factory, config);
+                this.items = config.items || [];
+                this.selectedItem = null;
+                this.currentIndex = 0;
+                this.itemsPerView = config.itemsPerView || 1;
+                this.showNavigation = config.showNavigation !== false;
+                this.showIndicators = config.showIndicators !== false;
+                this.title = config.title || '';
+                this.subtitle = config.subtitle || '';
+                this.itemType = config.itemType || 'generic'; // 'service', 'staff', 'generic'
+                this.allowMultiple = config.allowMultiple || false;
+                this.selectedItems = [];
+                this.layout = config.layout || 'grid'; // 'grid', 'carousel'
+                this.columns = config.columns || 'auto';
+                this.showDetails = config.showDetails !== false;
+            }
+
+            render() {
+                const container = this.createContainer();
+                
+                // Create label if provided
+                if (this.label) {
+                    const label = this.createLabel();
+                    container.appendChild(label);
+                }
+                
+                // Create carousel
+                const carousel = document.createElement('div');
+                carousel.className = 'carousel-field';
+                
+                if (this.title || this.subtitle) {
+                    const header = document.createElement('div');
+                    header.className = 'carousel-header';
+                    
+                    if (this.title) {
+                        const title = document.createElement('h3');
+                        title.className = 'carousel-title';
+                        title.textContent = this.title;
+                        header.appendChild(title);
+                    }
+                    
+                    if (this.subtitle) {
+                        const subtitle = document.createElement('p');
+                        subtitle.className = 'carousel-subtitle';
+                        subtitle.textContent = this.subtitle;
+                        header.appendChild(subtitle);
+                    }
+                    
+                    carousel.appendChild(header);
+                }
+
+                const carouselContainer = document.createElement('div');
+                carouselContainer.className = 'carousel-container';
+
+                // Create track
+                this.track = document.createElement('div');
+                this.track.className = this.layout === 'grid' ? 'carousel-grid' : 'carousel-track';
+                this.renderItems();
+                carouselContainer.appendChild(this.track);
+
+                // Create navigation for carousel layout
+                if (this.layout === 'carousel' && this.showNavigation && this.items.length > this.itemsPerView) {
+                    const navigation = this.createNavigation();
+                    carouselContainer.appendChild(navigation);
+                }
+
+                carousel.appendChild(carouselContainer);
+                
+                // Create error element
+                const errorElement = this.createErrorElement();
+                carousel.appendChild(errorElement);
+
+                container.appendChild(carousel);
+                this.element = container;
+                return container;
+            }
+
+            renderItems() {
+                this.track.innerHTML = '';
+                
+                this.items.forEach((item, index) => {
+                    const itemElement = this.createItemElement(item, index);
+                    this.track.appendChild(itemElement);
+                });
+
+                if (this.layout === 'carousel') {
+                    this.updateTrackPosition();
+                }
+            }
+
+            createItemElement(item, index) {
+                const itemEl = document.createElement('div');
+                itemEl.className = this.layout === 'grid' ? 'service-card' : 'carousel-item';
+                itemEl.dataset.index = index;
+
+                // Image
+                if (item.image) {
+                    const img = document.createElement('img');
+                    img.className = 'item-image';
+                    img.src = item.image;
+                    img.alt = item.title || item.name || '';
+                    itemEl.appendChild(img);
+                }
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'item-content';
+
+                // Title/Name
+                if (item.title || item.name) {
+                    const title = document.createElement('h4');
+                    title.className = 'item-title';
+                    title.textContent = item.title || item.name;
+                    contentDiv.appendChild(title);
+                }
+
+                // Subtitle (position for staff, category for services)
+                if (item.position || item.category) {
+                    const subtitle = document.createElement('p');
+                    subtitle.className = 'item-subtitle';
+                    subtitle.textContent = item.position || item.category;
+                    contentDiv.appendChild(subtitle);
+                }
+
+                // Description
+                if (item.description && this.showDetails) {
+                    const desc = document.createElement('p');
+                    desc.className = 'item-description';
+                    desc.textContent = item.description;
+                    contentDiv.appendChild(desc);
+                }
+
+                // Details section
+                if (this.showDetails) {
+                    const details = document.createElement('div');
+                    details.className = 'item-details';
+
+                    // Price (for services)
+                    if (item.price) {
+                        const price = document.createElement('span');
+                        price.className = 'item-price';
+                        price.textContent = item.price;
+                        details.appendChild(price);
+                    }
+
+                    // Duration (for services)
+                    if (item.duration) {
+                        const duration = document.createElement('span');
+                        duration.className = 'item-duration';
+                        duration.textContent = item.duration;
+                        details.appendChild(duration);
+                    }
+
+                    // Experience (for staff)
+                    if (item.experience) {
+                        const experience = document.createElement('span');
+                        experience.className = 'item-experience';
+                        experience.textContent = `${item.experience} années d'expérience`;
+                        details.appendChild(experience);
+                    }
+
+                    if (details.children.length > 0) {
+                        contentDiv.appendChild(details);
+                    }
+                }
+
+                itemEl.appendChild(contentDiv);
+
+                // Click handler
+                itemEl.addEventListener('click', () => this.selectItem(index));
+
+                return itemEl;
+            }
+
+            createNavigation() {
+                const nav = document.createElement('div');
+                nav.className = 'carousel-navigation';
+
+                // Previous button
+                this.prevBtn = document.createElement('button');
+                this.prevBtn.className = 'carousel-nav-btn';
+                this.prevBtn.innerHTML = this.factory.SVG_ICONS.CHEVRON;
+                this.prevBtn.style.transform = 'rotate(90deg)';
+                this.prevBtn.addEventListener('click', () => this.previousSlide());
+
+                // Next button
+                this.nextBtn = document.createElement('button');
+                this.nextBtn.className = 'carousel-nav-btn';
+                this.nextBtn.innerHTML = this.factory.SVG_ICONS.CHEVRON;
+                this.nextBtn.style.transform = 'rotate(-90deg)';
+                this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+                // Indicators
+                const indicators = document.createElement('div');
+                indicators.className = 'carousel-indicators';
+                
+                const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
+                for (let i = 0; i < totalSlides; i++) {
+                    const dot = document.createElement('span');
+                    dot.className = 'carousel-dot';
+                    if (i === 0) dot.classList.add('active');
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    indicators.appendChild(dot);
+                }
+                this.indicators = indicators;
+
+                nav.appendChild(this.prevBtn);
+                nav.appendChild(indicators);
+                nav.appendChild(this.nextBtn);
+
+                this.updateNavigationState();
+                return nav;
+            }
+
+            selectItem(index) {
+                if (this.allowMultiple) {
+                    if (this.selectedItems.includes(index)) {
+                        this.selectedItems = this.selectedItems.filter(i => i !== index);
+                    } else {
+                        this.selectedItems.push(index);
+                    }
+                } else {
+                    this.selectedItem = index;
+                    this.selectedItems = [index];
+                }
+
+                this.updateSelection();
+                this.handleChange();
+            }
+
+            updateSelection() {
+                const items = this.track.querySelectorAll('.service-card, .carousel-item');
+                items.forEach((item, index) => {
+                    if (this.selectedItems.includes(index)) {
+                        item.classList.add('selected');
+                    } else {
+                        item.classList.remove('selected');
+                    }
+                });
+            }
+
+            nextSlide() {
+                const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
+                if (this.currentIndex < maxSlides) {
+                    this.currentIndex++;
+                    this.updateTrackPosition();
+                    this.updateNavigationState();
+                }
+            }
+
+            previousSlide() {
+                if (this.currentIndex > 0) {
+                    this.currentIndex--;
+                    this.updateTrackPosition();
+                    this.updateNavigationState();
+                }
+            }
+
+            goToSlide(index) {
+                this.currentIndex = index;
+                this.updateTrackPosition();
+                this.updateNavigationState();
+            }
+
+            updateTrackPosition() {
+                if (this.layout === 'carousel') {
+                    const translateX = -this.currentIndex * (100 / this.itemsPerView);
+                    this.track.style.transform = `translateX(${translateX}%)`;
+                }
+            }
+
+            updateNavigationState() {
+                if (this.prevBtn && this.nextBtn) {
+                    this.prevBtn.disabled = this.currentIndex === 0;
+                    this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
+                }
+
+                if (this.indicators) {
+                    const dots = this.indicators.querySelectorAll('.carousel-dot');
+                    dots.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === this.currentIndex);
+                    });
+                }
+            }
+
+            getValue() {
+                if (this.allowMultiple) {
+                    return this.selectedItems.map(index => this.items[index]);
+                } else {
+                    return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+                }
+            }
+
+            setValue(value) {
+                if (this.allowMultiple && Array.isArray(value)) {
+                    this.selectedItems = value.map(item => 
+                        this.items.findIndex(i => i.id === item.id)
+                    ).filter(index => index !== -1);
+                } else if (value) {
+                    this.selectedItem = this.items.findIndex(item => item.id === value.id);
+                    this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
+                }
+                this.updateSelection();
+            }
+
+            validate() {
+                if (this.required && this.selectedItems.length === 0) {
+                    this.showError(this.getFieldErrorMessage('required'));
+                    return false;
+                }
+                this.hideError();
+                return true;
+            }
+
+            // Update items dynamically (for filtering)
+            updateItems(newItems) {
+                this.items = newItems;
+                this.selectedItem = null;
+                this.selectedItems = [];
+                this.currentIndex = 0;
+                this.renderItems();
+                if (this.layout === 'carousel') {
+                    this.updateNavigationState();
+                }
+            }
+        }
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
