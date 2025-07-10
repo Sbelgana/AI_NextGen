@@ -1109,6 +1109,12 @@ class FormFieldFactory {
         case 'service-provider-calendar':
             field = new ServiceProviderCalendarField (this, config);
             break;
+        case 'service-selection':
+            field = new ServiceSelectionField (this, config);
+            break;
+        case 'provider-selection':
+            field = new ProviderSelectionField (this, config);
+            break;
         case 'calendar':
             field = new CalendarField(this, config);
             break;
@@ -1349,6 +1355,12 @@ class FormFieldFactory {
     }
     createServiceProviderCalendarField(config) {
         return new ServiceProviderCalendarField(this, config);
+    }
+    createServiceSelectionField(config) {
+        return new ServiceSelectionField(this, config);
+    }
+    createProviderSelectionField(config) {
+        return new ProviderSelectionField(this, config);
     }
     createCalendarField(config) {
         return new CalendarField(this, config);
@@ -1820,6 +1832,10 @@ class FormStep {
             return this.factory.createCarouselField(fieldConfig);
         case 'service-provider-calendar':
             return this.factory.createServiceProviderCalendarField(fieldConfig);
+        case 'service-selection':
+            return this.factory.createServiceSelectionField(fieldConfig);
+        case 'provider-selection':
+            return this.factory.createProviderSelectionField(fieldConfig);
         case 'calendar':
             return this.factory.createCalendarField(fieldConfig);
         case 'item-calendar':
@@ -13785,6 +13801,246 @@ class ServiceProviderCalendarField extends BaseField {
             this.calendarField.destroy();
         }
         super.destroy();
+    }
+}
+
+// ============================================================================
+// SERVICE SELECTION FIELD - Carousel pour sélectionner un service
+// ============================================================================
+class ServiceSelectionField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        this.servicesData = config.servicesData || [];
+        this.selectedService = null;
+        this.onServiceChange = config.onServiceChange || null;
+        this.carousel = null;
+        
+        this.texts = {
+            selectService: config.texts?.selectService || 'Sélectionnez un service',
+            serviceDescription: config.texts?.serviceDescription || 'Choisissez le service dentaire dont vous avez besoin'
+        };
+    }
+    
+    render() {
+        const container = this.createContainer();
+        container.className += ' service-selection-field';
+        
+        // Add title and description
+        const header = document.createElement('div');
+        header.className = 'service-selection-header';
+        header.innerHTML = `
+            <h3 class="service-selection-title">${this.texts.selectService}</h3>
+            <p class="service-selection-description">${this.texts.serviceDescription}</p>
+        `;
+        container.appendChild(header);
+        
+        // Create service carousel
+        this.carousel = new CarouselField(this.factory, {
+            id: `${this.id}-carousel`,
+            name: `${this.name}_carousel`,
+            items: this.servicesData,
+            title: '',
+            itemType: 'service',
+            showDetails: true,
+            layout: 'grid',
+            columns: 'auto'
+        });
+        
+        // Override selectItem to handle our logic
+        const originalSelectItem = this.carousel.selectItem.bind(this.carousel);
+        this.carousel.selectItem = (index) => {
+            originalSelectItem(index);
+            const selectedService = this.servicesData[index];
+            if (selectedService) {
+                this.selectedService = selectedService;
+                this.updateValue();
+                
+                if (this.onServiceChange) {
+                    this.onServiceChange(selectedService);
+                }
+            }
+        };
+        
+        container.appendChild(this.carousel.render());
+        
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        return this.element;
+    }
+    
+    validate() {
+        if (this.required && !this.selectedService) {
+            this.showError('Veuillez sélectionner un service');
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+    
+    getValue() {
+        return this.selectedService;
+    }
+    
+    setValue(value) {
+        this.selectedService = value;
+        if (this.carousel && value) {
+            const index = this.servicesData.findIndex(s => s.id === value.id);
+            if (index >= 0) {
+                this.carousel.selectItem(index);
+            }
+        }
+    }
+    
+    updateValue() {
+        this.handleChange();
+    }
+    
+    reset() {
+        this.selectedService = null;
+        if (this.carousel) {
+            this.carousel.selectedItem = null;
+            this.carousel.selectedItems = [];
+            this.carousel.updateSelection();
+        }
+    }
+}
+
+// ============================================================================
+// PROVIDER SELECTION FIELD - Carousel pour sélectionner un dentiste filtré
+// ============================================================================
+class ProviderSelectionField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        this.providersData = config.providersData || [];
+        this.allProviders = [...this.providersData];
+        this.filteredProviders = [...this.providersData];
+        this.selectedProvider = null;
+        this.selectedService = null;
+        this.onProviderChange = config.onProviderChange || null;
+        this.carousel = null;
+        
+        this.texts = {
+            selectProvider: config.texts?.selectProvider || 'Choisissez votre dentiste',
+            providerDescription: config.texts?.providerDescription || 'Sélectionnez le professionnel qui vous convient le mieux',
+            noProvidersAvailable: config.texts?.noProvidersAvailable || 'Aucun dentiste disponible pour ce service'
+        };
+    }
+    
+    filterProvidersByService(service) {
+        if (!service || !service.id) {
+            this.filteredProviders = [...this.allProviders];
+            return;
+        }
+        
+        this.filteredProviders = this.allProviders.filter(provider => 
+            provider.services && provider.services.includes(service.id)
+        );
+        
+        console.log(`🔍 Filtered ${this.filteredProviders.length} providers for service:`, service.id);
+        
+        // Update carousel
+        if (this.carousel) {
+            this.carousel.updateItems(this.filteredProviders);
+        }
+    }
+    
+    setSelectedService(service) {
+        this.selectedService = service;
+        this.selectedProvider = null; // Reset provider selection
+        this.filterProvidersByService(service);
+    }
+    
+    render() {
+        const container = this.createContainer();
+        container.className += ' provider-selection-field';
+        
+        // Add title and description
+        const header = document.createElement('div');
+        header.className = 'provider-selection-header';
+        header.innerHTML = `
+            <h3 class="provider-selection-title">${this.texts.selectProvider}</h3>
+            <p class="provider-selection-description">${this.texts.providerDescription}</p>
+        `;
+        container.appendChild(header);
+        
+        // Create provider carousel
+        this.carousel = new CarouselField(this.factory, {
+            id: `${this.id}-carousel`,
+            name: `${this.name}_carousel`,
+            items: this.filteredProviders,
+            title: '',
+            itemType: 'staff',
+            showDetails: true,
+            layout: 'grid',
+            columns: 'auto'
+        });
+        
+        // Override selectItem to handle our logic
+        const originalSelectItem = this.carousel.selectItem.bind(this.carousel);
+        this.carousel.selectItem = (index) => {
+            originalSelectItem(index);
+            const selectedProvider = this.filteredProviders[index];
+            if (selectedProvider) {
+                this.selectedProvider = selectedProvider;
+                this.updateValue();
+                
+                if (this.onProviderChange) {
+                    this.onProviderChange(selectedProvider, this.selectedService);
+                }
+            }
+        };
+        
+        container.appendChild(this.carousel.render());
+        
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        return this.element;
+    }
+    
+    validate() {
+        if (this.required && !this.selectedProvider) {
+            this.showError('Veuillez choisir un dentiste');
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+    
+    getValue() {
+        return this.selectedProvider;
+    }
+    
+    setValue(value) {
+        this.selectedProvider = value;
+        if (this.carousel && value) {
+            const index = this.filteredProviders.findIndex(p => p.id === value.id);
+            if (index >= 0) {
+                this.carousel.selectItem(index);
+            }
+        }
+    }
+    
+    updateValue() {
+        this.handleChange();
+    }
+    
+    reset() {
+        this.selectedProvider = null;
+        if (this.carousel) {
+            this.carousel.selectedItem = null;
+            this.carousel.selectedItems = [];
+            this.carousel.updateSelection();
+        }
     }
 }
 // Export for module usage
