@@ -12842,19 +12842,13 @@ class CarouselField extends BaseField {
                 this.itemType = config.itemType || 'generic'; // 'service', 'staff', 'generic'
                 this.allowMultiple = config.allowMultiple || false;
                 this.selectedItems = [];
-                this.layout = config.layout || 'grid'; // 'grid', 'carousel'
-                this.columns = config.columns || 'auto';
                 this.showDetails = config.showDetails !== false;
+                this.layout = config.layout || 'grid';
+                this.columns = config.columns || 'auto';
             }
 
             render() {
                 const container = this.createContainer();
-                
-                // Create label if provided
-                if (this.label) {
-                    const label = this.createLabel();
-                    container.appendChild(label);
-                }
                 
                 // Create carousel
                 const carousel = document.createElement('div');
@@ -12886,12 +12880,12 @@ class CarouselField extends BaseField {
 
                 // Create track
                 this.track = document.createElement('div');
-                this.track.className = this.layout === 'grid' ? 'carousel-grid' : 'carousel-track';
+                this.track.className = 'carousel-track';
                 this.renderItems();
                 carouselContainer.appendChild(this.track);
 
-                // Create navigation for carousel layout
-                if (this.layout === 'carousel' && this.showNavigation && this.items.length > this.itemsPerView) {
+                // Create navigation
+                if (this.showNavigation && this.items.length > this.itemsPerView) {
                     const navigation = this.createNavigation();
                     carouselContainer.appendChild(navigation);
                 }
@@ -12915,61 +12909,56 @@ class CarouselField extends BaseField {
                     this.track.appendChild(itemElement);
                 });
 
-                if (this.layout === 'carousel') {
-                    this.updateTrackPosition();
-                }
+                this.updateTrackPosition();
             }
 
             createItemElement(item, index) {
                 const itemEl = document.createElement('div');
-                itemEl.className = this.layout === 'grid' ? 'service-card' : 'carousel-item';
+                itemEl.className = 'carousel-item';
                 itemEl.dataset.index = index;
 
                 // Image
                 if (item.image) {
                     const img = document.createElement('img');
-                    img.className = 'item-image';
+                    img.className = 'carousel-item-image';
                     img.src = item.image;
                     img.alt = item.title || item.name || '';
                     itemEl.appendChild(img);
                 }
 
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'item-content';
-
-                // Title/Name
+                // Title
                 if (item.title || item.name) {
                     const title = document.createElement('h4');
-                    title.className = 'item-title';
+                    title.className = 'carousel-item-title';
                     title.textContent = item.title || item.name;
-                    contentDiv.appendChild(title);
+                    itemEl.appendChild(title);
                 }
 
                 // Subtitle (position for staff, category for services)
                 if (item.position || item.category) {
                     const subtitle = document.createElement('p');
-                    subtitle.className = 'item-subtitle';
+                    subtitle.className = 'carousel-item-subtitle';
                     subtitle.textContent = item.position || item.category;
-                    contentDiv.appendChild(subtitle);
+                    itemEl.appendChild(subtitle);
                 }
 
                 // Description
-                if (item.description && this.showDetails) {
+                if (item.description) {
                     const desc = document.createElement('p');
-                    desc.className = 'item-description';
+                    desc.className = 'carousel-item-description';
                     desc.textContent = item.description;
-                    contentDiv.appendChild(desc);
+                    itemEl.appendChild(desc);
                 }
 
                 // Details section
                 if (this.showDetails) {
                     const details = document.createElement('div');
-                    details.className = 'item-details';
+                    details.className = 'carousel-item-details';
 
                     // Price (for services)
                     if (item.price) {
                         const price = document.createElement('span');
-                        price.className = 'item-price';
+                        price.className = 'carousel-item-price';
                         price.textContent = item.price;
                         details.appendChild(price);
                     }
@@ -12977,7 +12966,7 @@ class CarouselField extends BaseField {
                     // Duration (for services)
                     if (item.duration) {
                         const duration = document.createElement('span');
-                        duration.className = 'item-duration';
+                        duration.className = 'carousel-item-duration';
                         duration.textContent = item.duration;
                         details.appendChild(duration);
                     }
@@ -12985,17 +12974,15 @@ class CarouselField extends BaseField {
                     // Experience (for staff)
                     if (item.experience) {
                         const experience = document.createElement('span');
-                        experience.className = 'item-experience';
+                        experience.className = 'carousel-item-experience';
                         experience.textContent = `${item.experience} années d'expérience`;
                         details.appendChild(experience);
                     }
 
                     if (details.children.length > 0) {
-                        contentDiv.appendChild(details);
+                        itemEl.appendChild(details);
                     }
                 }
-
-                itemEl.appendChild(contentDiv);
 
                 // Click handler
                 itemEl.addEventListener('click', () => this.selectItem(index));
@@ -13010,15 +12997,13 @@ class CarouselField extends BaseField {
                 // Previous button
                 this.prevBtn = document.createElement('button');
                 this.prevBtn.className = 'carousel-nav-btn';
-                this.prevBtn.innerHTML = this.factory.SVG_ICONS.CHEVRON;
-                this.prevBtn.style.transform = 'rotate(90deg)';
+                this.prevBtn.innerHTML = '‹';
                 this.prevBtn.addEventListener('click', () => this.previousSlide());
 
                 // Next button
                 this.nextBtn = document.createElement('button');
                 this.nextBtn.className = 'carousel-nav-btn';
-                this.nextBtn.innerHTML = this.factory.SVG_ICONS.CHEVRON;
-                this.nextBtn.style.transform = 'rotate(-90deg)';
+                this.nextBtn.innerHTML = '›';
                 this.nextBtn.addEventListener('click', () => this.nextSlide());
 
                 // Indicators
@@ -13060,7 +13045,7 @@ class CarouselField extends BaseField {
             }
 
             updateSelection() {
-                const items = this.track.querySelectorAll('.service-card, .carousel-item');
+                const items = this.track.querySelectorAll('.carousel-item');
                 items.forEach((item, index) => {
                     if (this.selectedItems.includes(index)) {
                         item.classList.add('selected');
@@ -13068,6 +13053,18 @@ class CarouselField extends BaseField {
                         item.classList.remove('selected');
                     }
                 });
+            }
+
+            // Method to update items (for filtering)
+            updateItems(newItems) {
+                this.items = newItems;
+                this.selectedItem = null;
+                this.selectedItems = [];
+                this.currentIndex = 0;
+                this.renderItems();
+                if (this.indicators) {
+                    this.createNavigation();
+                }
             }
 
             nextSlide() {
@@ -13094,10 +13091,8 @@ class CarouselField extends BaseField {
             }
 
             updateTrackPosition() {
-                if (this.layout === 'carousel') {
-                    const translateX = -this.currentIndex * (100 / this.itemsPerView);
-                    this.track.style.transform = `translateX(${translateX}%)`;
-                }
+                const translateX = -this.currentIndex * (100 / this.itemsPerView);
+                this.track.style.transform = `translateX(${translateX}%)`;
             }
 
             updateNavigationState() {
@@ -13141,18 +13136,6 @@ class CarouselField extends BaseField {
                 }
                 this.hideError();
                 return true;
-            }
-
-            // Update items dynamically (for filtering)
-            updateItems(newItems) {
-                this.items = newItems;
-                this.selectedItem = null;
-                this.selectedItems = [];
-                this.currentIndex = 0;
-                this.renderItems();
-                if (this.layout === 'carousel') {
-                    this.updateNavigationState();
-                }
             }
         }
 // Export for module usage
