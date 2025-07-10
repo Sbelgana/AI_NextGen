@@ -1109,6 +1109,9 @@ class FormFieldFactory {
         case 'service-provider-calendar':
             field = new ServiceProviderCalendarField (this, config);
             break;
+        case 'service-provider-calendar-help':
+            field = new ServiceProviderCalendarHelper(this, config);
+            break;
         case 'service-selection':
             field = new ServiceSelectionField (this, config);
             break;
@@ -1355,6 +1358,9 @@ class FormFieldFactory {
     }
     createServiceProviderCalendarField(config) {
         return new ServiceProviderCalendarField(this, config);
+    }
+    createServiceProviderCalendarHelper(config) {
+        return new ServiceProviderCalendarHelper(this, config);
     }
     createServiceSelectionField(config) {
         return new ServiceSelectionField(this, config);
@@ -1830,8 +1836,8 @@ class FormStep {
             return this.factory.createServiceCardField(fieldConfig);
         case 'carousel':
             return this.factory.createCarouselField(fieldConfig);
-        case 'service-provider-calendar':
-            return this.factory.createServiceProviderCalendarField(fieldConfig);
+        case 'service-provider-calendar-help':
+            return this.factory.createServiceProviderCalendarHelper(fieldConfig);
         case 'service-selection':
             return this.factory.createServiceSelectionField(fieldConfig);
         case 'provider-selection':
@@ -14050,6 +14056,114 @@ class ProviderSelectionField extends BaseField {
             }
         }
 
+
+// ============================================================================
+// SERVICE PROVIDER CALENDAR HELPER - Injects 3 steps into main form config
+// ============================================================================
+class ServiceProviderCalendarHelper {
+    static createSteps(config) {
+        const {
+            servicesData = [],
+            providersData = [],
+            providersInfo = {},
+            language = 'fr',
+            timezone = 'America/Toronto',
+            texts = {}
+        } = config;
+
+        const defaultTexts = {
+            serviceStep: texts.serviceStep || 'Sélection du Service',
+            providerStep: texts.providerStep || 'Choix du Dentiste', 
+            appointmentStep: texts.appointmentStep || 'Date et Heure',
+            selectService: texts.selectService || 'Choisissez le service qui vous intéresse',
+            selectProvider: texts.selectProvider || 'Choisissez votre professionnel',
+            serviceSelection: texts.serviceSelection || 'Sélectionnez un service',
+            providerSelection: texts.providerSelection || 'Choisissez votre dentiste',
+            appointment: texts.appointment || 'Date et heure du rendez-vous'
+        };
+
+        return [
+            // Service Selection Step
+            {
+                sectionId: "service_selection",
+                title: defaultTexts.serviceStep,
+                description: defaultTexts.selectService,
+                fields: [
+                    {
+                        type: 'carousel',
+                        id: 'selectedService',
+                        name: 'selectedService',
+                        title: defaultTexts.serviceSelection,
+                        subtitle: defaultTexts.selectService,
+                        items: servicesData,
+                        required: true,
+                        layout: 'grid',
+                        columns: 'auto',
+                        showDetails: true,
+                        itemType: 'service'
+                    }
+                ]
+            },
+            
+            // Provider Selection Step  
+            {
+                sectionId: "provider_selection",
+                title: defaultTexts.providerStep,
+                description: defaultTexts.selectProvider,
+                fields: [
+                    {
+                        type: 'carousel',
+                        id: 'selectedProvider',
+                        name: 'selectedProvider',
+                        title: defaultTexts.providerSelection,
+                        subtitle: defaultTexts.selectProvider,
+                        items: providersData, // Will be filtered dynamically
+                        required: true,
+                        layout: 'grid',
+                        columns: 'auto',
+                        showDetails: true,
+                        itemType: 'staff',
+                        // Store original data for filtering
+                        _allProviders: providersData,
+                        _providersInfo: providersInfo
+                    }
+                ]
+            },
+            
+            // Calendar Step
+            {
+                sectionId: "appointment_scheduling",
+                title: defaultTexts.appointmentStep,
+                description: "Choisissez votre créneau préféré",
+                fields: [
+                    {
+                        type: 'calendar',
+                        id: 'appointment',
+                        name: 'appointment',
+                        label: defaultTexts.appointment,
+                        required: true,
+                        mode: 'booking',
+                        selectionMode: 'none',
+                        timezone: timezone,
+                        language: language,
+                        locale: language === 'fr' ? 'fr-FR' : 'en-US',
+                        // Will be configured dynamically when service/provider are selected
+                        apiKey: '',
+                        eventTypeId: null,
+                        eventTypeSlug: '',
+                        scheduleId: null,
+                        specialist: '',
+                        selectedCategory: '',
+                        eventName: ''
+                    }
+                ]
+            }
+        ];
+    }
+}
+
+
+};
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -14059,7 +14173,8 @@ if (typeof module !== 'undefined' && module.exports) {
         FormFieldFactory,
         CreatForm,
         MultiStepForm,
-        CalComBaseUtility
+        CalComBaseUtility,
+	    ServiceProviderCalendarHelper
     };
 } else {
     window.FieldValueFormatter = FieldValueFormatter; // ← Add
@@ -14069,4 +14184,5 @@ if (typeof module !== 'undefined' && module.exports) {
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
     window.CalComBaseUtility = CalComBaseUtility;
+    window.ServiceProviderCalendarHelper = ServiceProviderCalendarHelper;
 }
