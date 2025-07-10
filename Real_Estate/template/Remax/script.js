@@ -3317,18 +3317,7 @@ const BookingCalendarExtension = {
             dataTransformer = BaseDataTransformer
         } = trace.payload || {};
 
-        // Handle alternative naming for agents information
-        if (!agentsInformation && specialistsInfo) {
-            agentsInformation = specialistsInfo;
-        }
-        if (!agentsInformation && categoryItems) {
-            agentsInformation = categoryItems;
-        }
         
-        // Fallback to generated default agents if none provided
-        if (!agentsInformation) {
-            agentsInformation = BookingCalendarExtension.generateDefaultAgents();
-        }
         
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
@@ -3675,47 +3664,6 @@ const BookingCalendarExtension = {
     // ============================================================================
     // HELPER METHODS
     // ============================================================================
-    
-    generateDefaultAgents: () => {
-        return {
-            "Sophia Martinez": {
-                "eventSlug": "meeting",
-                "scheduleId": 552412,
-                "eventId": 2054696,
-                "apikey": "cal_live_fb2a70f7700112674cf26acb33ebe141"
-            },
-            "Emma Thompson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552447,
-                "eventId": 2054894,
-                "apikey": "cal_live_2bb06ee039ec6c015b8cf8350419d9dc"
-            },
-            "Liam Carter": {
-                "eventSlug": "meeting",
-                "scheduleId": 552361,
-                "eventId": 2054403,
-                "apikey": "cal_live_9e2a8a8513a4b70529b515cb01e9b537"
-            },
-            "Ethan Brown": {
-                "eventSlug": "meeting",
-                "scheduleId": 552433,
-                "eventId": 2054834,
-                "apikey": "cal_live_2839e4f6a175f815472f06793772f07c"
-            },
-            "Olivia Davis": {
-                "eventSlug": "meeting",
-                "scheduleId": 552540,
-                "eventId": 2055142,
-                "apikey": "cal_live_0df9982ee588956d1e4fbb1cf57a203c"
-            },
-            "Noah Wilson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552464,
-                "eventId": 2054946,
-                "apikey": "cal_live_0524b9d5b19ad001f1b012f8c28c3c18"
-            }
-        };
-    },
 
     // Convert agentsInformation to format expected by ItemCalendarField
     convertAgentsInformation: (agentsInformation) => {
