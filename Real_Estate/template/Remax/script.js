@@ -3320,17 +3320,8 @@ const BookingCalendarExtension = {
                 useStructuredData = true,
                 dataTransformer = BaseDataTransformer
         } = trace.payload || {};
-        // Handle alternative naming for agents information
-        if (!agentsInformation && specialistsInfo) {
-            agentsInformation = specialistsInfo;
-        }
-        if (!agentsInformation && categoryItems) {
-            agentsInformation = categoryItems;
-        }
-        // Fallback to generated default agents if none provided
-        if (!agentsInformation) {
-            agentsInformation = BookingCalendarExtension.generateDefaultAgents();
-        }
+
+        agentsInformation = JSON.parse(agentsInformation);
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
             const keys = key.split('.');
