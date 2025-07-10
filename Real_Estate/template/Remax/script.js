@@ -3285,76 +3285,66 @@ const PropertySellFormExtension = {
 const BookingCalendarExtension = {
     name: "RealEstateBookingCalendar",
     type: "response",
-    match: ({
-            trace
-        }) => trace.type === "ext_real_estate_booking" ||
-        trace.type === "ext_booking_calendar" ||
-        trace.type === "ext_booking_calendar_d" ||
-        trace.payload?.name === "ext_real_estate_booking" ||
-        trace.payload?.name === "ext_booking_calendar" ||
-        trace.payload?.name === "ext_booking_calendar_d",
-    render: async ({
-        trace,
-        element
-    }) => {
-        let {
-            language = "fr",
-                vf,
-                timezone = CONFIG.DEFAULT_TIMEZONE,
-                agency = CONFIG.DEFAULT_AGENCY,
-                agentsInformation = null,
-                specialistsInfo = null,
-                categoryItems = null,
-                webhookEnabled = false,
-                webhookUrl = null,
-                voiceflowEnabled = true,
-                voiceflowDataTransformer = null,
-                enableDetailedLogging = true,
-                logPrefix = "🏠 RealEstateBooking",
-                enableSessionTimeout = true,
-                sessionTimeout = CONFIG.SESSION_TIMEOUT,
-                sessionWarning = CONFIG.SESSION_WARNING,
-                cssUrls = CONFIG.DEFAULT_CSS,
-                formType = "real_estate_booking",
-                formStructure = "multistep",
-                useStructuredData = true,
-                dataTransformer = BaseDataTransformer
+    match: ({ trace }) => trace.type === "ext_real_estate_booking" || 
+                          trace.type === "ext_booking_calendar" || 
+                          trace.type === "ext_booking_calendar_d" || 
+                          trace.payload?.name === "ext_real_estate_booking" ||
+                          trace.payload?.name === "ext_booking_calendar" ||
+                          trace.payload?.name === "ext_booking_calendar_d",
+    
+    render: async ({ trace, element }) => {
+        let { 
+            language = "fr", 
+            vf,
+            timezone = CONFIG.DEFAULT_TIMEZONE,
+            agency = CONFIG.DEFAULT_AGENCY,
+            agentsInformation = null,
+            specialistsInfo = null,
+            categoryItems = null,
+            webhookEnabled = false,
+            webhookUrl = null,
+            voiceflowEnabled = true,
+            voiceflowDataTransformer = null,
+            enableDetailedLogging = true,
+            logPrefix = "🏠 RealEstateBooking",
+            enableSessionTimeout = true,
+            sessionTimeout = CONFIG.SESSION_TIMEOUT,
+            sessionWarning = CONFIG.SESSION_WARNING,
+            cssUrls = CONFIG.DEFAULT_CSS,
+            formType = "real_estate_booking",
+            formStructure = "multistep",
+            useStructuredData = true,
+            dataTransformer = BaseDataTransformer
         } = trace.payload || {};
 
+        // ============================================================================
+        // FIX: HANDLE STRINGIFIED JSON FOR AGENTS INFORMATION
+        // ============================================================================
+        
         agentsInformation = JSON.parse(agentsInformation);
+
+        
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
-            const keys = key.split('.');
-            let value = BookingCalendarExtension.FORM_DATA.translations[lang];
-            for (const k of keys) {
-                value = value?.[k];
-            }
-            return value || key;
+            return BookingCalendarExtension.getTranslatedText(key, lang);
         };
-        // Validate that agentsInformation is provided and has content
-        if (!agentsInformation || Object.keys(agentsInformation)
-            .length === 0) {
-            console.error('BookingCalendarExtension: agentsInformation is required in payload');
-            element.innerHTML = `
-                <div class="error-state" style="padding: 20px; text-align: center; color: #e74c3c;">
-                    <h3>${getTranslatedText('errors.configurationError')}</h3>
-                    <p>${getTranslatedText('errors.agentsInformationRequired')}</p>
-                </div>
-            `;
-            return;
-        }
+
         // Convert agentsInformation to the format expected by the calendar field
         const convertedAgentsInfo = BookingCalendarExtension.convertAgentsInformation(agentsInformation);
+        
         // Update form data with agents information
         const updatedFormData = JSON.parse(JSON.stringify(BookingCalendarExtension.FORM_DATA));
         updatedFormData.agentsInformation = agentsInformation;
         updatedFormData.categoryItems = convertedAgentsInfo;
+
         // Clone the form config and populate variables dynamically
         const formConfig = JSON.parse(JSON.stringify(BookingCalendarExtension.FORM_CONFIG));
+        
         // ===============================
         // FIX: Use 'item-calendar' type and set proper configuration
         // ===============================
         const calendarField = formConfig.steps[1].fields[0];
+        
         // Set calendar configuration for agent selection
         calendarField.timezone = timezone;
         calendarField.language = language;
@@ -3365,6 +3355,7 @@ const BookingCalendarExtension = {
         calendarField.specialistsInfo = convertedAgentsInfo; // Alternative property name
         calendarField.showItemInfo = true;
         calendarField.mode = 'booking';
+        
         // ===============================
         // PROVIDE ALL TRANSLATED TEXTS TO CALENDAR FIELD
         // ===============================
@@ -3383,14 +3374,17 @@ const BookingCalendarExtension = {
             loading: calendarTranslations.loading,
             weekdays: calendarTranslations.weekdays
         };
+        
         // Provide error texts to calendar field
         calendarField.errorTexts = {
             itemRequired: BookingCalendarExtension.FORM_DATA.translations[language].errors.agentRequired, // Map agent to item
             dateTimeRequired: BookingCalendarExtension.FORM_DATA.translations[language].errors.dateTimeRequired,
             bookingError: BookingCalendarExtension.FORM_DATA.translations[language].errors.bookingError
         };
+        
         // Create the form with the fixed configuration
-        const extension = new CreatForm({
+        const extension = new CreatForm(
+            {
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
@@ -3410,7 +3404,8 @@ const BookingCalendarExtension = {
                 cssUrls: cssUrls
             },
             updatedFormData,
-            formConfig, {
+            formConfig,
+            {
                 DEFAULT_WEBHOOK: CONFIG.DEFAULT_WEBHOOK,
                 DEFAULT_CSS: CONFIG.DEFAULT_CSS,
                 SESSION_TIMEOUT: CONFIG.SESSION_TIMEOUT,
@@ -3419,29 +3414,46 @@ const BookingCalendarExtension = {
                 FORM_VERSION: CONFIG.FORM_VERSION
             }
         );
+
         return await extension.render(element);
     },
+
+    // ============================================================================
+    // HELPER METHODS
+    // ============================================================================
+    
+    // Helper function to get translated text
+    getTranslatedText: (key, lang = 'fr') => {
+        const keys = key.split('.');
+        let value = BookingCalendarExtension.FORM_DATA.translations[lang];
+        for (const k of keys) {
+            value = value?.[k];
+        }
+        return value || key;
+    },
+
     // ============================================================================
     // FORM DATA CONFIGURATION
     // ============================================================================
     FORM_DATA: {
         agentsInformation: {},
+        
         translations: {
             fr: {
-                nav: {
-                    next: "Suivant",
-                    previous: "Précédent",
-                    submit: "Confirmer le rendez-vous",
-                    processing: "Traitement en cours..."
+                nav: { 
+                    next: "Suivant", 
+                    previous: "Précédent", 
+                    submit: "Confirmer le rendez-vous", 
+                    processing: "Traitement en cours..." 
                 },
-                common: {
-                    yes: "Oui",
-                    no: "Non",
-                    other: "Autre",
-                    required: "requis",
-                    fieldRequired: "Ce champ est requis",
-                    edit: "Modifier",
-                    notSpecified: "Non spécifié",
+                common: { 
+                    yes: "Oui", 
+                    no: "Non", 
+                    other: "Autre", 
+                    required: "requis", 
+                    fieldRequired: "Ce champ est requis", 
+                    edit: "Modifier", 
+                    notSpecified: "Non spécifié", 
                     none: "Aucun",
                     pleaseSpecify: "Veuillez préciser...",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
@@ -3458,14 +3470,8 @@ const BookingCalendarExtension = {
                     email: "votre.email@example.com"
                 },
                 steps: [
-                    {
-                        title: "Informations de Contact",
-                        desc: "Renseignez vos informations de contact"
-                    },
-                    {
-                        title: "Rendez-vous avec l'Agent",
-                        desc: "Choisissez votre agent immobilier et votre créneau"
-                    }
+                    { title: "Informations de Contact", desc: "Renseignez vos informations de contact" },
+                    { title: "Rendez-vous avec l'Agent", desc: "Choisissez votre agent immobilier et votre créneau" }
                 ],
                 fields: {
                     firstName: "Prénom",
@@ -3487,9 +3493,9 @@ const BookingCalendarExtension = {
                     configurationError: "Erreur de Configuration",
                     agentsInformationRequired: "Les informations des agents immobiliers sont requises mais n'ont pas été fournies dans la charge utile."
                 },
-                success: {
-                    title: "Rendez-vous confirmé !",
-                    message: "Votre rendez-vous avec l'agent immobilier a été programmé avec succès. Vous recevrez sous peu un email de confirmation."
+                success: { 
+                    title: "Rendez-vous confirmé !", 
+                    message: "Votre rendez-vous avec l'agent immobilier a été programmé avec succès. Vous recevrez sous peu un email de confirmation." 
                 },
                 calendar: {
                     selectAgent: "Sélectionner un agent immobilier",
@@ -3506,21 +3512,22 @@ const BookingCalendarExtension = {
                     weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
                 }
             },
+            
             en: {
-                nav: {
-                    next: "Next",
-                    previous: "Previous",
-                    submit: "Confirm Appointment",
-                    processing: "Processing..."
+                nav: { 
+                    next: "Next", 
+                    previous: "Previous", 
+                    submit: "Confirm Appointment", 
+                    processing: "Processing..." 
                 },
-                common: {
-                    yes: "Yes",
-                    no: "No",
-                    other: "Other",
-                    required: "required",
-                    fieldRequired: "This field is required",
-                    edit: "Edit",
-                    notSpecified: "Not specified",
+                common: { 
+                    yes: "Yes", 
+                    no: "No", 
+                    other: "Other", 
+                    required: "required", 
+                    fieldRequired: "This field is required", 
+                    edit: "Edit", 
+                    notSpecified: "Not specified", 
                     none: "None",
                     pleaseSpecify: "Please specify...",
                     selectAtLeastOne: "Please select at least one option"
@@ -3537,14 +3544,8 @@ const BookingCalendarExtension = {
                     email: "your.email@example.com"
                 },
                 steps: [
-                    {
-                        title: "Contact Information",
-                        desc: "Enter your contact information"
-                    },
-                    {
-                        title: "Agent Appointment",
-                        desc: "Choose your real estate agent and time slot"
-                    }
+                    { title: "Contact Information", desc: "Enter your contact information" },
+                    { title: "Agent Appointment", desc: "Choose your real estate agent and time slot" }
                 ],
                 fields: {
                     firstName: "First Name",
@@ -3566,9 +3567,9 @@ const BookingCalendarExtension = {
                     configurationError: "Configuration Error",
                     agentsInformationRequired: "Real estate agents information is required but not provided in the payload."
                 },
-                success: {
-                    title: "Appointment Confirmed!",
-                    message: "Your appointment with the real estate agent has been successfully scheduled. You will receive a confirmation email shortly."
+                success: { 
+                    title: "Appointment Confirmed!", 
+                    message: "Your appointment with the real estate agent has been successfully scheduled. You will receive a confirmation email shortly." 
                 },
                 calendar: {
                     selectAgent: "Select a real estate agent",
@@ -3587,6 +3588,7 @@ const BookingCalendarExtension = {
             }
         }
     },
+
     // ============================================================================
     // FIXED FORM CONFIGURATION
     // ============================================================================
@@ -3626,7 +3628,7 @@ const BookingCalendarExtension = {
                     }
                 ]
             },
-
+            
             // Step 2: Agent Calendar Selection - FIXED
             {
                 sectionId: "agent_appointment_scheduling",
@@ -3639,6 +3641,7 @@ const BookingCalendarExtension = {
                         required: true,
                         mode: 'booking',
                         headerIcon: 'CALENDAR',
+                        
                         // These will be populated dynamically during render()
                         timezone: '{{timezone}}',
                         language: '{{language}}',
@@ -3647,6 +3650,7 @@ const BookingCalendarExtension = {
                         categoryItems: '{{categoryItems}}', // This provides the agents data
                         specialistsInfo: '{{specialistsInfo}}', // Alternative property name
                         showItemInfo: '{{showItemInfo}}',
+                        
                         getCustomErrorMessage: (lang) => BookingCalendarExtension.FORM_DATA.translations[lang].errors.appointment,
                         getCustomErrorMessages: (lang) => ({
                             required: BookingCalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
@@ -3658,75 +3662,31 @@ const BookingCalendarExtension = {
             }
         ]
     },
-    // ============================================================================
-    // HELPER METHODS
-    // ============================================================================
-    generateDefaultAgents: () => {
-        return {
-            "Sophia Martinez": {
-                "eventSlug": "meeting",
-                "scheduleId": 552412,
-                "eventId": 2054696,
-                "apikey": "cal_live_fb2a70f7700112674cf26acb33ebe141"
-            },
-            "Emma Thompson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552447,
-                "eventId": 2054894,
-                "apikey": "cal_live_2bb06ee039ec6c015b8cf8350419d9dc"
-            },
-            "Liam Carter": {
-                "eventSlug": "meeting",
-                "scheduleId": 552361,
-                "eventId": 2054403,
-                "apikey": "cal_live_9e2a8a8513a4b70529b515cb01e9b537"
-            },
-            "Ethan Brown": {
-                "eventSlug": "meeting",
-                "scheduleId": 552433,
-                "eventId": 2054834,
-                "apikey": "cal_live_2839e4f6a175f815472f06793772f07c"
-            },
-            "Olivia Davis": {
-                "eventSlug": "meeting",
-                "scheduleId": 552540,
-                "eventId": 2055142,
-                "apikey": "cal_live_0df9982ee588956d1e4fbb1cf57a203c"
-            },
-            "Noah Wilson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552464,
-                "eventId": 2054946,
-                "apikey": "cal_live_0524b9d5b19ad001f1b012f8c28c3c18"
-            },
-            "Ava Johnson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552390,
-                "eventId": 2054563,
-                "apikey": "cal_live_79f11b5eab6614966a45af66f1bab18f"
-            }
-        };
-    },
+
+
+
     // Convert agentsInformation to format expected by ItemCalendarField
     convertAgentsInformation: (agentsInformation) => {
         const converted = {};
-        Object.entries(agentsInformation)
-            .forEach(([agentName, agentData]) => {
-                converted[agentName] = {
-                    apiKey: agentData.apikey || agentData.apiKey,
-                    scheduleId: agentData.scheduleId,
-                    categories: {
-                        "Real Estate Meeting": {
-                            eventSlug: agentData.eventSlug || "meeting",
-                            eventId: agentData.eventId,
-                            link: `${agentName.toLowerCase().replace(/\s+/g, '-')}/${agentData.eventSlug || "meeting"}`
-                        }
+        
+        Object.entries(agentsInformation).forEach(([agentName, agentData]) => {
+            converted[agentName] = {
+                apiKey: agentData.apikey || agentData.apiKey,
+                scheduleId: agentData.scheduleId,
+                categories: {
+                    "Real Estate Meeting": {
+                        eventSlug: agentData.eventSlug || "meeting",
+                        eventId: agentData.eventId,
+                        link: `${agentName.toLowerCase().replace(/\s+/g, '-')}/${agentData.eventSlug || "meeting"}`
                     }
-                };
-            });
+                }
+            };
+        });
+        
         return converted;
     }
 };
+
 // ============================================================================
 // ENHANCED RESCHEDULE CALENDAR EXTENSION - RESTRUCTURED ARCHITECTURE
 // ============================================================================
