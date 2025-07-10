@@ -3320,7 +3320,7 @@ const BookingCalendarExtension = {
         // ============================================================================
         // FIX: HANDLE STRINGIFIED JSON FOR AGENTS INFORMATION
         // ============================================================================
-        
+        console.log(agentsInformation);
         // Parse agentsInformation if it's a string (stringified JSON)
         if (typeof agentsInformation === 'string' && agentsInformation.trim()) {
             try {
