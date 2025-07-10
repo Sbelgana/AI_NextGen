@@ -3317,45 +3317,6 @@ const BookingCalendarExtension = {
             dataTransformer = BaseDataTransformer
         } = trace.payload || {};
 
-        // ============================================================================
-        // FIX: HANDLE STRINGIFIED JSON FOR AGENTS INFORMATION
-        // ============================================================================
-        console.log(agentsInformation, language, timezone, enableSessionTimeout, voiceflowEnabled, enableDetailedLogging);
-        // Parse agentsInformation if it's a string (stringified JSON)
-        if (typeof agentsInformation === 'string' && agentsInformation.trim()) {
-            try {
-                agentsInformation = JSON.parse(agentsInformation);
-                console.log('🏠 RealEstateBooking ✅ Successfully parsed agentsInformation from stringified JSON');
-            } catch (error) {
-                console.error('🏠 RealEstateBooking ❌ Failed to parse agentsInformation JSON:', error);
-                console.error('🏠 RealEstateBooking 📄 Raw agentsInformation string:', agentsInformation);
-                // Set to null so it will fall back to default agents
-                agentsInformation = null;
-            }
-        }
-        
-        // Parse specialistsInfo if it's a string (fallback option)
-        if (typeof specialistsInfo === 'string' && specialistsInfo.trim()) {
-            try {
-                specialistsInfo = JSON.parse(specialistsInfo);
-                console.log('🏠 RealEstateBooking ✅ Successfully parsed specialistsInfo from stringified JSON');
-            } catch (error) {
-                console.error('🏠 RealEstateBooking ❌ Failed to parse specialistsInfo JSON:', error);
-                specialistsInfo = null;
-            }
-        }
-        
-        // Parse categoryItems if it's a string (fallback option)
-        if (typeof categoryItems === 'string' && categoryItems.trim()) {
-            try {
-                categoryItems = JSON.parse(categoryItems);
-                console.log('🏠 RealEstateBooking ✅ Successfully parsed categoryItems from stringified JSON');
-            } catch (error) {
-                console.error('🏠 RealEstateBooking ❌ Failed to parse categoryItems JSON:', error);
-                categoryItems = null;
-            }
-        }
-
         // Handle alternative naming for agents information
         if (!agentsInformation && specialistsInfo) {
             agentsInformation = specialistsInfo;
@@ -3366,36 +3327,30 @@ const BookingCalendarExtension = {
         
         // Fallback to generated default agents if none provided
         if (!agentsInformation) {
-            console.log('🏠 RealEstateBooking ⚠️ No agentsInformation provided, using default agents');
             agentsInformation = BookingCalendarExtension.generateDefaultAgents();
         }
         
-        // Validate that agentsInformation is now an object with content
-        if (!agentsInformation || typeof agentsInformation !== 'object' || Object.keys(agentsInformation).length === 0) {
-            console.error('🏠 RealEstateBooking ❌ agentsInformation is still invalid after parsing attempts');
+        // Helper function to get translated text
+        const getTranslatedText = (key, lang = language) => {
+            const keys = key.split('.');
+            let value = BookingCalendarExtension.FORM_DATA.translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        };
+
+        // Validate that agentsInformation is provided and has content
+        if (!agentsInformation || Object.keys(agentsInformation).length === 0) {
+            console.error('BookingCalendarExtension: agentsInformation is required in payload');
             element.innerHTML = `
                 <div class="error-state" style="padding: 20px; text-align: center; color: #e74c3c;">
-                    <h3>${BookingCalendarExtension.getTranslatedText('errors.configurationError', language)}</h3>
-                    <p>${BookingCalendarExtension.getTranslatedText('errors.agentsInformationRequired', language)}</p>
-                    <details style="margin-top: 10px;">
-                        <summary>Debug Info</summary>
-                        <pre style="text-align: left; font-size: 12px; background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px;">
-Original agentsInformation type: ${typeof trace.payload?.agentsInformation}
-Original agentsInformation value: ${JSON.stringify(trace.payload?.agentsInformation, null, 2)}
-Parsed agentsInformation: ${JSON.stringify(agentsInformation, null, 2)}
-                        </pre>
-                    </details>
+                    <h3>${getTranslatedText('errors.configurationError')}</h3>
+                    <p>${getTranslatedText('errors.agentsInformationRequired')}</p>
                 </div>
             `;
             return;
         }
-        
-        console.log('🏠 RealEstateBooking 📋 Final agentsInformation:', agentsInformation);
-        
-        // Helper function to get translated text
-        const getTranslatedText = (key, lang = language) => {
-            return BookingCalendarExtension.getTranslatedText(key, lang);
-        };
 
         // Convert agentsInformation to the format expected by the calendar field
         const convertedAgentsInfo = BookingCalendarExtension.convertAgentsInformation(agentsInformation);
@@ -3484,20 +3439,6 @@ Parsed agentsInformation: ${JSON.stringify(agentsInformation, null, 2)}
         );
 
         return await extension.render(element);
-    },
-
-    // ============================================================================
-    // HELPER METHODS
-    // ============================================================================
-    
-    // Helper function to get translated text
-    getTranslatedText: (key, lang = 'fr') => {
-        const keys = key.split('.');
-        let value = BookingCalendarExtension.FORM_DATA.translations[lang];
-        for (const k of keys) {
-            value = value?.[k];
-        }
-        return value || key;
     },
 
     // ============================================================================
@@ -3772,12 +3713,6 @@ Parsed agentsInformation: ${JSON.stringify(agentsInformation, null, 2)}
                 "scheduleId": 552464,
                 "eventId": 2054946,
                 "apikey": "cal_live_0524b9d5b19ad001f1b012f8c28c3c18"
-            },
-            "Ava Johnson": {
-                "eventSlug": "meeting",
-                "scheduleId": 552390,
-                "eventId": 2054563,
-                "apikey": "cal_live_79f11b5eab6614966a45af66f1bab18f"
             }
         };
     },
