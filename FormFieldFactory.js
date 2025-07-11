@@ -13096,8 +13096,6 @@ class CarouselField extends BaseField {
     }
 
     selectItem(index) {
-        console.log(`🎯 CarouselField selectItem called: index=${index}, fieldName=${this.name}`);
-        
         if (this.allowMultiple) {
             if (this.selectedItems.includes(index)) {
                 this.selectedItems = this.selectedItems.filter(i => i !== index);
@@ -13110,18 +13108,7 @@ class CarouselField extends BaseField {
         }
 
         this.updateSelection();
-        
-        // ENHANCED: More robust change handling
-        console.log(`🎯 CarouselField calling handleChange for ${this.name}, selected value:`, this.getValue());
         this.handleChange();
-        
-        // ADDITIONAL: Force trigger onChange if it exists
-        if (this.onChange && typeof this.onChange === 'function') {
-            console.log(`🎯 CarouselField directly calling onChange for ${this.name}`);
-            setTimeout(() => {
-                this.onChange(this.getValue());
-            }, 10);
-        }
     }
 
     updateSelection() {
@@ -13227,6 +13214,7 @@ class CarouselField extends BaseField {
         return true;
     }
 }
+
 // ============================================================================
 // SERVICE PROVIDER CALENDAR FIELD - Generic 3-step field (Service > Provider > Calendar)
 // ============================================================================
