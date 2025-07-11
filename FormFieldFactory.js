@@ -12941,29 +12941,41 @@ class CarouselField extends BaseField {
                 refreshBtn.addEventListener('click', () => {
                     console.log('🦷 Manual refresh requested');
                     
-                    // Try to get the selected service from various sources
-                    if (window.DentalBookingExtension && this.factory) {
-                        const extension = this.factory.creatFormInstance || 
-                                        this.factory.currentExtension ||
-                                        window.currentDentalExtension;
+                    // Try to get the extension from multiple sources
+                    let extension = null;
+                    
+                    // Source 1: Factory reference
+                    if (this.factory && this.factory.currentExtension) {
+                        extension = this.factory.currentExtension;
+                    }
+                    // Source 2: Global reference
+                    else if (window.currentDentalExtension) {
+                        extension = window.currentDentalExtension;
+                    }
+                    // Source 3: Try factory's creatFormInstance
+                    else if (this.factory && this.factory.creatFormInstance) {
+                        extension = this.factory.creatFormInstance;
+                    }
+                    
+                    if (extension && window.DentalBookingExtension) {
+                        const formData = extension.multiStepForm?.getFormData() || 
+                                       extension.factory?.formValues ||
+                                       extension.formValues ||
+                                       {};
                         
-                        if (extension) {
-                            const formData = extension.multiStepForm?.getFormData() || 
-                                           extension.factory?.formValues ||
-                                           extension.formValues ||
-                                           {};
-                            
-                            console.log('🦷 Manual refresh - form data:', formData);
-                            
-                            const selectedService = formData.selectedService;
-                            if (selectedService) {
-                                console.log('🦷 Found service for manual refresh:', selectedService);
-                                window.DentalBookingExtension.handleServiceSelection(extension, selectedService, formData);
-                            } else {
-                                console.log('🦷 No service found for manual refresh');
-                                alert('Please go back to step 2 and select a service first.');
-                            }
+                        console.log('🦷 Manual refresh - form data:', formData);
+                        
+                        const selectedService = formData.selectedService;
+                        if (selectedService) {
+                            console.log('🦷 Found service for manual refresh:', selectedService);
+                            window.DentalBookingExtension.handleServiceSelection(extension, selectedService, formData);
+                        } else {
+                            console.log('🦷 No service found for manual refresh');
+                            alert('Please go back to step 2 and select a service first.');
                         }
+                    } else {
+                        console.error('🦷 Could not find extension for manual refresh');
+                        alert('Unable to refresh. Please go back to step 2 and select a service again.');
                     }
                 });
             }
@@ -13084,6 +13096,8 @@ class CarouselField extends BaseField {
     }
 
     selectItem(index) {
+        console.log(`🎯 CarouselField selectItem called: index=${index}, fieldName=${this.name}`);
+        
         if (this.allowMultiple) {
             if (this.selectedItems.includes(index)) {
                 this.selectedItems = this.selectedItems.filter(i => i !== index);
@@ -13096,7 +13110,18 @@ class CarouselField extends BaseField {
         }
 
         this.updateSelection();
+        
+        // ENHANCED: More robust change handling
+        console.log(`🎯 CarouselField calling handleChange for ${this.name}, selected value:`, this.getValue());
         this.handleChange();
+        
+        // ADDITIONAL: Force trigger onChange if it exists
+        if (this.onChange && typeof this.onChange === 'function') {
+            console.log(`🎯 CarouselField directly calling onChange for ${this.name}`);
+            setTimeout(() => {
+                this.onChange(this.getValue());
+            }, 10);
+        }
     }
 
     updateSelection() {
