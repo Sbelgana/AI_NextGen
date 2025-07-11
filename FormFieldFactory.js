@@ -12905,6 +12905,17 @@ class CarouselField extends BaseField {
         container.appendChild(carousel);
         this.element = container;
         this.element.fieldInstance = this;
+        
+        // NEW: Emit a custom event when dentist field is rendered
+        if (this.name === 'selectedDentist') {
+            console.log('🦷 Dentist field rendered, emitting event');
+            const event = new CustomEvent('dentistFieldRendered', {
+                detail: { fieldInstance: this },
+                bubbles: true
+            });
+            setTimeout(() => container.dispatchEvent(event), 100);
+        }
+        
         return container;
     }
 
@@ -12940,43 +12951,7 @@ class CarouselField extends BaseField {
             if (refreshBtn) {
                 refreshBtn.addEventListener('click', () => {
                     console.log('🦷 Manual refresh requested');
-                    
-                    // Try to get the extension from multiple sources
-                    let extension = null;
-                    
-                    // Source 1: Factory reference
-                    if (this.factory && this.factory.currentExtension) {
-                        extension = this.factory.currentExtension;
-                    }
-                    // Source 2: Global reference
-                    else if (window.currentDentalExtension) {
-                        extension = window.currentDentalExtension;
-                    }
-                    // Source 3: Try factory's creatFormInstance
-                    else if (this.factory && this.factory.creatFormInstance) {
-                        extension = this.factory.creatFormInstance;
-                    }
-                    
-                    if (extension && window.DentalBookingExtension) {
-                        const formData = extension.multiStepForm?.getFormData() || 
-                                       extension.factory?.formValues ||
-                                       extension.formValues ||
-                                       {};
-                        
-                        console.log('🦷 Manual refresh - form data:', formData);
-                        
-                        const selectedService = formData.selectedService;
-                        if (selectedService) {
-                            console.log('🦷 Found service for manual refresh:', selectedService);
-                            window.DentalBookingExtension.handleServiceSelection(extension, selectedService, formData);
-                        } else {
-                            console.log('🦷 No service found for manual refresh');
-                            alert('Please go back to step 2 and select a service first.');
-                        }
-                    } else {
-                        console.error('🦷 Could not find extension for manual refresh');
-                        alert('Unable to refresh. Please go back to step 2 and select a service again.');
-                    }
+                    window.DentalBookingExtension?.triggerDentistRefresh?.();
                 });
             }
             
