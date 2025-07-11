@@ -12942,7 +12942,10 @@ class FilteredCarouselField extends BaseField {
 
                         if (this.track) {
                             this.renderItems();
-                            this.updateNavigation();
+                            // Only update navigation if element is ready
+                            if (this.element) {
+                                this.updateNavigation();
+                            }
                         }
 
                         return true;
@@ -13026,9 +13029,6 @@ class FilteredCarouselField extends BaseField {
                 this.track = document.createElement('div');
                 this.track.className = 'carousel-track';
 
-                // Try to auto-populate immediately
-                this.autoPopulateItems();
-
                 this.renderItems();
                 carouselContainer.appendChild(this.track);
 
@@ -13038,8 +13038,13 @@ class FilteredCarouselField extends BaseField {
                 carousel.appendChild(errorElement);
 
                 container.appendChild(carousel);
+                
+                // Set element reference BEFORE calling auto-populate
                 this.element = container;
                 this.element.fieldInstance = this;
+
+                // Try to auto-populate after element is set
+                this.autoPopulateItems();
 
                 // Start continuous monitoring if configured
                 this.startAutoUpdate();
@@ -13221,8 +13226,6 @@ class FilteredCarouselField extends BaseField {
                 }
             }
         }
-
-
 
 // ============================================================================
 // REGULAR CAROUSEL FIELD FOR NON-FILTERED ITEMS
