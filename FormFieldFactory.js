@@ -1109,15 +1109,6 @@ class FormFieldFactory {
         case 'service-provider-calendar':
             field = new ServiceProviderCalendarField (this, config);
             break;
-        case 'service-provider-calendar-help':
-            field = new ServiceProviderCalendarHelper(this, config);
-            break;
-        case 'service-selection':
-            field = new ServiceSelectionField (this, config);
-            break;
-        case 'provider-selection':
-            field = new ProviderSelectionField (this, config);
-            break;
         case 'calendar':
             field = new CalendarField(this, config);
             break;
@@ -1358,15 +1349,6 @@ class FormFieldFactory {
     }
     createServiceProviderCalendarField(config) {
         return new ServiceProviderCalendarField(this, config);
-    }
-    createServiceProviderCalendarHelper(config) {
-        return new ServiceProviderCalendarHelper(this, config);
-    }
-    createServiceSelectionField(config) {
-        return new ServiceSelectionField(this, config);
-    }
-    createProviderSelectionField(config) {
-        return new ProviderSelectionField(this, config);
     }
     createCalendarField(config) {
         return new CalendarField(this, config);
@@ -1836,12 +1818,8 @@ class FormStep {
             return this.factory.createServiceCardField(fieldConfig);
         case 'carousel':
             return this.factory.createCarouselField(fieldConfig);
-        case 'service-provider-calendar-help':
-            return this.factory.createServiceProviderCalendarHelper(fieldConfig);
-        case 'service-selection':
-            return this.factory.createServiceSelectionField(fieldConfig);
-        case 'provider-selection':
-            return this.factory.createProviderSelectionField(fieldConfig);
+        case 'service-provider-calendar':
+            return this.factory.createServiceProviderCalendarField(fieldConfig);
         case 'calendar':
             return this.factory.createCalendarField(fieldConfig);
         case 'item-calendar':
@@ -12860,1013 +12838,636 @@ class CalComBaseUtility {
 
 
 class CarouselField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                this.config = config;
-                this.items = config.items || [];
-                this.selectedItem = null;
-                this.currentIndex = 0;
-                this.itemsPerView = config.itemsPerView || 1;
-                this.showNavigation = config.showNavigation !== false;
-                this.showIndicators = config.showIndicators !== false;
-                this.title = config.title || '';
-                this.subtitle = config.subtitle || '';
-                this.itemType = config.itemType || 'generic';
-                this.allowMultiple = config.allowMultiple || false;
-                this.selectedItems = [];
-                this.showDetails = config.showDetails !== false;
-                this.layout = config.layout || 'grid';
-                this.columns = config.columns || 'auto';
+    constructor(factory, config) {
+        super(factory, config);
+        this.config = config;
+        this.items = config.items || [];
+        this.selectedItem = null;
+        this.currentIndex = 0;
+        this.itemsPerView = config.itemsPerView || 1;
+        this.showNavigation = config.showNavigation !== false;
+        this.showIndicators = config.showIndicators !== false;
+        this.title = config.title || '';
+        this.subtitle = config.subtitle || '';
+        this.itemType = config.itemType || 'generic';
+        this.allowMultiple = config.allowMultiple || false;
+        this.selectedItems = [];
+        this.showDetails = config.showDetails !== false;
+        this.layout = config.layout || 'grid';
+        this.columns = config.columns || 'auto';
+    }
+
+    render() {
+        const container = this.createContainer();
+        
+        const carousel = document.createElement('div');
+        carousel.className = 'carousel-field';
+        
+        if (this.title || this.subtitle) {
+            const header = document.createElement('div');
+            header.className = 'carousel-header';
+            
+            if (this.title) {
+                const title = document.createElement('h3');
+                title.className = 'carousel-title';
+                title.textContent = this.title;
+                header.appendChild(title);
+            }
+            
+            if (this.subtitle) {
+                const subtitle = document.createElement('p');
+                subtitle.className = 'carousel-subtitle';
+                subtitle.textContent = this.subtitle;
+                header.appendChild(subtitle);
+            }
+            
+            carousel.appendChild(header);
+        }
+
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-container';
+
+        this.track = document.createElement('div');
+        this.track.className = 'carousel-track';
+        this.renderItems();
+        carouselContainer.appendChild(this.track);
+
+        if (this.showNavigation && this.items.length > this.itemsPerView) {
+            const navigation = this.createNavigation();
+            carouselContainer.appendChild(navigation);
+        }
+
+        carousel.appendChild(carouselContainer);
+        
+        const errorElement = this.createErrorElement();
+        carousel.appendChild(errorElement);
+
+        container.appendChild(carousel);
+        this.element = container;
+        this.element.fieldInstance = this;
+        return container;
+    }
+
+    renderItems() {
+        this.track.innerHTML = '';
+        
+        if (this.items.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'carousel-empty-message';
+            emptyMessage.textContent = this.config.emptyMessage || 'No items available';
+            emptyMessage.style.cssText = `
+                text-align: center;
+                color: #6c757d;
+                padding: 40px 20px;
+                font-style: italic;
+            `;
+            this.track.appendChild(emptyMessage);
+            return;
+        }
+        
+        this.items.forEach((item, index) => {
+            const itemElement = this.createItemElement(item, index);
+            this.track.appendChild(itemElement);
+        });
+
+        this.updateTrackPosition();
+    }
+
+    createItemElement(item, index) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'carousel-item';
+        itemEl.dataset.index = index;
+
+        if (item.image) {
+            const img = document.createElement('img');
+            img.className = 'carousel-item-image';
+            img.src = item.image;
+            img.alt = item.title || item.name || '';
+            itemEl.appendChild(img);
+        }
+
+        if (item.title || item.name) {
+            const title = document.createElement('h4');
+            title.className = 'carousel-item-title';
+            title.textContent = item.title || item.name;
+            itemEl.appendChild(title);
+        }
+
+        if (item.position || item.category) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-item-subtitle';
+            subtitle.textContent = item.position || item.category;
+            itemEl.appendChild(subtitle);
+        }
+
+        if (item.description) {
+            const desc = document.createElement('p');
+            desc.className = 'carousel-item-description';
+            desc.textContent = item.description;
+            itemEl.appendChild(desc);
+        }
+
+        if (this.showDetails) {
+            const details = document.createElement('div');
+            details.className = 'carousel-item-details';
+
+            if (item.price) {
+                const price = document.createElement('span');
+                price.className = 'carousel-item-price';
+                price.textContent = item.price;
+                details.appendChild(price);
             }
 
-            render() {
-                const container = this.createContainer();
-                
-                const carousel = document.createElement('div');
-                carousel.className = 'carousel-field';
-                
-                if (this.title || this.subtitle) {
-                    const header = document.createElement('div');
-                    header.className = 'carousel-header';
-                    
-                    if (this.title) {
-                        const title = document.createElement('h3');
-                        title.className = 'carousel-title';
-                        title.textContent = this.title;
-                        header.appendChild(title);
-                    }
-                    
-                    if (this.subtitle) {
-                        const subtitle = document.createElement('p');
-                        subtitle.className = 'carousel-subtitle';
-                        subtitle.textContent = this.subtitle;
-                        header.appendChild(subtitle);
-                    }
-                    
-                    carousel.appendChild(header);
-                }
-
-                const carouselContainer = document.createElement('div');
-                carouselContainer.className = 'carousel-container';
-
-                this.track = document.createElement('div');
-                this.track.className = 'carousel-track';
-                this.renderItems();
-                carouselContainer.appendChild(this.track);
-
-                if (this.showNavigation && this.items.length > this.itemsPerView) {
-                    const navigation = this.createNavigation();
-                    carouselContainer.appendChild(navigation);
-                }
-
-                carousel.appendChild(carouselContainer);
-                
-                const errorElement = this.createErrorElement();
-                carousel.appendChild(errorElement);
-
-                container.appendChild(carousel);
-                this.element = container;
-                this.element.fieldInstance = this;
-                return container;
+            if (item.duration) {
+                const duration = document.createElement('span');
+                duration.className = 'carousel-item-duration';
+                duration.textContent = item.duration;
+                details.appendChild(duration);
             }
 
-            renderItems() {
-                this.track.innerHTML = '';
-                
-                this.items.forEach((item, index) => {
-                    const itemElement = this.createItemElement(item, index);
-                    this.track.appendChild(itemElement);
-                });
-
-                this.updateTrackPosition();
+            if (item.experience) {
+                const experience = document.createElement('span');
+                experience.className = 'carousel-item-experience';
+                experience.textContent = `${item.experience} années d'expérience`;
+                details.appendChild(experience);
             }
 
-            createItemElement(item, index) {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'carousel-item';
-                itemEl.dataset.index = index;
-
-                if (item.image) {
-                    const img = document.createElement('img');
-                    img.className = 'carousel-item-image';
-                    img.src = item.image;
-                    img.alt = item.title || item.name || '';
-                    itemEl.appendChild(img);
-                }
-
-                if (item.title || item.name) {
-                    const title = document.createElement('h4');
-                    title.className = 'carousel-item-title';
-                    title.textContent = item.title || item.name;
-                    itemEl.appendChild(title);
-                }
-
-                if (item.position || item.category) {
-                    const subtitle = document.createElement('p');
-                    subtitle.className = 'carousel-item-subtitle';
-                    subtitle.textContent = item.position || item.category;
-                    itemEl.appendChild(subtitle);
-                }
-
-                if (item.description) {
-                    const desc = document.createElement('p');
-                    desc.className = 'carousel-item-description';
-                    desc.textContent = item.description;
-                    itemEl.appendChild(desc);
-                }
-
-                if (this.showDetails) {
-                    const details = document.createElement('div');
-                    details.className = 'carousel-item-details';
-
-                    if (item.price) {
-                        const price = document.createElement('span');
-                        price.className = 'carousel-item-price';
-                        price.textContent = item.price;
-                        details.appendChild(price);
-                    }
-
-                    if (item.duration) {
-                        const duration = document.createElement('span');
-                        duration.className = 'carousel-item-duration';
-                        duration.textContent = item.duration;
-                        details.appendChild(duration);
-                    }
-
-                    if (item.experience) {
-                        const experience = document.createElement('span');
-                        experience.className = 'carousel-item-experience';
-                        experience.textContent = `${item.experience} années d'expérience`;
-                        details.appendChild(experience);
-                    }
-
-                    if (details.children.length > 0) {
-                        itemEl.appendChild(details);
-                    }
-                }
-
-                itemEl.addEventListener('click', () => this.selectItem(index));
-                return itemEl;
-            }
-
-            createNavigation() {
-                const nav = document.createElement('div');
-                nav.className = 'carousel-navigation';
-
-                this.prevBtn = document.createElement('button');
-                this.prevBtn.className = 'carousel-nav-btn';
-                this.prevBtn.innerHTML = '‹';
-                this.prevBtn.addEventListener('click', () => this.previousSlide());
-
-                this.nextBtn = document.createElement('button');
-                this.nextBtn.className = 'carousel-nav-btn';
-                this.nextBtn.innerHTML = '›';
-                this.nextBtn.addEventListener('click', () => this.nextSlide());
-
-                const indicators = document.createElement('div');
-                indicators.className = 'carousel-indicators';
-                
-                const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
-                for (let i = 0; i < totalSlides; i++) {
-                    const dot = document.createElement('span');
-                    dot.className = 'carousel-dot';
-                    if (i === 0) dot.classList.add('active');
-                    dot.addEventListener('click', () => this.goToSlide(i));
-                    indicators.appendChild(dot);
-                }
-                this.indicators = indicators;
-
-                nav.appendChild(this.prevBtn);
-                nav.appendChild(indicators);
-                nav.appendChild(this.nextBtn);
-
-                this.updateNavigationState();
-                return nav;
-            }
-
-            selectItem(index) {
-                if (this.allowMultiple) {
-                    if (this.selectedItems.includes(index)) {
-                        this.selectedItems = this.selectedItems.filter(i => i !== index);
-                    } else {
-                        this.selectedItems.push(index);
-                    }
-                } else {
-                    this.selectedItem = index;
-                    this.selectedItems = [index];
-                }
-
-                this.updateSelection();
-                this.handleChange();
-            }
-
-            updateSelection() {
-                const items = this.track.querySelectorAll('.carousel-item');
-                items.forEach((item, index) => {
-                    if (this.selectedItems.includes(index)) {
-                        item.classList.add('selected');
-                    } else {
-                        item.classList.remove('selected');
-                    }
-                });
-            }
-
-            updateItems(newItems) {
-                console.log('🔄 Updating carousel items:', newItems.map(d => d.name));
-                this.items = newItems;
-                this.selectedItem = null;
-                this.selectedItems = [];
-                this.currentIndex = 0;
-                this.renderItems();
-                if (this.showNavigation && this.indicators) {
-                    const navigation = this.element.querySelector('.carousel-navigation');
-                    if (navigation) {
-                        navigation.remove();
-                        if (this.items.length > this.itemsPerView) {
-                            const newNavigation = this.createNavigation();
-                            this.element.querySelector('.carousel-container').appendChild(newNavigation);
-                        }
-                    }
-                }
-            }
-
-            nextSlide() {
-                const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
-                if (this.currentIndex < maxSlides) {
-                    this.currentIndex++;
-                    this.updateTrackPosition();
-                    this.updateNavigationState();
-                }
-            }
-
-            previousSlide() {
-                if (this.currentIndex > 0) {
-                    this.currentIndex--;
-                    this.updateTrackPosition();
-                    this.updateNavigationState();
-                }
-            }
-
-            goToSlide(index) {
-                this.currentIndex = index;
-                this.updateTrackPosition();
-                this.updateNavigationState();
-            }
-
-            updateTrackPosition() {
-                const translateX = -this.currentIndex * (100 / this.itemsPerView);
-                this.track.style.transform = `translateX(${translateX}%)`;
-            }
-
-            updateNavigationState() {
-                if (this.prevBtn && this.nextBtn) {
-                    this.prevBtn.disabled = this.currentIndex === 0;
-                    this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
-                }
-
-                if (this.indicators) {
-                    const dots = this.indicators.querySelectorAll('.carousel-dot');
-                    dots.forEach((dot, index) => {
-                        dot.classList.toggle('active', index === this.currentIndex);
-                    });
-                }
-            }
-
-            getValue() {
-                if (this.allowMultiple) {
-                    return this.selectedItems.map(index => this.items[index]);
-                } else {
-                    return this.selectedItem !== null ? this.items[this.selectedItem] : null;
-                }
-            }
-
-            setValue(value) {
-                if (this.allowMultiple && Array.isArray(value)) {
-                    this.selectedItems = value.map(item => 
-                        this.items.findIndex(i => i.id === item.id)
-                    ).filter(index => index !== -1);
-                } else if (value) {
-                    this.selectedItem = this.items.findIndex(item => item.id === value.id);
-                    this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
-                }
-                this.updateSelection();
-            }
-
-            validate() {
-                if (this.required && this.selectedItems.length === 0) {
-                    this.showError(this.getFieldErrorMessage('required'));
-                    return false;
-                }
-                this.hideError();
-                return true;
+            if (details.children.length > 0) {
+                itemEl.appendChild(details);
             }
         }
 
+        itemEl.addEventListener('click', () => this.selectItem(index));
+        return itemEl;
+    }
+
+    createNavigation() {
+        const nav = document.createElement('div');
+        nav.className = 'carousel-navigation';
+
+        this.prevBtn = document.createElement('button');
+        this.prevBtn.className = 'carousel-nav-btn';
+        this.prevBtn.innerHTML = '‹';
+        this.prevBtn.addEventListener('click', () => this.previousSlide());
+
+        this.nextBtn = document.createElement('button');
+        this.nextBtn.className = 'carousel-nav-btn';
+        this.nextBtn.innerHTML = '›';
+        this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+        const indicators = document.createElement('div');
+        indicators.className = 'carousel-indicators';
+        
+        const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('span');
+            dot.className = 'carousel-dot';
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => this.goToSlide(i));
+            indicators.appendChild(dot);
+        }
+        this.indicators = indicators;
+
+        nav.appendChild(this.prevBtn);
+        nav.appendChild(indicators);
+        nav.appendChild(this.nextBtn);
+
+        this.updateNavigationState();
+        return nav;
+    }
+
+    selectItem(index) {
+        if (this.allowMultiple) {
+            if (this.selectedItems.includes(index)) {
+                this.selectedItems = this.selectedItems.filter(i => i !== index);
+            } else {
+                this.selectedItems.push(index);
+            }
+        } else {
+            this.selectedItem = index;
+            this.selectedItems = [index];
+        }
+
+        this.updateSelection();
+        this.handleChange();
+    }
+
+    updateSelection() {
+        const items = this.track.querySelectorAll('.carousel-item');
+        items.forEach((item, index) => {
+            if (this.selectedItems.includes(index)) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    updateItems(newItems) {
+        console.log('🔄 Updating carousel items:', newItems.map(d => d.name || d.title));
+        this.items = newItems;
+        this.selectedItem = null;
+        this.selectedItems = [];
+        this.currentIndex = 0;
+        this.renderItems();
+        
+        if (this.showNavigation && this.indicators) {
+            const navigation = this.element.querySelector('.carousel-navigation');
+            if (navigation) {
+                navigation.remove();
+                if (this.items.length > this.itemsPerView) {
+                    const newNavigation = this.createNavigation();
+                    this.element.querySelector('.carousel-container').appendChild(newNavigation);
+                }
+            }
+        }
+    }
+
+    nextSlide() {
+        const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    previousSlide() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    goToSlide(index) {
+        this.currentIndex = index;
+        this.updateTrackPosition();
+        this.updateNavigationState();
+    }
+
+    updateTrackPosition() {
+        if (this.items.length === 0) return;
+        const translateX = -this.currentIndex * (100 / this.itemsPerView);
+        this.track.style.transform = `translateX(${translateX}%)`;
+    }
+
+    updateNavigationState() {
+        if (this.prevBtn && this.nextBtn) {
+            this.prevBtn.disabled = this.currentIndex === 0;
+            this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
+        }
+
+        if (this.indicators) {
+            const dots = this.indicators.querySelectorAll('.carousel-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === this.currentIndex);
+            });
+        }
+    }
+
+    getValue() {
+        if (this.allowMultiple) {
+            return this.selectedItems.map(index => this.items[index]);
+        } else {
+            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+        }
+    }
+
+    setValue(value) {
+        if (this.allowMultiple && Array.isArray(value)) {
+            this.selectedItems = value.map(item => 
+                this.items.findIndex(i => i.id === item.id)
+            ).filter(index => index !== -1);
+        } else if (value) {
+            this.selectedItem = this.items.findIndex(item => item.id === value.id);
+            this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
+        }
+        this.updateSelection();
+    }
+
+    validate() {
+        if (this.required && this.selectedItems.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+}
 // ============================================================================
 // SERVICE PROVIDER CALENDAR FIELD - Generic 3-step field (Service > Provider > Calendar)
 // ============================================================================
 class ServiceProviderCalendarField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                
-                // Core configuration
-                this.language = config.language || 'fr';
-                this.locale = config.locale || 'fr-FR';
-                this.timezone = config.timezone || 'America/Toronto';
-                
-                // Data configuration
-                this.servicesData = config.servicesData || [];
-                this.providersData = config.providersData || [];
-                this.providersInfo = config.providersInfo || {}; // Provider API configurations
-                
-                // Current selections
-                this.selectedService = null;
-                this.selectedProvider = null;
-                this.appointmentData = null;
-                
-                // UI state
-                this.currentStep = 0; // 0: Service, 1: Provider, 2: Calendar
-                this.totalSteps = 3;
-                
-                // Field instances
-                this.serviceCarousel = null;
-                this.providerCarousel = null;
-                this.calendarField = null;
-                this.filteredProviders = [];
-                
-                // Callbacks
-                this.onServiceChange = config.onServiceChange || null;
-                this.onProviderChange = config.onProviderChange || null;
-                this.onAppointmentChange = config.onAppointmentChange || null;
-                this.onStepChange = config.onStepChange || null;
-                
-                // Translations
-                this.texts = {
-                    services: config.texts?.services || 'Services',
-                    providers: config.texts?.providers || 'Providers', 
-                    appointment: config.texts?.appointment || 'Appointment',
-                    selectService: config.texts?.selectService || 'Select a Service',
-                    selectProvider: config.texts?.selectProvider || 'Select a Provider',
-                    selectAppointment: config.texts?.selectAppointment || 'Select Date & Time',
-                    serviceStep: config.texts?.serviceStep || 'Choose Service',
-                    providerStep: config.texts?.providerStep || 'Choose Provider',
-                    appointmentStep: config.texts?.appointmentStep || 'Schedule Appointment',
-                    next: config.texts?.next || 'Next',
-                    previous: config.texts?.previous || 'Previous',
-                    noProvidersAvailable: config.texts?.noProvidersAvailable || 'No providers available for this service'
-                };
-                
-                this.init();
-            }
-            
-            init() {
-                // Filter providers for initial service if any
-                if (this.selectedService) {
-                    this.filterProvidersByService(this.selectedService);
-                } else {
-                    this.filteredProviders = [...this.providersData];
-                }
-            }
-            
-            filterProvidersByService(service) {
-                if (!service || !service.id) {
-                    this.filteredProviders = [...this.providersData];
-                    return;
-                }
-                
-                this.filteredProviders = this.providersData.filter(provider => 
-                    provider.services && provider.services.includes(service.id)
-                );
-                
-                console.log(`🦷 Filtered ${this.filteredProviders.length} providers for service:`, service.id);
-            }
-            
-            selectService(service) {
-                console.log('🎯 Service selected:', service);
-                this.selectedService = service;
-                this.selectedProvider = null;
-                this.appointmentData = null;
-                
-                // Filter providers
-                this.filterProvidersByService(service);
-                
-                // Update provider carousel
-                if (this.providerCarousel) {
-                    this.providerCarousel.updateItems(this.filteredProviders);
-                    // Reset provider selection
-                    this.providerCarousel.selectedItem = null;
-                    this.providerCarousel.selectedItems = [];
-                    this.providerCarousel.updateSelection();
-                }
-                
-                // Reset calendar
-                if (this.calendarField) {
-                    this.calendarField.reset();
-                }
-                
-                // Auto-advance to provider step
-                this.goToStep(1);
-                
-                // Trigger callback
-                if (this.onServiceChange) {
-                    this.onServiceChange(service, this.filteredProviders);
-                }
-                
-                this.updateValue();
-            }
-            
-            selectProvider(provider) {
-                console.log('🎯 Provider selected:', provider);
-                this.selectedProvider = provider;
-                this.appointmentData = null;
-                
-                // Configure calendar with provider's API settings
-                this.configureCalendar();
-                
-                // Auto-advance to calendar step
-                this.goToStep(2);
-                
-                // Trigger callback
-                if (this.onProviderChange) {
-                    this.onProviderChange(provider, this.selectedService);
-                }
-                
-                this.updateValue();
-            }
-            
-            configureCalendar() {
-                if (!this.calendarField || !this.selectedProvider || !this.selectedService) {
-                    console.log('🦷 Cannot configure calendar - missing dependencies');
-                    return;
-                }
-                
-                const providerInfo = this.providersInfo[this.selectedProvider.name];
-                const serviceConfig = providerInfo?.services?.[this.selectedService.title];
-                
-                console.log('🦷 Provider info:', providerInfo);
-                console.log('🦷 Service config:', serviceConfig);
-                
-                if (providerInfo && serviceConfig) {
-                    // Update calendar configuration
-                    this.calendarField.apiKey = providerInfo.apiKey;
-                    this.calendarField.scheduleId = providerInfo.scheduleId;
-                    this.calendarField.eventTypeId = serviceConfig.eventId;
-                    this.calendarField.eventTypeSlug = serviceConfig.eventSlug;
-                    this.calendarField.eventName = this.selectedService.title;
-                    this.calendarField.specialist = this.selectedProvider.name;
-                    this.calendarField.selectedCategory = this.selectedService.title;
-                    
-                    console.log('📅 Calendar configured:', {
-                        provider: this.selectedProvider.name,
-                        service: this.selectedService.title,
-                        apiKey: providerInfo.apiKey,
-                        scheduleId: providerInfo.scheduleId,
-                        eventTypeId: serviceConfig.eventId
-                    });
-                    
-                    // Reinitialize calendar
-                    setTimeout(() => {
-                        if (this.calendarField.initializeCalendar) {
-                            this.calendarField.initializeCalendar().then(() => {
-                                console.log('🦷 Calendar reinitialized successfully');
-                                if (this.calendarField.updateCalendarHeader) {
-                                    this.calendarField.updateCalendarHeader();
-                                }
-                                if (this.calendarField.renderCalendarData) {
-                                    this.calendarField.renderCalendarData();
-                                }
-                            }).catch(err => {
-                                console.error('🦷 Calendar initialization error:', err);
-                            });
-                        } else if (this.calendarField.updateCalendarHeader) {
-                            this.calendarField.updateCalendarHeader();
-                            if (this.calendarField.renderCalendarData) {
-                                this.calendarField.renderCalendarData();
-                            }
-                        }
-                    }, 100);
-                } else {
-                    console.warn('🦷 Missing provider info or service config');
-                }
-            }
-            
-            onAppointmentSelect(appointmentData) {
-                console.log('🎯 Appointment selected:', appointmentData);
-                this.appointmentData = appointmentData;
-                
-                // Trigger callback
-                if (this.onAppointmentChange) {
-                    this.onAppointmentChange(appointmentData, this.selectedService, this.selectedProvider);
-                }
-                
-                this.updateValue();
-            }
-            
-            goToStep(stepIndex) {
-                if (stepIndex < 0 || stepIndex >= this.totalSteps) {
-                    return;
-                }
-                
-                this.currentStep = stepIndex;
-                this.updateStepVisibility();
-                
-                if (this.onStepChange) {
-                    this.onStepChange(stepIndex, {
-                        service: this.selectedService,
-                        provider: this.selectedProvider,
-                        appointment: this.appointmentData
-                    });
-                }
-            }
-            
-            nextStep() {
-                if (this.currentStep < this.totalSteps - 1) {
-                    this.goToStep(this.currentStep + 1);
-                }
-            }
-            
-            previousStep() {
-                if (this.currentStep > 0) {
-                    this.goToStep(this.currentStep - 1);
-                }
-            }
-            
-            updateStepVisibility() {
-                if (!this.element) return;
-                
-                const steps = this.element.querySelectorAll('.spc-step');
-                steps.forEach((step, index) => {
-                    step.classList.toggle('active', index === this.currentStep);
-                    step.classList.toggle('hidden', index !== this.currentStep);
-                });
-                
-                // Update progress indicator
-                const progressSteps = this.element.querySelectorAll('.spc-progress-step');
-                progressSteps.forEach((step, index) => {
-                    step.classList.toggle('active', index === this.currentStep);
-                    step.classList.toggle('completed', index < this.currentStep);
-                });
-                
-                // Update navigation buttons
-                const prevBtn = this.element.querySelector('.spc-prev-btn');
-                const nextBtn = this.element.querySelector('.spc-next-btn');
-                
-                if (prevBtn) {
-                    prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
-                }
-                
-                if (nextBtn) {
-                    nextBtn.style.display = this.currentStep === this.totalSteps - 1 ? 'none' : 'block';
-                }
-            }
-            
-            render() {
-                const container = this.createContainer();
-                container.className += ' service-provider-calendar-field';
-                
-                // Add styles
-                this.injectStyles();
-                
-                // Create progress indicator
-                const progressContainer = document.createElement('div');
-                progressContainer.className = 'spc-progress';
-                
-                const progressSteps = [
-                    { key: 'service', label: this.texts.serviceStep },
-                    { key: 'provider', label: this.texts.providerStep },
-                    { key: 'appointment', label: this.texts.appointmentStep }
-                ];
-                
-                progressSteps.forEach((step, index) => {
-                    const stepEl = document.createElement('div');
-                    stepEl.className = 'spc-progress-step';
-                    stepEl.innerHTML = `
-                        <div class="spc-step-number">${index + 1}</div>
-                        <div class="spc-step-label">${step.label}</div>
-                    `;
-                    progressContainer.appendChild(stepEl);
-                });
-                
-                container.appendChild(progressContainer);
-                
-                // Create steps container
-                const stepsContainer = document.createElement('div');
-                stepsContainer.className = 'spc-steps';
-                
-                // Step 1: Service Selection
-                const serviceStep = this.createServiceStep();
-                stepsContainer.appendChild(serviceStep);
-                
-                // Step 2: Provider Selection  
-                const providerStep = this.createProviderStep();
-                stepsContainer.appendChild(providerStep);
-                
-                // Step 3: Calendar
-                const calendarStep = this.createCalendarStep();
-                stepsContainer.appendChild(calendarStep);
-                
-                container.appendChild(stepsContainer);
-                
-                // Create navigation
-                const navigation = this.createNavigation();
-                container.appendChild(navigation);
-                
-                // Create error element
-                const errorElement = this.createErrorElement();
-                container.appendChild(errorElement);
-                
-                this.element = container;
-                this.element.fieldInstance = this;
-                
-                // Initialize step visibility
-                this.updateStepVisibility();
-                
-                return this.element;
-            }
-            
-            createServiceStep() {
-                const step = document.createElement('div');
-                step.className = 'spc-step spc-service-step';
-                
-                const title = document.createElement('h3');
-                title.className = 'spc-step-title';
-                title.textContent = this.texts.selectService;
-                step.appendChild(title);
-                
-                // Create service carousel using CarouselField pattern
-                this.serviceCarousel = new CarouselField(this.factory, {
-                    id: `${this.id}-service`,
-                    name: `${this.name}_service`,
-                    items: this.servicesData,
-                    title: '',
-                    itemType: 'service',
-                    showDetails: true,
-                    layout: 'grid',
-                    columns: 'auto'
-                });
-                
-                // Override selectItem to handle our logic
-                const originalSelectItem = this.serviceCarousel.selectItem.bind(this.serviceCarousel);
-                this.serviceCarousel.selectItem = (index) => {
-                    originalSelectItem(index);
-                    const selectedService = this.servicesData[index];
-                    if (selectedService) {
-                        this.selectService(selectedService);
-                    }
-                };
-                
-                step.appendChild(this.serviceCarousel.render());
-                return step;
-            }
-            
-            createProviderStep() {
-                const step = document.createElement('div');
-                step.className = 'spc-step spc-provider-step';
-                
-                const title = document.createElement('h3');
-                title.className = 'spc-step-title';
-                title.textContent = this.texts.selectProvider;
-                step.appendChild(title);
-                
-                // Create provider carousel
-                this.providerCarousel = new CarouselField(this.factory, {
-                    id: `${this.id}-provider`,
-                    name: `${this.name}_provider`,
-                    items: this.filteredProviders,
-                    title: '',
-                    itemType: 'staff',
-                    showDetails: true,
-                    layout: 'grid',
-                    columns: 'auto'
-                });
-                
-                // Override selectItem to handle our logic
-                const originalSelectItem = this.providerCarousel.selectItem.bind(this.providerCarousel);
-                this.providerCarousel.selectItem = (index) => {
-                    originalSelectItem(index);
-                    const selectedProvider = this.filteredProviders[index];
-                    if (selectedProvider) {
-                        this.selectProvider(selectedProvider);
-                    }
-                };
-                
-                step.appendChild(this.providerCarousel.render());
-                return step;
-            }
-            
-            createCalendarStep() {
-                const step = document.createElement('div');
-                step.className = 'spc-step spc-calendar-step';
-                
-                const title = document.createElement('h3');
-                title.className = 'spc-step-title';
-                title.textContent = this.texts.selectAppointment;
-                step.appendChild(title);
-                
-                // Create calendar field
-                this.calendarField = new CalendarField(this.factory, {
-                    id: `${this.id}-calendar`,
-                    name: `${this.name}_calendar`,
-                    required: this.required,
-                    mode: 'booking',
-                    selectionMode: 'none',
-                    timezone: this.timezone,
-                    language: this.language,
-                    locale: this.locale,
-                    onChange: (value) => this.onAppointmentSelect(value)
-                });
-                
-                step.appendChild(this.calendarField.render());
-                return step;
-            }
-            
-            createNavigation() {
-                const nav = document.createElement('div');
-                nav.className = 'spc-navigation';
-                
-                const prevBtn = document.createElement('button');
-                prevBtn.type = 'button';
-                prevBtn.className = 'spc-nav-btn spc-prev-btn';
-                prevBtn.textContent = this.texts.previous;
-                prevBtn.addEventListener('click', () => this.previousStep());
-                
-                const nextBtn = document.createElement('button');
-                nextBtn.type = 'button';
-                nextBtn.className = 'spc-nav-btn spc-next-btn';
-                nextBtn.textContent = this.texts.next;
-                nextBtn.addEventListener('click', () => this.nextStep());
-                
-                nav.appendChild(prevBtn);
-                nav.appendChild(nextBtn);
-                
-                return nav;
-            }
-            
-            injectStyles() {
-                if (document.querySelector('#spc-styles')) return;
-                
-                const styles = `
-                    <style id="spc-styles">
-                        .service-provider-calendar-field {
-                            width: 100%;
-                            max-width: 800px;
-                            margin: 0 auto;
-                        }
-                        
-                        .spc-progress {
-                            display: flex;
-                            justify-content: space-between;
-                            margin-bottom: 30px;
-                            position: relative;
-                        }
-                        
-                        .spc-progress::before {
-                            content: '';
-                            position: absolute;
-                            top: 20px;
-                            left: 10%;
-                            right: 10%;
-                            height: 2px;
-                            background: #e1e5e9;
-                            z-index: 1;
-                        }
-                        
-                        .spc-progress-step {
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            position: relative;
-                            z-index: 2;
-                            flex: 1;
-                        }
-                        
-                        .spc-step-number {
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            background: #e1e5e9;
-                            color: #6c757d;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-weight: 600;
-                            margin-bottom: 8px;
-                            transition: all 0.3s ease;
-                        }
-                        
-                        .spc-progress-step.active .spc-step-number {
-                            background: #007bff;
-                            color: white;
-                        }
-                        
-                        .spc-progress-step.completed .spc-step-number {
-                            background: #28a745;
-                            color: white;
-                        }
-                        
-                        .spc-step-label {
-                            font-size: 0.9rem;
-                            color: #6c757d;
-                            text-align: center;
-                            transition: color 0.3s ease;
-                        }
-                        
-                        .spc-progress-step.active .spc-step-label {
-                            color: #007bff;
-                            font-weight: 600;
-                        }
-                        
-                        .spc-steps {
-                            min-height: 400px;
-                            margin-bottom: 20px;
-                        }
-                        
-                        .spc-step {
-                            display: none;
-                        }
-                        
-                        .spc-step.active {
-                            display: block;
-                            animation: fadeIn 0.3s ease;
-                        }
-                        
-                        .spc-step-title {
-                            text-align: center;
-                            margin-bottom: 20px;
-                            color: #2c3e50;
-                            font-size: 1.5rem;
-                        }
-                        
-                        .spc-navigation {
-                            display: flex;
-                            justify-content: space-between;
-                            margin-top: 20px;
-                        }
-                        
-                        .spc-nav-btn {
-                            padding: 12px 24px;
-                            border: none;
-                            border-radius: 6px;
-                            background: #007bff;
-                            color: white;
-                            font-weight: 600;
-                            cursor: pointer;
-                            transition: background 0.3s ease;
-                        }
-                        
-                        .spc-nav-btn:hover {
-                            background: #0056b3;
-                        }
-                        
-                        .spc-nav-btn:disabled {
-                            background: #6c757d;
-                            cursor: not-allowed;
-                        }
-                        
-                        @keyframes fadeIn {
-                            from { opacity: 0; transform: translateY(10px); }
-                            to { opacity: 1; transform: translateY(0); }
-                        }
-                    </style>
-                `;
-                
-                document.head.insertAdjacentHTML('beforeend', styles);
-            }
-            
-            validate() {
-                if (!this.required) return true;
-                
-                if (!this.selectedService) {
-                    this.showError('Please select a service');
-                    return false;
-                }
-                
-                if (!this.selectedProvider) {
-                    this.showError('Please select a provider');
-                    return false;
-                }
-                
-                if (!this.appointmentData) {
-                    this.showError('Please select an appointment time');
-                    return false;
-                }
-                
-                this.hideError();
-                return true;
-            }
-            
-            getValue() {
-                return {
-                    selectedService: this.selectedService,
-                    selectedProvider: this.selectedProvider,
-                    appointment: this.appointmentData,
-                    currentStep: this.currentStep,
-                    isComplete: !!(this.selectedService && this.selectedProvider && this.appointmentData)
-                };
-            }
-            
-            setValue(value) {
-                if (!value) return;
-                
-                if (value.selectedService) {
-                    this.selectedService = value.selectedService;
-                    this.filterProvidersByService(value.selectedService);
-                }
-                
-                if (value.selectedProvider) {
-                    this.selectedProvider = value.selectedProvider;
-                    this.configureCalendar();
-                }
-                
-                if (value.appointment) {
-                    this.appointmentData = value.appointment;
-                }
-                
-                if (value.currentStep !== undefined) {
-                    this.goToStep(value.currentStep);
-                }
-                
-                this.updateValue();
-            }
-            
-            updateValue() {
-                this.handleChange();
-            }
-            
-            reset() {
-                this.selectedService = null;
-                this.selectedProvider = null;
-                this.appointmentData = null;
-                this.currentStep = 0;
-                this.filteredProviders = [...this.providersData];
-                
-                if (this.serviceCarousel) {
-                    this.serviceCarousel.selectedItem = null;
-                    this.serviceCarousel.selectedItems = [];
-                    this.serviceCarousel.updateSelection();
-                }
-                
-                if (this.providerCarousel) {
-                    this.providerCarousel.updateItems(this.filteredProviders);
-                }
-                
-                if (this.calendarField) {
-                    this.calendarField.reset();
-                }
-                
-                this.updateStepVisibility();
-                this.updateValue();
-            }
-            
-            destroy() {
-                if (this.serviceCarousel && typeof this.serviceCarousel.destroy === 'function') {
-                    this.serviceCarousel.destroy();
-                }
-                if (this.providerCarousel && typeof this.providerCarousel.destroy === 'function') {
-                    this.providerCarousel.destroy();
-                }
-                if (this.calendarField && typeof this.calendarField.destroy === 'function') {
-                    this.calendarField.destroy();
-                }
-                super.destroy();
-            }
-        }
-
-// ============================================================================
-// SERVICE SELECTION FIELD - Carousel pour sélectionner un service
-// ============================================================================
-class ServiceSelectionField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         
-        this.servicesData = config.servicesData || [];
-        this.selectedService = null;
-        this.onServiceChange = config.onServiceChange || null;
-        this.carousel = null;
+        // Core configuration
+        this.language = config.language || 'fr';
+        this.locale = config.locale || 'fr-FR';
+        this.timezone = config.timezone || 'America/Toronto';
         
+        // Data configuration
+        this.servicesData = config.servicesData || [];
+        this.providersData = config.providersData || [];
+        this.providersInfo = config.providersInfo || {}; // Provider API configurations
+        
+        // Current selections
+        this.selectedService = null;
+        this.selectedProvider = null;
+        this.appointmentData = null;
+        
+        // UI state
+        this.currentStep = 0; // 0: Service, 1: Provider, 2: Calendar
+        this.totalSteps = 3;
+        
+        // Field instances
+        this.serviceCarousel = null;
+        this.providerCarousel = null;
+        this.calendarField = null;
+        this.filteredProviders = [];
+        
+        // Callbacks
+        this.onServiceChange = config.onServiceChange || null;
+        this.onProviderChange = config.onProviderChange || null;
+        this.onAppointmentChange = config.onAppointmentChange || null;
+        this.onStepChange = config.onStepChange || null;
+        
+        // Translations
         this.texts = {
-            selectService: config.texts?.selectService || 'Sélectionnez un service',
-            serviceDescription: config.texts?.serviceDescription || 'Choisissez le service dentaire dont vous avez besoin'
+            services: config.texts?.services || 'Services',
+            providers: config.texts?.providers || 'Providers', 
+            appointment: config.texts?.appointment || 'Appointment',
+            selectService: config.texts?.selectService || 'Select a Service',
+            selectProvider: config.texts?.selectProvider || 'Select a Provider',
+            selectAppointment: config.texts?.selectAppointment || 'Select Date & Time',
+            serviceStep: config.texts?.serviceStep || 'Choose Service',
+            providerStep: config.texts?.providerStep || 'Choose Provider',
+            appointmentStep: config.texts?.appointmentStep || 'Schedule Appointment',
+            next: config.texts?.next || 'Next',
+            previous: config.texts?.previous || 'Previous',
+            noProvidersAvailable: config.texts?.noProvidersAvailable || 'No providers available for this service'
         };
+        
+        this.init();
+    }
+    
+    init() {
+        // Filter providers for initial service if any
+        if (this.selectedService) {
+            this.filterProvidersByService(this.selectedService);
+        } else {
+            this.filteredProviders = [...this.providersData];
+        }
+    }
+    
+    filterProvidersByService(service) {
+        if (!service || !service.id) {
+            this.filteredProviders = [...this.providersData];
+            return;
+        }
+        
+        this.filteredProviders = this.providersData.filter(provider => 
+            provider.services && provider.services.includes(service.id)
+        );
+        
+        console.log(`Filtered ${this.filteredProviders.length} providers for service:`, service.id);
+    }
+    
+    selectService(service) {
+        console.log('🎯 Service selected:', service);
+        this.selectedService = service;
+        this.selectedProvider = null;
+        this.appointmentData = null;
+        
+        // Filter providers
+        this.filterProvidersByService(service);
+        
+        // Update provider carousel
+        if (this.providerCarousel) {
+            this.providerCarousel.updateItems(this.filteredProviders);
+        }
+        
+        // Reset calendar
+        if (this.calendarField) {
+            this.calendarField.reset();
+        }
+        
+        // Auto-advance to provider step
+        this.goToStep(1);
+        
+        // Trigger callback
+        if (this.onServiceChange) {
+            this.onServiceChange(service, this.filteredProviders);
+        }
+        
+        this.updateValue();
+    }
+    
+    selectProvider(provider) {
+        console.log('🎯 Provider selected:', provider);
+        this.selectedProvider = provider;
+        this.appointmentData = null;
+        
+        // Configure calendar with provider's API settings
+        this.configureCalendar();
+        
+        // Auto-advance to calendar step
+        this.goToStep(2);
+        
+        // Trigger callback
+        if (this.onProviderChange) {
+            this.onProviderChange(provider, this.selectedService);
+        }
+        
+        this.updateValue();
+    }
+    
+    configureCalendar() {
+        if (!this.calendarField || !this.selectedProvider || !this.selectedService) {
+            return;
+        }
+        
+        const providerInfo = this.providersInfo[this.selectedProvider.name];
+        const serviceConfig = providerInfo?.services?.[this.selectedService.title];
+        
+        if (providerInfo && serviceConfig) {
+            // Update calendar configuration
+            this.calendarField.apiKey = providerInfo.apiKey;
+            this.calendarField.scheduleId = providerInfo.scheduleId;
+            this.calendarField.eventTypeId = serviceConfig.eventId;
+            this.calendarField.eventTypeSlug = serviceConfig.eventSlug;
+            this.calendarField.eventName = this.selectedService.title;
+            this.calendarField.specialist = this.selectedProvider.name;
+            this.calendarField.selectedCategory = this.selectedService.title;
+            
+            console.log('📅 Calendar configured:', {
+                provider: this.selectedProvider.name,
+                service: this.selectedService.title,
+                apiKey: providerInfo.apiKey,
+                scheduleId: providerInfo.scheduleId,
+                eventTypeId: serviceConfig.eventId
+            });
+            
+            // Reinitialize calendar
+            if (this.calendarField.initializeCalendar) {
+                this.calendarField.initializeCalendar();
+            }
+            
+            // Update header
+            if (this.calendarField.updateCalendarHeader) {
+                this.calendarField.updateCalendarHeader();
+            }
+        }
+    }
+    
+    onAppointmentSelect(appointmentData) {
+        console.log('🎯 Appointment selected:', appointmentData);
+        this.appointmentData = appointmentData;
+        
+        // Trigger callback
+        if (this.onAppointmentChange) {
+            this.onAppointmentChange(appointmentData, this.selectedService, this.selectedProvider);
+        }
+        
+        this.updateValue();
+    }
+    
+    goToStep(stepIndex) {
+        if (stepIndex < 0 || stepIndex >= this.totalSteps) {
+            return;
+        }
+        
+        this.currentStep = stepIndex;
+        this.updateStepVisibility();
+        
+        if (this.onStepChange) {
+            this.onStepChange(stepIndex, {
+                service: this.selectedService,
+                provider: this.selectedProvider,
+                appointment: this.appointmentData
+            });
+        }
+    }
+    
+    nextStep() {
+        if (this.currentStep < this.totalSteps - 1) {
+            this.goToStep(this.currentStep + 1);
+        }
+    }
+    
+    previousStep() {
+        if (this.currentStep > 0) {
+            this.goToStep(this.currentStep - 1);
+        }
+    }
+    
+    updateStepVisibility() {
+        if (!this.element) return;
+        
+        const steps = this.element.querySelectorAll('.spc-step');
+        steps.forEach((step, index) => {
+            step.classList.toggle('active', index === this.currentStep);
+            step.classList.toggle('hidden', index !== this.currentStep);
+        });
+        
+        // Update progress indicator
+        const progressSteps = this.element.querySelectorAll('.spc-progress-step');
+        progressSteps.forEach((step, index) => {
+            step.classList.toggle('active', index === this.currentStep);
+            step.classList.toggle('completed', index < this.currentStep);
+        });
+        
+        // Update navigation buttons
+        const prevBtn = this.element.querySelector('.spc-prev-btn');
+        const nextBtn = this.element.querySelector('.spc-next-btn');
+        
+        if (prevBtn) {
+            prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
+        }
+        
+        if (nextBtn) {
+            nextBtn.style.display = this.currentStep === this.totalSteps - 1 ? 'none' : 'block';
+        }
     }
     
     render() {
         const container = this.createContainer();
-        container.className += ' service-selection-field';
+        container.className += ' service-provider-calendar-field';
         
-        // Add title and description
-        const header = document.createElement('div');
-        header.className = 'service-selection-header';
-        header.innerHTML = `
-            <h3 class="service-selection-title">${this.texts.selectService}</h3>
-            <p class="service-selection-description">${this.texts.serviceDescription}</p>
-        `;
-        container.appendChild(header);
+        // Add styles
+        this.injectStyles();
         
-        // Create service carousel
-        this.carousel = new CarouselField(this.factory, {
-            id: `${this.id}-carousel`,
-            name: `${this.name}_carousel`,
+        // Create progress indicator
+        const progressContainer = document.createElement('div');
+        progressContainer.className = 'spc-progress';
+        
+        const progressSteps = [
+            { key: 'service', label: this.texts.serviceStep },
+            { key: 'provider', label: this.texts.providerStep },
+            { key: 'appointment', label: this.texts.appointmentStep }
+        ];
+        
+        progressSteps.forEach((step, index) => {
+            const stepEl = document.createElement('div');
+            stepEl.className = 'spc-progress-step';
+            stepEl.innerHTML = `
+                <div class="spc-step-number">${index + 1}</div>
+                <div class="spc-step-label">${step.label}</div>
+            `;
+            progressContainer.appendChild(stepEl);
+        });
+        
+        container.appendChild(progressContainer);
+        
+        // Create steps container
+        const stepsContainer = document.createElement('div');
+        stepsContainer.className = 'spc-steps';
+        
+        // Step 1: Service Selection
+        const serviceStep = this.createServiceStep();
+        stepsContainer.appendChild(serviceStep);
+        
+        // Step 2: Provider Selection  
+        const providerStep = this.createProviderStep();
+        stepsContainer.appendChild(providerStep);
+        
+        // Step 3: Calendar
+        const calendarStep = this.createCalendarStep();
+        stepsContainer.appendChild(calendarStep);
+        
+        container.appendChild(stepsContainer);
+        
+        // Create navigation
+        const navigation = this.createNavigation();
+        container.appendChild(navigation);
+        
+        // Create error element
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        // Initialize step visibility
+        this.updateStepVisibility();
+        
+        return this.element;
+    }
+    
+    createServiceStep() {
+        const step = document.createElement('div');
+        step.className = 'spc-step spc-service-step';
+        
+        const title = document.createElement('h3');
+        title.className = 'spc-step-title';
+        title.textContent = this.texts.selectService;
+        step.appendChild(title);
+        
+        // Create service carousel using CarouselField pattern
+        this.serviceCarousel = new CarouselField(this.factory, {
+            id: `${this.id}-service`,
+            name: `${this.name}_service`,
             items: this.servicesData,
             title: '',
             itemType: 'service',
@@ -13876,52 +13477,287 @@ class ServiceSelectionField extends BaseField {
         });
         
         // Override selectItem to handle our logic
-        const originalSelectItem = this.carousel.selectItem.bind(this.carousel);
-        this.carousel.selectItem = (index) => {
+        const originalSelectItem = this.serviceCarousel.selectItem.bind(this.serviceCarousel);
+        this.serviceCarousel.selectItem = (index) => {
             originalSelectItem(index);
             const selectedService = this.servicesData[index];
             if (selectedService) {
-                this.selectedService = selectedService;
-                this.updateValue();
-                
-                if (this.onServiceChange) {
-                    this.onServiceChange(selectedService);
-                }
+                this.selectService(selectedService);
             }
         };
         
-        container.appendChild(this.carousel.render());
+        step.appendChild(this.serviceCarousel.render());
+        return step;
+    }
+    
+    createProviderStep() {
+        const step = document.createElement('div');
+        step.className = 'spc-step spc-provider-step';
         
-        const errorElement = this.createErrorElement();
-        container.appendChild(errorElement);
+        const title = document.createElement('h3');
+        title.className = 'spc-step-title';
+        title.textContent = this.texts.selectProvider;
+        step.appendChild(title);
         
-        this.element = container;
-        this.element.fieldInstance = this;
+        // Create provider carousel
+        this.providerCarousel = new CarouselField(this.factory, {
+            id: `${this.id}-provider`,
+            name: `${this.name}_provider`,
+            items: this.filteredProviders,
+            title: '',
+            itemType: 'staff',
+            showDetails: true,
+            layout: 'grid',
+            columns: 'auto'
+        });
         
-        return this.element;
+        // Override selectItem to handle our logic
+        const originalSelectItem = this.providerCarousel.selectItem.bind(this.providerCarousel);
+        this.providerCarousel.selectItem = (index) => {
+            originalSelectItem(index);
+            const selectedProvider = this.filteredProviders[index];
+            if (selectedProvider) {
+                this.selectProvider(selectedProvider);
+            }
+        };
+        
+        step.appendChild(this.providerCarousel.render());
+        return step;
+    }
+    
+    createCalendarStep() {
+        const step = document.createElement('div');
+        step.className = 'spc-step spc-calendar-step';
+        
+        const title = document.createElement('h3');
+        title.className = 'spc-step-title';
+        title.textContent = this.texts.selectAppointment;
+        step.appendChild(title);
+        
+        // Create calendar field
+        this.calendarField = new CalendarField(this.factory, {
+            id: `${this.id}-calendar`,
+            name: `${this.name}_calendar`,
+            required: this.required,
+            mode: 'booking',
+            selectionMode: 'none',
+            timezone: this.timezone,
+            language: this.language,
+            locale: this.locale,
+            onChange: (value) => this.onAppointmentSelect(value)
+        });
+        
+        step.appendChild(this.calendarField.render());
+        return step;
+    }
+    
+    createNavigation() {
+        const nav = document.createElement('div');
+        nav.className = 'spc-navigation';
+        
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = 'spc-nav-btn spc-prev-btn';
+        prevBtn.textContent = this.texts.previous;
+        prevBtn.addEventListener('click', () => this.previousStep());
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'spc-nav-btn spc-next-btn';
+        nextBtn.textContent = this.texts.next;
+        nextBtn.addEventListener('click', () => this.nextStep());
+        
+        nav.appendChild(prevBtn);
+        nav.appendChild(nextBtn);
+        
+        return nav;
+    }
+    
+    injectStyles() {
+        if (document.querySelector('#spc-styles')) return;
+        
+        const styles = `
+            <style id="spc-styles">
+                .service-provider-calendar-field {
+                    width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+                
+                .spc-progress {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 30px;
+                    position: relative;
+                }
+                
+                .spc-progress::before {
+                    content: '';
+                    position: absolute;
+                    top: 20px;
+                    left: 10%;
+                    right: 10%;
+                    height: 2px;
+                    background: #e1e5e9;
+                    z-index: 1;
+                }
+                
+                .spc-progress-step {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    position: relative;
+                    z-index: 2;
+                    flex: 1;
+                }
+                
+                .spc-step-number {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: #e1e5e9;
+                    color: #6c757d;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    transition: all 0.3s ease;
+                }
+                
+                .spc-progress-step.active .spc-step-number {
+                    background: #007bff;
+                    color: white;
+                }
+                
+                .spc-progress-step.completed .spc-step-number {
+                    background: #28a745;
+                    color: white;
+                }
+                
+                .spc-step-label {
+                    font-size: 0.9rem;
+                    color: #6c757d;
+                    text-align: center;
+                    transition: color 0.3s ease;
+                }
+                
+                .spc-progress-step.active .spc-step-label {
+                    color: #007bff;
+                    font-weight: 600;
+                }
+                
+                .spc-steps {
+                    min-height: 400px;
+                    margin-bottom: 20px;
+                }
+                
+                .spc-step {
+                    display: none;
+                }
+                
+                .spc-step.active {
+                    display: block;
+                    animation: fadeIn 0.3s ease;
+                }
+                
+                .spc-step-title {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    color: #2c3e50;
+                    font-size: 1.5rem;
+                }
+                
+                .spc-navigation {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 20px;
+                }
+                
+                .spc-nav-btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 6px;
+                    background: #007bff;
+                    color: white;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                }
+                
+                .spc-nav-btn:hover {
+                    background: #0056b3;
+                }
+                
+                .spc-nav-btn:disabled {
+                    background: #6c757d;
+                    cursor: not-allowed;
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
+        `;
+        
+        document.head.insertAdjacentHTML('beforeend', styles);
     }
     
     validate() {
-        if (this.required && !this.selectedService) {
-            this.showError('Veuillez sélectionner un service');
+        if (!this.required) return true;
+        
+        if (!this.selectedService) {
+            this.showError('Please select a service');
             return false;
         }
+        
+        if (!this.selectedProvider) {
+            this.showError('Please select a provider');
+            return false;
+        }
+        
+        if (!this.appointmentData) {
+            this.showError('Please select an appointment time');
+            return false;
+        }
+        
         this.hideError();
         return true;
     }
     
     getValue() {
-        return this.selectedService;
+        return {
+            selectedService: this.selectedService,
+            selectedProvider: this.selectedProvider,
+            appointment: this.appointmentData,
+            currentStep: this.currentStep,
+            isComplete: !!(this.selectedService && this.selectedProvider && this.appointmentData)
+        };
     }
     
     setValue(value) {
-        this.selectedService = value;
-        if (this.carousel && value) {
-            const index = this.servicesData.findIndex(s => s.id === value.id);
-            if (index >= 0) {
-                this.carousel.selectItem(index);
-            }
+        if (!value) return;
+        
+        if (value.selectedService) {
+            this.selectedService = value.selectedService;
+            this.filterProvidersByService(value.selectedService);
         }
+        
+        if (value.selectedProvider) {
+            this.selectedProvider = value.selectedProvider;
+            this.configureCalendar();
+        }
+        
+        if (value.appointment) {
+            this.appointmentData = value.appointment;
+        }
+        
+        if (value.currentStep !== undefined) {
+            this.goToStep(value.currentStep);
+        }
+        
+        this.updateValue();
     }
     
     updateValue() {
@@ -13930,266 +13766,40 @@ class ServiceSelectionField extends BaseField {
     
     reset() {
         this.selectedService = null;
-        if (this.carousel) {
-            this.carousel.selectedItem = null;
-            this.carousel.selectedItems = [];
-            this.carousel.updateSelection();
+        this.selectedProvider = null;
+        this.appointmentData = null;
+        this.currentStep = 0;
+        this.filteredProviders = [...this.providersData];
+        
+        if (this.serviceCarousel) {
+            this.serviceCarousel.selectedItem = null;
+            this.serviceCarousel.selectedItems = [];
+            this.serviceCarousel.updateSelection();
         }
+        
+        if (this.providerCarousel) {
+            this.providerCarousel.updateItems(this.filteredProviders);
+        }
+        
+        if (this.calendarField) {
+            this.calendarField.reset();
+        }
+        
+        this.updateStepVisibility();
+        this.updateValue();
     }
-}
-
-class ProviderSelectionField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                
-                this.providersData = config.providersData || [];
-                this.allProviders = [...this.providersData];
-                this.filteredProviders = [...this.providersData];
-                this.selectedProvider = null;
-                this.selectedService = null;
-                this.onProviderChange = config.onProviderChange || null;
-                this.carousel = null;
-                
-                this.texts = {
-                    selectProvider: config.texts?.selectProvider || 'Choisissez votre dentiste',
-                    providerDescription: config.texts?.providerDescription || 'Sélectionnez le professionnel qui vous convient le mieux',
-                    noProvidersAvailable: config.texts?.noProvidersAvailable || 'Aucun dentiste disponible pour ce service'
-                };
-            }
-            
-            // FIX: Méthode de filtrage corrigée
-            filterProvidersByService(service) {
-                console.log('🔍 Filtering providers for service:', service);
-                
-                if (!service || !service.id) {
-                    this.filteredProviders = [...this.allProviders];
-                    console.log('🔍 No service provided, showing all providers:', this.filteredProviders.length);
-                    return;
-                }
-                
-                this.filteredProviders = this.allProviders.filter(provider => {
-                    const hasService = provider.services && provider.services.includes(service.id);
-                    console.log(`🔍 Provider ${provider.name}: has service ${service.id}?`, hasService);
-                    return hasService;
-                });
-                
-                console.log(`🔍 Filtered ${this.filteredProviders.length} providers for service ${service.id}:`, 
-                    this.filteredProviders.map(p => p.name));
-                
-                // Reset selection when filtering
-                this.selectedProvider = null;
-                
-                // Update carousel with filtered items
-                if (this.carousel) {
-                    this.carousel.updateItems(this.filteredProviders);
-                }
-            }
-            
-            // FIX: Méthode publique pour recevoir le service sélectionné
-            setSelectedService(service) {
-                console.log('🎯 Setting selected service in provider field:', service);
-                this.selectedService = service;
-                this.filterProvidersByService(service);
-            }
-            
-            render() {
-                const container = this.createContainer();
-                container.className += ' provider-selection-field';
-                
-                const header = document.createElement('div');
-                header.className = 'provider-selection-header';
-                header.innerHTML = `
-                    <h3 class="provider-selection-title">${this.texts.selectProvider}</h3>
-                    <p class="provider-selection-description">${this.texts.providerDescription}</p>
-                `;
-                container.appendChild(header);
-                
-                this.carousel = new CarouselField(this.factory, {
-                    id: `${this.id}-carousel`,
-                    name: `${this.name}_carousel`,
-                    items: this.filteredProviders,
-                    title: '',
-                    itemType: 'staff',
-                    showDetails: true,
-                    layout: 'grid',
-                    columns: 'auto'
-                });
-                
-                const originalSelectItem = this.carousel.selectItem.bind(this.carousel);
-                this.carousel.selectItem = (index) => {
-                    originalSelectItem(index);
-                    const selectedProvider = this.filteredProviders[index];
-                    if (selectedProvider) {
-                        console.log('🎯 Provider selected:', selectedProvider);
-                        this.selectedProvider = selectedProvider;
-                        this.updateValue();
-                        
-                        if (this.onProviderChange) {
-                            this.onProviderChange(selectedProvider, this.selectedService);
-                        }
-                    }
-                };
-                
-                container.appendChild(this.carousel.render());
-                
-                const errorElement = this.createErrorElement();
-                container.appendChild(errorElement);
-                
-                this.element = container;
-                this.element.fieldInstance = this;
-                
-                return this.element;
-            }
-            
-            validate() {
-                if (this.required && !this.selectedProvider) {
-                    this.showError('Veuillez choisir un dentiste');
-                    return false;
-                }
-                this.hideError();
-                return true;
-            }
-            
-            getValue() {
-                return this.selectedProvider;
-            }
-            
-            setValue(value) {
-                this.selectedProvider = value;
-                if (this.carousel && value) {
-                    const index = this.filteredProviders.findIndex(p => p.id === value.id);
-                    if (index >= 0) {
-                        this.carousel.selectItem(index);
-                    }
-                }
-            }
-            
-            updateValue() {
-                this.handleChange();
-            }
-            
-            reset() {
-                this.selectedProvider = null;
-                if (this.carousel) {
-                    this.carousel.selectedItem = null;
-                    this.carousel.selectedItems = [];
-                    this.carousel.updateSelection();
-                }
-            }
+    
+    destroy() {
+        if (this.serviceCarousel && typeof this.serviceCarousel.destroy === 'function') {
+            this.serviceCarousel.destroy();
         }
-
-
-// ============================================================================
-// SERVICE PROVIDER CALENDAR HELPER - Injects 3 steps into main form config
-// ============================================================================
-// ============================================================================
-// SERVICE PROVIDER CALENDAR HELPER - Fixed version
-// ============================================================================
-class ServiceProviderCalendarHelper {
-    static createSteps(config) {
-        const {
-            servicesData = [],
-            providersData = [],
-            providersInfo = {},
-            language = 'fr',
-            timezone = 'America/Toronto',
-            texts = {}
-        } = config;
-
-        const defaultTexts = {
-            serviceStep: texts.serviceStep || 'Sélection du Service',
-            providerStep: texts.providerStep || 'Choix du Dentiste', 
-            appointmentStep: texts.appointmentStep || 'Date et Heure',
-            selectService: texts.selectService || 'Choisissez le service qui vous intéresse',
-            selectProvider: texts.selectProvider || 'Choisissez votre professionnel',
-            serviceSelection: texts.serviceSelection || 'Sélectionnez un service',
-            providerSelection: texts.providerSelection || 'Choisissez votre dentiste',
-            appointment: texts.appointment || 'Date et heure du rendez-vous'
-        };
-
-        return [
-            // Service Selection Step
-            {
-                sectionId: "service_selection",
-                title: defaultTexts.serviceStep,
-                description: defaultTexts.selectService,
-                fields: [
-                    {
-                        type: 'carousel',
-                        id: 'selectedService',
-                        name: 'selectedService',
-                        title: defaultTexts.serviceSelection,
-                        subtitle: defaultTexts.selectService,
-                        items: servicesData,
-                        required: true,
-                        layout: 'grid',
-                        columns: 'auto',
-                        showDetails: true,
-                        itemType: 'service',
-                        // Store reference data for filtering
-                        _servicesData: servicesData,
-                        _providersData: providersData,
-                        _providersInfo: providersInfo
-                    }
-                ]
-            },
-            
-            // Provider Selection Step  
-            {
-                sectionId: "provider_selection",
-                title: defaultTexts.providerStep,
-                description: defaultTexts.selectProvider,
-                fields: [
-                    {
-                        type: 'carousel',
-                        id: 'selectedProvider',
-                        name: 'selectedProvider',
-                        title: defaultTexts.providerSelection,
-                        subtitle: defaultTexts.selectProvider,
-                        items: providersData, // Will be filtered dynamically
-                        required: true,
-                        layout: 'grid',
-                        columns: 'auto',
-                        showDetails: true,
-                        itemType: 'staff',
-                        // Store original data for filtering
-                        _allProviders: providersData,
-                        _providersInfo: providersInfo
-                    }
-                ]
-            },
-            
-            // Calendar Step
-            {
-                sectionId: "appointment_scheduling",
-                title: defaultTexts.appointmentStep,
-                description: "Choisissez votre créneau préféré",
-                fields: [
-                    {
-                        type: 'calendar',
-                        id: 'appointment',
-                        name: 'appointment',
-                        label: defaultTexts.appointment,
-                        required: true,
-                        mode: 'booking',
-                        selectionMode: 'none',
-                        timezone: timezone,
-                        language: language,
-                        locale: language === 'fr' ? 'fr-FR' : 'en-US',
-                        // Store reference data
-                        _providersInfo: providersInfo,
-                        // Will be configured dynamically when service/provider are selected
-                        apiKey: '',
-                        eventTypeId: null,
-                        eventTypeSlug: '',
-                        scheduleId: null,
-                        specialist: '',
-                        selectedCategory: '',
-                        eventName: ''
-                    }
-                ]
-            }
-        ];
+        if (this.providerCarousel && typeof this.providerCarousel.destroy === 'function') {
+            this.providerCarousel.destroy();
+        }
+        if (this.calendarField && typeof this.calendarField.destroy === 'function') {
+            this.calendarField.destroy();
+        }
+        super.destroy();
     }
 }
 // Export for module usage
@@ -14201,8 +13811,7 @@ if (typeof module !== 'undefined' && module.exports) {
         FormFieldFactory,
         CreatForm,
         MultiStepForm,
-        CalComBaseUtility,
-	    ServiceProviderCalendarHelper
+        CalComBaseUtility
     };
 } else {
     window.FieldValueFormatter = FieldValueFormatter; // ← Add
@@ -14212,5 +13821,4 @@ if (typeof module !== 'undefined' && module.exports) {
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
     window.CalComBaseUtility = CalComBaseUtility;
-    window.ServiceProviderCalendarHelper = ServiceProviderCalendarHelper;
 }
