@@ -13166,649 +13166,671 @@ class CarouselField extends BaseField {
 // SERVICE PROVIDER CALENDAR FIELD - Generic 3-step field (Service > Provider > Calendar)
 // ============================================================================
 class ServiceProviderCalendarField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        
-        // Core configuration
-        this.language = config.language || 'fr';
-        this.locale = config.locale || 'fr-FR';
-        this.timezone = config.timezone || 'America/Toronto';
-        
-        // Data configuration
-        this.servicesData = config.servicesData || [];
-        this.providersData = config.providersData || [];
-        this.providersInfo = config.providersInfo || {}; // Provider API configurations
-        
-        // Current selections
-        this.selectedService = null;
-        this.selectedProvider = null;
-        this.appointmentData = null;
-        
-        // UI state
-        this.currentStep = 0; // 0: Service, 1: Provider, 2: Calendar
-        this.totalSteps = 3;
-        
-        // Field instances
-        this.serviceCarousel = null;
-        this.providerCarousel = null;
-        this.calendarField = null;
-        this.filteredProviders = [];
-        
-        // Callbacks
-        this.onServiceChange = config.onServiceChange || null;
-        this.onProviderChange = config.onProviderChange || null;
-        this.onAppointmentChange = config.onAppointmentChange || null;
-        this.onStepChange = config.onStepChange || null;
-        
-        // Translations
-        this.texts = {
-            services: config.texts?.services || 'Services',
-            providers: config.texts?.providers || 'Providers', 
-            appointment: config.texts?.appointment || 'Appointment',
-            selectService: config.texts?.selectService || 'Select a Service',
-            selectProvider: config.texts?.selectProvider || 'Select a Provider',
-            selectAppointment: config.texts?.selectAppointment || 'Select Date & Time',
-            serviceStep: config.texts?.serviceStep || 'Choose Service',
-            providerStep: config.texts?.providerStep || 'Choose Provider',
-            appointmentStep: config.texts?.appointmentStep || 'Schedule Appointment',
-            next: config.texts?.next || 'Next',
-            previous: config.texts?.previous || 'Previous',
-            noProvidersAvailable: config.texts?.noProvidersAvailable || 'No providers available for this service'
-        };
-        
-        this.init();
-    }
-    
-    init() {
-        // Filter providers for initial service if any
-        if (this.selectedService) {
-            this.filterProvidersByService(this.selectedService);
-        } else {
-            this.filteredProviders = [...this.providersData];
-        }
-    }
-    
-    filterProvidersByService(service) {
-        if (!service || !service.id) {
-            this.filteredProviders = [...this.providersData];
-            return;
-        }
-        
-        this.filteredProviders = this.providersData.filter(provider => 
-            provider.services && provider.services.includes(service.id)
-        );
-        
-        console.log(`Filtered ${this.filteredProviders.length} providers for service:`, service.id);
-    }
-    
-    selectService(service) {
-        console.log('🎯 Service selected:', service);
-        this.selectedService = service;
-        this.selectedProvider = null;
-        this.appointmentData = null;
-        
-        // Filter providers
-        this.filterProvidersByService(service);
-        
-        // Update provider carousel
-        if (this.providerCarousel) {
-            this.providerCarousel.updateItems(this.filteredProviders);
-        }
-        
-        // Reset calendar
-        if (this.calendarField) {
-            this.calendarField.reset();
-        }
-        
-        // Auto-advance to provider step
-        this.goToStep(1);
-        
-        // Trigger callback
-        if (this.onServiceChange) {
-            this.onServiceChange(service, this.filteredProviders);
-        }
-        
-        this.updateValue();
-    }
-    
-    selectProvider(provider) {
-        console.log('🎯 Provider selected:', provider);
-        this.selectedProvider = provider;
-        this.appointmentData = null;
-        
-        // Configure calendar with provider's API settings
-        this.configureCalendar();
-        
-        // Auto-advance to calendar step
-        this.goToStep(2);
-        
-        // Trigger callback
-        if (this.onProviderChange) {
-            this.onProviderChange(provider, this.selectedService);
-        }
-        
-        this.updateValue();
-    }
-    
-    configureCalendar() {
-        if (!this.calendarField || !this.selectedProvider || !this.selectedService) {
-            return;
-        }
-        
-        const providerInfo = this.providersInfo[this.selectedProvider.name];
-        const serviceConfig = providerInfo?.services?.[this.selectedService.title];
-        
-        if (providerInfo && serviceConfig) {
-            // Update calendar configuration
-            this.calendarField.apiKey = providerInfo.apiKey;
-            this.calendarField.scheduleId = providerInfo.scheduleId;
-            this.calendarField.eventTypeId = serviceConfig.eventId;
-            this.calendarField.eventTypeSlug = serviceConfig.eventSlug;
-            this.calendarField.eventName = this.selectedService.title;
-            this.calendarField.specialist = this.selectedProvider.name;
-            this.calendarField.selectedCategory = this.selectedService.title;
-            
-            console.log('📅 Calendar configured:', {
-                provider: this.selectedProvider.name,
-                service: this.selectedService.title,
-                apiKey: providerInfo.apiKey,
-                scheduleId: providerInfo.scheduleId,
-                eventTypeId: serviceConfig.eventId
-            });
-            
-            // Reinitialize calendar
-            if (this.calendarField.initializeCalendar) {
-                this.calendarField.initializeCalendar();
+            constructor(factory, config) {
+                super(factory, config);
+                
+                // Core configuration
+                this.language = config.language || 'fr';
+                this.locale = config.locale || 'fr-FR';
+                this.timezone = config.timezone || 'America/Toronto';
+                
+                // Data configuration
+                this.servicesData = config.servicesData || [];
+                this.providersData = config.providersData || [];
+                this.providersInfo = config.providersInfo || {}; // Provider API configurations
+                
+                // Current selections
+                this.selectedService = null;
+                this.selectedProvider = null;
+                this.appointmentData = null;
+                
+                // UI state
+                this.currentStep = 0; // 0: Service, 1: Provider, 2: Calendar
+                this.totalSteps = 3;
+                
+                // Field instances
+                this.serviceCarousel = null;
+                this.providerCarousel = null;
+                this.calendarField = null;
+                this.filteredProviders = [];
+                
+                // Callbacks
+                this.onServiceChange = config.onServiceChange || null;
+                this.onProviderChange = config.onProviderChange || null;
+                this.onAppointmentChange = config.onAppointmentChange || null;
+                this.onStepChange = config.onStepChange || null;
+                
+                // Translations
+                this.texts = {
+                    services: config.texts?.services || 'Services',
+                    providers: config.texts?.providers || 'Providers', 
+                    appointment: config.texts?.appointment || 'Appointment',
+                    selectService: config.texts?.selectService || 'Select a Service',
+                    selectProvider: config.texts?.selectProvider || 'Select a Provider',
+                    selectAppointment: config.texts?.selectAppointment || 'Select Date & Time',
+                    serviceStep: config.texts?.serviceStep || 'Choose Service',
+                    providerStep: config.texts?.providerStep || 'Choose Provider',
+                    appointmentStep: config.texts?.appointmentStep || 'Schedule Appointment',
+                    next: config.texts?.next || 'Next',
+                    previous: config.texts?.previous || 'Previous',
+                    noProvidersAvailable: config.texts?.noProvidersAvailable || 'No providers available for this service'
+                };
+                
+                this.init();
             }
             
-            // Update header
-            if (this.calendarField.updateCalendarHeader) {
-                this.calendarField.updateCalendarHeader();
+            init() {
+                // Filter providers for initial service if any
+                if (this.selectedService) {
+                    this.filterProvidersByService(this.selectedService);
+                } else {
+                    this.filteredProviders = [...this.providersData];
+                }
+            }
+            
+            filterProvidersByService(service) {
+                if (!service || !service.id) {
+                    this.filteredProviders = [...this.providersData];
+                    return;
+                }
+                
+                this.filteredProviders = this.providersData.filter(provider => 
+                    provider.services && provider.services.includes(service.id)
+                );
+                
+                console.log(`🦷 Filtered ${this.filteredProviders.length} providers for service:`, service.id);
+            }
+            
+            selectService(service) {
+                console.log('🎯 Service selected:', service);
+                this.selectedService = service;
+                this.selectedProvider = null;
+                this.appointmentData = null;
+                
+                // Filter providers
+                this.filterProvidersByService(service);
+                
+                // Update provider carousel
+                if (this.providerCarousel) {
+                    this.providerCarousel.updateItems(this.filteredProviders);
+                    // Reset provider selection
+                    this.providerCarousel.selectedItem = null;
+                    this.providerCarousel.selectedItems = [];
+                    this.providerCarousel.updateSelection();
+                }
+                
+                // Reset calendar
+                if (this.calendarField) {
+                    this.calendarField.reset();
+                }
+                
+                // Auto-advance to provider step
+                this.goToStep(1);
+                
+                // Trigger callback
+                if (this.onServiceChange) {
+                    this.onServiceChange(service, this.filteredProviders);
+                }
+                
+                this.updateValue();
+            }
+            
+            selectProvider(provider) {
+                console.log('🎯 Provider selected:', provider);
+                this.selectedProvider = provider;
+                this.appointmentData = null;
+                
+                // Configure calendar with provider's API settings
+                this.configureCalendar();
+                
+                // Auto-advance to calendar step
+                this.goToStep(2);
+                
+                // Trigger callback
+                if (this.onProviderChange) {
+                    this.onProviderChange(provider, this.selectedService);
+                }
+                
+                this.updateValue();
+            }
+            
+            configureCalendar() {
+                if (!this.calendarField || !this.selectedProvider || !this.selectedService) {
+                    console.log('🦷 Cannot configure calendar - missing dependencies');
+                    return;
+                }
+                
+                const providerInfo = this.providersInfo[this.selectedProvider.name];
+                const serviceConfig = providerInfo?.services?.[this.selectedService.title];
+                
+                console.log('🦷 Provider info:', providerInfo);
+                console.log('🦷 Service config:', serviceConfig);
+                
+                if (providerInfo && serviceConfig) {
+                    // Update calendar configuration
+                    this.calendarField.apiKey = providerInfo.apiKey;
+                    this.calendarField.scheduleId = providerInfo.scheduleId;
+                    this.calendarField.eventTypeId = serviceConfig.eventId;
+                    this.calendarField.eventTypeSlug = serviceConfig.eventSlug;
+                    this.calendarField.eventName = this.selectedService.title;
+                    this.calendarField.specialist = this.selectedProvider.name;
+                    this.calendarField.selectedCategory = this.selectedService.title;
+                    
+                    console.log('📅 Calendar configured:', {
+                        provider: this.selectedProvider.name,
+                        service: this.selectedService.title,
+                        apiKey: providerInfo.apiKey,
+                        scheduleId: providerInfo.scheduleId,
+                        eventTypeId: serviceConfig.eventId
+                    });
+                    
+                    // Reinitialize calendar
+                    setTimeout(() => {
+                        if (this.calendarField.initializeCalendar) {
+                            this.calendarField.initializeCalendar().then(() => {
+                                console.log('🦷 Calendar reinitialized successfully');
+                                if (this.calendarField.updateCalendarHeader) {
+                                    this.calendarField.updateCalendarHeader();
+                                }
+                                if (this.calendarField.renderCalendarData) {
+                                    this.calendarField.renderCalendarData();
+                                }
+                            }).catch(err => {
+                                console.error('🦷 Calendar initialization error:', err);
+                            });
+                        } else if (this.calendarField.updateCalendarHeader) {
+                            this.calendarField.updateCalendarHeader();
+                            if (this.calendarField.renderCalendarData) {
+                                this.calendarField.renderCalendarData();
+                            }
+                        }
+                    }, 100);
+                } else {
+                    console.warn('🦷 Missing provider info or service config');
+                }
+            }
+            
+            onAppointmentSelect(appointmentData) {
+                console.log('🎯 Appointment selected:', appointmentData);
+                this.appointmentData = appointmentData;
+                
+                // Trigger callback
+                if (this.onAppointmentChange) {
+                    this.onAppointmentChange(appointmentData, this.selectedService, this.selectedProvider);
+                }
+                
+                this.updateValue();
+            }
+            
+            goToStep(stepIndex) {
+                if (stepIndex < 0 || stepIndex >= this.totalSteps) {
+                    return;
+                }
+                
+                this.currentStep = stepIndex;
+                this.updateStepVisibility();
+                
+                if (this.onStepChange) {
+                    this.onStepChange(stepIndex, {
+                        service: this.selectedService,
+                        provider: this.selectedProvider,
+                        appointment: this.appointmentData
+                    });
+                }
+            }
+            
+            nextStep() {
+                if (this.currentStep < this.totalSteps - 1) {
+                    this.goToStep(this.currentStep + 1);
+                }
+            }
+            
+            previousStep() {
+                if (this.currentStep > 0) {
+                    this.goToStep(this.currentStep - 1);
+                }
+            }
+            
+            updateStepVisibility() {
+                if (!this.element) return;
+                
+                const steps = this.element.querySelectorAll('.spc-step');
+                steps.forEach((step, index) => {
+                    step.classList.toggle('active', index === this.currentStep);
+                    step.classList.toggle('hidden', index !== this.currentStep);
+                });
+                
+                // Update progress indicator
+                const progressSteps = this.element.querySelectorAll('.spc-progress-step');
+                progressSteps.forEach((step, index) => {
+                    step.classList.toggle('active', index === this.currentStep);
+                    step.classList.toggle('completed', index < this.currentStep);
+                });
+                
+                // Update navigation buttons
+                const prevBtn = this.element.querySelector('.spc-prev-btn');
+                const nextBtn = this.element.querySelector('.spc-next-btn');
+                
+                if (prevBtn) {
+                    prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
+                }
+                
+                if (nextBtn) {
+                    nextBtn.style.display = this.currentStep === this.totalSteps - 1 ? 'none' : 'block';
+                }
+            }
+            
+            render() {
+                const container = this.createContainer();
+                container.className += ' service-provider-calendar-field';
+                
+                // Add styles
+                this.injectStyles();
+                
+                // Create progress indicator
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'spc-progress';
+                
+                const progressSteps = [
+                    { key: 'service', label: this.texts.serviceStep },
+                    { key: 'provider', label: this.texts.providerStep },
+                    { key: 'appointment', label: this.texts.appointmentStep }
+                ];
+                
+                progressSteps.forEach((step, index) => {
+                    const stepEl = document.createElement('div');
+                    stepEl.className = 'spc-progress-step';
+                    stepEl.innerHTML = `
+                        <div class="spc-step-number">${index + 1}</div>
+                        <div class="spc-step-label">${step.label}</div>
+                    `;
+                    progressContainer.appendChild(stepEl);
+                });
+                
+                container.appendChild(progressContainer);
+                
+                // Create steps container
+                const stepsContainer = document.createElement('div');
+                stepsContainer.className = 'spc-steps';
+                
+                // Step 1: Service Selection
+                const serviceStep = this.createServiceStep();
+                stepsContainer.appendChild(serviceStep);
+                
+                // Step 2: Provider Selection  
+                const providerStep = this.createProviderStep();
+                stepsContainer.appendChild(providerStep);
+                
+                // Step 3: Calendar
+                const calendarStep = this.createCalendarStep();
+                stepsContainer.appendChild(calendarStep);
+                
+                container.appendChild(stepsContainer);
+                
+                // Create navigation
+                const navigation = this.createNavigation();
+                container.appendChild(navigation);
+                
+                // Create error element
+                const errorElement = this.createErrorElement();
+                container.appendChild(errorElement);
+                
+                this.element = container;
+                this.element.fieldInstance = this;
+                
+                // Initialize step visibility
+                this.updateStepVisibility();
+                
+                return this.element;
+            }
+            
+            createServiceStep() {
+                const step = document.createElement('div');
+                step.className = 'spc-step spc-service-step';
+                
+                const title = document.createElement('h3');
+                title.className = 'spc-step-title';
+                title.textContent = this.texts.selectService;
+                step.appendChild(title);
+                
+                // Create service carousel using CarouselField pattern
+                this.serviceCarousel = new CarouselField(this.factory, {
+                    id: `${this.id}-service`,
+                    name: `${this.name}_service`,
+                    items: this.servicesData,
+                    title: '',
+                    itemType: 'service',
+                    showDetails: true,
+                    layout: 'grid',
+                    columns: 'auto'
+                });
+                
+                // Override selectItem to handle our logic
+                const originalSelectItem = this.serviceCarousel.selectItem.bind(this.serviceCarousel);
+                this.serviceCarousel.selectItem = (index) => {
+                    originalSelectItem(index);
+                    const selectedService = this.servicesData[index];
+                    if (selectedService) {
+                        this.selectService(selectedService);
+                    }
+                };
+                
+                step.appendChild(this.serviceCarousel.render());
+                return step;
+            }
+            
+            createProviderStep() {
+                const step = document.createElement('div');
+                step.className = 'spc-step spc-provider-step';
+                
+                const title = document.createElement('h3');
+                title.className = 'spc-step-title';
+                title.textContent = this.texts.selectProvider;
+                step.appendChild(title);
+                
+                // Create provider carousel
+                this.providerCarousel = new CarouselField(this.factory, {
+                    id: `${this.id}-provider`,
+                    name: `${this.name}_provider`,
+                    items: this.filteredProviders,
+                    title: '',
+                    itemType: 'staff',
+                    showDetails: true,
+                    layout: 'grid',
+                    columns: 'auto'
+                });
+                
+                // Override selectItem to handle our logic
+                const originalSelectItem = this.providerCarousel.selectItem.bind(this.providerCarousel);
+                this.providerCarousel.selectItem = (index) => {
+                    originalSelectItem(index);
+                    const selectedProvider = this.filteredProviders[index];
+                    if (selectedProvider) {
+                        this.selectProvider(selectedProvider);
+                    }
+                };
+                
+                step.appendChild(this.providerCarousel.render());
+                return step;
+            }
+            
+            createCalendarStep() {
+                const step = document.createElement('div');
+                step.className = 'spc-step spc-calendar-step';
+                
+                const title = document.createElement('h3');
+                title.className = 'spc-step-title';
+                title.textContent = this.texts.selectAppointment;
+                step.appendChild(title);
+                
+                // Create calendar field
+                this.calendarField = new CalendarField(this.factory, {
+                    id: `${this.id}-calendar`,
+                    name: `${this.name}_calendar`,
+                    required: this.required,
+                    mode: 'booking',
+                    selectionMode: 'none',
+                    timezone: this.timezone,
+                    language: this.language,
+                    locale: this.locale,
+                    onChange: (value) => this.onAppointmentSelect(value)
+                });
+                
+                step.appendChild(this.calendarField.render());
+                return step;
+            }
+            
+            createNavigation() {
+                const nav = document.createElement('div');
+                nav.className = 'spc-navigation';
+                
+                const prevBtn = document.createElement('button');
+                prevBtn.type = 'button';
+                prevBtn.className = 'spc-nav-btn spc-prev-btn';
+                prevBtn.textContent = this.texts.previous;
+                prevBtn.addEventListener('click', () => this.previousStep());
+                
+                const nextBtn = document.createElement('button');
+                nextBtn.type = 'button';
+                nextBtn.className = 'spc-nav-btn spc-next-btn';
+                nextBtn.textContent = this.texts.next;
+                nextBtn.addEventListener('click', () => this.nextStep());
+                
+                nav.appendChild(prevBtn);
+                nav.appendChild(nextBtn);
+                
+                return nav;
+            }
+            
+            injectStyles() {
+                if (document.querySelector('#spc-styles')) return;
+                
+                const styles = `
+                    <style id="spc-styles">
+                        .service-provider-calendar-field {
+                            width: 100%;
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        
+                        .spc-progress {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 30px;
+                            position: relative;
+                        }
+                        
+                        .spc-progress::before {
+                            content: '';
+                            position: absolute;
+                            top: 20px;
+                            left: 10%;
+                            right: 10%;
+                            height: 2px;
+                            background: #e1e5e9;
+                            z-index: 1;
+                        }
+                        
+                        .spc-progress-step {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            position: relative;
+                            z-index: 2;
+                            flex: 1;
+                        }
+                        
+                        .spc-step-number {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            background: #e1e5e9;
+                            color: #6c757d;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: 600;
+                            margin-bottom: 8px;
+                            transition: all 0.3s ease;
+                        }
+                        
+                        .spc-progress-step.active .spc-step-number {
+                            background: #007bff;
+                            color: white;
+                        }
+                        
+                        .spc-progress-step.completed .spc-step-number {
+                            background: #28a745;
+                            color: white;
+                        }
+                        
+                        .spc-step-label {
+                            font-size: 0.9rem;
+                            color: #6c757d;
+                            text-align: center;
+                            transition: color 0.3s ease;
+                        }
+                        
+                        .spc-progress-step.active .spc-step-label {
+                            color: #007bff;
+                            font-weight: 600;
+                        }
+                        
+                        .spc-steps {
+                            min-height: 400px;
+                            margin-bottom: 20px;
+                        }
+                        
+                        .spc-step {
+                            display: none;
+                        }
+                        
+                        .spc-step.active {
+                            display: block;
+                            animation: fadeIn 0.3s ease;
+                        }
+                        
+                        .spc-step-title {
+                            text-align: center;
+                            margin-bottom: 20px;
+                            color: #2c3e50;
+                            font-size: 1.5rem;
+                        }
+                        
+                        .spc-navigation {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: 20px;
+                        }
+                        
+                        .spc-nav-btn {
+                            padding: 12px 24px;
+                            border: none;
+                            border-radius: 6px;
+                            background: #007bff;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: background 0.3s ease;
+                        }
+                        
+                        .spc-nav-btn:hover {
+                            background: #0056b3;
+                        }
+                        
+                        .spc-nav-btn:disabled {
+                            background: #6c757d;
+                            cursor: not-allowed;
+                        }
+                        
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(10px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    </style>
+                `;
+                
+                document.head.insertAdjacentHTML('beforeend', styles);
+            }
+            
+            validate() {
+                if (!this.required) return true;
+                
+                if (!this.selectedService) {
+                    this.showError('Please select a service');
+                    return false;
+                }
+                
+                if (!this.selectedProvider) {
+                    this.showError('Please select a provider');
+                    return false;
+                }
+                
+                if (!this.appointmentData) {
+                    this.showError('Please select an appointment time');
+                    return false;
+                }
+                
+                this.hideError();
+                return true;
+            }
+            
+            getValue() {
+                return {
+                    selectedService: this.selectedService,
+                    selectedProvider: this.selectedProvider,
+                    appointment: this.appointmentData,
+                    currentStep: this.currentStep,
+                    isComplete: !!(this.selectedService && this.selectedProvider && this.appointmentData)
+                };
+            }
+            
+            setValue(value) {
+                if (!value) return;
+                
+                if (value.selectedService) {
+                    this.selectedService = value.selectedService;
+                    this.filterProvidersByService(value.selectedService);
+                }
+                
+                if (value.selectedProvider) {
+                    this.selectedProvider = value.selectedProvider;
+                    this.configureCalendar();
+                }
+                
+                if (value.appointment) {
+                    this.appointmentData = value.appointment;
+                }
+                
+                if (value.currentStep !== undefined) {
+                    this.goToStep(value.currentStep);
+                }
+                
+                this.updateValue();
+            }
+            
+            updateValue() {
+                this.handleChange();
+            }
+            
+            reset() {
+                this.selectedService = null;
+                this.selectedProvider = null;
+                this.appointmentData = null;
+                this.currentStep = 0;
+                this.filteredProviders = [...this.providersData];
+                
+                if (this.serviceCarousel) {
+                    this.serviceCarousel.selectedItem = null;
+                    this.serviceCarousel.selectedItems = [];
+                    this.serviceCarousel.updateSelection();
+                }
+                
+                if (this.providerCarousel) {
+                    this.providerCarousel.updateItems(this.filteredProviders);
+                }
+                
+                if (this.calendarField) {
+                    this.calendarField.reset();
+                }
+                
+                this.updateStepVisibility();
+                this.updateValue();
+            }
+            
+            destroy() {
+                if (this.serviceCarousel && typeof this.serviceCarousel.destroy === 'function') {
+                    this.serviceCarousel.destroy();
+                }
+                if (this.providerCarousel && typeof this.providerCarousel.destroy === 'function') {
+                    this.providerCarousel.destroy();
+                }
+                if (this.calendarField && typeof this.calendarField.destroy === 'function') {
+                    this.calendarField.destroy();
+                }
+                super.destroy();
             }
         }
-    }
-    
-    onAppointmentSelect(appointmentData) {
-        console.log('🎯 Appointment selected:', appointmentData);
-        this.appointmentData = appointmentData;
-        
-        // Trigger callback
-        if (this.onAppointmentChange) {
-            this.onAppointmentChange(appointmentData, this.selectedService, this.selectedProvider);
-        }
-        
-        this.updateValue();
-    }
-    
-    goToStep(stepIndex) {
-        if (stepIndex < 0 || stepIndex >= this.totalSteps) {
-            return;
-        }
-        
-        this.currentStep = stepIndex;
-        this.updateStepVisibility();
-        
-        if (this.onStepChange) {
-            this.onStepChange(stepIndex, {
-                service: this.selectedService,
-                provider: this.selectedProvider,
-                appointment: this.appointmentData
-            });
-        }
-    }
-    
-    nextStep() {
-        if (this.currentStep < this.totalSteps - 1) {
-            this.goToStep(this.currentStep + 1);
-        }
-    }
-    
-    previousStep() {
-        if (this.currentStep > 0) {
-            this.goToStep(this.currentStep - 1);
-        }
-    }
-    
-    updateStepVisibility() {
-        if (!this.element) return;
-        
-        const steps = this.element.querySelectorAll('.spc-step');
-        steps.forEach((step, index) => {
-            step.classList.toggle('active', index === this.currentStep);
-            step.classList.toggle('hidden', index !== this.currentStep);
-        });
-        
-        // Update progress indicator
-        const progressSteps = this.element.querySelectorAll('.spc-progress-step');
-        progressSteps.forEach((step, index) => {
-            step.classList.toggle('active', index === this.currentStep);
-            step.classList.toggle('completed', index < this.currentStep);
-        });
-        
-        // Update navigation buttons
-        const prevBtn = this.element.querySelector('.spc-prev-btn');
-        const nextBtn = this.element.querySelector('.spc-next-btn');
-        
-        if (prevBtn) {
-            prevBtn.style.display = this.currentStep === 0 ? 'none' : 'block';
-        }
-        
-        if (nextBtn) {
-            nextBtn.style.display = this.currentStep === this.totalSteps - 1 ? 'none' : 'block';
-        }
-    }
-    
-    render() {
-        const container = this.createContainer();
-        container.className += ' service-provider-calendar-field';
-        
-        // Add styles
-        this.injectStyles();
-        
-        // Create progress indicator
-        const progressContainer = document.createElement('div');
-        progressContainer.className = 'spc-progress';
-        
-        const progressSteps = [
-            { key: 'service', label: this.texts.serviceStep },
-            { key: 'provider', label: this.texts.providerStep },
-            { key: 'appointment', label: this.texts.appointmentStep }
-        ];
-        
-        progressSteps.forEach((step, index) => {
-            const stepEl = document.createElement('div');
-            stepEl.className = 'spc-progress-step';
-            stepEl.innerHTML = `
-                <div class="spc-step-number">${index + 1}</div>
-                <div class="spc-step-label">${step.label}</div>
-            `;
-            progressContainer.appendChild(stepEl);
-        });
-        
-        container.appendChild(progressContainer);
-        
-        // Create steps container
-        const stepsContainer = document.createElement('div');
-        stepsContainer.className = 'spc-steps';
-        
-        // Step 1: Service Selection
-        const serviceStep = this.createServiceStep();
-        stepsContainer.appendChild(serviceStep);
-        
-        // Step 2: Provider Selection  
-        const providerStep = this.createProviderStep();
-        stepsContainer.appendChild(providerStep);
-        
-        // Step 3: Calendar
-        const calendarStep = this.createCalendarStep();
-        stepsContainer.appendChild(calendarStep);
-        
-        container.appendChild(stepsContainer);
-        
-        // Create navigation
-        const navigation = this.createNavigation();
-        container.appendChild(navigation);
-        
-        // Create error element
-        const errorElement = this.createErrorElement();
-        container.appendChild(errorElement);
-        
-        this.element = container;
-        this.element.fieldInstance = this;
-        
-        // Initialize step visibility
-        this.updateStepVisibility();
-        
-        return this.element;
-    }
-    
-    createServiceStep() {
-        const step = document.createElement('div');
-        step.className = 'spc-step spc-service-step';
-        
-        const title = document.createElement('h3');
-        title.className = 'spc-step-title';
-        title.textContent = this.texts.selectService;
-        step.appendChild(title);
-        
-        // Create service carousel using CarouselField pattern
-        this.serviceCarousel = new CarouselField(this.factory, {
-            id: `${this.id}-service`,
-            name: `${this.name}_service`,
-            items: this.servicesData,
-            title: '',
-            itemType: 'service',
-            showDetails: true,
-            layout: 'grid',
-            columns: 'auto'
-        });
-        
-        // Override selectItem to handle our logic
-        const originalSelectItem = this.serviceCarousel.selectItem.bind(this.serviceCarousel);
-        this.serviceCarousel.selectItem = (index) => {
-            originalSelectItem(index);
-            const selectedService = this.servicesData[index];
-            if (selectedService) {
-                this.selectService(selectedService);
-            }
-        };
-        
-        step.appendChild(this.serviceCarousel.render());
-        return step;
-    }
-    
-    createProviderStep() {
-        const step = document.createElement('div');
-        step.className = 'spc-step spc-provider-step';
-        
-        const title = document.createElement('h3');
-        title.className = 'spc-step-title';
-        title.textContent = this.texts.selectProvider;
-        step.appendChild(title);
-        
-        // Create provider carousel
-        this.providerCarousel = new CarouselField(this.factory, {
-            id: `${this.id}-provider`,
-            name: `${this.name}_provider`,
-            items: this.filteredProviders,
-            title: '',
-            itemType: 'staff',
-            showDetails: true,
-            layout: 'grid',
-            columns: 'auto'
-        });
-        
-        // Override selectItem to handle our logic
-        const originalSelectItem = this.providerCarousel.selectItem.bind(this.providerCarousel);
-        this.providerCarousel.selectItem = (index) => {
-            originalSelectItem(index);
-            const selectedProvider = this.filteredProviders[index];
-            if (selectedProvider) {
-                this.selectProvider(selectedProvider);
-            }
-        };
-        
-        step.appendChild(this.providerCarousel.render());
-        return step;
-    }
-    
-    createCalendarStep() {
-        const step = document.createElement('div');
-        step.className = 'spc-step spc-calendar-step';
-        
-        const title = document.createElement('h3');
-        title.className = 'spc-step-title';
-        title.textContent = this.texts.selectAppointment;
-        step.appendChild(title);
-        
-        // Create calendar field
-        this.calendarField = new CalendarField(this.factory, {
-            id: `${this.id}-calendar`,
-            name: `${this.name}_calendar`,
-            required: this.required,
-            mode: 'booking',
-            selectionMode: 'none',
-            timezone: this.timezone,
-            language: this.language,
-            locale: this.locale,
-            onChange: (value) => this.onAppointmentSelect(value)
-        });
-        
-        step.appendChild(this.calendarField.render());
-        return step;
-    }
-    
-    createNavigation() {
-        const nav = document.createElement('div');
-        nav.className = 'spc-navigation';
-        
-        const prevBtn = document.createElement('button');
-        prevBtn.type = 'button';
-        prevBtn.className = 'spc-nav-btn spc-prev-btn';
-        prevBtn.textContent = this.texts.previous;
-        prevBtn.addEventListener('click', () => this.previousStep());
-        
-        const nextBtn = document.createElement('button');
-        nextBtn.type = 'button';
-        nextBtn.className = 'spc-nav-btn spc-next-btn';
-        nextBtn.textContent = this.texts.next;
-        nextBtn.addEventListener('click', () => this.nextStep());
-        
-        nav.appendChild(prevBtn);
-        nav.appendChild(nextBtn);
-        
-        return nav;
-    }
-    
-    injectStyles() {
-        if (document.querySelector('#spc-styles')) return;
-        
-        const styles = `
-            <style id="spc-styles">
-                .service-provider-calendar-field {
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto;
-                }
-                
-                .spc-progress {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 30px;
-                    position: relative;
-                }
-                
-                .spc-progress::before {
-                    content: '';
-                    position: absolute;
-                    top: 20px;
-                    left: 10%;
-                    right: 10%;
-                    height: 2px;
-                    background: #e1e5e9;
-                    z-index: 1;
-                }
-                
-                .spc-progress-step {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    position: relative;
-                    z-index: 2;
-                    flex: 1;
-                }
-                
-                .spc-step-number {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: #e1e5e9;
-                    color: #6c757d;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: 600;
-                    margin-bottom: 8px;
-                    transition: all 0.3s ease;
-                }
-                
-                .spc-progress-step.active .spc-step-number {
-                    background: #007bff;
-                    color: white;
-                }
-                
-                .spc-progress-step.completed .spc-step-number {
-                    background: #28a745;
-                    color: white;
-                }
-                
-                .spc-step-label {
-                    font-size: 0.9rem;
-                    color: #6c757d;
-                    text-align: center;
-                    transition: color 0.3s ease;
-                }
-                
-                .spc-progress-step.active .spc-step-label {
-                    color: #007bff;
-                    font-weight: 600;
-                }
-                
-                .spc-steps {
-                    min-height: 400px;
-                    margin-bottom: 20px;
-                }
-                
-                .spc-step {
-                    display: none;
-                }
-                
-                .spc-step.active {
-                    display: block;
-                    animation: fadeIn 0.3s ease;
-                }
-                
-                .spc-step-title {
-                    text-align: center;
-                    margin-bottom: 20px;
-                    color: #2c3e50;
-                    font-size: 1.5rem;
-                }
-                
-                .spc-navigation {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-top: 20px;
-                }
-                
-                .spc-nav-btn {
-                    padding: 12px 24px;
-                    border: none;
-                    border-radius: 6px;
-                    background: #007bff;
-                    color: white;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background 0.3s ease;
-                }
-                
-                .spc-nav-btn:hover {
-                    background: #0056b3;
-                }
-                
-                .spc-nav-btn:disabled {
-                    background: #6c757d;
-                    cursor: not-allowed;
-                }
-                
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            </style>
-        `;
-        
-        document.head.insertAdjacentHTML('beforeend', styles);
-    }
-    
-    validate() {
-        if (!this.required) return true;
-        
-        if (!this.selectedService) {
-            this.showError('Please select a service');
-            return false;
-        }
-        
-        if (!this.selectedProvider) {
-            this.showError('Please select a provider');
-            return false;
-        }
-        
-        if (!this.appointmentData) {
-            this.showError('Please select an appointment time');
-            return false;
-        }
-        
-        this.hideError();
-        return true;
-    }
-    
-    getValue() {
-        return {
-            selectedService: this.selectedService,
-            selectedProvider: this.selectedProvider,
-            appointment: this.appointmentData,
-            currentStep: this.currentStep,
-            isComplete: !!(this.selectedService && this.selectedProvider && this.appointmentData)
-        };
-    }
-    
-    setValue(value) {
-        if (!value) return;
-        
-        if (value.selectedService) {
-            this.selectedService = value.selectedService;
-            this.filterProvidersByService(value.selectedService);
-        }
-        
-        if (value.selectedProvider) {
-            this.selectedProvider = value.selectedProvider;
-            this.configureCalendar();
-        }
-        
-        if (value.appointment) {
-            this.appointmentData = value.appointment;
-        }
-        
-        if (value.currentStep !== undefined) {
-            this.goToStep(value.currentStep);
-        }
-        
-        this.updateValue();
-    }
-    
-    updateValue() {
-        this.handleChange();
-    }
-    
-    reset() {
-        this.selectedService = null;
-        this.selectedProvider = null;
-        this.appointmentData = null;
-        this.currentStep = 0;
-        this.filteredProviders = [...this.providersData];
-        
-        if (this.serviceCarousel) {
-            this.serviceCarousel.selectedItem = null;
-            this.serviceCarousel.selectedItems = [];
-            this.serviceCarousel.updateSelection();
-        }
-        
-        if (this.providerCarousel) {
-            this.providerCarousel.updateItems(this.filteredProviders);
-        }
-        
-        if (this.calendarField) {
-            this.calendarField.reset();
-        }
-        
-        this.updateStepVisibility();
-        this.updateValue();
-    }
-    
-    destroy() {
-        if (this.serviceCarousel && typeof this.serviceCarousel.destroy === 'function') {
-            this.serviceCarousel.destroy();
-        }
-        if (this.providerCarousel && typeof this.providerCarousel.destroy === 'function') {
-            this.providerCarousel.destroy();
-        }
-        if (this.calendarField && typeof this.calendarField.destroy === 'function') {
-            this.calendarField.destroy();
-        }
-        super.destroy();
-    }
-}
 
 // ============================================================================
 // SERVICE SELECTION FIELD - Carousel pour sélectionner un service
