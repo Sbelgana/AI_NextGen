@@ -12884,12 +12884,6 @@ class FilteredCarouselField extends BaseField {
 
     // NEW: Generic auto-populate method based on configuration
     autoPopulateItems() {
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Checking for ${this.filterConfig.dependsOn} selection...`);
-        
-        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
-            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
-            return false;
-        }
         
         // Try multiple sources for dependency data
         let dependencyValue = null;
@@ -12907,7 +12901,6 @@ class FilteredCarouselField extends BaseField {
                 }
                 
                 if (dependencyValue) {
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Found ${this.filterConfig.dependsOn} in source:`, dependencyValue);
                     break;
                 }
             } catch (error) {
@@ -12924,12 +12917,10 @@ class FilteredCarouselField extends BaseField {
         }
         
         if (dependencyValue) {
-            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Dependency found, filtering items...`);
             
             // Use the configured filter function
             const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
             
-            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Filtered from ${this.filterConfig.dataSource.length} to ${filteredItems.length} items`);
             
             // Check if the currently selected item is still valid
             let needsSelectionReset = false;
@@ -12938,12 +12929,10 @@ class FilteredCarouselField extends BaseField {
                 const stillValid = filteredItems.some(item => item.id === currentSelection.id);
                 if (!stillValid) {
                     needsSelectionReset = true;
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Current selection no longer valid, will reset`);
                 }
             }
             
             if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Updating items...`);
                 this.items = filteredItems;
                 
                 // Reset selection if current selection is no longer valid
@@ -12967,15 +12956,12 @@ class FilteredCarouselField extends BaseField {
                 
                 return true;
             }
-        } else {
-            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No ${this.filterConfig.dependsOn} found yet`);
-        }
+        } 
         
         return false;
     }
 
     render() {
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Rendering...`);
         
         const container = this.createContainer();
         
@@ -13027,7 +13013,6 @@ class FilteredCarouselField extends BaseField {
         // Start continuous monitoring if configured
         this.startAutoUpdate();
         
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Rendered with ${this.items.length} items`);
         
         return container;
     }
@@ -13035,11 +13020,9 @@ class FilteredCarouselField extends BaseField {
     // NEW: Start continuous monitoring based on configuration
     startAutoUpdate() {
         if (!this.filterConfig.dependsOn) {
-            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No dependency configured, skipping auto-update`);
             return;
         }
         
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Starting auto-update monitoring for ${this.filterConfig.dependsOn}...`);
         
         // Clear any existing interval
         if (this.autoUpdateInterval) {
@@ -13060,7 +13043,6 @@ class FilteredCarouselField extends BaseField {
                 if (this.autoUpdateInterval) {
                     clearInterval(this.autoUpdateInterval);
                     this.autoUpdateInterval = null;
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Auto-update monitoring stopped`);
                 }
             }, this.filterConfig.monitorDuration);
         }
@@ -13068,7 +13050,6 @@ class FilteredCarouselField extends BaseField {
 
     // NEW: Restart monitoring (called when step becomes active again)
     restartMonitoring() {
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Restarting monitoring...`);
         this.startAutoUpdate();
         // Immediate check
         this.autoPopulateItems();
@@ -13341,7 +13322,6 @@ class FilteredCarouselField extends BaseField {
 
     // NEW: Manual trigger for external updates
     triggerUpdate() {
-        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Manual update triggered`);
         this.autoPopulateItems();
     }
 }
