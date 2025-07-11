@@ -12837,6 +12837,10 @@ class CalComBaseUtility {
 }
 
 
+
+// ============================================================================
+// CAROUSEL FIELD CLASS - Required for dentist selection rebuilding
+// ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -12906,16 +12910,6 @@ class CarouselField extends BaseField {
         this.element = container;
         this.element.fieldInstance = this;
         
-        // NEW: Emit a custom event when dentist field is rendered
-        if (this.name === 'selectedDentist') {
-            console.log('🦷 Dentist field rendered, emitting event');
-            const event = new CustomEvent('dentistFieldRendered', {
-                detail: { fieldInstance: this },
-                bubbles: true
-            });
-            setTimeout(() => container.dispatchEvent(event), 100);
-        }
-        
         return container;
     }
 
@@ -12926,33 +12920,29 @@ class CarouselField extends BaseField {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'carousel-empty-message';
             
-            // Enhanced empty message with manual refresh option
-            emptyMessage.innerHTML = `
-                <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
-                    <div style="font-style: italic; margin-bottom: 15px;">
-                        ${this.config.emptyMessage || 'No items available'}
-                    </div>
-                    <button type="button" class="refresh-dentists-btn" style="
-                        background: #007bff;
-                        color: white;
-                        border: none;
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-size: 12px;
-                    ">
-                        Refresh Dentist List
-                    </button>
-                </div>
-            `;
+            // Show message based on whether service is selected
+            const hasSelectedService = window.DentalBookingExtension?._selectedServiceData || 
+                                     this.factory?.formValues?.selectedService;
             
-            // Add manual refresh functionality
-            const refreshBtn = emptyMessage.querySelector('.refresh-dentists-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    console.log('🦷 Manual refresh requested');
-                    window.DentalBookingExtension?.triggerDentistRefresh?.();
-                });
+            if (hasSelectedService) {
+                emptyMessage.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
+                        <div style="font-style: italic; margin-bottom: 15px;">
+                            Loading dentists for selected service...
+                        </div>
+                        <div style="font-size: 12px; color: #999;">
+                            If this takes too long, try refreshing the page.
+                        </div>
+                    </div>
+                `;
+            } else {
+                emptyMessage.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
+                        <div style="font-style: italic; margin-bottom: 15px;">
+                            ${this.config.emptyMessage || 'Please select a service first'}
+                        </div>
+                    </div>
+                `;
             }
             
             this.track.appendChild(emptyMessage);
