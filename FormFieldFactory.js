@@ -12931,11 +12931,33 @@ class FilteredCarouselField extends BaseField {
             
             console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Filtered from ${this.filterConfig.dataSource.length} to ${filteredItems.length} items`);
             
+            // Check if the currently selected item is still valid
+            let needsSelectionReset = false;
+            if (this.selectedItem !== null && this.items[this.selectedItem]) {
+                const currentSelection = this.items[this.selectedItem];
+                const stillValid = filteredItems.some(item => item.id === currentSelection.id);
+                if (!stillValid) {
+                    needsSelectionReset = true;
+                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Current selection no longer valid, will reset`);
+                }
+            }
+            
             if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
                 console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Updating items...`);
                 this.items = filteredItems;
-                this.selectedItem = null;
-                this.selectedItems = [];
+                
+                // Reset selection if current selection is no longer valid
+                if (needsSelectionReset) {
+                    this.selectedItem = null;
+                    this.selectedItems = [];
+                    // Notify about the selection change
+                    this.handleChange();
+                } else {
+                    // Keep current selection if still valid
+                    this.selectedItem = null;
+                    this.selectedItems = [];
+                }
+                
                 this.currentIndex = 0;
                 
                 if (this.track) {
@@ -13026,19 +13048,37 @@ class FilteredCarouselField extends BaseField {
         
         // Check at configured interval
         this.autoUpdateInterval = setInterval(() => {
+            // Always monitor if configured, or if no items yet
             if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
                 this.autoPopulateItems();
             }
         }, this.filterConfig.monitorInterval);
         
-        // Stop monitoring after configured duration
-        setTimeout(() => {
-            if (this.autoUpdateInterval) {
-                clearInterval(this.autoUpdateInterval);
-                this.autoUpdateInterval = null;
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Auto-update monitoring stopped`);
-            }
-        }, this.filterConfig.monitorDuration);
+        // Only stop monitoring after duration if not set to always monitor
+        if (!this.filterConfig.alwaysMonitor) {
+            setTimeout(() => {
+                if (this.autoUpdateInterval) {
+                    clearInterval(this.autoUpdateInterval);
+                    this.autoUpdateInterval = null;
+                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Auto-update monitoring stopped`);
+                }
+            }, this.filterConfig.monitorDuration);
+        }
+    }
+
+    // NEW: Restart monitoring (called when step becomes active again)
+    restartMonitoring() {
+        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Restarting monitoring...`);
+        this.startAutoUpdate();
+        // Immediate check
+        this.autoPopulateItems();
+    }
+
+    // NEW: Check if this field is currently visible
+    isVisible() {
+        if (!this.element) return false;
+        const style = window.getComputedStyle(this.element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
     }
 
     renderItems() {
@@ -13587,6 +13627,7 @@ class CarouselField extends BaseField {
         return true;
     }
 }
+
 // ============================================================================
 // SERVICE PROVIDER CALENDAR FIELD - Generic 3-step field (Service > Provider > Calendar)
 // ============================================================================
