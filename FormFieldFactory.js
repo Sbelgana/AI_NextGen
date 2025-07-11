@@ -12850,382 +12850,487 @@ class CalComBaseUtility {
 // GENERIC FILTERED CAROUSEL FIELD - Reusable for any filtering scenario
 // ============================================================================
 class FilteredCarouselField extends BaseField {
-            constructor(factory, config) {
-                super(factory, config);
-                this.config = config;
-                this.items = config.items || [];
-                this.selectedItem = null;
-                this.currentIndex = 0;
-                this.itemsPerView = config.itemsPerView || 1;
-                this.showNavigation = config.showNavigation !== false;
-                this.showIndicators = config.showIndicators !== false;
-                this.title = config.title || '';
-                this.subtitle = config.subtitle || '';
-                this.itemType = config.itemType || 'generic';
-                this.allowMultiple = config.allowMultiple || false;
-                this.selectedItems = [];
-                this.showDetails = config.showDetails !== false;
-                this.layout = config.layout || 'grid';
-                this.columns = config.columns || 'auto';
-                this.autoUpdateInterval = null;
+    constructor(factory, config) {
+        super(factory, config);
+        this.config = config;
+        this.items = config.items || [];
+        this.selectedItem = null;
+        this.currentIndex = 0;
+        this.itemsPerView = config.itemsPerView || 1;
+        this.showNavigation = config.showNavigation !== false;
+        this.showIndicators = config.showIndicators !== false;
+        this.title = config.title || '';
+        this.subtitle = config.subtitle || '';
+        this.itemType = config.itemType || 'generic';
+        this.allowMultiple = config.allowMultiple || false;
+        this.selectedItems = [];
+        this.showDetails = config.showDetails !== false;
+        this.layout = config.layout || 'grid';
+        this.columns = config.columns || 'auto';
+        this.autoUpdateInterval = null;
+        
+        // NEW: Generic filtering configuration
+        this.filterConfig = config.filterConfig || {
+            dependsOn: null,                    // Field name this carousel depends on
+            dataSource: [],                     // Array of all possible items
+            filterFunction: null,               // Function to filter items: (allItems, selectedValue) => filteredItems
+            dataSources: [],                    // Array of data source locations to check
+            waitingMessage: 'Please make a selection first',
+            monitoringMessage: 'Monitoring for selection...',
+            monitorInterval: 500,               // How often to check for changes (ms)
+            monitorDuration: 30000             // How long to monitor (ms)
+        };
+    }
 
-                // Generic filtering configuration
-                this.filterConfig = config.filterConfig || {
-                    dependsOn: null,
-                    dataSource: [],
-                    filterFunction: null,
-                    dataSources: [],
-                    waitingMessage: 'Please make a selection first',
-                    monitoringMessage: 'Monitoring for selection...',
-                    monitorInterval: 500,
-                    monitorDuration: 30000
-                };
+    // NEW: Generic auto-populate method based on configuration
+    autoPopulateItems() {
+        
+        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
+            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
+            return false;
+        }
+        
+        // Try multiple sources for dependency data
+        let dependencyValue = null;
+        
+        // Check configured data sources
+        for (const source of this.filterConfig.dataSources) {
+            try {
+                if (typeof source === 'function') {
+                    dependencyValue = source();
+                } else if (typeof source === 'string') {
+                    // Navigate to nested property (e.g., "window.someGlobal.selectedValue")
+                    dependencyValue = source.split('.').reduce((obj, prop) => obj?.[prop], window);
+                } else if (typeof source === 'object') {
+                    dependencyValue = source[this.filterConfig.dependsOn];
+                }
                 
-                console.log(`🔄 FilteredCarouselField created: ${this.name}`, this.filterConfig);
-            }
-
-            // Generic auto-populate method based on configuration
-            autoPopulateItems() {
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Checking for ${this.filterConfig.dependsOn} selection...`);
-
-                if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
-                    console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
-                    return false;
-                }
-
-                // Try multiple sources for dependency data
-                let dependencyValue = null;
-
-                // Check configured data sources
-                for (const source of this.filterConfig.dataSources) {
-                    try {
-                        if (typeof source === 'function') {
-                            dependencyValue = source();
-                        } else if (typeof source === 'string') {
-                            // Navigate to nested property (e.g., "window.someGlobal.selectedValue")
-                            dependencyValue = source.split('.').reduce((obj, prop) => obj?.[prop], window);
-                        } else if (typeof source === 'object') {
-                            dependencyValue = source[this.filterConfig.dependsOn];
-                        }
-
-                        if (dependencyValue) {
-                            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Found ${this.filterConfig.dependsOn} in source:`, dependencyValue);
-                            break;
-                        }
-                    } catch (error) {
-                        console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
-                        continue;
-                    }
-                }
-
-                // Fallback: Check standard factory locations
-                if (!dependencyValue) {
-                    dependencyValue = this.factory?.formValues?.[this.filterConfig.dependsOn] ||
-                                    this.factory?.currentExtension?.formValues?.[this.filterConfig.dependsOn] ||
-                                    this.factory?.currentMultiStepForm?.getFormData()?.[this.filterConfig.dependsOn];
-                }
-
                 if (dependencyValue) {
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Dependency found, filtering items...`);
-
-                    // Use the configured filter function
-                    const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
-
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Filtered from ${this.filterConfig.dataSource.length} to ${filteredItems.length} items`);
-
-                    if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
-                        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Updating items...`);
-                        this.items = filteredItems;
-                        this.selectedItem = null;
-                        this.selectedItems = [];
-                        this.currentIndex = 0;
-
-                        if (this.track) {
-                            this.renderItems();
-                            // Only update navigation if element is ready
-                            if (this.element) {
-                                this.updateNavigation();
-                            }
-                        }
-
-                        return true;
-                    }
-                } else {
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No ${this.filterConfig.dependsOn} found yet`);
+                    break;
                 }
-
-                return false;
+            } catch (error) {
+                console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
+                continue;
             }
-
-            // Manual trigger for external updates
-            triggerUpdate() {
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Manual update triggered`);
-                this.autoPopulateItems();
+        }
+        
+        // Fallback: Check standard factory locations
+        if (!dependencyValue) {
+            dependencyValue = this.factory?.formValues?.[this.filterConfig.dependsOn] ||
+                            this.factory?.currentExtension?.formValues?.[this.filterConfig.dependsOn] ||
+                            this.factory?.currentMultiStepForm?.getFormData()?.[this.filterConfig.dependsOn];
+        }
+        
+        if (dependencyValue) {
+            
+            // Use the configured filter function
+            const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
+            
+            
+            // Check if the currently selected item is still valid
+            let needsSelectionReset = false;
+            if (this.selectedItem !== null && this.items[this.selectedItem]) {
+                const currentSelection = this.items[this.selectedItem];
+                const stillValid = filteredItems.some(item => item.id === currentSelection.id);
+                if (!stillValid) {
+                    needsSelectionReset = true;
+                }
             }
-
-            // Start continuous monitoring based on configuration
-            startAutoUpdate() {
-                if (!this.filterConfig.dependsOn) {
-                    console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No dependency configured, skipping auto-update`);
-                    return;
-                }
-
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Starting auto-update monitoring for ${this.filterConfig.dependsOn}...`);
-
-                // Clear any existing interval
-                if (this.autoUpdateInterval) {
-                    clearInterval(this.autoUpdateInterval);
-                }
-
-                // Check at configured interval
-                this.autoUpdateInterval = setInterval(() => {
-                    if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
-                        this.autoPopulateItems();
-                    }
-                }, this.filterConfig.monitorInterval);
-
-                // Stop monitoring after configured duration
-                setTimeout(() => {
-                    if (this.autoUpdateInterval) {
-                        clearInterval(this.autoUpdateInterval);
-                        this.autoUpdateInterval = null;
-                        console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Auto-update monitoring stopped`);
-                    }
-                }, this.filterConfig.monitorDuration);
-            }
-
-            render() {
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Rendering...`);
-
-                const container = this.createContainer();
-
-                const carousel = document.createElement('div');
-                carousel.className = `carousel-field filtered-carousel filtered-carousel-${this.name}`;
-
-                if (this.title || this.subtitle) {
-                    const header = document.createElement('div');
-                    header.className = 'carousel-header';
-
-                    if (this.title) {
-                        const title = document.createElement('h3');
-                        title.className = 'carousel-title';
-                        title.textContent = this.title;
-                        header.appendChild(title);
-                    }
-
-                    if (this.subtitle) {
-                        const subtitle = document.createElement('p');
-                        subtitle.className = 'carousel-subtitle';
-                        subtitle.textContent = this.subtitle;
-                        header.appendChild(subtitle);
-                    }
-
-                    carousel.appendChild(header);
-                }
-
-                const carouselContainer = document.createElement('div');
-                carouselContainer.className = 'carousel-container';
-
-                this.track = document.createElement('div');
-                this.track.className = 'carousel-track';
-
-                this.renderItems();
-                carouselContainer.appendChild(this.track);
-
-                carousel.appendChild(carouselContainer);
-
-                const errorElement = this.createErrorElement();
-                carousel.appendChild(errorElement);
-
-                container.appendChild(carousel);
+            
+            if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
+                this.items = filteredItems;
                 
-                // Set element reference BEFORE calling auto-populate
-                this.element = container;
-                this.element.fieldInstance = this;
-
-                // Try to auto-populate after element is set
-                this.autoPopulateItems();
-
-                // Start continuous monitoring if configured
-                this.startAutoUpdate();
-
-                console.log(`🔄 FILTERED CAROUSEL [${this.name}]: Rendered with ${this.items.length} items`);
-
-                return container;
-            }
-
-            renderItems() {
-                this.track.innerHTML = '';
-
-                if (this.items.length === 0) {
-                    const emptyMessage = document.createElement('div');
-                    emptyMessage.className = 'carousel-empty-message';
-
-                    const message = this.filterConfig.dependsOn ? 
-                        this.filterConfig.waitingMessage : 
-                        this.config.emptyMessage || 'No items available';
-
-                    const subMessage = this.filterConfig.dependsOn ? 
-                        this.filterConfig.monitoringMessage : '';
-
-                    emptyMessage.innerHTML = `
-                        <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
-                            <div style="font-style: italic; margin-bottom: 15px;">
-                                ${message}
-                            </div>
-                            ${subMessage ? `<div style="font-size: 12px; color: #999;">${subMessage}</div>` : ''}
-                        </div>
-                    `;
-
-                    this.track.appendChild(emptyMessage);
-                    return;
-                }
-
-                this.items.forEach((item, index) => {
-                    const itemElement = this.createItemElement(item, index);
-                    this.track.appendChild(itemElement);
-                });
-
-                this.updateTrackPosition();
-            }
-
-            createItemElement(item, index) {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'carousel-item';
-                itemEl.dataset.index = index;
-
-                if (item.image) {
-                    const img = document.createElement('img');
-                    img.className = 'carousel-item-image';
-                    img.src = item.image;
-                    img.alt = item.title || item.name || '';
-                    itemEl.appendChild(img);
-                }
-
-                if (item.title || item.name) {
-                    const title = document.createElement('h4');
-                    title.className = 'carousel-item-title';
-                    title.textContent = item.title || item.name;
-                    itemEl.appendChild(title);
-                }
-
-                if (item.position || item.category) {
-                    const subtitle = document.createElement('p');
-                    subtitle.className = 'carousel-item-subtitle';
-                    subtitle.textContent = item.position || item.category;
-                    itemEl.appendChild(subtitle);
-                }
-
-                if (item.description) {
-                    const desc = document.createElement('p');
-                    desc.className = 'carousel-item-description';
-                    desc.textContent = item.description;
-                    itemEl.appendChild(desc);
-                }
-
-                if (this.showDetails) {
-                    const details = document.createElement('div');
-                    details.className = 'carousel-item-details';
-
-                    if (item.price) {
-                        const price = document.createElement('span');
-                        price.className = 'carousel-item-price';
-                        price.textContent = item.price;
-                        details.appendChild(price);
-                    }
-
-                    if (item.duration) {
-                        const duration = document.createElement('span');
-                        duration.className = 'carousel-item-duration';
-                        duration.textContent = item.duration;
-                        details.appendChild(duration);
-                    }
-
-                    if (item.experience) {
-                        const experience = document.createElement('span');
-                        experience.className = 'carousel-item-experience';
-                        experience.textContent = `${item.experience} années d'expérience`;
-                        details.appendChild(experience);
-                    }
-
-                    if (details.children.length > 0) {
-                        itemEl.appendChild(details);
-                    }
-                }
-
-                itemEl.addEventListener('click', () => this.selectItem(index));
-                return itemEl;
-            }
-
-            selectItem(index) {
-                if (this.allowMultiple) {
-                    if (this.selectedItems.includes(index)) {
-                        this.selectedItems = this.selectedItems.filter(i => i !== index);
-                    } else {
-                        this.selectedItems.push(index);
-                    }
+                // Reset selection if current selection is no longer valid
+                if (needsSelectionReset) {
+                    this.selectedItem = null;
+                    this.selectedItems = [];
+                    // Notify about the selection change
+                    this.handleChange();
                 } else {
-                    this.selectedItem = index;
-                    this.selectedItems = [index];
+                    // Keep current selection if still valid
+                    this.selectedItem = null;
+                    this.selectedItems = [];
                 }
-
-                this.updateSelection();
-                this.handleChange();
-            }
-
-            updateSelection() {
-                const items = this.track.querySelectorAll('.carousel-item');
-                items.forEach((item, index) => {
-                    if (this.selectedItems.includes(index)) {
-                        item.classList.add('selected');
-                    } else {
-                        item.classList.remove('selected');
-                    }
-                });
-            }
-
-            updateTrackPosition() {
-                if (this.items.length === 0) return;
-                const translateX = -this.currentIndex * (100 / this.itemsPerView);
-                this.track.style.transform = `translateX(${translateX}%)`;
-            }
-
-            getValue() {
-                if (this.allowMultiple) {
-                    return this.selectedItems.map(index => this.items[index]);
-                } else {
-                    return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+                
+                this.currentIndex = 0;
+                
+                if (this.track) {
+                    this.renderItems();
+                    this.updateNavigation();
                 }
-            }
-
-            setValue(value) {
-                if (this.allowMultiple && Array.isArray(value)) {
-                    this.selectedItems = value.map(item => 
-                        this.items.findIndex(i => i.id === item.id)
-                    ).filter(index => index !== -1);
-                } else if (value) {
-                    this.selectedItem = this.items.findIndex(item => item.id === value.id);
-                    this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
-                }
-                this.updateSelection();
-            }
-
-            validate() {
-                if (this.required && this.selectedItems.length === 0) {
-                    this.showError(this.getFieldErrorMessage('required'));
-                    return false;
-                }
-                this.hideError();
+                
                 return true;
             }
+        } 
+        
+        return false;
+    }
 
-            cleanup() {
+    render() {
+        
+        const container = this.createContainer();
+        
+        const carousel = document.createElement('div');
+        carousel.className = `carousel-field filtered-carousel filtered-carousel-${this.name}`;
+        
+        if (this.title || this.subtitle) {
+            const header = document.createElement('div');
+            header.className = 'carousel-header';
+            
+            if (this.title) {
+                const title = document.createElement('h3');
+                title.className = 'carousel-title';
+                title.textContent = this.title;
+                header.appendChild(title);
+            }
+            
+            if (this.subtitle) {
+                const subtitle = document.createElement('p');
+                subtitle.className = 'carousel-subtitle';
+                subtitle.textContent = this.subtitle;
+                header.appendChild(subtitle);
+            }
+            
+            carousel.appendChild(header);
+        }
+
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-container';
+
+        this.track = document.createElement('div');
+        this.track.className = 'carousel-track';
+        
+        // Try to auto-populate immediately
+        this.autoPopulateItems();
+        
+        this.renderItems();
+        carouselContainer.appendChild(this.track);
+
+        carousel.appendChild(carouselContainer);
+        
+        const errorElement = this.createErrorElement();
+        carousel.appendChild(errorElement);
+
+        container.appendChild(carousel);
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        // Start continuous monitoring if configured
+        this.startAutoUpdate();
+        
+        
+        return container;
+    }
+
+    // NEW: Start continuous monitoring based on configuration
+    startAutoUpdate() {
+        if (!this.filterConfig.dependsOn) {
+            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No dependency configured, skipping auto-update`);
+            return;
+        }
+        
+        
+        // Clear any existing interval
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+        }
+        
+        // Check at configured interval
+        this.autoUpdateInterval = setInterval(() => {
+            // Always monitor if configured, or if no items yet
+            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
+                this.autoPopulateItems();
+            }
+        }, this.filterConfig.monitorInterval);
+        
+        // Only stop monitoring after duration if not set to always monitor
+        if (!this.filterConfig.alwaysMonitor) {
+            setTimeout(() => {
                 if (this.autoUpdateInterval) {
                     clearInterval(this.autoUpdateInterval);
                     this.autoUpdateInterval = null;
                 }
+            }, this.filterConfig.monitorDuration);
+        }
+    }
+
+    // NEW: Restart monitoring (called when step becomes active again)
+    restartMonitoring() {
+        this.startAutoUpdate();
+        // Immediate check
+        this.autoPopulateItems();
+    }
+
+    // NEW: Check if this field is currently visible
+    isVisible() {
+        if (!this.element) return false;
+        const style = window.getComputedStyle(this.element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+
+    renderItems() {
+        this.track.innerHTML = '';
+        
+        if (this.items.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'carousel-empty-message';
+            
+            const message = this.filterConfig.dependsOn ? 
+                this.filterConfig.waitingMessage : 
+                this.config.emptyMessage || 'No items available';
+            
+            const subMessage = this.filterConfig.dependsOn ? 
+                this.filterConfig.monitoringMessage : '';
+            
+            emptyMessage.innerHTML = `
+                <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
+                    <div style="font-style: italic; margin-bottom: 15px;">
+                        ${message}
+                    </div>
+                    ${subMessage ? `<div style="font-size: 12px; color: #999;">${subMessage}</div>` : ''}
+                </div>
+            `;
+            
+            this.track.appendChild(emptyMessage);
+            return;
+        }
+        
+        this.items.forEach((item, index) => {
+            const itemElement = this.createItemElement(item, index);
+            this.track.appendChild(itemElement);
+        });
+
+        this.updateTrackPosition();
+    }
+
+    createItemElement(item, index) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'carousel-item';
+        itemEl.dataset.index = index;
+
+        if (item.image) {
+            const img = document.createElement('img');
+            img.className = 'carousel-item-image';
+            img.src = item.image;
+            img.alt = item.title || item.name || '';
+            itemEl.appendChild(img);
+        }
+
+        if (item.title || item.name) {
+            const title = document.createElement('h4');
+            title.className = 'carousel-item-title';
+            title.textContent = item.title || item.name;
+            itemEl.appendChild(title);
+        }
+
+        if (item.position || item.category) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-item-subtitle';
+            subtitle.textContent = item.position || item.category;
+            itemEl.appendChild(subtitle);
+        }
+
+        if (item.description) {
+            const desc = document.createElement('p');
+            desc.className = 'carousel-item-description';
+            desc.textContent = item.description;
+            itemEl.appendChild(desc);
+        }
+
+        if (this.showDetails) {
+            const details = document.createElement('div');
+            details.className = 'carousel-item-details';
+
+            if (item.price) {
+                const price = document.createElement('span');
+                price.className = 'carousel-item-price';
+                price.textContent = item.price;
+                details.appendChild(price);
+            }
+
+            if (item.duration) {
+                const duration = document.createElement('span');
+                duration.className = 'carousel-item-duration';
+                duration.textContent = item.duration;
+                details.appendChild(duration);
+            }
+
+            if (item.experience) {
+                const experience = document.createElement('span');
+                experience.className = 'carousel-item-experience';
+                experience.textContent = `${item.experience} années d'expérience`;
+                details.appendChild(experience);
+            }
+
+            if (details.children.length > 0) {
+                itemEl.appendChild(details);
             }
         }
+
+        itemEl.addEventListener('click', () => this.selectItem(index));
+        return itemEl;
+    }
+
+    updateNavigation() {
+        // Remove old navigation
+        const oldNav = this.element.querySelector('.carousel-navigation');
+        if (oldNav) {
+            oldNav.remove();
+        }
+        
+        // Add new navigation if needed
+        if (this.showNavigation && this.items.length > this.itemsPerView) {
+            const navigation = this.createNavigation();
+            this.element.querySelector('.carousel-container').appendChild(navigation);
+        }
+    }
+
+    createNavigation() {
+        const nav = document.createElement('div');
+        nav.className = 'carousel-navigation';
+
+        this.prevBtn = document.createElement('button');
+        this.prevBtn.className = 'carousel-nav-btn';
+        this.prevBtn.innerHTML = '‹';
+        this.prevBtn.addEventListener('click', () => this.previousSlide());
+
+        this.nextBtn = document.createElement('button');
+        this.nextBtn.className = 'carousel-nav-btn';
+        this.nextBtn.innerHTML = '›';
+        this.nextBtn.addEventListener('click', () => this.nextSlide());
+
+        const indicators = document.createElement('div');
+        indicators.className = 'carousel-indicators';
+        
+        const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('span');
+            dot.className = 'carousel-dot';
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => this.goToSlide(i));
+            indicators.appendChild(dot);
+        }
+        this.indicators = indicators;
+
+        nav.appendChild(this.prevBtn);
+        nav.appendChild(indicators);
+        nav.appendChild(this.nextBtn);
+
+        this.updateNavigationState();
+        return nav;
+    }
+
+    selectItem(index) {
+        if (this.allowMultiple) {
+            if (this.selectedItems.includes(index)) {
+                this.selectedItems = this.selectedItems.filter(i => i !== index);
+            } else {
+                this.selectedItems.push(index);
+            }
+        } else {
+            this.selectedItem = index;
+            this.selectedItems = [index];
+        }
+
+        this.updateSelection();
+        this.handleChange();
+    }
+
+    updateSelection() {
+        const items = this.track.querySelectorAll('.carousel-item');
+        items.forEach((item, index) => {
+            if (this.selectedItems.includes(index)) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    }
+
+    nextSlide() {
+        const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    previousSlide() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    goToSlide(index) {
+        this.currentIndex = index;
+        this.updateTrackPosition();
+        this.updateNavigationState();
+    }
+
+    updateTrackPosition() {
+        if (this.items.length === 0) return;
+        const translateX = -this.currentIndex * (100 / this.itemsPerView);
+        this.track.style.transform = `translateX(${translateX}%)`;
+    }
+
+    updateNavigationState() {
+        if (this.prevBtn && this.nextBtn) {
+            this.prevBtn.disabled = this.currentIndex === 0;
+            this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
+        }
+
+        if (this.indicators) {
+            const dots = this.indicators.querySelectorAll('.carousel-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === this.currentIndex);
+            });
+        }
+    }
+
+    getValue() {
+        if (this.allowMultiple) {
+            return this.selectedItems.map(index => this.items[index]);
+        } else {
+            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+        }
+    }
+
+    setValue(value) {
+        if (this.allowMultiple && Array.isArray(value)) {
+            this.selectedItems = value.map(item => 
+                this.items.findIndex(i => i.id === item.id)
+            ).filter(index => index !== -1);
+        } else if (value) {
+            this.selectedItem = this.items.findIndex(item => item.id === value.id);
+            this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
+        }
+        this.updateSelection();
+    }
+
+    validate() {
+        if (this.required && this.selectedItems.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+
+    cleanup() {
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+            this.autoUpdateInterval = null;
+        }
+    }
+
+    // NEW: Manual trigger for external updates
+    triggerUpdate() {
+        this.autoPopulateItems();
+    }
+}
 
 // ============================================================================
 // REGULAR CAROUSEL FIELD FOR NON-FILTERED ITEMS
