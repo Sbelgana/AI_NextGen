@@ -12914,13 +12914,60 @@ class CarouselField extends BaseField {
         if (this.items.length === 0) {
             const emptyMessage = document.createElement('div');
             emptyMessage.className = 'carousel-empty-message';
-            emptyMessage.textContent = this.config.emptyMessage || 'No items available';
-            emptyMessage.style.cssText = `
-                text-align: center;
-                color: #6c757d;
-                padding: 40px 20px;
-                font-style: italic;
+            
+            // Enhanced empty message with manual refresh option
+            emptyMessage.innerHTML = `
+                <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
+                    <div style="font-style: italic; margin-bottom: 15px;">
+                        ${this.config.emptyMessage || 'No items available'}
+                    </div>
+                    <button type="button" class="refresh-dentists-btn" style="
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    ">
+                        Refresh Dentist List
+                    </button>
+                </div>
             `;
+            
+            // Add manual refresh functionality
+            const refreshBtn = emptyMessage.querySelector('.refresh-dentists-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    console.log('🦷 Manual refresh requested');
+                    
+                    // Try to get the selected service from various sources
+                    if (window.DentalBookingExtension && this.factory) {
+                        const extension = this.factory.creatFormInstance || 
+                                        this.factory.currentExtension ||
+                                        window.currentDentalExtension;
+                        
+                        if (extension) {
+                            const formData = extension.multiStepForm?.getFormData() || 
+                                           extension.factory?.formValues ||
+                                           extension.formValues ||
+                                           {};
+                            
+                            console.log('🦷 Manual refresh - form data:', formData);
+                            
+                            const selectedService = formData.selectedService;
+                            if (selectedService) {
+                                console.log('🦷 Found service for manual refresh:', selectedService);
+                                window.DentalBookingExtension.handleServiceSelection(extension, selectedService, formData);
+                            } else {
+                                console.log('🦷 No service found for manual refresh');
+                                alert('Please go back to step 2 and select a service first.');
+                            }
+                        }
+                    }
+                });
+            }
+            
             this.track.appendChild(emptyMessage);
             return;
         }
