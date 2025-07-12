@@ -12845,12 +12845,8 @@ class CalComBaseUtility {
 }
 
 
-
 // ============================================================================
-// GENERIC FILTERED CAROUSEL FIELD - Reusable for any filtering scenario
-// ============================================================================
-// ============================================================================
-// UPDATED FILTERED CAROUSEL FIELD - Using ImageGallery Structure & Styling
+// UPDATED FILTERED CAROUSEL FIELD - Using ImageGalleryField Structure
 // ============================================================================
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
@@ -12859,14 +12855,19 @@ class FilteredCarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = this.getItemsPerView(); // Dynamic based on screen size
-        this.showNavigation = true; // Always show on mobile, hide on desktop
+        this.itemsPerView = this.getItemsPerView(); // 3 for desktop, 1 for mobile
+        this.selectedItems = [];
+        this.allowMultiple = config.allowMultiple || false;
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
-        this.allowMultiple = config.allowMultiple || false;
-        this.selectedItems = [];
-        this.showDetails = config.showDetails !== false;
         this.autoUpdateInterval = null;
+        
+        // Navigation elements
+        this.carouselContainer = null;
+        this.track = null;
+        this.prevButton = null;
+        this.nextButton = null;
+        this.itemCounter = null;
         
         // Filtering configuration
         this.filterConfig = config.filterConfig || {
@@ -12879,37 +12880,10 @@ class FilteredCarouselField extends BaseField {
             monitorInterval: 500,
             monitorDuration: 30000
         };
-
-        // Navigation elements
-        this.galleryContainer = null;
-        this.carouselTrack = null;
-        this.prevButton = null;
-        this.nextButton = null;
-        this.itemCounter = null;
-
-        // Setup responsive behavior
-        this.setupResponsiveHandling();
     }
 
     getItemsPerView() {
-        // 3 cards on desktop, 1 on mobile
         return window.innerWidth > 768 ? 3 : 1;
-    }
-
-    setupResponsiveHandling() {
-        // Update items per view on resize
-        this.resizeHandler = () => {
-            const newItemsPerView = this.getItemsPerView();
-            if (newItemsPerView !== this.itemsPerView) {
-                this.itemsPerView = newItemsPerView;
-                this.currentIndex = 0; // Reset to start
-                if (this.carouselTrack) {
-                    this.updateTrackPosition();
-                    this.updateNavigation();
-                }
-            }
-        };
-        window.addEventListener('resize', this.resizeHandler);
     }
 
     autoPopulateItems() {
@@ -12975,9 +12949,10 @@ class FilteredCarouselField extends BaseField {
                 
                 this.currentIndex = 0;
                 
-                if (this.carouselTrack) {
+                if (this.track) {
                     this.renderItems();
                     this.updateNavigation();
+                    this.updateDisplay();
                 }
                 
                 return true;
@@ -12993,11 +12968,10 @@ class FilteredCarouselField extends BaseField {
         
         this.createCarouselStructure();
         this.setupEventListeners();
+        this.updateDisplay();
         
         // Try to auto-populate immediately
         this.autoPopulateItems();
-        this.renderItems();
-        this.updateNavigation();
         
         // Start continuous monitoring if configured
         this.startAutoUpdate();
@@ -13006,80 +12980,85 @@ class FilteredCarouselField extends BaseField {
     }
 
     createCarouselStructure() {
-        // Main gallery container using ImageGallery structure
-        this.galleryContainer = document.createElement('div');
-        this.galleryContainer.className = 'image-gallery-container carousel-gallery-container';
-        this.galleryContainer.setAttribute('data-items', this.items.length);
+        this.carouselContainer = document.createElement('div');
+        this.carouselContainer.className = 'carousel-gallery-container';
+        this.carouselContainer.setAttribute('data-items', this.items.length);
 
-        // Header section
+        // Add header if title/subtitle provided
         if (this.title || this.subtitle) {
-            const header = document.createElement('div');
-            header.className = 'carousel-header';
-            
-            if (this.title) {
-                const title = document.createElement('h3');
-                title.className = 'carousel-title';
-                title.textContent = this.title;
-                header.appendChild(title);
-            }
-            
-            if (this.subtitle) {
-                const subtitle = document.createElement('p');
-                subtitle.className = 'carousel-subtitle';
-                subtitle.textContent = this.subtitle;
-                header.appendChild(subtitle);
-            }
-            
-            this.galleryContainer.appendChild(header);
+            const header = this.createHeader();
+            this.carouselContainer.appendChild(header);
         }
 
-        // Content wrapper
         const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'gallery-content-wrapper carousel-content-wrapper';
+        contentWrapper.className = 'carousel-content-wrapper';
 
-        // Carousel container (like image container in gallery)
-        const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'gallery-image-container carousel-container';
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'carousel-items-container';
 
-        // Carousel track
-        this.carouselTrack = document.createElement('div');
-        this.carouselTrack.className = 'carousel-track';
-        carouselContainer.appendChild(this.carouselTrack);
+        this.track = document.createElement('div');
+        this.track.className = 'carousel-track';
+        
+        this.renderItems();
+        itemsContainer.appendChild(this.track);
 
-        // Navigation buttons (hidden on desktop via CSS)
+        // Navigation buttons (positioned outside cards)
+        this.createNavigationButtons(itemsContainer);
+
+        // Item counter
+        this.itemCounter = document.createElement('div');
+        this.itemCounter.className = 'carousel-counter';
+        itemsContainer.appendChild(this.itemCounter);
+
+        contentWrapper.appendChild(itemsContainer);
+        this.carouselContainer.appendChild(contentWrapper);
+        this.container.appendChild(this.carouselContainer);
+    }
+
+    createHeader() {
+        const header = document.createElement('div');
+        header.className = 'carousel-header';
+        
+        if (this.title) {
+            const title = document.createElement('h3');
+            title.className = 'carousel-title';
+            title.textContent = this.title;
+            header.appendChild(title);
+        }
+        
+        if (this.subtitle) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-subtitle';
+            subtitle.textContent = this.subtitle;
+            header.appendChild(subtitle);
+        }
+        
+        return header;
+    }
+
+    createNavigationButtons(container) {
+        // Only show navigation if we have multiple pages
+        const totalPages = Math.ceil(this.items.length / this.itemsPerView);
+        if (totalPages <= 1) return;
+
         this.prevButton = document.createElement('button');
         this.prevButton.type = 'button';
-        this.prevButton.className = 'nav-btn prev-btn carousel-nav-btn';
+        this.prevButton.className = 'carousel-nav-btn prev-btn';
         this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.prevButton.setAttribute('aria-label', 'Previous');
-        carouselContainer.appendChild(this.prevButton);
+        this.prevButton.setAttribute('aria-label', 'Previous items');
 
         this.nextButton = document.createElement('button');
         this.nextButton.type = 'button';
-        this.nextButton.className = 'nav-btn next-btn carousel-nav-btn';
+        this.nextButton.className = 'carousel-nav-btn next-btn';
         this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.nextButton.setAttribute('aria-label', 'Next');
-        carouselContainer.appendChild(this.nextButton);
+        this.nextButton.setAttribute('aria-label', 'Next items');
 
-        // Item counter (like image counter in gallery)
-        this.itemCounter = document.createElement('div');
-        this.itemCounter.className = 'image-counter item-counter';
-        carouselContainer.appendChild(this.itemCounter);
-
-        contentWrapper.appendChild(carouselContainer);
-        this.galleryContainer.appendChild(contentWrapper);
-        
-        // Error container
-        const errorElement = this.createErrorElement();
-        this.galleryContainer.appendChild(errorElement);
-
-        this.container.appendChild(this.galleryContainer);
-        this.element = this.container;
-        this.element.fieldInstance = this;
+        container.appendChild(this.prevButton);
+        container.appendChild(this.nextButton);
     }
 
     renderItems() {
-        this.carouselTrack.innerHTML = '';
+        this.track.innerHTML = '';
         
         if (this.items.length === 0) {
             const emptyMessage = document.createElement('div');
@@ -13093,25 +13072,22 @@ class FilteredCarouselField extends BaseField {
                 this.filterConfig.monitoringMessage : '';
             
             emptyMessage.innerHTML = `
-                <div style="text-align: center; color: #6c757d; padding: 40px 20px;">
-                    <div style="font-style: italic; margin-bottom: 15px;">
-                        ${message}
-                    </div>
-                    ${subMessage ? `<div style="font-size: 12px; color: #999;">${subMessage}</div>` : ''}
+                <div class="empty-content">
+                    <div class="empty-message">${message}</div>
+                    ${subMessage ? `<div class="empty-submessage">${subMessage}</div>` : ''}
                 </div>
             `;
             
-            this.carouselTrack.appendChild(emptyMessage);
+            this.track.appendChild(emptyMessage);
             return;
         }
         
         this.items.forEach((item, index) => {
             const itemElement = this.createItemElement(item, index);
-            this.carouselTrack.appendChild(itemElement);
+            this.track.appendChild(itemElement);
         });
 
         this.updateTrackPosition();
-        this.updateItemCounter();
     }
 
     createItemElement(item, index) {
@@ -13119,79 +13095,48 @@ class FilteredCarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
+        // Build card content
+        let cardContent = '<div class="carousel-item-inner">';
+
+        // Selection indicator (checkmark like ImageGallery)
+        cardContent += '<div class="selection-indicator">✓</div>';
+
         // Image
         if (item.image) {
-            const img = document.createElement('img');
-            img.className = 'carousel-item-image';
-            img.src = item.image;
-            img.alt = item.title || item.name || '';
-            itemEl.appendChild(img);
+            cardContent += `<img class="carousel-item-image" src="${item.image}" alt="${item.title || item.name || ''}" />`;
         }
-
-        // Content container
-        const contentContainer = document.createElement('div');
-        contentContainer.className = 'carousel-item-content';
 
         // Title
         if (item.title || item.name) {
-            const title = document.createElement('h4');
-            title.className = 'carousel-item-title';
-            title.textContent = item.title || item.name;
-            contentContainer.appendChild(title);
+            cardContent += `<h4 class="carousel-item-title">${item.title || item.name}</h4>`;
         }
 
-        // Subtitle
-        if (item.position || item.category) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-item-subtitle';
-            subtitle.textContent = item.position || item.category;
-            contentContainer.appendChild(subtitle);
+        // Subtitle/Position
+        if (item.position || item.category || item.subtitle) {
+            cardContent += `<p class="carousel-item-subtitle">${item.position || item.category || item.subtitle}</p>`;
         }
 
         // Description
         if (item.description) {
-            const desc = document.createElement('p');
-            desc.className = 'carousel-item-description';
-            desc.textContent = item.description;
-            contentContainer.appendChild(desc);
+            cardContent += `<p class="carousel-item-description">${item.description}</p>`;
         }
 
-        // Details section
-        if (this.showDetails) {
-            const details = document.createElement('div');
-            details.className = 'carousel-item-details';
-
-            if (item.price) {
-                const price = document.createElement('span');
-                price.className = 'carousel-item-price';
-                price.textContent = item.price;
-                details.appendChild(price);
-            }
-
-            if (item.duration) {
-                const duration = document.createElement('span');
-                duration.className = 'carousel-item-duration';
-                duration.textContent = item.duration;
-                details.appendChild(duration);
-            }
-
-            if (item.experience) {
-                const experience = document.createElement('span');
-                experience.className = 'carousel-item-experience';
-                experience.textContent = `${item.experience} années d'expérience`;
-                details.appendChild(experience);
-            }
-
-            if (details.children.length > 0) {
-                contentContainer.appendChild(details);
+        // Details (price, duration, experience, etc.)
+        if (this.config.showDetails !== false) {
+            const details = [];
+            if (item.price) details.push(`<span class="item-price">${item.price}</span>`);
+            if (item.duration) details.push(`<span class="item-duration">${item.duration}</span>`);
+            if (item.experience) details.push(`<span class="item-experience">${item.experience} years</span>`);
+            
+            if (details.length > 0) {
+                cardContent += `<div class="carousel-item-details">${details.join('')}</div>`;
             }
         }
 
-        itemEl.appendChild(contentContainer);
+        cardContent += '</div>';
+        itemEl.innerHTML = cardContent;
 
-        // Click handler
         itemEl.addEventListener('click', () => this.selectItem(index));
-        
         return itemEl;
     }
 
@@ -13211,6 +13156,17 @@ class FilteredCarouselField extends BaseField {
                 this.nextSlide();
             });
         }
+
+        // Handle responsive changes
+        window.addEventListener('resize', () => {
+            const newItemsPerView = this.getItemsPerView();
+            if (newItemsPerView !== this.itemsPerView) {
+                this.itemsPerView = newItemsPerView;
+                this.currentIndex = 0; // Reset to start
+                this.updateDisplay();
+                this.updateNavigation();
+            }
+        });
     }
 
     selectItem(index) {
@@ -13230,7 +13186,7 @@ class FilteredCarouselField extends BaseField {
     }
 
     updateSelection() {
-        const items = this.carouselTrack.querySelectorAll('.carousel-item');
+        const items = this.track.querySelectorAll('.carousel-item');
         items.forEach((item, index) => {
             if (this.selectedItems.includes(index)) {
                 item.classList.add('selected');
@@ -13241,47 +13197,58 @@ class FilteredCarouselField extends BaseField {
     }
 
     nextSlide() {
-        const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
-        if (this.currentIndex < maxSlides) {
-            this.currentIndex++;
+        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxIndex) {
+            this.currentIndex = Math.min(this.currentIndex + this.itemsPerView, maxIndex);
             this.updateTrackPosition();
-            this.updateNavigation();
+            this.updateDisplay();
         }
     }
 
     previousSlide() {
         if (this.currentIndex > 0) {
-            this.currentIndex--;
+            this.currentIndex = Math.max(this.currentIndex - this.itemsPerView, 0);
             this.updateTrackPosition();
-            this.updateNavigation();
+            this.updateDisplay();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
-        const translateX = -this.currentIndex * (100 / this.itemsPerView);
-        this.carouselTrack.style.transform = `translateX(${translateX}%)`;
+        const itemWidth = window.innerWidth > 768 ? 250 : 200; // Match card widths
+        const gap = 15; // Gap between items
+        const translateX = -(this.currentIndex * (itemWidth + gap));
+        this.track.style.transform = `translateX(${translateX}px)`;
+    }
+
+    updateDisplay() {
+        // Update counter
+        if (this.itemCounter && this.items.length > 0) {
+            const startItem = this.currentIndex + 1;
+            const endItem = Math.min(this.currentIndex + this.itemsPerView, this.items.length);
+            this.itemCounter.textContent = `${startItem}-${endItem} / ${this.items.length}`;
+        }
+
+        // Update navigation buttons
+        this.updateNavigation();
     }
 
     updateNavigation() {
-        if (this.prevButton && this.nextButton) {
-            const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
-            this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxSlides;
-        }
-    }
+        if (!this.prevButton || !this.nextButton) return;
 
-    updateItemCounter() {
-        if (this.itemCounter && this.items.length > 0) {
-            const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
-            this.itemCounter.textContent = `${this.currentIndex + 1} / ${totalSlides}`;
-        }
+        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
+        
+        this.prevButton.disabled = this.currentIndex === 0;
+        this.nextButton.disabled = this.currentIndex >= maxIndex;
+
+        // Show/hide navigation based on items
+        const showNav = this.items.length > this.itemsPerView;
+        this.prevButton.style.display = showNav ? 'flex' : 'none';
+        this.nextButton.style.display = showNav ? 'flex' : 'none';
     }
 
     startAutoUpdate() {
-        if (!this.filterConfig.dependsOn) {
-            return;
-        }
+        if (!this.filterConfig.dependsOn) return;
         
         if (this.autoUpdateInterval) {
             clearInterval(this.autoUpdateInterval);
@@ -13305,6 +13272,10 @@ class FilteredCarouselField extends BaseField {
 
     restartMonitoring() {
         this.startAutoUpdate();
+        this.autoPopulateItems();
+    }
+
+    triggerUpdate() {
         this.autoPopulateItems();
     }
 
@@ -13342,18 +13313,11 @@ class FilteredCarouselField extends BaseField {
             clearInterval(this.autoUpdateInterval);
             this.autoUpdateInterval = null;
         }
-        if (this.resizeHandler) {
-            window.removeEventListener('resize', this.resizeHandler);
-        }
-    }
-
-    triggerUpdate() {
-        this.autoPopulateItems();
     }
 }
 
 // ============================================================================
-// UPDATED REGULAR CAROUSEL FIELD - Using ImageGallery Structure & Styling
+// UPDATED REGULAR CAROUSEL FIELD - Using ImageGalleryField Structure
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13362,141 +13326,134 @@ class CarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = this.getItemsPerView(); // Dynamic based on screen size
-        this.showNavigation = true; // Always show on mobile, hide on desktop
+        this.itemsPerView = this.getItemsPerView(); // 3 for desktop, 1 for mobile
+        this.selectedItems = [];
+        this.allowMultiple = config.allowMultiple || false;
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
-        this.allowMultiple = config.allowMultiple || false;
-        this.selectedItems = [];
-        this.showDetails = config.showDetails !== false;
-
+        
         // Navigation elements
-        this.galleryContainer = null;
-        this.carouselTrack = null;
+        this.carouselContainer = null;
+        this.track = null;
         this.prevButton = null;
         this.nextButton = null;
         this.itemCounter = null;
-
-        // Setup responsive behavior
-        this.setupResponsiveHandling();
     }
 
     getItemsPerView() {
-        // 3 cards on desktop, 1 on mobile
         return window.innerWidth > 768 ? 3 : 1;
-    }
-
-    setupResponsiveHandling() {
-        // Update items per view on resize
-        this.resizeHandler = () => {
-            const newItemsPerView = this.getItemsPerView();
-            if (newItemsPerView !== this.itemsPerView) {
-                this.itemsPerView = newItemsPerView;
-                this.currentIndex = 0; // Reset to start
-                if (this.carouselTrack) {
-                    this.updateTrackPosition();
-                    this.updateNavigation();
-                }
-            }
-        };
-        window.addEventListener('resize', this.resizeHandler);
     }
 
     render() {
         const container = this.createContainer();
-        container.className += ' carousel-field regular-carousel';
+        container.className += ' carousel-field';
         
         this.createCarouselStructure();
         this.setupEventListeners();
-        this.renderItems();
-        this.updateNavigation();
+        this.updateDisplay();
         
         return container;
     }
 
     createCarouselStructure() {
-        // Main gallery container using ImageGallery structure
-        this.galleryContainer = document.createElement('div');
-        this.galleryContainer.className = 'image-gallery-container carousel-gallery-container';
-        this.galleryContainer.setAttribute('data-items', this.items.length);
+        this.carouselContainer = document.createElement('div');
+        this.carouselContainer.className = 'carousel-gallery-container';
+        this.carouselContainer.setAttribute('data-items', this.items.length);
 
-        // Header section
+        // Add header if title/subtitle provided
         if (this.title || this.subtitle) {
-            const header = document.createElement('div');
-            header.className = 'carousel-header';
-            
-            if (this.title) {
-                const title = document.createElement('h3');
-                title.className = 'carousel-title';
-                title.textContent = this.title;
-                header.appendChild(title);
-            }
-            
-            if (this.subtitle) {
-                const subtitle = document.createElement('p');
-                subtitle.className = 'carousel-subtitle';
-                subtitle.textContent = this.subtitle;
-                header.appendChild(subtitle);
-            }
-            
-            this.galleryContainer.appendChild(header);
+            const header = this.createHeader();
+            this.carouselContainer.appendChild(header);
         }
 
-        // Content wrapper
         const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'gallery-content-wrapper carousel-content-wrapper';
+        contentWrapper.className = 'carousel-content-wrapper';
 
-        // Carousel container (like image container in gallery)
-        const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'gallery-image-container carousel-container';
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'carousel-items-container';
 
-        // Carousel track
-        this.carouselTrack = document.createElement('div');
-        this.carouselTrack.className = 'carousel-track';
-        carouselContainer.appendChild(this.carouselTrack);
+        this.track = document.createElement('div');
+        this.track.className = 'carousel-track';
+        
+        this.renderItems();
+        itemsContainer.appendChild(this.track);
 
-        // Navigation buttons (hidden on desktop via CSS)
+        // Navigation buttons (positioned outside cards)
+        this.createNavigationButtons(itemsContainer);
+
+        // Item counter
+        this.itemCounter = document.createElement('div');
+        this.itemCounter.className = 'carousel-counter';
+        itemsContainer.appendChild(this.itemCounter);
+
+        contentWrapper.appendChild(itemsContainer);
+        this.carouselContainer.appendChild(contentWrapper);
+        this.container.appendChild(this.carouselContainer);
+    }
+
+    createHeader() {
+        const header = document.createElement('div');
+        header.className = 'carousel-header';
+        
+        if (this.title) {
+            const title = document.createElement('h3');
+            title.className = 'carousel-title';
+            title.textContent = this.title;
+            header.appendChild(title);
+        }
+        
+        if (this.subtitle) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-subtitle';
+            subtitle.textContent = this.subtitle;
+            header.appendChild(subtitle);
+        }
+        
+        return header;
+    }
+
+    createNavigationButtons(container) {
+        // Only show navigation if we have multiple pages
+        const totalPages = Math.ceil(this.items.length / this.itemsPerView);
+        if (totalPages <= 1) return;
+
         this.prevButton = document.createElement('button');
         this.prevButton.type = 'button';
-        this.prevButton.className = 'nav-btn prev-btn carousel-nav-btn';
+        this.prevButton.className = 'carousel-nav-btn prev-btn';
         this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.prevButton.setAttribute('aria-label', 'Previous');
-        carouselContainer.appendChild(this.prevButton);
+        this.prevButton.setAttribute('aria-label', 'Previous items');
 
         this.nextButton = document.createElement('button');
         this.nextButton.type = 'button';
-        this.nextButton.className = 'nav-btn next-btn carousel-nav-btn';
+        this.nextButton.className = 'carousel-nav-btn next-btn';
         this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.nextButton.setAttribute('aria-label', 'Next');
-        carouselContainer.appendChild(this.nextButton);
+        this.nextButton.setAttribute('aria-label', 'Next items');
 
-        // Item counter (like image counter in gallery)
-        this.itemCounter = document.createElement('div');
-        this.itemCounter.className = 'image-counter item-counter';
-        carouselContainer.appendChild(this.itemCounter);
-
-        contentWrapper.appendChild(carouselContainer);
-        this.galleryContainer.appendChild(contentWrapper);
-        
-        // Error container
-        const errorElement = this.createErrorElement();
-        this.galleryContainer.appendChild(errorElement);
-
-        this.container.appendChild(this.galleryContainer);
-        this.element = this.container;
-        this.element.fieldInstance = this;
+        container.appendChild(this.prevButton);
+        container.appendChild(this.nextButton);
     }
 
     renderItems() {
-        this.carouselTrack.innerHTML = '';
+        this.track.innerHTML = '';
+        
+        if (this.items.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'carousel-empty-message';
+            emptyMessage.innerHTML = `
+                <div class="empty-content">
+                    <div class="empty-message">No items available</div>
+                </div>
+            `;
+            this.track.appendChild(emptyMessage);
+            return;
+        }
         
         this.items.forEach((item, index) => {
             const itemElement = this.createItemElement(item, index);
-            this.carouselTrack.appendChild(itemElement);
+            this.track.appendChild(itemElement);
         });
 
         this.updateTrackPosition();
-        this.updateItemCounter();
     }
 
     createItemElement(item, index) {
@@ -13504,72 +13461,48 @@ class CarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
+        // Build card content
+        let cardContent = '<div class="carousel-item-inner">';
+
+        // Selection indicator (checkmark like ImageGallery)
+        cardContent += '<div class="selection-indicator">✓</div>';
+
         // Image
         if (item.image) {
-            const img = document.createElement('img');
-            img.className = 'carousel-item-image';
-            img.src = item.image;
-            img.alt = item.title || item.name || '';
-            itemEl.appendChild(img);
+            cardContent += `<img class="carousel-item-image" src="${item.image}" alt="${item.title || item.name || ''}" />`;
         }
-
-        // Content container
-        const contentContainer = document.createElement('div');
-        contentContainer.className = 'carousel-item-content';
 
         // Title
         if (item.title || item.name) {
-            const title = document.createElement('h4');
-            title.className = 'carousel-item-title';
-            title.textContent = item.title || item.name;
-            contentContainer.appendChild(title);
+            cardContent += `<h4 class="carousel-item-title">${item.title || item.name}</h4>`;
         }
 
-        // Subtitle
-        if (item.position || item.category) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-item-subtitle';
-            subtitle.textContent = item.position || item.category;
-            contentContainer.appendChild(subtitle);
+        // Subtitle/Position
+        if (item.position || item.category || item.subtitle) {
+            cardContent += `<p class="carousel-item-subtitle">${item.position || item.category || item.subtitle}</p>`;
         }
 
         // Description
         if (item.description) {
-            const desc = document.createElement('p');
-            desc.className = 'carousel-item-description';
-            desc.textContent = item.description;
-            contentContainer.appendChild(desc);
+            cardContent += `<p class="carousel-item-description">${item.description}</p>`;
         }
 
-        // Details section
-        if (this.showDetails) {
-            const details = document.createElement('div');
-            details.className = 'carousel-item-details';
-
-            if (item.price) {
-                const price = document.createElement('span');
-                price.className = 'carousel-item-price';
-                price.textContent = item.price;
-                details.appendChild(price);
-            }
-
-            if (item.duration) {
-                const duration = document.createElement('span');
-                duration.className = 'carousel-item-duration';
-                duration.textContent = item.duration;
-                details.appendChild(duration);
-            }
-
-            if (details.children.length > 0) {
-                contentContainer.appendChild(details);
+        // Details (price, duration, experience, etc.)
+        if (this.config.showDetails !== false) {
+            const details = [];
+            if (item.price) details.push(`<span class="item-price">${item.price}</span>`);
+            if (item.duration) details.push(`<span class="item-duration">${item.duration}</span>`);
+            if (item.experience) details.push(`<span class="item-experience">${item.experience} years</span>`);
+            
+            if (details.length > 0) {
+                cardContent += `<div class="carousel-item-details">${details.join('')}</div>`;
             }
         }
 
-        itemEl.appendChild(contentContainer);
+        cardContent += '</div>';
+        itemEl.innerHTML = cardContent;
 
-        // Click handler
         itemEl.addEventListener('click', () => this.selectItem(index));
-        
         return itemEl;
     }
 
@@ -13589,6 +13522,17 @@ class CarouselField extends BaseField {
                 this.nextSlide();
             });
         }
+
+        // Handle responsive changes
+        window.addEventListener('resize', () => {
+            const newItemsPerView = this.getItemsPerView();
+            if (newItemsPerView !== this.itemsPerView) {
+                this.itemsPerView = newItemsPerView;
+                this.currentIndex = 0; // Reset to start
+                this.updateDisplay();
+                this.updateNavigation();
+            }
+        });
     }
 
     selectItem(index) {
@@ -13608,7 +13552,7 @@ class CarouselField extends BaseField {
     }
 
     updateSelection() {
-        const items = this.carouselTrack.querySelectorAll('.carousel-item');
+        const items = this.track.querySelectorAll('.carousel-item');
         items.forEach((item, index) => {
             if (this.selectedItems.includes(index)) {
                 item.classList.add('selected');
@@ -13619,42 +13563,54 @@ class CarouselField extends BaseField {
     }
 
     nextSlide() {
-        const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
-        if (this.currentIndex < maxSlides) {
-            this.currentIndex++;
+        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxIndex) {
+            this.currentIndex = Math.min(this.currentIndex + this.itemsPerView, maxIndex);
             this.updateTrackPosition();
-            this.updateNavigation();
+            this.updateDisplay();
         }
     }
 
     previousSlide() {
         if (this.currentIndex > 0) {
-            this.currentIndex--;
+            this.currentIndex = Math.max(this.currentIndex - this.itemsPerView, 0);
             this.updateTrackPosition();
-            this.updateNavigation();
+            this.updateDisplay();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
-        const translateX = -this.currentIndex * (100 / this.itemsPerView);
-        this.carouselTrack.style.transform = `translateX(${translateX}%)`;
+        const itemWidth = window.innerWidth > 768 ? 250 : 200; // Match card widths
+        const gap = 15; // Gap between items
+        const translateX = -(this.currentIndex * (itemWidth + gap));
+        this.track.style.transform = `translateX(${translateX}px)`;
+    }
+
+    updateDisplay() {
+        // Update counter
+        if (this.itemCounter && this.items.length > 0) {
+            const startItem = this.currentIndex + 1;
+            const endItem = Math.min(this.currentIndex + this.itemsPerView, this.items.length);
+            this.itemCounter.textContent = `${startItem}-${endItem} / ${this.items.length}`;
+        }
+
+        // Update navigation buttons
+        this.updateNavigation();
     }
 
     updateNavigation() {
-        if (this.prevButton && this.nextButton) {
-            const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
-            this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxSlides;
-            this.updateItemCounter();
-        }
-    }
+        if (!this.prevButton || !this.nextButton) return;
 
-    updateItemCounter() {
-        if (this.itemCounter && this.items.length > 0) {
-            const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
-            this.itemCounter.textContent = `${this.currentIndex + 1} / ${totalSlides}`;
-        }
+        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
+        
+        this.prevButton.disabled = this.currentIndex === 0;
+        this.nextButton.disabled = this.currentIndex >= maxIndex;
+
+        // Show/hide navigation based on items
+        const showNav = this.items.length > this.itemsPerView;
+        this.prevButton.style.display = showNav ? 'flex' : 'none';
+        this.nextButton.style.display = showNav ? 'flex' : 'none';
     }
 
     getValue() {
@@ -13684,12 +13640,6 @@ class CarouselField extends BaseField {
         }
         this.hideError();
         return true;
-    }
-
-    cleanup() {
-        if (this.resizeHandler) {
-            window.removeEventListener('resize', this.resizeHandler);
-        }
     }
 }
 
