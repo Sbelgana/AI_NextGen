@@ -12846,9 +12846,8 @@ class CalComBaseUtility {
 
 
 // ============================================================================
-// FIXED CAROUSEL JAVASCRIPT - NO PARTIAL CARDS VISIBLE
+// UPDATED FILTERED CAROUSEL FIELD - Matching ImageGallery Design
 // ============================================================================
-
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -12883,64 +12882,22 @@ class FilteredCarouselField extends BaseField {
     }
 
     getItemsPerView() {
-        // EXACT: Only complete cards visible
-        return window.innerWidth >= 768 ? 3 : 1;
-    }
-
-    getCardWidth() {
-        // EXACT: Fixed card dimensions
-        if (window.innerWidth <= 480) return 180; // Very small screens
-        return window.innerWidth >= 768 ? 250 : 200; // Big vs small screens
-    }
-
-    getContainerWidth() {
-        // CRITICAL: Calculate exact container width for complete cards only
-        const cardWidth = this.getCardWidth();
-        const gap = 16;
-        const buttonSpace = window.innerWidth >= 768 ? 80 : 100;
-        
-        if (this.itemsPerView === 1) {
-            // Single card: card width + button space
-            return cardWidth + buttonSpace;
-        } else {
-            // Multiple cards: (cards × width) + (gaps × count) + button space
-            return (this.itemsPerView * cardWidth) + ((this.itemsPerView - 1) * gap) + buttonSpace;
-        }
+        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
     }
 
     handleResize() {
         const newItemsPerView = this.getItemsPerView();
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
-            // Reset to valid index and update container
-            this.currentIndex = Math.min(this.currentIndex, this.getMaxIndex());
-            this.updateContainerSize();
+            this.currentIndex = 0; // Reset to start
             this.updateTrackPosition();
-            this.updateNavigationState();
-            this.updateStatus();
-        }
-    }
-
-    getMaxIndex() {
-        // EXACT: Maximum index where no partial cards show
-        return Math.max(0, this.items.length - this.itemsPerView);
-    }
-
-    updateContainerSize() {
-        // CRITICAL: Set exact container width to prevent partial cards
-        if (this.galleryContainer) {
-            const container = this.galleryContainer.querySelector('.carousel-image-container');
-            if (container) {
-                const exactWidth = this.getContainerWidth();
-                container.style.width = `${exactWidth}px`;
-                container.style.maxWidth = `${exactWidth}px`;
-                console.log(`🎯 Container sized to: ${exactWidth}px for ${this.itemsPerView} cards`);
-            }
+            this.updateNavigation();
         }
     }
 
     autoPopulateItems() {
         if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
+            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
             return false;
         }
         
@@ -12959,24 +12916,47 @@ class FilteredCarouselField extends BaseField {
                 
                 if (dependencyValue) break;
             } catch (error) {
+                console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
                 continue;
             }
+        }
+        
+        // Fallback: Check standard factory locations
+        if (!dependencyValue) {
+            dependencyValue = this.factory?.formValues?.[this.filterConfig.dependsOn] ||
+                            this.factory?.currentExtension?.formValues?.[this.filterConfig.dependsOn] ||
+                            this.factory?.currentMultiStepForm?.getFormData()?.[this.filterConfig.dependsOn];
         }
         
         if (dependencyValue) {
             const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
             
+            let needsSelectionReset = false;
+            if (this.selectedItem !== null && this.items[this.selectedItem]) {
+                const currentSelection = this.items[this.selectedItem];
+                const stillValid = filteredItems.some(item => item.id === currentSelection.id);
+                if (!stillValid) {
+                    needsSelectionReset = true;
+                }
+            }
+            
             if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
                 this.items = filteredItems;
-                this.selectedItem = null;
-                this.selectedItems = [];
+                
+                if (needsSelectionReset) {
+                    this.selectedItem = null;
+                    this.selectedItems = [];
+                    this.handleChange();
+                } else {
+                    this.selectedItem = null;
+                    this.selectedItems = [];
+                }
+                
                 this.currentIndex = 0;
                 
                 if (this.galleryContainer) {
-                    this.updateContainerSize(); // Update for new item count
                     this.renderItems();
-                    this.updateNavigationState();
-                    this.updateStatus();
+                    this.updateNavigation();
                 }
                 
                 return true;
@@ -12986,29 +12966,19 @@ class FilteredCarouselField extends BaseField {
         return false;
     }
 
-    updateStatus() {
-        // Update demo status
-        if (this.name === 'selectedService') {
-            document.getElementById('service-visible')?.textContent(Math.min(this.itemsPerView, this.items.length));
-            document.getElementById('service-index')?.textContent(this.currentIndex);
-            document.getElementById('service-status')?.textContent(`${this.items.length} items loaded`);
-        } else if (this.name === 'selectedDentist') {
-            document.getElementById('dentist-visible')?.textContent(Math.min(this.itemsPerView, this.items.length));
-            document.getElementById('dentist-index')?.textContent(this.currentIndex);
-            document.getElementById('dentist-status')?.textContent(this.items.length > 0 ? `${this.items.length} dentists available` : 'Waiting for service selection');
-        }
-    }
-
     render() {
         this.container = this.createContainer();
         this.container.className += ' carousel-field filtered-carousel';
         this.createCarouselStructure();
         this.setupEventListeners();
         this.autoPopulateItems();
-        this.updateContainerSize(); // Set initial size
         this.renderItems();
-        this.updateNavigationState();
-        this.updateStatus();
+        this.updateNavigation();
+        
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+        }
+        this.startAutoUpdate();
         
         return this.container;
     }
@@ -13042,7 +13012,6 @@ class FilteredCarouselField extends BaseField {
             contentWrapper.appendChild(header);
         }
 
-        // CRITICAL: Carousel container with exact sizing
         const carouselContainer = document.createElement('div');
         carouselContainer.className = 'carousel-image-container';
         
@@ -13050,7 +13019,7 @@ class FilteredCarouselField extends BaseField {
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
 
-        // Navigation buttons (positioned outside visible cards)
+        // Navigation buttons (outside cards)
         if (this.showNavigation) {
             this.prevButton = document.createElement('button');
             this.prevButton.type = 'button';
@@ -13229,57 +13198,80 @@ class FilteredCarouselField extends BaseField {
     }
 
     nextSlide() {
-        // CRITICAL: Only move if there are more complete cards to show
-        const maxIndex = this.getMaxIndex();
-        if (this.currentIndex < maxIndex) {
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
             this.currentIndex++;
             this.updateTrackPosition();
             this.updateNavigationState();
-            this.updateStatus();
         }
     }
 
     previousSlide() {
-        // CRITICAL: Only move if not at the beginning
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateTrackPosition();
             this.updateNavigationState();
-            this.updateStatus();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
         
-        // CRITICAL: Calculate exact positioning to show only complete cards
-        const cardWidth = this.getCardWidth();
+        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
         const gap = 16;
-        const buttonMargin = window.innerWidth >= 768 ? 40 : 50; // Account for button space
-        
-        // Calculate translate to show currentIndex as first visible card
         const translateX = -(this.currentIndex * (cardWidth + gap));
-        
         this.track.style.transform = `translateX(${translateX}px)`;
+    }
+
+    updateNavigation() {
+        // Remove old navigation if exists
+        const existingNav = this.container.querySelector('.carousel-navigation');
+        if (existingNav) {
+            existingNav.remove();
+        }
         
-        console.log(`🎯 Track positioned: Index ${this.currentIndex}, TranslateX ${translateX}px, CardWidth ${cardWidth}px`);
+        this.updateNavigationState();
     }
 
     updateNavigationState() {
         if (this.prevButton && this.nextButton) {
-            const maxIndex = this.getMaxIndex();
-            
-            // CRITICAL: Proper button state for complete cards only
+            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
             this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxIndex;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
             
-            // Show/hide buttons based on whether navigation is needed
-            const needsNavigation = this.items.length > this.itemsPerView;
-            this.prevButton.style.display = needsNavigation ? 'flex' : 'none';
-            this.nextButton.style.display = needsNavigation ? 'flex' : 'none';
-            
-            console.log(`🎯 Navigation: ${this.currentIndex}/${maxIndex}, ItemsPerView: ${this.itemsPerView}, Total: ${this.items.length}, NeedsNav: ${needsNavigation}`);
+            // Hide buttons if not needed
+            const shouldShow = this.items.length > this.itemsPerView;
+            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
         }
+    }
+
+    startAutoUpdate() {
+        if (!this.filterConfig.dependsOn) return;
+        
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+        }
+        
+        this.autoUpdateInterval = setInterval(() => {
+            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
+                this.autoPopulateItems();
+            }
+        }, this.filterConfig.monitorInterval);
+        
+        if (!this.filterConfig.alwaysMonitor) {
+            setTimeout(() => {
+                if (this.autoUpdateInterval) {
+                    clearInterval(this.autoUpdateInterval);
+                    this.autoUpdateInterval = null;
+                }
+            }, this.filterConfig.monitorDuration);
+        }
+    }
+
+    restartMonitoring() {
+        this.startAutoUpdate();
+        this.autoPopulateItems();
     }
 
     triggerUpdate() {
@@ -13306,14 +13298,27 @@ class FilteredCarouselField extends BaseField {
         this.updateSelection();
     }
 
+    validate() {
+        if (this.required && this.selectedItems.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+
     cleanup() {
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+            this.autoUpdateInterval = null;
+        }
         window.removeEventListener('resize', this.handleResize);
         super.cleanup();
     }
 }
 
 // ============================================================================
-// REGULAR CAROUSEL FIELD - Same No-Partial-Cards Logic
+// UPDATED REGULAR CAROUSEL FIELD - Matching ImageGallery Design
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13336,49 +13341,16 @@ class CarouselField extends BaseField {
     }
 
     getItemsPerView() {
-        return window.innerWidth >= 768 ? 3 : 1;
-    }
-
-    getCardWidth() {
-        if (window.innerWidth <= 480) return 180;
-        return window.innerWidth >= 768 ? 250 : 200;
-    }
-
-    getContainerWidth() {
-        const cardWidth = this.getCardWidth();
-        const gap = 16;
-        const buttonSpace = window.innerWidth >= 768 ? 80 : 100;
-        
-        if (this.itemsPerView === 1) {
-            return cardWidth + buttonSpace;
-        } else {
-            return (this.itemsPerView * cardWidth) + ((this.itemsPerView - 1) * gap) + buttonSpace;
-        }
-    }
-
-    getMaxIndex() {
-        return Math.max(0, this.items.length - this.itemsPerView);
+        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
     }
 
     handleResize() {
         const newItemsPerView = this.getItemsPerView();
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
-            this.currentIndex = Math.min(this.currentIndex, this.getMaxIndex());
-            this.updateContainerSize();
+            this.currentIndex = 0; // Reset to start
             this.updateTrackPosition();
             this.updateNavigationState();
-        }
-    }
-
-    updateContainerSize() {
-        if (this.galleryContainer) {
-            const container = this.galleryContainer.querySelector('.carousel-image-container');
-            if (container) {
-                const exactWidth = this.getContainerWidth();
-                container.style.width = `${exactWidth}px`;
-                container.style.maxWidth = `${exactWidth}px`;
-            }
         }
     }
 
@@ -13387,21 +13359,20 @@ class CarouselField extends BaseField {
         this.container.className += ' carousel-field';
         this.createCarouselStructure();
         this.setupEventListeners();
-        this.updateContainerSize();
         this.renderItems();
-        this.updateNavigationState();
+        this.updateNavigation();
         
         return this.container;
     }
 
     createCarouselStructure() {
-        // Same structure as FilteredCarouselField
         this.galleryContainer = document.createElement('div');
         this.galleryContainer.className = 'carousel-gallery-container';
         
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'carousel-content-wrapper';
         
+        // Add header if title/subtitle provided
         if (this.title || this.subtitle) {
             const header = document.createElement('div');
             header.className = 'carousel-header';
@@ -13430,6 +13401,7 @@ class CarouselField extends BaseField {
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
 
+        // Navigation buttons (outside cards)
         if (this.showNavigation) {
             this.prevButton = document.createElement('button');
             this.prevButton.type = 'button';
@@ -13468,6 +13440,7 @@ class CarouselField extends BaseField {
             });
         }
 
+        // Add resize listener
         window.addEventListener('resize', this.handleResize);
     }
 
@@ -13585,8 +13558,8 @@ class CarouselField extends BaseField {
     }
 
     nextSlide() {
-        const maxIndex = this.getMaxIndex();
-        if (this.currentIndex < maxIndex) {
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
             this.currentIndex++;
             this.updateTrackPosition();
             this.updateNavigationState();
@@ -13604,22 +13577,26 @@ class CarouselField extends BaseField {
     updateTrackPosition() {
         if (this.items.length === 0) return;
         
-        const cardWidth = this.getCardWidth();
+        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
         const gap = 16;
         const translateX = -(this.currentIndex * (cardWidth + gap));
         this.track.style.transform = `translateX(${translateX}px)`;
     }
 
+    updateNavigation() {
+        this.updateNavigationState();
+    }
+
     updateNavigationState() {
         if (this.prevButton && this.nextButton) {
-            const maxIndex = this.getMaxIndex();
-            
+            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
             this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxIndex;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
             
-            const needsNavigation = this.items.length > this.itemsPerView;
-            this.prevButton.style.display = needsNavigation ? 'flex' : 'none';
-            this.nextButton.style.display = needsNavigation ? 'flex' : 'none';
+            // Hide buttons if not needed
+            const shouldShow = this.items.length > this.itemsPerView;
+            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
         }
     }
 
@@ -13641,6 +13618,15 @@ class CarouselField extends BaseField {
             this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
         }
         this.updateSelection();
+    }
+
+    validate() {
+        if (this.required && this.selectedItems.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
     }
 
     cleanup() {
