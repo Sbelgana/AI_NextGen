@@ -12849,6 +12849,9 @@ class CalComBaseUtility {
 // ============================================================================
 // GENERIC FILTERED CAROUSEL FIELD - Reusable for any filtering scenario
 // ============================================================================
+// ============================================================================
+// UPDATED FILTERED CAROUSEL FIELD - Using ImageGallery Structure & Styling
+// ============================================================================
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -12856,35 +12859,60 @@ class FilteredCarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = config.itemsPerView || 1;
-        this.showNavigation = config.showNavigation !== false;
-        this.showIndicators = config.showIndicators !== false;
+        this.itemsPerView = this.getItemsPerView(); // Dynamic based on screen size
+        this.showNavigation = true; // Always show on mobile, hide on desktop
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
-        this.itemType = config.itemType || 'generic';
         this.allowMultiple = config.allowMultiple || false;
         this.selectedItems = [];
         this.showDetails = config.showDetails !== false;
-        this.layout = config.layout || 'grid';
-        this.columns = config.columns || 'auto';
         this.autoUpdateInterval = null;
         
-        // NEW: Generic filtering configuration
+        // Filtering configuration
         this.filterConfig = config.filterConfig || {
-            dependsOn: null,                    // Field name this carousel depends on
-            dataSource: [],                     // Array of all possible items
-            filterFunction: null,               // Function to filter items: (allItems, selectedValue) => filteredItems
-            dataSources: [],                    // Array of data source locations to check
+            dependsOn: null,
+            dataSource: [],
+            filterFunction: null,
+            dataSources: [],
             waitingMessage: 'Please make a selection first',
             monitoringMessage: 'Monitoring for selection...',
-            monitorInterval: 500,               // How often to check for changes (ms)
-            monitorDuration: 30000             // How long to monitor (ms)
+            monitorInterval: 500,
+            monitorDuration: 30000
         };
+
+        // Navigation elements
+        this.galleryContainer = null;
+        this.carouselTrack = null;
+        this.prevButton = null;
+        this.nextButton = null;
+        this.itemCounter = null;
+
+        // Setup responsive behavior
+        this.setupResponsiveHandling();
     }
 
-    // NEW: Generic auto-populate method based on configuration
+    getItemsPerView() {
+        // 3 cards on desktop, 1 on mobile
+        return window.innerWidth > 768 ? 3 : 1;
+    }
+
+    setupResponsiveHandling() {
+        // Update items per view on resize
+        this.resizeHandler = () => {
+            const newItemsPerView = this.getItemsPerView();
+            if (newItemsPerView !== this.itemsPerView) {
+                this.itemsPerView = newItemsPerView;
+                this.currentIndex = 0; // Reset to start
+                if (this.carouselTrack) {
+                    this.updateTrackPosition();
+                    this.updateNavigation();
+                }
+            }
+        };
+        window.addEventListener('resize', this.resizeHandler);
+    }
+
     autoPopulateItems() {
-        
         if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
             console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
             return false;
@@ -12899,7 +12927,6 @@ class FilteredCarouselField extends BaseField {
                 if (typeof source === 'function') {
                     dependencyValue = source();
                 } else if (typeof source === 'string') {
-                    // Navigate to nested property (e.g., "window.someGlobal.selectedValue")
                     dependencyValue = source.split('.').reduce((obj, prop) => obj?.[prop], window);
                 } else if (typeof source === 'object') {
                     dependencyValue = source[this.filterConfig.dependsOn];
@@ -12922,10 +12949,7 @@ class FilteredCarouselField extends BaseField {
         }
         
         if (dependencyValue) {
-            
-            // Use the configured filter function
             const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
-            
             
             // Check if the currently selected item is still valid
             let needsSelectionReset = false;
@@ -12940,21 +12964,18 @@ class FilteredCarouselField extends BaseField {
             if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
                 this.items = filteredItems;
                 
-                // Reset selection if current selection is no longer valid
                 if (needsSelectionReset) {
                     this.selectedItem = null;
                     this.selectedItems = [];
-                    // Notify about the selection change
                     this.handleChange();
                 } else {
-                    // Keep current selection if still valid
                     this.selectedItem = null;
                     this.selectedItems = [];
                 }
                 
                 this.currentIndex = 0;
                 
-                if (this.track) {
+                if (this.carouselTrack) {
                     this.renderItems();
                     this.updateNavigation();
                 }
@@ -12967,12 +12988,30 @@ class FilteredCarouselField extends BaseField {
     }
 
     render() {
-        
         const container = this.createContainer();
+        container.className += ' carousel-field filtered-carousel';
         
-        const carousel = document.createElement('div');
-        carousel.className = `carousel-field filtered-carousel filtered-carousel-${this.name}`;
+        this.createCarouselStructure();
+        this.setupEventListeners();
         
+        // Try to auto-populate immediately
+        this.autoPopulateItems();
+        this.renderItems();
+        this.updateNavigation();
+        
+        // Start continuous monitoring if configured
+        this.startAutoUpdate();
+        
+        return container;
+    }
+
+    createCarouselStructure() {
+        // Main gallery container using ImageGallery structure
+        this.galleryContainer = document.createElement('div');
+        this.galleryContainer.className = 'image-gallery-container carousel-gallery-container';
+        this.galleryContainer.setAttribute('data-items', this.items.length);
+
+        // Header section
         if (this.title || this.subtitle) {
             const header = document.createElement('div');
             header.className = 'carousel-header';
@@ -12991,85 +13030,56 @@ class FilteredCarouselField extends BaseField {
                 header.appendChild(subtitle);
             }
             
-            carousel.appendChild(header);
+            this.galleryContainer.appendChild(header);
         }
 
+        // Content wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'gallery-content-wrapper carousel-content-wrapper';
+
+        // Carousel container (like image container in gallery)
         const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'carousel-container';
+        carouselContainer.className = 'gallery-image-container carousel-container';
 
-        this.track = document.createElement('div');
-        this.track.className = 'carousel-track';
-        
-        // Try to auto-populate immediately
-        this.autoPopulateItems();
-        
-        this.renderItems();
-        carouselContainer.appendChild(this.track);
+        // Carousel track
+        this.carouselTrack = document.createElement('div');
+        this.carouselTrack.className = 'carousel-track';
+        carouselContainer.appendChild(this.carouselTrack);
 
-        carousel.appendChild(carouselContainer);
+        // Navigation buttons (hidden on desktop via CSS)
+        this.prevButton = document.createElement('button');
+        this.prevButton.type = 'button';
+        this.prevButton.className = 'nav-btn prev-btn carousel-nav-btn';
+        this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        this.prevButton.setAttribute('aria-label', 'Previous');
+        carouselContainer.appendChild(this.prevButton);
+
+        this.nextButton = document.createElement('button');
+        this.nextButton.type = 'button';
+        this.nextButton.className = 'nav-btn next-btn carousel-nav-btn';
+        this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        this.nextButton.setAttribute('aria-label', 'Next');
+        carouselContainer.appendChild(this.nextButton);
+
+        // Item counter (like image counter in gallery)
+        this.itemCounter = document.createElement('div');
+        this.itemCounter.className = 'image-counter item-counter';
+        carouselContainer.appendChild(this.itemCounter);
+
+        contentWrapper.appendChild(carouselContainer);
+        this.galleryContainer.appendChild(contentWrapper);
         
+        // Error container
         const errorElement = this.createErrorElement();
-        carousel.appendChild(errorElement);
+        this.galleryContainer.appendChild(errorElement);
 
-        container.appendChild(carousel);
-        this.element = container;
+        this.container.appendChild(this.galleryContainer);
+        this.element = this.container;
         this.element.fieldInstance = this;
-        
-        // Start continuous monitoring if configured
-        this.startAutoUpdate();
-        
-        
-        return container;
-    }
-
-    // NEW: Start continuous monitoring based on configuration
-    startAutoUpdate() {
-        if (!this.filterConfig.dependsOn) {
-            console.log(`🔄 FILTERED CAROUSEL [${this.name}]: No dependency configured, skipping auto-update`);
-            return;
-        }
-        
-        
-        // Clear any existing interval
-        if (this.autoUpdateInterval) {
-            clearInterval(this.autoUpdateInterval);
-        }
-        
-        // Check at configured interval
-        this.autoUpdateInterval = setInterval(() => {
-            // Always monitor if configured, or if no items yet
-            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
-                this.autoPopulateItems();
-            }
-        }, this.filterConfig.monitorInterval);
-        
-        // Only stop monitoring after duration if not set to always monitor
-        if (!this.filterConfig.alwaysMonitor) {
-            setTimeout(() => {
-                if (this.autoUpdateInterval) {
-                    clearInterval(this.autoUpdateInterval);
-                    this.autoUpdateInterval = null;
-                }
-            }, this.filterConfig.monitorDuration);
-        }
-    }
-
-    // NEW: Restart monitoring (called when step becomes active again)
-    restartMonitoring() {
-        this.startAutoUpdate();
-        // Immediate check
-        this.autoPopulateItems();
-    }
-
-    // NEW: Check if this field is currently visible
-    isVisible() {
-        if (!this.element) return false;
-        const style = window.getComputedStyle(this.element);
-        return style.display !== 'none' && style.visibility !== 'hidden';
     }
 
     renderItems() {
-        this.track.innerHTML = '';
+        this.carouselTrack.innerHTML = '';
         
         if (this.items.length === 0) {
             const emptyMessage = document.createElement('div');
@@ -13091,16 +13101,17 @@ class FilteredCarouselField extends BaseField {
                 </div>
             `;
             
-            this.track.appendChild(emptyMessage);
+            this.carouselTrack.appendChild(emptyMessage);
             return;
         }
         
         this.items.forEach((item, index) => {
             const itemElement = this.createItemElement(item, index);
-            this.track.appendChild(itemElement);
+            this.carouselTrack.appendChild(itemElement);
         });
 
         this.updateTrackPosition();
+        this.updateItemCounter();
     }
 
     createItemElement(item, index) {
@@ -13108,6 +13119,7 @@ class FilteredCarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
+        // Image
         if (item.image) {
             const img = document.createElement('img');
             img.className = 'carousel-item-image';
@@ -13116,27 +13128,35 @@ class FilteredCarouselField extends BaseField {
             itemEl.appendChild(img);
         }
 
+        // Content container
+        const contentContainer = document.createElement('div');
+        contentContainer.className = 'carousel-item-content';
+
+        // Title
         if (item.title || item.name) {
             const title = document.createElement('h4');
             title.className = 'carousel-item-title';
             title.textContent = item.title || item.name;
-            itemEl.appendChild(title);
+            contentContainer.appendChild(title);
         }
 
+        // Subtitle
         if (item.position || item.category) {
             const subtitle = document.createElement('p');
             subtitle.className = 'carousel-item-subtitle';
             subtitle.textContent = item.position || item.category;
-            itemEl.appendChild(subtitle);
+            contentContainer.appendChild(subtitle);
         }
 
+        // Description
         if (item.description) {
             const desc = document.createElement('p');
             desc.className = 'carousel-item-description';
             desc.textContent = item.description;
-            itemEl.appendChild(desc);
+            contentContainer.appendChild(desc);
         }
 
+        // Details section
         if (this.showDetails) {
             const details = document.createElement('div');
             details.className = 'carousel-item-details';
@@ -13163,61 +13183,34 @@ class FilteredCarouselField extends BaseField {
             }
 
             if (details.children.length > 0) {
-                itemEl.appendChild(details);
+                contentContainer.appendChild(details);
             }
         }
 
+        itemEl.appendChild(contentContainer);
+
+        // Click handler
         itemEl.addEventListener('click', () => this.selectItem(index));
+        
         return itemEl;
     }
 
-    updateNavigation() {
-        // Remove old navigation
-        const oldNav = this.element.querySelector('.carousel-navigation');
-        if (oldNav) {
-            oldNav.remove();
+    setupEventListeners() {
+        if (this.prevButton) {
+            this.prevButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.previousSlide();
+            });
         }
-        
-        // Add new navigation if needed
-        if (this.showNavigation && this.items.length > this.itemsPerView) {
-            const navigation = this.createNavigation();
-            this.element.querySelector('.carousel-container').appendChild(navigation);
+
+        if (this.nextButton) {
+            this.nextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.nextSlide();
+            });
         }
-    }
-
-    createNavigation() {
-        const nav = document.createElement('div');
-        nav.className = 'carousel-navigation';
-
-        this.prevBtn = document.createElement('button');
-        this.prevBtn.className = 'carousel-nav-btn';
-        this.prevBtn.innerHTML = '‹';
-        this.prevBtn.addEventListener('click', () => this.previousSlide());
-
-        this.nextBtn = document.createElement('button');
-        this.nextBtn.className = 'carousel-nav-btn';
-        this.nextBtn.innerHTML = '›';
-        this.nextBtn.addEventListener('click', () => this.nextSlide());
-
-        const indicators = document.createElement('div');
-        indicators.className = 'carousel-indicators';
-        
-        const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
-        for (let i = 0; i < totalSlides; i++) {
-            const dot = document.createElement('span');
-            dot.className = 'carousel-dot';
-            if (i === 0) dot.classList.add('active');
-            dot.addEventListener('click', () => this.goToSlide(i));
-            indicators.appendChild(dot);
-        }
-        this.indicators = indicators;
-
-        nav.appendChild(this.prevBtn);
-        nav.appendChild(indicators);
-        nav.appendChild(this.nextBtn);
-
-        this.updateNavigationState();
-        return nav;
     }
 
     selectItem(index) {
@@ -13237,7 +13230,7 @@ class FilteredCarouselField extends BaseField {
     }
 
     updateSelection() {
-        const items = this.track.querySelectorAll('.carousel-item');
+        const items = this.carouselTrack.querySelectorAll('.carousel-item');
         items.forEach((item, index) => {
             if (this.selectedItems.includes(index)) {
                 item.classList.add('selected');
@@ -13252,7 +13245,7 @@ class FilteredCarouselField extends BaseField {
         if (this.currentIndex < maxSlides) {
             this.currentIndex++;
             this.updateTrackPosition();
-            this.updateNavigationState();
+            this.updateNavigation();
         }
     }
 
@@ -13260,34 +13253,59 @@ class FilteredCarouselField extends BaseField {
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateTrackPosition();
-            this.updateNavigationState();
+            this.updateNavigation();
         }
-    }
-
-    goToSlide(index) {
-        this.currentIndex = index;
-        this.updateTrackPosition();
-        this.updateNavigationState();
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
         const translateX = -this.currentIndex * (100 / this.itemsPerView);
-        this.track.style.transform = `translateX(${translateX}%)`;
+        this.carouselTrack.style.transform = `translateX(${translateX}%)`;
     }
 
-    updateNavigationState() {
-        if (this.prevBtn && this.nextBtn) {
-            this.prevBtn.disabled = this.currentIndex === 0;
-            this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
+    updateNavigation() {
+        if (this.prevButton && this.nextButton) {
+            const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
+            this.prevButton.disabled = this.currentIndex === 0;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
         }
+    }
 
-        if (this.indicators) {
-            const dots = this.indicators.querySelectorAll('.carousel-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === this.currentIndex);
-            });
+    updateItemCounter() {
+        if (this.itemCounter && this.items.length > 0) {
+            const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
+            this.itemCounter.textContent = `${this.currentIndex + 1} / ${totalSlides}`;
         }
+    }
+
+    startAutoUpdate() {
+        if (!this.filterConfig.dependsOn) {
+            return;
+        }
+        
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+        }
+        
+        this.autoUpdateInterval = setInterval(() => {
+            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
+                this.autoPopulateItems();
+            }
+        }, this.filterConfig.monitorInterval);
+        
+        if (!this.filterConfig.alwaysMonitor) {
+            setTimeout(() => {
+                if (this.autoUpdateInterval) {
+                    clearInterval(this.autoUpdateInterval);
+                    this.autoUpdateInterval = null;
+                }
+            }, this.filterConfig.monitorDuration);
+        }
+    }
+
+    restartMonitoring() {
+        this.startAutoUpdate();
+        this.autoPopulateItems();
     }
 
     getValue() {
@@ -13324,16 +13342,18 @@ class FilteredCarouselField extends BaseField {
             clearInterval(this.autoUpdateInterval);
             this.autoUpdateInterval = null;
         }
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
     }
 
-    // NEW: Manual trigger for external updates
     triggerUpdate() {
         this.autoPopulateItems();
     }
 }
 
 // ============================================================================
-// REGULAR CAROUSEL FIELD FOR NON-FILTERED ITEMS
+// UPDATED REGULAR CAROUSEL FIELD - Using ImageGallery Structure & Styling
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13342,25 +13362,65 @@ class CarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = config.itemsPerView || 1;
-        this.showNavigation = config.showNavigation !== false;
-        this.showIndicators = config.showIndicators !== false;
+        this.itemsPerView = this.getItemsPerView(); // Dynamic based on screen size
+        this.showNavigation = true; // Always show on mobile, hide on desktop
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
-        this.itemType = config.itemType || 'generic';
         this.allowMultiple = config.allowMultiple || false;
         this.selectedItems = [];
         this.showDetails = config.showDetails !== false;
-        this.layout = config.layout || 'grid';
-        this.columns = config.columns || 'auto';
+
+        // Navigation elements
+        this.galleryContainer = null;
+        this.carouselTrack = null;
+        this.prevButton = null;
+        this.nextButton = null;
+        this.itemCounter = null;
+
+        // Setup responsive behavior
+        this.setupResponsiveHandling();
+    }
+
+    getItemsPerView() {
+        // 3 cards on desktop, 1 on mobile
+        return window.innerWidth > 768 ? 3 : 1;
+    }
+
+    setupResponsiveHandling() {
+        // Update items per view on resize
+        this.resizeHandler = () => {
+            const newItemsPerView = this.getItemsPerView();
+            if (newItemsPerView !== this.itemsPerView) {
+                this.itemsPerView = newItemsPerView;
+                this.currentIndex = 0; // Reset to start
+                if (this.carouselTrack) {
+                    this.updateTrackPosition();
+                    this.updateNavigation();
+                }
+            }
+        };
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     render() {
         const container = this.createContainer();
+        container.className += ' carousel-field regular-carousel';
         
-        const carousel = document.createElement('div');
-        carousel.className = 'carousel-field';
+        this.createCarouselStructure();
+        this.setupEventListeners();
+        this.renderItems();
+        this.updateNavigation();
         
+        return container;
+    }
+
+    createCarouselStructure() {
+        // Main gallery container using ImageGallery structure
+        this.galleryContainer = document.createElement('div');
+        this.galleryContainer.className = 'image-gallery-container carousel-gallery-container';
+        this.galleryContainer.setAttribute('data-items', this.items.length);
+
+        // Header section
         if (this.title || this.subtitle) {
             const header = document.createElement('div');
             header.className = 'carousel-header';
@@ -13379,43 +13439,64 @@ class CarouselField extends BaseField {
                 header.appendChild(subtitle);
             }
             
-            carousel.appendChild(header);
+            this.galleryContainer.appendChild(header);
         }
 
+        // Content wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'gallery-content-wrapper carousel-content-wrapper';
+
+        // Carousel container (like image container in gallery)
         const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'carousel-container';
+        carouselContainer.className = 'gallery-image-container carousel-container';
 
-        this.track = document.createElement('div');
-        this.track.className = 'carousel-track';
-        this.renderItems();
-        carouselContainer.appendChild(this.track);
+        // Carousel track
+        this.carouselTrack = document.createElement('div');
+        this.carouselTrack.className = 'carousel-track';
+        carouselContainer.appendChild(this.carouselTrack);
 
-        if (this.showNavigation && this.items.length > this.itemsPerView) {
-            const navigation = this.createNavigation();
-            carouselContainer.appendChild(navigation);
-        }
+        // Navigation buttons (hidden on desktop via CSS)
+        this.prevButton = document.createElement('button');
+        this.prevButton.type = 'button';
+        this.prevButton.className = 'nav-btn prev-btn carousel-nav-btn';
+        this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        this.prevButton.setAttribute('aria-label', 'Previous');
+        carouselContainer.appendChild(this.prevButton);
 
-        carousel.appendChild(carouselContainer);
+        this.nextButton = document.createElement('button');
+        this.nextButton.type = 'button';
+        this.nextButton.className = 'nav-btn next-btn carousel-nav-btn';
+        this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        this.nextButton.setAttribute('aria-label', 'Next');
+        carouselContainer.appendChild(this.nextButton);
+
+        // Item counter (like image counter in gallery)
+        this.itemCounter = document.createElement('div');
+        this.itemCounter.className = 'image-counter item-counter';
+        carouselContainer.appendChild(this.itemCounter);
+
+        contentWrapper.appendChild(carouselContainer);
+        this.galleryContainer.appendChild(contentWrapper);
         
+        // Error container
         const errorElement = this.createErrorElement();
-        carousel.appendChild(errorElement);
+        this.galleryContainer.appendChild(errorElement);
 
-        container.appendChild(carousel);
-        this.element = container;
+        this.container.appendChild(this.galleryContainer);
+        this.element = this.container;
         this.element.fieldInstance = this;
-        
-        return container;
     }
 
     renderItems() {
-        this.track.innerHTML = '';
+        this.carouselTrack.innerHTML = '';
         
         this.items.forEach((item, index) => {
             const itemElement = this.createItemElement(item, index);
-            this.track.appendChild(itemElement);
+            this.carouselTrack.appendChild(itemElement);
         });
 
         this.updateTrackPosition();
+        this.updateItemCounter();
     }
 
     createItemElement(item, index) {
@@ -13423,6 +13504,7 @@ class CarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
+        // Image
         if (item.image) {
             const img = document.createElement('img');
             img.className = 'carousel-item-image';
@@ -13431,27 +13513,35 @@ class CarouselField extends BaseField {
             itemEl.appendChild(img);
         }
 
+        // Content container
+        const contentContainer = document.createElement('div');
+        contentContainer.className = 'carousel-item-content';
+
+        // Title
         if (item.title || item.name) {
             const title = document.createElement('h4');
             title.className = 'carousel-item-title';
             title.textContent = item.title || item.name;
-            itemEl.appendChild(title);
+            contentContainer.appendChild(title);
         }
 
+        // Subtitle
         if (item.position || item.category) {
             const subtitle = document.createElement('p');
             subtitle.className = 'carousel-item-subtitle';
             subtitle.textContent = item.position || item.category;
-            itemEl.appendChild(subtitle);
+            contentContainer.appendChild(subtitle);
         }
 
+        // Description
         if (item.description) {
             const desc = document.createElement('p');
             desc.className = 'carousel-item-description';
             desc.textContent = item.description;
-            itemEl.appendChild(desc);
+            contentContainer.appendChild(desc);
         }
 
+        // Details section
         if (this.showDetails) {
             const details = document.createElement('div');
             details.className = 'carousel-item-details';
@@ -13471,47 +13561,34 @@ class CarouselField extends BaseField {
             }
 
             if (details.children.length > 0) {
-                itemEl.appendChild(details);
+                contentContainer.appendChild(details);
             }
         }
 
+        itemEl.appendChild(contentContainer);
+
+        // Click handler
         itemEl.addEventListener('click', () => this.selectItem(index));
+        
         return itemEl;
     }
 
-    createNavigation() {
-        const nav = document.createElement('div');
-        nav.className = 'carousel-navigation';
-
-        this.prevBtn = document.createElement('button');
-        this.prevBtn.className = 'carousel-nav-btn';
-        this.prevBtn.innerHTML = '‹';
-        this.prevBtn.addEventListener('click', () => this.previousSlide());
-
-        this.nextBtn = document.createElement('button');
-        this.nextBtn.className = 'carousel-nav-btn';
-        this.nextBtn.innerHTML = '›';
-        this.nextBtn.addEventListener('click', () => this.nextSlide());
-
-        const indicators = document.createElement('div');
-        indicators.className = 'carousel-indicators';
-        
-        const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
-        for (let i = 0; i < totalSlides; i++) {
-            const dot = document.createElement('span');
-            dot.className = 'carousel-dot';
-            if (i === 0) dot.classList.add('active');
-            dot.addEventListener('click', () => this.goToSlide(i));
-            indicators.appendChild(dot);
+    setupEventListeners() {
+        if (this.prevButton) {
+            this.prevButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.previousSlide();
+            });
         }
-        this.indicators = indicators;
 
-        nav.appendChild(this.prevBtn);
-        nav.appendChild(indicators);
-        nav.appendChild(this.nextBtn);
-
-        this.updateNavigationState();
-        return nav;
+        if (this.nextButton) {
+            this.nextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.nextSlide();
+            });
+        }
     }
 
     selectItem(index) {
@@ -13531,7 +13608,7 @@ class CarouselField extends BaseField {
     }
 
     updateSelection() {
-        const items = this.track.querySelectorAll('.carousel-item');
+        const items = this.carouselTrack.querySelectorAll('.carousel-item');
         items.forEach((item, index) => {
             if (this.selectedItems.includes(index)) {
                 item.classList.add('selected');
@@ -13546,7 +13623,7 @@ class CarouselField extends BaseField {
         if (this.currentIndex < maxSlides) {
             this.currentIndex++;
             this.updateTrackPosition();
-            this.updateNavigationState();
+            this.updateNavigation();
         }
     }
 
@@ -13554,33 +13631,29 @@ class CarouselField extends BaseField {
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateTrackPosition();
-            this.updateNavigationState();
+            this.updateNavigation();
         }
-    }
-
-    goToSlide(index) {
-        this.currentIndex = index;
-        this.updateTrackPosition();
-        this.updateNavigationState();
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
         const translateX = -this.currentIndex * (100 / this.itemsPerView);
-        this.track.style.transform = `translateX(${translateX}%)`;
+        this.carouselTrack.style.transform = `translateX(${translateX}%)`;
     }
 
-    updateNavigationState() {
-        if (this.prevBtn && this.nextBtn) {
-            this.prevBtn.disabled = this.currentIndex === 0;
-            this.nextBtn.disabled = this.currentIndex >= Math.ceil(this.items.length / this.itemsPerView) - 1;
+    updateNavigation() {
+        if (this.prevButton && this.nextButton) {
+            const maxSlides = Math.ceil(this.items.length / this.itemsPerView) - 1;
+            this.prevButton.disabled = this.currentIndex === 0;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
+            this.updateItemCounter();
         }
+    }
 
-        if (this.indicators) {
-            const dots = this.indicators.querySelectorAll('.carousel-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === this.currentIndex);
-            });
+    updateItemCounter() {
+        if (this.itemCounter && this.items.length > 0) {
+            const totalSlides = Math.ceil(this.items.length / this.itemsPerView);
+            this.itemCounter.textContent = `${this.currentIndex + 1} / ${totalSlides}`;
         }
     }
 
@@ -13611,6 +13684,12 @@ class CarouselField extends BaseField {
         }
         this.hideError();
         return true;
+    }
+
+    cleanup() {
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
     }
 }
 
