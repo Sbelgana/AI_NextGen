@@ -12846,8 +12846,9 @@ class CalComBaseUtility {
 
 
 // ============================================================================
-// FIXED FILTERED CAROUSEL FIELD - Proper Card Limiting & Positioning
+// FIXED CAROUSEL JAVASCRIPT - NO PARTIAL CARDS VISIBLE
 // ============================================================================
+
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -12882,34 +12883,64 @@ class FilteredCarouselField extends BaseField {
     }
 
     getItemsPerView() {
-        // FIXED: Strict card limiting
-        return window.innerWidth >= 768 ? 3 : 1; // Exactly 3 on big, 1 on small
+        // EXACT: Only complete cards visible
+        return window.innerWidth >= 768 ? 3 : 1;
     }
 
     getCardWidth() {
-        // FIXED: Exact card widths
-        return window.innerWidth >= 768 ? 250 : 200;
+        // EXACT: Fixed card dimensions
+        if (window.innerWidth <= 480) return 180; // Very small screens
+        return window.innerWidth >= 768 ? 250 : 200; // Big vs small screens
+    }
+
+    getContainerWidth() {
+        // CRITICAL: Calculate exact container width for complete cards only
+        const cardWidth = this.getCardWidth();
+        const gap = 16;
+        const buttonSpace = window.innerWidth >= 768 ? 80 : 100;
+        
+        if (this.itemsPerView === 1) {
+            // Single card: card width + button space
+            return cardWidth + buttonSpace;
+        } else {
+            // Multiple cards: (cards × width) + (gaps × count) + button space
+            return (this.itemsPerView * cardWidth) + ((this.itemsPerView - 1) * gap) + buttonSpace;
+        }
     }
 
     handleResize() {
         const newItemsPerView = this.getItemsPerView();
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
-            // FIXED: Reset to valid index on resize
+            // Reset to valid index and update container
             this.currentIndex = Math.min(this.currentIndex, this.getMaxIndex());
+            this.updateContainerSize();
             this.updateTrackPosition();
             this.updateNavigationState();
+            this.updateStatus();
         }
     }
 
     getMaxIndex() {
-        // FIXED: Calculate maximum valid index
+        // EXACT: Maximum index where no partial cards show
         return Math.max(0, this.items.length - this.itemsPerView);
+    }
+
+    updateContainerSize() {
+        // CRITICAL: Set exact container width to prevent partial cards
+        if (this.galleryContainer) {
+            const container = this.galleryContainer.querySelector('.carousel-image-container');
+            if (container) {
+                const exactWidth = this.getContainerWidth();
+                container.style.width = `${exactWidth}px`;
+                container.style.maxWidth = `${exactWidth}px`;
+                console.log(`🎯 Container sized to: ${exactWidth}px for ${this.itemsPerView} cards`);
+            }
+        }
     }
 
     autoPopulateItems() {
         if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
-            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
             return false;
         }
         
@@ -12928,7 +12959,6 @@ class FilteredCarouselField extends BaseField {
                 
                 if (dependencyValue) break;
             } catch (error) {
-                console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
                 continue;
             }
         }
@@ -12936,33 +12966,17 @@ class FilteredCarouselField extends BaseField {
         if (dependencyValue) {
             const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
             
-            let needsSelectionReset = false;
-            if (this.selectedItem !== null && this.items[this.selectedItem]) {
-                const currentSelection = this.items[this.selectedItem];
-                const stillValid = filteredItems.some(item => item.id === currentSelection.id);
-                if (!stillValid) {
-                    needsSelectionReset = true;
-                }
-            }
-            
             if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
                 this.items = filteredItems;
-                
-                if (needsSelectionReset) {
-                    this.selectedItem = null;
-                    this.selectedItems = [];
-                    this.handleChange();
-                } else {
-                    this.selectedItem = null;
-                    this.selectedItems = [];
-                }
-                
-                // FIXED: Reset to valid index when items change
+                this.selectedItem = null;
+                this.selectedItems = [];
                 this.currentIndex = 0;
                 
                 if (this.galleryContainer) {
+                    this.updateContainerSize(); // Update for new item count
                     this.renderItems();
                     this.updateNavigationState();
+                    this.updateStatus();
                 }
                 
                 return true;
@@ -12972,14 +12986,29 @@ class FilteredCarouselField extends BaseField {
         return false;
     }
 
+    updateStatus() {
+        // Update demo status
+        if (this.name === 'selectedService') {
+            document.getElementById('service-visible')?.textContent(Math.min(this.itemsPerView, this.items.length));
+            document.getElementById('service-index')?.textContent(this.currentIndex);
+            document.getElementById('service-status')?.textContent(`${this.items.length} items loaded`);
+        } else if (this.name === 'selectedDentist') {
+            document.getElementById('dentist-visible')?.textContent(Math.min(this.itemsPerView, this.items.length));
+            document.getElementById('dentist-index')?.textContent(this.currentIndex);
+            document.getElementById('dentist-status')?.textContent(this.items.length > 0 ? `${this.items.length} dentists available` : 'Waiting for service selection');
+        }
+    }
+
     render() {
         this.container = this.createContainer();
         this.container.className += ' carousel-field filtered-carousel';
         this.createCarouselStructure();
         this.setupEventListeners();
         this.autoPopulateItems();
+        this.updateContainerSize(); // Set initial size
         this.renderItems();
         this.updateNavigationState();
+        this.updateStatus();
         
         return this.container;
     }
@@ -13013,7 +13042,7 @@ class FilteredCarouselField extends BaseField {
             contentWrapper.appendChild(header);
         }
 
-        // FIXED: Carousel container with proper overflow
+        // CRITICAL: Carousel container with exact sizing
         const carouselContainer = document.createElement('div');
         carouselContainer.className = 'carousel-image-container';
         
@@ -13021,7 +13050,7 @@ class FilteredCarouselField extends BaseField {
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
 
-        // Navigation buttons (outside cards)
+        // Navigation buttons (positioned outside visible cards)
         if (this.showNavigation) {
             this.prevButton = document.createElement('button');
             this.prevButton.type = 'button';
@@ -13200,50 +13229,56 @@ class FilteredCarouselField extends BaseField {
     }
 
     nextSlide() {
-        // FIXED: Move exactly 1 card at a time
+        // CRITICAL: Only move if there are more complete cards to show
         const maxIndex = this.getMaxIndex();
         if (this.currentIndex < maxIndex) {
             this.currentIndex++;
             this.updateTrackPosition();
             this.updateNavigationState();
+            this.updateStatus();
         }
     }
 
     previousSlide() {
-        // FIXED: Move exactly 1 card at a time
+        // CRITICAL: Only move if not at the beginning
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateTrackPosition();
             this.updateNavigationState();
+            this.updateStatus();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
         
-        // FIXED: Proper positioning calculation
+        // CRITICAL: Calculate exact positioning to show only complete cards
         const cardWidth = this.getCardWidth();
         const gap = 16;
+        const buttonMargin = window.innerWidth >= 768 ? 40 : 50; // Account for button space
+        
+        // Calculate translate to show currentIndex as first visible card
         const translateX = -(this.currentIndex * (cardWidth + gap));
         
-        console.log(`🎯 Positioning: Index ${this.currentIndex}, Width ${cardWidth}, TranslateX ${translateX}`);
         this.track.style.transform = `translateX(${translateX}px)`;
+        
+        console.log(`🎯 Track positioned: Index ${this.currentIndex}, TranslateX ${translateX}px, CardWidth ${cardWidth}px`);
     }
 
     updateNavigationState() {
         if (this.prevButton && this.nextButton) {
             const maxIndex = this.getMaxIndex();
             
-            // FIXED: Proper button state management
+            // CRITICAL: Proper button state for complete cards only
             this.prevButton.disabled = this.currentIndex === 0;
             this.nextButton.disabled = this.currentIndex >= maxIndex;
             
-            // Show/hide buttons based on need
+            // Show/hide buttons based on whether navigation is needed
             const needsNavigation = this.items.length > this.itemsPerView;
             this.prevButton.style.display = needsNavigation ? 'flex' : 'none';
             this.nextButton.style.display = needsNavigation ? 'flex' : 'none';
             
-            console.log(`🎯 Navigation: Index ${this.currentIndex}/${maxIndex}, ItemsPerView: ${this.itemsPerView}, Total: ${this.items.length}`);
+            console.log(`🎯 Navigation: ${this.currentIndex}/${maxIndex}, ItemsPerView: ${this.itemsPerView}, Total: ${this.items.length}, NeedsNav: ${needsNavigation}`);
         }
     }
 
@@ -13278,7 +13313,7 @@ class FilteredCarouselField extends BaseField {
 }
 
 // ============================================================================
-// FIXED REGULAR CAROUSEL FIELD - Same Logic Applied
+// REGULAR CAROUSEL FIELD - Same No-Partial-Cards Logic
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13305,7 +13340,20 @@ class CarouselField extends BaseField {
     }
 
     getCardWidth() {
+        if (window.innerWidth <= 480) return 180;
         return window.innerWidth >= 768 ? 250 : 200;
+    }
+
+    getContainerWidth() {
+        const cardWidth = this.getCardWidth();
+        const gap = 16;
+        const buttonSpace = window.innerWidth >= 768 ? 80 : 100;
+        
+        if (this.itemsPerView === 1) {
+            return cardWidth + buttonSpace;
+        } else {
+            return (this.itemsPerView * cardWidth) + ((this.itemsPerView - 1) * gap) + buttonSpace;
+        }
     }
 
     getMaxIndex() {
@@ -13317,8 +13365,20 @@ class CarouselField extends BaseField {
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
             this.currentIndex = Math.min(this.currentIndex, this.getMaxIndex());
+            this.updateContainerSize();
             this.updateTrackPosition();
             this.updateNavigationState();
+        }
+    }
+
+    updateContainerSize() {
+        if (this.galleryContainer) {
+            const container = this.galleryContainer.querySelector('.carousel-image-container');
+            if (container) {
+                const exactWidth = this.getContainerWidth();
+                container.style.width = `${exactWidth}px`;
+                container.style.maxWidth = `${exactWidth}px`;
+            }
         }
     }
 
@@ -13327,6 +13387,7 @@ class CarouselField extends BaseField {
         this.container.className += ' carousel-field';
         this.createCarouselStructure();
         this.setupEventListeners();
+        this.updateContainerSize();
         this.renderItems();
         this.updateNavigationState();
         
@@ -13422,7 +13483,6 @@ class CarouselField extends BaseField {
     }
 
     createItemElement(item, index) {
-        // Same implementation as FilteredCarouselField
         const itemEl = document.createElement('div');
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
