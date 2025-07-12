@@ -12846,7 +12846,7 @@ class CalComBaseUtility {
 
 
 // ============================================================================
-// UPDATED FILTERED CAROUSEL FIELD - Using ImageGalleryField Structure
+// UPDATED FILTERED CAROUSEL FIELD - Matching ImageGallery Design
 // ============================================================================
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
@@ -12855,19 +12855,15 @@ class FilteredCarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = this.getItemsPerView(); // 3 for desktop, 1 for mobile
-        this.selectedItems = [];
-        this.allowMultiple = config.allowMultiple || false;
+        this.itemsPerView = this.getItemsPerView();
+        this.showNavigation = config.showNavigation !== false;
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
+        this.itemType = config.itemType || 'generic';
+        this.allowMultiple = config.allowMultiple || false;
+        this.selectedItems = [];
+        this.showDetails = config.showDetails !== false;
         this.autoUpdateInterval = null;
-        
-        // Navigation elements
-        this.carouselContainer = null;
-        this.track = null;
-        this.prevButton = null;
-        this.nextButton = null;
-        this.itemCounter = null;
         
         // Filtering configuration
         this.filterConfig = config.filterConfig || {
@@ -12880,10 +12876,23 @@ class FilteredCarouselField extends BaseField {
             monitorInterval: 500,
             monitorDuration: 30000
         };
+
+        // Bind resize handler
+        this.handleResize = this.handleResize.bind(this);
     }
 
     getItemsPerView() {
-        return window.innerWidth > 768 ? 3 : 1;
+        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
+    }
+
+    handleResize() {
+        const newItemsPerView = this.getItemsPerView();
+        if (newItemsPerView !== this.itemsPerView) {
+            this.itemsPerView = newItemsPerView;
+            this.currentIndex = 0; // Reset to start
+            this.updateTrackPosition();
+            this.updateNavigation();
+        }
     }
 
     autoPopulateItems() {
@@ -12892,7 +12901,6 @@ class FilteredCarouselField extends BaseField {
             return false;
         }
         
-        // Try multiple sources for dependency data
         let dependencyValue = null;
         
         // Check configured data sources
@@ -12906,9 +12914,7 @@ class FilteredCarouselField extends BaseField {
                     dependencyValue = source[this.filterConfig.dependsOn];
                 }
                 
-                if (dependencyValue) {
-                    break;
-                }
+                if (dependencyValue) break;
             } catch (error) {
                 console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
                 continue;
@@ -12925,7 +12931,6 @@ class FilteredCarouselField extends BaseField {
         if (dependencyValue) {
             const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
             
-            // Check if the currently selected item is still valid
             let needsSelectionReset = false;
             if (this.selectedItem !== null && this.items[this.selectedItem]) {
                 const currentSelection = this.items[this.selectedItem];
@@ -12949,10 +12954,9 @@ class FilteredCarouselField extends BaseField {
                 
                 this.currentIndex = 0;
                 
-                if (this.track) {
+                if (this.galleryContainer) {
                     this.renderItems();
                     this.updateNavigation();
-                    this.updateDisplay();
                 }
                 
                 return true;
@@ -12963,98 +12967,99 @@ class FilteredCarouselField extends BaseField {
     }
 
     render() {
-        const container = this.createContainer();
-        container.className += ' carousel-field filtered-carousel';
-        
+        this.container = this.createContainer();
+        this.container.className += ' carousel-field filtered-carousel';
         this.createCarouselStructure();
         this.setupEventListeners();
-        this.updateDisplay();
-        
-        // Try to auto-populate immediately
         this.autoPopulateItems();
+        this.renderItems();
+        this.updateNavigation();
         
-        // Start continuous monitoring if configured
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+        }
         this.startAutoUpdate();
         
-        return container;
+        return this.container;
     }
 
     createCarouselStructure() {
-        this.carouselContainer = document.createElement('div');
-        this.carouselContainer.className = 'carousel-gallery-container';
-        this.carouselContainer.setAttribute('data-items', this.items.length);
-
-        // Add header if title/subtitle provided
-        if (this.title || this.subtitle) {
-            const header = this.createHeader();
-            this.carouselContainer.appendChild(header);
-        }
-
+        this.galleryContainer = document.createElement('div');
+        this.galleryContainer.className = 'carousel-gallery-container';
+        
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'carousel-content-wrapper';
+        
+        // Add header if title/subtitle provided
+        if (this.title || this.subtitle) {
+            const header = document.createElement('div');
+            header.className = 'carousel-header';
+            
+            if (this.title) {
+                const title = document.createElement('h3');
+                title.className = 'carousel-title';
+                title.textContent = this.title;
+                header.appendChild(title);
+            }
+            
+            if (this.subtitle) {
+                const subtitle = document.createElement('p');
+                subtitle.className = 'carousel-subtitle';
+                subtitle.textContent = this.subtitle;
+                header.appendChild(subtitle);
+            }
+            
+            contentWrapper.appendChild(header);
+        }
 
-        const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'carousel-items-container';
-
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-image-container';
+        
         this.track = document.createElement('div');
         this.track.className = 'carousel-track';
-        
-        this.renderItems();
-        itemsContainer.appendChild(this.track);
+        carouselContainer.appendChild(this.track);
 
-        // Navigation buttons (positioned outside cards)
-        this.createNavigationButtons(itemsContainer);
+        // Navigation buttons (outside cards)
+        if (this.showNavigation) {
+            this.prevButton = document.createElement('button');
+            this.prevButton.type = 'button';
+            this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
+            this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+            this.prevButton.setAttribute('aria-label', 'Previous');
+            carouselContainer.appendChild(this.prevButton);
 
-        // Item counter
-        this.itemCounter = document.createElement('div');
-        this.itemCounter.className = 'carousel-counter';
-        itemsContainer.appendChild(this.itemCounter);
+            this.nextButton = document.createElement('button');
+            this.nextButton.type = 'button';
+            this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
+            this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
+            this.nextButton.setAttribute('aria-label', 'Next');
+            carouselContainer.appendChild(this.nextButton);
+        }
 
-        contentWrapper.appendChild(itemsContainer);
-        this.carouselContainer.appendChild(contentWrapper);
-        this.container.appendChild(this.carouselContainer);
+        contentWrapper.appendChild(carouselContainer);
+        this.galleryContainer.appendChild(contentWrapper);
+        this.container.appendChild(this.galleryContainer);
     }
 
-    createHeader() {
-        const header = document.createElement('div');
-        header.className = 'carousel-header';
-        
-        if (this.title) {
-            const title = document.createElement('h3');
-            title.className = 'carousel-title';
-            title.textContent = this.title;
-            header.appendChild(title);
+    setupEventListeners() {
+        if (this.prevButton) {
+            this.prevButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.previousSlide();
+            });
         }
-        
-        if (this.subtitle) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-subtitle';
-            subtitle.textContent = this.subtitle;
-            header.appendChild(subtitle);
+
+        if (this.nextButton) {
+            this.nextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.nextSlide();
+            });
         }
-        
-        return header;
-    }
 
-    createNavigationButtons(container) {
-        // Only show navigation if we have multiple pages
-        const totalPages = Math.ceil(this.items.length / this.itemsPerView);
-        if (totalPages <= 1) return;
-
-        this.prevButton = document.createElement('button');
-        this.prevButton.type = 'button';
-        this.prevButton.className = 'carousel-nav-btn prev-btn';
-        this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.prevButton.setAttribute('aria-label', 'Previous items');
-
-        this.nextButton = document.createElement('button');
-        this.nextButton.type = 'button';
-        this.nextButton.className = 'carousel-nav-btn next-btn';
-        this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.nextButton.setAttribute('aria-label', 'Next items');
-
-        container.appendChild(this.prevButton);
-        container.appendChild(this.nextButton);
+        // Add resize listener
+        window.addEventListener('resize', this.handleResize);
     }
 
     renderItems() {
@@ -13072,7 +13077,7 @@ class FilteredCarouselField extends BaseField {
                 this.filterConfig.monitoringMessage : '';
             
             emptyMessage.innerHTML = `
-                <div class="empty-content">
+                <div class="empty-state">
                     <div class="empty-message">${message}</div>
                     ${subMessage ? `<div class="empty-submessage">${subMessage}</div>` : ''}
                 </div>
@@ -13095,78 +13100,74 @@ class FilteredCarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
-        // Build card content
-        let cardContent = '<div class="carousel-item-inner">';
-
-        // Selection indicator (checkmark like ImageGallery)
-        cardContent += '<div class="selection-indicator">✓</div>';
-
-        // Image
         if (item.image) {
-            cardContent += `<img class="carousel-item-image" src="${item.image}" alt="${item.title || item.name || ''}" />`;
+            const img = document.createElement('img');
+            img.className = 'carousel-item-image';
+            img.src = item.image;
+            img.alt = item.title || item.name || '';
+            img.addEventListener('error', () => {
+                img.style.display = 'none';
+            });
+            itemEl.appendChild(img);
         }
 
-        // Title
+        const content = document.createElement('div');
+        content.className = 'carousel-item-content';
+
         if (item.title || item.name) {
-            cardContent += `<h4 class="carousel-item-title">${item.title || item.name}</h4>`;
+            const title = document.createElement('h4');
+            title.className = 'carousel-item-title';
+            title.textContent = item.title || item.name;
+            content.appendChild(title);
         }
 
-        // Subtitle/Position
-        if (item.position || item.category || item.subtitle) {
-            cardContent += `<p class="carousel-item-subtitle">${item.position || item.category || item.subtitle}</p>`;
+        if (item.position || item.category) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-item-subtitle';
+            subtitle.textContent = item.position || item.category;
+            content.appendChild(subtitle);
         }
 
-        // Description
         if (item.description) {
-            cardContent += `<p class="carousel-item-description">${item.description}</p>`;
+            const desc = document.createElement('p');
+            desc.className = 'carousel-item-description';
+            desc.textContent = item.description;
+            content.appendChild(desc);
         }
 
-        // Details (price, duration, experience, etc.)
-        if (this.config.showDetails !== false) {
-            const details = [];
-            if (item.price) details.push(`<span class="item-price">${item.price}</span>`);
-            if (item.duration) details.push(`<span class="item-duration">${item.duration}</span>`);
-            if (item.experience) details.push(`<span class="item-experience">${item.experience} years</span>`);
-            
-            if (details.length > 0) {
-                cardContent += `<div class="carousel-item-details">${details.join('')}</div>`;
+        if (this.showDetails) {
+            const details = document.createElement('div');
+            details.className = 'carousel-item-details';
+
+            if (item.price) {
+                const price = document.createElement('span');
+                price.className = 'carousel-item-price';
+                price.textContent = item.price;
+                details.appendChild(price);
+            }
+
+            if (item.duration) {
+                const duration = document.createElement('span');
+                duration.className = 'carousel-item-duration';
+                duration.textContent = item.duration;
+                details.appendChild(duration);
+            }
+
+            if (item.experience) {
+                const experience = document.createElement('span');
+                experience.className = 'carousel-item-experience';
+                experience.textContent = `${item.experience} années d'expérience`;
+                details.appendChild(experience);
+            }
+
+            if (details.children.length > 0) {
+                content.appendChild(details);
             }
         }
 
-        cardContent += '</div>';
-        itemEl.innerHTML = cardContent;
-
+        itemEl.appendChild(content);
         itemEl.addEventListener('click', () => this.selectItem(index));
         return itemEl;
-    }
-
-    setupEventListeners() {
-        if (this.prevButton) {
-            this.prevButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.previousSlide();
-            });
-        }
-
-        if (this.nextButton) {
-            this.nextButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.nextSlide();
-            });
-        }
-
-        // Handle responsive changes
-        window.addEventListener('resize', () => {
-            const newItemsPerView = this.getItemsPerView();
-            if (newItemsPerView !== this.itemsPerView) {
-                this.itemsPerView = newItemsPerView;
-                this.currentIndex = 0; // Reset to start
-                this.updateDisplay();
-                this.updateNavigation();
-            }
-        });
     }
 
     selectItem(index) {
@@ -13197,54 +13198,52 @@ class FilteredCarouselField extends BaseField {
     }
 
     nextSlide() {
-        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
-        if (this.currentIndex < maxIndex) {
-            this.currentIndex = Math.min(this.currentIndex + this.itemsPerView, maxIndex);
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
             this.updateTrackPosition();
-            this.updateDisplay();
+            this.updateNavigationState();
         }
     }
 
     previousSlide() {
         if (this.currentIndex > 0) {
-            this.currentIndex = Math.max(this.currentIndex - this.itemsPerView, 0);
+            this.currentIndex--;
             this.updateTrackPosition();
-            this.updateDisplay();
+            this.updateNavigationState();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
-        const itemWidth = window.innerWidth > 768 ? 250 : 200; // Match card widths
-        const gap = 15; // Gap between items
-        const translateX = -(this.currentIndex * (itemWidth + gap));
+        
+        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
+        const gap = 16;
+        const translateX = -(this.currentIndex * (cardWidth + gap));
         this.track.style.transform = `translateX(${translateX}px)`;
     }
 
-    updateDisplay() {
-        // Update counter
-        if (this.itemCounter && this.items.length > 0) {
-            const startItem = this.currentIndex + 1;
-            const endItem = Math.min(this.currentIndex + this.itemsPerView, this.items.length);
-            this.itemCounter.textContent = `${startItem}-${endItem} / ${this.items.length}`;
+    updateNavigation() {
+        // Remove old navigation if exists
+        const existingNav = this.container.querySelector('.carousel-navigation');
+        if (existingNav) {
+            existingNav.remove();
         }
-
-        // Update navigation buttons
-        this.updateNavigation();
+        
+        this.updateNavigationState();
     }
 
-    updateNavigation() {
-        if (!this.prevButton || !this.nextButton) return;
-
-        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
-        
-        this.prevButton.disabled = this.currentIndex === 0;
-        this.nextButton.disabled = this.currentIndex >= maxIndex;
-
-        // Show/hide navigation based on items
-        const showNav = this.items.length > this.itemsPerView;
-        this.prevButton.style.display = showNav ? 'flex' : 'none';
-        this.nextButton.style.display = showNav ? 'flex' : 'none';
+    updateNavigationState() {
+        if (this.prevButton && this.nextButton) {
+            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+            this.prevButton.disabled = this.currentIndex === 0;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
+            
+            // Hide buttons if not needed
+            const shouldShow = this.items.length > this.itemsPerView;
+            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
+        }
     }
 
     startAutoUpdate() {
@@ -13313,11 +13312,13 @@ class FilteredCarouselField extends BaseField {
             clearInterval(this.autoUpdateInterval);
             this.autoUpdateInterval = null;
         }
+        window.removeEventListener('resize', this.handleResize);
+        super.cleanup();
     }
 }
 
 // ============================================================================
-// UPDATED REGULAR CAROUSEL FIELD - Using ImageGalleryField Structure
+// UPDATED REGULAR CAROUSEL FIELD - Matching ImageGallery Design
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13326,184 +13327,100 @@ class CarouselField extends BaseField {
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = this.getItemsPerView(); // 3 for desktop, 1 for mobile
-        this.selectedItems = [];
-        this.allowMultiple = config.allowMultiple || false;
+        this.itemsPerView = this.getItemsPerView();
+        this.showNavigation = config.showNavigation !== false;
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
-        
-        // Navigation elements
-        this.carouselContainer = null;
-        this.track = null;
-        this.prevButton = null;
-        this.nextButton = null;
-        this.itemCounter = null;
+        this.itemType = config.itemType || 'generic';
+        this.allowMultiple = config.allowMultiple || false;
+        this.selectedItems = [];
+        this.showDetails = config.showDetails !== false;
+
+        // Bind resize handler
+        this.handleResize = this.handleResize.bind(this);
     }
 
     getItemsPerView() {
-        return window.innerWidth > 768 ? 3 : 1;
+        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
+    }
+
+    handleResize() {
+        const newItemsPerView = this.getItemsPerView();
+        if (newItemsPerView !== this.itemsPerView) {
+            this.itemsPerView = newItemsPerView;
+            this.currentIndex = 0; // Reset to start
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
     }
 
     render() {
-        const container = this.createContainer();
-        container.className += ' carousel-field';
-        
+        this.container = this.createContainer();
+        this.container.className += ' carousel-field';
         this.createCarouselStructure();
         this.setupEventListeners();
-        this.updateDisplay();
+        this.renderItems();
+        this.updateNavigation();
         
-        return container;
+        return this.container;
     }
 
     createCarouselStructure() {
-        this.carouselContainer = document.createElement('div');
-        this.carouselContainer.className = 'carousel-gallery-container';
-        this.carouselContainer.setAttribute('data-items', this.items.length);
-
-        // Add header if title/subtitle provided
-        if (this.title || this.subtitle) {
-            const header = this.createHeader();
-            this.carouselContainer.appendChild(header);
-        }
-
+        this.galleryContainer = document.createElement('div');
+        this.galleryContainer.className = 'carousel-gallery-container';
+        
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'carousel-content-wrapper';
+        
+        // Add header if title/subtitle provided
+        if (this.title || this.subtitle) {
+            const header = document.createElement('div');
+            header.className = 'carousel-header';
+            
+            if (this.title) {
+                const title = document.createElement('h3');
+                title.className = 'carousel-title';
+                title.textContent = this.title;
+                header.appendChild(title);
+            }
+            
+            if (this.subtitle) {
+                const subtitle = document.createElement('p');
+                subtitle.className = 'carousel-subtitle';
+                subtitle.textContent = this.subtitle;
+                header.appendChild(subtitle);
+            }
+            
+            contentWrapper.appendChild(header);
+        }
 
-        const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'carousel-items-container';
-
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-image-container';
+        
         this.track = document.createElement('div');
         this.track.className = 'carousel-track';
-        
-        this.renderItems();
-        itemsContainer.appendChild(this.track);
+        carouselContainer.appendChild(this.track);
 
-        // Navigation buttons (positioned outside cards)
-        this.createNavigationButtons(itemsContainer);
+        // Navigation buttons (outside cards)
+        if (this.showNavigation) {
+            this.prevButton = document.createElement('button');
+            this.prevButton.type = 'button';
+            this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
+            this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+            this.prevButton.setAttribute('aria-label', 'Previous');
+            carouselContainer.appendChild(this.prevButton);
 
-        // Item counter
-        this.itemCounter = document.createElement('div');
-        this.itemCounter.className = 'carousel-counter';
-        itemsContainer.appendChild(this.itemCounter);
-
-        contentWrapper.appendChild(itemsContainer);
-        this.carouselContainer.appendChild(contentWrapper);
-        this.container.appendChild(this.carouselContainer);
-    }
-
-    createHeader() {
-        const header = document.createElement('div');
-        header.className = 'carousel-header';
-        
-        if (this.title) {
-            const title = document.createElement('h3');
-            title.className = 'carousel-title';
-            title.textContent = this.title;
-            header.appendChild(title);
-        }
-        
-        if (this.subtitle) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-subtitle';
-            subtitle.textContent = this.subtitle;
-            header.appendChild(subtitle);
-        }
-        
-        return header;
-    }
-
-    createNavigationButtons(container) {
-        // Only show navigation if we have multiple pages
-        const totalPages = Math.ceil(this.items.length / this.itemsPerView);
-        if (totalPages <= 1) return;
-
-        this.prevButton = document.createElement('button');
-        this.prevButton.type = 'button';
-        this.prevButton.className = 'carousel-nav-btn prev-btn';
-        this.prevButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.prevButton.setAttribute('aria-label', 'Previous items');
-
-        this.nextButton = document.createElement('button');
-        this.nextButton.type = 'button';
-        this.nextButton.className = 'carousel-nav-btn next-btn';
-        this.nextButton.innerHTML = this.factory.SVG_ICONS.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-        this.nextButton.setAttribute('aria-label', 'Next items');
-
-        container.appendChild(this.prevButton);
-        container.appendChild(this.nextButton);
-    }
-
-    renderItems() {
-        this.track.innerHTML = '';
-        
-        if (this.items.length === 0) {
-            const emptyMessage = document.createElement('div');
-            emptyMessage.className = 'carousel-empty-message';
-            emptyMessage.innerHTML = `
-                <div class="empty-content">
-                    <div class="empty-message">No items available</div>
-                </div>
-            `;
-            this.track.appendChild(emptyMessage);
-            return;
-        }
-        
-        this.items.forEach((item, index) => {
-            const itemElement = this.createItemElement(item, index);
-            this.track.appendChild(itemElement);
-        });
-
-        this.updateTrackPosition();
-    }
-
-    createItemElement(item, index) {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'carousel-item';
-        itemEl.dataset.index = index;
-
-        // Build card content
-        let cardContent = '<div class="carousel-item-inner">';
-
-        // Selection indicator (checkmark like ImageGallery)
-        cardContent += '<div class="selection-indicator">✓</div>';
-
-        // Image
-        if (item.image) {
-            cardContent += `<img class="carousel-item-image" src="${item.image}" alt="${item.title || item.name || ''}" />`;
+            this.nextButton = document.createElement('button');
+            this.nextButton.type = 'button';
+            this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
+            this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
+            this.nextButton.setAttribute('aria-label', 'Next');
+            carouselContainer.appendChild(this.nextButton);
         }
 
-        // Title
-        if (item.title || item.name) {
-            cardContent += `<h4 class="carousel-item-title">${item.title || item.name}</h4>`;
-        }
-
-        // Subtitle/Position
-        if (item.position || item.category || item.subtitle) {
-            cardContent += `<p class="carousel-item-subtitle">${item.position || item.category || item.subtitle}</p>`;
-        }
-
-        // Description
-        if (item.description) {
-            cardContent += `<p class="carousel-item-description">${item.description}</p>`;
-        }
-
-        // Details (price, duration, experience, etc.)
-        if (this.config.showDetails !== false) {
-            const details = [];
-            if (item.price) details.push(`<span class="item-price">${item.price}</span>`);
-            if (item.duration) details.push(`<span class="item-duration">${item.duration}</span>`);
-            if (item.experience) details.push(`<span class="item-experience">${item.experience} years</span>`);
-            
-            if (details.length > 0) {
-                cardContent += `<div class="carousel-item-details">${details.join('')}</div>`;
-            }
-        }
-
-        cardContent += '</div>';
-        itemEl.innerHTML = cardContent;
-
-        itemEl.addEventListener('click', () => this.selectItem(index));
-        return itemEl;
+        contentWrapper.appendChild(carouselContainer);
+        this.galleryContainer.appendChild(contentWrapper);
+        this.container.appendChild(this.galleryContainer);
     }
 
     setupEventListeners() {
@@ -13523,16 +13440,94 @@ class CarouselField extends BaseField {
             });
         }
 
-        // Handle responsive changes
-        window.addEventListener('resize', () => {
-            const newItemsPerView = this.getItemsPerView();
-            if (newItemsPerView !== this.itemsPerView) {
-                this.itemsPerView = newItemsPerView;
-                this.currentIndex = 0; // Reset to start
-                this.updateDisplay();
-                this.updateNavigation();
-            }
+        // Add resize listener
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    renderItems() {
+        this.track.innerHTML = '';
+        
+        this.items.forEach((item, index) => {
+            const itemElement = this.createItemElement(item, index);
+            this.track.appendChild(itemElement);
         });
+
+        this.updateTrackPosition();
+    }
+
+    createItemElement(item, index) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'carousel-item';
+        itemEl.dataset.index = index;
+
+        if (item.image) {
+            const img = document.createElement('img');
+            img.className = 'carousel-item-image';
+            img.src = item.image;
+            img.alt = item.title || item.name || '';
+            img.addEventListener('error', () => {
+                img.style.display = 'none';
+            });
+            itemEl.appendChild(img);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'carousel-item-content';
+
+        if (item.title || item.name) {
+            const title = document.createElement('h4');
+            title.className = 'carousel-item-title';
+            title.textContent = item.title || item.name;
+            content.appendChild(title);
+        }
+
+        if (item.position || item.category) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-item-subtitle';
+            subtitle.textContent = item.position || item.category;
+            content.appendChild(subtitle);
+        }
+
+        if (item.description) {
+            const desc = document.createElement('p');
+            desc.className = 'carousel-item-description';
+            desc.textContent = item.description;
+            content.appendChild(desc);
+        }
+
+        if (this.showDetails) {
+            const details = document.createElement('div');
+            details.className = 'carousel-item-details';
+
+            if (item.price) {
+                const price = document.createElement('span');
+                price.className = 'carousel-item-price';
+                price.textContent = item.price;
+                details.appendChild(price);
+            }
+
+            if (item.duration) {
+                const duration = document.createElement('span');
+                duration.className = 'carousel-item-duration';
+                duration.textContent = item.duration;
+                details.appendChild(duration);
+            }
+
+            if (item.experience) {
+                const experience = document.createElement('span');
+                experience.className = 'carousel-item-experience';
+                experience.textContent = `${item.experience} années d'expérience`;
+                details.appendChild(experience);
+            }
+
+            if (details.children.length > 0) {
+                content.appendChild(details);
+            }
+        }
+
+        itemEl.appendChild(content);
+        itemEl.addEventListener('click', () => this.selectItem(index));
+        return itemEl;
     }
 
     selectItem(index) {
@@ -13563,54 +13558,46 @@ class CarouselField extends BaseField {
     }
 
     nextSlide() {
-        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
-        if (this.currentIndex < maxIndex) {
-            this.currentIndex = Math.min(this.currentIndex + this.itemsPerView, maxIndex);
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
             this.updateTrackPosition();
-            this.updateDisplay();
+            this.updateNavigationState();
         }
     }
 
     previousSlide() {
         if (this.currentIndex > 0) {
-            this.currentIndex = Math.max(this.currentIndex - this.itemsPerView, 0);
+            this.currentIndex--;
             this.updateTrackPosition();
-            this.updateDisplay();
+            this.updateNavigationState();
         }
     }
 
     updateTrackPosition() {
         if (this.items.length === 0) return;
-        const itemWidth = window.innerWidth > 768 ? 250 : 200; // Match card widths
-        const gap = 15; // Gap between items
-        const translateX = -(this.currentIndex * (itemWidth + gap));
+        
+        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
+        const gap = 16;
+        const translateX = -(this.currentIndex * (cardWidth + gap));
         this.track.style.transform = `translateX(${translateX}px)`;
     }
 
-    updateDisplay() {
-        // Update counter
-        if (this.itemCounter && this.items.length > 0) {
-            const startItem = this.currentIndex + 1;
-            const endItem = Math.min(this.currentIndex + this.itemsPerView, this.items.length);
-            this.itemCounter.textContent = `${startItem}-${endItem} / ${this.items.length}`;
-        }
-
-        // Update navigation buttons
-        this.updateNavigation();
+    updateNavigation() {
+        this.updateNavigationState();
     }
 
-    updateNavigation() {
-        if (!this.prevButton || !this.nextButton) return;
-
-        const maxIndex = Math.max(0, this.items.length - this.itemsPerView);
-        
-        this.prevButton.disabled = this.currentIndex === 0;
-        this.nextButton.disabled = this.currentIndex >= maxIndex;
-
-        // Show/hide navigation based on items
-        const showNav = this.items.length > this.itemsPerView;
-        this.prevButton.style.display = showNav ? 'flex' : 'none';
-        this.nextButton.style.display = showNav ? 'flex' : 'none';
+    updateNavigationState() {
+        if (this.prevButton && this.nextButton) {
+            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+            this.prevButton.disabled = this.currentIndex === 0;
+            this.nextButton.disabled = this.currentIndex >= maxSlides;
+            
+            // Hide buttons if not needed
+            const shouldShow = this.items.length > this.itemsPerView;
+            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
+        }
     }
 
     getValue() {
@@ -13640,6 +13627,11 @@ class CarouselField extends BaseField {
         }
         this.hideError();
         return true;
+    }
+
+    cleanup() {
+        window.removeEventListener('resize', this.handleResize);
+        super.cleanup();
     }
 }
 
