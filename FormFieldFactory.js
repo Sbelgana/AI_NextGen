@@ -12846,8 +12846,9 @@ class CalComBaseUtility {
 
 
 // ============================================================================
-// UPDATED FILTERED CAROUSEL FIELD - Matching ImageGallery Design
+// UPDATED CAROUSEL FIELD CLASSES - Nav Buttons Outside Cards Container
 // ============================================================================
+
 class FilteredCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -13012,31 +13013,39 @@ class FilteredCarouselField extends BaseField {
             contentWrapper.appendChild(header);
         }
 
+        // UPDATED: Create wrapper for carousel + navigation
+        const carouselWrapper = document.createElement('div');
+        carouselWrapper.className = 'carousel-image-container';
+        
+        // UPDATED: Create separate container for just the cards
         const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'carousel-image-container';
+        carouselContainer.className = 'carousel-cards-container';
         
         this.track = document.createElement('div');
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
+        
+        // Add cards container to wrapper
+        carouselWrapper.appendChild(carouselContainer);
 
-        // Navigation buttons (outside cards)
+        // UPDATED: Navigation buttons are siblings to cards container
         if (this.showNavigation) {
             this.prevButton = document.createElement('button');
             this.prevButton.type = 'button';
             this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
             this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
             this.prevButton.setAttribute('aria-label', 'Previous');
-            carouselContainer.appendChild(this.prevButton);
+            carouselWrapper.appendChild(this.prevButton);
 
             this.nextButton = document.createElement('button');
             this.nextButton.type = 'button';
             this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
             this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
             this.nextButton.setAttribute('aria-label', 'Next');
-            carouselContainer.appendChild(this.nextButton);
+            carouselWrapper.appendChild(this.nextButton);
         }
 
-        contentWrapper.appendChild(carouselContainer);
+        contentWrapper.appendChild(carouselWrapper);
         this.galleryContainer.appendChild(contentWrapper);
         this.container.appendChild(this.galleryContainer);
     }
@@ -13224,12 +13233,6 @@ class FilteredCarouselField extends BaseField {
     }
 
     updateNavigation() {
-        // Remove old navigation if exists
-        const existingNav = this.container.querySelector('.carousel-navigation');
-        if (existingNav) {
-            existingNav.remove();
-        }
-        
         this.updateNavigationState();
     }
 
@@ -13318,7 +13321,7 @@ class FilteredCarouselField extends BaseField {
 }
 
 // ============================================================================
-// UPDATED REGULAR CAROUSEL FIELD - Matching ImageGallery Design
+// UPDATED REGULAR CAROUSEL FIELD - Same Structure for Consistency
 // ============================================================================
 class CarouselField extends BaseField {
     constructor(factory, config) {
@@ -13394,31 +13397,39 @@ class CarouselField extends BaseField {
             contentWrapper.appendChild(header);
         }
 
+        // UPDATED: Create wrapper for carousel + navigation
+        const carouselWrapper = document.createElement('div');
+        carouselWrapper.className = 'carousel-image-container';
+        
+        // UPDATED: Create separate container for just the cards
         const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'carousel-image-container';
+        carouselContainer.className = 'carousel-cards-container';
         
         this.track = document.createElement('div');
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
+        
+        // Add cards container to wrapper
+        carouselWrapper.appendChild(carouselContainer);
 
-        // Navigation buttons (outside cards)
+        // UPDATED: Navigation buttons are siblings to cards container
         if (this.showNavigation) {
             this.prevButton = document.createElement('button');
             this.prevButton.type = 'button';
             this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
             this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
             this.prevButton.setAttribute('aria-label', 'Previous');
-            carouselContainer.appendChild(this.prevButton);
+            carouselWrapper.appendChild(this.prevButton);
 
             this.nextButton = document.createElement('button');
             this.nextButton.type = 'button';
             this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
             this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
             this.nextButton.setAttribute('aria-label', 'Next');
-            carouselContainer.appendChild(this.nextButton);
+            carouselWrapper.appendChild(this.nextButton);
         }
 
-        contentWrapper.appendChild(carouselContainer);
+        contentWrapper.appendChild(carouselWrapper);
         this.galleryContainer.appendChild(contentWrapper);
         this.container.appendChild(this.galleryContainer);
     }
@@ -13634,7 +13645,6 @@ class CarouselField extends BaseField {
         super.cleanup();
     }
 }
-
 // ============================================================================
 // SERVICE PROVIDER CALENDAR FIELD - Generic 3-step field (Service > Provider > Calendar)
 // ============================================================================
