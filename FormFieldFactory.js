@@ -13606,11 +13606,6 @@ class BaseCarouselField extends BaseField {
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'carousel-content-wrapper';
         
-        // Header section
-        if (this.title || this.subtitle) {
-            contentWrapper.appendChild(this.createHeader());
-        }
-
         // Carousel section
         const carouselWrapper = document.createElement('div');
         carouselWrapper.className = 'carousel-image-container';
@@ -13638,12 +13633,7 @@ class BaseCarouselField extends BaseField {
         this.container.appendChild(fragment);
     }
 
-    createHeader() {
-        const header = document.createElement('div');
-        header.className = 'carousel-header';
-               
-        return header;
-    }
+
 
     createNavigationButtons() {
         const prevButton = document.createElement('button');
