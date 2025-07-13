@@ -12849,14 +12849,16 @@ class CalComBaseUtility {
 // UPDATED CAROUSEL FIELD CLASSES - Nav Buttons Outside Cards Container
 // ============================================================================
 
-class FilteredCarouselField extends BaseField {
+// ============================================================================
+// BASE CAROUSEL CLASS - Contains all shared functionality
+// ============================================================================
+class BaseCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
         this.config = config;
         this.items = config.items || [];
         this.selectedItem = null;
         this.currentIndex = 0;
-        this.itemsPerView = this.getItemsPerView();
         this.showNavigation = config.showNavigation !== false;
         this.title = config.title || '';
         this.subtitle = config.subtitle || '';
@@ -12864,494 +12866,62 @@ class FilteredCarouselField extends BaseField {
         this.allowMultiple = config.allowMultiple || false;
         this.selectedItems = [];
         this.showDetails = config.showDetails !== false;
-        this.autoUpdateInterval = null;
         
-        // Filtering configuration
-        this.filterConfig = config.filterConfig || {
-            dependsOn: null,
-            dataSource: [],
-            filterFunction: null,
-            dataSources: [],
-            waitingMessage: 'Please make a selection first',
-            monitoringMessage: 'Monitoring for selection...',
-            monitorInterval: 500,
-            monitorDuration: 30000
+        // Responsive configuration
+        this.responsiveConfig = {
+            mobile: { itemsPerView: 1, cardWidth: 200 },
+            tablet: { itemsPerView: 2, cardWidth: 220 },
+            desktop: { itemsPerView: 3, cardWidth: 250 },
+            ...config.responsiveConfig
         };
-
-        // Bind resize handler
-        this.handleResize = this.handleResize.bind(this);
-    }
-
-    getItemsPerView() {
-        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
-    }
-
-    handleResize() {
-        const newItemsPerView = this.getItemsPerView();
-        if (newItemsPerView !== this.itemsPerView) {
-            this.itemsPerView = newItemsPerView;
-            this.currentIndex = 0; // Reset to start
-            this.updateTrackPosition();
-            this.updateNavigation();
-        }
-    }
-
-    autoPopulateItems() {
-        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
-            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
-            return false;
-        }
         
-        let dependencyValue = null;
-        
-        // Check configured data sources
-        for (const source of this.filterConfig.dataSources) {
-            try {
-                if (typeof source === 'function') {
-                    dependencyValue = source();
-                } else if (typeof source === 'string') {
-                    dependencyValue = source.split('.').reduce((obj, prop) => obj?.[prop], window);
-                } else if (typeof source === 'object') {
-                    dependencyValue = source[this.filterConfig.dependsOn];
-                }
-                
-                if (dependencyValue) break;
-            } catch (error) {
-                console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
-                continue;
-            }
-        }
-        
-        // Fallback: Check standard factory locations
-        if (!dependencyValue) {
-            dependencyValue = this.factory?.formValues?.[this.filterConfig.dependsOn] ||
-                            this.factory?.currentExtension?.formValues?.[this.filterConfig.dependsOn] ||
-                            this.factory?.currentMultiStepForm?.getFormData()?.[this.filterConfig.dependsOn];
-        }
-        
-        if (dependencyValue) {
-            const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
-            
-            let needsSelectionReset = false;
-            if (this.selectedItem !== null && this.items[this.selectedItem]) {
-                const currentSelection = this.items[this.selectedItem];
-                const stillValid = filteredItems.some(item => item.id === currentSelection.id);
-                if (!stillValid) {
-                    needsSelectionReset = true;
-                }
-            }
-            
-            if (filteredItems.length !== this.items.length || JSON.stringify(filteredItems) !== JSON.stringify(this.items)) {
-                this.items = filteredItems;
-                
-                if (needsSelectionReset) {
-                    this.selectedItem = null;
-                    this.selectedItems = [];
-                    this.handleChange();
-                } else {
-                    this.selectedItem = null;
-                    this.selectedItems = [];
-                }
-                
-                this.currentIndex = 0;
-                
-                if (this.galleryContainer) {
-                    this.renderItems();
-                    this.updateNavigation();
-                }
-                
-                return true;
-            }
-        } 
-        
-        return false;
-    }
-
-    render() {
-        this.container = this.createContainer();
-        this.container.className += ' carousel-field filtered-carousel';
-        this.createCarouselStructure();
-        this.setupEventListeners();
-        this.autoPopulateItems();
-        this.renderItems();
-        this.updateNavigation();
-        
-        if (this.autoUpdateInterval) {
-            clearInterval(this.autoUpdateInterval);
-        }
-        this.startAutoUpdate();
-        
-        return this.container;
-    }
-
-    createCarouselStructure() {
-        this.galleryContainer = document.createElement('div');
-        this.galleryContainer.className = 'carousel-gallery-container';
-        
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'carousel-content-wrapper';
-        
-        // Add header if title/subtitle provided
-        if (this.title || this.subtitle) {
-            const header = document.createElement('div');
-            header.className = 'carousel-header';
-            
-            if (this.title) {
-                const title = document.createElement('h3');
-                title.className = 'carousel-title';
-                title.textContent = this.title;
-                header.appendChild(title);
-            }
-            
-            if (this.subtitle) {
-                const subtitle = document.createElement('p');
-                subtitle.className = 'carousel-subtitle';
-                subtitle.textContent = this.subtitle;
-                header.appendChild(subtitle);
-            }
-            
-            contentWrapper.appendChild(header);
-        }
-
-        // UPDATED: Create wrapper for carousel + navigation
-        const carouselWrapper = document.createElement('div');
-        carouselWrapper.className = 'carousel-image-container';
-        
-        // UPDATED: Create separate container for just the cards
-        const carouselContainer = document.createElement('div');
-        carouselContainer.className = 'carousel-cards-container';
-        
-        this.track = document.createElement('div');
-        this.track.className = 'carousel-track';
-        carouselContainer.appendChild(this.track);
-        
-        // Add cards container to wrapper
-        carouselWrapper.appendChild(carouselContainer);
-
-        // UPDATED: Navigation buttons are siblings to cards container
-        if (this.showNavigation) {
-            this.prevButton = document.createElement('button');
-            this.prevButton.type = 'button';
-            this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
-            this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-            this.prevButton.setAttribute('aria-label', 'Previous');
-            carouselWrapper.appendChild(this.prevButton);
-
-            this.nextButton = document.createElement('button');
-            this.nextButton.type = 'button';
-            this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
-            this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
-            this.nextButton.setAttribute('aria-label', 'Next');
-            carouselWrapper.appendChild(this.nextButton);
-        }
-
-        contentWrapper.appendChild(carouselWrapper);
-        this.galleryContainer.appendChild(contentWrapper);
-        this.container.appendChild(this.galleryContainer);
-    }
-
-    setupEventListeners() {
-        if (this.prevButton) {
-            this.prevButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.previousSlide();
-            });
-        }
-
-        if (this.nextButton) {
-            this.nextButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.nextSlide();
-            });
-        }
-
-        // Add resize listener
-        window.addEventListener('resize', this.handleResize);
-    }
-
-    renderItems() {
-        this.track.innerHTML = '';
-        
-        if (this.items.length === 0) {
-            const emptyMessage = document.createElement('div');
-            emptyMessage.className = 'carousel-empty-message';
-            
-            const message = this.filterConfig.dependsOn ? 
-                this.filterConfig.waitingMessage : 
-                this.config.emptyMessage || 'No items available';
-            
-            const subMessage = this.filterConfig.dependsOn ? 
-                this.filterConfig.monitoringMessage : '';
-            
-            emptyMessage.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-message">${message}</div>
-                    ${subMessage ? `<div class="empty-submessage">${subMessage}</div>` : ''}
-                </div>
-            `;
-            
-            this.track.appendChild(emptyMessage);
-            return;
-        }
-        
-        this.items.forEach((item, index) => {
-            const itemElement = this.createItemElement(item, index);
-            this.track.appendChild(itemElement);
-        });
-
-        this.updateTrackPosition();
-    }
-
-    createItemElement(item, index) {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'carousel-item';
-        itemEl.dataset.index = index;
-
-        if (item.image) {
-            const img = document.createElement('img');
-            img.className = 'carousel-item-image';
-            img.src = item.image;
-            img.alt = item.title || item.name || '';
-            img.addEventListener('error', () => {
-                img.style.display = 'none';
-            });
-            itemEl.appendChild(img);
-        }
-
-        const content = document.createElement('div');
-        content.className = 'carousel-item-content';
-
-        if (item.title || item.name) {
-            const title = document.createElement('h4');
-            title.className = 'carousel-item-title';
-            title.textContent = item.title || item.name;
-            content.appendChild(title);
-        }
-
-        if (item.position || item.category) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-item-subtitle';
-            subtitle.textContent = item.position || item.category;
-            content.appendChild(subtitle);
-        }
-
-        if (item.description) {
-            const desc = document.createElement('p');
-            desc.className = 'carousel-item-description';
-            desc.textContent = item.description;
-            content.appendChild(desc);
-        }
-
-        if (this.showDetails) {
-            const details = document.createElement('div');
-            details.className = 'carousel-item-details';
-
-            if (item.price) {
-                const price = document.createElement('span');
-                price.className = 'carousel-item-price';
-                price.textContent = item.price;
-                details.appendChild(price);
-            }
-
-            if (item.duration) {
-                const duration = document.createElement('span');
-                duration.className = 'carousel-item-duration';
-                duration.textContent = item.duration;
-                details.appendChild(duration);
-            }
-
-            if (item.experience) {
-                const experience = document.createElement('span');
-                experience.className = 'carousel-item-experience';
-                experience.textContent = `${item.experience} années d'expérience`;
-                details.appendChild(experience);
-            }
-
-            if (details.children.length > 0) {
-                content.appendChild(details);
-            }
-        }
-
-        itemEl.appendChild(content);
-        itemEl.addEventListener('click', () => this.selectItem(index));
-        return itemEl;
-    }
-
-    selectItem(index) {
-        if (this.allowMultiple) {
-            if (this.selectedItems.includes(index)) {
-                this.selectedItems = this.selectedItems.filter(i => i !== index);
-            } else {
-                this.selectedItems.push(index);
-            }
-        } else {
-            this.selectedItem = index;
-            this.selectedItems = [index];
-        }
-
-        this.updateSelection();
-        this.handleChange();
-    }
-
-    updateSelection() {
-        const items = this.track.querySelectorAll('.carousel-item');
-        items.forEach((item, index) => {
-            if (this.selectedItems.includes(index)) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
-            }
-        });
-    }
-
-    nextSlide() {
-        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
-        if (this.currentIndex < maxSlides) {
-            this.currentIndex++;
-            this.updateTrackPosition();
-            this.updateNavigationState();
-        }
-    }
-
-    previousSlide() {
-        if (this.currentIndex > 0) {
-            this.currentIndex--;
-            this.updateTrackPosition();
-            this.updateNavigationState();
-        }
-    }
-
-    updateTrackPosition() {
-        if (this.items.length === 0) return;
-        
-        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
-        const gap = 16;
-        const translateX = -(this.currentIndex * (cardWidth + gap));
-        this.track.style.transform = `translateX(${translateX}px)`;
-    }
-
-    updateNavigation() {
-        this.updateNavigationState();
-    }
-
-    updateNavigationState() {
-        if (this.prevButton && this.nextButton) {
-            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
-            this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxSlides;
-            
-            // Hide buttons if not needed
-            const shouldShow = this.items.length > this.itemsPerView;
-            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
-            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
-        }
-    }
-
-    startAutoUpdate() {
-        if (!this.filterConfig.dependsOn) return;
-        
-        if (this.autoUpdateInterval) {
-            clearInterval(this.autoUpdateInterval);
-        }
-        
-        this.autoUpdateInterval = setInterval(() => {
-            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
-                this.autoPopulateItems();
-            }
-        }, this.filterConfig.monitorInterval);
-        
-        if (!this.filterConfig.alwaysMonitor) {
-            setTimeout(() => {
-                if (this.autoUpdateInterval) {
-                    clearInterval(this.autoUpdateInterval);
-                    this.autoUpdateInterval = null;
-                }
-            }, this.filterConfig.monitorDuration);
-        }
-    }
-
-    restartMonitoring() {
-        this.startAutoUpdate();
-        this.autoPopulateItems();
-    }
-
-    triggerUpdate() {
-        this.autoPopulateItems();
-    }
-
-    getValue() {
-        if (this.allowMultiple) {
-            return this.selectedItems.map(index => this.items[index]);
-        } else {
-            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
-        }
-    }
-
-    setValue(value) {
-        if (this.allowMultiple && Array.isArray(value)) {
-            this.selectedItems = value.map(item => 
-                this.items.findIndex(i => i.id === item.id)
-            ).filter(index => index !== -1);
-        } else if (value) {
-            this.selectedItem = this.items.findIndex(item => item.id === value.id);
-            this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
-        }
-        this.updateSelection();
-    }
-
-    validate() {
-        if (this.required && this.selectedItems.length === 0) {
-            this.showError(this.getFieldErrorMessage('required'));
-            return false;
-        }
-        this.hideError();
-        return true;
-    }
-
-    cleanup() {
-        if (this.autoUpdateInterval) {
-            clearInterval(this.autoUpdateInterval);
-            this.autoUpdateInterval = null;
-        }
-        window.removeEventListener('resize', this.handleResize);
-        super.cleanup();
-    }
-}
-
-// ============================================================================
-// UPDATED REGULAR CAROUSEL FIELD - Same Structure for Consistency
-// ============================================================================
-class CarouselField extends BaseField {
-    constructor(factory, config) {
-        super(factory, config);
-        this.config = config;
-        this.items = config.items || [];
-        this.selectedItem = null;
-        this.currentIndex = 0;
         this.itemsPerView = this.getItemsPerView();
-        this.showNavigation = config.showNavigation !== false;
-        this.title = config.title || '';
-        this.subtitle = config.subtitle || '';
-        this.itemType = config.itemType || 'generic';
-        this.allowMultiple = config.allowMultiple || false;
-        this.selectedItems = [];
-        this.showDetails = config.showDetails !== false;
+        this.gap = 16;
+        
+        // Cache DOM queries
+        this.domCache = new Map();
+        
+        // Bind methods once
+        this.handleResize = this.debounce(this.handleResize.bind(this), 150);
+        this.selectItem = this.selectItem.bind(this);
+    }
 
-        // Bind resize handler
-        this.handleResize = this.handleResize.bind(this);
+    // Utility method for debouncing
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Responsive breakpoint detection
+    getBreakpoint() {
+        const width = window.innerWidth;
+        if (width < 768) return 'mobile';
+        if (width < 1024) return 'tablet';
+        return 'desktop';
     }
 
     getItemsPerView() {
-        return window.innerWidth >= 768 ? 3 : 1; // 3 on big screens, 1 on small
+        const breakpoint = this.getBreakpoint();
+        return this.responsiveConfig[breakpoint].itemsPerView;
+    }
+
+    getCardWidth() {
+        const breakpoint = this.getBreakpoint();
+        return this.responsiveConfig[breakpoint].cardWidth;
     }
 
     handleResize() {
         const newItemsPerView = this.getItemsPerView();
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
-            this.currentIndex = 0; // Reset to start
+            this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.items.length - this.itemsPerView));
             this.updateTrackPosition();
             this.updateNavigationState();
         }
@@ -13364,106 +12934,158 @@ class CarouselField extends BaseField {
         this.setupEventListeners();
         this.renderItems();
         this.updateNavigation();
+        this.postRender(); // Hook for subclasses
         
         return this.container;
     }
 
+    // Hook for subclasses to override
+    postRender() {}
+
     createCarouselStructure() {
+        const fragment = document.createDocumentFragment();
+        
         this.galleryContainer = document.createElement('div');
         this.galleryContainer.className = 'carousel-gallery-container';
         
         const contentWrapper = document.createElement('div');
         contentWrapper.className = 'carousel-content-wrapper';
         
-        // Add header if title/subtitle provided
+        // Header section
         if (this.title || this.subtitle) {
-            const header = document.createElement('div');
-            header.className = 'carousel-header';
-            
-            if (this.title) {
-                const title = document.createElement('h3');
-                title.className = 'carousel-title';
-                title.textContent = this.title;
-                header.appendChild(title);
-            }
-            
-            if (this.subtitle) {
-                const subtitle = document.createElement('p');
-                subtitle.className = 'carousel-subtitle';
-                subtitle.textContent = this.subtitle;
-                header.appendChild(subtitle);
-            }
-            
-            contentWrapper.appendChild(header);
+            contentWrapper.appendChild(this.createHeader());
         }
 
-        // UPDATED: Create wrapper for carousel + navigation
+        // Carousel section
         const carouselWrapper = document.createElement('div');
         carouselWrapper.className = 'carousel-image-container';
         
-        // UPDATED: Create separate container for just the cards
         const carouselContainer = document.createElement('div');
         carouselContainer.className = 'carousel-cards-container';
         
         this.track = document.createElement('div');
         this.track.className = 'carousel-track';
         carouselContainer.appendChild(this.track);
-        
-        // Add cards container to wrapper
         carouselWrapper.appendChild(carouselContainer);
 
-        // UPDATED: Navigation buttons are siblings to cards container
+        // Navigation buttons
         if (this.showNavigation) {
-            this.prevButton = document.createElement('button');
-            this.prevButton.type = 'button';
-            this.prevButton.className = 'carousel-nav-btn carousel-prev-btn';
-            this.prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
-            this.prevButton.setAttribute('aria-label', 'Previous');
-            carouselWrapper.appendChild(this.prevButton);
-
-            this.nextButton = document.createElement('button');
-            this.nextButton.type = 'button';
-            this.nextButton.className = 'carousel-nav-btn carousel-next-btn';
-            this.nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
-            this.nextButton.setAttribute('aria-label', 'Next');
-            carouselWrapper.appendChild(this.nextButton);
+            const { prevButton, nextButton } = this.createNavigationButtons();
+            this.prevButton = prevButton;
+            this.nextButton = nextButton;
+            carouselWrapper.appendChild(prevButton);
+            carouselWrapper.appendChild(nextButton);
         }
 
         contentWrapper.appendChild(carouselWrapper);
         this.galleryContainer.appendChild(contentWrapper);
-        this.container.appendChild(this.galleryContainer);
+        fragment.appendChild(this.galleryContainer);
+        this.container.appendChild(fragment);
+    }
+
+    createHeader() {
+        const header = document.createElement('div');
+        header.className = 'carousel-header';
+        
+        if (this.title) {
+            const title = document.createElement('h3');
+            title.className = 'carousel-title';
+            title.textContent = this.title;
+            header.appendChild(title);
+        }
+        
+        if (this.subtitle) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-subtitle';
+            subtitle.textContent = this.subtitle;
+            header.appendChild(subtitle);
+        }
+        
+        return header;
+    }
+
+    createNavigationButtons() {
+        const prevButton = document.createElement('button');
+        prevButton.type = 'button';
+        prevButton.className = 'carousel-nav-btn carousel-prev-btn';
+        prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        prevButton.setAttribute('aria-label', 'Previous');
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'carousel-nav-btn carousel-next-btn';
+        nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
+        nextButton.setAttribute('aria-label', 'Next');
+
+        return { prevButton, nextButton };
     }
 
     setupEventListeners() {
-        if (this.prevButton) {
-            this.prevButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.previousSlide();
-            });
+        // Navigation events
+        if (this.prevButton && this.nextButton) {
+            this.prevButton.addEventListener('click', this.createNavigationHandler('prev'));
+            this.nextButton.addEventListener('click', this.createNavigationHandler('next'));
         }
 
-        if (this.nextButton) {
-            this.nextButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                this.nextSlide();
-            });
-        }
-
-        // Add resize listener
+        // Resize event
         window.addEventListener('resize', this.handleResize);
+        
+        // Additional listeners for subclasses
+        this.setupAdditionalListeners();
+    }
+
+    // Hook for subclasses
+    setupAdditionalListeners() {}
+
+    createNavigationHandler(direction) {
+        return (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            direction === 'prev' ? this.previousSlide() : this.nextSlide();
+        };
     }
 
     renderItems() {
+        if (!this.track) return;
+        
+        // Clear existing items
         this.track.innerHTML = '';
         
+        if (this.items.length === 0) {
+            this.renderEmptyState();
+            return;
+        }
+        
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
         this.items.forEach((item, index) => {
             const itemElement = this.createItemElement(item, index);
-            this.track.appendChild(itemElement);
+            fragment.appendChild(itemElement);
         });
-
+        
+        this.track.appendChild(fragment);
         this.updateTrackPosition();
+    }
+
+    renderEmptyState() {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'carousel-empty-message';
+        emptyMessage.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-message">${this.getEmptyMessage()}</div>
+                ${this.getEmptySubMessage() ? `<div class="empty-submessage">${this.getEmptySubMessage()}</div>` : ''}
+            </div>
+        `;
+        this.track.appendChild(emptyMessage);
+    }
+
+    // Hooks for subclasses to customize empty state
+    getEmptyMessage() {
+        return this.config.emptyMessage || 'No items available';
+    }
+
+    getEmptySubMessage() {
+        return '';
     }
 
     createItemElement(item, index) {
@@ -13471,20 +13093,37 @@ class CarouselField extends BaseField {
         itemEl.className = 'carousel-item';
         itemEl.dataset.index = index;
 
+        // Image
         if (item.image) {
-            const img = document.createElement('img');
-            img.className = 'carousel-item-image';
-            img.src = item.image;
-            img.alt = item.title || item.name || '';
-            img.addEventListener('error', () => {
-                img.style.display = 'none';
-            });
-            itemEl.appendChild(img);
+            itemEl.appendChild(this.createItemImage(item));
         }
 
+        // Content
+        itemEl.appendChild(this.createItemContent(item));
+        
+        // Event listener
+        itemEl.addEventListener('click', () => this.selectItem(index));
+        
+        return itemEl;
+    }
+
+    createItemImage(item) {
+        const img = document.createElement('img');
+        img.className = 'carousel-item-image';
+        img.src = item.image;
+        img.alt = item.title || item.name || '';
+        img.loading = 'lazy'; // Performance improvement
+        img.addEventListener('error', () => {
+            img.style.display = 'none';
+        });
+        return img;
+    }
+
+    createItemContent(item) {
         const content = document.createElement('div');
         content.className = 'carousel-item-content';
 
+        // Title
         if (item.title || item.name) {
             const title = document.createElement('h4');
             title.className = 'carousel-item-title';
@@ -13492,6 +13131,7 @@ class CarouselField extends BaseField {
             content.appendChild(title);
         }
 
+        // Subtitle
         if (item.position || item.category) {
             const subtitle = document.createElement('p');
             subtitle.className = 'carousel-item-subtitle';
@@ -13499,6 +13139,7 @@ class CarouselField extends BaseField {
             content.appendChild(subtitle);
         }
 
+        // Description
         if (item.description) {
             const desc = document.createElement('p');
             desc.className = 'carousel-item-description';
@@ -13506,65 +13147,74 @@ class CarouselField extends BaseField {
             content.appendChild(desc);
         }
 
+        // Details
         if (this.showDetails) {
-            const details = document.createElement('div');
-            details.className = 'carousel-item-details';
-
-            if (item.price) {
-                const price = document.createElement('span');
-                price.className = 'carousel-item-price';
-                price.textContent = item.price;
-                details.appendChild(price);
-            }
-
-            if (item.duration) {
-                const duration = document.createElement('span');
-                duration.className = 'carousel-item-duration';
-                duration.textContent = item.duration;
-                details.appendChild(duration);
-            }
-
-            if (item.experience) {
-                const experience = document.createElement('span');
-                experience.className = 'carousel-item-experience';
-                experience.textContent = `${item.experience} années d'expérience`;
-                details.appendChild(experience);
-            }
-
+            const details = this.createItemDetails(item);
             if (details.children.length > 0) {
                 content.appendChild(details);
             }
         }
 
-        itemEl.appendChild(content);
-        itemEl.addEventListener('click', () => this.selectItem(index));
-        return itemEl;
+        return content;
+    }
+
+    createItemDetails(item) {
+        const details = document.createElement('div');
+        details.className = 'carousel-item-details';
+
+        const detailItems = [
+            { key: 'price', value: item.price, className: 'carousel-item-price' },
+            { key: 'duration', value: item.duration, className: 'carousel-item-duration' },
+            { key: 'experience', value: item.experience ? `${item.experience} années d'expérience` : null, className: 'carousel-item-experience' }
+        ];
+
+        detailItems.forEach(({ value, className }) => {
+            if (value) {
+                const span = document.createElement('span');
+                span.className = className;
+                span.textContent = value;
+                details.appendChild(span);
+            }
+        });
+
+        return details;
     }
 
     selectItem(index) {
         if (this.allowMultiple) {
-            if (this.selectedItems.includes(index)) {
-                this.selectedItems = this.selectedItems.filter(i => i !== index);
-            } else {
-                this.selectedItems.push(index);
-            }
+            this.toggleMultipleSelection(index);
         } else {
-            this.selectedItem = index;
-            this.selectedItems = [index];
+            this.setSingleSelection(index);
         }
 
         this.updateSelection();
         this.handleChange();
     }
 
+    toggleMultipleSelection(index) {
+        const existingIndex = this.selectedItems.indexOf(index);
+        if (existingIndex > -1) {
+            this.selectedItems.splice(existingIndex, 1);
+        } else {
+            this.selectedItems.push(index);
+        }
+    }
+
+    setSingleSelection(index) {
+        this.selectedItem = index;
+        this.selectedItems = [index];
+    }
+
     updateSelection() {
-        const items = this.track.querySelectorAll('.carousel-item');
+        // Use cached query if available
+        let items = this.domCache.get('carousel-items');
+        if (!items) {
+            items = this.track.querySelectorAll('.carousel-item');
+            this.domCache.set('carousel-items', items);
+        }
+
         items.forEach((item, index) => {
-            if (this.selectedItems.includes(index)) {
-                item.classList.add('selected');
-            } else {
-                item.classList.remove('selected');
-            }
+            item.classList.toggle('selected', this.selectedItems.includes(index));
         });
     }
 
@@ -13586,12 +13236,13 @@ class CarouselField extends BaseField {
     }
 
     updateTrackPosition() {
-        if (this.items.length === 0) return;
+        if (!this.track || this.items.length === 0) return;
         
-        const cardWidth = window.innerWidth >= 768 ? 250 : 200;
-        const gap = 16;
-        const translateX = -(this.currentIndex * (cardWidth + gap));
-        this.track.style.transform = `translateX(${translateX}px)`;
+        const cardWidth = this.getCardWidth();
+        const translateX = -(this.currentIndex * (cardWidth + this.gap));
+        
+        // Use transform3d for better performance
+        this.track.style.transform = `translate3d(${translateX}px, 0, 0)`;
     }
 
     updateNavigation() {
@@ -13599,21 +13250,23 @@ class CarouselField extends BaseField {
     }
 
     updateNavigationState() {
-        if (this.prevButton && this.nextButton) {
-            const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
-            this.prevButton.disabled = this.currentIndex === 0;
-            this.nextButton.disabled = this.currentIndex >= maxSlides;
-            
-            // Hide buttons if not needed
-            const shouldShow = this.items.length > this.itemsPerView;
-            this.prevButton.style.display = shouldShow ? 'flex' : 'none';
-            this.nextButton.style.display = shouldShow ? 'flex' : 'none';
-        }
+        if (!this.prevButton || !this.nextButton) return;
+        
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        const shouldShow = this.items.length > this.itemsPerView;
+        
+        // Update button states
+        this.prevButton.disabled = this.currentIndex === 0;
+        this.nextButton.disabled = this.currentIndex >= maxSlides;
+        
+        // Show/hide buttons
+        this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+        this.nextButton.style.display = shouldShow ? 'flex' : 'none';
     }
 
     getValue() {
         if (this.allowMultiple) {
-            return this.selectedItems.map(index => this.items[index]);
+            return this.selectedItems.map(index => this.items[index]).filter(Boolean);
         } else {
             return this.selectedItem !== null ? this.items[this.selectedItem] : null;
         }
@@ -13621,12 +13274,15 @@ class CarouselField extends BaseField {
 
     setValue(value) {
         if (this.allowMultiple && Array.isArray(value)) {
-            this.selectedItems = value.map(item => 
-                this.items.findIndex(i => i.id === item.id)
-            ).filter(index => index !== -1);
+            this.selectedItems = value
+                .map(item => this.items.findIndex(i => i.id === item.id))
+                .filter(index => index !== -1);
         } else if (value) {
             this.selectedItem = this.items.findIndex(item => item.id === value.id);
             this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
+        } else {
+            this.selectedItem = null;
+            this.selectedItems = [];
         }
         this.updateSelection();
     }
@@ -13641,8 +13297,194 @@ class CarouselField extends BaseField {
     }
 
     cleanup() {
+        // Clear intervals and timeouts
+        this.cleanupAutoUpdate();
+        
+        // Remove event listeners
         window.removeEventListener('resize', this.handleResize);
+        
+        // Clear DOM cache
+        this.domCache.clear();
+        
         super.cleanup();
+    }
+
+    // Hook for subclasses
+    cleanupAutoUpdate() {}
+
+    // Invalidate DOM cache when items change
+    invalidateCache() {
+        this.domCache.clear();
+    }
+}
+
+// ============================================================================
+// REGULAR CAROUSEL FIELD - Now just a thin wrapper
+// ============================================================================
+class CarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.container?.classList.add('standard-carousel');
+    }
+}
+
+// ============================================================================
+// FILTERED CAROUSEL FIELD - Adds filtering functionality
+// ============================================================================
+class FilteredCarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Filtering configuration
+        this.filterConfig = {
+            dependsOn: null,
+            dataSource: [],
+            filterFunction: null,
+            dataSources: [],
+            waitingMessage: 'Please make a selection first',
+            monitoringMessage: 'Monitoring for selection...',
+            monitorInterval: 500,
+            monitorDuration: 30000,
+            alwaysMonitor: false,
+            ...config.filterConfig
+        };
+
+        this.autoUpdateInterval = null;
+        this.container?.classList.add('filtered-carousel');
+    }
+
+    postRender() {
+        this.autoPopulateItems();
+        this.startAutoUpdate();
+    }
+
+    getEmptyMessage() {
+        return this.filterConfig.dependsOn ? 
+            this.filterConfig.waitingMessage : 
+            this.config.emptyMessage || 'No items available';
+    }
+
+    getEmptySubMessage() {
+        return this.filterConfig.dependsOn ? this.filterConfig.monitoringMessage : '';
+    }
+
+    autoPopulateItems() {
+        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
+            console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
+            return false;
+        }
+        
+        const dependencyValue = this.getDependencyValue();
+        
+        if (dependencyValue) {
+            const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
+            return this.updateItems(filteredItems);
+        } 
+        
+        return false;
+    }
+
+    getDependencyValue() {
+        // Check configured data sources
+        for (const source of this.filterConfig.dataSources) {
+            try {
+                let value = null;
+                
+                if (typeof source === 'function') {
+                    value = source();
+                } else if (typeof source === 'string') {
+                    value = source.split('.').reduce((obj, prop) => obj?.[prop], window);
+                } else if (typeof source === 'object') {
+                    value = source[this.filterConfig.dependsOn];
+                }
+                
+                if (value) return value;
+            } catch (error) {
+                console.warn(`🔄 FILTERED CAROUSEL [${this.name}]: Error checking source:`, error);
+                continue;
+            }
+        }
+        
+        // Fallback: Check standard factory locations
+        return this.factory?.formValues?.[this.filterConfig.dependsOn] ||
+               this.factory?.currentExtension?.formValues?.[this.filterConfig.dependsOn] ||
+               this.factory?.currentMultiStepForm?.getFormData()?.[this.filterConfig.dependsOn];
+    }
+
+    updateItems(newItems) {
+        const hasChanged = newItems.length !== this.items.length || 
+                          JSON.stringify(newItems) !== JSON.stringify(this.items);
+        
+        if (!hasChanged) return false;
+
+        // Check if current selection is still valid
+        const needsSelectionReset = this.shouldResetSelection(newItems);
+        
+        this.items = newItems;
+        this.invalidateCache(); // Clear DOM cache
+        
+        if (needsSelectionReset) {
+            this.resetSelection();
+        }
+        
+        this.currentIndex = 0;
+        
+        if (this.galleryContainer) {
+            this.renderItems();
+            this.updateNavigation();
+        }
+        
+        return true;
+    }
+
+    shouldResetSelection(newItems) {
+        if (this.selectedItem === null || !this.items[this.selectedItem]) {
+            return false;
+        }
+        
+        const currentSelection = this.items[this.selectedItem];
+        return !newItems.some(item => item.id === currentSelection.id);
+    }
+
+    resetSelection() {
+        this.selectedItem = null;
+        this.selectedItems = [];
+        this.handleChange();
+    }
+
+    startAutoUpdate() {
+        if (!this.filterConfig.dependsOn) return;
+        
+        this.cleanupAutoUpdate();
+        
+        this.autoUpdateInterval = setInterval(() => {
+            if (this.items.length === 0 || this.filterConfig.alwaysMonitor) {
+                this.autoPopulateItems();
+            }
+        }, this.filterConfig.monitorInterval);
+        
+        // Auto-stop monitoring after duration (unless alwaysMonitor is true)
+        if (!this.filterConfig.alwaysMonitor) {
+            setTimeout(() => {
+                this.cleanupAutoUpdate();
+            }, this.filterConfig.monitorDuration);
+        }
+    }
+
+    cleanupAutoUpdate() {
+        if (this.autoUpdateInterval) {
+            clearInterval(this.autoUpdateInterval);
+            this.autoUpdateInterval = null;
+        }
+    }
+
+    restartMonitoring() {
+        this.startAutoUpdate();
+        this.autoPopulateItems();
+    }
+
+    triggerUpdate() {
+        this.autoPopulateItems();
     }
 }
 // ============================================================================
