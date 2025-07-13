@@ -13641,21 +13641,7 @@ class BaseCarouselField extends BaseField {
     createHeader() {
         const header = document.createElement('div');
         header.className = 'carousel-header';
-        
-        if (this.title) {
-            const title = document.createElement('h3');
-            title.className = 'carousel-title';
-            title.textContent = this.title;
-            header.appendChild(title);
-        }
-        
-        if (this.subtitle) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-subtitle';
-            subtitle.textContent = this.subtitle;
-            header.appendChild(subtitle);
-        }
-        
+               
         return header;
     }
 
