@@ -13564,9 +13564,21 @@ class BaseCarouselField extends BaseField {
         const newItemsPerView = this.getItemsPerView();
         if (newItemsPerView !== this.itemsPerView) {
             this.itemsPerView = newItemsPerView;
-            this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.items.length - this.itemsPerView));
+            
+            // Reset current index, but consider centering
+            const shouldCenter = this.items.length <= this.itemsPerView;
+            if (shouldCenter) {
+                this.currentIndex = 0;
+            } else {
+                this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.items.length - this.itemsPerView));
+            }
+            
+            // Update container sizing for new viewport
+            this.updateContainerSizing();
             this.updateTrackPosition();
             this.updateNavigationState();
+            
+            console.log(`📱 RESIZE: ${this.itemsPerView} cards per view, ${this.items.length} total cards`);
         }
     }
 
@@ -13696,6 +13708,7 @@ class BaseCarouselField extends BaseField {
         
         if (this.items.length === 0) {
             this.renderEmptyState();
+            this.updateContainerSizing();
             return;
         }
         
@@ -13707,7 +13720,36 @@ class BaseCarouselField extends BaseField {
         });
         
         this.track.appendChild(fragment);
+        this.updateContainerSizing();
         this.updateTrackPosition();
+    }
+
+    updateContainerSizing() {
+        if (!this.galleryContainer) return;
+        
+        const carouselContainer = this.galleryContainer.querySelector('.carousel-cards-container');
+        if (!carouselContainer) return;
+        
+        // Remove existing sizing classes
+        carouselContainer.classList.remove('container-1-card', 'container-2-cards');
+        
+        // Add appropriate sizing class based on number of items and viewport
+        if (this.items.length === 0) {
+            // Keep default size for empty state
+            return;
+        }
+        
+        const shouldCenter = this.items.length <= this.itemsPerView;
+        
+        if (shouldCenter) {
+            if (this.items.length === 1) {
+                carouselContainer.classList.add('container-1-card');
+                console.log('📦 CONTAINER: Sized for 1 card (centered)');
+            } else if (this.items.length === 2 && this.itemsPerView >= 2) {
+                carouselContainer.classList.add('container-2-cards');
+                console.log('📦 CONTAINER: Sized for 2 cards (centered)');
+            }
+        }
     }
 
     renderEmptyState() {
@@ -13881,11 +13923,23 @@ class BaseCarouselField extends BaseField {
     updateTrackPosition() {
         if (!this.track || this.items.length === 0) return;
         
-        const cardWidth = this.getCardWidth();
-        const translateX = -(this.currentIndex * (cardWidth + this.gap));
+        // Check if we should center the cards
+        const shouldCenter = this.items.length <= this.itemsPerView;
         
-        // Use transform3d for better performance
-        this.track.style.transform = `translate3d(${translateX}px, 0, 0)`;
+        if (shouldCenter) {
+            // Center the cards
+            this.track.classList.add('centered');
+            this.track.style.transform = 'none';
+            console.log(`🎯 CENTERING: ${this.items.length} cards (capacity: ${this.itemsPerView})`);
+        } else {
+            // Normal sliding behavior
+            this.track.classList.remove('centered');
+            const cardWidth = this.getCardWidth();
+            const translateX = -(this.currentIndex * (cardWidth + this.gap));
+            
+            // Use transform3d for better performance
+            this.track.style.transform = `translate3d(${translateX}px, 0, 0)`;
+        }
     }
 
     updateNavigation() {
@@ -13896,15 +13950,20 @@ class BaseCarouselField extends BaseField {
         if (!this.prevButton || !this.nextButton) return;
         
         const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
-        const shouldShow = this.items.length > this.itemsPerView;
+        const shouldShowNavigation = this.items.length > this.itemsPerView;
+        const shouldCenter = this.items.length <= this.itemsPerView;
         
         // Update button states
         this.prevButton.disabled = this.currentIndex === 0;
         this.nextButton.disabled = this.currentIndex >= maxSlides;
         
-        // Show/hide buttons
-        this.prevButton.style.display = shouldShow ? 'flex' : 'none';
-        this.nextButton.style.display = shouldShow ? 'flex' : 'none';
+        // Show/hide buttons - hide when centered or not enough items
+        this.prevButton.style.display = shouldShowNavigation && !shouldCenter ? 'flex' : 'none';
+        this.nextButton.style.display = shouldShowNavigation && !shouldCenter ? 'flex' : 'none';
+        
+        if (shouldCenter) {
+            console.log(`🎯 NAVIGATION: Hidden (${this.items.length} cards centered)`);
+        }
     }
 
     getValue() {
