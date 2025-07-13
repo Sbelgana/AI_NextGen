@@ -13493,6 +13493,652 @@ class ServiceProviderCalendarField extends BaseField {
         super.destroy();
     }
 }
+
+// Base Carousel Class - Contains all shared functionality
+class BaseCarouselField extends BaseField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.config = config;
+        this.items = config.items || [];
+        this.selectedItem = null;
+        this.currentIndex = 0;
+        this.showNavigation = config.showNavigation !== false;
+        this.title = config.title || '';
+        this.subtitle = config.subtitle || '';
+        this.itemType = config.itemType || 'generic';
+        this.allowMultiple = config.allowMultiple || false;
+        this.selectedItems = [];
+        this.showDetails = config.showDetails !== false;
+        
+        // Responsive configuration
+        this.responsiveConfig = {
+            mobile: { itemsPerView: 1, cardWidth: 200 },
+            tablet: { itemsPerView: 2, cardWidth: 220 },
+            desktop: { itemsPerView: 3, cardWidth: 250 },
+            ...config.responsiveConfig
+        };
+        
+        this.itemsPerView = this.getItemsPerView();
+        this.gap = 16;
+        
+        // Cache DOM queries
+        this.domCache = new Map();
+        
+        // Bind methods once with debouncing
+        this.handleResize = this.debounce(this.handleResize.bind(this), 150);
+        this.selectItem = this.selectItem.bind(this);
+    }
+
+    // Utility method for debouncing
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Responsive breakpoint detection
+    getBreakpoint() {
+        const width = window.innerWidth;
+        if (width < 768) return 'mobile';
+        if (width < 1024) return 'tablet';
+        return 'desktop';
+    }
+
+    getItemsPerView() {
+        const breakpoint = this.getBreakpoint();
+        return this.responsiveConfig[breakpoint].itemsPerView;
+    }
+
+    getCardWidth() {
+        const breakpoint = this.getBreakpoint();
+        return this.responsiveConfig[breakpoint].cardWidth;
+    }
+
+    handleResize() {
+        const newItemsPerView = this.getItemsPerView();
+        if (newItemsPerView !== this.itemsPerView) {
+            this.itemsPerView = newItemsPerView;
+            this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.items.length - this.itemsPerView));
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    render() {
+        this.container = this.createContainer();
+        this.container.className += ' carousel-field';
+        this.createCarouselStructure();
+        this.setupEventListeners();
+        this.renderItems();
+        this.updateNavigation();
+        this.postRender(); // Hook for subclasses
+        
+        return this.container;
+    }
+
+    // Hook for subclasses to override
+    postRender() {}
+
+    createCarouselStructure() {
+        const fragment = document.createDocumentFragment();
+        
+        this.galleryContainer = document.createElement('div');
+        this.galleryContainer.className = 'carousel-gallery-container';
+        
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'carousel-content-wrapper';
+        
+        // Header section
+        if (this.title || this.subtitle) {
+            contentWrapper.appendChild(this.createHeader());
+        }
+
+        // Carousel section
+        const carouselWrapper = document.createElement('div');
+        carouselWrapper.className = 'carousel-image-container';
+        
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-cards-container';
+        
+        this.track = document.createElement('div');
+        this.track.className = 'carousel-track';
+        carouselContainer.appendChild(this.track);
+        carouselWrapper.appendChild(carouselContainer);
+
+        // Navigation buttons
+        if (this.showNavigation) {
+            const { prevButton, nextButton } = this.createNavigationButtons();
+            this.prevButton = prevButton;
+            this.nextButton = nextButton;
+            carouselWrapper.appendChild(prevButton);
+            carouselWrapper.appendChild(nextButton);
+        }
+
+        contentWrapper.appendChild(carouselWrapper);
+        this.galleryContainer.appendChild(contentWrapper);
+        fragment.appendChild(this.galleryContainer);
+        this.container.appendChild(fragment);
+    }
+
+    createHeader() {
+        const header = document.createElement('div');
+        header.className = 'carousel-header';
+        
+        if (this.title) {
+            const title = document.createElement('h3');
+            title.className = 'carousel-title';
+            title.textContent = this.title;
+            header.appendChild(title);
+        }
+        
+        if (this.subtitle) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-subtitle';
+            subtitle.textContent = this.subtitle;
+            header.appendChild(subtitle);
+        }
+        
+        return header;
+    }
+
+    createNavigationButtons() {
+        const prevButton = document.createElement('button');
+        prevButton.type = 'button';
+        prevButton.className = 'carousel-nav-btn carousel-prev-btn';
+        prevButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>';
+        prevButton.setAttribute('aria-label', 'Previous');
+
+        const nextButton = document.createElement('button');
+        nextButton.type = 'button';
+        nextButton.className = 'carousel-nav-btn carousel-next-btn';
+        nextButton.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>';
+        nextButton.setAttribute('aria-label', 'Next');
+
+        return { prevButton, nextButton };
+    }
+
+    setupEventListeners() {
+        // Navigation events
+        if (this.prevButton && this.nextButton) {
+            this.prevButton.addEventListener('click', this.createNavigationHandler('prev'));
+            this.nextButton.addEventListener('click', this.createNavigationHandler('next'));
+        }
+
+        // Resize event
+        window.addEventListener('resize', this.handleResize);
+        
+        // Additional listeners for subclasses
+        this.setupAdditionalListeners();
+    }
+
+    // Hook for subclasses
+    setupAdditionalListeners() {}
+
+    createNavigationHandler(direction) {
+        return (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            direction === 'prev' ? this.previousSlide() : this.nextSlide();
+        };
+    }
+
+    renderItems() {
+        if (!this.track) return;
+        
+        // Clear existing items
+        this.track.innerHTML = '';
+        
+        if (this.items.length === 0) {
+            this.renderEmptyState();
+            return;
+        }
+        
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
+        this.items.forEach((item, index) => {
+            const itemElement = this.createItemElement(item, index);
+            fragment.appendChild(itemElement);
+        });
+        
+        this.track.appendChild(fragment);
+        this.updateTrackPosition();
+    }
+
+    renderEmptyState() {
+        const emptyMessage = document.createElement('div');
+        emptyMessage.className = 'carousel-empty-message';
+        emptyMessage.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-message">${this.getEmptyMessage()}</div>
+                ${this.getEmptySubMessage() ? `<div class="empty-submessage">${this.getEmptySubMessage()}</div>` : ''}
+            </div>
+        `;
+        this.track.appendChild(emptyMessage);
+    }
+
+    // Hooks for subclasses to customize empty state
+    getEmptyMessage() {
+        return this.config.emptyMessage || 'No items available';
+    }
+
+    getEmptySubMessage() {
+        return '';
+    }
+
+    createItemElement(item, index) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'carousel-item';
+        itemEl.dataset.index = index;
+
+        // Image
+        if (item.image) {
+            itemEl.appendChild(this.createItemImage(item));
+        }
+
+        // Content
+        itemEl.appendChild(this.createItemContent(item));
+        
+        // Event listener
+        itemEl.addEventListener('click', () => this.selectItem(index));
+        
+        return itemEl;
+    }
+
+    createItemImage(item) {
+        const img = document.createElement('img');
+        img.className = 'carousel-item-image';
+        img.src = item.image;
+        img.alt = item.title || item.name || '';
+        img.loading = 'lazy'; // Performance improvement
+        img.addEventListener('error', () => {
+            img.style.display = 'none';
+        });
+        return img;
+    }
+
+    createItemContent(item) {
+        const content = document.createElement('div');
+        content.className = 'carousel-item-content';
+
+        // Title
+        if (item.title || item.name) {
+            const title = document.createElement('h4');
+            title.className = 'carousel-item-title';
+            title.textContent = item.title || item.name;
+            content.appendChild(title);
+        }
+
+        // Subtitle
+        if (item.position || item.category) {
+            const subtitle = document.createElement('p');
+            subtitle.className = 'carousel-item-subtitle';
+            subtitle.textContent = item.position || item.category;
+            content.appendChild(subtitle);
+        }
+
+        // Description
+        if (item.description) {
+            const desc = document.createElement('p');
+            desc.className = 'carousel-item-description';
+            desc.textContent = item.description;
+            content.appendChild(desc);
+        }
+
+        // Details
+        if (this.showDetails) {
+            const details = this.createItemDetails(item);
+            if (details.children.length > 0) {
+                content.appendChild(details);
+            }
+        }
+
+        return content;
+    }
+
+    createItemDetails(item) {
+        const details = document.createElement('div');
+        details.className = 'carousel-item-details';
+
+        const detailItems = [
+            { key: 'price', value: item.price, className: 'carousel-item-price' },
+            { key: 'duration', value: item.duration, className: 'carousel-item-duration' },
+            { key: 'experience', value: item.experience ? `${item.experience} années d'expérience` : null, className: 'carousel-item-experience' }
+        ];
+
+        detailItems.forEach(({ value, className }) => {
+            if (value) {
+                const span = document.createElement('span');
+                span.className = className;
+                span.textContent = value;
+                details.appendChild(span);
+            }
+        });
+
+        return details;
+    }
+
+    selectItem(index) {
+        if (this.allowMultiple) {
+            this.toggleMultipleSelection(index);
+        } else {
+            this.setSingleSelection(index);
+        }
+
+        this.updateSelection();
+        this.handleChange();
+    }
+
+    toggleMultipleSelection(index) {
+        const existingIndex = this.selectedItems.indexOf(index);
+        if (existingIndex > -1) {
+            this.selectedItems.splice(existingIndex, 1);
+        } else {
+            this.selectedItems.push(index);
+        }
+    }
+
+    setSingleSelection(index) {
+        this.selectedItem = index;
+        this.selectedItems = [index];
+    }
+
+    updateSelection() {
+        // Use cached query if available
+        let items = this.domCache.get('carousel-items');
+        if (!items) {
+            items = this.track.querySelectorAll('.carousel-item');
+            this.domCache.set('carousel-items', items);
+        }
+
+        items.forEach((item, index) => {
+            item.classList.toggle('selected', this.selectedItems.includes(index));
+        });
+    }
+
+    nextSlide() {
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    previousSlide() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.updateTrackPosition();
+            this.updateNavigationState();
+        }
+    }
+
+    updateTrackPosition() {
+        if (!this.track || this.items.length === 0) return;
+        
+        const cardWidth = this.getCardWidth();
+        const translateX = -(this.currentIndex * (cardWidth + this.gap));
+        
+        // Use transform3d for better performance
+        this.track.style.transform = `translate3d(${translateX}px, 0, 0)`;
+    }
+
+    updateNavigation() {
+        this.updateNavigationState();
+    }
+
+    updateNavigationState() {
+        if (!this.prevButton || !this.nextButton) return;
+        
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        const shouldShow = this.items.length > this.itemsPerView;
+        
+        // Update button states
+        this.prevButton.disabled = this.currentIndex === 0;
+        this.nextButton.disabled = this.currentIndex >= maxSlides;
+        
+        // Show/hide buttons
+        this.prevButton.style.display = shouldShow ? 'flex' : 'none';
+        this.nextButton.style.display = shouldShow ? 'flex' : 'none';
+    }
+
+    getValue() {
+        if (this.allowMultiple) {
+            return this.selectedItems.map(index => this.items[index]).filter(Boolean);
+        } else {
+            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+        }
+    }
+
+    setValue(value) {
+        if (this.allowMultiple && Array.isArray(value)) {
+            this.selectedItems = value
+                .map(item => this.items.findIndex(i => i.id === item.id))
+                .filter(index => index !== -1);
+        } else if (value) {
+            this.selectedItem = this.items.findIndex(item => item.id === value.id);
+            this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
+        } else {
+            this.selectedItem = null;
+            this.selectedItems = [];
+        }
+        this.updateSelection();
+    }
+
+    validate() {
+        if (this.required && this.selectedItems.length === 0) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        this.hideError();
+        return true;
+    }
+
+    cleanup() {
+        // Clear intervals and timeouts
+        this.cleanupAutoUpdate();
+        
+        // Remove event listeners
+        window.removeEventListener('resize', this.handleResize);
+        
+        // Clear DOM cache
+        this.domCache.clear();
+        
+        super.cleanup();
+    }
+
+    // Hook for subclasses
+    cleanupAutoUpdate() {}
+
+    // Invalidate DOM cache when items change
+    invalidateCache() {
+        this.domCache.clear();
+    }
+}
+
+// Regular Carousel Field - Thin wrapper
+class CarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.container?.classList.add('standard-carousel');
+    }
+}
+
+// Dynamic Filtered Carousel Field - Direct Event-Driven Solution
+class FilteredCarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Simplified filtering configuration - no monitoring
+        this.filterConfig = {
+            dependsOn: null,
+            dataSource: [],
+            filterFunction: null,
+            waitingMessage: 'Please make a selection first',
+            ...config.filterConfig
+        };
+
+        this._lastDependencyValue = null;
+        this.container?.classList.add('filtered-carousel');
+        
+        // Register this field for direct updates
+        this.registerForDependencyUpdates();
+    }
+
+    registerForDependencyUpdates() {
+        if (!this.filterConfig.dependsOn) return;
+        
+        // Register this field in a global registry for direct updates
+        if (!window._fieldDependencyRegistry) {
+            window._fieldDependencyRegistry = new Map();
+        }
+        
+        const dependsOn = this.filterConfig.dependsOn;
+        if (!window._fieldDependencyRegistry.has(dependsOn)) {
+            window._fieldDependencyRegistry.set(dependsOn, new Set());
+        }
+        
+        window._fieldDependencyRegistry.get(dependsOn).add(this);
+        
+        console.log(`🔗 DYNAMIC FILTER [${this.name}]: Registered for ${dependsOn} updates`);
+    }
+
+    postRender() {
+        // Try to populate immediately if dependency value already exists
+        this.updateFromDependency();
+    }
+
+    getEmptyMessage() {
+        return this.filterConfig.dependsOn ? 
+            this.filterConfig.waitingMessage : 
+            this.config.emptyMessage || 'No items available';
+    }
+
+    getEmptySubMessage() {
+        return '';
+    }
+
+    // Direct update method called when dependency changes
+    updateFromDependency(dependencyValue = null) {
+        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
+            console.warn(`🔄 DYNAMIC FILTER [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
+            return false;
+        }
+        
+        // Get current dependency value if not provided
+        if (dependencyValue === null) {
+            dependencyValue = this.getCurrentDependencyValue();
+        }
+        
+        console.log(`🔄 DYNAMIC FILTER [${this.name}]: Updating for dependency:`, dependencyValue);
+        
+        // Skip if same value as before
+        if (dependencyValue && this._lastDependencyValue && 
+            JSON.stringify(dependencyValue) === JSON.stringify(this._lastDependencyValue)) {
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Same dependency value, skipping update`);
+            return false;
+        }
+        
+        this._lastDependencyValue = dependencyValue;
+        
+        if (dependencyValue) {
+            const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Filtered to ${filteredItems.length} items`);
+            return this.updateItems(filteredItems);
+        } else {
+            // Clear items if no dependency value
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Clearing items - no dependency value`);
+            return this.updateItems([]);
+        }
+    }
+
+    getCurrentDependencyValue() {
+        // Direct access to form values
+        const formData = this.factory?.getFormData?.() || 
+                        this.factory?.currentMultiStepForm?.getFormData?.() || 
+                        this.factory?.formValues || {};
+        
+        return formData[this.filterConfig.dependsOn];
+    }
+
+    updateItems(newItems) {
+        const hasChanged = newItems.length !== this.items.length || 
+                          JSON.stringify(newItems) !== JSON.stringify(this.items);
+        
+        if (!hasChanged) return false;
+
+        // Check if current selection is still valid
+        const needsSelectionReset = this.shouldResetSelection(newItems);
+        
+        this.items = newItems;
+        this.invalidateCache(); // Clear DOM cache
+        
+        if (needsSelectionReset) {
+            this.resetSelection();
+        }
+        
+        this.currentIndex = 0;
+        
+        if (this.galleryContainer) {
+            this.renderItems();
+            this.updateNavigation();
+        }
+        
+        return true;
+    }
+
+    shouldResetSelection(newItems) {
+        if (this.selectedItem === null || !this.items[this.selectedItem]) {
+            return false;
+        }
+        
+        const currentSelection = this.items[this.selectedItem];
+        return !newItems.some(item => item.id === currentSelection.id);
+    }
+
+    resetSelection() {
+        this.selectedItem = null;
+        this.selectedItems = [];
+        this.handleChange();
+    }
+
+    // Clean up when field is destroyed
+    cleanup() {
+        if (window._fieldDependencyRegistry && this.filterConfig.dependsOn) {
+            const dependsOn = this.filterConfig.dependsOn;
+            const registry = window._fieldDependencyRegistry.get(dependsOn);
+            if (registry) {
+                registry.delete(this);
+                if (registry.size === 0) {
+                    window._fieldDependencyRegistry.delete(dependsOn);
+                }
+            }
+        }
+        super.cleanup();
+    }
+}
+
+// Global function to notify dependent fields of changes
+window.notifyFieldDependents = function(fieldName, newValue) {
+    if (!window._fieldDependencyRegistry) return;
+    
+    const dependentFields = window._fieldDependencyRegistry.get(fieldName);
+    if (!dependentFields) return;
+    
+    console.log(`🔗 DEPENDENCY UPDATE: Notifying ${dependentFields.size} fields that ${fieldName} changed`);
+    
+    dependentFields.forEach(field => {
+        if (field && field.updateFromDependency) {
+            field.updateFromDependency(newValue);
+        }
+    });
+};
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
