@@ -8895,53 +8895,76 @@ class CreatForm {
  * Enhanced CalendarField - Base class with optional service/provider selection
  * Replaces the need for three separate classes with configuration-driven approach
  */
-class CategoryItemFilterField extends BaseField {
-            constructor(config, translations, options) {
-                this.config = config;
-                this.translations = translations;
-                this.options = options;
+        class CategoryItemFilterField extends BaseField {
+            constructor(factory, config, translations, options) {
+                // Must call super() first when extending a class
+                super(factory, config);
+                
+                // Now we can use this
+                this.translations = translations || this.factory?.translations || {};
+                this.options = options || this.factory?.options || {};
                 this.categoryItems = this.resolveCategoryItems();
                 this.value = {
                     category: null,
                     item: null
                 };
-                this.isValid = !config.required;
-                this.element = null;
+                // isValid might be set by parent class, so check first
+                if (this.isValid === undefined) {
+                    this.isValid = !this.config.required;
+                }
                 this.categorySelect = null;
                 this.itemSelect = null;
                 
-                // Get language from config or translations
-                this.language = config.language || (translations && Object.keys(translations)[0]) || 'fr';
+                // Get language from multiple sources in priority order
+                this.language = this.config.language || 
+                               this.factory?.language ||
+                               this.factory?.form?.language ||
+                               (window.CreatForm && window.CreatForm.currentLanguage) ||
+                               (this.translations && Object.keys(this.translations)[0]) || 
+                               'fr';
+                
+                console.log('CategoryItemFilterField - Language detected:', this.language);
                 
                 // Handle language-aware labels
-                if (config.getCategoryLabel && typeof config.getCategoryLabel === 'function') {
-                    this.categoryLabel = config.getCategoryLabel(this.language);
+                if (this.config.getCategoryLabel && typeof this.config.getCategoryLabel === 'function') {
+                    this.categoryLabel = this.config.getCategoryLabel(this.language);
                 } else {
-                    this.categoryLabel = config.categoryLabel || translations?.fields?.category || 'Category';
+                    this.categoryLabel = this.config.categoryLabel || this.translations?.fields?.category || 'Category';
                 }
                 
-                if (config.getItemLabel && typeof config.getItemLabel === 'function') {
-                    this.itemLabel = config.getItemLabel(this.language);
+                if (this.config.getItemLabel && typeof this.config.getItemLabel === 'function') {
+                    this.itemLabel = this.config.getItemLabel(this.language);
                 } else {
-                    this.itemLabel = config.itemLabel || translations?.fields?.item || 'Item';
+                    this.itemLabel = this.config.itemLabel || this.translations?.fields?.item || 'Item';
                 }
                 
-                if (config.getCategoryPlaceholder && typeof config.getCategoryPlaceholder === 'function') {
-                    this.categoryPlaceholder = config.getCategoryPlaceholder(this.language);
+                if (this.config.getCategoryPlaceholder && typeof this.config.getCategoryPlaceholder === 'function') {
+                    this.categoryPlaceholder = this.config.getCategoryPlaceholder(this.language);
                 } else {
-                    this.categoryPlaceholder = config.categoryPlaceholder || '-- Select --';
+                    this.categoryPlaceholder = this.config.categoryPlaceholder || '-- Select --';
                 }
                 
-                if (config.getItemPlaceholder && typeof config.getItemPlaceholder === 'function') {
-                    this.itemPlaceholder = config.getItemPlaceholder(this.language);
+                if (this.config.getItemPlaceholder && typeof this.config.getItemPlaceholder === 'function') {
+                    this.itemPlaceholder = this.config.getItemPlaceholder(this.language);
                 } else {
-                    this.itemPlaceholder = config.itemPlaceholder || '-- Select --';
+                    this.itemPlaceholder = this.config.itemPlaceholder || '-- Select --';
                 }
+                
+                console.log('CategoryItemFilterField - Labels set:', {
+                    categoryLabel: this.categoryLabel,
+                    itemLabel: this.itemLabel,
+                    categoryPlaceholder: this.categoryPlaceholder,
+                    itemPlaceholder: this.itemPlaceholder
+                });
             }
 
             resolveCategoryItems() {
                 if (typeof this.config.categoryItems === 'string') {
-                    return this.options?.[this.config.categoryItems] || {};
+                    // If it's a string reference, try to get it from options
+                    return this.options?.[this.config.categoryItems] || 
+                           this.factory?.formData?.[this.config.categoryItems] ||
+                           this.factory?.data?.[this.config.categoryItems] ||
+                           ContactFormExtension.FORM_DATA[this.config.categoryItems] || {};
                 }
                 return this.config.categoryItems || {};
             }
@@ -9047,7 +9070,7 @@ class CategoryItemFilterField extends BaseField {
                 this.value.item = null;
                 
                 // Reset item select
-                this.itemSelect.innerHTML = `<option value="">${this.config.itemPlaceholder || '-- Select --'}</option>`;
+                this.itemSelect.innerHTML = `<option value="">${this.itemPlaceholder}</option>`;
                 this.itemSelect.disabled = !selectedCategory;
                 
                 if (selectedCategory) {
@@ -9149,6 +9172,7 @@ class CategoryItemFilterField extends BaseField {
                 }
             }
         }
+
 
 class CalendarField extends BaseField {
     constructor(factory, config) {
