@@ -8896,282 +8896,654 @@ class CreatForm {
  * Replaces the need for three separate classes with configuration-driven approach
  */
         class CategoryItemFilterField extends BaseField {
-            constructor(factory, config, translations, options) {
-                // Must call super() first when extending a class
-                super(factory, config);
-                
-                // Now we can use this
-                this.translations = translations || this.factory?.translations || {};
-                this.options = options || this.factory?.options || {};
-                this.categoryItems = this.resolveCategoryItems();
-                this.value = {
-                    category: null,
-                    item: null
-                };
-                // isValid might be set by parent class, so check first
-                if (this.isValid === undefined) {
-                    this.isValid = !this.config.required;
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Core configuration
+        this.language = config.language || 'fr';
+        this.mode = config.mode || 'both'; // 'category-only', 'item-only', 'both'
+        
+        // Data configuration - Handle data reference
+        if (typeof config.categoryItems === 'string') {
+            // Reference to data in form - need to get it from factory or form
+            this.rawCategoryItems = this.factory.getFormData?.(config.categoryItems) ||
+                this.factory.formData?.[config.categoryItems] ||
+                this.factory.data?.[config.categoryItems] || {};
+        } else {
+            this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
+        }
+        
+        this.availableCategories = [];
+        this.filteredItems = [];
+        this.allItems = [];
+        
+        // Selection state
+        this.selectedCategory = config.selectedCategory || config.categoryName || '';
+        this.selectedItemId = config.selectedItemId || '';
+        this.selectedItem = null;
+        
+        // UI Configuration - ALL text must come from config
+        this.categoryLabel = config.categoryLabel || 'Category';
+        this.categoryPlaceholder = config.categoryPlaceholder || '-- Select --';
+        this.itemLabel = config.itemLabel || 'Item';
+        this.itemPlaceholder = config.itemPlaceholder || '-- Select --';
+        
+        // Error messages from config
+        this.categoryErrorMessage = config.categoryErrorMessage || config.customErrorMessage || 'Please select a category';
+        this.itemErrorMessage = config.itemErrorMessage || config.customErrorMessage || 'Please select an item';
+        
+        // Show/hide options
+        this.showCategoryField = config.showCategoryField !== false && (this.mode === 'both' || this.mode === 'category-only');
+        this.showItemField = config.showItemField !== false && (this.mode === 'both' || this.mode === 'item-only');
+        
+        // Auto-selection behavior
+        this.autoSelectSingleCategory = config.autoSelectSingleCategory !== false;
+        this.autoSelectSingleItem = config.autoSelectSingleItem !== false;
+        
+        // Callback functions
+        this.onCategoryChange = config.onCategoryChange || null;
+        this.onItemChange = config.onItemChange || null;
+        this.onSelectionComplete = config.onSelectionComplete || null;
+        
+        // Summary display function
+        this.getSummaryDisplay = config.getSummaryDisplay || null;
+        this.renderSeparateSummaryFields = config.renderSeparateSummaryFields || false;
+        
+        // Field instances
+        this.categorySelectField = null;
+        this.itemSelectField = null;
+        
+        this.init();
+    }
+    
+    // Method to get data from form context
+    getDataFromForm() {
+        if (this.factory && this.factory.form && this.factory.form.data) {
+            return this.factory.form.data.categoryItems || {};
+        }
+        if (window.ContactFormExtension && window.ContactFormExtension.FORM_DATA) {
+            return window.ContactFormExtension.FORM_DATA.categoryItems || {};
+        }
+        return this.rawCategoryItems;
+    }
+    
+    init() {
+        // Ensure we have the correct data
+        if (!this.rawCategoryItems || Object.keys(this.rawCategoryItems).length === 0) {
+            this.rawCategoryItems = this.getDataFromForm();
+        }
+        
+        this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
+        this.allItems = this.extractAllItems(this.rawCategoryItems);
+        
+        if (this.autoSelectSingleCategory && this.availableCategories.length === 1 && !this.selectedCategory) {
+            this.selectedCategory = this.availableCategories[0].name;
+        }
+        
+        if (this.selectedCategory) {
+            this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
+            if (this.autoSelectSingleItem && this.filteredItems.length === 1 && !this.selectedItemId) {
+                this.selectedItemId = this.filteredItems[0].id;
+                this.selectedItem = this.filteredItems[0];
+            }
+        } else {
+            this.filteredItems = this.allItems;
+        }
+        
+        if (this.selectedItemId && !this.selectedItem) {
+            this.selectedItem = this.filteredItems.find(p => p.id === this.selectedItemId);
+        }
+    }
+    
+    extractAvailableCategories(rawItems) {
+        const categorySet = new Set();
+        try {
+            // Handle object format: { 'Item Name': { categories: {...} } }
+            Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                if (itemData && itemData.categories) {
+                    Object.keys(itemData.categories).forEach(category => {
+                        categorySet.add(category);
+                    });
                 }
-                this.categorySelect = null;
-                this.itemSelect = null;
-                
-                // Get language from multiple sources in priority order
-                this.language = this.config.language || 
-                               this.factory?.language ||
-                               this.factory?.form?.language ||
-                               (window.CreatForm && window.CreatForm.currentLanguage) ||
-                               (this.translations && Object.keys(this.translations)[0]) || 
-                               'fr';
-                
-                console.log('CategoryItemFilterField - Language detected:', this.language);
-                
-                // Handle language-aware labels
-                if (this.config.getCategoryLabel && typeof this.config.getCategoryLabel === 'function') {
-                    this.categoryLabel = this.config.getCategoryLabel(this.language);
-                } else {
-                    this.categoryLabel = this.config.categoryLabel || this.translations?.fields?.category || 'Category';
+            });
+        } catch (error) {
+            console.error('Error extracting categories:', error);
+        }
+        
+        const categories = Array.from(categorySet)
+            .sort()
+            .map(category => ({
+                id: this.slugify(category),
+                name: category,
+                displayName: category
+            }));
+        
+        return categories;
+    }
+    
+    extractAllItems(rawItems) {
+        const allItems = [];
+        try {
+            Object.entries(rawItems).forEach(([itemName, itemData]) => {
+                if (itemData) {
+                    allItems.push({
+                        id: this.slugify(itemName),
+                        name: itemName,
+                        displayName: itemName,
+                        description: itemData.description || itemData.specialty || "",
+                        categories: itemData.categories || {},
+                        rawData: itemData
+                    });
                 }
-                
-                if (this.config.getItemLabel && typeof this.config.getItemLabel === 'function') {
-                    this.itemLabel = this.config.getItemLabel(this.language);
-                } else {
-                    this.itemLabel = this.config.itemLabel || this.translations?.fields?.item || 'Item';
-                }
-                
-                if (this.config.getCategoryPlaceholder && typeof this.config.getCategoryPlaceholder === 'function') {
-                    this.categoryPlaceholder = this.config.getCategoryPlaceholder(this.language);
-                } else {
-                    this.categoryPlaceholder = this.config.categoryPlaceholder || '-- Select --';
-                }
-                
-                if (this.config.getItemPlaceholder && typeof this.config.getItemPlaceholder === 'function') {
-                    this.itemPlaceholder = this.config.getItemPlaceholder(this.language);
-                } else {
-                    this.itemPlaceholder = this.config.itemPlaceholder || '-- Select --';
-                }
-                
-                console.log('CategoryItemFilterField - Labels set:', {
-                    categoryLabel: this.categoryLabel,
-                    itemLabel: this.itemLabel,
-                    categoryPlaceholder: this.categoryPlaceholder,
-                    itemPlaceholder: this.itemPlaceholder
+            });
+        } catch (error) {
+            console.error('Error extracting items:', error);
+        }
+        
+        return allItems;
+    }
+    
+    filterItemsByCategory(categoryName) {
+        if (!categoryName || !this.rawCategoryItems) {
+            return this.allItems;
+        }
+        
+        const filteredItems = [];
+        Object.entries(this.rawCategoryItems).forEach(([itemName, itemData]) => {
+            if (itemData.categories && itemData.categories[categoryName]) {
+                const categoryConfig = itemData.categories[categoryName];
+                filteredItems.push({
+                    id: this.slugify(itemName),
+                    name: itemName,
+                    displayName: itemName,
+                    description: itemData.description || itemData.specialty || "",
+                    categoryConfig: categoryConfig,
+                    allCategories: itemData.categories,
+                    rawData: itemData
                 });
             }
-
-            resolveCategoryItems() {
-                if (typeof this.config.categoryItems === 'string') {
-                    // If it's a string reference, try to get it from options
-                    return this.options?.[this.config.categoryItems] || 
-                           this.factory?.formData?.[this.config.categoryItems] ||
-                           this.factory?.data?.[this.config.categoryItems] ||
-                           ContactFormExtension.FORM_DATA[this.config.categoryItems] || {};
-                }
-                return this.config.categoryItems || {};
-            }
-
-            getValue() {
-                return `${this.value.category || ''} - ${this.value.item || ''}`.trim();
-            }
-
-            getDataValue() {
-                const selectedItem = this.categoryItems[this.value.item];
-                return {
-                    selectedCategory: this.value.category,
-                    selectedItem: selectedItem ? {
-                        name: this.value.item,
-                        description: selectedItem.description,
-                        specialty: selectedItem.specialty
-                    } : null,
-                    displayText: this.getValue()
-                };
-            }
-
-            getSummaryFields() {
-                const fields = [];
-                if (this.value.category) {
-                    fields.push({
-                        label: this.translations.fields.category || 'Service',
-                        value: this.value.category
-                    });
-                }
-                if (this.value.item) {
-                    fields.push({
-                        label: this.translations.fields.item || 'Dentiste',
-                        value: this.value.item
-                    });
-                }
-                return fields;
-            }
-
-            render() {
-                const container = document.createElement('div');
-                container.className = 'category-item-filter-field';
-                
-                // Category selection
-                const categoryWrapper = document.createElement('div');
-                categoryWrapper.className = 'select-wrapper category-select-wrapper';
-                
-                const categoryLabel = document.createElement('label');
-                categoryLabel.textContent = this.categoryLabel;
-                categoryLabel.className = 'field-label';
-                
-                this.categorySelect = document.createElement('select');
-                this.categorySelect.className = 'form-select category-select';
-                this.categorySelect.innerHTML = `<option value="">${this.categoryPlaceholder}</option>`;
-                
-                // Get unique categories
-                const categories = new Set();
-                Object.values(this.categoryItems).forEach(item => {
-                    if (item.categories) {
-                        Object.keys(item.categories).forEach(cat => categories.add(cat));
-                    }
-                });
-                
-                Array.from(categories).sort().forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    this.categorySelect.appendChild(option);
-                });
-                
-                categoryWrapper.appendChild(categoryLabel);
-                categoryWrapper.appendChild(this.categorySelect);
-                
-                // Item selection
-                const itemWrapper = document.createElement('div');
-                itemWrapper.className = 'select-wrapper item-select-wrapper';
-                
-                const itemLabel = document.createElement('label');
-                itemLabel.textContent = this.itemLabel;
-                itemLabel.className = 'field-label';
-                
-                this.itemSelect = document.createElement('select');
-                this.itemSelect.className = 'form-select item-select';
-                this.itemSelect.innerHTML = `<option value="">${this.itemPlaceholder}</option>`;
-                this.itemSelect.disabled = true;
-                
-                itemWrapper.appendChild(itemLabel);
-                itemWrapper.appendChild(this.itemSelect);
-                
-                // Add event listeners
-                this.categorySelect.addEventListener('change', () => this.onCategoryChange());
-                this.itemSelect.addEventListener('change', () => this.onItemChange());
-                
-                container.appendChild(categoryWrapper);
-                container.appendChild(itemWrapper);
-                
-                this.element = container;
-                return container;
-            }
-
-            onCategoryChange() {
-                const selectedCategory = this.categorySelect.value;
-                this.value.category = selectedCategory || null;
-                this.value.item = null;
-                
-                // Reset item select
-                this.itemSelect.innerHTML = `<option value="">${this.itemPlaceholder}</option>`;
-                this.itemSelect.disabled = !selectedCategory;
-                
-                if (selectedCategory) {
-                    // Find items that offer this category
-                    const availableItems = Object.entries(this.categoryItems)
-                        .filter(([_, item]) => item.categories && item.categories[selectedCategory])
-                        .sort((a, b) => {
-                            const priorityA = a[1].categories[selectedCategory].priority || 999;
-                            const priorityB = b[1].categories[selectedCategory].priority || 999;
-                            return priorityA - priorityB;
-                        });
-                    
-                    availableItems.forEach(([itemName, itemData]) => {
-                        const option = document.createElement('option');
-                        option.value = itemName;
-                        option.textContent = `${itemName} - ${itemData.specialty}`;
-                        this.itemSelect.appendChild(option);
-                    });
-                }
-                
-                this.validate();
-                this.dispatchChangeEvent();
-            }
-
-            onItemChange() {
-                this.value.item = this.itemSelect.value || null;
-                this.validate();
-                this.dispatchChangeEvent();
-                
-                if (this.config.onSelectionComplete && this.value.category && this.value.item) {
-                    this.config.onSelectionComplete({
-                        category: this.value.category,
-                        item: this.value.item,
-                        itemData: this.categoryItems[this.value.item]
-                    });
-                }
-            }
-
-            validate() {
-                if (this.config.required) {
-                    this.isValid = !!(this.value.category && this.value.item);
-                } else {
-                    this.isValid = true;
-                }
-                
-                // Update visual state
-                if (this.categorySelect) {
-                    this.categorySelect.classList.toggle('error', this.config.required && !this.value.category);
-                }
-                if (this.itemSelect) {
-                    this.itemSelect.classList.toggle('error', this.config.required && this.value.category && !this.value.item);
-                }
-                
-                return this.isValid;
-            }
-
-            dispatchChangeEvent() {
-                if (this.element) {
-                    this.element.dispatchEvent(new CustomEvent('fieldChange', {
-                        bubbles: true,
-                        detail: { value: this.getValue(), field: this }
-                    }));
-                }
-            }
-
-            getError() {
-                if (!this.isValid) {
-                    return this.config.customErrorMessage || this.translations.errors.categoryItem || 'Please select both category and item';
-                }
-                return null;
-            }
-
-            setValue(value) {
-                if (typeof value === 'object' && value) {
-                    if (value.category) {
-                        this.categorySelect.value = value.category;
-                        this.onCategoryChange();
-                        if (value.item) {
-                            this.itemSelect.value = value.item;
-                            this.onItemChange();
-                        }
-                    }
-                }
-            }
-
-            reset() {
-                this.value = { category: null, item: null };
-                if (this.categorySelect) this.categorySelect.value = '';
-                if (this.itemSelect) {
-                    this.itemSelect.value = '';
-                    this.itemSelect.disabled = true;
-                }
-                this.isValid = !this.config.required;
-            }
-
-            destroy() {
-                if (this.element && this.element.parentNode) {
-                    this.element.parentNode.removeChild(this.element);
-                }
+        });
+        
+        return filteredItems;
+    }
+    
+    slugify(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+    
+    selectCategory(categoryId) {
+        const category = this.availableCategories.find(s => s.id === categoryId);
+        if (!category) {
+            console.error('Category not found:', categoryId);
+            return;
+        }
+        
+        this.selectedCategory = category.name;
+        this.filteredItems = this.filterItemsByCategory(category.name);
+        
+        if (this.selectedItemId) {
+            const stillValid = this.filteredItems.find(p => p.id === this.selectedItemId);
+            if (!stillValid) {
+                this.selectedItemId = '';
+                this.selectedItem = null;
             }
         }
+        
+        if (this.autoSelectSingleItem && this.filteredItems.length === 1) {
+            this.selectedItemId = this.filteredItems[0].id;
+            this.selectedItem = this.filteredItems[0];
+            if (this.itemSelectField) {
+                this.itemSelectField.setValue(this.selectedItemId);
+            }
+        }
+        
+        this.showItemSelection();
+        this.updateItemOptions();
+        
+        if (this.onCategoryChange) {
+            this.onCategoryChange(category, this.filteredItems);
+        }
+        
+        this.checkSelectionComplete();
+        this.updateValue();
+    }
+    
+    selectItem(itemId) {
+        const item = this.filteredItems.find(p => p.id === itemId) ||
+            this.allItems.find(p => p.id === itemId);
+        
+        if (!item) {
+            console.error('Item not found:', itemId);
+            return;
+        }
+        
+        this.selectedItemId = itemId;
+        this.selectedItem = item;
+        
+        if (this.onItemChange) {
+            this.onItemChange(item);
+        }
+        
+        this.checkSelectionComplete();
+        this.updateValue();
+    }
+    
+    checkSelectionComplete() {
+        const isComplete = this.isSelectionComplete();
+        if (isComplete && this.onSelectionComplete) {
+            this.onSelectionComplete({
+                category: this.selectedCategory,
+                item: this.selectedItem,
+                categoryConfig: this.selectedItem?.categoryConfig
+            });
+        }
+    }
+    
+    isSelectionComplete() {
+        let complete = true;
+        
+        if (this.showCategoryField && this.required && !this.selectedCategory) {
+            complete = false;
+        }
+        
+        if (this.showItemField && this.required && !this.selectedItemId) {
+            complete = false;
+        }
+        
+        return complete;
+    }
+    
+    createCategorySelectField() {
+        if (!this.showCategoryField) return null;
+        
+        this.categorySelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-category`,
+            name: `${this.name}_category`,
+            label: this.categoryLabel,
+            placeholder: this.categoryPlaceholder,
+            options: this.availableCategories,
+            required: this.required,
+            row: 'categorySelectField',
+            onChange: (value) => this.selectCategory(value)
+        });
+        
+        if (this.selectedCategory) {
+            const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
+            if (categoryOption) {
+                this.categorySelectField.setValue(categoryOption.id);
+            }
+        }
+        
+        return this.categorySelectField;
+    }
+    
+    createItemSelectField() {
+        if (!this.showItemField) return null;
+        
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.itemLabel,
+            placeholder: this.itemPlaceholder,
+            options: this.filteredItems,
+            required: this.required,
+            row: 'itemSelectField',
+            onChange: (value) => this.selectItem(value)
+        });
+        
+        if (this.selectedItemId) {
+            this.itemSelectField.setValue(this.selectedItemId);
+        }
+        
+        return this.itemSelectField;
+    }
+    
+    showItemSelection() {
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (itemContainer) {
+            itemContainer.style.display = 'block';
+            // Add smooth transition effect
+            itemContainer.style.opacity = '0';
+            itemContainer.style.transform = 'translateY(-10px)';
+            
+            // Animate in
+            setTimeout(() => {
+                itemContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                itemContainer.style.opacity = '1';
+                itemContainer.style.transform = 'translateY(0)';
+            }, 10);
+        }
+    }
+    
+    updateItemOptions() {
+        if (!this.itemSelectField) return;
+        
+        const itemContainer = this.element.querySelector('.item-select-container');
+        if (!itemContainer) return;
+        
+        const currentValue = this.selectedItemId;
+        itemContainer.innerHTML = '';
+        
+        this.itemSelectField = new SingleSelectField(this.factory, {
+            id: `${this.id}-item`,
+            name: `${this.name}_item`,
+            label: this.itemLabel,
+            placeholder: this.itemPlaceholder,
+            options: this.filteredItems,
+            required: this.required,
+            onChange: (value) => this.selectItem(value)
+        });
+        
+        const newFieldElement = this.itemSelectField.render();
+        itemContainer.appendChild(newFieldElement);
+        
+        if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
+            this.itemSelectField.setValue(currentValue);
+        }
+    }
+    
+    validate() {
+        if (!this.required) return true;
+        
+        if (this.showCategoryField && !this.selectedCategory) {
+            this.showError(this.categoryErrorMessage);
+            return false;
+        }
+        
+        if (this.showItemField && !this.selectedItemId) {
+            this.showError(this.itemErrorMessage);
+            return false;
+        }
+        
+        this.hideError();
+        return true;
+    }
+    
+    render() {
+        const container = this.createContainer();
+        
+        // Add vertical spacing styles
+        const styles = `
+            <style>
+                .category-item-filter {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .category-item-filter .category-select-container {
+                    margin-bottom: 0;
+                }
+                .category-item-filter .item-select-container {
+                    margin-top: 0;
+                    transition: opacity 0.3s ease, transform 0.3s ease;
+                }
+            </style>
+        `;
+        
+        if (!document.querySelector('#category-item-filter-styles')) {
+            const styleElement = document.createElement('div');
+            styleElement.id = 'category-item-filter-styles';
+            styleElement.innerHTML = styles;
+            document.head.appendChild(styleElement.firstElementChild);
+        }
+        
+        if (this.showCategoryField) {
+            this.createCategorySelectField();
+            const categoryFieldElement = this.categorySelectField.render();
+            categoryFieldElement.classList.add('category-select-container');
+            container.appendChild(categoryFieldElement);
+        }
+        
+        if (this.showItemField) {
+            this.createItemSelectField();
+            const itemFieldElement = this.itemSelectField.render();
+            itemFieldElement.classList.add('item-select-container');
+            
+            if (!this.selectedCategory && this.showCategoryField) {
+                itemFieldElement.style.display = 'none';
+            }
+            
+            container.appendChild(itemFieldElement);
+        }
+        
+        const filterContainer = document.createElement('div');
+        filterContainer.className = 'category-item-filter';
+        
+        while (container.firstChild) {
+            filterContainer.appendChild(container.firstChild);
+        }
+        
+        container.appendChild(filterContainer);
+        
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+        
+        this.element = container;
+        this.element.fieldInstance = this;
+        
+        return this.element;
+    }
+    
+    getValue() {
+        const value = {
+            category: this.selectedCategory || '',
+            item: this.selectedItem?.displayName || '',
+            // Flag to indicate this should be displayed as separate fields
+            _separateFields: true,
+            // Provide field labels for display  
+            _fieldLabels: {
+                category: this.categoryLabel || 'Category',
+                item: this.itemLabel || 'Item'
+            },
+            // Enhanced toString method for better string conversion
+            toString: function () {
+                const parts = [];
+                if (this.category && String(this.category).trim() !== '') {
+                    parts.push(String(this.category));
+                }
+                if (this.item && String(this.item).trim() !== '') {
+                    parts.push(String(this.item));
+                }
+                return parts.length > 0 ? parts.join(' - ') : '';
+            },
+            // Display text property for formatters
+            get displayText() {
+                return this.toString();
+            },
+            // For summary display
+            getSummaryDisplay: function () {
+                const parts = [];
+                if (this.category && String(this.category).trim() !== '') {
+                    parts.push(`${this._fieldLabels.category}: ${this.category}`);
+                }
+                if (this.item && String(this.item).trim() !== '') {
+                    parts.push(`${this._fieldLabels.item}: ${this.item}`);
+                }
+                return parts.join('\n');
+            },
+            // Check if has meaningful content
+            hasContent: function () {
+                return !!(this.category || this.item);
+            },
+            // Get simple string representation
+            getSimpleString: function () {
+                return this.toString();
+            }
+        };
+        
+        // Ensure the toString method is properly bound
+        Object.defineProperty(value, 'toString', {
+            value: value.toString.bind(value),
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+        
+        return value;
+    }
+    
+    getProcessedValue() {
+        return {
+            selectedCategory: this.selectedCategory || '',
+            selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
+            selectedItemId: this.selectedItemId || '',
+            selectedItem: this.selectedItem ? {
+                id: this.selectedItem.id,
+                name: this.selectedItem.name,
+                displayName: this.selectedItem.displayName
+            } : null,
+            displayText: this.getDisplayText(),
+            isComplete: this.isSelectionComplete()
+        };
+    }
+    
+    getDisplayText() {
+        const parts = [];
+        if (this.selectedCategory && String(this.selectedCategory).trim() !== '') {
+            parts.push(String(this.selectedCategory));
+        }
+        if (this.selectedItem && this.selectedItem.displayName && String(this.selectedItem.displayName).trim() !== '') {
+            parts.push(String(this.selectedItem.displayName));
+        }
+        return parts.length > 0 ? parts.join(' - ') : '';
+    }
+    
+    getSummaryFields() {
+        const fields = [];
+        
+        if (this.selectedCategory && String(this.selectedCategory).trim() !== '') {
+            fields.push({
+                label: this.categoryLabel || 'Category',
+                value: this.selectedCategory,
+                key: 'category'
+            });
+        }
+        
+        if (this.selectedItem?.displayName && String(this.selectedItem.displayName).trim() !== '') {
+            fields.push({
+                label: this.itemLabel || 'Item',
+                value: this.selectedItem.displayName,
+                key: 'item'
+            });
+        }
+        
+        return fields;
+    }
+    
+    setValue(value) {
+        // Reset first
+        this.selectedCategory = '';
+        this.selectedItemId = '';
+        this.selectedItem = null;
+        
+        if (value && typeof value === 'object') {
+            // Handle processed value format
+            if (value.selectedCategory && this.showCategoryField) {
+                const categoryOption = this.availableCategories.find(s => s.name === value.selectedCategory);
+                if (categoryOption) {
+                    this.selectCategory(categoryOption.id);
+                    if (this.categorySelectField) {
+                        this.categorySelectField.setValue(categoryOption.id);
+                    }
+                }
+            }
+            
+            // Handle category field from getValue format
+            if (value.category && this.showCategoryField && !value.selectedCategory) {
+                const categoryOption = this.availableCategories.find(s => s.name === value.category);
+                if (categoryOption) {
+                    this.selectCategory(categoryOption.id);
+                    if (this.categorySelectField) {
+                        this.categorySelectField.setValue(categoryOption.id);
+                    }
+                }
+            }
+            
+            if (value.selectedItemId && this.showItemField) {
+                this.selectItem(value.selectedItemId);
+                if (this.itemSelectField) {
+                    this.itemSelectField.setValue(value.selectedItemId);
+                }
+            }
+        } else if (typeof value === 'string') {
+            // Handle string values (might be display text)
+            console.log('CategoryItemFilterField: String value set:', value);
+        }
+        
+        this.updateValue();
+    }
+    
+    getSummaryValue() {
+        const parts = [];
+        if (this.selectedCategory) {
+            parts.push(`${this.categoryLabel}: ${this.selectedCategory}`);
+        }
+        if (this.selectedItem && this.selectedItem.displayName) {
+            parts.push(`${this.itemLabel}: ${this.selectedItem.displayName}`);
+        }
+        return parts.join('\n');
+    }
+    
+    getDataValue() {
+        return {
+            selectedCategory: this.selectedCategory,
+            selectedCategoryId: this.selectedCategory ? this.slugify(this.selectedCategory) : '',
+            selectedItemId: this.selectedItemId,
+            selectedItem: this.selectedItem,
+            filteredItems: this.filteredItems,
+            categoryConfig: this.selectedItem?.categoryConfig || null,
+            isComplete: this.isSelectionComplete(),
+            displayText: this.getDisplayText()
+        };
+    }
+    
+    toString() {
+        return this.getDisplayText();
+    }
+    
+    updateValue() {
+        this.handleChange();
+    }
+    
+    reset() {
+        this.selectedCategory = '';
+        this.selectedItemId = '';
+        this.selectedItem = null;
+        this.filteredItems = this.allItems;
+        
+        if (this.categorySelectField) {
+            this.categorySelectField.setValue('');
+        }
+        
+        if (this.itemSelectField) {
+            this.itemSelectField.setValue('');
+            this.updateItemOptions();
+        }
+        
+        const itemContainer = this.element?.querySelector('.item-select-container');
+        if (itemContainer) {
+            itemContainer.style.display = 'none';
+        }
+        
+        this.updateValue();
+    }
+    
+    destroy() {
+        if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
+            this.categorySelectField.destroy();
+        }
+        
+        if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
+            this.itemSelectField.destroy();
+        }
+        
+        super.destroy();
+    }
+}
 
 
 class CalendarField extends BaseField {
