@@ -1,132 +1,103 @@
-/* Chatbot Background
+/**
+ * Chatbot CSS - Optimized with CSS Variables
+ * @version 2.0.0
+ * @description Voiceflow chatbot styles with CSS custom properties
+ */
+
+/* ========================================
+   CSS CUSTOM PROPERTIES DEFINITIONS
+======================================== */
+
+/* Define variables on a parent container that wraps the chatbot */
 .s9t60i0 {
-    background-image: url(https://cdn.prod.website-files.com/6737eb13e460f410ac98cc6f/67be5436c2849b37cefb04ee_white-wall-texture-background.jpg);
-}*/
-
-
-
-.g3dqfd8 {
-    display: block;
-    box-sizing: border-box;
-    padding: 0; 
-    border-radius: 10px;
-    overflow-wrap: anywhere;
-    color: #000;
-    background-color: transparent;
+  /* Color System */
+  --chat-primary-color: #e95d2c;
+  --chat-primary-dark: #a63e1b;
+  --chat-primary-light: #f7b899;
+  --chat-secondary-color: #b0cee2;
+  
+  --chat-text-primary: #1a2730;
+  --chat-text-secondary: #666;
+  --chat-text-white: #fff;
+  --chat-text-black: #000;
+  
+  --chat-bg-primary: #fff;
+  --chat-bg-secondary: #fafafa;
+  --chat-bg-tertiary: #f5f5f5;
+  --chat-bg-transparent: transparent;
+  
+  --chat-error-color: #e52059;
+  --chat-error-dark: #d32f2f;
+  --chat-success-color: #4CAF50;
+  --chat-success-dark: #2e7d32;
+  
+  /* Spacing System */
+  --chat-spacing-xs: 4px;
+  --chat-spacing-sm: 8px;
+  --chat-spacing-md: 16px;
+  --chat-spacing-lg: 24px;
+  --chat-spacing-xl: 32px;
+  --chat-spacing-xxl: 40px;
+  
+  /* Typography */
+  --chat-font-family: var(--_1bof89na);
+  --chat-font-size-sm: 14px;
+  --chat-font-size-base: 16px;
+  --chat-font-size-lg: 20px;
+  --chat-line-height: 20px;
+  --chat-font-weight-normal: 400;
+  --chat-font-weight-medium: 500;
+  --chat-font-weight-semibold: 600;
+  --chat-font-weight-bold: 700;
+  
+  /* Border Radius */
+  --chat-radius-sm: 6px;
+  --chat-radius-md: 8px;
+  --chat-radius-lg: 10px;
+  --chat-radius-xl: 16px;
+  --chat-radius-xxl: 20px;
+  --chat-radius-round: 24px;
+  --chat-radius-full: 50%;
+  
+  /* Transitions */
+  --chat-transition-fast: 0.15s ease;
+  --chat-transition-base: 0.3s ease;
+  --chat-transition-color: background-color 0.3s ease, color 0.3s ease;
+  
+  /* Shadows */
+  --chat-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --chat-shadow-md: 0 4px 10px rgba(233, 93, 44, 0.15);
+  --chat-shadow-lg: 0 8px 25px rgba(233, 93, 44, 0.15);
+  --chat-shadow-xl: 10px 10px 10px rgba(233, 93, 44, 0.16);
+  --chat-shadow-none: none;
+  --chat-shadow-inset: inset 0 0 0 2px var(--chat-primary-color);
+  
+  /* Component Specific */
+  --chat-button-height: 40px;
+  --chat-button-padding: 7px 12px 6px;
+  --chat-border-width: 2px;
+  --chat-border-width-thick: 3px;
+  --chat-icon-size: 24px;
+  --chat-icon-size-lg: 32px;
+  --chat-icon-size-xl: 40px;
+  
+  /* Z-index Scale */
+  --chat-z-base: 1000;
+  --chat-z-tooltip: 1100;
+  --chat-z-modal: 1200;
+  
+  /* Carousel Specific */
+  --carousel-card-width: 400px;
+  --carousel-card-width-mobile: 250px;
+  --carousel-card-height: 270px;
+  --carousel-button-size: 48px;
+  --carousel-button-size-mobile: 44px;
+  --carousel-gap: 15px;
 }
 
-._1wkq7nf0 {
-    z-index: 1000;
-}
-
-/* Header Background*/
-.jyiuei2 {
-    background-color: #e95d2c;
-}
-
-@media (min-width: 1000px) {
-    ._1wkq7nf4 {
-        min-height: 600px;
-        max-height: 100%;
-    }
-	.s9t60i0 {
-	min-width: 800px;
-		left: calc(50% - 400px);
-}
-
-}
-@media (min-width: 1200px) {
-.s9t60i0 {
-	min-width: 1000px;
-		left: calc(50% - 500px);
-}
-	}
-
-._15emaa41 {
-    background-color: #e95d2c;
-}
-
-._1gdvh9t1:focus-within ._1gdvh9t4{
-	box-shadow: inset 0 0 0 2px #e95d2c;
-}
-
-.g931q12 {
-    box-shadow: none;
-}
-
-.g931q10 {
-    background-color: transparent;
-}
-
-/* Background caroussel*/
-._1lbxmyd0 {
-    background-color: #f5f5f5;
-    width: 400px;
-}
-
-/* caroussel div*/
-._1lbxmyd4 {
-	white-space: pre-line;
-	height: 40px;
-}
-
-/* caroussel button div*/ 
-._1lbxmyd3 {
-    display: flex;
-    flex-direction: row;
-}
-
-/* caroussel button*/
-._1q15b0b3 {
-    border-radius: 8px;
-    color: #e95d2c;
-    background-color: #fafafa;
-    line-height: 20px;
-    padding: 7px 12px 6px;
-    white-space: normal;
-    word-break: break-word;
-    text-align: center;
-    height: fit-content;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    border: 2px solid #e95d2c;
-    font-weight: bold;
-}
-
-/* caroussel button hover*/
-._1q15b0b3:hover {
-    color: white;
-    background-color: #e95d2c;
-    border: 2px solid #a63e1b;
-    font-weight: bold;
-}
-
-._1q15b0b1 {
-    border: 2px solid #e95d2c;
-    color: #e95d2c;
-    background-color: #fafafa;
-    font-weight: bold;
-}
-
-._1q15b0b1:hover {
-    color: white;
-    background-color: #e95d2c;
-    border: 2px solid #a63e1b;
-    font-weight: bold;
-}
-
-/* Chat footer*/
-._1vj16245 {
-    background: transparent;
-}
-
-/* Chat footer color text*/
-.jsli367{
-	color: #1a2730;
-}
-
-.s9t60i2 {
-    display: none;
-}
+/* ========================================
+   ANIMATIONS
+======================================== */
 
 @keyframes heartbeat {
   0% {
@@ -149,154 +120,308 @@
   }
 }
 
-/* Chat footer color text Border
-._1gdvh9t1 {
-    border: 3px solid #e95d2c;
-}*/
+/* ========================================
+   BASE CHATBOT STYLES
+======================================== */
+
+/* Chatbot container */
+.g3dqfd8 {
+  display: block;
+  box-sizing: border-box;
+  padding: 0; 
+  border-radius: var(--chat-radius-lg);
+  overflow-wrap: anywhere;
+  color: var(--chat-text-black);
+  background-color: var(--chat-bg-transparent);
+}
+
+._1wkq7nf0 {
+  z-index: var(--chat-z-base);
+}
+
+/* Header Background */
+.jyiuei2 {
+  background-color: var(--chat-primary-color);
+}
+
+/* Responsive layouts */
+@media (min-width: 1000px) {
+  ._1wkq7nf4 {
+    min-height: 600px;
+    max-height: 100%;
+  }
+  .s9t60i0 {
+    min-width: 800px;
+    left: calc(50% - 400px);
+  }
+}
+
+@media (min-width: 1200px) {
+  .s9t60i0 {
+    min-width: 1000px;
+    left: calc(50% - 500px);
+  }
+}
+
+/* Header elements */
+._15emaa41 {
+  background-color: var(--chat-primary-color);
+}
+
+._1gdvh9t1:focus-within ._1gdvh9t4 {
+  box-shadow: var(--chat-shadow-inset);
+}
+
+.g931q12 {
+  box-shadow: var(--chat-shadow-none);
+}
+
+.g931q10 {
+  background-color: var(--chat-bg-transparent);
+  border-radius: 0;
+}
+
+/* ========================================
+   CAROUSEL STYLES
+======================================== */
+
+/* Background carousel */
+._1lbxmyd0 {
+  background-color: var(--chat-bg-tertiary);
+  width: var(--carousel-card-width);
+}
+
+/* Carousel div */
+._1lbxmyd4 {
+  white-space: pre-line;
+  height: var(--chat-button-height);
+}
+
+/* Carousel button div */ 
+._1lbxmyd3 {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Carousel button */
+._1q15b0b3 {
+  border-radius: var(--chat-radius-md);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  line-height: var(--chat-line-height);
+  padding: var(--chat-button-padding);
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+  height: fit-content;
+  transition: var(--chat-transition-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+/* Carousel button hover */
+._1q15b0b3:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-dark);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+._1q15b0b1 {
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+._1q15b0b1:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-dark);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+/* ========================================
+   CHAT FOOTER
+======================================== */
+
+/* Chat footer */
+._1vj16245 {
+  background: var(--chat-bg-transparent);
+}
+
+/* Chat footer color text */
+.jsli367 {
+  color: var(--chat-text-primary);
+}
+
+.s9t60i2 {
+  display: none;
+}
 
 .g3dqfd1 {
-    align-items: center;
+  align-items: center;
 }
+
+/* ========================================
+   USER AVATAR STYLES
+======================================== */
 
 ._15emaa42::after {
   content: "";
   display: inline-block;
-  width: 32px;
-  height: 32px;
+  width: var(--chat-icon-size-lg);
+  height: var(--chat-icon-size-lg);
   margin-left: 12px;
   vertical-align: middle;
-  border-radius: 50%;
+  border-radius: var(--chat-radius-full);
   background-size: cover;
   background-repeat: no-repeat;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%23e95d2c'/><g transform='translate(120, 100) scale(0.6)'><path fill='white' d='M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z'/></g></svg>");
 }
 
 ._15emaa42 {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
-	
+
+/* ========================================
+   SPACING UTILITIES
+======================================== */
+
 .g3dqfd6 {
-    margin: 0px 0 4px;
+  margin: 0px 0 var(--chat-spacing-xs);
 }
 
 .knxm730 {
-    margin: 8px 0;
+  margin: var(--chat-spacing-sm) 0;
 }
 
+/* ========================================
+   TOOLTIP STYLES
+======================================== */
+
 ._6r9xee0 {
-    position: absolute;
-    bottom: 100%;
-    width: 500px;
-    display: flex;
-    flex-direction: column;
-    transition: opacity .15sease;
+  position: absolute;
+  bottom: 100%;
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity var(--chat-transition-fast);
 }
 
 ._6r9xee3 {
-    padding: 11px 16px 10px;
-    min-width: 250px;
-    font-weight: 500px;
-    white-space: pre-line;
-    box-shadow: none;
-    color: #1a2730;
-    font-size: 14px;
-    font-family: var(--_1bof89na);
-    transition: opacity .15sease;
+  padding: 11px var(--chat-spacing-md) 10px;
+  min-width: 250px;
+  font-weight: var(--chat-font-weight-medium);
+  white-space: pre-line;
+  box-shadow: var(--chat-shadow-none);
+  color: var(--chat-text-primary);
+  font-size: var(--chat-font-size-sm);
+  font-family: var(--chat-font-family);
+  transition: opacity var(--chat-transition-fast);
 }
 
 ._12m8tlu4 {
-    color: #e95d2c !important;
+  color: var(--chat-primary-color) !important;
 }
 
-._1q15b0b2._1q15b0b4{
-    color: #e95d2c;
-    background-color: #fafafa;
-    border: 2px solid #e95d2c;
-    height: 40px;
-    font-weight: bold;
+/* ========================================
+   ACTION BUTTONS
+======================================== */
+
+/* Negative action button */
+._1q15b0b2._1q15b0b4 {
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  height: var(--chat-button-height);
+  font-weight: var(--chat-font-weight-bold);
 }
 
-._1q15b0b2._1q15b0b4:hover{
-    color: #fff;
-    background-color: #e52059;
-    border: 2px solid #d32f2f;
+._1q15b0b2._1q15b0b4:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-error-color);
+  border: var(--chat-border-width) solid var(--chat-error-dark);
 }
 
-._1q15b0b3._1q15b0b4{
-    color: #e95d2c;
-    background-color: #fafafa;
-    border: 2px solid #e95d2c;
-    height: 40px;
-    font-weight: bold;
+/* Positive action button */
+._1q15b0b3._1q15b0b4 {
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  height: var(--chat-button-height);
+  font-weight: var(--chat-font-weight-bold);
 }
 
-._1q15b0b3._1q15b0b4:hover{
-    color: #fff;
-    background-color: #4CAF50;
-    border: 2px solid #2e7d32;
+._1q15b0b3._1q15b0b4:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-success-color);
+  border: var(--chat-border-width) solid var(--chat-success-dark);
 }
 
-.jyiuei7{
-    background-color: #e95d2c;
-    border: 2px solid #e95d2c;
-    color: #fff;
+/* Primary button */
+.jyiuei7 {
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-text-white);
 }
 
 ._5x612k0 {
-    display: flex;
-    flex-direction: row;
-    font-weight: 600px;
+  display: flex;
+  flex-direction: row;
+  font-weight: var(--chat-font-weight-semibold);
 }
 
-.jyiuei7:hover{
-    background-color: #fff;
-    border: 2px solid #fff;
-    color: #e95d2c;
+.jyiuei7:hover {
+  background-color: var(--chat-text-white);
+  border: var(--chat-border-width) solid var(--chat-text-white);
+  color: var(--chat-primary-color);
 }
 
-.f6dof81._1q15b0b0.c26d8x0._1q15b0b5{ 
-    color: #e95d2c;
-    background-color: #fafafa;
-    border: 2px solid #e95d2c;
+/* Additional button variants */
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5 { 
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
 }
 
-.f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover{
-    color: #fff ;
-    background-color: #e95d2c;
-    border: 2px solid #e95d2c;
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
 }
 
-/* Hide the original image */
-/* 1. Hide the existing chat‑bubble image */
-/* 1) Hide the existing arrow SVG and chat-bubble image */
-/* 1) Hide the existing arrow SVG and <img> */
-/* 1) Hide the existing arrow SVG and chat-bubble image */
+/* ========================================
+   LAUNCHER BUTTON CUSTOMIZATION
+======================================== */
+
+/* Hide the original SVG and image elements */
 div.f6dof80 div.f6dof87.f6dof89 > svg,
 div.f6dof80 div.f6dof87.f6dof89 > img {
   display: none !important;
 }
 
-/* 2) Turn the wrapper into an orange circle, center contents */
+/* Turn the wrapper into an orange circle */
 div.f6dof80 div.f6dof87.f6dof89 {
-  border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
+  border-radius: var(--chat-radius-full) !important;
+  width: var(--chat-icon-size-xl) !important;
+  height: var(--chat-icon-size-xl) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
   overflow: hidden !important;
-  padding: 4px !important;
+  padding: var(--chat-spacing-xs) !important;
 }
 
-/* 3) Inject your three‑dots SVG via ::after */
+/* Inject custom three-dots SVG via ::after */
 div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
-  width: 24px !important;
-  height: 24px !important;
+  width: var(--chat-icon-size) !important;
+  height: var(--chat-icon-size) !important;
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23e95d2c'>\
 <g stroke='%23e95d2c' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
@@ -304,16 +429,16 @@ div.f6dof80 div.f6dof87.f6dof89::after {
 <circle cx='236.071' cy='164.571' r='19'/>\
 <path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
 </g></svg>") !important;
-  background-repeat: no-repeat      !important;
-  background-size: contain           !important;
-  position: absolute                 !important;
-  top: 50%                           !important;
-  left: 50%                          !important;
-  transform: translate(-50%, -50%)  !important;
-  pointer-events: none               !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
 }
 
-/* 4) On hover, swap the dots to white */
+/* On hover, swap the dots to white */
 div.f6dof80 div.f6dof87.f6dof89:hover::after {
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
@@ -324,244 +449,254 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 </g></svg>") !important;
 }
 
+/* ========================================
+   NOTIFICATION BUBBLE
+======================================== */
+
 ._6r9xee4 {
-    position: fixed;
-    background-color: #fff;
-    border-radius: 24px;
-    box-shadow: 0px 4px 10px rgba(233, 93, 44, 0.15);
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    max-width: 400px;
-    border: 2px solid #f7b899;
-    position: relative;
-    margin: 16px 0;
+  position: fixed;
+  background-color: var(--chat-bg-primary);
+  border-radius: var(--chat-radius-round);
+  box-shadow: var(--chat-shadow-md);
+  padding: var(--chat-spacing-md);
+  display: flex;
+  align-items: center;
+  max-width: 400px;
+  border: var(--chat-border-width) solid var(--chat-primary-light);
+  position: relative;
+  margin: var(--chat-spacing-md) 0;
+  animation: heartbeat 1s infinite;
 }
 
 /* Adding the icon using ::before */
 ._6r9xee4::before {
-    content: "";
-    position: absolute;
-    top: -30px;
-    width: 40px;
-    height: 40px;
-    background: url("data:image/svg+xml;utf8,<svg version='1.0' xmlns='http://www.w3.org/2000/svg' width='512.000000pt' height='512.000000pt' viewBox='0 0 512.000000 512.000000' preserveAspectRatio='xMidYMid meet'><circle cx='256' cy='256' r='256' fill='white'/><g transform='translate(0.000000,512.000000) scale(0.100000,-0.100000)' fill='%23e95d2c'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z m129 -119 c16 -10 37 -33 47 -52 67 -124 -67 -258 -189 -190 -55 31 -76 73 -70 139 11 108 114 158 212 103z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z m133 -121 c57 -34 78 -107 50 -173 -37 -89 -157 -113 -225 -45 -59 59 -60 147 -3 203 52 49 114 54 178 15z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>") no-repeat center / cover;
-    border-radius: 50%;
-    box-shadow: 0px 4px 10px rgba(233, 93, 44, 0.15);
+  content: "";
+  position: absolute;
+  top: -30px;
+  width: var(--chat-icon-size-xl);
+  height: var(--chat-icon-size-xl);
+  background: url("data:image/svg+xml;utf8,<svg version='1.0' xmlns='http://www.w3.org/2000/svg' width='512.000000pt' height='512.000000pt' viewBox='0 0 512.000000 512.000000' preserveAspectRatio='xMidYMid meet'><circle cx='256' cy='256' r='256' fill='white'/><g transform='translate(0.000000,512.000000) scale(0.100000,-0.100000)' fill='%23e95d2c'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z m129 -119 c16 -10 37 -33 47 -52 67 -124 -67 -258 -189 -190 -55 31 -76 73 -70 139 11 108 114 158 212 103z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z m133 -121 c57 -34 78 -107 50 -173 -37 -89 -157 -113 -225 -45 -59 59 -60 147 -3 203 52 49 114 54 178 15z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>") no-repeat center / cover;
+  border-radius: var(--chat-radius-full);
+  box-shadow: var(--chat-shadow-md);
 }
+
+/* ========================================
+   HEADER CUSTOMIZATION
+======================================== */
 
 .vfrc-header--title.jyiuei4::before {
   content: "Agence Immobilière";
-  font-weight: bold;
+  font-weight: var(--chat-font-weight-bold);
   display: block;
   text-align: center;
-  font-size: 16px;
-  color: #fff;
+  font-size: var(--chat-font-size-base);
+  color: var(--chat-text-white);
 }
 
 /* Hide the original text */
 .vfrc-header--title.jyiuei4 {
-    color: transparent !important;
-    display: flex;
+  color: transparent !important;
+  display: flex;
 }
 
+/* ========================================
+   ADDITIONAL BUTTON STYLES
+======================================== */
+
 ._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5._12m8tlu1 {
-    border: 2px solid #e95d2c;
-    color: #e95d2c;
-    background-color: #fff;
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-primary);
 }
 
 ._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5 {
-    color: white;
-    background-color: #e95d2c;
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
 }
+
+/* ========================================
+   ANIMATIONS ASSIGNMENTS
+======================================== */
 
 .vfrc-launcher {
   animation: heartbeat 1s infinite;
 }
 
-._6r9xee4 {
-  animation: heartbeat 1s infinite;
-}
+/* ========================================
+   CAROUSEL LAYOUT
+======================================== */
 
 ._1lbxmyd2 {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-family: var(--_1bof89na);
-    line-height: 20px;
-    padding: 11px 16px 10px;
-    justify-content: space-around;
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-spacing-xs);
+  font-family: var(--chat-font-family);
+  line-height: var(--chat-line-height);
+  padding: 11px var(--chat-spacing-md) 10px;
+  justify-content: space-around;
 }
 
 ._1lbxmyd1 {
-    width: 100%;
-    height: 270px;
+  width: 100%;
+  height: var(--carousel-card-height);
 }
 
 .vfrc-carousel.w2917p4 {
-    position: relative;
-    overflow: visible;
-    margin-bottom: 50px;
-    padding-bottom: 0;
+  position: relative;
+  overflow: visible;
+  margin-bottom: 50px;
+  padding-bottom: 0;
 }
 
 /* Carousel track */
 .w2917p1 {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    display: flex;
-    padding-bottom: 0;
-    flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  padding-bottom: 0;
+  flex-wrap: nowrap;
 }
 
 /* Hide scrollbar */
 .w2917p1::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 /* Card container */
 .o231sh1 {
-    transition: transform 0.3s ease;
-    position: relative;
-    flex: 0 0 auto;
-    margin-right: 15px;
+  transition: transform var(--chat-transition-base);
+  position: relative;
+  flex: 0 0 auto;
+  margin-right: var(--carousel-gap);
 }
 
 /* Card styles */
 .vfrc-card._1lbxmyd0 {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 10px 10px 10px rgba(233, 93, 44, 0.16);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    margin: 10px 10px;
+  background: var(--chat-bg-primary);
+  border-radius: var(--chat-radius-xxl);
+  box-shadow: var(--chat-shadow-xl);
+  transition: all var(--chat-transition-base);
+  display: flex;
+  flex-direction: column;
+  margin: 10px 10px;
 }
+
+/* ========================================
+   CAROUSEL NAVIGATION BUTTONS
+======================================== */
 
 /* RIGHT SWIPE BUTTON (left position) */
 .vfrc-carousel--button.betklma {
-    left: calc(50% - 60px) !important;
-    right: auto !important;
-    opacity: 1 !important;
-    visibility: visible !important;
+  left: calc(50% - 60px) !important;
+  right: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* LEFT SWIPE BUTTON (right position) */
 .vfrc-carousel--button.betklmc {
-    right: calc(50% - 60px) !important;
-    left: auto !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .o231sh1 {
-        width: 250px;
-    }
-    
-    .vfrc-carousel--button {
-        width: 44px !important;
-        height: 44px !important;
-        bottom: 15px !important;
-    }
-    
-    .vfrc-carousel--button.betklma {
-        left: calc(50% - 55px) !important;
-    }
-    
-    .vfrc-carousel--button.betklmc {
-        right: calc(50% - 55px) !important;
-    }
+  right: calc(50% - 60px) !important;
+  left: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .vfrc-carousel--button.betklma, .betklmc {
-    position: absolute !important;
-    top: auto !important;
-    bottom: -50px !important;
-    border-radius: 50%;
+  position: absolute !important;
+  top: auto !important;
+  bottom: -50px !important;
+  border-radius: var(--chat-radius-full);
 }
 
-/* Left-pointing arrow */
-.vfrc-carousel--button.betklmc .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: #e95d2c;
-}
-
-.vfrc-carousel--button.betklmc:hover .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: #e95d2c;
-}
-
-.vfrc-carousel--button.betklmc:active .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: white;
-}
-
+/* Arrow styles */
+.vfrc-carousel--button.betklmc .vfrc-icon svg,
 .vfrc-carousel--button.betklma .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: #e95d2c;
+  transform: rotate(0deg);
+  color: var(--chat-primary-color);
 }
 
+.vfrc-carousel--button.betklmc:hover .vfrc-icon svg,
 .vfrc-carousel--button.betklma:hover .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: #e95d2c;
+  transform: rotate(0deg);
+  color: var(--chat-primary-color);
 }
 
+.vfrc-carousel--button.betklmc:active .vfrc-icon svg,
 .vfrc-carousel--button.betklma:active .vfrc-icon svg {
-    transform: rotate(0deg);
-    color: white;
+  transform: rotate(0deg);
+  color: var(--chat-text-white);
 }
 
-/* Click/active state - Orange theme */
-.vfrc-carousel--button.betklma {
-    background: #fff !important;
-    border-color: #e95d2c !important;
-}
-
-.vfrc-carousel--button.betklma:hover {
-    background: #fafafa !important;
-}
-
-.vfrc-carousel--button.betklma:active {
-    background: #e95d2c !important;
-}
-
+/* Button states */
+.vfrc-carousel--button.betklma,
 .vfrc-carousel--button.betklmc {
-    background: #fff !important;
-    border-color: #e95d2c !important;
+  background: var(--chat-bg-primary) !important;
+  border-color: var(--chat-primary-color) !important;
 }
 
+.vfrc-carousel--button.betklma:hover,
 .vfrc-carousel--button.betklmc:hover {
-    background: #fafafa !important;
+  background: var(--chat-bg-secondary) !important;
 }
 
+.vfrc-carousel--button.betklma:active,
 .vfrc-carousel--button.betklmc:active {
-    background: #e95d2c !important;
+  background: var(--chat-primary-color) !important;
 }
 
-.g931q10 {
-    border-radius: 0;
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+======================================== */
+
+@media (max-width: 768px) {
+  .s9t60i0 {
+    --carousel-card-width: var(--carousel-card-width-mobile);
+    --carousel-button-size: var(--carousel-button-size-mobile);
+  }
+  
+  .o231sh1 {
+    width: var(--carousel-card-width-mobile);
+  }
+  
+  .vfrc-carousel--button {
+    width: var(--carousel-button-size-mobile) !important;
+    height: var(--carousel-button-size-mobile) !important;
+    bottom: 15px !important;
+  }
+  
+  .vfrc-carousel--button.betklma {
+    left: calc(50% - 55px) !important;
+  }
+  
+  .vfrc-carousel--button.betklmc {
+    right: calc(50% - 55px) !important;
+  }
 }
+
+/* ========================================
+   MISCELLANEOUS STYLES
+======================================== */
+
 .g931q12 {
-    height: auto;
-    width: auto;
+  height: auto;
+  width: auto;
 }
+
 .jyiuei8 {
-    color: transparent;
+  color: transparent;
 }
+
 .dio4eo4 {
-    display: none;
+  display: none;
 }
 
 .g931q13 {
-    width: 100px;
-    height: auto;
+  width: 100px;
+  height: auto;
 }
 
 ._1wkq7nf0 ._1wkq7nfd {
-    right: -200px;
+  right: -200px;
 }
