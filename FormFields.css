@@ -5756,3 +5756,189 @@ submission-form-extension {
     border-width: 3px;
   }
 }
+
+/* ============================================
+   SUBMIT BUTTON STYLES FOR VOICEFLOW IFRAME
+   ============================================ */
+
+/* Base submit button styles with high specificity */
+.multistep-navigation button[type="submit"],
+.form-submit-button,
+.step-navigation button.submit,
+button[data-action="submit"],
+.voiceflow-extension button[type="submit"],
+#extension-container button[type="submit"],
+.multistep-form-container button[type="submit"],
+.form-navigation button[type="submit"] {
+    background-color: #007bff !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    min-width: 150px !important;
+    display: inline-block !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    line-height: 1.5 !important;
+    vertical-align: middle !important;
+    -webkit-appearance: button !important;
+    appearance: button !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Hover state */
+.multistep-navigation button[type="submit"]:hover,
+.form-submit-button:hover,
+.step-navigation button.submit:hover,
+button[data-action="submit"]:hover,
+.voiceflow-extension button[type="submit"]:hover,
+#extension-container button[type="submit"]:hover,
+.multistep-form-container button[type="submit"]:hover,
+.form-navigation button[type="submit"]:hover {
+    background-color: #0056b3 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    color: white !important;
+}
+
+/* Active/pressed state */
+.multistep-navigation button[type="submit"]:active,
+.form-submit-button:active,
+.step-navigation button.submit:active,
+button[data-action="submit"]:active,
+.voiceflow-extension button[type="submit"]:active,
+#extension-container button[type="submit"]:active,
+.multistep-form-container button[type="submit"]:active,
+.form-navigation button[type="submit"]:active {
+    background-color: #004494 !important;
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Focus state for accessibility */
+.multistep-navigation button[type="submit"]:focus,
+.form-submit-button:focus,
+.step-navigation button.submit:focus,
+button[data-action="submit"]:focus,
+.voiceflow-extension button[type="submit"]:focus,
+#extension-container button[type="submit"]:focus,
+.multistep-form-container button[type="submit"]:focus,
+.form-navigation button[type="submit"]:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25) !important;
+}
+
+/* Disabled state */
+.multistep-navigation button[type="submit"]:disabled,
+.form-submit-button:disabled,
+.step-navigation button.submit:disabled,
+button[data-action="submit"]:disabled,
+.voiceflow-extension button[type="submit"]:disabled,
+#extension-container button[type="submit"]:disabled,
+.multistep-form-container button[type="submit"]:disabled,
+.form-navigation button[type="submit"]:disabled {
+    background-color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.65 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Processing/loading state */
+.multistep-navigation button[type="submit"].processing,
+.form-submit-button.processing,
+button[type="submit"].is-loading,
+button[type="submit"][data-loading="true"] {
+    background-color: #6c757d !important;
+    cursor: wait !important;
+    position: relative !important;
+}
+
+/* Loading spinner for processing state */
+.multistep-navigation button[type="submit"].processing::after,
+.form-submit-button.processing::after,
+button[type="submit"].is-loading::after {
+    content: "" !important;
+    position: absolute !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: auto !important;
+    border: 2px solid transparent !important;
+    border-top-color: white !important;
+    border-radius: 50% !important;
+    animation: button-loading-spinner 0.8s linear infinite !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Specific overrides for iframe context */
+iframe .multistep-navigation button[type="submit"],
+iframe .form-submit-button,
+.voiceflow-chat button[type="submit"],
+.voiceflow-widget button[type="submit"] {
+    all: unset !important;
+    background-color: #007bff !important;
+    color: white !important;
+    padding: 12px 24px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    text-align: center !important;
+    min-width: 150px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* French language specific text */
+button[type="submit"]:contains("Confirmer"),
+button:contains("Confirmer la réservation") {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Navigation container alignment */
+.multistep-navigation,
+.form-navigation,
+.step-navigation {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-top: 20px !important;
+    padding: 20px 0 !important;
+}
+
+/* Ensure submit button is properly positioned on last step */
+.multistep-form-step:last-child .multistep-navigation button[type="submit"],
+.form-step.active:last-child button[type="submit"] {
+    margin-left: auto !important;
+    display: block !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .multistep-navigation button[type="submit"],
+    .form-submit-button,
+    button[type="submit"] {
+        width: 100% !important;
+        max-width: 300px !important;
+        margin: 10px auto !important;
+    }
+}
