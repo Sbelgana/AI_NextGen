@@ -1,16 +1,15 @@
 /**
- * Chatbot CSS - Fixed Version with Hybrid Approach
- * @version 2.1.0
- * @description Uses variables where possible, hardcoded values for external elements
+ * Chatbot CSS - Optimized with CSS Variables
+ * @version 2.0.0
+ * @description Voiceflow chatbot styles with CSS custom properties
  */
 
 /* ========================================
-   CSS CUSTOM PROPERTIES ON BODY
-   Since some elements render outside the chatbot container,
-   we define variables on body (without using :root)
+   CSS CUSTOM PROPERTIES DEFINITIONS
 ======================================== */
 
-body {
+/* Define variables on a parent container that wraps the chatbot */
+body .s9t60i0 {
   /* Color System */
   --chat-primary-color: #e95d2c;
   --chat-primary-dark: #a63e1b;
@@ -71,7 +70,7 @@ body {
   --chat-shadow-lg: 0 8px 25px rgba(233, 93, 44, 0.15);
   --chat-shadow-xl: 10px 10px 10px rgba(233, 93, 44, 0.16);
   --chat-shadow-none: none;
-  --chat-shadow-inset: inset 0 0 0 2px #e95d2c;
+  --chat-shadow-inset: inset 0 0 0 2px var(--chat-primary-color);
   
   /* Component Specific */
   --chat-button-height: 40px;
@@ -381,23 +380,21 @@ body {
   color: var(--chat-primary-color);
 }
 
-/* Additional button variants - KEEP HARDCODED for external elements */
+/* Additional button variants */
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5 { 
-  color: #e95d2c;
-  background-color: #fafafa;
-  border: 2px solid #e95d2c;
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
 }
 
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover {
-  color: #fff;
-  background-color: #e95d2c;
-  border: 2px solid #e95d2c;
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
 }
 
 /* ========================================
    LAUNCHER BUTTON CUSTOMIZATION
-   IMPORTANT: These elements might render outside the chatbot container,
-   so we KEEP HARDCODED VALUES to ensure they work
 ======================================== */
 
 /* Hide the original SVG and image elements */
@@ -408,23 +405,23 @@ div.f6dof80 div.f6dof87.f6dof89 > img {
 
 /* Turn the wrapper into an orange circle */
 div.f6dof80 div.f6dof87.f6dof89 {
-  border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
+  border-radius: var(--chat-radius-full) !important;
+  width: var(--chat-icon-size-xl) !important;
+  height: var(--chat-icon-size-xl) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: relative !important;
   overflow: hidden !important;
-  padding: 4px !important;
+  padding: var(--chat-spacing-xs) !important;
 }
 
 /* Inject custom three-dots SVG via ::after */
 div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
-  width: 24px !important;
-  height: 24px !important;
+  width: var(--chat-icon-size) !important;
+  height: var(--chat-icon-size) !important;
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23e95d2c'>\
 <g stroke='%23e95d2c' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
@@ -453,22 +450,21 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* ========================================
-   NOTIFICATION BUBBLE - HARDCODED VALUES
-   This appears outside the main container
+   NOTIFICATION BUBBLE
 ======================================== */
 
 ._6r9xee4 {
   position: fixed;
-  background-color: #fff;
-  border-radius: 24px;
-  box-shadow: 0px 4px 10px rgba(233, 93, 44, 0.15);
-  padding: 16px;
+  background-color: var(--chat-bg-primary);
+  border-radius: var(--chat-radius-round);
+  box-shadow: var(--chat-shadow-md);
+  padding: var(--chat-spacing-md);
   display: flex;
   align-items: center;
   max-width: 400px;
-  border: 2px solid #f7b899;
+  border: var(--chat-border-width) solid var(--chat-primary-light);
   position: relative;
-  margin: 16px 0;
+  margin: var(--chat-spacing-md) 0;
   animation: heartbeat 1s infinite;
 }
 
@@ -477,11 +473,11 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   content: "";
   position: absolute;
   top: -30px;
-  width: 40px;
-  height: 40px;
+  width: var(--chat-icon-size-xl);
+  height: var(--chat-icon-size-xl);
   background: url("data:image/svg+xml;utf8,<svg version='1.0' xmlns='http://www.w3.org/2000/svg' width='512.000000pt' height='512.000000pt' viewBox='0 0 512.000000 512.000000' preserveAspectRatio='xMidYMid meet'><circle cx='256' cy='256' r='256' fill='white'/><g transform='translate(0.000000,512.000000) scale(0.100000,-0.100000)' fill='%23e95d2c'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z m129 -119 c16 -10 37 -33 47 -52 67 -124 -67 -258 -189 -190 -55 31 -76 73 -70 139 11 108 114 158 212 103z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z m133 -121 c57 -34 78 -107 50 -173 -37 -89 -157 -113 -225 -45 -59 59 -60 147 -3 203 52 49 114 54 178 15z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>") no-repeat center / cover;
-  border-radius: 50%;
-  box-shadow: 0px 4px 10px rgba(233, 93, 44, 0.15);
+  border-radius: var(--chat-radius-full);
+  box-shadow: var(--chat-shadow-md);
 }
 
 /* ========================================
@@ -655,18 +651,18 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 ======================================== */
 
 @media (max-width: 768px) {
-  body {
-    --carousel-card-width: 250px;
-    --carousel-button-size: 44px;
+  .s9t60i0 {
+    --carousel-card-width: var(--carousel-card-width-mobile);
+    --carousel-button-size: var(--carousel-button-size-mobile);
   }
   
   .o231sh1 {
-    width: var(--carousel-card-width);
+    width: var(--carousel-card-width-mobile);
   }
   
   .vfrc-carousel--button {
-    width: var(--carousel-button-size) !important;
-    height: var(--carousel-button-size) !important;
+    width: var(--carousel-button-size-mobile) !important;
+    height: var(--carousel-button-size-mobile) !important;
     bottom: 15px !important;
   }
   
