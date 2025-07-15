@@ -9,7 +9,7 @@
 ======================================== */
 
 /* Define variables on a parent container that wraps the chatbot */
-body .s9t60i0 {
+.s9t60i0 {
   /* Color System */
   --chat-primary-color: #e95d2c;
   --chat-primary-dark: #a63e1b;
