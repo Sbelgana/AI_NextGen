@@ -17,7 +17,6 @@ const BookingSDExtension = {
             _selectedDentistData: null,
             _currentExtension: null,
             _calComUtility: null,
-            _styleObserver: null,
             
             render: async ({ trace, element }) => {
                 // ============================================================================
@@ -47,10 +46,7 @@ const BookingSDExtension = {
                     dentistsData = null
                 } = trace.payload || {};
 
-                console.log('🦷 Dynamic Dental Booking Extension started (v5.2.1 with iFrame support)');
-                
-                // Initialize iframe styles immediately
-                BookingSDExtension.initializeIframeStyles();
+                console.log('🦷 Dynamic Dental Booking Extension started (v5.3.0 with NavigationButtons fix)');
                 
                 // ============================================================================
                 // CHECK FOR REQUIRED DATA
@@ -261,7 +257,7 @@ const BookingSDExtension = {
                 };
 
                 // ============================================================================
-                // CREATE EXTENSION WITH DYNAMIC CONFIG AND IFRAME SUPPORT
+                // CREATE EXTENSION WITH DYNAMIC CONFIG
                 // ============================================================================
                 const extension = new CreatForm(
                     {
@@ -311,202 +307,16 @@ const BookingSDExtension = {
                         }
                     }, 100);
                 }
-                
-                // Start watching for submit button
-                BookingSDExtension._styleObserver = BookingSDExtension.watchForSubmitButton();
-                
-                // Apply initial submit button styles
-                setTimeout(() => {
-                    BookingSDExtension.ensureSubmitButtonStyling();
-                }, 500);
 
                 return result;
             },
 
             // ============================================================================
-            // IFRAME DETECTION AND STYLING METHODS
+            // FORM READY HANDLER
             // ============================================================================
             
-            isInIframe() {
-                try {
-                    return window.self !== window.top;
-                } catch (e) {
-                    return true;
-                }
-            },
-            
-            initializeIframeStyles() {
-                const isIframe = BookingSDExtension.isInIframe();
-                console.log('🦷 iFrame detected:', isIframe);
-                
-                // Create style element for submit button
-                const style = document.createElement('style');
-                style.id = 'voiceflow-submit-button-styles';
-                style.textContent = `
-                    /* Submit button styles for Voiceflow iframe context */
-                    .multistep-navigation button[type="submit"],
-                    .form-submit-button,
-                    .step-navigation button.submit,
-                    button[data-action="submit"],
-                    #extension-container button[type="submit"],
-                    .voiceflow-extension button[type="submit"] {
-                        background-color: #007bff !important;
-                        color: white !important;
-                        padding: 12px 24px !important;
-                        border: none !important;
-                        border-radius: 4px !important;
-                        font-size: 16px !important;
-                        font-weight: 600 !important;
-                        cursor: pointer !important;
-                        transition: all 0.3s ease !important;
-                        min-width: 150px !important;
-                        display: inline-block !important;
-                        text-align: center !important;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-                        -webkit-appearance: none !important;
-                        appearance: none !important;
-                    }
-                    
-                    .multistep-navigation button[type="submit"]:hover:not(:disabled),
-                    .form-submit-button:hover:not(:disabled),
-                    #extension-container button[type="submit"]:hover:not(:disabled) {
-                        background-color: #0056b3 !important;
-                        transform: translateY(-2px) !important;
-                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-                    }
-                    
-                    .multistep-navigation button[type="submit"]:active:not(:disabled),
-                    .form-submit-button:active:not(:disabled),
-                    #extension-container button[type="submit"]:active:not(:disabled) {
-                        transform: translateY(0) !important;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-                    }
-                    
-                    .multistep-navigation button[type="submit"]:disabled,
-                    .form-submit-button:disabled,
-                    #extension-container button[type="submit"]:disabled {
-                        background-color: #6c757d !important;
-                        cursor: not-allowed !important;
-                        opacity: 0.65 !important;
-                    }
-                    
-                    /* Processing state */
-                    button[type="submit"].processing,
-                    button[type="submit"].is-loading {
-                        background-color: #6c757d !important;
-                        cursor: wait !important;
-                    }
-                    
-                    /* Ensure last step submit button is visible */
-                    .multistep-form-step:last-child .multistep-navigation button[type="submit"] {
-                        display: inline-block !important;
-                        visibility: visible !important;
-                        opacity: 1 !important;
-                    }
-                `;
-                document.head.appendChild(style);
-                
-                // If in iframe, set up message listener
-                if (isIframe) {
-                    window.addEventListener('message', function(event) {
-                        if (event.data && event.data.type === 'refreshStyles') {
-                            BookingSDExtension.ensureSubmitButtonStyling();
-                        }
-                    });
-                    
-                    // Notify parent that extension is loaded
-                    try {
-                        window.parent.postMessage({ type: 'extensionLoaded' }, '*');
-                    } catch (e) {
-                        console.log('🦷 Could not post message to parent');
-                    }
-                }
-            },
-            
-            ensureSubmitButtonStyling() {
-                const submitButtons = document.querySelectorAll(
-                    'button[type="submit"], .form-submit-button, .step-navigation button.submit, button:contains("Confirmer")'
-                );
-                
-                console.log('🦷 Applying styles to', submitButtons.length, 'submit buttons');
-                
-                submitButtons.forEach(button => {
-                    // Apply inline styles directly for maximum specificity
-                    button.style.setProperty('background-color', '#007bff', 'important');
-                    button.style.setProperty('color', 'white', 'important');
-                    button.style.setProperty('padding', '12px 24px', 'important');
-                    button.style.setProperty('border', 'none', 'important');
-                    button.style.setProperty('border-radius', '4px', 'important');
-                    button.style.setProperty('font-size', '16px', 'important');
-                    button.style.setProperty('font-weight', '600', 'important');
-                    button.style.setProperty('cursor', 'pointer', 'important');
-                    button.style.setProperty('min-width', '150px', 'important');
-                    button.style.setProperty('display', 'inline-block', 'important');
-                    
-                    // Add class for CSS targeting
-                    button.classList.add('voiceflow-submit-btn');
-                    
-                    // Remove any existing listeners to avoid duplicates
-                    const newButton = button.cloneNode(true);
-                    button.parentNode.replaceChild(newButton, button);
-                    
-                    // Add hover effects with JavaScript
-                    newButton.addEventListener('mouseenter', function() {
-                        if (!this.disabled) {
-                            this.style.setProperty('background-color', '#0056b3', 'important');
-                            this.style.setProperty('transform', 'translateY(-2px)', 'important');
-                            this.style.setProperty('box-shadow', '0 4px 8px rgba(0, 0, 0, 0.2)', 'important');
-                        }
-                    });
-                    
-                    newButton.addEventListener('mouseleave', function() {
-                        if (!this.disabled) {
-                            this.style.setProperty('background-color', '#007bff', 'important');
-                            this.style.setProperty('transform', 'translateY(0)', 'important');
-                            this.style.setProperty('box-shadow', '0 2px 4px rgba(0, 0, 0, 0.1)', 'important');
-                        }
-                    });
-                });
-            },
-            
-            watchForSubmitButton() {
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        mutation.addedNodes.forEach((node) => {
-                            if (node.nodeType === 1) { // Element node
-                                // Check if it's a submit button or contains one
-                                const submitBtns = [];
-                                if (node.tagName === 'BUTTON' && node.type === 'submit') {
-                                    submitBtns.push(node);
-                                }
-                                if (node.querySelectorAll) {
-                                    const found = node.querySelectorAll('button[type="submit"]');
-                                    submitBtns.push(...found);
-                                }
-                                
-                                if (submitBtns.length > 0) {
-                                    console.log('🦷 New submit button(s) detected');
-                                    setTimeout(() => {
-                                        BookingSDExtension.ensureSubmitButtonStyling();
-                                    }, 100);
-                                }
-                            }
-                        });
-                    });
-                });
-                
-                // Start observing
-                observer.observe(document.body, {
-                    childList: true,
-                    subtree: true
-                });
-                
-                return observer;
-            },
-            
             handleFormReady() {
-                console.log('🦷 Form ready - applying final styles');
-                BookingSDExtension.ensureSubmitButtonStyling();
+                console.log('🦷 Form ready - NavigationButtons should already have inline styles');
             },
 
             // ============================================================================
@@ -863,12 +673,10 @@ const BookingSDExtension = {
                 }
                 
                 if (stepIndex === 3) {
-                    // Last step - ensure submit button styling
-                    console.log('🦷 Reached final step - ensuring submit button styling');
+                    // Last step - NavigationButtons should handle the styling automatically
+                    console.log('🦷 Reached final step - submit button should now have inline styles');
                     
                     setTimeout(() => {
-                        BookingSDExtension.ensureSubmitButtonStyling();
-                        
                         const formData = extension.multiStepForm?.getFormData() || {};
                         console.log('🦷 Reached calendar step, current form data:', formData);
                         
@@ -877,6 +685,11 @@ const BookingSDExtension = {
                             BookingSDExtension.configureCalendarForBooking(extension, formData);
                         }
                     }, 200);
+                }
+                
+                // Call any custom onStepChange handler
+                if (extension.config && extension.config.onStepChange) {
+                    extension.config.onStepChange(stepIndex, stepInstance);
                 }
             },
 
