@@ -7,48 +7,47 @@ const CONFIG = {
     DEBOUNCE_DELAY: 50,
     FORM_VERSION: '5.2.0'
 };
-
 const BookingSDExtension = {
     name: "DynamicDentalBookingSecure",
     type: "response",
-    match: ({ trace }) => trace.type === "ext_booking_sd" || trace.payload?.name === "ext_booking_sd",
-    
+    match: ({
+        trace
+    }) => trace.type === "ext_booking_sd" || trace.payload?.name === "ext_booking_sd",
     // Global storage
     _selectedServiceData: null,
     _selectedDentistData: null,
     _currentExtension: null,
     _calComUtility: null,
-    
-    render: async ({ trace, element }) => {
+    render: async ({
+        trace,
+        element
+    }) => {
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
         // ============================================================================
-        let { 
-            language = "fr", 
-            vf,
-            apiKey = CONFIG.DEFAULT_API_KEY,
-            timezone = "America/Toronto",
-            serviceProvider = "Dental Clinic",
-            voiceflowEnabled = true,
-            voiceflowDataTransformer = null,
-            enableDetailedLogging = true,
-            logPrefix = "🦷 DynamicDentalBooking",
-            enableSessionTimeout = true,
-            sessionTimeout = CONFIG.SESSION_TIMEOUT,
-            sessionWarning = CONFIG.SESSION_WARNING,
-            cssUrls = CONFIG.DEFAULT_CSS,
-            formType = "booking",
-            formStructure = "multistep",
-            useStructuredData = true,
-            dataTransformer = BaseDataTransformer,
-            
-            // REQUIRED data from payload
-            servicesData = null,
-            dentistsData = null
+        let {
+            language = "fr",
+                vf,
+                apiKey = CONFIG.DEFAULT_API_KEY,
+                timezone = "America/Toronto",
+                serviceProvider = "Dental Clinic",
+                voiceflowEnabled = true,
+                voiceflowDataTransformer = null,
+                enableDetailedLogging = true,
+                logPrefix = "🦷 DynamicDentalBooking",
+                enableSessionTimeout = true,
+                sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                sessionWarning = CONFIG.SESSION_WARNING,
+                cssUrls = CONFIG.DEFAULT_CSS,
+                formType = "booking",
+                formStructure = "multistep",
+                useStructuredData = true,
+                dataTransformer = BaseDataTransformer,
+                // REQUIRED data from payload
+                servicesData = null,
+                dentistsData = null
         } = trace.payload || {};
-
         console.log('🦷 Dynamic Dental Booking Extension started (Secure Structure)');
-        
         // ============================================================================
         // CHECK FOR REQUIRED DATA
         // ============================================================================
@@ -57,22 +56,18 @@ const BookingSDExtension = {
             BookingSDExtension.renderDataRequiredError(element, language);
             return;
         }
-
         // ============================================================================
         // VALIDATE PROVIDED DATA
         // ============================================================================
         const dataValidation = BookingSDExtension.validateProvidedData(servicesData, dentistsData);
-        
         if (!dataValidation.valid) {
             console.error('🦷 Data validation failed:', dataValidation.errors);
             BookingSDExtension.renderValidationError(element, dataValidation.errors, language);
             return;
         }
-
         console.log('🦷 Data validation successful');
         console.log('🦷 Using services data:', servicesData.length, 'services');
         console.log('🦷 Using dentists data:', dentistsData.length, 'dentists');
-
         // ============================================================================
         // INITIALIZE CALCOM UTILITY
         // ============================================================================
@@ -80,7 +75,6 @@ const BookingSDExtension = {
             apiKey: apiKey,
             enableDetailedLogging: enableDetailedLogging
         });
-
         // ============================================================================
         // CREATE DYNAMIC FORM CONFIGURATION WITH CURRENT LANGUAGE
         // ============================================================================
@@ -134,7 +128,7 @@ const BookingSDExtension = {
                         }
                     ]
                 },
-                
+
                 // Step 2: Service Selection
                 {
                     sectionId: "service_selection",
@@ -156,16 +150,24 @@ const BookingSDExtension = {
                             itemType: 'service',
                             allowMultiple: false,
                             customErrorMessage: BookingSDExtension.getTranslatedText('errors.serviceRequired', language),
-                            
                             responsiveConfig: {
-                                mobile: { itemsPerView: 1, cardWidth: 300 },
-                                tablet: { itemsPerView: 2, cardWidth: 300 },
-                                desktop: { itemsPerView: 2, cardWidth: 300 }
+                                mobile: {
+                                    itemsPerView: 1,
+                                    cardWidth: 300
+                                },
+                                tablet: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                },
+                                desktop: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                }
                             }
                         }
                     ]
                 },
-                
+
                 // Step 3: Dentist Selection
                 {
                     sectionId: "dentist_selection",
@@ -188,13 +190,20 @@ const BookingSDExtension = {
                             allowMultiple: false,
                             emptyMessage: BookingSDExtension.getTranslatedText('messages.selectServiceFirst', language),
                             customErrorMessage: BookingSDExtension.getTranslatedText('errors.dentistRequired', language),
-                            
                             responsiveConfig: {
-                                mobile: { itemsPerView: 1, cardWidth: 300 },
-                                tablet: { itemsPerView: 2, cardWidth: 300 },
-                                desktop: { itemsPerView: 2, cardWidth: 300 }
+                                mobile: {
+                                    itemsPerView: 1,
+                                    cardWidth: 300
+                                },
+                                tablet: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                },
+                                desktop: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                }
                             },
-                            
                             filterConfig: {
                                 dependsOn: 'selectedService',
                                 dataSource: dentistsData, // Use provided data directly
@@ -204,7 +213,7 @@ const BookingSDExtension = {
                         }
                     ]
                 },
-                
+
                 // Step 4: Calendar Booking
                 {
                     sectionId: "appointment_booking",
@@ -224,7 +233,6 @@ const BookingSDExtension = {
                             language: language,
                             locale: language === 'fr' ? 'fr-FR' : 'en-US',
                             customErrorMessage: BookingSDExtension.getTranslatedText('errors.dateTimeRequired', language),
-                            
                             // Start with empty/disabled state
                             apiKey: '',
                             eventTypeId: null,
@@ -233,10 +241,8 @@ const BookingSDExtension = {
                             specialist: '',
                             selectedCategory: '',
                             eventName: '',
-                            
                             showPlaceholder: true,
                             placeholderMessage: BookingSDExtension.getTranslatedText('messages.selectServiceAndDentist', language),
-                            
                             texts: {
                                 selectDate: BookingSDExtension.getTranslatedText('calendar.selectDate', language),
                                 availableTimesFor: BookingSDExtension.getTranslatedText('calendar.availableTimesFor', language),
@@ -256,21 +262,17 @@ const BookingSDExtension = {
                 }
             ]
         };
-
         // ============================================================================
         // CREATE EXTENSION WITH DYNAMIC CONFIG
         // ============================================================================
-        const extension = new CreatForm(
-            {
+        const extension = new CreatForm({
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
                 useStructuredData: useStructuredData,
                 dataTransformer: dataTransformer,
-                
                 webhookEnabled: false,
                 voiceflowEnabled: false,
-                
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
                 enableSessionTimeout: enableSessionTimeout,
@@ -279,24 +281,19 @@ const BookingSDExtension = {
                 apiKey: apiKey,
                 timezone: timezone,
                 serviceProvider: serviceProvider,
-                
                 onStepChange: BookingSDExtension.handleStepChange,
                 onSubmit: BookingSDExtension.handleSubmit,
-                
                 cssUrls: cssUrls
             },
             BookingSDExtension.FORM_DATA,
             dynamicFormConfig,
             CONFIG
         );
-
         // Store references
         window.currentDynamicDentalExtension = extension;
         BookingSDExtension._currentExtension = extension;
-
         // Render the extension
         const result = await extension.render(element);
-        
         // Set up field change handling
         if (extension.factory) {
             BookingSDExtension.setupFieldChangeHandling(extension);
@@ -307,36 +304,30 @@ const BookingSDExtension = {
                 }
             }, 100);
         }
-
         return result;
     },
-
     // ============================================================================
     // ERROR RENDERING METHODS
     // ============================================================================
-
     renderDataRequiredError(element, language) {
-        const errorMessage = language === 'fr' 
-            ? `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+        const errorMessage = language === 'fr' ?
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Configuration Requise</h3>
                 <p>Les données des services et des dentistes doivent être fournies via le payload.</p>
                 <p>Veuillez contacter l'administrateur du système.</p>
-               </div>`
-            : `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+               </div>` :
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Configuration Required</h3>
                 <p>Services and dentists data must be provided via payload.</p>
                 <p>Please contact the system administrator.</p>
                </div>`;
-        
         element.innerHTML = errorMessage;
     },
-
     renderValidationError(element, errors, language) {
         const title = language === 'fr' ? 'Erreurs de Validation' : 'Validation Errors';
-        const description = language === 'fr' 
-            ? 'Les erreurs suivantes ont été trouvées dans les données fournies:' 
-            : 'The following errors were found in the provided data:';
-        
+        const description = language === 'fr' ?
+            'Les erreurs suivantes ont été trouvées dans les données fournies:' :
+            'The following errors were found in the provided data:';
         const errorHtml = `
             <div class="error-container" style="padding: 40px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ ${title}</h3>
@@ -346,14 +337,11 @@ const BookingSDExtension = {
                 </ul>
             </div>
         `;
-        
         element.innerHTML = errorHtml;
     },
-
     // ============================================================================
     // HELPER METHODS
     // ============================================================================
-
     initializeCalComUtility(config) {
         if (!this._calComUtility) {
             this._calComUtility = new CalComBaseUtility({
@@ -373,7 +361,6 @@ const BookingSDExtension = {
         }
         return this._calComUtility;
     },
-
     getTranslatedText(key, lang = 'fr') {
         const keys = key.split('.');
         let value = this.FORM_DATA.translations[lang];
@@ -382,46 +369,46 @@ const BookingSDExtension = {
         }
         return value || key;
     },
-
     // ============================================================================
     // DATA VALIDATION METHODS
     // ============================================================================
-
     validateProvidedData(services, dentists) {
         const serviceValidation = this.validateServiceData(services);
         const dentistValidation = this.validateDentistData(dentists);
         const compatibilityValidation = this.validateServiceDentistCompatibility(services, dentists);
-
         const allErrors = [
             ...serviceValidation.errors,
             ...dentistValidation.errors,
             ...compatibilityValidation.errors
         ];
-
         return {
             valid: allErrors.length === 0,
             errors: allErrors
         };
     },
-
     validateServiceData(services) {
         const errors = [];
-        
         if (!services) {
             errors.push("Services data is required");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-        
         if (!Array.isArray(services)) {
             errors.push("Services data must be an array");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         if (services.length === 0) {
             errors.push("At least one service must be provided");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         services.forEach((service, index) => {
             const requiredFields = ['id', 'title', 'category', 'description'];
             requiredFields.forEach(field => {
@@ -429,33 +416,38 @@ const BookingSDExtension = {
                     errors.push(`Service ${index + 1}: Missing required field '${field}'`);
                 }
             });
-
             if (!service.eventSlug) {
                 errors.push(`Service ${index + 1} (${service.title || 'unknown'}): Missing 'eventSlug' field`);
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     validateDentistData(dentists) {
         const errors = [];
-        
         if (!dentists) {
             errors.push("Dentists data is required");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-        
         if (!Array.isArray(dentists)) {
             errors.push("Dentists data must be an array");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         if (dentists.length === 0) {
             errors.push("At least one dentist must be provided");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         dentists.forEach((dentist, index) => {
             const requiredFields = ['id', 'name', 'position', 'description', 'services'];
             requiredFields.forEach(field => {
@@ -463,11 +455,9 @@ const BookingSDExtension = {
                     errors.push(`Dentist ${index + 1}: Missing required field '${field}'`);
                 }
             });
-
             if (dentist.services && !Array.isArray(dentist.services)) {
                 errors.push(`Dentist ${index + 1} (${dentist.name || 'unknown'}): 'services' must be an array`);
             }
-
             if (!dentist.calComConfig) {
                 errors.push(`Dentist ${index + 1} (${dentist.name || 'unknown'}): Missing 'calComConfig'`);
             } else {
@@ -483,14 +473,14 @@ const BookingSDExtension = {
                 }
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     validateServiceDentistCompatibility(services, dentists) {
         const errors = [];
         const serviceIds = new Set(services.map(s => s.id));
-        
         dentists.forEach((dentist, dentistIndex) => {
             if (dentist.services) {
                 dentist.services.forEach(serviceId => {
@@ -499,7 +489,6 @@ const BookingSDExtension = {
                     }
                 });
             }
-
             if (dentist.calComConfig?.serviceConfigs) {
                 const configuredServices = Object.keys(dentist.calComConfig.serviceConfigs);
                 dentist.services?.forEach(serviceId => {
@@ -509,56 +498,45 @@ const BookingSDExtension = {
                 });
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     // ============================================================================
     // FILTER AND EVENT HANDLING
     // ============================================================================
-
     createDentistFilterFunction() {
         return (allDentists, selectedService) => {
             if (!selectedService || !selectedService.id) {
                 return [];
             }
-            
             const serviceId = selectedService.id;
             const filtered = allDentists.filter(dentist => {
                 return dentist.services && dentist.services.includes(serviceId);
             });
-            
             console.log(`🔄 DENTIST FILTER: Found ${filtered.length} dentists for service "${selectedService.title}"`);
-            
             return filtered;
         };
     },
-
     setupFieldChangeHandling(extension) {
         console.log('🦷 Setting up field change handling');
-        
         const originalOnChange = extension.factory.onChangeCallback;
-        
-        extension.factory.onChangeCallback = function(name, value) {
+        extension.factory.onChangeCallback = function (name, value) {
             console.log(`🔄 Field ${name} changed:`, value);
-            
             if (originalOnChange) {
                 originalOnChange.call(this, name, value);
             }
-            
             if (extension.factory && extension.factory.formValues) {
                 extension.factory.formValues[name] = value;
             }
-            
             if (extension.formValues) {
                 extension.formValues[name] = value;
             }
-
             BookingSDExtension.handleFieldChange(extension, name, value);
         };
-        
         const originalCreateField = extension.factory.createField;
-        extension.factory.createField = function(fieldConfig) {
+        extension.factory.createField = function (fieldConfig) {
             if (fieldConfig.type === 'filteredCarousel') {
                 console.log(`🔄 Creating filtered carousel field: ${fieldConfig.name}`);
                 return new FilteredCarouselField(this, fieldConfig);
@@ -569,23 +547,18 @@ const BookingSDExtension = {
             return originalCreateField.call(this, fieldConfig);
         };
     },
-
     // ============================================================================
     // ENHANCED FIELD CHANGE HANDLER - SOLUTION 2
     // ============================================================================
     handleFieldChange(extension, name, value) {
         if (name === 'selectedService') {
             console.log('🦷 SERVICE SELECTED:', value);
-            
             BookingSDExtension._selectedServiceData = value;
-            
             if (window.notifyFieldDependents) {
                 window.notifyFieldDependents('selectedService', value);
             }
-            
             if (value) {
                 BookingSDExtension._selectedDentistData = null;
-                
                 const dentistField = BookingSDExtension.findFieldByName(extension, 'selectedDentist');
                 if (dentistField) {
                     dentistField.selectedItem = null;
@@ -594,16 +567,13 @@ const BookingSDExtension = {
                 }
             }
         }
-
         if (name === 'selectedDentist' && value) {
             console.log('🦷 DENTIST SELECTED:', value.name);
             BookingSDExtension._selectedDentistData = value;
-            
             // Enhance the service data with Cal.com configuration from the dentist
             if (BookingSDExtension._selectedServiceData && value.calComConfig) {
                 const serviceId = BookingSDExtension._selectedServiceData.id;
                 const serviceConfig = value.calComConfig.serviceConfigs?.[serviceId];
-                
                 if (serviceConfig) {
                     // Create an enhanced service object with Cal.com data
                     const enhancedServiceData = {
@@ -617,10 +587,8 @@ const BookingSDExtension = {
                         name: BookingSDExtension._selectedServiceData.title,
                         serviceName: serviceConfig.eventName || BookingSDExtension._selectedServiceData.title
                     };
-                    
                     // Update the stored service data
                     BookingSDExtension._selectedServiceData = enhancedServiceData;
-                    
                     // Update the form values if possible
                     if (extension.factory && extension.factory.formValues) {
                         extension.factory.formValues.selectedService = enhancedServiceData;
@@ -628,11 +596,9 @@ const BookingSDExtension = {
                     if (extension.formValues) {
                         extension.formValues.selectedService = enhancedServiceData;
                     }
-                    
                     console.log('🦷 Enhanced service data with Cal.com config:', enhancedServiceData);
                 }
             }
-            
             const currentFormData = extension.multiStepForm?.getFormData() || {};
             if (currentFormData.selectedService && value) {
                 console.log('🦷 Both service and dentist selected, configuring calendar');
@@ -644,19 +610,15 @@ const BookingSDExtension = {
             }
         }
     },
-
     handleStepChange(stepIndex, stepInstance) {
         console.log(`🦷 Step changed to: ${stepIndex + 1}`);
         const extension = BookingSDExtension._currentExtension;
-        
         if (stepIndex === 2) {
             console.log('🦷 Reached dentist step');
-            
             setTimeout(() => {
                 const currentFormData = extension.multiStepForm?.getFormData() || {};
                 if (currentFormData.selectedService) {
                     console.log('🦷 Service already selected, updating dentist options');
-                    
                     const dentistField = BookingSDExtension.findFieldByName(extension, 'selectedDentist');
                     if (dentistField && dentistField.updateFromDependency) {
                         dentistField.updateFromDependency(currentFormData.selectedService);
@@ -664,12 +626,10 @@ const BookingSDExtension = {
                 }
             }, 100);
         }
-        
         if (stepIndex === 3) {
             setTimeout(() => {
                 const formData = extension.multiStepForm?.getFormData() || {};
                 console.log('🦷 Reached calendar step, current form data:', formData);
-                
                 if (formData.selectedService && formData.selectedDentist) {
                     console.log('🦷 Both selections made, configuring calendar');
                     BookingSDExtension.configureCalendarForBooking(extension, formData);
@@ -677,7 +637,6 @@ const BookingSDExtension = {
             }, 100);
         }
     },
-
     // ============================================================================
     // UPDATED SUBMIT HANDLER TO USE ENHANCED SERVICE DATA
     // ============================================================================
@@ -685,22 +644,17 @@ const BookingSDExtension = {
         if (!formData.selectedService || !formData.selectedDentist) {
             throw new Error('Service and dentist selection required');
         }
-
         // Use the enhanced service data that was stored when dentist was selected
         const selectedService = BookingSDExtension._selectedServiceData || formData.selectedService;
         const selectedDentist = formData.selectedDentist;
         const appointmentData = formData.appointment;
-
         console.log('🦷 Submit handler - using service data:', selectedService);
-
         // Validate that the enhanced service data has the required Cal.com fields
         if (!selectedService.eventTypeId) {
             console.error('🦷 Service missing eventTypeId, attempting recovery...');
-            
             // Attempt to recover by getting config from dentist
             const dentistConfig = selectedDentist.calComConfig;
             const serviceConfig = dentistConfig?.serviceConfigs?.[selectedService.id];
-            
             if (serviceConfig) {
                 selectedService.eventTypeId = serviceConfig.eventId;
                 selectedService.eventTypeSlug = serviceConfig.eventSlug;
@@ -709,10 +663,9 @@ const BookingSDExtension = {
                 throw new Error('Invalid service configuration - missing Cal.com integration data');
             }
         }
-
         const bookingData = {
             ...formData,
-            serviceSelection: selectedService,  // This now has eventTypeId
+            serviceSelection: selectedService, // This now has eventTypeId
             selectedService: selectedService,
             selectedDentist: selectedDentist,
             appointment: appointmentData,
@@ -723,9 +676,7 @@ const BookingSDExtension = {
             eventName: selectedService.eventName,
             serviceProvider: selectedDentist.name
         };
-        
         console.log('🦷 Final booking data prepared:', bookingData);
-        
         return await BookingSDExtension._calComUtility.handleBooking(bookingData, {
             language: formData.language || 'fr',
             apiKey: selectedDentist.calComConfig?.apiKey,
@@ -736,19 +687,15 @@ const BookingSDExtension = {
             selectedService: selectedService
         });
     },
-
     // ============================================================================
     // CALENDAR CONFIGURATION
     // ============================================================================
-
     configureCalendarForBooking(extension, allFormData) {
         console.log('🦷 Configuring calendar for booking');
-        
         const findCalendarField = () => {
             if (this._cachedCalendarField && this._cachedCalendarField.name === 'appointment') {
                 return this._cachedCalendarField;
             }
-            
             const searchInSteps = (steps) => {
                 for (let step of steps) {
                     if (step.fieldInstances) {
@@ -762,36 +709,28 @@ const BookingSDExtension = {
                 }
                 return null;
             };
-            
             if (extension.multiStepForm?.stepInstances) {
                 const found = searchInSteps(extension.multiStepForm.stepInstances);
                 if (found) return found;
             }
-            
             if (extension.factory?.currentMultiStepForm?.stepInstances) {
                 const found = searchInSteps(extension.factory.currentMultiStepForm.stepInstances);
                 if (found) return found;
             }
-            
             const calendarElement = document.querySelector('.calendar-container');
             if (calendarElement && calendarElement.fieldInstance) {
                 this._cachedCalendarField = calendarElement.fieldInstance;
                 return calendarElement.fieldInstance;
             }
-            
             return null;
         };
-        
         const calendarField = findCalendarField();
-        
         if (calendarField) {
             const selectedService = allFormData.selectedService;
             const selectedDentist = allFormData.selectedDentist;
-            
             if (selectedService && selectedDentist) {
                 const dentistConfig = selectedDentist.calComConfig;
                 const serviceConfig = dentistConfig?.serviceConfigs?.[selectedService.id];
-                
                 if (dentistConfig && serviceConfig) {
                     Object.assign(calendarField, {
                         apiKey: dentistConfig.apiKey,
@@ -803,27 +742,20 @@ const BookingSDExtension = {
                         selectedCategory: serviceConfig.eventName || selectedService.title,
                         showPlaceholder: false
                     });
-                    
                     console.log('🦷 Calendar configured successfully');
-                    
                     requestAnimationFrame(async () => {
                         try {
                             const initTasks = [];
-                            
                             if (calendarField.init) {
                                 initTasks.push(calendarField.init());
                             }
-                            
                             await Promise.all(initTasks);
-                            
                             if (calendarField.updateCalendarHeader) {
                                 calendarField.updateCalendarHeader();
                             }
-                            
                             if (calendarField.renderCalendarData) {
                                 calendarField.renderCalendarData();
                             }
-                            
                             console.log('🦷 Calendar re-initialization completed');
                         } catch (err) {
                             console.error('🦷 Calendar re-initialization error:', err);
@@ -835,7 +767,6 @@ const BookingSDExtension = {
             console.error('🦷 Calendar field not found');
         }
     },
-
     findFieldByName(extension, fieldName) {
         if (extension.multiStepForm?.stepInstances) {
             for (let step of extension.multiStepForm.stepInstances) {
@@ -850,28 +781,38 @@ const BookingSDExtension = {
         }
         return null;
     },
-
     // ============================================================================
     // FORM DATA CONFIGURATION - Only UI translations, NO default data
     // ============================================================================
     FORM_DATA: {
         // Empty options - MUST be provided via payload
         options: {},
-        
         // All UI translations (no service/dentist data)
         translations: {
             fr: {
-                nav: { 
-                    next: "Suivant", 
-                    previous: "Précédent", 
-                    submit: "Confirmer la réservation", 
-                    processing: "Traitement en cours..." 
+                nav: {
+                    next: "Suivant",
+                    previous: "Précédent",
+                    submit: "Confirmer la réservation",
+                    processing: "Traitement en cours..."
                 },
                 steps: [
-                    { title: "Informations Personnelles", desc: "Renseignez vos coordonnées" },
-                    { title: "Sélection du Service", desc: "Choisissez le service qui vous intéresse" },
-                    { title: "Choix du Dentiste", desc: "Sélectionnez votre professionnel" },
-                    { title: "Date et Heure", desc: "Choisissez votre créneau" }
+                    {
+                        title: "Informations Personnelles",
+                        desc: "Renseignez vos coordonnées"
+                    },
+                    {
+                        title: "Sélection du Service",
+                        desc: "Choisissez le service qui vous intéresse"
+                    },
+                    {
+                        title: "Choix du Dentiste",
+                        desc: "Sélectionnez votre professionnel"
+                    },
+                    {
+                        title: "Date et Heure",
+                        desc: "Choisissez votre créneau"
+                    }
                 ],
                 fields: {
                     firstName: "Prénom",
@@ -902,9 +843,9 @@ const BookingSDExtension = {
                     dateTimeRequired: "Veuillez sélectionner une date et une heure",
                     providerRequired: "Veuillez sélectionner un fournisseur de services"
                 },
-                success: { 
-                    title: "Rendez-vous confirmé !", 
-                    message: "Votre rendez-vous a été programmé avec succès." 
+                success: {
+                    title: "Rendez-vous confirmé !",
+                    message: "Votre rendez-vous a été programmé avec succès."
                 },
                 messages: {
                     selectServiceFirst: "Veuillez d'abord sélectionner un service",
@@ -923,19 +864,30 @@ const BookingSDExtension = {
                     weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
                 }
             },
-            
             en: {
-                nav: { 
-                    next: "Next", 
-                    previous: "Previous", 
-                    submit: "Confirm Booking", 
-                    processing: "Processing..." 
+                nav: {
+                    next: "Next",
+                    previous: "Previous",
+                    submit: "Confirm Booking",
+                    processing: "Processing..."
                 },
                 steps: [
-                    { title: "Personal Information", desc: "Enter your details" },
-                    { title: "Service Selection", desc: "Choose the service you need" },
-                    { title: "Choose Dentist", desc: "Select your professional" },
-                    { title: "Date & Time", desc: "Choose your appointment" }
+                    {
+                        title: "Personal Information",
+                        desc: "Enter your details"
+                    },
+                    {
+                        title: "Service Selection",
+                        desc: "Choose the service you need"
+                    },
+                    {
+                        title: "Choose Dentist",
+                        desc: "Select your professional"
+                    },
+                    {
+                        title: "Date & Time",
+                        desc: "Choose your appointment"
+                    }
                 ],
                 fields: {
                     firstName: "First Name",
@@ -966,9 +918,9 @@ const BookingSDExtension = {
                     dateTimeRequired: "Please select a date and time",
                     providerRequired: "Please select a service provider"
                 },
-                success: { 
-                    title: "Appointment Confirmed!", 
-                    message: "Your appointment has been successfully scheduled." 
+                success: {
+                    title: "Appointment Confirmed!",
+                    message: "Your appointment has been successfully scheduled."
                 },
                 messages: {
                     selectServiceFirst: "Please select a service first",
@@ -993,54 +945,53 @@ const BookingSDExtension = {
 const BookingDExtension = {
     name: "DynamicDentalBookingOptimized",
     type: "response",
-    match: ({ trace }) => trace.type === "ext_booking_d" || trace.payload?.name === "ext_booking_d",
-    
+    match: ({
+        trace
+    }) => trace.type === "ext_booking_d" || trace.payload?.name === "ext_booking_d",
     // Global storage
     _selectedServiceData: null,
     _selectedDentistData: null,
     _currentExtension: null,
     _calComUtility: null,
-    
-    render: async ({ trace, element }) => {
+    render: async ({
+        trace,
+        element
+    }) => {
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
         // ============================================================================
-        let { 
-            language = "fr", 
-            vf,
-            apiKey = CONFIG.DEFAULT_API_KEY,
-            timezone = "America/Toronto",
-            serviceProvider = "Dental Clinic",
-            voiceflowEnabled = true,
-            voiceflowDataTransformer = null,
-            enableDetailedLogging = true,
-            logPrefix = "🦷 DynamicDentalBooking",
-            enableSessionTimeout = true,
-            sessionTimeout = CONFIG.SESSION_TIMEOUT,
-            sessionWarning = CONFIG.SESSION_WARNING,
-            cssUrls = CONFIG.DEFAULT_CSS,
-            formType = "booking",
-            formStructure = "multistep",
-            useStructuredData = true,
-            dataTransformer = BaseDataTransformer,
-            
-            // REQUIRED data from payload
-            servicesData = null,
-            dentistsData = null,
-            SERVICES_DATA = null,
-            UNIFIED_DENTISTS_DATA = null,
-            selectedServiceName = null,
-            serviceName = null,
-            service = null
+        let {
+            language = "fr",
+                vf,
+                apiKey = CONFIG.DEFAULT_API_KEY,
+                timezone = "America/Toronto",
+                serviceProvider = "Dental Clinic",
+                voiceflowEnabled = true,
+                voiceflowDataTransformer = null,
+                enableDetailedLogging = true,
+                logPrefix = "🦷 DynamicDentalBooking",
+                enableSessionTimeout = true,
+                sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                sessionWarning = CONFIG.SESSION_WARNING,
+                cssUrls = CONFIG.DEFAULT_CSS,
+                formType = "booking",
+                formStructure = "multistep",
+                useStructuredData = true,
+                dataTransformer = BaseDataTransformer,
+                // REQUIRED data from payload
+                servicesData = null,
+                dentistsData = null,
+                SERVICES_DATA = null,
+                UNIFIED_DENTISTS_DATA = null,
+                selectedServiceName = null,
+                serviceName = null,
+                service = null
         } = trace.payload || {};
-
         console.log('🦷 Dynamic Dental Booking Extension started (Optimized Service from Payload)');
-        
         // Normalize data sources
         servicesData = servicesData || SERVICES_DATA;
         dentistsData = dentistsData || UNIFIED_DENTISTS_DATA;
         selectedServiceName = selectedServiceName || serviceName || service;
-        
         // ============================================================================
         // CHECK FOR REQUIRED DATA
         // ============================================================================
@@ -1049,56 +1000,45 @@ const BookingDExtension = {
             BookingDExtension.renderDataRequiredError(element, language);
             return;
         }
-
         if (!selectedServiceName) {
             console.error('🦷 CRITICAL ERROR: No service name provided in payload');
             BookingDExtension.renderServiceRequiredError(element, language);
             return;
         }
-
         // ============================================================================
         // VALIDATE PROVIDED DATA
         // ============================================================================
         const dataValidation = BookingDExtension.validateProvidedData(servicesData, dentistsData);
-        
         if (!dataValidation.valid) {
             console.error('🦷 Data validation failed:', dataValidation.errors);
             BookingDExtension.renderValidationError(element, dataValidation.errors, language);
             return;
         }
-
         // ============================================================================
         // FIND SELECTED SERVICE BY NAME
         // ============================================================================
         const selectedService = BookingDExtension.findServiceByName(selectedServiceName, servicesData);
-        
         if (!selectedService) {
             console.error('🦷 Service not found:', selectedServiceName);
             BookingDExtension.renderServiceNotFoundError(element, selectedServiceName, servicesData, language);
             return;
         }
-
         console.log('🦷 Data validation successful');
         console.log('🦷 Using services data:', servicesData.length, 'services');
         console.log('🦷 Using dentists data:', dentistsData.length, 'dentists');
         console.log('🦷 Selected service:', selectedService.title);
-
         // Store selected service
         BookingDExtension._selectedServiceData = selectedService;
-
         // ============================================================================
         // PRE-FILTER DENTISTS FOR SELECTED SERVICE
         // ============================================================================
         const filteredDentists = BookingDExtension.filterDentistsForService(dentistsData, selectedService);
-        
         if (filteredDentists.length === 0) {
             console.error('🦷 No dentists available for service:', selectedService.title);
             BookingDExtension.renderNoDentistsError(element, selectedService, language);
             return;
         }
-
         console.log('🦷 Pre-filtered dentists:', filteredDentists.length, 'available for', selectedService.title);
-
         // ============================================================================
         // INITIALIZE CALCOM UTILITY
         // ============================================================================
@@ -1106,7 +1046,6 @@ const BookingDExtension = {
             apiKey: apiKey,
             enableDetailedLogging: enableDetailedLogging
         });
-
         // ============================================================================
         // CREATE OPTIMIZED FORM CONFIGURATION (3 STEPS ONLY)
         // ============================================================================
@@ -1160,7 +1099,7 @@ const BookingDExtension = {
                         }
                     ]
                 },
-                
+
                 // Step 2: Dentist Selection (Pre-filtered)
                 {
                     sectionId: "dentist_selection",
@@ -1182,16 +1121,24 @@ const BookingDExtension = {
                             itemType: 'staff',
                             allowMultiple: false,
                             customErrorMessage: BookingDExtension.getTranslatedText('errors.dentistRequired', language),
-                            
                             responsiveConfig: {
-                                mobile: { itemsPerView: 1, cardWidth: 300 },
-                                tablet: { itemsPerView: 2, cardWidth: 300 },
-                                desktop: { itemsPerView: 2, cardWidth: 300 }
+                                mobile: {
+                                    itemsPerView: 1,
+                                    cardWidth: 300
+                                },
+                                tablet: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                },
+                                desktop: {
+                                    itemsPerView: 2,
+                                    cardWidth: 300
+                                }
                             }
                         }
                     ]
                 },
-                
+
                 // Step 3: Calendar Booking
                 {
                     sectionId: "appointment_booking",
@@ -1211,7 +1158,6 @@ const BookingDExtension = {
                             language: language,
                             locale: language === 'fr' ? 'fr-FR' : 'en-US',
                             customErrorMessage: BookingDExtension.getTranslatedText('errors.dateTimeRequired', language),
-                            
                             // Start with empty/disabled state
                             apiKey: '',
                             eventTypeId: null,
@@ -1220,10 +1166,8 @@ const BookingDExtension = {
                             specialist: '',
                             selectedCategory: '',
                             eventName: '',
-                            
                             showPlaceholder: true,
                             placeholderMessage: BookingDExtension.getTranslatedText('messages.selectDentistFirst', language),
-                            
                             texts: {
                                 selectDate: BookingDExtension.getTranslatedText('calendar.selectDate', language),
                                 availableTimesFor: BookingDExtension.getTranslatedText('calendar.availableTimesFor', language),
@@ -1243,21 +1187,17 @@ const BookingDExtension = {
                 }
             ]
         };
-
         // ============================================================================
         // CREATE EXTENSION WITH DYNAMIC CONFIG
         // ============================================================================
-        const extension = new CreatForm(
-            {
+        const extension = new CreatForm({
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
                 useStructuredData: useStructuredData,
                 dataTransformer: dataTransformer,
-                
                 webhookEnabled: false,
                 voiceflowEnabled: false,
-                
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
                 enableSessionTimeout: enableSessionTimeout,
@@ -1266,24 +1206,19 @@ const BookingDExtension = {
                 apiKey: apiKey,
                 timezone: timezone,
                 serviceProvider: serviceProvider,
-                
                 onStepChange: BookingDExtension.handleStepChange,
                 onSubmit: BookingDExtension.handleSubmit,
-                
                 cssUrls: cssUrls
             },
             BookingDExtension.FORM_DATA,
             dynamicFormConfig,
             CONFIG
         );
-
         // Store references
         window.currentDynamicDentalExtension = extension;
         BookingDExtension._currentExtension = extension;
-
         // Render the extension
         const result = await extension.render(element);
-        
         // Set up field change handling
         if (extension.factory) {
             BookingDExtension.setupFieldChangeHandling(extension, selectedService);
@@ -1294,85 +1229,74 @@ const BookingDExtension = {
                 }
             }, 100);
         }
-
         return result;
     },
-
     // ============================================================================
     // ERROR RENDERING METHODS
     // ============================================================================
-
     renderDataRequiredError(element, language) {
-        const errorMessage = language === 'fr' 
-            ? `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+        const errorMessage = language === 'fr' ?
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Configuration Requise</h3>
                 <p>Les données des services et des dentistes doivent être fournies via le payload.</p>
                 <p>Veuillez contacter l'administrateur du système.</p>
-               </div>`
-            : `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+               </div>` :
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Configuration Required</h3>
                 <p>Services and dentists data must be provided via payload.</p>
                 <p>Please contact the system administrator.</p>
                </div>`;
-        
         element.innerHTML = errorMessage;
     },
-
     renderServiceRequiredError(element, language) {
-        const errorMessage = language === 'fr' 
-            ? `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+        const errorMessage = language === 'fr' ?
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Service Requis</h3>
                 <p>Le nom du service doit être fourni via le payload (selectedServiceName).</p>
                 <p>Veuillez contacter l'administrateur du système.</p>
-               </div>`
-            : `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+               </div>` :
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Service Required</h3>
                 <p>Service name must be provided via payload (selectedServiceName).</p>
                 <p>Please contact the system administrator.</p>
                </div>`;
-        
         element.innerHTML = errorMessage;
     },
-
     renderServiceNotFoundError(element, serviceName, availableServices, language) {
-        const availableList = availableServices.map(s => s.title).join(', ');
-        const errorMessage = language === 'fr' 
-            ? `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+        const availableList = availableServices.map(s => s.title)
+            .join(', ');
+        const errorMessage = language === 'fr' ?
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Service Non Trouvé</h3>
                 <p>Le service "${serviceName}" n'a pas été trouvé dans les données fournies.</p>
                 <p><strong>Services disponibles:</strong> ${availableList}</p>
-               </div>`
-            : `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+               </div>` :
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Service Not Found</h3>
                 <p>Service "${serviceName}" was not found in the provided data.</p>
                 <p><strong>Available services:</strong> ${availableList}</p>
                </div>`;
-        
         element.innerHTML = errorMessage;
     },
-
     renderNoDentistsError(element, service, language) {
-        const errorMessage = language === 'fr' 
-            ? `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+        const errorMessage = language === 'fr' ?
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ Aucun Dentiste Disponible</h3>
                 <p>Aucun dentiste n'est disponible pour le service "${service.title}".</p>
                 <p>Veuillez choisir un autre service ou contacter l'administrateur.</p>
-               </div>`
-            : `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+               </div>` :
+            `<div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ No Dentists Available</h3>
                 <p>No dentists are available for the service "${service.title}".</p>
                 <p>Please choose another service or contact the administrator.</p>
                </div>`;
-        
         element.innerHTML = errorMessage;
     },
-
     renderValidationError(element, errors, language) {
         const title = language === 'fr' ? 'Erreurs de Validation' : 'Validation Errors';
-        const description = language === 'fr' 
-            ? 'Les erreurs suivantes ont été trouvées dans les données fournies:' 
-            : 'The following errors were found in the provided data:';
-        
+        const description = language === 'fr' ?
+            'Les erreurs suivantes ont été trouvées dans les données fournies:' :
+            'The following errors were found in the provided data:';
         const errorHtml = `
             <div class="error-container" style="padding: 40px; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
                 <h3>⚠️ ${title}</h3>
@@ -1382,14 +1306,11 @@ const BookingDExtension = {
                 </ul>
             </div>
         `;
-        
         element.innerHTML = errorHtml;
     },
-
     // ============================================================================
     // HELPER METHODS
     // ============================================================================
-
     initializeCalComUtility(config) {
         if (!this._calComUtility) {
             this._calComUtility = new CalComBaseUtility({
@@ -1409,7 +1330,6 @@ const BookingDExtension = {
         }
         return this._calComUtility;
     },
-
     getTranslatedText(key, lang = 'fr') {
         const keys = key.split('.');
         let value = this.FORM_DATA.translations[lang];
@@ -1418,106 +1338,96 @@ const BookingDExtension = {
         }
         return value || key;
     },
-
     // ============================================================================
     // SERVICE LOOKUP METHOD
     // ============================================================================
-
     findServiceByName(serviceName, servicesData) {
         console.log('🔍 SERVICE LOOKUP: Searching for service:', serviceName);
         console.log('🔍 SERVICE LOOKUP: Available services:', servicesData?.map(s => s.title) || []);
-        
         if (!serviceName || !servicesData || !Array.isArray(servicesData)) {
             console.log('🔍 SERVICE LOOKUP: Invalid input data');
             return null;
         }
-        
-        const searchName = serviceName.toLowerCase().trim();
+        const searchName = serviceName.toLowerCase()
+            .trim();
         console.log('🔍 SERVICE LOOKUP: Normalized search name:', searchName);
-        
         // Exact title match first
-        let found = servicesData.find(service => 
+        let found = servicesData.find(service =>
             service.title && service.title.toLowerCase() === searchName
         );
-        
         if (found) {
             console.log('🔍 SERVICE LOOKUP: Found exact title match:', found.title);
             return found;
         }
-        
         // Partial title match
-        found = servicesData.find(service => 
-            service.title && service.title.toLowerCase().includes(searchName)
+        found = servicesData.find(service =>
+            service.title && service.title.toLowerCase()
+            .includes(searchName)
         );
-        
         if (found) {
             console.log('🔍 SERVICE LOOKUP: Found partial title match:', found.title);
             return found;
         }
-        
         // ID match
-        found = servicesData.find(service => 
+        found = servicesData.find(service =>
             service.id && service.id.toLowerCase() === searchName
         );
-        
         if (found) {
             console.log('🔍 SERVICE LOOKUP: Found ID match:', found.id);
             return found;
         }
-        
         // Category match
-        found = servicesData.find(service => 
-            service.category && service.category.toLowerCase().includes(searchName)
+        found = servicesData.find(service =>
+            service.category && service.category.toLowerCase()
+            .includes(searchName)
         );
-        
         if (found) {
             console.log('🔍 SERVICE LOOKUP: Found category match:', found.category);
             return found;
         }
-        
         console.log('🔍 SERVICE LOOKUP: No match found for:', serviceName);
         return null;
     },
-
     // ============================================================================
     // DATA VALIDATION METHODS
     // ============================================================================
-
     validateProvidedData(services, dentists) {
         const serviceValidation = this.validateServiceData(services);
         const dentistValidation = this.validateDentistData(dentists);
         const compatibilityValidation = this.validateServiceDentistCompatibility(services, dentists);
-
         const allErrors = [
             ...serviceValidation.errors,
             ...dentistValidation.errors,
             ...compatibilityValidation.errors
         ];
-
         return {
             valid: allErrors.length === 0,
             errors: allErrors
         };
     },
-
     validateServiceData(services) {
         const errors = [];
-        
         if (!services) {
             errors.push("Services data is required");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-        
         if (!Array.isArray(services)) {
             errors.push("Services data must be an array");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         if (services.length === 0) {
             errors.push("At least one service must be provided");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         services.forEach((service, index) => {
             const requiredFields = ['id', 'title', 'category', 'description'];
             requiredFields.forEach(field => {
@@ -1525,33 +1435,38 @@ const BookingDExtension = {
                     errors.push(`Service ${index + 1}: Missing required field '${field}'`);
                 }
             });
-
             if (!service.eventSlug) {
                 errors.push(`Service ${index + 1} (${service.title || 'unknown'}): Missing 'eventSlug' field`);
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     validateDentistData(dentists) {
         const errors = [];
-        
         if (!dentists) {
             errors.push("Dentists data is required");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-        
         if (!Array.isArray(dentists)) {
             errors.push("Dentists data must be an array");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         if (dentists.length === 0) {
             errors.push("At least one dentist must be provided");
-            return { valid: false, errors };
+            return {
+                valid: false,
+                errors
+            };
         }
-
         dentists.forEach((dentist, index) => {
             const requiredFields = ['id', 'name', 'position', 'description', 'services'];
             requiredFields.forEach(field => {
@@ -1559,11 +1474,9 @@ const BookingDExtension = {
                     errors.push(`Dentist ${index + 1}: Missing required field '${field}'`);
                 }
             });
-
             if (dentist.services && !Array.isArray(dentist.services)) {
                 errors.push(`Dentist ${index + 1} (${dentist.name || 'unknown'}): 'services' must be an array`);
             }
-
             if (!dentist.calComConfig) {
                 errors.push(`Dentist ${index + 1} (${dentist.name || 'unknown'}): Missing 'calComConfig'`);
             } else {
@@ -1579,14 +1492,14 @@ const BookingDExtension = {
                 }
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     validateServiceDentistCompatibility(services, dentists) {
         const errors = [];
         const serviceIds = new Set(services.map(s => s.id));
-        
         dentists.forEach((dentist, dentistIndex) => {
             if (dentist.services) {
                 dentist.services.forEach(serviceId => {
@@ -1595,7 +1508,6 @@ const BookingDExtension = {
                     }
                 });
             }
-
             if (dentist.calComConfig?.serviceConfigs) {
                 const configuredServices = Object.keys(dentist.calComConfig.serviceConfigs);
                 dentist.services?.forEach(serviceId => {
@@ -1605,53 +1517,42 @@ const BookingDExtension = {
                 });
             }
         });
-
-        return { valid: errors.length === 0, errors };
+        return {
+            valid: errors.length === 0,
+            errors
+        };
     },
-
     // ============================================================================
     // FILTER AND EVENT HANDLING
     // ============================================================================
-
     filterDentistsForService(dentists, selectedService) {
         if (!selectedService || !selectedService.id || !dentists) {
             return [];
         }
-        
         const serviceId = selectedService.id;
         const filtered = dentists.filter(dentist => {
             return dentist.services && dentist.services.includes(serviceId);
         });
-        
         console.log(`🔄 PRE-FILTER: Found ${filtered.length} dentists for service "${selectedService.title}"`);
-        
         return filtered;
     },
-
     setupFieldChangeHandling(extension, selectedService) {
         console.log('🦷 Setting up field change handling with pre-selected service:', selectedService?.title);
-        
         const originalOnChange = extension.factory.onChangeCallback;
-        
-        extension.factory.onChangeCallback = function(name, value) {
+        extension.factory.onChangeCallback = function (name, value) {
             console.log(`🔄 Field ${name} changed:`, value);
-            
             if (originalOnChange) {
                 originalOnChange.call(this, name, value);
             }
-            
             if (extension.factory && extension.factory.formValues) {
                 extension.factory.formValues[name] = value;
             }
-            
             if (extension.formValues) {
                 extension.formValues[name] = value;
             }
-
             BookingDExtension.handleFieldChange(extension, name, value, selectedService);
         };
     },
-
     // ============================================================================
     // ENHANCED FIELD CHANGE HANDLER - SOLUTION 2
     // ============================================================================
@@ -1659,12 +1560,10 @@ const BookingDExtension = {
         if (name === 'selectedDentist' && value) {
             console.log('🦷 DENTIST SELECTED:', value.name);
             BookingDExtension._selectedDentistData = value;
-            
             // Enhance the pre-selected service data with Cal.com configuration from the dentist
             if (preSelectedService && value.calComConfig) {
                 const serviceId = preSelectedService.id;
                 const serviceConfig = value.calComConfig.serviceConfigs?.[serviceId];
-                
                 if (serviceConfig) {
                     // Create an enhanced service object with Cal.com data
                     const enhancedServiceData = {
@@ -1678,10 +1577,8 @@ const BookingDExtension = {
                         name: preSelectedService.title,
                         serviceName: serviceConfig.eventName || preSelectedService.title
                     };
-                    
                     // Update the stored service data
                     BookingDExtension._selectedServiceData = enhancedServiceData;
-                    
                     // Update the form values if possible
                     if (extension.factory && extension.factory.formValues) {
                         extension.factory.formValues.selectedService = enhancedServiceData;
@@ -1689,11 +1586,9 @@ const BookingDExtension = {
                     if (extension.formValues) {
                         extension.formValues.selectedService = enhancedServiceData;
                     }
-                    
                     console.log('🦷 Enhanced pre-selected service data with Cal.com config:', enhancedServiceData);
                 }
             }
-            
             // Configure calendar now that we have both service and dentist
             if (preSelectedService && value) {
                 console.log('🦷 Service (from payload) and dentist selected, configuring calendar');
@@ -1704,18 +1599,15 @@ const BookingDExtension = {
             }
         }
     },
-
     handleStepChange(stepIndex, stepInstance) {
         console.log(`🦷 Step changed to: ${stepIndex + 1}`);
         const extension = BookingDExtension._currentExtension;
         const selectedService = BookingDExtension._selectedServiceData;
-        
         // Step 2 is now calendar (index 2)
         if (stepIndex === 2) {
             setTimeout(() => {
                 const formData = extension.multiStepForm?.getFormData() || {};
                 console.log('🦷 Reached calendar step, current form data:', formData);
-                
                 if (selectedService && formData.selectedDentist) {
                     console.log('🦷 Service (from payload) and dentist selected, configuring calendar');
                     BookingDExtension.configureCalendarForBooking(extension, {
@@ -1726,31 +1618,24 @@ const BookingDExtension = {
             }, 100);
         }
     },
-
     // ============================================================================
     // UPDATED SUBMIT HANDLER TO USE ENHANCED SERVICE DATA
     // ============================================================================
     async handleSubmit(formData) {
         // Use the enhanced service data that was stored when dentist was selected
         const selectedService = BookingDExtension._selectedServiceData;
-        
         if (!selectedService || !formData.selectedDentist) {
             throw new Error('Service and dentist selection required');
         }
-
         const selectedDentist = formData.selectedDentist;
         const appointmentData = formData.appointment;
-
         console.log('🦷 Submit handler - using enhanced service data:', selectedService);
-
         // Validate that the enhanced service data has the required Cal.com fields
         if (!selectedService.eventTypeId) {
             console.error('🦷 Service missing eventTypeId, attempting recovery...');
-            
             // Attempt to recover by getting config from dentist
             const dentistConfig = selectedDentist.calComConfig;
             const serviceConfig = dentistConfig?.serviceConfigs?.[selectedService.id];
-            
             if (serviceConfig) {
                 selectedService.eventTypeId = serviceConfig.eventId;
                 selectedService.eventTypeSlug = serviceConfig.eventSlug;
@@ -1759,10 +1644,9 @@ const BookingDExtension = {
                 throw new Error('Invalid service configuration - missing Cal.com integration data');
             }
         }
-
         const bookingData = {
             ...formData,
-            serviceSelection: selectedService,  // This now has eventTypeId
+            serviceSelection: selectedService, // This now has eventTypeId
             selectedService: selectedService,
             selectedDentist: selectedDentist,
             appointment: appointmentData,
@@ -1773,9 +1657,7 @@ const BookingDExtension = {
             eventName: selectedService.eventName,
             serviceProvider: selectedDentist.name
         };
-        
         console.log('🦷 Final booking data prepared:', bookingData);
-        
         return await BookingDExtension._calComUtility.handleBooking(bookingData, {
             language: formData.language || 'fr',
             apiKey: selectedDentist.calComConfig?.apiKey,
@@ -1786,19 +1668,15 @@ const BookingDExtension = {
             selectedService: selectedService
         });
     },
-
     // ============================================================================
     // CALENDAR CONFIGURATION
     // ============================================================================
-
     configureCalendarForBooking(extension, allFormData) {
         console.log('🦷 Configuring calendar for booking');
-        
         const findCalendarField = () => {
             if (this._cachedCalendarField && this._cachedCalendarField.name === 'appointment') {
                 return this._cachedCalendarField;
             }
-            
             const searchInSteps = (steps) => {
                 for (let step of steps) {
                     if (step.fieldInstances) {
@@ -1812,36 +1690,28 @@ const BookingDExtension = {
                 }
                 return null;
             };
-            
             if (extension.multiStepForm?.stepInstances) {
                 const found = searchInSteps(extension.multiStepForm.stepInstances);
                 if (found) return found;
             }
-            
             if (extension.factory?.currentMultiStepForm?.stepInstances) {
                 const found = searchInSteps(extension.factory.currentMultiStepForm.stepInstances);
                 if (found) return found;
             }
-            
             const calendarElement = document.querySelector('.calendar-container');
             if (calendarElement && calendarElement.fieldInstance) {
                 this._cachedCalendarField = calendarElement.fieldInstance;
                 return calendarElement.fieldInstance;
             }
-            
             return null;
         };
-        
         const calendarField = findCalendarField();
-        
         if (calendarField) {
             const selectedService = allFormData.selectedService;
             const selectedDentist = allFormData.selectedDentist;
-            
             if (selectedService && selectedDentist) {
                 const dentistConfig = selectedDentist.calComConfig;
                 const serviceConfig = dentistConfig?.serviceConfigs?.[selectedService.id];
-                
                 if (dentistConfig && serviceConfig) {
                     Object.assign(calendarField, {
                         apiKey: dentistConfig.apiKey,
@@ -1853,27 +1723,20 @@ const BookingDExtension = {
                         selectedCategory: serviceConfig.eventName || selectedService.title,
                         showPlaceholder: false
                     });
-                    
                     console.log('🦷 Calendar configured successfully');
-                    
                     requestAnimationFrame(async () => {
                         try {
                             const initTasks = [];
-                            
                             if (calendarField.init) {
                                 initTasks.push(calendarField.init());
                             }
-                            
                             await Promise.all(initTasks);
-                            
                             if (calendarField.updateCalendarHeader) {
                                 calendarField.updateCalendarHeader();
                             }
-                            
                             if (calendarField.renderCalendarData) {
                                 calendarField.renderCalendarData();
                             }
-                            
                             console.log('🦷 Calendar re-initialization completed');
                         } catch (err) {
                             console.error('🦷 Calendar re-initialization error:', err);
@@ -1885,7 +1748,6 @@ const BookingDExtension = {
             console.error('🦷 Calendar field not found');
         }
     },
-
     findFieldByName(extension, fieldName) {
         if (extension.multiStepForm?.stepInstances) {
             for (let step of extension.multiStepForm.stepInstances) {
@@ -1900,27 +1762,34 @@ const BookingDExtension = {
         }
         return null;
     },
-
     // ============================================================================
     // FORM DATA CONFIGURATION - Only UI translations, NO default data
     // ============================================================================
     FORM_DATA: {
         // Empty options - MUST be provided via payload
         options: {},
-        
         // All UI translations for 3-step form
         translations: {
             fr: {
-                nav: { 
-                    next: "Suivant", 
-                    previous: "Précédent", 
-                    submit: "Confirmer la réservation", 
-                    processing: "Traitement en cours..." 
+                nav: {
+                    next: "Suivant",
+                    previous: "Précédent",
+                    submit: "Confirmer la réservation",
+                    processing: "Traitement en cours..."
                 },
                 steps: [
-                    { title: "Informations Personnelles", desc: "Renseignez vos coordonnées" },
-                    { title: "Choix du Dentiste", desc: "Sélectionnez votre professionnel" },
-                    { title: "Date et Heure", desc: "Choisissez votre créneau" }
+                    {
+                        title: "Informations Personnelles",
+                        desc: "Renseignez vos coordonnées"
+                    },
+                    {
+                        title: "Choix du Dentiste",
+                        desc: "Sélectionnez votre professionnel"
+                    },
+                    {
+                        title: "Date et Heure",
+                        desc: "Choisissez votre créneau"
+                    }
                 ],
                 fields: {
                     firstName: "Prénom",
@@ -1948,9 +1817,9 @@ const BookingDExtension = {
                     dateTimeRequired: "Veuillez sélectionner une date et une heure",
                     providerRequired: "Veuillez sélectionner un fournisseur de services"
                 },
-                success: { 
-                    title: "Rendez-vous confirmé !", 
-                    message: "Votre rendez-vous a été programmé avec succès." 
+                success: {
+                    title: "Rendez-vous confirmé !",
+                    message: "Votre rendez-vous a été programmé avec succès."
                 },
                 messages: {
                     selectDentistFirst: "Veuillez sélectionner un dentiste pour voir le calendrier",
@@ -1969,18 +1838,26 @@ const BookingDExtension = {
                     weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
                 }
             },
-            
             en: {
-                nav: { 
-                    next: "Next", 
-                    previous: "Previous", 
-                    submit: "Confirm Booking", 
-                    processing: "Processing..." 
+                nav: {
+                    next: "Next",
+                    previous: "Previous",
+                    submit: "Confirm Booking",
+                    processing: "Processing..."
                 },
                 steps: [
-                    { title: "Personal Information", desc: "Enter your details" },
-                    { title: "Choose Dentist", desc: "Select your professional" },
-                    { title: "Date & Time", desc: "Choose your appointment" }
+                    {
+                        title: "Personal Information",
+                        desc: "Enter your details"
+                    },
+                    {
+                        title: "Choose Dentist",
+                        desc: "Select your professional"
+                    },
+                    {
+                        title: "Date & Time",
+                        desc: "Choose your appointment"
+                    }
                 ],
                 fields: {
                     firstName: "First Name",
@@ -2008,9 +1885,9 @@ const BookingDExtension = {
                     dateTimeRequired: "Please select a date and time",
                     providerRequired: "Please select a service provider"
                 },
-                success: { 
-                    title: "Appointment Confirmed!", 
-                    message: "Your appointment has been successfully scheduled." 
+                success: {
+                    title: "Appointment Confirmed!",
+                    message: "Your appointment has been successfully scheduled."
                 },
                 messages: {
                     selectDentistFirst: "Please select a dentist to view the calendar",
@@ -2820,6 +2697,579 @@ const BookingInformationExtension = {
                         ]
                     }
                 ]
+    }
+};
+const CalendarExtension = {
+    name: "CalendarBookingSingleStep",
+    type: "response",
+    match: ({
+        trace
+    }) => trace.type === "ext_calendar" || trace.payload?.name === "ext_calendar",
+    // Global storage
+    _currentExtension: null,
+    _cachedCalendarField: null,
+    _serviceData: null,
+    _userData: null,
+    initializeCalComUtility(config) {
+        if (!this.calComUtility) {
+            this.calComUtility = new CalComBaseUtility({
+                apiKey: config.apiKey,
+                logPrefix: "📅 BookingDirect",
+                enableLogging: config.enableDetailedLogging !== false,
+                errorMessages: {
+                    missingContactInfo: "Contact information is required",
+                    bookingFailed: "Failed to create booking"
+                }
+            });
+        } else {
+            if (config.apiKey) {
+                this.calComUtility.setApiKey(config.apiKey);
+            }
+        }
+        return this.calComUtility;
+    },
+    // Validate service data from payload
+    validateServiceData(payload) {
+        const errors = [];
+        const requiredFields = ['eventTypeId', 'eventTypeSlug', 'scheduleId'];
+        requiredFields.forEach(field => {
+            if (!payload[field]) {
+                errors.push(`Missing required field '${field}' in payload`);
+            }
+        });
+        if (!payload.serviceTitle && !payload.eventName) {
+            errors.push("Missing service title or event name");
+        }
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    },
+    // Validate user data from payload
+    validateUserData(payload) {
+        const errors = [];
+        const requiredFields = ['firstName', 'lastName', 'email'];
+        requiredFields.forEach(field => {
+            if (!payload[field]) {
+                errors.push(`Missing required user field '${field}' in payload`);
+            }
+        });
+        // Basic email validation
+        if (payload.email && !payload.email.includes('@')) {
+            errors.push("Invalid email format");
+        }
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    },
+    // Process payload and create service object
+    processPayloadData(payload) {
+        console.log('📅 Processing payload data...');
+        // Validate service data
+        const serviceValidation = this.validateServiceData(payload);
+        if (!serviceValidation.valid) {
+            console.error('📅 Service data validation errors:', serviceValidation.errors);
+            return {
+                valid: false,
+                errors: serviceValidation.errors,
+                service: null,
+                userData: null
+            };
+        }
+        // Validate user data
+        const userValidation = this.validateUserData(payload);
+        if (!userValidation.valid) {
+            console.error('📅 User data validation errors:', userValidation.errors);
+            return {
+                valid: false,
+                errors: userValidation.errors,
+                service: null,
+                userData: null
+            };
+        }
+        // Create service object from payload
+        const service = {
+            id: payload.serviceId || 1,
+            eventTypeId: payload.eventTypeId,
+            eventTypeSlug: payload.eventTypeSlug,
+            scheduleId: payload.scheduleId,
+            provider: payload.serviceProvider || "Service Provider",
+            eventName: payload.eventName || payload.serviceTitle || "Service",
+            title: payload.serviceTitle || payload.eventName || "Service",
+            description: payload.serviceDescription || "",
+            duration: payload.serviceDuration || "15 minutes",
+            serviceName: payload.eventName || payload.serviceTitle || "Service",
+            name: payload.serviceTitle || payload.eventName || "Service",
+            displayName: payload.serviceTitle || payload.eventName || "Service"
+        };
+        // Extract user data from payload
+        const userData = {
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            email: payload.email,
+            phone: payload.phone || "",
+            notes: payload.notes || ""
+        };
+        this._serviceData = service;
+        this._userData = userData;
+        console.log('📅 Service data processed successfully:', service);
+        console.log('📅 User data extracted successfully:', userData);
+        return {
+            valid: true,
+            errors: [],
+            service: service,
+            userData: userData
+        };
+    },
+    render: async ({
+        trace,
+        element
+    }) => {
+        // ============================================================================
+        // EXTRACT CONFIGURATION FROM PAYLOAD
+        // ============================================================================
+        let {
+            language = "fr",
+                apiKey = CONFIG.DEFAULT_API_KEY,
+                timezone = "America/Toronto",
+                serviceProvider = "SkaLean",
+                voiceflowEnabled = true,
+                enableDetailedLogging = true,
+                logPrefix = "📅 BookingDirect",
+                enableSessionTimeout = true,
+                sessionTimeout = CONFIG.SESSION_TIMEOUT,
+                sessionWarning = CONFIG.SESSION_WARNING,
+                cssUrls = CONFIG.DEFAULT_CSS,
+                formType = "booking",
+                formStructure = "singlestep", // Changed to single step
+                useStructuredData = true,
+                dataTransformer = BaseDataTransformer
+        } = trace.payload || {};
+        console.log('📅 Optimized Booking Direct Extension (Single Step) started');
+        console.log('📅 Payload received:', Object.keys(trace.payload || {}));
+        // Process service and user data from payload
+        const dataValidation = CalendarExtension.processPayloadData(trace.payload || {});
+        if (!dataValidation.valid) {
+            const errorHtml = `
+                        <div class="data-validation-warning">
+                            <h4>⚠️ Configuration Error</h4>
+                            <p>The following issues were found:</p>
+                            <ul>
+                                ${dataValidation.errors.map(error => `<li>${error}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+            element.innerHTML = errorHtml;
+            return element;
+        }
+        const selectedService = dataValidation.service;
+        const userData = dataValidation.userData;
+        // Initialize Cal.com utility
+        const calComUtility = CalendarExtension.initializeCalComUtility({
+            apiKey: apiKey,
+            enableDetailedLogging: enableDetailedLogging
+        });
+        // Helper function for translations
+        const getTranslatedText = (key, lang = language) => {
+            const keys = key.split('.');
+            let value = CalendarExtension.FORM_DATA.translations[lang];
+            for (const k of keys) {
+                value = value?.[k];
+            }
+            return value || key;
+        };
+        // ============================================================================
+        // SINGLE STEP FORM CONFIGURATION - Calendar only
+        // ============================================================================
+        const formConfig = {
+            steps: [
+                        // Single Step: Calendar
+                {
+                    sectionId: "appointment_scheduling",
+                    title: getTranslatedText('steps.calendar.title'),
+                    description: getTranslatedText('steps.calendar.desc'),
+                    fields: [
+
+
+                                // Calendar field
+                        {
+                            type: 'calendar',
+                            id: 'appointment',
+                            name: 'appointment',
+                            label: getTranslatedText('fields.appointment'),
+                            required: true,
+                            mode: 'booking',
+                            headerIcon: 'CALENDAR',
+                            selectionMode: 'none',
+                            row: "calendar",
+                            // Direct configuration with service data
+                            apiKey: apiKey,
+                            eventTypeId: selectedService.eventTypeId,
+                            eventTypeSlug: selectedService.eventTypeSlug,
+                            scheduleId: selectedService.scheduleId,
+                            timezone: timezone,
+                            language: language,
+                            locale: language === 'fr' ? 'fr-FR' : 'en-US',
+                            specialist: serviceProvider,
+                            selectedCategory: selectedService.eventName,
+                            eventName: selectedService.eventName,
+                            // Translations
+                            texts: CalendarExtension.getCalendarTexts(language),
+                            errorTexts: {
+                                dateTimeRequired: getTranslatedText('errors.dateTimeRequired')
+                            },
+                            // Error messages
+                            getCustomErrorMessage: (lang) => CalendarExtension.FORM_DATA.translations[lang].errors.appointment,
+                            getCustomErrorMessages: (lang) => ({
+                                required: CalendarExtension.FORM_DATA.translations[lang].errors.dateTimeRequired,
+                                bookingError: CalendarExtension.FORM_DATA.translations[lang].errors.bookingError
+                            })
+                                }
+                            ]
+                        }
+                    ]
+        };
+        // Create form data with service and user info
+        const formData = {
+            translations: CalendarExtension.FORM_DATA.translations,
+            selectedService: selectedService,
+            userData: userData,
+            serviceInfo: {
+                provider: serviceProvider,
+                serviceName: selectedService.eventName,
+                serviceTitle: selectedService.title,
+                serviceDescription: selectedService.description,
+                duration: selectedService.duration
+            }
+        };
+        console.log('📅 Creating single-step form');
+        // Create the optimized form
+        const extension = new CreatForm({
+                language: language,
+                formType: formType,
+                formStructure: formStructure,
+                useStructuredData: useStructuredData,
+                dataTransformer: dataTransformer,
+                // Disabled integrations
+                webhookEnabled: false,
+                voiceflowEnabled: voiceflowEnabled,
+                // Configuration
+                enableDetailedLogging: enableDetailedLogging,
+                logPrefix: logPrefix,
+                enableSessionTimeout: enableSessionTimeout,
+                sessionTimeout: sessionTimeout,
+                sessionWarning: sessionWarning,
+                apiKey: apiKey,
+                timezone: timezone,
+                serviceProvider: serviceProvider,
+                preSelectedService: selectedService,
+                // Form is ready immediately since we only have one step
+                onReady: () => {
+                    console.log(`📅 Form ready - initializing calendar`);
+                    setTimeout(() => {
+                        CalendarExtension.ensureCalendarConfiguration(extension, selectedService, {
+                            apiKey: apiKey,
+                            timezone: timezone,
+                            language: language,
+                            serviceProvider: serviceProvider
+                        });
+                    }, 100);
+                },
+                // Booking submission handler with user data
+                onSubmit: async (formData) => {
+                    // Merge user data from payload with form data
+                    const bookingData = {
+                        ...formData,
+                        // User data from payload
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        email: userData.email,
+                        phone: userData.phone,
+                        notes: userData.notes,
+                        // Service data
+                        serviceSelection: selectedService,
+                        selectedService: selectedService,
+                        eventTypeId: selectedService.eventTypeId,
+                        eventTypeSlug: selectedService.eventTypeSlug,
+                        scheduleId: selectedService.scheduleId,
+                        eventName: selectedService.eventName,
+                        serviceProvider: serviceProvider
+                    };
+                    console.log('📅 Submitting booking with data:', bookingData);
+                    return await calComUtility.handleBooking(bookingData, {
+                        language: language,
+                        apiKey: apiKey,
+                        timezone: timezone,
+                        serviceProvider: serviceProvider,
+                        voiceflowEnabled: voiceflowEnabled,
+                        formVersion: CONFIG.FORM_VERSION,
+                        selectedService: selectedService
+                    });
+                },
+                cssUrls: cssUrls
+            },
+            formData,
+            formConfig
+        );
+        // Store references
+        window.currentCalendarExtension = extension;
+        CalendarExtension._currentExtension = extension;
+        // Render the extension
+        const extensionElement = await extension.render(element);
+        // ============================================================================
+        // OPTIMIZED CALENDAR INITIALIZATION
+        // ============================================================================
+        // Ensure calendar is properly configured on initial render
+        setTimeout(() => {
+            CalendarExtension.ensureCalendarConfiguration(extension, selectedService, {
+                apiKey: apiKey,
+                timezone: timezone,
+                language: language,
+                serviceProvider: serviceProvider
+            });
+        }, 200);
+        return extensionElement;
+    },
+    // ============================================================================
+    // OPTIMIZED CALENDAR CONFIGURATION
+    // ============================================================================
+    ensureCalendarConfiguration(extension, selectedService, config) {
+        console.log('📅 Ensuring calendar configuration with optimized approach');
+        // Find calendar field using optimized search
+        const calendarField = CalendarExtension.findCalendarField(extension);
+        if (calendarField) {
+            console.log('📅 Calendar field found, configuring...');
+            // Apply complete configuration
+            const calendarConfig = {
+                apiKey: config.apiKey,
+                eventTypeId: selectedService.eventTypeId,
+                eventTypeSlug: selectedService.eventTypeSlug,
+                scheduleId: selectedService.scheduleId,
+                specialist: config.serviceProvider,
+                selectedCategory: selectedService.eventName,
+                eventName: selectedService.eventName,
+                timezone: config.timezone,
+                language: config.language,
+                locale: config.language === 'fr' ? 'fr-FR' : 'en-US'
+            };
+            // Apply configuration
+            Object.assign(calendarField, calendarConfig);
+            console.log('📅 Calendar configured with:', calendarConfig);
+            // Re-initialize calendar with optimized approach
+            requestAnimationFrame(async () => {
+                try {
+                    // Initialize calendar if needed
+                    if (calendarField.initializeCalendar) {
+                        await calendarField.initializeCalendar();
+                    } else if (calendarField.init) {
+                        await calendarField.init();
+                    }
+                    // Update calendar display
+                    if (calendarField.renderCalendarData) {
+                        calendarField.renderCalendarData();
+                    }
+                    console.log('📅 Calendar initialization completed successfully');
+                } catch (err) {
+                    console.error('📅 Calendar initialization error:', err);
+                    // Retry with alternative approach
+                    if (calendarField.calendarInstance && calendarField.calendarInstance.init) {
+                        try {
+                            await calendarField.calendarInstance.init();
+                            console.log('📅 Calendar initialized with alternative approach');
+                        } catch (altErr) {
+                            console.error('📅 Alternative initialization also failed:', altErr);
+                        }
+                    }
+                }
+            });
+        } else {
+            console.warn('📅 Calendar field not found, scheduling retry...');
+            // Retry after a delay
+            setTimeout(() => {
+                CalendarExtension.ensureCalendarConfiguration(extension, selectedService, config);
+            }, 500);
+        }
+    },
+    // Optimized calendar field finder
+    findCalendarField(extension) {
+        // Use cached field if available
+        if (this._cachedCalendarField && this._cachedCalendarField.name === 'appointment') {
+            return this._cachedCalendarField;
+        }
+        // Search through extension structures
+        const searchInSteps = (steps) => {
+            for (let step of steps) {
+                if (step.fieldInstances) {
+                    for (let field of step.fieldInstances) {
+                        if (field && (field.name === 'appointment' || field.id === 'appointment')) {
+                            this._cachedCalendarField = field;
+                            return field;
+                        }
+                    }
+                }
+            }
+            return null;
+        };
+        // Try multiple locations (adapted for single-step form)
+        const locations = [
+                    extension.singleStepForm?.fieldInstances,
+                    extension.factory?.currentSingleStepForm?.fieldInstances,
+                    extension.factory?.singleStepForm?.fieldInstances,
+                    extension.multiStepForm?.stepInstances // fallback
+                ];
+        // Direct field array search
+        for (let location of locations) {
+            if (Array.isArray(location)) {
+                const found = location.find(f =>
+                    f && (f.name === 'appointment' || f.id === 'appointment')
+                );
+                if (found) {
+                    this._cachedCalendarField = found;
+                    return found;
+                }
+            } else if (location) {
+                const found = searchInSteps([location]);
+                if (found) return found;
+            }
+        }
+        // DOM fallback
+        const calendarElement = document.querySelector('.calendar-container');
+        if (calendarElement && calendarElement.fieldInstance) {
+            this._cachedCalendarField = calendarElement.fieldInstance;
+            return calendarElement.fieldInstance;
+        }
+        return null;
+    },
+    // ============================================================================
+    // HELPER METHOD FOR CALENDAR TEXTS
+    // ============================================================================
+    getCalendarTexts: (language) => {
+        const calendarTranslations = CalendarExtension.FORM_DATA.translations[language].calendar;
+        return {
+            selectDate: calendarTranslations.selectDate,
+            availableTimesFor: calendarTranslations.availableTimesFor,
+            noAvailableSlots: calendarTranslations.noAvailableSlots,
+            pleaseSelectDate: calendarTranslations.pleaseSelectDate,
+            loadingAvailability: calendarTranslations.loadingAvailability,
+            loading: calendarTranslations.loading,
+            weekdays: calendarTranslations.weekdays
+        };
+    },
+    // ============================================================================
+    // FORM DATA CONFIGURATION
+    // ============================================================================
+    FORM_DATA: {
+        translations: {
+            fr: {
+                nav: {
+                    next: "Suivant",
+                    previous: "Précédent",
+                    submit: "Confirmer la réservation",
+                    processing: "Traitement en cours..."
+                },
+                labels: {
+                    serviceProvider: "Prestataire de service",
+                    selectedService: "Service sélectionné",
+                    appointmentDetails: "Détails du rendez-vous",
+                    userInfo: "Informations du client"
+                },
+                placeholders: {
+                    firstName: "Entrez votre prénom",
+                    lastName: "Entrez votre nom de famille",
+                    email: "votre.email@example.com"
+                },
+                steps: {
+                    calendar: {
+                        title: "Sélection de Date et Heure",
+                        desc: "Choisissez votre créneau préféré pour votre rendez-vous"
+                    }
+                },
+                fields: {
+                    firstName: "Prénom",
+                    lastName: "Nom de famille",
+                    name: "Nom",
+                    email: "Adresse électronique",
+                    appointment: "Sélectionnez date et heure"
+                },
+                errors: {
+                    firstName: "Le prénom est requis",
+                    lastName: "Le nom de famille est requis",
+                    email: "Une adresse email valide est requise",
+                    emailInvalid: "Le format de l'adresse email n'est pas valide",
+                    appointment: "Veuillez sélectionner une date et une heure",
+                    dateTimeRequired: "Veuillez sélectionner une date et une heure",
+                    bookingError: "Erreur lors de la réservation. Veuillez réessayer."
+                },
+                success: {
+                    title: "Rendez-vous confirmé !",
+                    message: "Votre rendez-vous a été programmé avec succès. Vous recevrez sous peu un email de confirmation."
+                },
+                calendar: {
+                    selectDate: "Sélectionnez une date pour voir les horaires disponibles",
+                    availableTimesFor: "Disponibilités pour",
+                    noAvailableSlots: "Aucun horaire disponible pour cette date",
+                    pleaseSelectDate: "Veuillez d'abord sélectionner une date",
+                    loadingAvailability: "Chargement des disponibilités...",
+                    loading: "Chargement...",
+                    weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+                }
+            },
+            en: {
+                nav: {
+                    next: "Next",
+                    previous: "Previous",
+                    submit: "Confirm Booking",
+                    processing: "Processing..."
+                },
+                labels: {
+                    serviceProvider: "Service Provider",
+                    selectedService: "Selected Service",
+                    appointmentDetails: "Appointment Details",
+                    userInfo: "Customer Information"
+                },
+                placeholders: {
+                    firstName: "Enter your first name",
+                    lastName: "Enter your last name",
+                    email: "your.email@example.com"
+                },
+                steps: {
+                    calendar: {
+                        title: "Select Date & Time",
+                        desc: "Choose your preferred time slot for your appointment"
+                    }
+                },
+                fields: {
+                    firstName: "First Name",
+                    lastName: "Last Name",
+                    name: "Name",
+                    email: "Email Address",
+                    appointment: "Select date and time"
+                },
+                errors: {
+                    firstName: "First name is required",
+                    lastName: "Last name is required",
+                    email: "A valid email address is required",
+                    emailInvalid: "Email format is not valid",
+                    appointment: "Please select a date and time",
+                    dateTimeRequired: "Please select a date and time",
+                    bookingError: "Booking error. Please try again."
+                },
+                success: {
+                    title: "Appointment Confirmed!",
+                    message: "Your appointment has been successfully scheduled. You will receive a confirmation email shortly."
+                },
+                calendar: {
+                    selectDate: "Select a date to view available times",
+                    availableTimesFor: "Available times for",
+                    noAvailableSlots: "No available time slots for this date",
+                    pleaseSelectDate: "Please select a date first",
+                    loadingAvailability: "Loading availability...",
+                    loading: "Loading...",
+                    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                }
+            }
+        }
     }
 };
 const RescheduleCalendarExtension = {
@@ -4364,7 +4814,6 @@ const ContactFormExtension = {
         }
     }
 };
-
 // ============================================================================
 // SETUP AND INITIALIZATION
 // ============================================================================
@@ -4372,6 +4821,7 @@ window.BookingSDExtension = BookingSDExtension;
 window.BookingDExtension = BookingDExtension;
 window.BookingDirectExtension = BookingDirectExtension;
 window.BookingInformationExtension = BookingInformationExtension;
+window.CalendarExtension = CalendarExtension;
 window.RescheduleCalendarExtension = RescheduleCalendarExtension;
 window.CancellationDirectExtension = CancellationDirectExtension;
 window.ContactFormExtension = ContactFormExtension;
