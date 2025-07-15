@@ -23,7 +23,7 @@
   --text-muted: #888;
   --text-light: #6a6a6a;
   
-  --background-primary: #F1E9E4; /* White Linen - Clean background */
+  --background-primary: #fff; /* White Linen - Clean background */
   --background-secondary: #faf6f3;
   --background-tertiary: #f5ede8;
   --background-hover: rgba(167, 125, 120, 0.1); /* Pharlap with transparency */
