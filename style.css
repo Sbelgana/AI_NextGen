@@ -398,13 +398,13 @@
 ======================================== */
 
 /* Hide the original SVG and image elements */
-div.f6dof80 div.f6dof87.f6dof89 > svg,
-div.f6dof80 div.f6dof87.f6dof89 > img {
+f6dof80 f6dof87.f6dof89 > svg,
+f6dof80 f6dof87.f6dof89 > img {
   display: none !important;
 }
 
 /* Turn the wrapper into an orange circle */
-div.f6dof80 div.f6dof87.f6dof89 {
+f6dof80 f6dof87.f6dof89 {
   border-radius: var(--chat-radius-full) !important;
   width: var(--chat-icon-size-xl) !important;
   height: var(--chat-icon-size-xl) !important;
@@ -417,7 +417,7 @@ div.f6dof80 div.f6dof87.f6dof89 {
 }
 
 /* Inject custom three-dots SVG via ::after */
-div.f6dof80 div.f6dof87.f6dof89::after {
+f6dof80 f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
   width: var(--chat-icon-size) !important;
@@ -439,7 +439,7 @@ div.f6dof80 div.f6dof87.f6dof89::after {
 }
 
 /* On hover, swap the dots to white */
-div.f6dof80 div.f6dof87.f6dof89:hover::after {
+f6dof80 f6dof87.f6dof89:hover::after {
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
 <g stroke='%23ffffff' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
