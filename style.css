@@ -339,6 +339,7 @@
   font-size: var(--chat-font-size-sm);
   font-family: var(--chat-font-family);
   transition: opacity var(--chat-transition-fast);
+  background-color: transparent;
 }
 
 ._12m8tlu4 {
