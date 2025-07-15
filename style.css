@@ -596,7 +596,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 
 /* Card styles */
 .vfrc-card._1lbxmyd0 {
-  background: var(--chat-bg-primary);
+  background: white;
   border-radius: var(--chat-radius-xxl);
   box-shadow: var(--chat-shadow-xl);
   transition: all var(--chat-transition-base);
