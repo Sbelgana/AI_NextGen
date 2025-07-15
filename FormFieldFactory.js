@@ -8584,7 +8584,7 @@ class CreatForm {
                         padding: 40px 20px !important;
                         min-height: 300px !important;
                     }
-                    .success-state h2 {
+                    .success-state span {
                         font-size: 24px !important;
                     }
                     .success-state p {
@@ -13193,7 +13193,7 @@ class ServiceProviderCalendarField extends BaseField {
         const step = document.createElement('div');
         step.className = 'spc-step spc-service-step';
         
-        const title = document.createElement('h3');
+        const title = document.createElement('span');
         title.className = 'spc-step-title';
         title.textContent = this.texts.selectService;
         step.appendChild(title);
@@ -13228,7 +13228,7 @@ class ServiceProviderCalendarField extends BaseField {
         const step = document.createElement('div');
         step.className = 'spc-step spc-provider-step';
         
-        const title = document.createElement('h3');
+        const title = document.createElement('pan');
         title.className = 'spc-step-title';
         title.textContent = this.texts.selectProvider;
         step.appendChild(title);
@@ -13263,7 +13263,7 @@ class ServiceProviderCalendarField extends BaseField {
         const step = document.createElement('div');
         step.className = 'spc-step spc-calendar-step';
         
-        const title = document.createElement('h3');
+        const title = document.createElement('span');
         title.className = 'spc-step-title';
         title.textContent = this.texts.selectAppointment;
         step.appendChild(title);
@@ -13829,7 +13829,7 @@ class BaseCarouselField extends BaseField {
 
         // Title
         if (item.title || item.name) {
-            const title = document.createElement('h4');
+            const title = document.createElement('span');
             title.className = 'carousel-item-title';
             title.textContent = item.title || item.name;
             content.appendChild(title);
