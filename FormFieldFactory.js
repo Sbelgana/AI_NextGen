@@ -1503,6 +1503,7 @@ class MultiStepForm {
         this.navigationButtons = null;
         this.init();
     }
+    
     init() {
         this.factory.currentMultiStepForm = this;
         this.createContainer();
@@ -1512,11 +1513,13 @@ class MultiStepForm {
         this.loadSavedProgress();
         this.showCurrentStep();
     }
+    
     createContainer() {
         this.container = document.createElement('div');
         this.container.className = 'multistep-form';
         this.factory.container.appendChild(this.container);
     }
+    
     createProgressBar() {
         if (!this.showProgress) return;
         this.progressBar = new ProgressBar(this, {
@@ -1525,6 +1528,7 @@ class MultiStepForm {
         });
         this.container.appendChild(this.progressBar.render());
     }
+    
     createSteps() {
         this.steps.forEach((stepConfig, index) => {
             const step = new FormStep(this, {
@@ -1536,10 +1540,120 @@ class MultiStepForm {
             this.container.appendChild(step.render());
         });
     }
+    
     createNavigation() {
         this.navigationButtons = new NavigationButtons(this);
-        this.container.appendChild(this.navigationButtons.render());
+        const navElement = this.navigationButtons.render();
+        
+        // Apply submit button styling after navigation is created
+        this.enhanceSubmitButton();
+        
+        this.container.appendChild(navElement);
     }
+    
+    // NEW METHOD: Enhanced submit button styling for iframe compatibility
+    enhanceSubmitButton() {
+        // Find the submit button
+        const submitButton = this.navigationButtons.submitButton;
+        if (!submitButton) return;
+        
+        // Check if we're in an iframe
+        const isInIframe = (() => {
+            try {
+                return window.self !== window.top;
+            } catch (e) {
+                return true;
+            }
+        })();
+        
+        console.log('🎨 Enhancing submit button styles', { isInIframe });
+        
+        // Apply inline styles for iframe compatibility
+        const styles = {
+            'background-color': '#007bff',
+            'color': 'white',
+            'padding': '12px 24px',
+            'border': 'none',
+            'border-radius': '4px',
+            'font-size': '16px',
+            'font-weight': '600',
+            'cursor': 'pointer',
+            'transition': 'all 0.3s ease',
+            'min-width': '150px',
+            'box-shadow': '0 2px 4px rgba(0, 0, 0, 0.1)',
+            '-webkit-appearance': 'none',
+            'appearance': 'none',
+            'text-align': 'center',
+            'display': 'inline-block',
+            'line-height': 'normal',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        };
+        
+        // Apply styles with important flag
+        Object.entries(styles).forEach(([prop, value]) => {
+            submitButton.style.setProperty(prop, value, 'important');
+        });
+        
+        // Add identifying class and attribute
+        submitButton.classList.add('voiceflow-enhanced-submit');
+        submitButton.setAttribute('data-voiceflow-submit', 'true');
+        
+        // Remove existing event listeners by cloning
+        const newSubmitButton = submitButton.cloneNode(true);
+        submitButton.parentNode.replaceChild(newSubmitButton, submitButton);
+        
+        // Update reference
+        this.navigationButtons.submitButton = newSubmitButton;
+        
+        // Re-attach click handler
+        newSubmitButton.addEventListener('click', () => {
+            this.submit();
+        });
+        
+        // Add hover effects with JavaScript
+        newSubmitButton.addEventListener('mouseenter', function() {
+            if (!this.disabled) {
+                this.style.setProperty('background-color', '#0056b3', 'important');
+                this.style.setProperty('transform', 'translateY(-2px)', 'important');
+                this.style.setProperty('box-shadow', '0 4px 8px rgba(0, 0, 0, 0.2)', 'important');
+            }
+        });
+        
+        newSubmitButton.addEventListener('mouseleave', function() {
+            if (!this.disabled) {
+                this.style.setProperty('background-color', '#007bff', 'important');
+                this.style.setProperty('transform', 'translateY(0)', 'important');
+                this.style.setProperty('box-shadow', '0 2px 4px rgba(0, 0, 0, 0.1)', 'important');
+            }
+        });
+        
+        newSubmitButton.addEventListener('mousedown', function() {
+            if (!this.disabled) {
+                this.style.setProperty('background-color', '#004494', 'important');
+                this.style.setProperty('transform', 'translateY(0)', 'important');
+            }
+        });
+        
+        newSubmitButton.addEventListener('mouseup', function() {
+            if (!this.disabled && this.matches(':hover')) {
+                this.style.setProperty('background-color', '#0056b3', 'important');
+                this.style.setProperty('transform', 'translateY(-2px)', 'important');
+            }
+        });
+        
+        // Add focus styles
+        newSubmitButton.addEventListener('focus', function() {
+            this.style.setProperty('outline', 'none', 'important');
+            this.style.setProperty('box-shadow', '0 0 0 3px rgba(0, 123, 255, 0.25)', 'important');
+        });
+        
+        newSubmitButton.addEventListener('blur', function() {
+            if (!this.matches(':hover')) {
+                this.style.setProperty('box-shadow', '0 2px 4px rgba(0, 0, 0, 0.1)', 'important');
+            }
+        });
+    }
+    
     showCurrentStep() {
         this.stepInstances.forEach((step, index) => {
             step.setActive(index === this.currentStep);
@@ -1548,10 +1662,25 @@ class MultiStepForm {
             this.progressBar.updateProgress(this.currentStep);
         }
         this.navigationButtons.updateButtons(this.currentStep, this.steps.length);
+        
+        // Re-enhance submit button when showing last step
+        if (this.currentStep === this.steps.length - 1) {
+            console.log('🎨 Last step reached - re-applying submit button styles');
+            setTimeout(() => {
+                this.enhanceSubmitButton();
+            }, 0);
+            
+            // Double-check after a short delay
+            setTimeout(() => {
+                this.enhanceSubmitButton();
+            }, 100);
+        }
+        
         if (this.onStepChange) {
             this.onStepChange(this.currentStep, this.stepInstances[this.currentStep]);
         }
     }
+    
     nextStep() {
         if (this.validateOnNext && !this.validateCurrentStep()) {
             return false;
@@ -1564,6 +1693,7 @@ class MultiStepForm {
         }
         return false;
     }
+    
     previousStep() {
         if (this.currentStep > 0) {
             this.currentStep--;
@@ -1573,6 +1703,7 @@ class MultiStepForm {
         }
         return false;
     }
+    
     goToStep(stepIndex) {
         if (stepIndex >= 0 && stepIndex < this.steps.length) {
             this.currentStep = stepIndex;
@@ -1582,12 +1713,15 @@ class MultiStepForm {
         }
         return false;
     }
+    
     validateCurrentStep() {
         return this.stepInstances[this.currentStep].validate();
     }
+    
     validateAllSteps() {
         return this.stepInstances.every(step => step.validate());
     }
+    
     getFormData() {
         const data = {};
         this.stepInstances.forEach(step => {
@@ -1595,6 +1729,7 @@ class MultiStepForm {
         });
         return data;
     }
+    
     setFormData(data) {
         this.formData = {
             ...this.formData,
@@ -1604,6 +1739,7 @@ class MultiStepForm {
             step.setStepData(this.formData);
         });
     }
+    
     saveProgress() {
         if (!this.saveProgressEnabled) return;
         const progressData = {
@@ -1613,6 +1749,7 @@ class MultiStepForm {
         };
         localStorage.setItem(this.storageKey, JSON.stringify(progressData));
     }
+    
     loadSavedProgress() {
         if (!this.saveProgressEnabled) return;
         try {
@@ -1626,9 +1763,11 @@ class MultiStepForm {
             console.warn('Failed to load saved progress:', e);
         }
     }
+    
     clearSavedProgress() {
         localStorage.removeItem(this.storageKey);
     }
+    
     reset() {
         // Reset step and form data
         this.currentStep = 0;
@@ -1660,6 +1799,7 @@ class MultiStepForm {
             });
         });
     }
+    
     submit() {
         if (!this.validateAllSteps()) {
             return false;
@@ -1674,6 +1814,46 @@ class MultiStepForm {
         }
         this.clearSavedProgress();
         return formData;
+    }
+    
+    // Method to programmatically submit the form
+    async submitForm() {
+        return await this.submit();
+    }
+    
+    // Enhanced method to update submit button state during processing
+    setSubmitButtonProcessing(isProcessing, processingText) {
+        const submitButton = this.navigationButtons.submitButton;
+        if (!submitButton) return;
+        
+        if (isProcessing) {
+            submitButton.disabled = true;
+            submitButton.textContent = processingText || this.factory.getText('processing') || 'Processing...';
+            submitButton.style.setProperty('background-color', '#6c757d', 'important');
+            submitButton.style.setProperty('cursor', 'wait', 'important');
+            submitButton.style.setProperty('opacity', '0.65', 'important');
+        } else {
+            submitButton.disabled = false;
+            submitButton.textContent = this.factory.getText('submit');
+            // Re-apply normal styles
+            this.enhanceSubmitButton();
+        }
+    }
+    
+    // Method to handle submit button error state
+    setSubmitButtonError(errorText) {
+        const submitButton = this.navigationButtons.submitButton;
+        if (!submitButton) return;
+        
+        submitButton.disabled = false;
+        submitButton.textContent = errorText;
+        submitButton.style.setProperty('background-color', '#dc3545', 'important');
+        
+        // Reset to normal state after 3 seconds
+        setTimeout(() => {
+            submitButton.textContent = this.factory.getText('submit');
+            this.enhanceSubmitButton();
+        }, 3000);
     }
 }
 /**
