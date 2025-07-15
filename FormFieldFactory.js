@@ -13992,8 +13992,6 @@ class BaseCarouselField extends BaseField {
         this.container.appendChild(fragment);
     }
 
-
-
     createNavigationButtons() {
         const prevButton = document.createElement('button');
         prevButton.type = 'button';
@@ -14185,7 +14183,13 @@ class BaseCarouselField extends BaseField {
         const detailItems = [
             { key: 'price', value: item.price, className: 'carousel-item-price' },
             { key: 'duration', value: item.duration, className: 'carousel-item-duration' },
-            { key: 'experience', value: item.experience ? `${item.experience} années d'expérience` : null, className: 'carousel-item-experience' }
+            { 
+                key: 'experience', 
+                // Use experienceText from config if provided
+                value: item.experience && this.config.experienceText ? 
+                    `${item.experience} ${this.config.experienceText}` : null, 
+                className: 'carousel-item-experience' 
+            }
         ];
 
         detailItems.forEach(({ value, className }) => {
@@ -14352,6 +14356,168 @@ class BaseCarouselField extends BaseField {
     // Invalidate DOM cache when items change
     invalidateCache() {
         this.domCache.clear();
+    }
+}
+
+// Regular Carousel Field - Thin wrapper
+class CarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        this.container?.classList.add('standard-carousel');
+    }
+}
+
+// Dynamic Filtered Carousel Field - Direct Event-Driven Solution
+class FilteredCarouselField extends BaseCarouselField {
+    constructor(factory, config) {
+        super(factory, config);
+        
+        // Simplified filtering configuration - no monitoring
+        this.filterConfig = {
+            dependsOn: null,
+            dataSource: [],
+            filterFunction: null,
+            waitingMessage: 'Please make a selection first',
+            ...config.filterConfig
+        };
+
+        this._lastDependencyValue = null;
+        this.container?.classList.add('filtered-carousel');
+        
+        // Register this field for direct updates
+        this.registerForDependencyUpdates();
+    }
+
+    registerForDependencyUpdates() {
+        if (!this.filterConfig.dependsOn) return;
+        
+        // Register this field in a global registry for direct updates
+        if (!window._fieldDependencyRegistry) {
+            window._fieldDependencyRegistry = new Map();
+        }
+        
+        const dependsOn = this.filterConfig.dependsOn;
+        if (!window._fieldDependencyRegistry.has(dependsOn)) {
+            window._fieldDependencyRegistry.set(dependsOn, new Set());
+        }
+        
+        window._fieldDependencyRegistry.get(dependsOn).add(this);
+        
+        console.log(`🔗 DYNAMIC FILTER [${this.name}]: Registered for ${dependsOn} updates`);
+    }
+
+    postRender() {
+        // Try to populate immediately if dependency value already exists
+        this.updateFromDependency();
+    }
+
+    getEmptyMessage() {
+        return this.filterConfig.dependsOn ? 
+            this.filterConfig.waitingMessage : 
+            this.config.emptyMessage || 'No items available';
+    }
+
+    getEmptySubMessage() {
+        return '';
+    }
+
+    // Direct update method called when dependency changes
+    updateFromDependency(dependencyValue = null) {
+        if (!this.filterConfig.dependsOn || !this.filterConfig.filterFunction) {
+            console.warn(`🔄 DYNAMIC FILTER [${this.name}]: Missing filterConfig.dependsOn or filterFunction`);
+            return false;
+        }
+        
+        // Get current dependency value if not provided
+        if (dependencyValue === null) {
+            dependencyValue = this.getCurrentDependencyValue();
+        }
+        
+        console.log(`🔄 DYNAMIC FILTER [${this.name}]: Updating for dependency:`, dependencyValue);
+        
+        // Skip if same value as before
+        if (dependencyValue && this._lastDependencyValue && 
+            JSON.stringify(dependencyValue) === JSON.stringify(this._lastDependencyValue)) {
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Same dependency value, skipping update`);
+            return false;
+        }
+        
+        this._lastDependencyValue = dependencyValue;
+        
+        if (dependencyValue) {
+            const filteredItems = this.filterConfig.filterFunction(this.filterConfig.dataSource, dependencyValue);
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Filtered to ${filteredItems.length} items`);
+            return this.updateItems(filteredItems);
+        } else {
+            // Clear items if no dependency value
+            console.log(`🔄 DYNAMIC FILTER [${this.name}]: Clearing items - no dependency value`);
+            return this.updateItems([]);
+        }
+    }
+
+    getCurrentDependencyValue() {
+        // Direct access to form values
+        const formData = this.factory?.getFormData?.() || 
+                        this.factory?.currentMultiStepForm?.getFormData?.() || 
+                        this.factory?.formValues || {};
+        
+        return formData[this.filterConfig.dependsOn];
+    }
+
+    updateItems(newItems) {
+        const hasChanged = newItems.length !== this.items.length || 
+                          JSON.stringify(newItems) !== JSON.stringify(this.items);
+        
+        if (!hasChanged) return false;
+
+        // Check if current selection is still valid
+        const needsSelectionReset = this.shouldResetSelection(newItems);
+        
+        this.items = newItems;
+        this.invalidateCache(); // Clear DOM cache
+        
+        if (needsSelectionReset) {
+            this.resetSelection();
+        }
+        
+        this.currentIndex = 0;
+        
+        if (this.galleryContainer) {
+            this.renderItems();
+            this.updateNavigation();
+        }
+        
+        return true;
+    }
+
+    shouldResetSelection(newItems) {
+        if (this.selectedItem === null || !this.items[this.selectedItem]) {
+            return false;
+        }
+        
+        const currentSelection = this.items[this.selectedItem];
+        return !newItems.some(item => item.id === currentSelection.id);
+    }
+
+    resetSelection() {
+        this.selectedItem = null;
+        this.selectedItems = [];
+        this.handleChange();
+    }
+
+    // Clean up when field is destroyed
+    cleanup() {
+        if (window._fieldDependencyRegistry && this.filterConfig.dependsOn) {
+            const dependsOn = this.filterConfig.dependsOn;
+            const registry = window._fieldDependencyRegistry.get(dependsOn);
+            if (registry) {
+                registry.delete(this);
+                if (registry.size === 0) {
+                    window._fieldDependencyRegistry.delete(dependsOn);
+                }
+            }
+        }
+        super.cleanup();
     }
 }
 
