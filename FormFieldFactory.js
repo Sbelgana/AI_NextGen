@@ -2047,10 +2047,24 @@ class NavigationButtons {
         this.prevButton = null;
         this.nextButton = null;
         this.submitButton = null;
+        
+        // Check if we're in an iframe (for special styling)
+        this.isInIframe = this.checkIfInIframe();
     }
+    
+    checkIfInIframe() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
+        }
+    }
+    
     render() {
         this.container = document.createElement('div');
         this.container.className = 'form-navigation';
+        
+        // Create Previous Button
         this.prevButton = document.createElement('button');
         this.prevButton.type = 'button';
         this.prevButton.className = 'btn btn-prev';
@@ -2058,6 +2072,8 @@ class NavigationButtons {
         this.prevButton.addEventListener('click', () => {
             this.multiStepForm.previousStep();
         });
+        
+        // Create Next Button
         this.nextButton = document.createElement('button');
         this.nextButton.type = 'button';
         this.nextButton.className = 'btn btn-next';
@@ -2065,27 +2081,147 @@ class NavigationButtons {
         this.nextButton.addEventListener('click', () => {
             this.multiStepForm.nextStep();
         });
+        
+        // Create Submit Button with enhanced styling
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'button';
-        this.submitButton.className = 'btn btn-submit';
+        this.submitButton.className = 'btn btn-submit voiceflow-submit-btn';
         this.submitButton.textContent = this.factory.getText('submit');
+        
+        // Apply inline styles to submit button for iframe compatibility
+        this.applySubmitButtonStyles();
+        
+        // Add submit event listener
         this.submitButton.addEventListener('click', () => {
             this.multiStepForm.submit();
         });
+        
+        // Add hover effects with JavaScript (more reliable in iframes)
+        this.addSubmitButtonHoverEffects();
+        
         this.container.appendChild(this.prevButton);
         this.container.appendChild(this.nextButton);
         this.container.appendChild(this.submitButton);
+        
         return this.container;
     }
+    
+    applySubmitButtonStyles() {
+        // Apply comprehensive inline styles for iframe compatibility
+        const baseStyles = {
+            'background-color': '#007bff',
+            'color': 'white',
+            'padding': '12px 24px',
+            'border': 'none',
+            'border-radius': '4px',
+            'font-size': '16px',
+            'font-weight': '600',
+            'cursor': 'pointer',
+            'transition': 'all 0.3s ease',
+            'min-width': '150px',
+            'display': 'inline-block',
+            'text-align': 'center',
+            'box-shadow': '0 2px 4px rgba(0, 0, 0, 0.1)',
+            '-webkit-appearance': 'none',
+            'appearance': 'none',
+            'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        };
+        
+        // Apply styles with important flag for maximum specificity
+        Object.entries(baseStyles).forEach(([property, value]) => {
+            this.submitButton.style.setProperty(property, value, 'important');
+        });
+        
+        // Add data attribute for additional targeting if needed
+        this.submitButton.setAttribute('data-voiceflow-submit', 'true');
+    }
+    
+    addSubmitButtonHoverEffects() {
+        // Store original styles
+        const originalBg = '#007bff';
+        const hoverBg = '#0056b3';
+        const activeBg = '#004494';
+        
+        this.submitButton.addEventListener('mouseenter', () => {
+            if (!this.submitButton.disabled) {
+                this.submitButton.style.setProperty('background-color', hoverBg, 'important');
+                this.submitButton.style.setProperty('transform', 'translateY(-2px)', 'important');
+                this.submitButton.style.setProperty('box-shadow', '0 4px 8px rgba(0, 0, 0, 0.2)', 'important');
+            }
+        });
+        
+        this.submitButton.addEventListener('mouseleave', () => {
+            if (!this.submitButton.disabled) {
+                this.submitButton.style.setProperty('background-color', originalBg, 'important');
+                this.submitButton.style.setProperty('transform', 'translateY(0)', 'important');
+                this.submitButton.style.setProperty('box-shadow', '0 2px 4px rgba(0, 0, 0, 0.1)', 'important');
+            }
+        });
+        
+        this.submitButton.addEventListener('mousedown', () => {
+            if (!this.submitButton.disabled) {
+                this.submitButton.style.setProperty('background-color', activeBg, 'important');
+                this.submitButton.style.setProperty('transform', 'translateY(0)', 'important');
+            }
+        });
+        
+        this.submitButton.addEventListener('mouseup', () => {
+            if (!this.submitButton.disabled) {
+                this.submitButton.style.setProperty('background-color', hoverBg, 'important');
+                this.submitButton.style.setProperty('transform', 'translateY(-2px)', 'important');
+            }
+        });
+    }
+    
     updateButtons(currentStep, totalSteps) {
+        // Previous button visibility
         this.prevButton.style.display = currentStep > 0 ? 'inline-block' : 'none';
+        
+        // Next/Submit button visibility
         if (currentStep === totalSteps - 1) {
+            // Last step - show submit button
             this.nextButton.style.display = 'none';
             this.submitButton.style.display = 'inline-block';
+            
+            // Reapply styles when submit button becomes visible (extra safety for iframes)
+            if (this.isInIframe) {
+                setTimeout(() => {
+                    this.applySubmitButtonStyles();
+                }, 0);
+            }
         } else {
+            // Not last step - show next button
             this.nextButton.style.display = 'inline-block';
             this.submitButton.style.display = 'none';
         }
+    }
+    
+    // Method to update submit button state during processing
+    setSubmitButtonProcessing(isProcessing, processingText) {
+        if (isProcessing) {
+            this.submitButton.disabled = true;
+            this.submitButton.textContent = processingText || this.factory.getText('processing') || 'Processing...';
+            this.submitButton.style.setProperty('background-color', '#6c757d', 'important');
+            this.submitButton.style.setProperty('cursor', 'wait', 'important');
+            this.submitButton.style.setProperty('opacity', '0.65', 'important');
+        } else {
+            this.submitButton.disabled = false;
+            this.submitButton.textContent = this.factory.getText('submit');
+            this.applySubmitButtonStyles(); // Reapply normal styles
+        }
+    }
+    
+    // Method to handle submit button error state
+    setSubmitButtonError(errorText) {
+        this.submitButton.disabled = false;
+        this.submitButton.textContent = errorText;
+        this.submitButton.style.setProperty('background-color', '#dc3545', 'important');
+        
+        // Reset to normal state after 3 seconds
+        setTimeout(() => {
+            this.submitButton.textContent = this.factory.getText('submit');
+            this.applySubmitButtonStyles();
+        }, 3000);
     }
 }
 /**
