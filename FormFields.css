@@ -91,6 +91,17 @@
   --z-tooltip: 50;
   --z-overlay: 9999;
   --z-modal: 10000;
+  
+  --gallery-nav-size: 48px;
+  --gallery-nav-size-mobile: 40px;
+  --gallery-nav-size-small: 36px;
+  --gallery-thumbnail-width: 80px;
+  --gallery-thumbnail-height: 60px;
+  --gallery-thumbnail-width-mobile: 60px;
+  --gallery-thumbnail-height-mobile: 45px;
+  --gallery-counter-bg: rgba(0, 0, 0, 0.8);
+  --gallery-nav-bg: rgba(255, 255, 255, 0.9);
+  --gallery-fullscreen-bg: #000;
 }
 
 /* Dark mode variables */
@@ -4650,17 +4661,6 @@ submission-form-extension {
 /* Image Gallery Field Container */
 .image-gallery-field {
   /* Variables specific to Image Gallery */
-  --gallery-nav-size: 48px;
-  --gallery-nav-size-mobile: 40px;
-  --gallery-nav-size-small: 36px;
-  --gallery-thumbnail-width: 80px;
-  --gallery-thumbnail-height: 60px;
-  --gallery-thumbnail-width-mobile: 60px;
-  --gallery-thumbnail-height-mobile: 45px;
-  --gallery-counter-bg: rgba(0, 0, 0, 0.8);
-  --gallery-nav-bg: rgba(255, 255, 255, 0.9);
-  --gallery-fullscreen-bg: #000;
-  
   width: 100%;
   margin-bottom: 20px;
   font-family: var(--font-family);
