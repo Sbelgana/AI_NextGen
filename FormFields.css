@@ -5221,27 +5221,27 @@ submission-form-extension {
     transition: width 0.3s ease; /* Smooth width transitions */
 }
 
-/* Responsive container widths */
+/* Container widths for fixed 300px cards */
 .carousel-cards-container.container-1-card {
-    width: auto;
-    max-width: 250px;
+    width: 300px;
+    max-width: 300px;
 }
 
 .carousel-cards-container.container-2-cards {
-    width: auto;
-    max-width: 520px; /* (250px * 2) + 16px gap */
+    width: 616px; /* (300px * 2) + 16px gap */
+    max-width: 616px;
 }
 
-/* Mobile: Exact width for 1 complete card */
+/* Mobile: Width for 1 card */
 @media (max-width: 767px) {
     .carousel-cards-container {
-        width: 200px;
-        max-width: 200px;
+        width: 300px;
+        max-width: 300px;
     }
     
     .carousel-cards-container.container-1-card {
-        width: 200px;
-        max-width: 200px;
+        width: 300px;
+        max-width: 300px;
     }
     
     .carousel-image-container {
@@ -5249,34 +5249,34 @@ submission-form-extension {
     }
 }
 
-/* Tablet: Width for 2 complete cards */
+/* Tablet: Width for 1 card (to ensure responsiveness on smaller tablets) */
 @media (min-width: 768px) and (max-width: 1023px) {
     .carousel-cards-container {
-        width: 456px; /* (220px * 2) + (16px * 1) gap */
-        max-width: 456px;
+        width: 300px;
+        max-width: 300px;
     }
     
     .carousel-cards-container.container-1-card {
-        width: 220px;
-        max-width: 220px;
+        width: 300px;
+        max-width: 300px;
     }
 }
 
-/* Desktop: Width for 3 complete cards */
+/* Desktop: Width for maximum 2 cards */
 @media (min-width: 1024px) {
     .carousel-cards-container {
-        width: 782px; /* (250px * 3) + (16px * 2) gaps */
-        max-width: 782px;
+        width: 616px; /* (300px * 2) + 16px gap */
+        max-width: 616px;
     }
     
     .carousel-cards-container.container-1-card {
-        width: 250px;
-        max-width: 250px;
+        width: 300px;
+        max-width: 300px;
     }
     
     .carousel-cards-container.container-2-cards {
-        width: 516px; /* (250px * 2) + 16px gap */
-        max-width: 516px;
+        width: 616px; /* (300px * 2) + 16px gap */
+        max-width: 616px;
     }
 }
 
@@ -5300,7 +5300,7 @@ submission-form-extension {
 }
 
 /* ============================================================================
-   CAROUSEL ITEMS
+   CAROUSEL ITEMS - Fixed 300x400px
    ============================================================================ */
 
 .carousel-item {
@@ -5314,32 +5314,40 @@ submission-form-extension {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 300px;
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+    height: 400px !important;
+    min-height: 400px !important;
+    max-height: 400px !important;
     transform: translateZ(0);
 }
 
-/* Responsive card widths */
+/* Remove all responsive card width overrides */
 @media (max-width: 767px) {
     .carousel-item {
-        width: 200px;
-        min-width: 200px;
-        max-width: 200px;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        height: 400px !important;
     }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
     .carousel-item {
-        width: 220px;
-        min-width: 220px;
-        max-width: 220px;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        height: 400px !important;
     }
 }
 
 @media (min-width: 1024px) {
     .carousel-item {
-        width: 250px;
-        min-width: 250px;
-        max-width: 250px;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        height: 400px !important;
     }
 }
 
@@ -5357,7 +5365,7 @@ submission-form-extension {
 
 .carousel-item-image {
     width: 100%;
-    height: 140px;
+    height: 180px !important; /* Increased height for 400px card */
     object-fit: cover;
     display: block;
     flex-shrink: 0;
@@ -5366,7 +5374,7 @@ submission-form-extension {
 }
 
 .carousel-item-content {
-    padding: 16px;
+    padding: 20px; /* Increased padding for larger card */
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -5375,8 +5383,8 @@ submission-form-extension {
 }
 
 .carousel-item-title {
-    margin: 0 0 8px 0;
-    font-size: 1.1rem;
+    margin: 0 0 10px 0;
+    font-size: 1.2rem; /* Slightly larger for bigger card */
     font-weight: 600;
     color: var(--text-primary);
     line-height: 1.3;
@@ -5388,22 +5396,22 @@ submission-form-extension {
 }
 
 .carousel-item-subtitle {
-    margin: 0 0 8px 0;
+    margin: 0 0 10px 0;
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
 }
 
 .carousel-item-description {
-    margin: 0 0 12px 0;
+    margin: 0 0 16px 0;
     color: #2d3748;
-    font-size: 0.8rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
+    line-height: 1.5;
     flex-grow: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3; /* Increased to 3 lines for larger card */
     -webkit-box-orient: vertical;
 }
 
@@ -5412,21 +5420,21 @@ submission-form-extension {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     margin-top: auto;
 }
 
 .carousel-item-price {
     font-weight: 600;
     color: var(--success-color);
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 .carousel-item-duration {
     background: #edf2f7;
-    padding: 4px 8px;
+    padding: 6px 12px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
@@ -5434,9 +5442,9 @@ submission-form-extension {
 .carousel-item-experience {
     background: #e6fffa;
     color: #319795;
-    padding: 4px 8px;
+    padding: 6px 12px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 500;
 }
 
@@ -5452,7 +5460,7 @@ submission-form-extension {
     color: #374151;
     border: none;
     border-radius: 50%;
-    display: flex;
+    display: flex !important; /* Force display */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -5462,6 +5470,7 @@ submission-form-extension {
     backdrop-filter: blur(10px);
     user-select: none;
     flex-shrink: 0;
+    visibility: visible !important; /* Force visibility */
 }
 
 .carousel-nav-btn:hover:not(:disabled) {
@@ -5514,7 +5523,7 @@ submission-form-extension {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 300px;
+    min-height: 400px; /* Match card height */
     width: 100%;
     background: var(--background-secondary);
     border-radius: 8px;
@@ -5556,28 +5565,17 @@ submission-form-extension {
         font-size: 0.85rem;
     }
     
+    /* Keep cards at 300x400 even on small screens */
     .carousel-item {
-        width: 180px !important;
-        min-width: 180px !important;
-        max-width: 180px !important;
-        height: 280px;
-    }
-    
-    .carousel-item-image {
-        height: 120px;
-    }
-    
-    .carousel-item-content {
-        padding: 14px;
-    }
-    
-    .carousel-item-title {
-        font-size: 1rem;
+        width: 300px !important;
+        min-width: 300px !important;
+        max-width: 300px !important;
+        height: 400px !important;
     }
     
     .carousel-cards-container {
-        width: 180px !important;
-        max-width: 180px !important;
+        width: 300px !important;
+        max-width: 300px !important;
     }
     
     .carousel-image-container {
