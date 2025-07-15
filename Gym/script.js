@@ -46,7 +46,11 @@ const BookingSDExtension = {
                     dentistsData = null
                 } = trace.payload || {};
 
-                console.log('🦷 Dynamic Dental Booking Extension started (v5.3.0 with NavigationButtons fix)');
+                console.log('🦷 Dynamic Dental Booking Extension started (v5.2.2 - Option 2 Solution)');
+                
+                // Detect if we're in an iframe
+                const isInIframe = BookingSDExtension.isInIframe();
+                console.log('🦷 iFrame detected:', isInIframe);
                 
                 // ============================================================================
                 // CHECK FOR REQUIRED DATA
@@ -281,7 +285,6 @@ const BookingSDExtension = {
                         
                         onStepChange: BookingSDExtension.handleStepChange,
                         onSubmit: BookingSDExtension.handleSubmit,
-                        onReady: BookingSDExtension.handleFormReady,
                         
                         cssUrls: cssUrls
                     },
@@ -307,16 +310,37 @@ const BookingSDExtension = {
                         }
                     }, 100);
                 }
+                
+                // If in iframe, set up message listener
+                if (isInIframe) {
+                    window.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'refreshStyles') {
+                            console.log('🦷 Received refresh styles message from parent');
+                            // The MultiStepForm class now handles styling internally
+                        }
+                    });
+                    
+                    // Notify parent that extension is loaded
+                    try {
+                        window.parent.postMessage({ type: 'extensionLoaded' }, '*');
+                    } catch (e) {
+                        console.log('🦷 Could not post message to parent');
+                    }
+                }
 
                 return result;
             },
 
             // ============================================================================
-            // FORM READY HANDLER
+            // IFRAME DETECTION
             // ============================================================================
             
-            handleFormReady() {
-                console.log('🦷 Form ready - NavigationButtons should already have inline styles');
+            isInIframe() {
+                try {
+                    return window.self !== window.top;
+                } catch (e) {
+                    return true;
+                }
             },
 
             // ============================================================================
@@ -579,7 +603,7 @@ const BookingSDExtension = {
             },
 
             // ============================================================================
-            // ENHANCED FIELD CHANGE HANDLER
+            // FIELD CHANGE HANDLER
             // ============================================================================
             handleFieldChange(extension, name, value) {
                 if (name === 'selectedService') {
@@ -673,8 +697,8 @@ const BookingSDExtension = {
                 }
                 
                 if (stepIndex === 3) {
-                    // Last step - NavigationButtons should handle the styling automatically
-                    console.log('🦷 Reached final step - submit button should now have inline styles');
+                    // Last step reached
+                    console.log('🦷 Reached final step (calendar)');
                     
                     setTimeout(() => {
                         const formData = extension.multiStepForm?.getFormData() || {};
@@ -684,12 +708,7 @@ const BookingSDExtension = {
                             console.log('🦷 Both selections made, configuring calendar');
                             BookingSDExtension.configureCalendarForBooking(extension, formData);
                         }
-                    }, 200);
-                }
-                
-                // Call any custom onStepChange handler
-                if (extension.config && extension.config.onStepChange) {
-                    extension.config.onStepChange(stepIndex, stepInstance);
+                    }, 100);
                 }
             },
 
