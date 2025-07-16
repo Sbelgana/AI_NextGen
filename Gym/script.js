@@ -2276,7 +2276,6 @@ const BookingDirectExtension = {
                 timezone = "America/Toronto",
                 serviceProvider = "SkaLean",
                 voiceflowEnabled = true,
-            voiceflowDataTransformer = null,
                 enableDetailedLogging = true,
                 logPrefix = "📅 BookingDirect",
                 enableSessionTimeout = true,
@@ -2433,8 +2432,7 @@ const BookingDirectExtension = {
                 dataTransformer: dataTransformer,
                 // Disabled integrations
                 webhookEnabled: false,
-				voiceflowEnabled: voiceflowEnabled,
-				voiceflowDataTransformer: voiceflowDataTransformer,
+                voiceflowEnabled: voiceflowEnabled,
                 // Configuration
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
@@ -2742,6 +2740,8 @@ const BookingDirectExtension = {
         }
     }
 };
+
+
 const BookingInformationExtension = {
     name: "ModernBookingInformation",
     type: "response",
