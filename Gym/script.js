@@ -3712,19 +3712,7 @@ const RescheduleCalendarExtension = {
                 // ============================================================================
                 // SIMPLIFIED: Just use the utility's handleReschedule method!
                 // ============================================================================
-                onSubmit: async (formData) => {
-                    return await calComUtility.handleReschedule(formData, {
-                        language: language,
-                        uid: rescheduleData.uid,
-                        apiKey: apiKey,
-                        serviceProvider: rescheduleData.serviceProvider,
-                        startTime: rescheduleData.startTime,
-                        eventTypeSlug: rescheduleData.eventTypeSlug,
-                        email: rescheduleData.email,
-                        voiceflowEnabled: voiceflowEnabled, // ← This controls CalComBaseUtility's Voiceflow
-                        formVersion: CONFIG.FORM_VERSION
-                    });
-                },
+                
                 // CSS configuration using extracted variables
                 cssUrls: cssUrls
             },
@@ -4107,22 +4095,7 @@ const CancellationDirectExtension = {
                 email: cancellationData.email,
                 startTime: cancellationData.startTime,
                 eventTypeSlug: cancellationData.eventTypeSlug,
-                // ============================================================================
-                // SIMPLIFIED: Just use the utility's handleCancellation method!
-                // ============================================================================
-                onSubmit: async (formData) => {
-                    return await calComUtility.handleCancellation(formData, {
-                        language: language,
-                        uid: cancellationData.uid,
-                        apiKey: apiKey,
-                        serviceProvider: cancellationData.serviceProvider,
-                        startTime: cancellationData.startTime,
-                        eventTypeSlug: cancellationData.eventTypeSlug,
-                        email: cancellationData.email,
-                        voiceflowEnabled: voiceflowEnabled,
-                        formVersion: CONFIG.FORM_VERSION
-                    });
-                },
+                
                 // CSS configuration using extracted variables
                 cssUrls: cssUrls
             },
