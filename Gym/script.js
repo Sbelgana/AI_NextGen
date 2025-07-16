@@ -275,7 +275,8 @@ const BookingSDExtension = {
                 dataTransformer: dataTransformer,
                 
                 webhookEnabled: false,
-                voiceflowEnabled: false,
+				voiceflowEnabled: voiceflowEnabled,
+				voiceflowDataTransformer: voiceflowDataTransformer,
                 
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
@@ -1330,7 +1331,8 @@ const BookingDExtension = {
                 dataTransformer: dataTransformer,
                 
                 webhookEnabled: false,
-                voiceflowEnabled: false,
+				voiceflowEnabled: voiceflowEnabled,
+				voiceflowDataTransformer: voiceflowDataTransformer,
                 
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
@@ -2430,7 +2432,8 @@ const BookingDirectExtension = {
                 dataTransformer: dataTransformer,
                 // Disabled integrations
                 webhookEnabled: false,
-                voiceflowEnabled: voiceflowEnabled,
+				voiceflowEnabled: voiceflowEnabled,
+				voiceflowDataTransformer: voiceflowDataTransformer,
                 // Configuration
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
@@ -3225,7 +3228,8 @@ const CalendarExtension = {
                 dataTransformer: dataTransformer,
                 // Disabled integrations
                 webhookEnabled: false,
-                voiceflowEnabled: voiceflowEnabled,
+				voiceflowEnabled: voiceflowEnabled,
+				voiceflowDataTransformer: voiceflowDataTransformer,
                 // Configuration
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
@@ -3706,8 +3710,8 @@ const RescheduleCalendarExtension = {
                 webhookEnabled: false,
                 webhookUrl: null,
                 // FIXED: Disable CreatForm's Voiceflow - CalComBaseUtility handles it properly
-                voiceflowEnabled: false, // ← CHANGED: was voiceflowEnabled, now false
-                voiceflowDataTransformer: null, // ← This is ignored when voiceflowEnabled is false
+				voiceflowEnabled: voiceflowEnabled,
+				voiceflowDataTransformer: voiceflowDataTransformer,
                 // Enhanced logging using extracted variables
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
