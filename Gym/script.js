@@ -2458,29 +2458,6 @@ const BookingDirectExtension = {
                         }, 100);
                     }
                 },
-                // Booking submission handler
-                onSubmit: async (formData) => {
-                    const bookingData = {
-                        ...formData,
-                        serviceSelection: selectedService,
-                        selectedService: selectedService,
-                        eventTypeId: selectedService.eventTypeId,
-                        eventTypeSlug: selectedService.eventTypeSlug,
-                        scheduleId: selectedService.scheduleId,
-                        eventName: selectedService.eventName,
-                        serviceProvider: serviceProvider
-                    };
-                    console.log('📅 Submitting booking with data:', bookingData);
-                    return await calComUtility.handleBooking(bookingData, {
-                        language: language,
-                        apiKey: apiKey,
-                        timezone: timezone,
-                        serviceProvider: serviceProvider,
-                        voiceflowEnabled: voiceflowEnabled,
-                        formVersion: CONFIG.FORM_VERSION,
-                        selectedService: selectedService
-                    });
-                },
                 cssUrls: cssUrls
             },
             formData,
