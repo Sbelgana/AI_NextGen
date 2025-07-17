@@ -156,9 +156,12 @@
 }
 
 /* Header Background */
-.jyiuei2 {
-  background-color: var(--chat-primary-color);
+.jyiuei3 {
+    background-color: transparent;
+    background: linear-gradient(135deg, #B4946E, #6E5634);
 }
+
+
 
 /* Responsive layouts */
 @media (min-width: 1000px) {
