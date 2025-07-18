@@ -9618,24 +9618,33 @@ class CreatForm {
 class CalendarField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
+        
+        // Generate unique instance ID for debugging
+        this.instanceId = `calendar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        console.log(`📅 Creating new CalendarField instance: ${this.instanceId}`);
+        
         // Core calendar configuration
         this.timezone = config.timezone || 'America/Toronto';
         this.language = config.language || 'en';
-        this.locale = config.locale || 'en-US'; // Receive locale from config
-        this.mode = config.mode || 'booking'; // 'booking' or 'reschedule'
+        this.locale = config.locale || 'en-US';
+        this.mode = config.mode || 'booking';
+        
         // Reschedule mode configuration  
-        this.currentAppointment = config.currentAppointment || null; // For reschedule mode
+        this.currentAppointment = config.currentAppointment || null;
+        
         // Selection mode determines what UI to show
         this.selectionMode = config.selectionMode || 'none';
-        // Options: 'none', 'item', 'category-item'
+        
         // Category and item data
         this.rawCategoryItems = config.categoryItems || config.specialistsInfo || {};
         this.availableCategories = [];
         this.filteredItems = [];
+        
         // Selection state
         this.selectedCategory = config.selectedCategory || config.categoryName || '';
         this.selectedItemId = config.selectedItemId || '';
-        // Current active configuration (what the calendar uses)
+        
+        // Current active configuration
         this.currentItem = null;
         this.currentCategoryConfig = null;
         this.apiKey = config.apiKey || '';
@@ -9643,15 +9652,18 @@ class CalendarField extends BaseField {
         this.eventTypeSlug = config.eventTypeSlug || '';
         this.scheduleId = config.scheduleId || null;
         this.eventName = config.eventName || '';
-        // Direct item configuration (for direct mode and reschedule)
+        
+        // Direct item configuration
         this.specialist = config.specialist || '';
+        
         // UI Configuration
         this.headerIcon = config.headerIcon || 'CALENDAR';
         this.showItemInfo = config.showItemInfo !== false;
         this.placeholderText = config.placeholderText || '';
-        // ===============================
-        // TRANSLATED TEXTS - Receive from BookingDirectExtension
-        // ===============================
+        this.showPlaceholder = config.showPlaceholder || false;
+        this.placeholderMessage = config.placeholderMessage || '';
+        
+        // Translated texts
         this.texts = {
             selectCategory: config.texts?.selectCategory || "Select a category",
             selectCategoryPlaceholder: config.texts?.selectCategoryPlaceholder || "-- Select a category --",
@@ -9669,62 +9681,137 @@ class CalendarField extends BaseField {
             loading: config.texts?.loading || "Loading...",
             weekdays: config.texts?.weekdays || ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         };
-        // Error messages - Receive from BookingDirectExtension
+        
+        // Error messages
         this.errorTexts = {
             categoryRequired: config.errorTexts?.categoryRequired || 'Please select a category',
             itemRequired: config.errorTexts?.itemRequired || 'Please select an item',
             dateTimeRequired: config.errorTexts?.dateTimeRequired || 'Please select date and time'
         };
-        // Selection fields (created as needed)
+        
+        // Selection fields
         this.categorySelectField = null;
         this.itemSelectField = null;
-        // Calendar state
-        this.state = {
+        
+        // Fresh calendar state - no shared state
+        this.state = this.createFreshState();
+        
+        // Store full config
+        this.fullConfig = config;
+        
+        // Initialize based on configuration
+        this.init();
+    }
+    
+    // Create fresh state object
+    createFreshState() {
+        return {
             currentDate: new Date(),
             selectedDate: null,
             selectedTime: null,
             availableSlots: {},
             workingDays: [1, 2, 3, 4, 5],
             isConfirmed: false,
-            isLoading: false
+            isLoading: false,
+            initialized: false
         };
-        // Store full config for reference
-        this.fullConfig = config;
-        this.init();
     }
+    
+    // Reconfigure calendar with new settings
+    async reconfigure(newConfig) {
+        console.log(`📅 [${this.instanceId}] Reconfiguring calendar`, newConfig);
+        
+        // Reset state completely
+        this.state = this.createFreshState();
+        
+        // Update configuration
+        this.apiKey = newConfig.apiKey || this.apiKey;
+        this.eventTypeId = newConfig.eventTypeId || this.eventTypeId;
+        this.eventTypeSlug = newConfig.eventTypeSlug || this.eventTypeSlug;
+        this.scheduleId = newConfig.scheduleId || this.scheduleId;
+        this.eventName = newConfig.eventName || this.eventName;
+        this.specialist = newConfig.specialist || this.specialist;
+        this.selectedCategory = newConfig.selectedCategory || this.selectedCategory;
+        this.timezone = newConfig.timezone || this.timezone;
+        this.language = newConfig.language || this.language;
+        this.locale = newConfig.locale || this.locale;
+        
+        // Clear any cached data
+        this.currentItem = null;
+        this.currentCategoryConfig = null;
+        
+        // Re-initialize
+        await this.init();
+        
+        // Re-render if element exists
+        if (this.element) {
+            this.updateCalendarHeader();
+            this.renderCalendarData();
+        }
+    }
+    
     // Initialize based on selection mode
     async init() {
+        console.log(`📅 [${this.instanceId}] Initializing with mode: ${this.selectionMode}`);
+        
         if (this.selectionMode === 'none') {
-            // Direct calendar mode - item config should already be set
-            await this.initializeCalendar();
+            // Direct calendar mode
+            if (!this.showPlaceholder) {
+                await this.initializeCalendar();
+            }
         } else if (this.selectionMode === 'item') {
-            // Item selection mode - extract categories and filter items
+            // Item selection mode
             this.initializeItemSelection();
         } else if (this.selectionMode === 'category-item') {
             // Category + item selection mode
             this.initializeCategoryAndItemSelection();
         }
+        
+        this.state.initialized = true;
     }
-    // Direct calendar initialization (original CalendarField behavior)
+    
+    // Direct calendar initialization
     async initializeCalendar() {
+        console.log(`📅 [${this.instanceId}] Initializing calendar with API key: ${this.apiKey?.substring(0, 10)}...`);
+        
+        // Clear any existing data
+        this.state.availableSlots = {};
+        this.state.selectedDate = null;
+        this.state.selectedTime = null;
+        
         if (this.scheduleId && this.apiKey) {
-            this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
-            if (!this.state.selectedDate) {
-                this.state.selectedDate = this.getDefaultActiveDay();
-                const dayKey = this.formatDate(this.state.selectedDate);
-                const slots = await this.fetchAvailableSlots(dayKey);
-                this.state.availableSlots[dayKey] = slots;
+            try {
+                this.state.isLoading = true;
+                this.state.workingDays = await this.fetchWorkingDays(this.scheduleId);
+                
+                if (!this.state.selectedDate) {
+                    this.state.selectedDate = this.getDefaultActiveDay();
+                    const dayKey = this.formatDate(this.state.selectedDate);
+                    const slots = await this.fetchAvailableSlots(dayKey);
+                    this.state.availableSlots[dayKey] = slots;
+                }
+                
+                this.state.isLoading = false;
+                console.log(`📅 [${this.instanceId}] Calendar initialized successfully`);
+            } catch (error) {
+                console.error(`📅 [${this.instanceId}] Error initializing calendar:`, error);
+                this.state.isLoading = false;
             }
+        } else {
+            console.warn(`📅 [${this.instanceId}] Missing scheduleId or apiKey for initialization`);
         }
     }
-    // Item selection initialization (ItemCalendarField behavior)
+    
+    // Item selection initialization
     initializeItemSelection() {
         if (!this.selectedCategory) {
-            console.error('Item selection mode requires selectedCategory to be set');
+            console.error(`📅 [${this.instanceId}] Item selection mode requires selectedCategory`);
             return;
         }
+        
         this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
-        // Auto-select if only one item offers the category
+        
+        // Auto-select if only one item
         if (this.filteredItems.length === 1) {
             this.selectedItemId = this.filteredItems[0].id;
             this.selectItem(this.selectedItemId, false);
@@ -9732,9 +9819,11 @@ class CalendarField extends BaseField {
             this.selectItem(this.selectedItemId, false);
         }
     }
-    // Category + item selection initialization (CategoryAndItemCalendarField behavior)
+    
+    // Category + item selection initialization
     initializeCategoryAndItemSelection() {
         this.availableCategories = this.extractAvailableCategories(this.rawCategoryItems);
+        
         if (this.selectedCategory) {
             this.filteredItems = this.filterItemsByCategory(this.selectedCategory);
             if (this.selectedItemId) {
@@ -9742,50 +9831,53 @@ class CalendarField extends BaseField {
             }
         }
     }
-    // ===============================
-    // CATEGORY AND ITEM UTILITIES
-    // ===============================
+    
     // Extract all available categories from items data
     extractAvailableCategories(rawItems) {
         const categorySet = new Set();
+        
         try {
             const itemsArray = Array.isArray(rawItems) ? rawItems : Object.entries(rawItems);
+            
             itemsArray.forEach(([itemName, itemData]) => {
                 if (Array.isArray(rawItems) && typeof itemName === 'object') {
                     itemData = itemName;
                     itemName = itemData.name || itemData.id;
                 }
+                
                 if (itemData && itemData.categories) {
-                    Object.keys(itemData.categories)
-                        .forEach(category => {
-                            categorySet.add(category);
-                        });
+                    Object.keys(itemData.categories).forEach(category => {
+                        categorySet.add(category);
+                    });
                 }
             });
         } catch (error) {
-            console.error('Error extracting categories:', error);
+            console.error(`📅 [${this.instanceId}] Error extracting categories:`, error);
         }
-        return Array.from(categorySet)
-            .sort()
-            .map(category => ({
-                id: this.slugify(category),
-                name: category,
-                displayName: category
-            }));
+        
+        return Array.from(categorySet).sort().map(category => ({
+            id: this.slugify(category),
+            name: category,
+            displayName: category
+        }));
     }
+    
     // Filter items that offer the specific category
     filterItemsByCategory(categoryName) {
         if (!categoryName || !this.rawCategoryItems) {
             return [];
         }
+        
         const filteredItems = [];
-        const itemsArray = Array.isArray(this.rawCategoryItems) ?
+        const itemsArray = Array.isArray(this.rawCategoryItems) ? 
             this.rawCategoryItems : Object.entries(this.rawCategoryItems);
+        
         itemsArray.forEach(([itemName, itemData]) => {
             if (Array.isArray(this.rawCategoryItems) && typeof itemName === 'object') {
                 itemData = itemName;
                 itemName = itemData.name || itemData.id;
             }
+            
             if (itemData.categories && itemData.categories[categoryName]) {
                 const categoryConfig = itemData.categories[categoryName];
                 filteredItems.push({
@@ -9804,8 +9896,10 @@ class CalendarField extends BaseField {
                 });
             }
         });
+        
         return filteredItems;
     }
+    
     // Helper to create URL-friendly slugs
     slugify(text) {
         return text
@@ -9814,23 +9908,25 @@ class CalendarField extends BaseField {
             .replace(/[\s_-]+/g, '-')
             .replace(/^-+|-+$/g, '');
     }
-    // ===============================
-    // SELECTION METHODS
-    // ===============================
-    // Select category (for category-item mode)
+    
+    // Select category
     selectCategory(categoryId) {
         const category = this.availableCategories.find(s => s.id === categoryId);
         if (!category) {
-            console.error('Category not found:', categoryId);
+            console.error(`📅 [${this.instanceId}] Category not found:`, categoryId);
             return;
         }
+        
         this.selectedCategory = category.name;
         this.filteredItems = this.filterItemsByCategory(category.name);
+        
         // Update item dropdown
         this.updateItemOptions();
         this.showItemSelection();
+        
         // Reset item and calendar state
         this.resetItemAndCalendar();
+        
         // Auto-select if only one item
         if (this.filteredItems.length === 1) {
             this.selectItem(this.filteredItems[0].id);
@@ -9838,16 +9934,21 @@ class CalendarField extends BaseField {
                 this.itemSelectField.setValue(this.filteredItems[0].id);
             }
         }
+        
         this.updateCalendarHeader();
         this.renderCalendarData();
     }
+    
     // Select item
     async selectItem(itemId, shouldUpdateUI = true) {
         const item = this.filteredItems.find(p => p.id === itemId);
         if (!item) {
-            console.error('Item not found:', itemId);
+            console.error(`📅 [${this.instanceId}] Item not found:`, itemId);
             return;
         }
+        
+        console.log(`📅 [${this.instanceId}] Selecting item:`, itemId);
+        
         // Update current configuration
         this.selectedItemId = itemId;
         this.currentItem = item;
@@ -9857,28 +9958,33 @@ class CalendarField extends BaseField {
         this.eventTypeSlug = item.eventTypeSlug || '';
         this.scheduleId = item.scheduleId || null;
         this.eventName = item.eventName || this.selectedCategory || '';
+        
         // Reset calendar state
         this.resetCalendarState();
+        
         if (shouldUpdateUI && this.element) {
             this.showLoadingState();
         }
+        
         // Initialize calendar with new item
         await this.initializeCalendar();
+        
         if (shouldUpdateUI && this.element) {
             this.updateCalendarHeader();
             this.renderCalendarData();
         }
+        
         this.updateValue();
+        
         if (this.fullConfig.onItemChange) {
             this.fullConfig.onItemChange(item);
         }
     }
-    // ===============================
-    // UI CREATION METHODS
-    // ===============================
+    
     // Create category selection field
     createCategorySelectField() {
         if (this.selectionMode !== 'category-item') return null;
+        
         this.categorySelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-category`,
             name: `${this.name}_category`,
@@ -9888,17 +9994,21 @@ class CalendarField extends BaseField {
             required: true,
             onChange: (value) => this.selectCategory(value)
         });
+        
         if (this.selectedCategory) {
             const categoryOption = this.availableCategories.find(s => s.name === this.selectedCategory);
             if (categoryOption) {
                 this.categorySelectField.setValue(categoryOption.id);
             }
         }
+        
         return this.categorySelectField;
     }
+    
     // Create item selection field
     createItemSelectField() {
         if (this.selectionMode === 'none') return null;
+        
         this.itemSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-item`,
             name: `${this.name}_item`,
@@ -9908,18 +10018,24 @@ class CalendarField extends BaseField {
             required: true,
             onChange: (value) => this.selectItem(value)
         });
+        
         if (this.selectedItemId) {
             this.itemSelectField.setValue(this.selectedItemId);
         }
+        
         return this.itemSelectField;
     }
+    
     // Update item options dynamically
     updateItemOptions() {
         if (!this.itemSelectField) return;
+        
         const itemContainer = this.element.querySelector('.item-select-container');
         if (!itemContainer) return;
+        
         const currentValue = this.selectedItemId;
         itemContainer.innerHTML = '';
+        
         this.itemSelectField = new SingleSelectField(this.factory, {
             id: `${this.id}-item`,
             name: `${this.name}_item`,
@@ -9929,13 +10045,16 @@ class CalendarField extends BaseField {
             required: true,
             onChange: (value) => this.selectItem(value)
         });
+        
         const newFieldElement = this.itemSelectField.render();
         newFieldElement.className = 'item-select-container';
         itemContainer.parentNode.replaceChild(newFieldElement, itemContainer);
+        
         if (currentValue && this.filteredItems.find(p => p.id === currentValue)) {
             this.itemSelectField.setValue(currentValue);
         }
     }
+    
     // Show item selection container
     showItemSelection() {
         const itemContainer = this.element.querySelector('.item-select-container');
@@ -9943,22 +10062,25 @@ class CalendarField extends BaseField {
             itemContainer.style.display = 'block';
         }
     }
-    // ===============================
-    // STATE MANAGEMENT
-    // ===============================
+    
+    // State management
     resetItemAndCalendar() {
         this.selectedItemId = '';
         this.currentItem = null;
         this.resetCalendarState();
     }
+    
     resetCalendarState() {
         this.state.selectedDate = null;
         this.state.selectedTime = null;
         this.state.availableSlots = {};
+        this.state.isLoading = false;
     }
+    
     showLoadingState() {
         const daysEl = this.element.querySelector('.days');
         const timeSlotsEl = this.element.querySelector('.time-slots');
+        
         if (daysEl) {
             daysEl.innerHTML = `<div class="loading-message">${this.texts.loadingAvailability}</div>`;
         }
@@ -9966,66 +10088,75 @@ class CalendarField extends BaseField {
             timeSlotsEl.innerHTML = `<div class="loading-message">${this.texts.loading}</div>`;
         }
     }
+    
     updateCalendarHeader() {
         if (!this.element) return;
+        
         const headerElement = this.element.querySelector('.calendar-title');
         if (headerElement) {
             headerElement.innerHTML = this.generateCalendarHeader();
         }
     }
-    // ===============================
-    // VALIDATION
-    // ===============================
+    
+    // Validation
     validate() {
         // Check category selection if required
         if (this.selectionMode === 'category-item' && !this.selectedCategory) {
             this.showError(this.getFieldErrorMessage('categoryRequired') || this.errorTexts.categoryRequired);
             return false;
         }
+        
         // Check item selection if required
         if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.selectedItemId) {
             this.showError(this.getFieldErrorMessage('itemRequired') || this.errorTexts.itemRequired);
             return false;
         }
+        
         // Check date and time selection
         const isDateTimeValid = !!(this.state.selectedDate && this.state.selectedTime);
         if (this.required && !isDateTimeValid) {
             this.showError(this.getFieldErrorMessage('dateTimeRequired') || this.errorTexts.dateTimeRequired);
             return false;
         }
+        
         this.hideError();
         return true;
     }
-    // ===============================
-    // CALENDAR CORE METHODS (Original CalendarField logic)
-    // ===============================
+    
+    // Calendar core methods
     formatDate(date) {
         const d = new Date(date);
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1)
-            .padStart(2, "0");
-        const day = String(d.getDate())
-            .padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     }
+    
     isSameDay(date1, date2) {
         if (!date1 || !date2) return false;
         return this.formatDate(date1) === this.formatDate(date2);
     }
+    
     getDefaultActiveDay() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        
         if (this.state.workingDays.includes(today.getDay())) return today;
+        
         const next = new Date(today);
         let daysChecked = 0;
+        
         while (!this.state.workingDays.includes(next.getDay()) && daysChecked < 14) {
             next.setDate(next.getDate() + 1);
             daysChecked++;
         }
+        
         return next;
     }
+    
     async fetchWorkingDays(scheduleId) {
         if (!this.apiKey || !scheduleId) return [1, 2, 3, 4, 5];
+        
         try {
             const res = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
                 method: "GET",
@@ -10035,9 +10166,12 @@ class CalendarField extends BaseField {
                     "Content-Type": "application/json"
                 }
             });
+            
             if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            
             const data = await res.json();
             const availability = data.data?.availability || [];
+            
             const dayNameToNumber = {
                 "Sunday": 0,
                 "Monday": 1,
@@ -10047,6 +10181,7 @@ class CalendarField extends BaseField {
                 "Friday": 5,
                 "Saturday": 6
             };
+            
             const workingDaysSet = new Set();
             availability.forEach(item => {
                 if (Array.isArray(item.days)) {
@@ -10058,19 +10193,24 @@ class CalendarField extends BaseField {
                     });
                 }
             });
+            
             return Array.from(workingDaysSet);
         } catch (err) {
-            console.error("Error fetching schedule:", err);
+            console.error(`📅 [${this.instanceId}] Error fetching schedule:`, err);
             return [1, 2, 3, 4, 5];
         }
     }
+    
     async fetchAvailableSlots(selectedDateISO) {
         if (!this.apiKey || !this.eventTypeId || !this.eventTypeSlug) return [];
+        
         const start = new Date(selectedDateISO);
         start.setUTCHours(0, 0, 0, 0);
         const end = new Date(selectedDateISO);
         end.setUTCHours(23, 59, 59, 999);
+        
         const url = `https://api.cal.com/v2/slots/available?startTime=${start.toISOString()}&endTime=${end.toISOString()}&eventTypeId=${this.eventTypeId}&eventTypeSlug=${this.eventTypeSlug}`;
+        
         try {
             const res = await fetch(url, {
                 method: "GET",
@@ -10080,23 +10220,29 @@ class CalendarField extends BaseField {
                     "Content-Type": "application/json"
                 }
             });
+            
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            
             const responseBody = await res.json();
             if (responseBody.status !== "success") {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
             }
+            
             const slotsObj = responseBody.data?.slots || {};
             const slotsForDate = slotsObj[selectedDateISO] || [];
+            
             return slotsForDate.map(slot => slot.time);
         } catch (err) {
-            console.error("Error fetching available slots:", err);
+            console.error(`📅 [${this.instanceId}] Error fetching available slots:`, err);
             return [];
         }
     }
+    
     async createBooking(startTimeISO, fullName, email) {
         if (!this.apiKey || !this.eventTypeId) {
             throw new Error('Missing API key or event type ID');
         }
+        
         try {
             const url = `https://api.cal.com/v2/bookings`;
             const body = {
@@ -10108,6 +10254,7 @@ class CalendarField extends BaseField {
                 },
                 eventTypeId: Number(this.eventTypeId)
             };
+            
             const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -10117,23 +10264,28 @@ class CalendarField extends BaseField {
                 },
                 body: JSON.stringify(body)
             });
+            
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
+            
             const responseBody = await res.json();
             if (responseBody.status && responseBody.status !== "success") {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
             }
+            
             return responseBody;
         } catch (err) {
-            console.error("Booking error:", err);
+            console.error(`📅 [${this.instanceId}] Booking error:`, err);
             return null;
         }
     }
+    
     async rescheduleBooking(uid, startTimeISO, reason, rescheduledBy) {
         if (!this.apiKey || !uid) {
             throw new Error('Missing API key or booking UID');
         }
+        
         try {
             const url = `https://api.cal.com/v2/bookings/${uid}/reschedule`;
             const body = {
@@ -10141,6 +10293,7 @@ class CalendarField extends BaseField {
                 reschedulingReason: reason,
                 start: startTimeISO
             };
+            
             const res = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -10150,24 +10303,27 @@ class CalendarField extends BaseField {
                 },
                 body: JSON.stringify(body)
             });
+            
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
             }
+            
             const responseBody = await res.json();
             if (responseBody.status && responseBody.status !== "success") {
                 throw new Error(`Cal.com returned error: ${JSON.stringify(responseBody)}`);
             }
+            
             return responseBody;
         } catch (err) {
-            console.error("Error rescheduling booking:", err);
+            console.error(`📅 [${this.instanceId}] Error rescheduling booking:`, err);
             return null;
         }
     }
-    // ===============================
-    // RESCHEDULE MODE FORMATTING
-    // ===============================
+    
+    // Reschedule mode formatting
     formatCurrentAppointment() {
         if (!this.currentAppointment) return '';
+        
         const date = new Date(this.currentAppointment);
         const formatOptions = {
             weekday: 'long',
@@ -10177,24 +10333,36 @@ class CalendarField extends BaseField {
             hour: 'numeric',
             minute: '2-digit'
         };
+        
         const formatter = new Intl.DateTimeFormat(this.locale, formatOptions);
         return formatter.format(date);
     }
-    // ===============================
-    // HEADER GENERATION
-    // ===============================
+    
+    // Header generation
     generateCalendarHeader() {
         const iconSvg = this.factory.SVG_ICONS[this.headerIcon] || this.factory.SVG_ICONS.CALENDAR;
+        
         if (!this.showItemInfo) {
             return '';
         }
-        // RESCHEDULE MODE - Show current appointment details
+        
+        // Show placeholder if configured
+        if (this.showPlaceholder && this.placeholderMessage) {
+            return `
+                <div class="calendar-title-content">
+                    <div class="placeholder-message">${this.placeholderMessage}</div>
+                </div>
+            `;
+        }
+        
+        // RESCHEDULE MODE
         if (this.mode === 'reschedule' && this.currentAppointment) {
             const displayItem = this.currentItem?.displayName ||
                 this.currentItem?.name ||
                 this.currentItem?.id ||
                 this.specialist ||
                 'Specialist';
+            
             return `
                 <div class="calendar-title-content">
                     <div class="service-provider">
@@ -10208,17 +10376,19 @@ class CalendarField extends BaseField {
                 </div>
             `;
         }
-        // BOOKING MODE - Show category and item selection
+        // BOOKING MODE
         else {
             let headerHtml = `
                 <div class="service-provider">
                     <span class="provider-icon">${iconSvg}</span>
                     <div class="appointment-details">
             `;
+            
             // Show selected category
             if (this.selectedCategory) {
                 headerHtml += `<div class="service-name">${this.selectedCategory}</div>`;
             }
+            
             // Show selected item
             if (this.currentItem) {
                 const displayName = this.currentItem.displayName || this.currentItem.name || this.currentItem.id;
@@ -10227,35 +10397,41 @@ class CalendarField extends BaseField {
                 // Fallback to direct specialist config
                 headerHtml += `<div class="provider-name">${this.specialist}</div>`;
             }
+            
             headerHtml += `
                     </div>
                 </div>
             `;
+            
             return headerHtml;
         }
     }
-    // ===============================
-    // RENDER METHODS
-    // ===============================
+    
+    // Render methods
     render() {
         const container = this.createContainer();
+        
         // Create category selection field if needed
         if (this.selectionMode === 'category-item') {
             this.createCategorySelectField();
             const categoryFieldElement = this.categorySelectField.render();
             container.appendChild(categoryFieldElement);
         }
+        
         // Create item selection field if needed
         if (this.selectionMode === 'item' || this.selectionMode === 'category-item') {
             this.createItemSelectField();
             const itemFieldElement = this.itemSelectField.render();
             itemFieldElement.classList.add('item-select-container');
+            
             // Hide initially for category-item mode
             if (this.selectionMode === 'category-item' && !this.selectedCategory) {
                 itemFieldElement.style.display = 'none';
             }
+            
             container.appendChild(itemFieldElement);
         }
+        
         // Create the calendar component
         const calendarContainer = document.createElement('div');
         calendarContainer.className = 'calendar-container';
@@ -10285,18 +10461,25 @@ class CalendarField extends BaseField {
                 </div>
             </div>
         `;
+        
         container.appendChild(calendarContainer);
+        
         const errorElement = this.createErrorElement();
         container.appendChild(errorElement);
+        
         this.element = container;
         this.calendarContainer = calendarContainer;
         this.element.fieldInstance = this;
+        
         this.renderCalendarData();
         this.attachEvents();
+        
         return this.element;
     }
+    
     renderCalendarData() {
         if (!this.calendarContainer) return;
+        
         const currentDateEl = this.calendarContainer.querySelector('.current-date');
         if (currentDateEl) {
             const dateFormatter = new Intl.DateTimeFormat(this.locale, {
@@ -10305,6 +10488,7 @@ class CalendarField extends BaseField {
             });
             currentDateEl.textContent = dateFormatter.format(this.state.currentDate);
         }
+        
         const weekdaysEl = this.calendarContainer.querySelector('.weekdays');
         if (weekdaysEl) {
             weekdaysEl.innerHTML = '';
@@ -10314,13 +10498,26 @@ class CalendarField extends BaseField {
                 weekdaysEl.appendChild(dayEl);
             });
         }
+        
         this.renderDays();
         this.renderTimeSlots();
     }
+    
     renderDays() {
         const daysEl = this.calendarContainer.querySelector('.days');
         if (!daysEl) return;
+        
         daysEl.innerHTML = '';
+        
+        // Check if placeholder should be shown
+        if (this.showPlaceholder) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'placeholder-days-message';
+            messageEl.textContent = this.placeholderMessage || this.texts.pleaseSelectCategory;
+            daysEl.appendChild(messageEl);
+            return;
+        }
+        
         // Check selection requirements based on mode
         if (this.selectionMode === 'category-item' && !this.selectedCategory) {
             const messageEl = document.createElement('div');
@@ -10329,6 +10526,7 @@ class CalendarField extends BaseField {
             daysEl.appendChild(messageEl);
             return;
         }
+        
         if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.currentItem) {
             const messageEl = document.createElement('div');
             messageEl.className = 'no-item-message';
@@ -10336,44 +10534,39 @@ class CalendarField extends BaseField {
             daysEl.appendChild(messageEl);
             return;
         }
-        // Render calendar days (rest of the logic same as original)
+        
+        // Render calendar days
         let daysToShow = [];
         const firstDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), 1);
         const daysFromPrevMonth = firstDay.getDay();
         const lastDay = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
+        
         for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
             const day = new Date(firstDay);
             day.setDate(day.getDate() - i - 1);
-            daysToShow.push({
-                date: day,
-                inactive: true
-            });
+            daysToShow.push({ date: day, inactive: true });
         }
+        
         for (let i = 1; i <= totalDays; i++) {
             const day = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth(), i);
-            daysToShow.push({
-                date: day,
-                inactive: false
-            });
+            daysToShow.push({ date: day, inactive: false });
         }
+        
         const remainingDays = 42 - daysToShow.length;
         for (let i = 1; i <= remainingDays; i++) {
             const day = new Date(lastDay);
             day.setDate(day.getDate() + i);
-            daysToShow.push({
-                date: day,
-                inactive: true
-            });
+            daysToShow.push({ date: day, inactive: true });
         }
+        
         const highlightDay = this.state.selectedDate || this.getDefaultActiveDay();
-        daysToShow.forEach(({
-            date,
-            inactive
-        }) => {
+        
+        daysToShow.forEach(({ date, inactive }) => {
             const dayEl = document.createElement("div");
             dayEl.className = "day";
             dayEl.textContent = date.getDate();
+            
             if (inactive) {
                 dayEl.classList.add("inactive");
             } else {
@@ -10383,46 +10576,64 @@ class CalendarField extends BaseField {
                 } else {
                     const todayMidnight = new Date();
                     todayMidnight.setHours(0, 0, 0, 0);
+                    
                     if (date < todayMidnight) {
                         dayEl.classList.add("inactive");
                     } else {
                         if (this.formatDate(date) === this.formatDate(highlightDay)) {
                             dayEl.classList.add("today");
                         }
+                        
                         if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
                             dayEl.classList.add("active");
                         }
+                        
                         dayEl.classList.add("available");
                         dayEl.addEventListener("click", async () => {
                             this.state.selectedDate = new Date(date);
                             this.state.selectedTime = null;
+                            
                             const dateKey = this.formatDate(date);
                             const slots = await this.fetchAvailableSlots(dateKey);
                             this.state.availableSlots[dateKey] = slots;
+                            
                             this.renderCalendarData();
                             this.updateValue();
                         });
                     }
                 }
             }
+            
             daysEl.appendChild(dayEl);
         });
     }
+    
     renderTimeSlots() {
         const timeHeaderEl = this.calendarContainer.querySelector('.time-header');
         const timeSlotsEl = this.calendarContainer.querySelector('.time-slots');
+        
         if (!timeHeaderEl || !timeSlotsEl) return;
+        
+        // Check if placeholder should be shown
+        if (this.showPlaceholder) {
+            timeHeaderEl.textContent = '';
+            timeSlotsEl.innerHTML = `<div class="placeholder-times-message">${this.placeholderMessage || this.texts.pleaseSelectCategory}</div>`;
+            return;
+        }
+        
         // Check selection requirements
         if (this.selectionMode === 'category-item' && !this.selectedCategory) {
             timeHeaderEl.textContent = this.texts.pleaseSelectCategory;
             timeSlotsEl.innerHTML = `<div class="no-category-message">${this.texts.pleaseSelectCategory}</div>`;
             return;
         }
+        
         if ((this.selectionMode === 'item' || this.selectionMode === 'category-item') && !this.currentItem) {
             timeHeaderEl.textContent = this.texts.pleaseSelectItem;
             timeSlotsEl.innerHTML = `<div class="no-item-message">${this.texts.pleaseSelectItem}</div>`;
             return;
         }
+        
         if (this.state.selectedDate) {
             const dateFormatter = new Intl.DateTimeFormat(this.locale, {
                 weekday: "long",
@@ -10430,39 +10641,49 @@ class CalendarField extends BaseField {
                 day: "numeric"
             });
             timeHeaderEl.textContent = `${this.texts.availableTimesFor} ${dateFormatter.format(this.state.selectedDate)}`;
+            
             const dateKey = this.formatDate(this.state.selectedDate);
             const timeSlots = this.state.availableSlots[dateKey] || [];
+            
             if (timeSlots.length === 0) {
                 timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.texts.noAvailableSlots}</div>`;
             } else {
                 const columnsContainer = document.createElement("div");
                 columnsContainer.className = "time-slots-columns";
+                
                 const amColumn = document.createElement("div");
                 amColumn.className = "time-slots-column";
                 const pmColumn = document.createElement("div");
                 pmColumn.className = "time-slots-column";
+                
                 const amHeader = document.createElement("div");
                 amHeader.className = "time-column-header";
                 amHeader.textContent = "AM";
                 amColumn.appendChild(amHeader);
+                
                 const pmHeader = document.createElement("div");
                 pmHeader.className = "time-column-header";
                 pmHeader.textContent = "PM";
                 pmColumn.appendChild(pmHeader);
+                
                 timeSlots.forEach((timeISO) => {
                     const dateTime = new Date(timeISO);
                     const hours = dateTime.getHours();
+                    
                     const timeSlot = document.createElement("div");
                     timeSlot.className = "time-slot available";
+                    
                     if (this.state.selectedTime === timeISO) {
                         timeSlot.classList.add("selected");
                     }
+                    
                     const timeFormatter = new Intl.DateTimeFormat(this.locale, {
                         hour: "numeric",
                         minute: "2-digit",
                         hour12: true
                     });
                     timeSlot.textContent = timeFormatter.format(dateTime);
+                    
                     timeSlot.addEventListener("click", () => {
                         if (!this.state.isConfirmed) {
                             this.state.selectedTime = timeISO;
@@ -10470,14 +10691,17 @@ class CalendarField extends BaseField {
                             this.updateValue();
                         }
                     });
+                    
                     if (hours < 12) {
                         amColumn.appendChild(timeSlot);
                     } else {
                         pmColumn.appendChild(timeSlot);
                     }
                 });
+                
                 columnsContainer.appendChild(amColumn);
                 columnsContainer.appendChild(pmColumn);
+                
                 timeSlotsEl.innerHTML = '';
                 timeSlotsEl.appendChild(columnsContainer);
             }
@@ -10486,30 +10710,41 @@ class CalendarField extends BaseField {
             timeSlotsEl.innerHTML = `<div class="no-slots-message">${this.texts.pleaseSelectDate}</div>`;
         }
     }
+    
     attachEvents() {
         if (!this.calendarContainer) return;
+        
         const prevBtn = this.calendarContainer.querySelector('.prev-btn');
         const nextBtn = this.calendarContainer.querySelector('.next-btn');
+        
         if (prevBtn) {
             prevBtn.addEventListener("click", () => {
                 if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() - 1, 1);
+                    this.state.currentDate = new Date(
+                        this.state.currentDate.getFullYear(),
+                        this.state.currentDate.getMonth() - 1,
+                        1
+                    );
                     this.renderCalendarData();
                 }
             });
         }
+        
         if (nextBtn) {
             nextBtn.addEventListener("click", () => {
                 if (!this.state.isConfirmed) {
-                    this.state.currentDate = new Date(this.state.currentDate.getFullYear(), this.state.currentDate.getMonth() + 1, 1);
+                    this.state.currentDate = new Date(
+                        this.state.currentDate.getFullYear(),
+                        this.state.currentDate.getMonth() + 1,
+                        1
+                    );
                     this.renderCalendarData();
                 }
             });
         }
     }
-    // ===============================
-    // VALUE MANAGEMENT
-    // ===============================
+    
+    // Value management
     updateValue() {
         const value = {
             selectedCategory: this.selectedCategory,
@@ -10518,15 +10753,17 @@ class CalendarField extends BaseField {
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.locale, {
+            formattedTime: this.state.selectedTime ? 
+                new Intl.DateTimeFormat(this.locale, {
                     hour: "numeric",
                     minute: "2-digit",
                     hour12: true
-                })
-                .format(new Date(this.state.selectedTime)) : null
+                }).format(new Date(this.state.selectedTime)) : null
         };
+        
         this.handleChange();
     }
+    
     getValue() {
         return {
             selectedCategory: this.selectedCategory,
@@ -10536,16 +10773,17 @@ class CalendarField extends BaseField {
             selectedDate: this.state.selectedDate,
             selectedTime: this.state.selectedTime,
             formattedDate: this.state.selectedDate ? this.formatDate(this.state.selectedDate) : null,
-            formattedTime: this.state.selectedTime ? new Intl.DateTimeFormat(this.locale, {
+            formattedTime: this.state.selectedTime ? 
+                new Intl.DateTimeFormat(this.locale, {
                     hour: "numeric",
                     minute: "2-digit",
                     hour12: true
-                })
-                .format(new Date(this.state.selectedTime)) : null,
+                }).format(new Date(this.state.selectedTime)) : null,
             currentAppointment: this.currentAppointment,
             mode: this.mode
         };
     }
+    
     setValue(value) {
         if (value && typeof value === 'object') {
             if (value.selectedCategory && this.selectionMode === 'category-item') {
@@ -10557,32 +10795,40 @@ class CalendarField extends BaseField {
                     }
                 }
             }
+            
             if (value.selectedItemId && (this.selectionMode === 'item' || this.selectionMode === 'category-item')) {
                 this.selectItem(value.selectedItemId, false);
                 if (this.itemSelectField) {
                     this.itemSelectField.setValue(value.selectedItemId);
                 }
             }
+            
             if (value.selectedDate) this.state.selectedDate = new Date(value.selectedDate);
             if (value.selectedTime) this.state.selectedTime = value.selectedTime;
             if (value.currentAppointment) this.currentAppointment = value.currentAppointment;
             if (value.specialist) this.specialist = value.specialist;
+            
             if (this.element) {
                 this.updateCalendarHeader();
                 this.renderCalendarData();
             }
         }
     }
+    
     reset() {
+        console.log(`📅 [${this.instanceId}] Resetting calendar field`);
+        
         this.selectedCategory = '';
         this.selectedItemId = '';
         this.currentItem = null;
         this.specialist = '';
         this.filteredItems = [];
         this.resetCalendarState();
+        
         if (this.categorySelectField) {
             this.categorySelectField.setValue('');
         }
+        
         if (this.itemSelectField) {
             this.itemSelectField.setValue('');
             if (this.selectionMode === 'category-item') {
@@ -10592,23 +10838,36 @@ class CalendarField extends BaseField {
                 }
             }
         }
+        
         this.apiKey = '';
         this.eventTypeId = null;
         this.eventTypeSlug = '';
         this.scheduleId = null;
         this.eventName = '';
+        
         if (this.element) {
             this.updateCalendarHeader();
             this.renderCalendarData();
         }
     }
+    
     destroy() {
+        console.log(`📅 [${this.instanceId}] Destroying calendar field`);
+        
         if (this.categorySelectField && typeof this.categorySelectField.destroy === 'function') {
             this.categorySelectField.destroy();
         }
+        
         if (this.itemSelectField && typeof this.itemSelectField.destroy === 'function') {
             this.itemSelectField.destroy();
         }
+        
+        // Clear state
+        this.state = null;
+        this.rawCategoryItems = null;
+        this.availableCategories = null;
+        this.filteredItems = null;
+        
         super.destroy();
     }
 }
