@@ -8347,7 +8347,7 @@ class CreatForm {
                 box-shadow: 0 10px 25px rgba(0,0,0,0.3);
                 position: relative;
             ">
-                <div style="color: #e95d2c; font-size: 48px; margin-bottom: 20px;">⏰</div>
+                <div style="color: #b4946e; font-size: 48px; margin-bottom: 20px;">⏰</div>
                 <span style="color: #333; margin: 0 0 15px 0; font-size: 20px;">Session Expired</span>
                 <p style="color: #666; margin: 0; line-height: 1.5; font-size: 14px;">
                     Your session has expired after ${this.config.sessionTimeout / 60000} minutes of inactivity. 
@@ -8468,7 +8468,7 @@ class CreatForm {
             justify-content: center;
             padding: 60px 40px;
             text-align: center;
-            background: linear-gradient(135deg, #b0cee2, #faded4);
+            background: linear-gradient(135deg, #b4946e85, #6e563485);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -8505,7 +8505,7 @@ class CreatForm {
                 z-index: 2;
             ">
                 <div style="
-                    color: #e95d2c;
+                    color: #b4946e;
                     width: 80px;
                     height: 80px;
                     display: flex;
