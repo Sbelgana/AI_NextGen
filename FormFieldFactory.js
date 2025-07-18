@@ -1033,7 +1033,13 @@ class FormFieldFactory {
     closeAllInfoPanels() {
         this.openInfoPanels.forEach(infoPanel => infoPanel.close());
     }
-	  registerField(fieldType, fieldClass) {
+    // ===== FIELD REGISTRATION METHOD =====
+    /**
+     * Register a custom field type with the factory
+     * @param {string} fieldType - The field type identifier
+     * @param {Function} fieldClass - The field class constructor
+     */
+    registerField(fieldType, fieldClass) {
         if (!this.fieldRegistry) {
             this.fieldRegistry = {};
         }
@@ -1051,6 +1057,15 @@ class FormFieldFactory {
     // ===== FIELD CREATION METHOD =====
     createField(config) {
         let field;
+        
+        // Check if this is a registered custom field type
+        if (this.fieldRegistry && this.fieldRegistry[config.type]) {
+            const FieldClass = this.fieldRegistry[config.type];
+            field = new FieldClass(this, config);
+            return field;
+        }
+        
+        // Continue with the existing switch statement
         switch (config.type) {
         case 'text':
             field = new TextField(this, config);
@@ -1125,7 +1140,7 @@ class FormFieldFactory {
             field = new FilteredCarouselField(this, config);
             break;
         case 'service-provider-calendar':
-            field = new ServiceProviderCalendarField (this, config);
+            field = new ServiceProviderCalendarField(this, config);
             break;
         case 'calendar':
             field = new CalendarField(this, config);
@@ -7468,7 +7483,9 @@ class CreatForm {
             enableDetailedLogging: config.enableDetailedLogging !== false,
             logPrefix: config.logPrefix || "📋 CreatForm",
             // FIXED: Add custom onSubmit handler to config
-            onSubmit: config.onSubmit || null
+            onSubmit: config.onSubmit || null,
+            // Add onStepChange handler
+            onStepChange: config.onStepChange || null
         };
         // Store the passed data
         this.formData = formData;
@@ -8725,6 +8742,10 @@ class CreatForm {
                                 }
                             });
                         }
+                        // Call config onStepChange if provided
+                        if (this.config.onStepChange) {
+                            this.config.onStepChange(stepIndex, stepInstance);
+                        }
                     }
                 };
                 this.multiStepForm = this.factory.createMultiStepForm(formConfig);
@@ -8871,11 +8892,44 @@ class CreatForm {
     destroy() {
         this.logger.info('Destroying form...');
         this.clearSessionTimers();
-        this.factory?.destroy();
+        
+        // Clean up factory properly
+        if (this.factory) {
+            // Unregister all custom fields if needed
+            if (this.factory.fieldRegistry) {
+                this.factory.fieldRegistry = {};
+            }
+            this.factory.destroy();
+        }
+        
+        // Clean up multi-step form
         if (this.multiStepForm) {
             this.multiStepForm.clearSavedProgress();
+            // Destroy all field instances
+            if (this.multiStepForm.stepInstances) {
+                this.multiStepForm.stepInstances.forEach(step => {
+                    if (step.fieldInstances) {
+                        step.fieldInstances.forEach(field => {
+                            if (typeof field.destroy === 'function') {
+                                field.destroy();
+                            }
+                        });
+                    }
+                });
+            }
         }
+        
+        // Clean up single-step form
+        if (this.singleStepForm && this.singleStepForm.fieldInstances) {
+            this.singleStepForm.fieldInstances.forEach(field => {
+                if (typeof field.destroy === 'function') {
+                    field.destroy();
+                }
+            });
+        }
+        
         this.elements.clear();
+        
         // Clean up container-specific styles and session elements
         if (this.container) {
             const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
@@ -8883,26 +8937,26 @@ class CreatForm {
             if (containerStyle) {
                 containerStyle.remove();
             }
+            
             // Remove session-related elements
             const sessionWarning = this.container.querySelector('.session-warning');
             const timeoutOverlay = this.container.querySelector('.timeout-overlay');
             if (sessionWarning) sessionWarning.remove();
             if (timeoutOverlay) timeoutOverlay.remove();
+            
             this.container.remove();
         }
+        
         // Clean up global styles and session elements (fallback)
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
-        document.querySelector(`.${styleClass}`)
-            ?.remove();
-        document.querySelector('.session-warning')
-            ?.remove();
+        document.querySelector(`.${styleClass}`)?.remove();
+        document.querySelector('.session-warning')?.remove();
+        
         // Clean up injected styles
-        document.querySelector('#session-warning-styles')
-            ?.remove();
-        document.querySelector('#timeout-overlay-styles')
-            ?.remove();
-        document.querySelector('#success-screen-styles')
-            ?.remove();
+        document.querySelector('#session-warning-styles')?.remove();
+        document.querySelector('#timeout-overlay-styles')?.remove();
+        document.querySelector('#success-screen-styles')?.remove();
+        
         this.logger.success('Form destroyed successfully');
     }
 }
