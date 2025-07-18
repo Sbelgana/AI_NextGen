@@ -19,6 +19,22 @@ const BookingSDExtension = {
     _calComUtility: null,
     
     render: async ({ trace, element }) => {
+        // Check dependencies first
+        if (typeof FormFieldFactory === 'undefined' || 
+            typeof CreatForm === 'undefined' ||
+            typeof CalendarField === 'undefined') {
+            
+            console.error('🦷 CRITICAL ERROR: Required dependencies not loaded');
+            element.innerHTML = `
+                <div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+                    <h3>⚠️ Loading Error</h3>
+                    <p>Required form components are not available.</p>
+                    <p>Please ensure all scripts are loaded in the correct order.</p>
+                </div>
+            `;
+            return element;
+        }
+        
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
         // ============================================================================
@@ -320,6 +336,53 @@ const BookingSDExtension = {
     },
 
     // ============================================================================
+    // UNMOUNT METHOD - Required by Voiceflow
+    // ============================================================================
+    unmount: ({ element }) => {
+        console.log('🦷 DynamicDentalBooking unmounting...');
+        
+        try {
+            // Clean up stored references
+            BookingSDExtension._selectedServiceData = null;
+            BookingSDExtension._selectedDentistData = null;
+            BookingSDExtension._calComUtility = null;
+            
+            if (BookingSDExtension._currentExtension) {
+                if (typeof BookingSDExtension._currentExtension.destroy === 'function') {
+                    BookingSDExtension._currentExtension.destroy();
+                }
+                BookingSDExtension._currentExtension = null;
+            }
+            
+            if (window.currentDynamicDentalExtension) {
+                if (typeof window.currentDynamicDentalExtension.destroy === 'function') {
+                    window.currentDynamicDentalExtension.destroy();
+                }
+                window.currentDynamicDentalExtension = null;
+            }
+            
+            // Clean up field dependency registry
+            if (window._fieldDependencyRegistry) {
+                window._fieldDependencyRegistry.clear();
+                window._fieldDependencyRegistry = null;
+            }
+            
+            // Clean up notify function
+            if (window.notifyFieldDependents) {
+                window.notifyFieldDependents = null;
+            }
+            
+            if (element) {
+                element.innerHTML = '';
+            }
+            
+            console.log('🦷 Unmount completed');
+        } catch (error) {
+            console.error('🦷 Unmount error:', error);
+        }
+    },
+
+    // ============================================================================
     // DATA LOCALIZATION METHOD
     // ============================================================================
     localizeData(data, language, type) {
@@ -381,7 +444,7 @@ const BookingSDExtension = {
                 <h3>⚠️ ${title}</h3>
                 <p>${description}</p>
                 <ul style="text-align: left; max-width: 600px; margin: 20px auto;">
-                    ${errors.map(error => `<li> ${error}</li>`).join('')}
+                    ${errors.map(error => `<li>${error}</li>`).join('')}
                 </ul>
             </div>
         `;
@@ -2267,6 +2330,22 @@ const BookingDirectExtension = {
         trace,
         element
     }) => {
+        // Check dependencies first
+        if (typeof FormFieldFactory === 'undefined' || 
+            typeof CreatForm === 'undefined' ||
+            typeof CalendarField === 'undefined') {
+            
+            console.error('📅 CRITICAL ERROR: Required dependencies not loaded');
+            element.innerHTML = `
+                <div class="error-container" style="padding: 40px; text-align: center; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; margin: 20px;">
+                    <h3>⚠️ Loading Error</h3>
+                    <p>Required form components are not available.</p>
+                    <p>Please ensure all scripts are loaded in the correct order.</p>
+                </div>
+            `;
+            return element;
+        }
+        
         // ============================================================================
         // EXTRACT CONFIGURATION FROM PAYLOAD
         // ============================================================================
@@ -2481,6 +2560,35 @@ const BookingDirectExtension = {
             });
         }, 200);
         return extensionElement;
+    },
+    // ============================================================================
+    // UNMOUNT METHOD - Required by Voiceflow
+    // ============================================================================
+    unmount: ({ element }) => {
+        console.log('📅 BookingDirect unmounting...');
+        
+        try {
+            // Clean up all references
+            BookingDirectExtension._currentExtension = null;
+            BookingDirectExtension._cachedCalendarField = null;
+            BookingDirectExtension._serviceData = null;
+            BookingDirectExtension.calComUtility = null;
+            
+            if (window.currentBookingDirectExtension) {
+                if (typeof window.currentBookingDirectExtension.destroy === 'function') {
+                    window.currentBookingDirectExtension.destroy();
+                }
+                window.currentBookingDirectExtension = null;
+            }
+            
+            if (element) {
+                element.innerHTML = '';
+            }
+            
+            console.log('📅 Unmount completed');
+        } catch (error) {
+            console.error('📅 Unmount error:', error);
+        }
     },
     // ============================================================================
     // OPTIMIZED CALENDAR CONFIGURATION
@@ -2717,7 +2825,6 @@ const BookingDirectExtension = {
         }
     }
 };
-
 
 const BookingInformationExtension = {
     name: "ModernBookingInformation",
