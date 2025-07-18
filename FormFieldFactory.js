@@ -1033,6 +1033,21 @@ class FormFieldFactory {
     closeAllInfoPanels() {
         this.openInfoPanels.forEach(infoPanel => infoPanel.close());
     }
+	  registerField(fieldType, fieldClass) {
+        if (!this.fieldRegistry) {
+            this.fieldRegistry = {};
+        }
+        
+        if (!fieldType || !fieldClass) {
+            console.error('FormFieldFactory.registerField: Both fieldType and fieldClass are required');
+            return;
+        }
+        
+        // Store the field class in the registry
+        this.fieldRegistry[fieldType] = fieldClass;
+        
+        console.log(`FormFieldFactory: Registered custom field type '${fieldType}'`);
+    }
     // ===== FIELD CREATION METHOD =====
     createField(config) {
         let field;
