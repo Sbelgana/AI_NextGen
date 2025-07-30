@@ -4860,7 +4860,7 @@ class CustomField extends BaseField {
         section.className = 'summary-section';
         section.innerHTML = `
             <div class="summary-heading">
-                <span>${step.title}</span>
+                <span class="summary-heading">${step.title}</span>
                 <button type="button" class="edit-btn" data-step="${stepIndex}">
                     ${this.factory.getText('edit') || 'Modifier'}
                 </button>
