@@ -1122,7 +1122,7 @@ const SubmissionFormExtension = {
                                 type: 'textarea',
                                 id: 'formPurpose',
                                 row: 'formPurpose',
-                                required: false,
+                                required: true,
                                 maxLength: 300,
                                 rows: 3,
                                 getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.formPurpose
@@ -1155,7 +1155,7 @@ const SubmissionFormExtension = {
                             {
                                 type: 'select',
                                 id: 'websiteTraffic',
-                                required: false,
+                                required: true,
                                 options: 'websiteTraffic',
                                 row: 'website-details'
                             },
@@ -1214,13 +1214,13 @@ const SubmissionFormExtension = {
                         noField: {
                             type: 'yesno',
                             id: 'wantBookingRecommendation',
-                            required: false
+                            required: true
                         }
                     },
                     {
                         type: 'yesno',
                         id: 'handleCancellation',
-                        required: false
+                        required: true
                     },
                     {
                         type: 'yesno-with-options',
