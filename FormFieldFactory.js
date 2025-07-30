@@ -346,11 +346,32 @@ class FieldValueFormatter {
         return this.getOptionDisplayName(fieldConfig?.options, value, fieldConfig);
     }
     formatMultiSelectValue(value, fieldConfig) {
-        if (!Array.isArray(value)) {
-            return this.formatSelectValue(value, fieldConfig);
-        }
-        return value.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig));
-    }
+	    // FIXED: Handle new object format from MultiSelectField getValue()
+	    if (typeof value === 'object' && value !== null) {
+	        // Check if it's the new format with stringValue
+	        if (value.stringValue !== undefined) {
+	            return value.stringValue; // Return the pre-formatted string
+	        }
+	        
+	        // Check if it's the new format with arrayValue
+	        if (value.arrayValue !== undefined && Array.isArray(value.arrayValue)) {
+	            return value.arrayValue; // Return the display names array
+	        }
+	        
+	        // Check if it's the new format with rawValue (backward compatibility)
+	        if (value.rawValue !== undefined && Array.isArray(value.rawValue)) {
+	            return value.rawValue.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig));
+	        }
+	    }
+	    
+	    // Handle legacy array format
+	    if (!Array.isArray(value)) {
+	        return this.formatSelectValue(value, fieldConfig);
+	    }
+	    
+	    // Handle simple array
+	    return value.map(v => this.getOptionDisplayName(fieldConfig?.options, v, fieldConfig));
+	}
     formatSelectWithOtherValue(value, fieldConfig) {
         if (typeof value === 'object' && value.main) {
             if (value.main === 'other' && value.other) {
