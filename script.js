@@ -16,34 +16,31 @@ const CONFIG = {
 const SubmissionFormExtension = {
     name: "GenericChatbotForm",
     type: "response",
-    match: ({
-        trace
-    }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
-    render: async ({
-        trace,
-        element
-    }) => {
+    match: ({ trace }) => trace.type === "ext_submission_form" || trace.payload?.name === "ext_submission_form",
+    
+    render: async ({ trace, element }) => {
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
         // ============================================================================
-        let {
-            language = "fr",
-                vf,
-                webhookEnabled = true,
-                webhookUrl = CONFIG.DEFAULT_WEBHOOK,
-                voiceflowEnabled = true,
-                voiceflowDataTransformer = null,
-                enableDetailedLogging = true,
-                logPrefix = "📋 GenericForm",
-                enableSessionTimeout = true,
-                sessionTimeout = CONFIG.SESSION_TIMEOUT,
-                sessionWarning = CONFIG.SESSION_WARNING,
-                cssUrls = CONFIG.DEFAULT_CSS,
-                formType = "submission",
-                formStructure = "multistep",
-                useStructuredData = true,
-                dataTransformer = BaseDataTransformer
+        let { 
+            language = "fr", 
+            vf,
+            webhookEnabled = true,
+            webhookUrl = CONFIG.DEFAULT_WEBHOOK,
+            voiceflowEnabled = true,
+            voiceflowDataTransformer = null,
+            enableDetailedLogging = true,
+            logPrefix = "📋 GenericForm",
+            enableSessionTimeout = true,
+            sessionTimeout = CONFIG.SESSION_TIMEOUT,
+            sessionWarning = CONFIG.SESSION_WARNING,
+            cssUrls = CONFIG.DEFAULT_CSS,
+            formType = "submission",
+            formStructure = "multistep",
+            useStructuredData = true,
+            dataTransformer = BaseDataTransformer
         } = trace.payload;
+
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
             const keys = key.split('.');
@@ -53,558 +50,246 @@ const SubmissionFormExtension = {
             }
             return value || key;
         };
+
         // ============================================================================
         // DRAMATICALLY SIMPLIFIED: No more flatData or specific field transformers!
         // Uses generic FormDataProcessor and BaseDataTransformer
         // ============================================================================
+        
         // Create the form with the new generic architecture using extracted variables
-        const extension = new CreatForm({
+        const extension = new CreatForm(
+            {
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
+                
                 // ============================================================================
                 // NEW: Generic approach - no specific field transformers needed!
                 // BaseDataTransformer + FormDataProcessor handle everything automatically
                 // ============================================================================
                 useStructuredData: useStructuredData,
                 dataTransformer: dataTransformer, // Generic transformer works with any form!
+                
                 // ENABLED: Webhook integration using extracted variables
                 webhookEnabled: webhookEnabled,
                 webhookUrl: webhookUrl,
+                
                 // ENABLED: Voiceflow integration with optional custom transformer
                 voiceflowEnabled: voiceflowEnabled,
                 voiceflowDataTransformer: voiceflowDataTransformer,
+                
                 // Enhanced logging using extracted variables
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
+                
                 // Session management using extracted variables
                 enableSessionTimeout: enableSessionTimeout,
                 sessionTimeout: sessionTimeout,
                 sessionWarning: sessionWarning,
+                
                 // CSS configuration using extracted variables
                 cssUrls: cssUrls
             },
             SubmissionFormExtension.FORM_DATA,
             SubmissionFormExtension.FORM_CONFIG
         );
+
         return await extension.render(element);
     },
+
     // ============================================================================
-    // FORM DATA CONFIGURATION - Complete options and translations (unchanged)
+    // FORM DATA CONFIGURATION - Complete options and translations
     // ============================================================================
     FORM_DATA: {
         options: {
             languages: [
-                {
-                    id: "fr",
-                    name: "Français"
-                },
-                {
-                    id: "en",
-                    name: "English"
-                },
-                {
-                    id: "es",
-                    name: "Español"
-                },
-                {
-                    id: "de",
-                    name: "Deutsch"
-                },
-                {
-                    id: "it",
-                    name: "Italiano"
-                },
-                {
-                    id: "ar",
-                    name: "العربية"
-                },
-                {
-                    id: "zh",
-                    name: "中文"
-                },
-                {
-                    id: "pt",
-                    name: "Português"
-                },
-                {
-                    id: "ru",
-                    name: "Русский"
-                },
-                {
-                    id: "ja",
-                    name: "日本語"
-                }
+                { id: "fr", name: "Français" }, 
+                { id: "en", name: "English" }, 
+                { id: "es", name: "Español" },
+                { id: "de", name: "Deutsch" }, 
+                { id: "it", name: "Italiano" }, 
+                { id: "ar", name: "العربية" },
+                { id: "zh", name: "中文" }, 
+                { id: "pt", name: "Português" }, 
+                { id: "ru", name: "Русский" }, 
+                { id: "ja", name: "日本語" }
             ],
+            
             niches: [
-                {
-                    id: "ecommerce",
-                    name: {
-                        fr: "E-commerce",
-                        en: "E-commerce"
-                    }
-                },
-                {
-                    id: "services",
-                    name: {
-                        fr: "Services professionnels",
-                        en: "Professional Services"
-                    }
-                },
-                {
-                    id: "healthcare",
-                    name: {
-                        fr: "Santé",
-                        en: "Healthcare"
-                    }
-                },
-                {
-                    id: "education",
-                    name: {
-                        fr: "Éducation",
-                        en: "Education"
-                    }
-                },
-                {
-                    id: "realestate",
-                    name: {
-                        fr: "Immobilier",
-                        en: "Real Estate"
-                    }
-                },
-                {
-                    id: "restaurant",
-                    name: {
-                        fr: "Restauration",
-                        en: "Restaurant & Food"
-                    }
-                },
-                {
-                    id: "fitness",
-                    name: {
-                        fr: "Fitness & Bien-être",
-                        en: "Fitness & Wellness"
-                    }
-                },
-                {
-                    id: "travel",
-                    name: {
-                        fr: "Voyage & Tourisme",
-                        en: "Travel & Tourism"
-                    }
-                },
-                {
-                    id: "finance",
-                    name: {
-                        fr: "Finance & Assurance",
-                        en: "Finance & Insurance"
-                    }
-                },
-                {
-                    id: "manufacturing",
-                    name: {
-                        fr: "Industrie manufacturière",
-                        en: "Manufacturing"
-                    }
-                },
-                {
-                    id: "automotive",
-                    name: {
-                        fr: "Automobile",
-                        en: "Automotive"
-                    }
-                },
-                {
-                    id: "legal",
-                    name: {
-                        fr: "Services juridiques",
-                        en: "Legal Services"
-                    }
-                },
-                {
-                    id: "technology",
-                    name: {
-                        fr: "IT & Technologie",
-                        en: "IT & Technology"
-                    }
-                },
-                {
-                    id: "consulting",
-                    name: {
-                        fr: "Conseil & Consulting",
-                        en: "Consulting"
-                    }
-                },
-                {
-                    id: "retail",
-                    name: {
-                        fr: "Commerce de détail",
-                        en: "Retail"
-                    }
-                }
+                { id: "ecommerce", name: { fr: "E-commerce", en: "E-commerce" }},
+                { id: "services", name: { fr: "Services professionnels", en: "Professional Services" }},
+                { id: "healthcare", name: { fr: "Santé", en: "Healthcare" }},
+                { id: "education", name: { fr: "Éducation", en: "Education" }},
+                { id: "realestate", name: { fr: "Immobilier", en: "Real Estate" }},
+                { id: "restaurant", name: { fr: "Restauration", en: "Restaurant & Food" }},
+                { id: "fitness", name: { fr: "Fitness & Bien-être", en: "Fitness & Wellness" }},
+                { id: "travel", name: { fr: "Voyage & Tourisme", en: "Travel & Tourism" }},
+                { id: "finance", name: { fr: "Finance & Assurance", en: "Finance & Insurance" }},
+                { id: "manufacturing", name: { fr: "Industrie manufacturière", en: "Manufacturing" }},
+                { id: "automotive", name: { fr: "Automobile", en: "Automotive" }},
+                { id: "legal", name: { fr: "Services juridiques", en: "Legal Services" }},
+                { id: "technology", name: { fr: "IT & Technologie", en: "IT & Technology" }},
+                { id: "consulting", name: { fr: "Conseil & Consulting", en: "Consulting" }},
+                { id: "retail", name: { fr: "Commerce de détail", en: "Retail" }}
             ],
+            
             budgetRanges: [
-                {
-                    id: "less_than_1000",
-                    name: {
-                        fr: "Moins de 1 000 $",
-                        en: "Less than $1,000"
-                    }
-                },
-                {
-                    id: "1000_2500",
-                    name: {
-                        fr: "1 000 $ - 2 500 $",
-                        en: "$1,000 - $2,500"
-                    }
-                },
-                {
-                    id: "2500_5000",
-                    name: {
-                        fr: "2 500 $ - 5 000 $",
-                        en: "$2,500 - $5,000"
-                    }
-                },
-                {
-                    id: "5000_7500",
-                    name: {
-                        fr: "5 000 $ - 7 500 $",
-                        en: "$5,000 - $7,500"
-                    }
-                },
-                {
-                    id: "7500_10000",
-                    name: {
-                        fr: "7 500 $ - 10 000 $",
-                        en: "$7,500 - $10,000"
-                    }
-                },
-                {
-                    id: "more_than_10000",
-                    name: {
-                        fr: "Plus de 10 000 $",
-                        en: "More than $10,000"
-                    }
-                },
-                {
-                    id: "custom",
-                    name: {
-                        fr: "Personnalisé",
-                        en: "Custom"
-                    }
-                },
-                {
-                    id: "not_specified",
-                    name: {
-                        fr: "Budget non défini",
-                        en: "Budget not defined"
-                    }
-                }
+                { id: "less_than_1000", name: { fr: "Moins de 1 000 $", en: "Less than $1,000" }},
+                { id: "1000_2500", name: { fr: "1 000 $ - 2 500 $", en: "$1,000 - $2,500" }},
+                { id: "2500_5000", name: { fr: "2 500 $ - 5 000 $", en: "$2,500 - $5,000" }},
+                { id: "5000_7500", name: { fr: "5 000 $ - 7 500 $", en: "$5,000 - $7,500" }},
+                { id: "7500_10000", name: { fr: "7 500 $ - 10 000 $", en: "$7,500 - $10,000" }},
+                { id: "more_than_10000", name: { fr: "Plus de 10 000 $", en: "More than $10,000" }},
+                { id: "custom", name: { fr: "Personnalisé", en: "Custom" }},
+                { id: "not_specified", name: { fr: "Budget non défini", en: "Budget not defined" }}
             ],
+            
             formTypes: [
-                {
-                    id: "contact",
-                    name: {
-                        fr: "Formulaire de contact",
-                        en: "Contact Form"
-                    }
-                },
-                {
-                    id: "lead",
-                    name: {
-                        fr: "Génération de leads",
-                        en: "Lead Generation"
-                    }
-                },
-                {
-                    id: "survey",
-                    name: {
-                        fr: "Questionnaire",
-                        en: "Survey"
-                    }
-                },
-                {
-                    id: "booking",
-                    name: {
-                        fr: "Réservation",
-                        en: "Booking"
-                    }
-                },
-                {
-                    id: "support",
-                    name: {
-                        fr: "Support client",
-                        en: "Customer Support"
-                    }
-                },
-                {
-                    id: "feedback",
-                    name: {
-                        fr: "Feedback client",
-                        en: "Customer Feedback"
-                    }
-                },
-                {
-                    id: "quote",
-                    name: {
-                        fr: "Demande de devis",
-                        en: "Quote Request"
-                    }
-                },
-                {
-                    id: "registration",
-                    name: {
-                        fr: "Inscription/Enregistrement",
-                        en: "Registration"
-                    }
-                },
-                {
-                    id: "newsletter",
-                    name: {
-                        fr: "Abonnement newsletter",
-                        en: "Newsletter Signup"
-                    }
-                },
-                {
-                    id: "appointment",
-                    name: {
-                        fr: "Prise de rendez-vous",
-                        en: "Appointment Scheduling"
-                    }
-                }
+                { id: "contact", name: { fr: "Formulaire de contact", en: "Contact Form" }},
+                { id: "lead", name: { fr: "Génération de leads", en: "Lead Generation" }},
+                { id: "survey", name: { fr: "Questionnaire", en: "Survey" }},
+                { id: "booking", name: { fr: "Réservation", en: "Booking" }},
+                { id: "support", name: { fr: "Support client", en: "Customer Support" }},
+                { id: "feedback", name: { fr: "Feedback client", en: "Customer Feedback" }},
+                { id: "quote", name: { fr: "Demande de devis", en: "Quote Request" }},
+                { id: "registration", name: { fr: "Inscription/Enregistrement", en: "Registration" }},
+                { id: "newsletter", name: { fr: "Abonnement newsletter", en: "Newsletter Signup" }},
+                { id: "appointment", name: { fr: "Prise de rendez-vous", en: "Appointment Scheduling" }}
             ],
+            
             platforms: {
                 website: [
-                    {
-                        id: "wordpress",
-                        name: "WordPress"
-                    },
-                    {
-                        id: "shopify",
-                        name: "Shopify"
-                    },
-                    {
-                        id: "wix",
-                        name: "Wix"
-                    },
-                    {
-                        id: "squarespace",
-                        name: "Squarespace"
-                    },
-                    {
-                        id: "webflow",
-                        name: "Webflow"
-                    },
-                    {
-                        id: "drupal",
-                        name: "Drupal"
-                    },
-                    {
-                        id: "magento",
-                        name: "Magento"
-                    },
-                    {
-                        id: "custom",
-                        name: {
-                            fr: "Sur mesure",
-                            en: "Custom"
-                        }
-                    }
+                    { id: "wordpress", name: "WordPress" }, 
+                    { id: "shopify", name: "Shopify" },
+                    { id: "wix", name: "Wix" }, 
+                    { id: "squarespace", name: "Squarespace" },
+                    { id: "webflow", name: "Webflow" }, 
+                    { id: "drupal", name: "Drupal" },
+                    { id: "magento", name: "Magento" }, 
+                    { id: "custom", name: { fr: "Sur mesure", en: "Custom" }}
                 ],
                 social: [
-                    {
-                        id: "facebook",
-                        name: "Facebook Messenger"
-                    },
-                    {
-                        id: "instagram",
-                        name: "Instagram"
-                    },
-                    {
-                        id: "whatsapp",
-                        name: "WhatsApp"
-                    },
-                    {
-                        id: "telegram",
-                        name: "Telegram"
-                    },
-                    {
-                        id: "discord",
-                        name: "Discord"
-                    },
-                    {
-                        id: "slack",
-                        name: "Slack"
-                    },
-                    {
-                        id: "teams",
-                        name: "Microsoft Teams"
-                    }
+                    { id: "facebook", name: "Facebook Messenger" }, 
+                    { id: "instagram", name: "Instagram" },
+                    { id: "whatsapp", name: "WhatsApp" }, 
+                    { id: "telegram", name: "Telegram" },
+                    { id: "discord", name: "Discord" }, 
+                    { id: "slack", name: "Slack" },
+                    { id: "teams", name: "Microsoft Teams" }
                 ]
             },
+            
             websiteTraffic: [
-                {
-                    id: "less_than_1000",
-                    name: {
-                        fr: "Moins de 1 000 visiteurs/mois",
-                        en: "Less than 1,000 visitors/month"
-                    }
-                },
-                {
-                    id: "1000_5000",
-                    name: {
-                        fr: "1 000 - 5 000 visiteurs/mois",
-                        en: "1,000 - 5,000 visitors/month"
-                    }
-                },
-                {
-                    id: "5000_10000",
-                    name: {
-                        fr: "5 000 - 10 000 visiteurs/mois",
-                        en: "5,000 - 10,000 visitors/month"
-                    }
-                },
-                {
-                    id: "10000_50000",
-                    name: {
-                        fr: "10 000 - 50 000 visiteurs/mois",
-                        en: "10,000 - 50,000 visitors/month"
-                    }
-                },
-                {
-                    id: "50000_100000",
-                    name: {
-                        fr: "50 000 - 100 000 visiteurs/mois",
-                        en: "50,000 - 100,000 visitors/month"
-                    }
-                },
-                {
-                    id: "more_than_100000",
-                    name: {
-                        fr: "Plus de 100 000 visiteurs/mois",
-                        en: "More than 100,000 visitors/month"
-                    }
-                },
-                {
-                    id: "unknown",
-                    name: {
-                        fr: "Je ne sais pas",
-                        en: "I don't know"
-                    }
-                },
-                {
-                    id: "new_site",
-                    name: {
-                        fr: "Nouveau site",
-                        en: "New site"
-                    }
-                }
+                { id: "less_than_1000", name: { fr: "Moins de 1 000 visiteurs/mois", en: "Less than 1,000 visitors/month" }},
+                { id: "1000_5000", name: { fr: "1 000 - 5 000 visiteurs/mois", en: "1,000 - 5,000 visitors/month" }},
+                { id: "5000_10000", name: { fr: "5 000 - 10 000 visiteurs/mois", en: "5,000 - 10,000 visitors/month" }},
+                { id: "10000_50000", name: { fr: "10 000 - 50 000 visiteurs/mois", en: "10,000 - 50,000 visitors/month" }},
+                { id: "50000_100000", name: { fr: "50 000 - 100 000 visiteurs/mois", en: "50,000 - 100,000 visitors/month" }},
+                { id: "more_than_100000", name: { fr: "Plus de 100 000 visiteurs/mois", en: "More than 100,000 visitors/month" }},
+                { id: "unknown", name: { fr: "Je ne sais pas", en: "I don't know" }},
+                { id: "new_site", name: { fr: "Nouveau site", en: "New site" }}
             ],
+            
             integrations: {
                 crms: [
-                    {
-                        id: "salesforce",
-                        name: "Salesforce"
-                    },
-                    {
-                        id: "hubspot",
-                        name: "HubSpot"
-                    },
-                    {
-                        id: "zoho",
-                        name: "Zoho CRM"
-                    },
-                    {
-                        id: "pipedrive",
-                        name: "Pipedrive"
-                    },
-                    {
-                        id: "monday",
-                        name: "monday.com"
-                    },
-                    {
-                        id: "freshsales",
-                        name: "Freshsales"
-                    },
-                    {
-                        id: "dynamics",
-                        name: "Microsoft Dynamics 365"
-                    }
+                    { id: "salesforce", name: "Salesforce" }, 
+                    { id: "hubspot", name: "HubSpot" },
+                    { id: "zoho", name: "Zoho CRM" }, 
+                    { id: "pipedrive", name: "Pipedrive" },
+                    { id: "monday", name: "monday.com" }, 
+                    { id: "freshsales", name: "Freshsales" },
+                    { id: "dynamics", name: "Microsoft Dynamics 365" },
+                    { id: "activecampaign", name: "ActiveCampaign" },
+                    { id: "mailchimp", name: "Mailchimp" },
+                    { id: "constantcontact", name: "Constant Contact" },
+                    { id: "aweber", name: "AWeber" },
+                    { id: "getresponse", name: "GetResponse" },
+                    { id: "convertkit", name: "ConvertKit" },
+                    { id: "drip", name: "Drip" },
+                    { id: "keap", name: "Keap (Infusionsoft)" },
+                    { id: "pardot", name: "Pardot" },
+                    { id: "marketo", name: "Marketo" },
+                    { id: "brevo", name: "Brevo (Sendinblue)" },
+                    { id: "campaignmonitor", name: "Campaign Monitor" },
+                    { id: "clickfunnels", name: "ClickFunnels" },
+                    { id: "gohighlevel", name: "GoHighLevel" },
+                    { id: "insightly", name: "Insightly" },
+                    { id: "nutshell", name: "Nutshell CRM" },
+                    { id: "sugarcrm", name: "SugarCRM" },
+                    { id: "copper", name: "Copper" },
+                    { id: "zendesksell", name: "Zendesk Sell" },
+                    { id: "acton", name: "Act-On" }
                 ],
                 booking: [
-                    {
-                        id: "cal",
-                        name: "Cal.com"
-                    },
-                    {
-                        id: "calendly",
-                        name: "Calendly"
-                    },
-                    {
-                        id: "acuity",
-                        name: "Acuity Scheduling"
-                    },
-                    {
-                        id: "booksy",
-                        name: "Booksy"
-                    },
-                    {
-                        id: "simplybook",
-                        name: "SimplyBook.me"
-                    },
-                    {
-                        id: "square",
-                        name: "Square Appointments"
-                    },
-                    {
-                        id: "google_calendar",
-                        name: "Google Calendar"
-                    }
+                    { id: "cal", name: "Cal.com" }, 
+                    { id: "calendly", name: "Calendly" },
+                    { id: "acuity", name: "Acuity Scheduling" }, 
+                    { id: "booksy", name: "Booksy" },
+                    { id: "simplybook", name: "SimplyBook.me" }, 
+                    { id: "square", name: "Square Appointments" },
+                    { id: "google_calendar", name: "Google Calendar" },
+                    { id: "setmore", name: "Setmore" },
+                    { id: "appointy", name: "Appointy" },
+                    { id: "timetrade", name: "TimeTrade" },
+                    { id: "10to8", name: "10to8" },
+                    { id: "youcanbookme", name: "YouCanBookMe" },
+                    { id: "oncehub", name: "OnceHub (ScheduleOnce)" },
+                    { id: "doodle", name: "Doodle" },
+                    { id: "when2meet", name: "When2meet" },
+                    { id: "booklikeaboss", name: "Book Like A Boss" },
+                    { id: "picktime", name: "Picktime" },
+                    { id: "supersaas", name: "SuperSaaS" },
+                    { id: "vagaro", name: "Vagaro" },
+                    { id: "mindbody", name: "Mindbody" },
+                    { id: "schedulicity", name: "Schedulicity" },
+                    { id: "styleseat", name: "StyleSeat" },
+                    { id: "microsoft_bookings", name: "Microsoft Bookings" },
+                    { id: "outlook_calendar", name: "Outlook Calendar" }
                 ],
                 databases: [
-                    {
-                        id: "mysql",
-                        name: "MySQL"
-                    },
-                    {
-                        id: "postgresql",
-                        name: "PostgreSQL"
-                    },
-                    {
-                        id: "mongodb",
-                        name: "MongoDB"
-                    },
-                    {
-                        id: "firebase",
-                        name: "Firebase"
-                    },
-                    {
-                        id: "airtable",
-                        name: "Airtable"
-                    },
-                    {
-                        id: "google_sheets",
-                        name: "Google Sheets"
-                    }
+                    { id: "mysql", name: "MySQL" }, 
+                    { id: "postgresql", name: "PostgreSQL" },
+                    { id: "mongodb", name: "MongoDB" }, 
+                    { id: "firebase", name: "Firebase" },
+                    { id: "airtable", name: "Airtable" }, 
+                    { id: "google_sheets", name: "Google Sheets" },
+                    { id: "oracle", name: "Oracle Database" },
+                    { id: "sqlserver", name: "Microsoft SQL Server" },
+                    { id: "sqlite", name: "SQLite" },
+                    { id: "redis", name: "Redis" },
+                    { id: "cassandra", name: "Apache Cassandra" },
+                    { id: "dynamodb", name: "Amazon DynamoDB" },
+                    { id: "neo4j", name: "Neo4j" },
+                    { id: "couchdb", name: "CouchDB" },
+                    { id: "influxdb", name: "InfluxDB" },
+                    { id: "elasticsearch", name: "Elasticsearch" },
+                    { id: "mariadb", name: "MariaDB" },
+                    { id: "supabase", name: "Supabase" },
+                    { id: "planetscale", name: "PlanetScale" },
+                    { id: "cockroachdb", name: "CockroachDB" },
+                    { id: "faunadb", name: "FaunaDB" },
+                    { id: "notion", name: "Notion Database" },
+                    { id: "excel", name: "Microsoft Excel" }
                 ]
             }
         },
+        
         translations: {
             fr: {
-                nav: {
-                    next: "Suivant",
-                    previous: "Précédent",
-                    submit: "Soumettre votre projet",
-                    processing: "Traitement en cours..."
+                nav: { 
+                    next: "Suivant", 
+                    previous: "Précédent", 
+                    submit: "Soumettre votre projet", 
+                    processing: "Traitement en cours..." 
                 },
-                common: {
-                    yes: "Oui",
-                    no: "Non",
-                    other: "Autre",
-                    required: "requis",
-                    fieldRequired: "Ce champ est requis",
-                    edit: "Modifier",
-                    notSpecified: "Non spécifié",
+                common: { 
+                    yes: "Oui", 
+                    no: "Non", 
+                    other: "Autre", 
+                    required: "requis", 
+                    fieldRequired: "Ce champ est requis", 
+                    edit: "Modifier", 
+                    notSpecified: "Non spécifié", 
                     none: "Aucun",
                     pleaseSpecify: "Veuillez préciser...",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
@@ -640,115 +325,93 @@ const SubmissionFormExtension = {
                     databaseName: "Nom de la base de données..."
                 },
                 steps: [
-                    {
-                        title: "Coordonnées professionnelles",
-                        desc: "Renseignez vos informations de contact"
-                    },
-                    {
-                        title: "Spécifications du projet",
-                        desc: "Détaillez votre projet"
-                    },
-                    {
-                        title: "Profil d'entreprise",
-                        desc: "Informations sur votre organisation"
-                    },
-                    {
-                        title: "Fonctionnalités essentielles",
-                        desc: "Fonctionnalités de base souhaitées"
-                    },
-                    {
-                        title: "Intégration de formulaires",
-                        desc: "Configuration des formulaires interactifs"
-                    },
-                    {
-                        title: "Intégration Web",
-                        desc: "Informations sur votre site web"
-                    },
-                    {
-                        title: "Intégrations & API",
-                        desc: "Intégrations avec vos outils existants"
-                    },
-                    {
-                        title: "Canaux d'interaction",
-                        desc: "Configuration des canaux de communication"
-                    },
-                    {
-                        title: "Synthèse de votre projet",
-                        desc: "Récapitulatif de votre demande"
-                    }
+                    { title: "Coordonnées professionnelles", desc: "Renseignez vos informations de contact" },
+                    { title: "Spécifications du projet", desc: "Détaillez votre projet" },
+                    { title: "Profil d'entreprise", desc: "Informations sur votre organisation" },
+                    { title: "Fonctionnalités essentielles", desc: "Fonctionnalités de base souhaitées" },
+                    { title: "Intégration de formulaires", desc: "Configuration des formulaires interactifs" },
+                    { title: "Intégration Web", desc: "Informations sur votre site web" },
+                    { title: "Intégrations & API", desc: "Intégrations avec vos outils existants" },
+                    { title: "Canaux d'interaction", desc: "Configuration des canaux de communication" },
+                    { title: "Synthèse de votre projet", desc: "Récapitulatif de votre demande" }
                 ],
                 fields: {
-                    firstName: "Prénom",
-                    lastName: "Nom de famille",
+                    firstName: "Prénom", 
+                    lastName: "Nom de famille", 
                     email: "Adresse électronique",
-                    phone: "Numéro de téléphone",
-                    company: "Société/Organisation (optionnel)",
-                    niche: "Quel est votre secteur d'activité ?",
+                    phone: "Numéro de téléphone", 
+                    company: "Société/Organisation",
+                    niche: "Quel est votre secteur d'activité ?", 
                     budget: "Budget alloué au projet",
-                    description: "Description exhaustive de votre projet",
+                    description: "Description exhaustive de votre projet", 
                     teamSize: "Effectif de votre organisation",
-                    services: "Services et produits proposés",
+                    services: "Services et produits proposés", 
                     leadCapture: "Souhaitez-vous implémenter la capture de prospects ?",
                     leadQualification: "Nécessitez-vous un système de qualification des prospects ?",
                     conversationSummary: "Souhaitez-vous des synthèses automatiques de conversations ?",
                     useForm: "Souhaitez-vous intégrer des formulaires interactifs ?",
-                    formTypes: "Types de formulaires à intégrer",
+                    formTypes: "Types de formulaires à intégrer", 
                     formPurpose: "Objectif et fonction des formulaires",
-                    hasWebsite: "Disposez-vous d'un site web existant ?",
+                    hasWebsite: "Disposez-vous d'un site web existant ?", 
                     websitePlatform: "Plateforme de développement de votre site",
-                    websiteUrl: "Adresse URL complète de votre site",
+                    websiteUrl: "Adresse URL complète de votre site", 
                     websiteTraffic: "Volume de trafic mensuel estimé",
-                    useCRM: "Prévoyez-vous d'intégrer votre chatbot à un CRM ?",
+                    useCRM: "Prévoyez-vous d'intégrer votre chatbot à un CRM ?", 
                     crms: "CRM à connecter avec votre chatbot",
                     hasBookingSystem: "Disposez-vous d'un système de réservation à intégrer ?",
-                    bookingSystems: "Système de réservation à connecter",
+                    bookingSystems: "Système de réservation à connecter", 
                     handleCancellation: "Souhaitez-vous que le chatbot gère les annulations et reports ?",
-                    useDatabase: "Prévoyez-vous d'intégrer une base de données externe ?",
+                    useDatabase: "Prévoyez-vous d'intégrer une base de données externe ?", 
                     databases: "Bases de données à connecter",
                     wantBookingRecommendation: "Désirez-vous une recommandation pour un système de réservation adapté ?",
                     needSocialBot: "Souhaitez-vous déployer le chatbot sur les réseaux sociaux ?",
-                    socialPlatforms: "Plateformes sociales à intégrer",
+                    socialPlatforms: "Plateformes sociales à intégrer", 
                     languageType: "Configuration linguistique du chatbot",
-                    languages: "Langues à prendre en charge",
+                    languages: "Langues à prendre en charge", 
                     language: "Langue principale"
                 },
                 errors: {
-                    firstName: "Veuillez saisir votre prénom",
+                    firstName: "Veuillez saisir votre prénom", 
                     lastName: "Veuillez saisir votre nom de famille",
-                    email: "Veuillez saisir une adresse e-mail valide",
+                    email: "Veuillez saisir une adresse e-mail valide", 
                     emailInvalid: "Le format de l'adresse e-mail n'est pas valide",
-                    phone: "Veuillez saisir un numéro de téléphone valide",
+                    phone: "Veuillez saisir un numéro de téléphone valide", 
                     phoneInvalid: "Le format du numéro de téléphone n'est pas valide",
-                    niche: "Veuillez sélectionner votre secteur d'activité",
+                    company: "Veuillez indiquer votre société ou organisation",
+                    niche: "Veuillez sélectionner votre secteur d'activité", 
                     budget: "Veuillez indiquer votre budget",
-                    description: "Veuillez décrire votre projet en détail",
+                    description: "Veuillez décrire votre projet en détail", 
                     teamSize: "Veuillez indiquer la taille de votre équipe",
-                    services: "Veuillez décrire vos services et produits",
+                    services: "Veuillez décrire vos services et produits", 
                     leadCapture: "Veuillez indiquer si vous souhaitez la capture de prospects",
                     leadQualification: "Veuillez indiquer si vous avez besoin de qualification des prospects",
                     conversationSummary: "Veuillez indiquer si vous souhaitez des synthèses automatiques",
                     useForm: "Veuillez indiquer si vous souhaitez intégrer des formulaires",
                     formTypes: "Veuillez sélectionner au moins un type de formulaire",
-                    hasWebsite: "Veuillez indiquer si vous avez un site web",
+                    formPurpose: "Veuillez préciser l'objectif des formulaires",
+                    hasWebsite: "Veuillez indiquer si vous avez un site web", 
                     websitePlatform: "Veuillez sélectionner votre plateforme web",
-                    websiteUrl: "Veuillez saisir une URL valide",
+                    websiteUrl: "Veuillez saisir une URL valide", 
                     urlInvalid: "Le format de l'URL n'est pas valide",
-                    useCRM: "Veuillez indiquer si vous souhaitez intégrer un CRM",
+                    websiteTraffic: "Veuillez indiquer le volume de trafic de votre site",
+                    useCRM: "Veuillez indiquer si vous souhaitez intégrer un CRM", 
                     crms: "Veuillez sélectionner au moins un CRM",
                     hasBookingSystem: "Veuillez indiquer si vous avez un système de réservation",
                     bookingSystems: "Veuillez sélectionner votre système de réservation",
+                    handleCancellation: "Veuillez indiquer si vous souhaitez la gestion des annulations",
                     useDatabase: "Veuillez indiquer si vous souhaitez intégrer une base de données",
                     databases: "Veuillez sélectionner au moins une base de données",
+                    wantBookingRecommendation: "Veuillez indiquer si vous souhaitez une recommandation",
                     needSocialBot: "Veuillez indiquer si vous souhaitez déployer sur les réseaux sociaux",
                     socialPlatforms: "Veuillez sélectionner au moins une plateforme sociale",
                     languageType: "Veuillez choisir la configuration linguistique",
-                    languages: "Veuillez sélectionner au moins une langue",
+                    languages: "Veuillez sélectionner au moins une langue", 
                     language: "Veuillez sélectionner une langue",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
                 },
-                success: {
-                    title: "Demande soumise avec succès !",
-                    message: "Merci pour votre soumission. Notre équipe d'experts analysera votre projet et vous contactera prochainement."
+                success: { 
+                    title: "Demande soumise avec succès !", 
+                    message: "Merci pour votre soumission. Notre équipe d'experts analysera votre projet et vous contactera prochainement." 
                 },
                 summary: {
                     title: "Récapitulatif de votre projet",
@@ -757,21 +420,22 @@ const SubmissionFormExtension = {
                     noDataProvided: "Aucune donnée fournie pour cette section"
                 }
             },
+            
             en: {
-                nav: {
-                    next: "Next",
-                    previous: "Previous",
-                    submit: "Submit Your Project",
-                    processing: "Processing..."
+                nav: { 
+                    next: "Next", 
+                    previous: "Previous", 
+                    submit: "Submit Your Project", 
+                    processing: "Processing..." 
                 },
-                common: {
-                    yes: "Yes",
-                    no: "No",
-                    other: "Other",
-                    required: "required",
-                    fieldRequired: "This field is required",
-                    edit: "Edit",
-                    notSpecified: "Not specified",
+                common: { 
+                    yes: "Yes", 
+                    no: "No", 
+                    other: "Other", 
+                    required: "required", 
+                    fieldRequired: "This field is required", 
+                    edit: "Edit", 
+                    notSpecified: "Not specified", 
                     none: "None",
                     pleaseSpecify: "Please specify...",
                     selectAtLeastOne: "Please select at least one option"
@@ -807,115 +471,93 @@ const SubmissionFormExtension = {
                     databaseName: "Database name..."
                 },
                 steps: [
-                    {
-                        title: "Professional Contact Details",
-                        desc: "Enter your contact information"
-                    },
-                    {
-                        title: "Project Specifications",
-                        desc: "Detail your project"
-                    },
-                    {
-                        title: "Company Profile",
-                        desc: "Information about your organization"
-                    },
-                    {
-                        title: "Essential Features",
-                        desc: "Desired core features"
-                    },
-                    {
-                        title: "Form Integration",
-                        desc: "Interactive forms configuration"
-                    },
-                    {
-                        title: "Web Integration",
-                        desc: "Information about your website"
-                    },
-                    {
-                        title: "Integrations & APIs",
-                        desc: "Integrations with your existing tools"
-                    },
-                    {
-                        title: "Interaction Channels",
-                        desc: "Communication channels configuration"
-                    },
-                    {
-                        title: "Project Summary",
-                        desc: "Summary of your request"
-                    }
+                    { title: "Professional Contact Details", desc: "Enter your contact information" },
+                    { title: "Project Specifications", desc: "Detail your project" },
+                    { title: "Company Profile", desc: "Information about your organization" },
+                    { title: "Essential Features", desc: "Desired core features" },
+                    { title: "Form Integration", desc: "Interactive forms configuration" },
+                    { title: "Web Integration", desc: "Information about your website" },
+                    { title: "Integrations & APIs", desc: "Integrations with your existing tools" },
+                    { title: "Interaction Channels", desc: "Communication channels configuration" },
+                    { title: "Project Summary", desc: "Summary of your request" }
                 ],
                 fields: {
-                    firstName: "First Name",
-                    lastName: "Last Name",
+                    firstName: "First Name", 
+                    lastName: "Last Name", 
                     email: "Email Address",
-                    phone: "Phone Number",
-                    company: "Company/Organization (optional)",
-                    niche: "What is your industry sector?",
+                    phone: "Phone Number", 
+                    company: "Company/Organization",
+                    niche: "What is your industry sector?", 
                     budget: "Project Budget Allocation",
-                    description: "Comprehensive Project Description",
+                    description: "Comprehensive Project Description", 
                     teamSize: "Organization Headcount",
-                    services: "Services and Products Offered",
+                    services: "Services and Products Offered", 
                     leadCapture: "Do you require prospect acquisition functionality?",
                     leadQualification: "Do you need a prospect qualification system?",
                     conversationSummary: "Would you like automated conversation synthesis?",
                     useForm: "Would you like to integrate interactive forms?",
-                    formTypes: "Form Types to Integrate",
+                    formTypes: "Form Types to Integrate", 
                     formPurpose: "Form Purpose and Function",
-                    hasWebsite: "Do you have an existing website?",
+                    hasWebsite: "Do you have an existing website?", 
                     websitePlatform: "Website Development Platform",
-                    websiteUrl: "Complete URL of your website",
+                    websiteUrl: "Complete URL of your website", 
                     websiteTraffic: "Estimated Monthly Traffic Volume",
-                    useCRM: "Do you plan to integrate your chatbot with a CRM?",
+                    useCRM: "Do you plan to integrate your chatbot with a CRM?", 
                     crms: "CRMs to Connect with Your Chatbot",
                     hasBookingSystem: "Do you have a booking system to integrate?",
-                    bookingSystems: "Booking System to Connect",
+                    bookingSystems: "Booking System to Connect", 
                     handleCancellation: "Should the chatbot manage cancellations and rescheduling?",
-                    useDatabase: "Do you plan to integrate an external database?",
+                    useDatabase: "Do you plan to integrate an external database?", 
                     databases: "Databases to Connect",
                     wantBookingRecommendation: "Would you like a recommendation for a suitable booking system?",
                     needSocialBot: "Would you like to deploy the chatbot on social media platforms?",
-                    socialPlatforms: "Social Platforms to Integrate",
+                    socialPlatforms: "Social Platforms to Integrate", 
                     languageType: "Chatbot Language Configuration",
-                    languages: "Languages to Support",
+                    languages: "Languages to Support", 
                     language: "Primary Language"
                 },
                 errors: {
-                    firstName: "Please enter your first name",
+                    firstName: "Please enter your first name", 
                     lastName: "Please enter your last name",
-                    email: "Please enter a valid email address",
+                    email: "Please enter a valid email address", 
                     emailInvalid: "Email format is not valid",
-                    phone: "Please enter a valid phone number",
+                    phone: "Please enter a valid phone number", 
                     phoneInvalid: "Phone number format is not valid",
-                    niche: "Please select your industry sector",
+                    company: "Please enter your company or organization",
+                    niche: "Please select your industry sector", 
                     budget: "Please indicate your budget",
-                    description: "Please describe your project in detail",
+                    description: "Please describe your project in detail", 
                     teamSize: "Please indicate your team size",
-                    services: "Please describe your services and products",
+                    services: "Please describe your services and products", 
                     leadCapture: "Please indicate if you want lead capture functionality",
                     leadQualification: "Please indicate if you need lead qualification",
                     conversationSummary: "Please indicate if you want automated summaries",
                     useForm: "Please indicate if you want to integrate forms",
                     formTypes: "Please select at least one form type",
-                    hasWebsite: "Please indicate if you have a website",
+                    formPurpose: "Please specify the purpose of the forms",
+                    hasWebsite: "Please indicate if you have a website", 
                     websitePlatform: "Please select your web platform",
-                    websiteUrl: "Please enter a valid URL",
+                    websiteUrl: "Please enter a valid URL", 
                     urlInvalid: "URL format is not valid",
-                    useCRM: "Please indicate if you want CRM integration",
+                    websiteTraffic: "Please indicate your website traffic volume",
+                    useCRM: "Please indicate if you want CRM integration", 
                     crms: "Please select at least one CRM",
                     hasBookingSystem: "Please indicate if you have a booking system",
                     bookingSystems: "Please select your booking system",
+                    handleCancellation: "Please indicate if you want cancellation management",
                     useDatabase: "Please indicate if you want database integration",
                     databases: "Please select at least one database",
+                    wantBookingRecommendation: "Please indicate if you want a recommendation",
                     needSocialBot: "Please indicate if you want social media deployment",
                     socialPlatforms: "Please select at least one social platform",
                     languageType: "Please choose the language configuration",
-                    languages: "Please select at least one language",
+                    languages: "Please select at least one language", 
                     language: "Please select a language",
                     selectAtLeastOne: "Please select at least one option"
                 },
-                success: {
-                    title: "Project Submitted Successfully!",
-                    message: "Thank you for your submission. Our expert team will review your project and contact you shortly."
+                success: { 
+                    title: "Project Submitted Successfully!", 
+                    message: "Thank you for your submission. Our expert team will review your project and contact you shortly." 
                 },
                 summary: {
                     title: "Project Summary",
@@ -926,33 +568,34 @@ const SubmissionFormExtension = {
             }
         }
     },
+
     // ============================================================================
-    // FORM CONFIGURATION - Field definitions and step structure (unchanged)
+    // FORM CONFIGURATION - Field definitions and step structure
     // ============================================================================
     FORM_CONFIG: {
         steps: [
             // Step 1: Contact Information
             {
-                sectionId: "contact_information", // NEW: Explicit section ID for generic processing
+                sectionId: "contact_information",
                 fields: [
-                    {
-                        type: 'text',
-                        id: 'firstName',
-                        required: true,
+                    { 
+                        type: 'text', 
+                        id: 'firstName', 
+                        required: true, 
                         row: 'name',
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.firstName
                     },
-                    {
-                        type: 'text',
-                        id: 'lastName',
-                        required: true,
+                    { 
+                        type: 'text', 
+                        id: 'lastName', 
+                        required: true, 
                         row: 'name',
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.lastName
                     },
-                    {
-                        type: 'email',
-                        id: 'email',
-                        required: true,
+                    { 
+                        type: 'email', 
+                        id: 'email', 
+                        required: true, 
                         row: 'contact',
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.email,
                         getCustomErrorMessages: (lang) => ({
@@ -960,10 +603,10 @@ const SubmissionFormExtension = {
                             invalid: SubmissionFormExtension.FORM_DATA.translations[lang].errors.emailInvalid
                         })
                     },
-                    {
-                        type: 'phone',
-                        id: 'phone',
-                        required: true,
+                    { 
+                        type: 'phone', 
+                        id: 'phone', 
+                        required: true, 
                         row: 'contact',
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.phone,
                         getCustomErrorMessages: (lang) => ({
@@ -971,146 +614,147 @@ const SubmissionFormExtension = {
                             phone: SubmissionFormExtension.FORM_DATA.translations[lang].errors.phoneInvalid
                         })
                     },
-                    {
-                        type: 'text',
-                        id: 'company',
-                        required: false,
-                        row: 'organisation'
+                    { 
+                        type: 'text', 
+                        id: 'company', 
+                        required: true, 
+                        row: 'organisation',
+                        getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.company
                     }
                 ]
             },
-
+            
             // Step 2: Project Specifications
             {
-                sectionId: "project_specifications", // NEW: Explicit section ID
+                sectionId: "project_specifications",
                 fields: [
-                    {
-                        type: 'select-with-other',
-                        id: 'niche',
-                        required: true,
-                        options: 'niches',
+                    { 
+                        type: 'select-with-other', 
+                        id: 'niche', 
+                        required: true, 
+                        options: 'niches', 
                         row: 'project-basics',
                         getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherLabel,
                         getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.otherNiche,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.niche
                     },
-                    {
-                        type: 'select-with-other',
-                        id: 'budget',
-                        required: true,
-                        options: 'budgetRanges',
+                    { 
+                        type: 'select-with-other', 
+                        id: 'budget', 
+                        required: true, 
+                        options: 'budgetRanges', 
                         row: 'project-basics',
                         getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.customLabel,
                         getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.customBudget,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.budget
                     },
-                    {
-                        type: 'textarea',
-                        id: 'description',
-                        row: 'projetdesc',
-                        required: true,
-                        maxLength: 1000,
+                    { 
+                        type: 'textarea', 
+                        id: 'description', 
+                        row: 'projetdesc', 
+                        required: true, 
+                        maxLength: 1000, 
                         rows: 6,
                         getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.projectDescription,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.description
                     }
                 ]
             },
-
+            
             // Step 3: Company Profile
             {
-                sectionId: "business_profile", // NEW: Explicit section ID
+                sectionId: "business_profile",
                 fields: [
-                    {
-                        type: 'select',
-                        id: 'teamSize',
-                        required: true,
+                    { 
+                        type: 'select', 
+                        id: 'teamSize', 
+                        required: true, 
                         row: 'entrepriseteamSize',
                         options: [
-                            {
-                                id: 'solo',
-                                name: {
-                                    fr: "Entrepreneur individuel",
-                                    en: "Individual Entrepreneur"
+                            { 
+                                id: 'solo', 
+                                name: { 
+                                    fr: "Entrepreneur individuel", 
+                                    en: "Individual Entrepreneur" 
                                 }
                             },
-                            {
-                                id: 'small',
-                                name: {
-                                    fr: "TPE (2-10 employés)",
-                                    en: "Small Business (2-10 employees)"
+                            { 
+                                id: 'small', 
+                                name: { 
+                                    fr: "TPE (2-10 employés)", 
+                                    en: "Small Business (2-10 employees)" 
                                 }
                             },
-                            {
-                                id: 'medium',
-                                name: {
-                                    fr: "PME (11-50 employés)",
-                                    en: "Medium Business (11-50 employees)"
+                            { 
+                                id: 'medium', 
+                                name: { 
+                                    fr: "PME (11-50 employés)", 
+                                    en: "Medium Business (11-50 employees)" 
                                 }
                             },
-                            {
-                                id: 'large',
-                                name: {
-                                    fr: "Grande entreprise (50+ employés)",
-                                    en: "Large Enterprise (50+ employees)"
+                            { 
+                                id: 'large', 
+                                name: { 
+                                    fr: "Grande entreprise (50+ employés)", 
+                                    en: "Large Enterprise (50+ employees)" 
                                 }
                             }
                         ],
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.teamSize
                     },
-                    {
-                        type: 'textarea',
-                        id: 'services',
-                        row: 'entreprisetextarea',
-                        required: true,
-                        maxLength: 500,
+                    { 
+                        type: 'textarea', 
+                        id: 'services', 
+                        row: 'entreprisetextarea', 
+                        required: true, 
+                        maxLength: 500, 
                         rows: 4,
                         getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.services,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.services
                     }
                 ]
             },
-
+            
             // Step 4: Essential Features
             {
-                sectionId: "core_features", // NEW: Explicit section ID
+                sectionId: "core_features",
                 fields: [
-                    {
-                        type: 'yesno',
-                        id: 'leadCapture',
+                    { 
+                        type: 'yesno', 
+                        id: 'leadCapture', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.leadCapture
                     },
-                    {
-                        type: 'yesno',
-                        id: 'leadQualification',
+                    { 
+                        type: 'yesno', 
+                        id: 'leadQualification', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.leadQualification
                     },
-                    {
-                        type: 'yesno',
-                        id: 'conversationSummary',
+                    { 
+                        type: 'yesno', 
+                        id: 'conversationSummary', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.conversationSummary
                     }
                 ]
             },
-
+            
             // Step 5: Form Integration
             {
-                sectionId: "form_integration", // NEW: Explicit section ID
+                sectionId: "form_integration",
                 fields: [
-                    {
-                        type: 'yesno-with-options',
-                        id: 'useForm',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'useForm', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.useForm,
                         yesFields: [
                             {
-                                type: 'multiselect-with-other',
-                                id: 'formTypes',
-                                row: 'formTypes',
-                                required: true,
+                                type: 'multiselect-with-other', 
+                                id: 'formTypes', 
+                                row: 'formTypes', 
+                                required: true, 
                                 options: 'formTypes',
                                 getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherType,
                                 getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.formType,
@@ -1119,51 +763,53 @@ const SubmissionFormExtension = {
                                 })
                             },
                             {
-                                type: 'textarea',
-                                id: 'formPurpose',
-                                row: 'formPurpose',
-                                required: true,
-                                maxLength: 300,
+                                type: 'textarea', 
+                                id: 'formPurpose', 
+                                row: 'formPurpose', 
+                                required: true, 
+                                maxLength: 300, 
                                 rows: 3,
-                                getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.formPurpose
+                                getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.formPurpose,
+                                getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.formPurpose
                             }
                         ]
                     }
                 ]
             },
-
+            
             // Step 6: Website Integration
             {
-                sectionId: "web_integration", // NEW: Explicit section ID
+                sectionId: "web_integration",
                 fields: [
-                    {
-                        type: 'yesno-with-options',
-                        id: 'hasWebsite',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'hasWebsite', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.hasWebsite,
                         yesFields: [
-                            {
-                                type: 'select-with-other',
-                                id: 'websitePlatform',
-                                required: true,
-                                options: 'platforms.website',
+                            { 
+                                type: 'select-with-other', 
+                                id: 'websitePlatform', 
+                                required: true, 
+                                options: 'platforms.website', 
                                 row: 'website-details',
                                 getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherLabel,
                                 getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.otherPlatform,
                                 getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.websitePlatform
                             },
-                            {
-                                type: 'select',
-                                id: 'websiteTraffic',
-                                required: true,
-                                options: 'websiteTraffic',
-                                row: 'website-details'
+                            { 
+                                type: 'select', 
+                                id: 'websiteTraffic', 
+                                required: true, 
+                                options: 'websiteTraffic', 
+                                row: 'website-details',
+                                getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.websiteTraffic
                             },
-                            {
-                                type: 'url',
-                                id: 'websiteUrl',
-                                row: 'websiteUrl',
-                                required: true,
+                            { 
+                                type: 'url', 
+                                id: 'websiteUrl', 
+                                row: 'websiteUrl', 
+                                required: true, 
                                 getPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.websiteUrl,
                                 getCustomErrorMessages: (lang) => ({
                                     url: SubmissionFormExtension.FORM_DATA.translations[lang].errors.urlInvalid
@@ -1173,21 +819,21 @@ const SubmissionFormExtension = {
                     }
                 ]
             },
-
+            
             // Step 7: Integrations & APIs
             {
-                sectionId: "integrations_apis", // NEW: Explicit section ID
+                sectionId: "integrations_apis",
                 fields: [
-                    {
-                        type: 'yesno-with-options',
-                        id: 'useCRM',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'useCRM', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.useCRM,
                         yesField: {
-                            type: 'multiselect-with-other',
-                            id: 'crms',
-                            row: 'CRMType',
-                            required: true,
+                            type: 'multiselect-with-other', 
+                            id: 'crms', 
+                            row: 'CRMType', 
+                            required: true, 
                             options: 'integrations.crms',
                             getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherCRM,
                             getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.crmName,
@@ -1196,42 +842,44 @@ const SubmissionFormExtension = {
                             })
                         }
                     },
-                    {
-                        type: 'yesno-with-options',
-                        id: 'hasBookingSystem',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'hasBookingSystem', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.hasBookingSystem,
                         yesField: {
-                            type: 'select-with-other',
-                            id: 'bookingSystems',
-                            row: 'bookingSystems',
-                            required: true,
+                            type: 'select-with-other', 
+                            id: 'bookingSystems', 
+                            row: 'bookingSystems', 
+                            required: true, 
                             options: 'integrations.booking',
                             getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherSystem,
                             getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.systemName,
                             getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.bookingSystems
                         },
                         noField: {
-                            type: 'yesno',
-                            id: 'wantBookingRecommendation',
-                            required: true
+                            type: 'yesno', 
+                            id: 'wantBookingRecommendation', 
+                            required: true,
+                            getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.wantBookingRecommendation
                         }
                     },
-                    {
-                        type: 'yesno',
-                        id: 'handleCancellation',
-                        required: true
+                    { 
+                        type: 'yesno', 
+                        id: 'handleCancellation', 
+                        required: true,
+                        getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.handleCancellation
                     },
-                    {
-                        type: 'yesno-with-options',
-                        id: 'useDatabase',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'useDatabase', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.useDatabase,
                         yesField: {
-                            type: 'multiselect-with-other',
-                            id: 'databases',
-                            row: 'databases',
-                            required: true,
+                            type: 'multiselect-with-other', 
+                            id: 'databases', 
+                            row: 'databases', 
+                            required: true, 
                             options: 'integrations.databases',
                             getOtherLabel: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].labels.otherDatabase,
                             getOtherPlaceholder: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].placeholders.databaseName,
@@ -1242,76 +890,76 @@ const SubmissionFormExtension = {
                     }
                 ]
             },
-
+            
             // Step 8: Interaction Channels
             {
-                sectionId: "communication_channels", // NEW: Explicit section ID
+                sectionId: "communication_channels",
                 fields: [
-                    {
-                        type: 'yesno-with-options',
-                        id: 'needSocialBot',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'needSocialBot', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.needSocialBot,
                         yesField: {
-                            type: 'multiselect',
-                            id: 'socialPlatforms',
-                            row: 'socialPlatforms',
-                            required: true,
+                            type: 'multiselect', 
+                            id: 'socialPlatforms', 
+                            row: 'socialPlatforms', 
+                            required: true, 
                             options: 'platforms.social',
                             getCustomErrorMessages: (lang) => ({
                                 selectAtLeastOne: SubmissionFormExtension.FORM_DATA.translations[lang].errors.socialPlatforms
                             })
                         }
                     },
-                    {
-                        type: 'yesno-with-options',
-                        id: 'languageType',
+                    { 
+                        type: 'yesno-with-options', 
+                        id: 'languageType', 
                         required: true,
                         getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.languageType,
                         customOptions: [
-                            {
-                                value: 'multilingual',
-                                label: {
-                                    fr: 'Support multilingue',
-                                    en: 'Multilingual Support'
+                            { 
+                                value: 'multilingual', 
+                                label: { 
+                                    fr: 'Support multilingue', 
+                                    en: 'Multilingual Support' 
                                 }
                             },
-                            {
-                                value: 'unilingual',
-                                label: {
-                                    fr: 'Langue unique',
-                                    en: 'Single Language'
+                            { 
+                                value: 'unilingual', 
+                                label: { 
+                                    fr: 'Langue unique', 
+                                    en: 'Single Language' 
                                 }
                             }
                         ],
-                        yesField: {
-                            type: 'multiselect',
-                            id: 'languages',
-                            row: 'languages',
-                            required: true,
+                        yesField: { 
+                            type: 'multiselect', 
+                            id: 'languages', 
+                            row: 'languages', 
+                            required: true, 
                             options: 'languages',
                             getCustomErrorMessages: (lang) => ({
                                 selectAtLeastOne: SubmissionFormExtension.FORM_DATA.translations[lang].errors.languages
                             })
                         },
-                        noField: {
-                            type: 'select',
-                            id: 'language',
-                            required: true,
-                            row: 'language',
+                        noField: { 
+                            type: 'select', 
+                            id: 'language', 
+                            required: true, 
+                            row: 'language', 
                             options: 'languages',
                             getCustomErrorMessage: (lang) => SubmissionFormExtension.FORM_DATA.translations[lang].errors.language
                         }
                     }
                 ]
             },
-
+            
             // Step 9: Project Summary
             {
-                sectionId: "project_summary", // NEW: Explicit section ID
+                sectionId: "project_summary",
                 fields: [
-                    {
-                        type: 'custom',
+                    { 
+                        type: 'custom', 
                         id: 'summary',
                         name: 'summary',
                         autoSummary: true,
