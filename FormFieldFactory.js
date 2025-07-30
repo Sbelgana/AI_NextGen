@@ -827,118 +827,48 @@ class BaseDataTransformer {
         this.config = creatFormInstance?.config || {};
         this.language = this.config.language || 'fr';
     }
-
     /**
-     * MINIMALLY ENHANCED: Main transformation method - keep original format!
+     * Main transformation method - no more flatData!
      */
     transform(originalFormValues) {
         console.log('BaseDataTransformer: Starting transformation...', {
             originalFormValues
         });
-        
         // Process form data using field configurations (same as CustomField)
         const processedData = this.processor.processFormData(originalFormValues);
-        
-        // ENHANCED: Process multiselect fields to include both formats
-        const enhancedProcessedData = this.enhanceMultiselectFields(processedData, originalFormValues);
-
-        // Create structured format - KEEP ORIGINAL STRUCTURE!
+        // Create structured format
         return {
             submissionType: this.getSubmissionType(),
             formVersion: this.getFormVersion(),
-            submissionTimestamp: new Date().toISOString(),
+            submissionTimestamp: new Date()
+                .toISOString(),
             language: this.language,
-            // Create sections using enhanced processed data
-            sections: this.processor.createSections(enhancedProcessedData),
+            // Create sections using processed data
+            sections: this.processor.createSections(processedData),
             // Keep processed field data for direct access
-            processedFields: enhancedProcessedData,
+            processedFields: processedData,
             // Add metadata
-            metadata: this.generateMetadata(originalFormValues, enhancedProcessedData)
+            metadata: this.generateMetadata(originalFormValues, processedData)
         };
     }
-
     /**
-     * ADDED: Enhance multiselect fields to include both array and string formats
-     */
-    enhanceMultiselectFields(processedData, originalFormValues) {
-        const enhanced = { ...processedData };
-
-        Object.keys(processedData).forEach(fieldName => {
-            const fieldData = processedData[fieldName];
-            
-            if (fieldData && this.isMultiSelectField(fieldData.fieldType)) {
-                const originalValue = originalFormValues[fieldName];
-                
-                // Keep the original displayValue for backward compatibility
-                // Add array format for your needs
-                enhanced[fieldName] = {
-                    ...fieldData,
-                    // ADDED: Array format (what you need)
-                    arrayValue: this.extractArrayFromValue(originalValue, fieldData.fieldType),
-                    // Keep original displayValue as string (backward compatibility)
-                    displayValue: fieldData.displayValue
-                };
-            }
-        });
-
-        return enhanced;
-    }
-
-    /**
-     * ADDED: Check if field is multiselect
-     */
-    isMultiSelectField(fieldType) {
-        return fieldType && (
-            fieldType.includes('multiselect') || 
-            fieldType === 'multiselect' || 
-            fieldType === 'multiselect-with-other' ||
-            fieldType === 'multiselect-subsections'
-        );
-    }
-
-    /**
-     * ADDED: Extract array from multiselect value
-     */
-    extractArrayFromValue(value, fieldType) {
-        if (fieldType === 'multiselect-with-other') {
-            if (typeof value === 'object' && value.main !== undefined) {
-                const mainArray = Array.isArray(value.main) ? value.main : [value.main];
-                const result = [...mainArray];
-                
-                // Add 'other' value if present
-                if (value.other && String(value.other).trim()) {
-                    result.push(String(value.other).trim());
-                }
-                
-                return result.filter(v => v && v !== ''); // Remove empty values
-            }
-        }
-        
-        // Regular multiselect or fallback
-        if (Array.isArray(value)) {
-            return value.filter(v => v && v !== ''); // Remove empty values
-        }
-        
-        // Single value - convert to array
-        return value ? [value] : [];
-    }
-
-    /**
-     * Generate metadata - UNCHANGED
+     * Generate metadata
      */
     generateMetadata(originalFormValues, processedData) {
         return {
-            transformationTimestamp: new Date().toISOString(),
+            transformationTimestamp: new Date()
+                .toISOString(),
             transformerType: this.constructor.name,
-            totalFields: Object.keys(originalFormValues).length,
-            processedFields: Object.keys(processedData).length,
+            totalFields: Object.keys(originalFormValues)
+                .length,
+            processedFields: Object.keys(processedData)
+                .length,
             completionPercentage: this.calculateCompletionPercentage(originalFormValues),
             formStructure: this.determineFormStructure()
         };
     }
-
     /**
-     * Calculate completion percentage - UNCHANGED
+     * Calculate completion percentage
      */
     calculateCompletionPercentage(formValues) {
         const fieldConfigs = this.processor.getFieldConfigurations();
@@ -950,32 +880,26 @@ class BaseDataTransformer {
             .length;
         return totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
     }
-
     /**
-     * Determine form structure - UNCHANGED
+     * Determine form structure
      */
     determineFormStructure() {
         const steps = this.creatFormInstance.formConfig?.steps?.length || 1;
         return steps > 1 ? 'multi-step' : 'single-step';
     }
-
     /**
-     * Get submission type - UNCHANGED
+     * Get submission type
      */
     getSubmissionType() {
         return this.config.formType === "booking" ? "booking_form" : "submission_form";
     }
-
     /**
-     * Get form version - UNCHANGED
+     * Get form version
      */
     getFormVersion() {
         return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
     }
 }
-
-
-
 class FormFieldFactory {
     constructor(options = {}) {
         this.container = options.container || document.body;
@@ -3130,6 +3054,7 @@ class YesNoWithOptionsField extends BaseField {
         this.noFieldsConfig = config.noFields || (config.noField ? [config.noField] : []);
         this.layout = config.layout || 'below';
         this.customOptions = config.customOptions || null;
+        
         // Set up option values and labels
         if (this.customOptions && Array.isArray(this.customOptions) && this.customOptions.length === 2) {
             this.yesOption = this.customOptions[0];
@@ -3144,384 +3069,186 @@ class YesNoWithOptionsField extends BaseField {
                 label: this.getText('no')
             };
         }
+        
         this.yesFieldInstances = [];
         this.noFieldInstances = [];
     }
+
     // FIXED: Add a helper method to safely get text
     getText(key) {
         return this.factory.getText ? this.factory.getText(key) :
-            this.factory.texts ? this.factory.texts[key] : key;
+            this.factory.texts ? this.factory.texts[key] :
+            key;
     }
+
     validate() {
-        if (this.required && !this.getValue()
-            .main) {
+        const mainValue = this.container 
+            ? this.container.querySelector('input[type="radio"]:checked')?.value 
+            : this.value;
+
+        if (this.required && !mainValue) {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        let isValid = true;
-        const currentValue = this.getValue();
-        if (currentValue.main === this.yesOption.value &&
-            this.yesContainer && this.yesContainer.style.display === 'block') {
-            this.yesFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
+
+        // Validate conditional fields
+        const showYesFields = this.isYesValue(mainValue);
+        const showNoFields = this.isNoValue(mainValue);
+
+        if (showYesFields && this.yesFieldInstances.length > 0) {
+            for (const field of this.yesFieldInstances) {
+                if (!field.validate()) {
+                    return false;
                 }
-            });
+            }
         }
-        if (currentValue.main === this.noOption.value &&
-            this.noContainer && this.noContainer.style.display === 'block') {
-            this.noFieldInstances.forEach(fieldInstance => {
-                if (!fieldInstance.validate()) {
-                    isValid = false;
+
+        if (showNoFields && this.noFieldInstances.length > 0) {
+            for (const field of this.noFieldInstances) {
+                if (!field.validate()) {
+                    return false;
                 }
-            });
+            }
         }
-        if (isValid) {
-            this.hideError();
-        }
-        return isValid;
+
+        return super.validate();
     }
+
     render() {
         const container = this.createContainer();
-        const label = this.createQuestionLabel();
-        const optionsGroup = document.createElement('div');
-        optionsGroup.className = 'options-group';
-        const yesOption = document.createElement('label');
-        yesOption.className = 'radio-option';
-        yesOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${this.yesOption.value}" />
-            <span class="radio-icon"></span>
-            <span class="radio-label">${this.yesOption.label}</span>
-        `;
-        const noOption = document.createElement('label');
-        noOption.className = 'radio-option';
-        noOption.innerHTML = `
-            <input type="radio" name="${this.name}" value="${this.noOption.value}" />
-            <span class="radio-icon"></span>
-            <span class="radio-label">${this.noOption.label}</span>
-        `;
-        optionsGroup.appendChild(yesOption);
-        optionsGroup.appendChild(noOption);
-        let conditionalContainer;
-        if (this.layout === 'side-by-side' && this.yesFieldsConfig.length > 0 && this.noFieldsConfig.length > 0) {
-            conditionalContainer = document.createElement('div');
-            conditionalContainer.className = 'conditional-side-by-side';
-        } else {
-            conditionalContainer = document.createElement('div');
-        }
-        let yesContainer = null;
+        const label = this.createLabel();
+
+        // Create main radio group
+        const radioGroup = document.createElement('div');
+        radioGroup.className = 'radio-group';
+
+        // Create Yes option
+        const yesContainer = document.createElement('div');
+        yesContainer.className = 'radio-option';
+        const yesInput = document.createElement('input');
+        yesInput.type = 'radio';
+        yesInput.id = `${this.id}-yes`;
+        yesInput.name = this.name;
+        yesInput.value = this.yesOption.value;
+        yesInput.className = 'radio-input';
+
+        const yesLabel = document.createElement('label');
+        yesLabel.htmlFor = `${this.id}-yes`;
+        yesLabel.className = 'radio-label';
+        yesLabel.textContent = this.yesOption.label;
+
+        yesContainer.appendChild(yesInput);
+        yesContainer.appendChild(yesLabel);
+
+        // Create No option
+        const noContainer = document.createElement('div');
+        noContainer.className = 'radio-option';
+        const noInput = document.createElement('input');
+        noInput.type = 'radio';
+        noInput.id = `${this.id}-no`;
+        noInput.name = this.name;
+        noInput.value = this.noOption.value;
+        noInput.className = 'radio-input';
+
+        const noLabel = document.createElement('label');
+        noLabel.htmlFor = `${this.id}-no`;
+        noLabel.className = 'radio-label';
+        noLabel.textContent = this.noOption.label;
+
+        noContainer.appendChild(noInput);
+        noContainer.appendChild(noLabel);
+
+        radioGroup.appendChild(yesContainer);
+        radioGroup.appendChild(noContainer);
+
+        // Create conditional containers
+        this.yesContainer = document.createElement('div');
+        this.yesContainer.className = 'conditional-fields yes-fields';
+        this.yesContainer.style.display = 'none';
+
+        this.noContainer = document.createElement('div');
+        this.noContainer.className = 'conditional-fields no-fields';
+        this.noContainer.style.display = 'none';
+
+        // Create Yes fields
         if (this.yesFieldsConfig.length > 0) {
-            yesContainer = document.createElement('div');
-            yesContainer.className = 'conditional-field-wrapper';
-            yesContainer.id = `${this.id}-yes-options`;
-            yesContainer.style.display = 'none';
-            // Group yesFields by row (same logic as FormStep)
-            const yesFieldGroups = this.groupFields(this.yesFieldsConfig);
-            yesFieldGroups.forEach(group => {
-                if (group.isRow) {
-                    // Create row container
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'field-row';
-                    group.fields.forEach((fieldConfig, index) => {
-                        const colContainer = document.createElement('div');
-                        colContainer.className = 'field-col';
-                        const fieldInstance = this.createFieldInstance(fieldConfig, `yes-${this.yesFieldInstances.length}`);
-                        if (fieldInstance) {
-                            this.yesFieldInstances.push(fieldInstance);
-                            colContainer.appendChild(fieldInstance.render());
-                        }
-                        rowContainer.appendChild(colContainer);
-                    });
-                    yesContainer.appendChild(rowContainer);
-                } else {
-                    // Single field
-                    const fieldInstance = this.createFieldInstance(group.fields[0], `yes-${this.yesFieldInstances.length}`);
-                    if (fieldInstance) {
-                        this.yesFieldInstances.push(fieldInstance);
-                        const fieldElement = fieldInstance.render();
-                        yesContainer.appendChild(fieldElement);
-                    }
-                }
-            });
+            this.createConditionalFields(this.yesFieldsConfig, this.yesContainer, this.yesFieldInstances);
         }
-        let noContainer = null;
+
+        // Create No fields
         if (this.noFieldsConfig.length > 0) {
-            noContainer = document.createElement('div');
-            noContainer.className = 'conditional-field-wrapper';
-            noContainer.id = `${this.id}-no-options`;
-            noContainer.style.display = 'none';
-            // Group noFields by row (same logic as FormStep)
-            const noFieldGroups = this.groupFields(this.noFieldsConfig);
-            noFieldGroups.forEach(group => {
-                if (group.isRow) {
-                    // Create row container
-                    const rowContainer = document.createElement('div');
-                    rowContainer.className = 'field-row';
-                    group.fields.forEach((fieldConfig, index) => {
-                        const colContainer = document.createElement('div');
-                        colContainer.className = 'field-col';
-                        const fieldInstance = this.createFieldInstance(fieldConfig, `no-${this.noFieldInstances.length}`);
-                        if (fieldInstance) {
-                            this.noFieldInstances.push(fieldInstance);
-                            colContainer.appendChild(fieldInstance.render());
-                        }
-                        rowContainer.appendChild(colContainer);
-                    });
-                    noContainer.appendChild(rowContainer);
-                } else {
-                    // Single field
-                    const fieldInstance = this.createFieldInstance(group.fields[0], `no-${this.noFieldInstances.length}`);
-                    if (fieldInstance) {
-                        this.noFieldInstances.push(fieldInstance);
-                        const fieldElement = fieldInstance.render();
-                        noContainer.appendChild(fieldElement);
-                    }
-                }
-            });
+            this.createConditionalFields(this.noFieldsConfig, this.noContainer, this.noFieldInstances);
         }
-        if (yesContainer) conditionalContainer.appendChild(yesContainer);
-        if (noContainer) conditionalContainer.appendChild(noContainer);
+
+        // Add change listeners
+        yesInput.addEventListener('change', () => {
+            if (yesInput.checked) {
+                this.showYesFields();
+                this.value = this.yesOption.value;
+                this.hideError();
+                this.handleChange();
+            }
+        });
+
+        noInput.addEventListener('change', () => {
+            if (noInput.checked) {
+                this.showNoFields();
+                this.value = this.noOption.value;
+                this.hideError();
+                this.handleChange();
+            }
+        });
+
         const errorElement = this.createErrorElement();
         container.appendChild(label);
-        container.appendChild(optionsGroup);
-        if (yesContainer || noContainer) {
-            container.appendChild(conditionalContainer);
-        }
+        container.appendChild(radioGroup);
+        container.appendChild(this.yesContainer);
+        container.appendChild(this.noContainer);
         container.appendChild(errorElement);
-        const radioInputs = container.querySelectorAll('input[type="radio"]');
-        radioInputs.forEach(radio => {
-            radio.addEventListener('change', () => {
-                this.value = radio.value;
-                this.hideError();
-                const isYesValue = radio.value === this.yesOption.value;
-                const isNoValue = radio.value === this.noOption.value;
-                if (isYesValue) {
-                    if (yesContainer) yesContainer.style.display = 'block';
-                    if (noContainer) noContainer.style.display = 'none';
-                } else if (isNoValue) {
-                    if (yesContainer) yesContainer.style.display = 'none';
-                    if (noContainer) noContainer.style.display = 'block';
-                }
-                this.handleChange();
-            });
-        });
+
         this.container = container;
-        this.yesContainer = yesContainer;
-        this.noContainer = noContainer;
+        this.yesInput = yesInput;
+        this.noInput = noInput;
         return container;
     }
-    createFieldInstance(fieldConfig, suffix) {
-        const fieldType = fieldConfig.type;
-        const config = {
-            ...fieldConfig,
-            id: `${this.id}-${suffix}-${fieldConfig.id}`,
-            name: fieldConfig.name || fieldConfig.id,
-            onChange: (value) => {
-                if (fieldConfig.onChange) {
-                    fieldConfig.onChange(value);
-                }
-                this.handleChange();
-            }
-        };
-        switch (fieldType) {
-        case 'text':
-            return this.factory.createTextField(config);
-        case 'email':
-            return this.factory.createEmailField(config);
-        case 'phone':
-            return this.factory.createPhoneField(config);
-        case 'url':
-            return this.factory.createUrlField(config);
-        case 'textarea':
-            return this.factory.createTextAreaField(config);
-        case 'number':
-            return this.factory.createNumberField(config);
-        case 'percentage':
-            return this.factory.createPercentageField(config);
-        case 'options-stepper':
-            return this.factory.createOptionsStepperField(config);
-        case 'yesno':
-            return this.factory.createYesNoField(config);
-        case 'select':
-            return this.factory.createSingleSelectField(config);
-        case 'multiselect':
-            return this.factory.createMultiSelectField(config);
-        case 'select-subsections':
-            return this.factory.createSingleSelectSubsectionsField(config);
-        case 'multiselect-subsections':
-            return this.factory.createMultiSelectSubsectionsField(config);
-        case 'yesno-with-options':
-            return this.factory.createYesNoWithOptionsField(config);
-        case 'select-with-other':
-            return this.factory.createSingleSelectWithOtherField(config);
-        case 'multiselect-with-other':
-            return this.factory.createMultiSelectWithOtherField(config);
-        case 'options-slider':
-            return this.factory.createOptionsSliderField(config);
-        default:
-            console.warn(`Unknown field type: ${fieldType}`);
-            return null;
-        }
-    }
-    // ENHANCED: getValue method to properly handle unselected states
-    getValue() {
-        const mainValue = this.container ?
-            this.container.querySelector('input[type="radio"]:checked')
-            ?.value :
-            this.value;
-        // If no selection made and field is not required, return null instead of empty string
-        if (!mainValue && !this.required) {
-            return {
-                main: null
-            };
-        }
-        // If no selection made but field is required, return empty string to trigger validation
-        if (!mainValue && this.required) {
-            return {
-                main: ''
-            };
-        }
-        const result = {
-            main: mainValue
-        };
-        if (mainValue === this.yesOption.value && this.yesFieldInstances.length > 0) {
-            result.yesValues = {};
-            this.yesFieldInstances.forEach((fieldInstance, index) => {
-                const fieldConfig = this.yesFieldsConfig[index];
-                const fieldValue = fieldInstance.getValue();
-                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
-                result.yesValues[fieldConfig.name || fieldConfig.id] = displayValue;
-            });
-        }
-        if (mainValue === this.noOption.value && this.noFieldInstances.length > 0) {
-            result.noValues = {};
-            this.noFieldInstances.forEach((fieldInstance, index) => {
-                const fieldConfig = this.noFieldsConfig[index];
-                const fieldValue = fieldInstance.getValue();
-                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
-                result.noValues[fieldConfig.name || fieldConfig.id] = displayValue;
-            });
-        }
-        return result;
-    }
-    // Method to extract display values for select/multi-select fields
-    extractDisplayValue(value, fieldInstance, fieldConfig) {
-        // Handle yes/no fields specifically to prevent double processing
-        if (fieldConfig.type === 'yesno') {
-            if (typeof value === 'boolean') {
-                return value ? this.getText('yes') : this.getText('no');
-            }
-            if (value === 'yes' || value === 'no') {
-                return value === 'yes' ? this.getText('yes') : this.getText('no');
-            }
-            // Handle true/false string values
-            if (value === 'true' || value === 'false') {
-                return value === 'true' ? this.getText('yes') : this.getText('no');
-            }
-            return value; // fallback
-        }
-        // For select and multi-select fields, get display names instead of IDs
-        if (fieldConfig.type === 'select' || fieldConfig.type === 'multiselect' ||
-            fieldConfig.type === 'select-with-other' || fieldConfig.type === 'multiselect-with-other') {
-            if (Array.isArray(value)) {
-                // Multi-select case
-                return value.map(item => {
-                        if (typeof item === 'object' && item.name) {
-                            return typeof item.name === 'object' ?
-                                (item.name[this.factory.texts?.language || 'fr'] || item.name.en || item.name.fr) :
-                                item.name;
-                        }
-                        return this.getOptionDisplayName(item, fieldConfig);
-                    })
-                    .filter(Boolean)
-                    .join(', ');
-            } else if (typeof value === 'object' && value !== null) {
-                // Single select with object value
-                if (value.name) {
-                    return typeof value.name === 'object' ?
-                        (value.name[this.factory.texts?.language || 'fr'] || value.name.en || value.name.fr) :
-                        value.name;
-                }
-                if (value.selectedValue) {
-                    return this.extractDisplayValue(value.selectedValue, fieldInstance, fieldConfig);
-                }
-                if (value.value) {
-                    return this.getOptionDisplayName(value.value, fieldConfig);
-                }
-                if (value.id) {
-                    return this.getOptionDisplayName(value.id, fieldConfig);
-                }
+
+    createConditionalFields(fieldsConfig, parentContainer, fieldInstances) {
+        const groupedFields = this.groupFields(fieldsConfig);
+        
+        groupedFields.forEach(group => {
+            if (group.isRow) {
+                const rowContainer = document.createElement('div');
+                rowContainer.className = `field-row row-${group.fields[0].row}`;
+                
+                group.fields.forEach(fieldConfig => {
+                    const fieldInstance = this.factory.createField(fieldConfig);
+                    if (fieldInstance) {
+                        fieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        rowContainer.appendChild(fieldElement);
+                    }
+                });
+                
+                parentContainer.appendChild(rowContainer);
             } else {
-                // Simple value - look up display name
-                return this.getOptionDisplayName(value, fieldConfig);
-            }
-        }
-        // For other field types, return the value as-is
-        return value;
-    }
-    // Helper method to get display name for an option ID
-    getOptionDisplayName(optionId, fieldConfig) {
-        if (!optionId || !fieldConfig.options) return optionId;
-        let options = fieldConfig.options;
-        // If options is a string (data path), try to get it from factory
-        if (typeof options === 'string' && this.factory.getData) {
-            options = this.factory.getData(options);
-        }
-        if (Array.isArray(options)) {
-            const option = options.find(opt => opt.id === optionId);
-            if (option && option.name) {
-                return typeof option.name === 'object' ?
-                    (option.name[this.factory.texts?.language || 'fr'] || option.name.en || option.name.fr) :
-                    option.name;
-            }
-        }
-        return optionId; // Fallback to ID if display name not found
-    }
-    setValue(value) {
-        let mainValue = value;
-        if (typeof value === 'object' && value.main) {
-            mainValue = value.main;
-            if (value.yesValues && this.yesFieldInstances.length > 0) {
-                this.yesFieldInstances.forEach((fieldInstance, index) => {
-                    const fieldConfig = this.yesFieldsConfig[index];
-                    const fieldName = fieldConfig.name || fieldConfig.id;
-                    if (value.yesValues[fieldName] !== undefined) {
-                        fieldInstance.setValue(value.yesValues[fieldName]);
-                    }
-                });
-            }
-            if (value.noValues && this.noFieldInstances.length > 0) {
-                this.noFieldInstances.forEach((fieldInstance, index) => {
-                    const fieldConfig = this.noFieldsConfig[index];
-                    const fieldName = fieldConfig.name || fieldConfig.id;
-                    if (value.noValues[fieldName] !== undefined) {
-                        fieldInstance.setValue(value.noValues[fieldName]);
-                    }
-                });
-            }
-        }
-        this.value = mainValue;
-        if (this.container) {
-            const radio = this.container.querySelector(`input[value="${mainValue}"]`);
-            if (radio) {
-                radio.checked = true;
-                if (mainValue === this.yesOption.value) {
-                    if (this.yesContainer) this.yesContainer.style.display = 'block';
-                    if (this.noContainer) this.noContainer.style.display = 'none';
-                } else if (mainValue === this.noOption.value) {
-                    if (this.yesContainer) this.yesContainer.style.display = 'none';
-                    if (this.noContainer) this.noContainer.style.display = 'block';
+                const fieldConfig = group.fields[0];
+                const fieldInstance = this.factory.createField(fieldConfig);
+                if (fieldInstance) {
+                    fieldInstances.push(fieldInstance);
+                    const fieldElement = fieldInstance.render();
+                    parentContainer.appendChild(fieldElement);
                 }
             }
-        }
+        });
     }
+
     groupFields(fields) {
         const groups = [];
         let i = 0;
+        
         while (i < fields.length) {
             const currentField = fields[i];
             if (currentField.row) {
-                // Find all fields with the same row identifier
                 const rowFields = [];
                 let j = i;
                 while (j < fields.length && fields[j].row === currentField.row) {
@@ -3532,55 +3259,219 @@ class YesNoWithOptionsField extends BaseField {
                     isRow: true,
                     fields: rowFields
                 });
-                i = j; // Skip the grouped fields
+                i = j;
                 continue;
             }
-            // Single field without row
+            
             groups.push({
                 isRow: false,
                 fields: [currentField]
             });
             i++;
         }
+        
         return groups;
     }
-    // Get display value for the main selection
-    getMainDisplayValue() {
-        const currentValue = this.getValue()
-            .main;
-        if (currentValue === this.yesOption.value) {
-            return this.yesOption.label;
-        } else if (currentValue === this.noOption.value) {
-            return this.noOption.label;
-        }
-        return currentValue;
+
+    isYesValue(value) {
+        return value === this.yesOption.value || value === 'multilingual';
     }
-    parseYesNoWithOptionsValue(fieldValue, fieldId) {
-        if (!fieldValue || typeof fieldValue !== 'object' || fieldValue.main === undefined) {
-            return {
-                main: false,
-                conditionalValues: {}
-            };
+
+    isNoValue(value) {
+        return value === this.noOption.value || value === 'unilingual';
+    }
+
+    showYesFields() {
+        if (this.yesContainer) this.yesContainer.style.display = 'block';
+        if (this.noContainer) this.noContainer.style.display = 'none';
+    }
+
+    showNoFields() {
+        if (this.noContainer) this.noContainer.style.display = 'block';
+        if (this.yesContainer) this.yesContainer.style.display = 'none';
+    }
+
+    /**
+     * UPDATED: getValue() method to properly handle multiselect sub-fields
+     */
+    getValue() {
+        const mainValue = this.container 
+            ? this.container.querySelector('input[type="radio"]:checked')?.value 
+            : this.value;
+
+        if (!mainValue) {
+            return null;
         }
-        let mainIsYes = fieldValue.main === true || fieldValue.main === 'yes';
+
         const result = {
-            main: mainIsYes,
-            conditionalValues: {}
+            main: mainValue,
+            mainDisplayValue: this.formatMainValue(mainValue)
         };
-        // Extract conditional values based on main selection
-        if (mainIsYes && fieldValue.yesValues) {
-            Object.entries(fieldValue.yesValues)
-                .forEach(([key, value]) => {
-                    if (value !== undefined && value !== null && value !== '') {
-                        result.conditionalValues[key] = value;
-                    }
-                });
-        } else if (!mainIsYes && fieldValue.noValues) {
-            // Handle "no" conditional values
+
+        // Handle sub-fields based on main value
+        const showYesFields = this.isYesValue(mainValue);
+        const showNoFields = this.isNoValue(mainValue);
+
+        if (showYesFields && this.yesFieldInstances && this.yesFieldInstances.length > 0) {
+            const yesValues = {};
+            this.yesFieldInstances.forEach(field => {
+                const fieldValue = field.getValue();
+                
+                // UPDATED: Handle multiselect field values properly
+                if (this.isMultiSelectField(field)) {
+                    const multiSelectValue = this.processMultiSelectValue(fieldValue);
+                    yesValues[field.id] = multiSelectValue.stringValue; // Use string format for display
+                    // Store both formats in the result
+                    result[`${field.id}_array`] = multiSelectValue.arrayValue;
+                    result[`${field.id}_string`] = multiSelectValue.stringValue;
+                } else {
+                    yesValues[field.id] = fieldValue;
+                }
+            });
+            result.yesValues = yesValues;
         }
+
+        if (showNoFields && this.noFieldInstances && this.noFieldInstances.length > 0) {
+            const noValues = {};
+            this.noFieldInstances.forEach(field => {
+                const fieldValue = field.getValue();
+                
+                // UPDATED: Handle multiselect field values properly
+                if (this.isMultiSelectField(field)) {
+                    const multiSelectValue = this.processMultiSelectValue(fieldValue);
+                    noValues[field.id] = multiSelectValue.stringValue; // Use string format for display
+                    // Store both formats in the result
+                    result[`${field.id}_array`] = multiSelectValue.arrayValue;
+                    result[`${field.id}_string`] = multiSelectValue.stringValue;
+                } else {
+                    noValues[field.id] = fieldValue;
+                }
+            });
+            result.noValues = noValues;
+        }
+
         return result;
     }
+
+    /**
+     * ADDED: Helper method to check if field is multiselect
+     */
+    isMultiSelectField(field) {
+        return field && (
+            field.constructor.name === 'MultiSelectField' ||
+            field.constructor.name === 'MultiSelectWithOtherField' ||
+            field.constructor.name === 'MultiSelectSubsectionsField' ||
+            (field.config && field.config.type && (
+                field.config.type.includes('multiselect') ||
+                field.config.type === 'multiselect' ||
+                field.config.type === 'multiselect-with-other' ||
+                field.config.type === 'multiselect-subsections'
+            ))
+        );
+    }
+
+    /**
+     * ADDED: Helper method to process multiselect values
+     */
+    processMultiSelectValue(fieldValue) {
+        if (!fieldValue) {
+            return { arrayValue: [], stringValue: '' };
+        }
+
+        // If the field already returns the new format
+        if (fieldValue.arrayValue !== undefined && fieldValue.stringValue !== undefined) {
+            return fieldValue;
+        }
+
+        // Handle legacy format - convert to new format
+        if (Array.isArray(fieldValue)) {
+            return {
+                arrayValue: fieldValue,
+                stringValue: fieldValue.join(', ')
+            };
+        }
+
+        // Handle MultiSelectWithOtherField format
+        if (typeof fieldValue === 'object' && fieldValue.main !== undefined) {
+            const allValues = [...(fieldValue.main || [])];
+            if (fieldValue.other) {
+                allValues.push(fieldValue.other);
+            }
+            return {
+                arrayValue: allValues,
+                stringValue: allValues.join(', ')
+            };
+        }
+
+        // Fallback for string values
+        if (typeof fieldValue === 'string') {
+            return {
+                arrayValue: fieldValue ? [fieldValue] : [],
+                stringValue: fieldValue || ''
+            };
+        }
+
+        return { arrayValue: [], stringValue: '' };
+    }
+
+    formatMainValue(value) {
+        if (value === this.yesOption.value) {
+            return this.yesOption.label;
+        } else if (value === this.noOption.value) {
+            return this.noOption.label;
+        }
+        return value;
+    }
+
+    setValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            const mainValue = value.main;
+            if (mainValue === this.yesOption.value) {
+                if (this.yesInput) this.yesInput.checked = true;
+                this.showYesFields();
+                
+                if (value.yesValues && this.yesFieldInstances.length > 0) {
+                    this.yesFieldInstances.forEach(field => {
+                        if (value.yesValues[field.id] !== undefined) {
+                            field.setValue(value.yesValues[field.id]);
+                        }
+                    });
+                }
+            } else if (mainValue === this.noOption.value) {
+                if (this.noInput) this.noInput.checked = true;
+                this.showNoFields();
+                
+                if (value.noValues && this.noFieldInstances.length > 0) {
+                    this.noFieldInstances.forEach(field => {
+                        if (value.noValues[field.id] !== undefined) {
+                            field.setValue(value.noValues[field.id]);
+                        }
+                    });
+                }
+            }
+            this.value = mainValue;
+        } else {
+            if (value === this.yesOption.value) {
+                if (this.yesInput) this.yesInput.checked = true;
+                this.showYesFields();
+            } else if (value === this.noOption.value) {
+                if (this.noInput) this.noInput.checked = true;
+                this.showNoFields();
+            }
+            this.value = value;
+        }
+    }
+
+    cleanup() {
+        // Clean up all field instances
+        [...this.yesFieldInstances, ...this.noFieldInstances].forEach(field => {
+            if (field.cleanup) field.cleanup();
+        });
+        super.cleanup();
+    }
 }
+
+
 /**
  * SingleSelectField - Simple dropdown with personalized error messages
  */
@@ -3749,6 +3640,7 @@ class MultiSelectField extends BaseField {
         this.dropdownInstance = null;
         this.isOpen = false;
     }
+
     validate() {
         if (this.required && this.selectedValues.length === 0) {
             this.showError(this.getFieldErrorMessage('selectAtLeastOne'));
@@ -3756,24 +3648,30 @@ class MultiSelectField extends BaseField {
         }
         return super.validate();
     }
+
     render() {
         const container = this.createContainer();
         const label = this.createLabel();
         const mainContainer = document.createElement('div');
         mainContainer.className = 'main-container';
+
         this.element = document.createElement('select');
         this.element.id = this.id;
         this.element.name = this.name;
         this.element.multiple = true;
         this.element.style.display = 'none';
+
+        // Add options to select element
         this.options.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option.id;
             optionElement.textContent = option.name;
             this.element.appendChild(optionElement);
         });
+
         const selectWrapper = document.createElement('div');
         selectWrapper.className = 'select-wrapper multi-select';
+
         this.selectDisplayElement = document.createElement('div');
         this.selectDisplayElement.className = 'select-display placeholder';
         this.selectDisplayElement.innerHTML = `
@@ -3782,8 +3680,11 @@ class MultiSelectField extends BaseField {
                 ${this.factory.SVG_ICONS.CHEVRON}
             </div>
         `;
+
         this.customOptionsElement = document.createElement('div');
-        this.customOptionsElement.className = 'custom-options multi-select';
+        this.customOptionsElement.className = 'custom-options';
+
+        // Add select all option
         const selectAllOption = document.createElement('div');
         selectAllOption.className = 'custom-option select-all-option';
         selectAllOption.innerHTML = `
@@ -3797,6 +3698,8 @@ class MultiSelectField extends BaseField {
             this.toggleSelectAll();
         });
         this.customOptionsElement.appendChild(selectAllOption);
+
+        // Add individual options
         this.options.forEach(option => {
             const customOption = document.createElement('div');
             customOption.className = 'custom-option';
@@ -3813,25 +3716,32 @@ class MultiSelectField extends BaseField {
             });
             this.customOptionsElement.appendChild(customOption);
         });
+
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
+
         this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
+
         mainContainer.appendChild(this.element);
         mainContainer.appendChild(selectWrapper);
+
         const errorElement = this.createErrorElement();
         container.appendChild(label);
         container.appendChild(mainContainer);
         container.appendChild(errorElement);
+
         this.container = container;
         this.selectWrapper = selectWrapper;
         return container;
     }
+
     toggleOption(option, customOption) {
         const isSelected = customOption.classList.contains('selected');
         const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+        
         if (isSelected) {
             customOption.classList.remove('selected');
             if (optElement) optElement.selected = false;
@@ -3841,17 +3751,19 @@ class MultiSelectField extends BaseField {
             if (optElement) optElement.selected = true;
             this.selectedValues.push(option.id);
         }
+
         this.updateDisplayText();
         this.updateSelectAllState();
         this.value = this.selectedValues;
         this.hideError();
         this.handleChange();
     }
+
     toggleSelectAll() {
         const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
         const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
-        const allSelected = Array.from(allOptions)
-            .every(opt => opt.classList.contains('selected'));
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+
         allOptions.forEach(opt => {
             const optValue = opt.dataset.value;
             const optElement = this.element.querySelector(`option[value="${optValue}"]`);
@@ -3863,6 +3775,7 @@ class MultiSelectField extends BaseField {
                 if (optElement) optElement.selected = true;
             }
         });
+
         if (allSelected) {
             selectAllOption.classList.remove('selected');
             this.selectedValues = [];
@@ -3870,21 +3783,24 @@ class MultiSelectField extends BaseField {
             selectAllOption.classList.add('selected');
             this.selectedValues = this.options.map(opt => opt.id);
         }
+
         this.updateDisplayText();
         this.value = this.selectedValues;
         this.handleChange();
     }
+
     updateSelectAllState() {
         const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
         const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
-        const allSelected = Array.from(allOptions)
-            .every(opt => opt.classList.contains('selected'));
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+
         if (allSelected && this.selectedValues.length > 0) {
             selectAllOption.classList.add('selected');
         } else {
             selectAllOption.classList.remove('selected');
         }
     }
+
     updateDisplayText() {
         const span = this.selectDisplayElement.querySelector('span');
         if (this.selectedValues.length === 0) {
@@ -3899,6 +3815,7 @@ class MultiSelectField extends BaseField {
             this.selectDisplayElement.classList.remove('placeholder');
         }
     }
+
     toggleDropdown() {
         if (this.isOpen) {
             this.closeDropdown();
@@ -3906,12 +3823,12 @@ class MultiSelectField extends BaseField {
             this.openDropdown();
         }
     }
+
     openDropdown() {
         if (this.isOpen) return;
         this.factory.closeAllDropdowns();
         this.customOptionsElement.classList.add('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.add('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
         this.isOpen = true;
         this.dropdownInstance = {
             element: this.selectWrapper,
@@ -3919,28 +3836,76 @@ class MultiSelectField extends BaseField {
         };
         this.factory.registerDropdown(this.dropdownInstance);
     }
+
     closeDropdown() {
         if (!this.isOpen) return;
         this.customOptionsElement.classList.remove('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.remove('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
         this.isOpen = false;
         if (this.dropdownInstance) {
             this.factory.unregisterDropdown(this.dropdownInstance);
             this.dropdownInstance = null;
         }
     }
+
+    /**
+     * UPDATED: getValue() method to return both string and array formats
+     */
     getValue() {
-        return this.selectedValues;
+        if (this.selectedValues.length === 0) {
+            return {
+                arrayValue: [],
+                stringValue: '',
+                rawValue: this.selectedValues // Keep backward compatibility
+            };
+        }
+
+        // Get display names for selected options
+        const displayNames = this.selectedValues.map(value => {
+            const option = this.options.find(opt => opt.id === value);
+            if (option) {
+                // Handle multilingual names
+                const language = this.factory?.config?.language || this.factory?.language || 'fr';
+                if (typeof option.name === 'object' && option.name !== null) {
+                    return option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                }
+                return option.name;
+            }
+            return value; // fallback to raw value
+        });
+
+        return {
+            arrayValue: displayNames,
+            stringValue: displayNames.join(', '),
+            rawValue: this.selectedValues // Keep backward compatibility for existing code
+        };
     }
+
+    /**
+     * UPDATED: setValue() method to handle both formats
+     */
     setValue(values) {
-        this.selectedValues = Array.isArray(values) ? values : [];
+        // Handle different input formats
+        if (typeof values === 'object' && values !== null) {
+            if (values.arrayValue) {
+                this.selectedValues = Array.isArray(values.arrayValue) ? values.arrayValue : [];
+            } else if (values.rawValue) {
+                this.selectedValues = Array.isArray(values.rawValue) ? values.rawValue : [];
+            } else if (Array.isArray(values)) {
+                this.selectedValues = values;
+            } else {
+                this.selectedValues = [];
+            }
+        } else {
+            this.selectedValues = Array.isArray(values) ? values : [];
+        }
+
         this.value = this.selectedValues;
+        
         if (this.element) {
-            Array.from(this.element.options)
-                .forEach(option => {
-                    option.selected = this.selectedValues.includes(option.value);
-                });
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
             if (this.customOptionsElement) {
                 this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)')
                     .forEach(opt => {
@@ -3957,7 +3922,14 @@ class MultiSelectField extends BaseField {
             }
         }
     }
+
+    cleanup() {
+        this.closeDropdown();
+        super.cleanup();
+    }
 }
+
+
 /**
  * SingleSelectSubsectionsField - Single select dropdown with nested subsections and personalized error messages
  */
@@ -4273,9 +4245,9 @@ class MultiSelectSubsectionsField extends BaseField {
             else if (factory.options) {
                 optionsData = factory.options;
             }
-            // Method 4: From global PropertySearchFormExtension
-            else if (typeof window !== 'undefined' && window.PropertySearchFormExtension && window.PropertySearchFormExtension.FORM_DATA) {
-                optionsData = window.PropertySearchFormExtension.FORM_DATA.options;
+            // Method 4: From global extensions
+            else if (typeof window !== 'undefined' && window.SubmissionFormExtension && window.SubmissionFormExtension.FORM_DATA) {
+                optionsData = window.SubmissionFormExtension.FORM_DATA.options;
             }
             // Method 5: From config itself
             else if (config.formData && config.formData.options) {
@@ -4285,16 +4257,19 @@ class MultiSelectSubsectionsField extends BaseField {
         } else {
             this.subsectionOptions = config.subsectionOptions || [];
         }
+        
         // Ensure we have an array
         if (!Array.isArray(this.subsectionOptions)) {
             console.warn('subsectionOptions is not an array, using empty array');
             this.subsectionOptions = [];
         }
+        
         this.placeholder = config.placeholder || factory.getText('selectMultiplePlaceholder');
         this.selectedValues = [];
         this.dropdownInstance = null;
         this.isOpen = false;
     }
+
     validate() {
         if (this.required && this.selectedValues.length === 0) {
             this.showError(this.getFieldErrorMessage('selectAtLeastOne'));
@@ -4302,18 +4277,22 @@ class MultiSelectSubsectionsField extends BaseField {
         }
         return super.validate();
     }
+
     render() {
         const container = this.createContainer();
         const label = this.createLabel();
         const mainContainer = document.createElement('div');
         mainContainer.className = 'main-container';
+
         this.element = document.createElement('select');
         this.element.id = this.id;
         this.element.name = this.name;
         this.element.multiple = true;
         this.element.style.display = 'none';
+
         const selectWrapper = document.createElement('div');
         selectWrapper.className = 'select-wrapper multi-select';
+
         this.selectDisplayElement = document.createElement('div');
         this.selectDisplayElement.className = 'select-display placeholder';
         this.selectDisplayElement.innerHTML = `
@@ -4322,205 +4301,216 @@ class MultiSelectSubsectionsField extends BaseField {
                 ${this.factory.SVG_ICONS.CHEVRON}
             </div>
         `;
+
         this.customOptionsElement = document.createElement('div');
-        this.customOptionsElement.className = 'custom-options multi-select';
-        this.buildSubsectionOptions();
+        this.customOptionsElement.className = 'custom-options';
+
+        // Add global select all option
+        const globalSelectAll = document.createElement('div');
+        globalSelectAll.className = 'custom-option select-all-option';
+        globalSelectAll.setAttribute('data-value', 'select_all');
+        globalSelectAll.innerHTML = `
+            <div class="option-checkbox">
+                ${this.factory.SVG_ICONS.CHECK}
+            </div>
+            <span>${this.factory.getText('selectAll')}</span>
+        `;
+        globalSelectAll.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleGlobalSelectAll();
+        });
+        this.customOptionsElement.appendChild(globalSelectAll);
+
+        // Add subsection categories
+        this.subsectionOptions.forEach(group => {
+            if (group.subcategories && group.subcategories.length > 0) {
+                // Add category header
+                const categoryOption = document.createElement('div');
+                categoryOption.className = 'custom-option category-option';
+                categoryOption.setAttribute('data-category', group.name);
+                categoryOption.innerHTML = `
+                    <div class="category-icon">
+                        ${this.factory.SVG_ICONS.CHEVRON}
+                    </div>
+                    <span>${group.name}</span>
+                `;
+                categoryOption.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleSection(categoryOption, group);
+                });
+                this.customOptionsElement.appendChild(categoryOption);
+
+                // Add all subcategory options to the select element
+                group.subcategories.forEach(item => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = item.id;
+                    // Handle multilingual names
+                    const language = this.factory?.config?.language || this.factory?.language || 'fr';
+                    let optionName = item.name;
+                    if (typeof item.name === 'object' && item.name !== null) {
+                        optionName = item.name[language] || item.name.fr || item.name.en || Object.values(item.name)[0] || item.name;
+                    }
+                    optionElement.textContent = optionName;
+                    this.element.appendChild(optionElement);
+                });
+            }
+        });
+
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
+
         this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
+
         mainContainer.appendChild(this.element);
         mainContainer.appendChild(selectWrapper);
+
         const errorElement = this.createErrorElement();
         container.appendChild(label);
         container.appendChild(mainContainer);
         container.appendChild(errorElement);
+
         this.container = container;
         this.selectWrapper = selectWrapper;
         return container;
     }
-    buildSubsectionOptions() {
-        // Ensure subsectionOptions is an array
-        if (!Array.isArray(this.subsectionOptions)) {
-            console.error('subsectionOptions is not an array:', this.subsectionOptions);
-            return;
+
+    toggleSection(categoryOption, group) {
+        const isExpanded = categoryOption.classList.contains('expanded');
+        
+        if (isExpanded) {
+            this.collapseSection(categoryOption);
+        } else {
+            this.expandSection(categoryOption, group);
         }
-        // Get language from factory with fallbacks
-        const language = this.factory?.config?.language || this.factory?.language || 'fr';
-        // Add Select All option
-        const selectAllDiv = document.createElement('div');
-        selectAllDiv.className = 'custom-option select-all-option';
-        selectAllDiv.dataset.value = 'select_all';
-        const allCheckbox = document.createElement('div');
-        allCheckbox.className = 'option-checkbox';
-        allCheckbox.innerHTML = this.factory.SVG_ICONS.CHECK;
-        const allText = document.createElement('span');
-        allText.textContent = this.factory.getText('selectAll');
-        selectAllDiv.appendChild(allCheckbox);
-        selectAllDiv.appendChild(allText);
-        selectAllDiv.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleSelectAll();
-        });
-        this.customOptionsElement.appendChild(selectAllDiv);
-        // Add subsection groups
-        this.subsectionOptions.forEach(group => {
-            const mainDiv = document.createElement('div');
-            mainDiv.className = 'custom-option category-option';
-            mainDiv.dataset.value = group.id;
-            // Handle multilingual names with better fallbacks
-            let groupName = group.name;
-            if (typeof group.name === 'object' && group.name !== null) {
-                groupName = group.name[language] || group.name.fr || group.name.en || Object.values(group.name)[0] || group.name;
-            }
-            mainDiv.innerHTML = `
-                <span>${groupName}</span>
-                <div class="main-arrow">
-                    <div class="arrow-icon">${this.factory.SVG_ICONS.CHEVRON}</div>
-                </div>
-            `;
-            mainDiv.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (mainDiv.classList.contains('expanded')) {
-                    this.collapseSection(mainDiv);
-                } else {
-                    this.expandSection(mainDiv, group);
-                }
-            });
-            this.customOptionsElement.appendChild(mainDiv);
-        });
     }
-    expandSection(mainDiv, group) {
-        // Close other expanded sections
-        this.customOptionsElement.querySelectorAll('.custom-option.category-option.expanded')
-            .forEach(opt => {
-                this.collapseSection(opt);
-            });
-        mainDiv.classList.add('expanded');
-        mainDiv.querySelector('.arrow-icon')
-            .classList.add('rotate');
+
+    expandSection(categoryOption, group) {
+        categoryOption.classList.add('expanded');
+        
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
-        // Get language from factory with fallbacks
-        const language = this.factory?.config?.language || this.factory?.language || 'fr';
-        // Add Select All for this group
-        const selectAllDiv = document.createElement('div');
-        selectAllDiv.className = 'custom-option select-all-option';
-        selectAllDiv.dataset.value = `select_all_${group.id}`;
-        const allCheckbox = document.createElement('div');
-        allCheckbox.className = 'option-checkbox';
-        allCheckbox.innerHTML = this.factory.SVG_ICONS.CHECK;
-        const allSpan = document.createElement('span');
-        allSpan.textContent = this.factory.getText('selectAll');
-        selectAllDiv.appendChild(allCheckbox);
-        selectAllDiv.appendChild(allSpan);
-        selectAllDiv.addEventListener('click', (e) => {
+        
+        // Add group select all
+        const groupSelectAll = document.createElement('div');
+        groupSelectAll.className = 'custom-option select-all-option';
+        groupSelectAll.innerHTML = `
+            <div class="option-checkbox">
+                ${this.factory.SVG_ICONS.CHECK}
+            </div>
+            <span>${this.factory.getText('selectAll')} ${group.name}</span>
+        `;
+        groupSelectAll.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.toggleSelectAllInGroup(group, subWrapper);
+            this.toggleGroupSelectAll(group, subWrapper);
         });
-        subWrapper.appendChild(selectAllDiv);
+        subWrapper.appendChild(groupSelectAll);
+
+        // Add individual options
         group.subcategories.forEach(item => {
-            // Handle multilingual names for subcategories with better fallbacks
-            let itemName = item.name;
+            const customOption = document.createElement('div');
+            customOption.className = 'custom-option';
+            customOption.setAttribute('data-value', item.id);
+            
+            // Handle multilingual names
+            const language = this.factory?.config?.language || this.factory?.language || 'fr';
+            let optionName = item.name;
             if (typeof item.name === 'object' && item.name !== null) {
-                itemName = item.name[language] || item.name.fr || item.name.en || Object.values(item.name)[0] || item.name;
+                optionName = item.name[language] || item.name.fr || item.name.en || Object.values(item.name)[0] || item.name;
             }
-            this.element.appendChild(new Option(itemName, item.id));
-            const subDiv = document.createElement('div');
-            subDiv.className = 'custom-option';
-            subDiv.dataset.value = item.id;
-            const checkboxDiv = document.createElement('div');
-            checkboxDiv.className = 'option-checkbox';
-            checkboxDiv.innerHTML = this.factory.SVG_ICONS.CHECK;
-            const itemSpan = document.createElement('span');
-            itemSpan.textContent = itemName;
-            subDiv.appendChild(checkboxDiv);
-            subDiv.appendChild(itemSpan);
-            // Check if already selected
+            
+            customOption.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${optionName}</span>
+            `;
+            
             if (this.selectedValues.includes(item.id)) {
-                subDiv.classList.add('selected');
-                const subOption = this.element.querySelector(`option[value="${item.id}"]`);
-                if (subOption) subOption.selected = true;
+                customOption.classList.add('selected');
             }
-            subDiv.addEventListener('click', (e) => {
+            
+            customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.toggleOption(item, subDiv, subWrapper);
+                this.toggleSubOption(item, customOption, subWrapper);
             });
-            subWrapper.appendChild(subDiv);
+            subWrapper.appendChild(customOption);
         });
-        // Update group select all state
+
+        categoryOption.insertAdjacentElement('afterend', subWrapper);
         this.updateGroupSelectAllState(group, subWrapper);
-        mainDiv.insertAdjacentElement('afterend', subWrapper);
     }
-    collapseSection(mainDiv) {
-        mainDiv.classList.remove('expanded');
-        if (mainDiv.nextElementSibling && mainDiv.nextElementSibling.classList.contains('sub-options')) {
-            mainDiv.nextElementSibling.remove();
+
+    collapseSection(categoryOption) {
+        categoryOption.classList.remove('expanded');
+        const subWrapper = categoryOption.nextElementSibling;
+        if (subWrapper && subWrapper.classList.contains('sub-options')) {
+            subWrapper.remove();
         }
-        const arrow = mainDiv.querySelector('.arrow-icon');
-        if (arrow) arrow.classList.remove('rotate');
     }
-    toggleOption(option, customOption, subWrapper) {
+
+    toggleSubOption(item, customOption, subWrapper) {
         const isSelected = customOption.classList.contains('selected');
-        const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+        const optElement = this.element.querySelector(`option[value="${item.id}"]`);
+        
         if (isSelected) {
             customOption.classList.remove('selected');
             if (optElement) optElement.selected = false;
-            this.selectedValues = this.selectedValues.filter(val => val !== option.id);
+            this.selectedValues = this.selectedValues.filter(val => val !== item.id);
         } else {
             customOption.classList.add('selected');
             if (optElement) optElement.selected = true;
-            this.selectedValues.push(option.id);
+            this.selectedValues.push(item.id);
         }
+
         this.updateDisplayText();
         this.updateSelectAllStates(subWrapper);
         this.value = this.selectedValues;
         this.hideError();
         this.handleChange();
     }
-    toggleSelectAllInGroup(group, subWrapper) {
+
+    toggleGroupSelectAll(group, subWrapper) {
         const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
-        const selectAllOption = subWrapper.querySelector('.select-all-option');
-        const allSelected = Array.from(subOptions)
-            .every(opt => opt.classList.contains('selected'));
+        const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
+
         subOptions.forEach(opt => {
-            const optValue = opt.dataset.value;
-            const optElement = this.element.querySelector(`option[value="${optValue}"]`);
+            const itemId = opt.dataset.value;
+            const optElement = this.element.querySelector(`option[value="${itemId}"]`);
+            
             if (allSelected) {
                 opt.classList.remove('selected');
                 if (optElement) optElement.selected = false;
-                this.selectedValues = this.selectedValues.filter(val => val !== optValue);
+                this.selectedValues = this.selectedValues.filter(val => val !== itemId);
             } else {
                 opt.classList.add('selected');
                 if (optElement) optElement.selected = true;
-                if (!this.selectedValues.includes(optValue)) {
-                    this.selectedValues.push(optValue);
+                if (!this.selectedValues.includes(itemId)) {
+                    this.selectedValues.push(itemId);
                 }
             }
         });
-        selectAllOption.classList.toggle('selected', !allSelected);
+
         this.updateDisplayText();
-        this.updateGlobalSelectAllState();
+        this.updateSelectAllStates(subWrapper);
         this.value = this.selectedValues;
         this.handleChange();
     }
-    toggleSelectAll() {
-        const globalSelectAll = this.customOptionsElement.querySelector('.select-all-option[data-value="select_all"]');
+
+    toggleGlobalSelectAll() {
         const allSubOptions = [];
-        // Collect all subcategory options
         this.subsectionOptions.forEach(group => {
             group.subcategories.forEach(item => {
                 allSubOptions.push(item.id);
             });
         });
-        const allSelected = allSubOptions.every(id => this.selectedValues.includes(id));
+
+        const allSelected = allSubOptions.length > 0 && allSubOptions.every(id => this.selectedValues.includes(id));
+
         if (allSelected) {
-            // Deselect all
             this.selectedValues = [];
-            globalSelectAll.classList.remove('selected');
-            // Update all visible options
             this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)')
                 .forEach(opt => {
                     opt.classList.remove('selected');
@@ -4528,10 +4518,7 @@ class MultiSelectSubsectionsField extends BaseField {
                     if (optElement) optElement.selected = false;
                 });
         } else {
-            // Select all
             this.selectedValues = [...allSubOptions];
-            globalSelectAll.classList.add('selected');
-            // Update all visible options
             this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option):not(.category-option)')
                 .forEach(opt => {
                     opt.classList.add('selected');
@@ -4539,32 +4526,23 @@ class MultiSelectSubsectionsField extends BaseField {
                     if (optElement) optElement.selected = true;
                 });
         }
+
         this.updateDisplayText();
         this.value = this.selectedValues;
         this.handleChange();
     }
-    updateGroupSelectAllState(group, subWrapper) {
-        const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
-        const selectAllOption = subWrapper.querySelector('.select-all-option');
-        const allSelected = Array.from(subOptions)
-            .every(opt => opt.classList.contains('selected'));
-        if (allSelected && subOptions.length > 0) {
-            selectAllOption.classList.add('selected');
-        } else {
-            selectAllOption.classList.remove('selected');
-        }
-    }
+
     updateSelectAllStates(subWrapper = null) {
         if (subWrapper) {
             // Update group select all
             const subOptions = subWrapper.querySelectorAll('.custom-option:not(.select-all-option)');
             const selectAllOption = subWrapper.querySelector('.select-all-option');
-            const allSelected = Array.from(subOptions)
-                .every(opt => opt.classList.contains('selected'));
+            const allSelected = Array.from(subOptions).every(opt => opt.classList.contains('selected'));
             selectAllOption.classList.toggle('selected', allSelected && subOptions.length > 0);
         }
         this.updateGlobalSelectAllState();
     }
+
     updateGlobalSelectAllState() {
         const globalSelectAll = this.customOptionsElement.querySelector('.select-all-option[data-value="select_all"]');
         const allSubOptions = [];
@@ -4576,6 +4554,7 @@ class MultiSelectSubsectionsField extends BaseField {
         const allSelected = allSubOptions.length > 0 && allSubOptions.every(id => this.selectedValues.includes(id));
         globalSelectAll.classList.toggle('selected', allSelected);
     }
+
     updateDisplayText() {
         const span = this.selectDisplayElement.querySelector('span');
         if (this.selectedValues.length === 0) {
@@ -4602,6 +4581,7 @@ class MultiSelectSubsectionsField extends BaseField {
             this.selectDisplayElement.classList.remove('placeholder');
         }
     }
+
     toggleDropdown() {
         if (this.isOpen) {
             this.closeDropdown();
@@ -4609,12 +4589,12 @@ class MultiSelectSubsectionsField extends BaseField {
             this.openDropdown();
         }
     }
+
     openDropdown() {
         if (this.isOpen) return;
         this.factory.closeAllDropdowns();
         this.customOptionsElement.classList.add('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.add('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
         this.isOpen = true;
         this.dropdownInstance = {
             element: this.selectWrapper,
@@ -4622,12 +4602,13 @@ class MultiSelectSubsectionsField extends BaseField {
         };
         this.factory.registerDropdown(this.dropdownInstance);
     }
+
     closeDropdown() {
         if (!this.isOpen) return;
         this.customOptionsElement.classList.remove('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.remove('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
         this.isOpen = false;
+        
         // Collapse all expanded sections
         this.customOptionsElement.querySelectorAll('.sub-options')
             .forEach(sw => sw.remove());
@@ -4635,30 +4616,99 @@ class MultiSelectSubsectionsField extends BaseField {
             .forEach(opt => {
                 this.collapseSection(opt);
             });
+        
         if (this.dropdownInstance) {
             this.factory.unregisterDropdown(this.dropdownInstance);
             this.dropdownInstance = null;
         }
     }
+
+    /**
+     * UPDATED: getValue() method to return both string and array formats
+     */
     getValue() {
-        return this.selectedValues;
+        if (this.selectedValues.length === 0) {
+            return {
+                arrayValue: [],
+                stringValue: '',
+                rawValue: this.selectedValues // Keep backward compatibility
+            };
+        }
+
+        // Get display names for selected options from subsections
+        const displayNames = this.selectedValues.map(value => {
+            // Search through all subsection groups
+            for (const group of this.subsectionOptions) {
+                if (group.subcategories) {
+                    const option = group.subcategories.find(opt => opt.id === value);
+                    if (option) {
+                        // Handle multilingual names
+                        const language = this.factory?.config?.language || this.factory?.language || 'fr';
+                        if (typeof option.name === 'object' && option.name !== null) {
+                            return option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                        }
+                        return option.name;
+                    }
+                }
+            }
+            return value; // fallback to raw value if not found
+        });
+
+        return {
+            arrayValue: displayNames,
+            stringValue: displayNames.join(', '),
+            rawValue: this.selectedValues // Keep backward compatibility
+        };
     }
+
+    /**
+     * UPDATED: setValue() method to handle both formats
+     */
     setValue(values) {
-        this.selectedValues = Array.isArray(values) ? values : [];
+        // Handle different input formats
+        if (typeof values === 'object' && values !== null) {
+            if (values.arrayValue) {
+                this.selectedValues = Array.isArray(values.arrayValue) ? values.arrayValue : [];
+            } else if (values.rawValue) {
+                this.selectedValues = Array.isArray(values.rawValue) ? values.rawValue : [];
+            } else if (Array.isArray(values)) {
+                this.selectedValues = values;
+            } else {
+                this.selectedValues = [];
+            }
+        } else {
+            this.selectedValues = Array.isArray(values) ? values : [];
+        }
+
         this.value = this.selectedValues;
+        
         if (this.element) {
-            Array.from(this.element.options)
-                .forEach(option => {
-                    option.selected = this.selectedValues.includes(option.value);
-                });
-            this.updateDisplayText();
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+            if (this.customOptionsElement) {
+                this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)')
+                    .forEach(opt => {
+                        if (this.selectedValues.includes(opt.dataset.value)) {
+                            opt.classList.add('selected');
+                        } else {
+                            opt.classList.remove('selected');
+                        }
+                    });
+                this.updateGlobalSelectAllState();
+            }
+            if (this.selectDisplayElement) {
+                this.updateDisplayText();
+            }
         }
     }
+
     cleanup() {
         this.closeDropdown();
         super.cleanup();
     }
 }
+
 /**
  * CustomField - For special content like summaries with personalized error messages
  */
@@ -5481,6 +5531,7 @@ class MultiSelectWithOtherField extends BaseField {
         this.dropdownInstance = null;
         this.isOpen = false;
     }
+
     validate() {
         if (this.required) {
             const hasMainSelection = this.selectedValues.length > 0;
@@ -5497,28 +5548,31 @@ class MultiSelectWithOtherField extends BaseField {
         this.otherError.classList.remove('show');
         return true;
     }
+
     render() {
         const container = this.createContainer();
         const label = this.createLabel();
-        const optionsWithOther = [...this.options, {
-            id: 'other',
-            name: this.otherLabel
-        }];
         const mainContainer = document.createElement('div');
         mainContainer.className = 'main-container';
+
         this.element = document.createElement('select');
         this.element.id = this.id;
         this.element.name = this.name;
         this.element.multiple = true;
         this.element.style.display = 'none';
+
+        // Add options to select element
+        const optionsWithOther = [...this.options, { id: 'other', name: this.otherLabel }];
         optionsWithOther.forEach(option => {
             const optionElement = document.createElement('option');
             optionElement.value = option.id;
             optionElement.textContent = option.name;
             this.element.appendChild(optionElement);
         });
+
         const selectWrapper = document.createElement('div');
         selectWrapper.className = 'select-wrapper multi-select';
+
         this.selectDisplayElement = document.createElement('div');
         this.selectDisplayElement.className = 'select-display placeholder';
         this.selectDisplayElement.innerHTML = `
@@ -5527,8 +5581,11 @@ class MultiSelectWithOtherField extends BaseField {
                 ${this.factory.SVG_ICONS.CHEVRON}
             </div>
         `;
+
         this.customOptionsElement = document.createElement('div');
-        this.customOptionsElement.className = 'custom-options multi-select';
+        this.customOptionsElement.className = 'custom-options';
+
+        // Add select all option
         const selectAllOption = document.createElement('div');
         selectAllOption.className = 'custom-option select-all-option';
         selectAllOption.innerHTML = `
@@ -5542,6 +5599,8 @@ class MultiSelectWithOtherField extends BaseField {
             this.toggleSelectAll();
         });
         this.customOptionsElement.appendChild(selectAllOption);
+
+        // Add individual options including "other"
         optionsWithOther.forEach(option => {
             const customOption = document.createElement('div');
             customOption.className = 'custom-option';
@@ -5554,40 +5613,47 @@ class MultiSelectWithOtherField extends BaseField {
             `;
             customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.toggleMainOption(option, customOption);
+                this.selectMainOption(option);
             });
             this.customOptionsElement.appendChild(customOption);
         });
+
         selectWrapper.appendChild(this.selectDisplayElement);
         selectWrapper.appendChild(this.customOptionsElement);
+
         this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
+
         mainContainer.appendChild(this.element);
         mainContainer.appendChild(selectWrapper);
+
+        // Create other input container
         this.otherContainer = document.createElement('div');
         this.otherContainer.className = 'conditional-field-wrapper';
         this.otherContainer.id = `${this.id}-other-group`;
         this.otherContainer.style.display = 'none';
-        this.otherContainer.style.marginTop = '10px'; // Add 10px vertical spacing
+        this.otherContainer.style.marginTop = '10px';
+
         const otherLabel = document.createElement('label');
         otherLabel.className = 'form-label';
         otherLabel.textContent = this.otherLabel;
+
         this.otherInput = document.createElement('input');
         this.otherInput.type = 'text';
         this.otherInput.id = `${this.id}-other`;
         this.otherInput.placeholder = this.otherPlaceholder;
+        this.otherInput.className = 'form-input';
+
         this.otherError = document.createElement('div');
-        this.otherError.className = 'error-message';
-        this.otherError.id = `error-${this.id}-other`;
-        this.otherError.innerHTML = `
-            <div class="error-icon">!</div>
-            <span class="error-text">${this.getFieldErrorMessage('required')}</span>
-        `;
+        this.otherError.className = 'field-error';
+        this.otherError.textContent = this.factory.getText('pleaseSpecify');
+
         this.otherContainer.appendChild(otherLabel);
         this.otherContainer.appendChild(this.otherInput);
         this.otherContainer.appendChild(this.otherError);
+
         this.otherInput.addEventListener('input', () => {
             this.otherValue = this.otherInput.value.trim();
             this.value = {
@@ -5599,18 +5665,23 @@ class MultiSelectWithOtherField extends BaseField {
             }
             this.handleChange();
         });
+
         const errorElement = this.createErrorElement();
         container.appendChild(label);
         container.appendChild(mainContainer);
         container.appendChild(this.otherContainer);
         container.appendChild(errorElement);
+
         this.container = container;
         this.selectWrapper = selectWrapper;
         return container;
     }
-    toggleMainOption(option, customOption) {
+
+    selectMainOption(option) {
+        const customOption = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
         const isSelected = customOption.classList.contains('selected');
         const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+
         if (isSelected) {
             customOption.classList.remove('selected');
             if (optElement) optElement.selected = false;
@@ -5620,6 +5691,7 @@ class MultiSelectWithOtherField extends BaseField {
             if (optElement) optElement.selected = true;
             this.selectedValues.push(option.id);
         }
+
         if (this.selectedValues.includes('other')) {
             this.otherContainer.style.display = 'block';
         } else {
@@ -5627,6 +5699,7 @@ class MultiSelectWithOtherField extends BaseField {
             this.otherValue = '';
             this.otherInput.value = '';
         }
+
         this.updateDisplayText();
         this.updateSelectAllState();
         this.value = {
@@ -5636,11 +5709,12 @@ class MultiSelectWithOtherField extends BaseField {
         this.hideError();
         this.handleChange();
     }
+
     toggleSelectAll() {
         const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
         const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
-        const allSelected = Array.from(allOptions)
-            .every(opt => opt.classList.contains('selected'));
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+
         allOptions.forEach(opt => {
             const optValue = opt.dataset.value;
             const optElement = this.element.querySelector(`option[value="${optValue}"]`);
@@ -5652,6 +5726,7 @@ class MultiSelectWithOtherField extends BaseField {
                 if (optElement) optElement.selected = true;
             }
         });
+
         if (allSelected) {
             selectAllOption.classList.remove('selected');
             this.selectedValues = [];
@@ -5663,6 +5738,7 @@ class MultiSelectWithOtherField extends BaseField {
             this.selectedValues = [...this.options.map(opt => opt.id), 'other'];
             this.otherContainer.style.display = 'block';
         }
+
         this.updateDisplayText();
         this.value = {
             main: this.selectedValues.filter(v => v !== 'other'),
@@ -5670,17 +5746,19 @@ class MultiSelectWithOtherField extends BaseField {
         };
         this.handleChange();
     }
+
     updateSelectAllState() {
         const allOptions = this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)');
         const selectAllOption = this.customOptionsElement.querySelector('.select-all-option');
-        const allSelected = Array.from(allOptions)
-            .every(opt => opt.classList.contains('selected'));
+        const allSelected = Array.from(allOptions).every(opt => opt.classList.contains('selected'));
+
         if (allSelected && this.selectedValues.length > 0) {
             selectAllOption.classList.add('selected');
         } else {
             selectAllOption.classList.remove('selected');
         }
     }
+
     updateDisplayText() {
         const span = this.selectDisplayElement.querySelector('span');
         if (this.selectedValues.length === 0) {
@@ -5700,6 +5778,7 @@ class MultiSelectWithOtherField extends BaseField {
             this.selectDisplayElement.classList.remove('placeholder');
         }
     }
+
     toggleDropdown() {
         if (this.isOpen) {
             this.closeDropdown();
@@ -5707,12 +5786,12 @@ class MultiSelectWithOtherField extends BaseField {
             this.openDropdown();
         }
     }
+
     openDropdown() {
         if (this.isOpen) return;
         this.factory.closeAllDropdowns();
         this.customOptionsElement.classList.add('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.add('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.add('rotate');
         this.isOpen = true;
         this.dropdownInstance = {
             element: this.selectWrapper,
@@ -5720,53 +5799,138 @@ class MultiSelectWithOtherField extends BaseField {
         };
         this.factory.registerDropdown(this.dropdownInstance);
     }
+
     closeDropdown() {
         if (!this.isOpen) return;
         this.customOptionsElement.classList.remove('show-options');
-        this.selectDisplayElement.querySelector('.dropdown-icon')
-            .classList.remove('rotate');
+        this.selectDisplayElement.querySelector('.dropdown-icon').classList.remove('rotate');
         this.isOpen = false;
         if (this.dropdownInstance) {
             this.factory.unregisterDropdown(this.dropdownInstance);
             this.dropdownInstance = null;
         }
     }
+
+    /**
+     * UPDATED: getValue() method to return both string and array formats
+     */
     getValue() {
-        const result = [];
-        if (this.value && typeof this.value === 'object') {
-            if (this.value.main && Array.isArray(this.value.main)) {
-                result.push(...this.value.main);
-            }
-            if (this.value.other) {
-                result.push(this.value.other);
-            }
+        const mainValues = this.selectedValues.filter(v => v !== 'other');
+        const hasOther = this.selectedValues.includes('other');
+        
+        if (mainValues.length === 0 && !hasOther) {
+            return {
+                arrayValue: [],
+                stringValue: '',
+                main: mainValues,
+                other: this.otherValue || '',
+                rawValue: { // Keep backward compatibility
+                    main: mainValues,
+                    other: this.otherValue || ''
+                }
+            };
         }
-        return result;
-    }
-    setValue(values) {
-        if (!Array.isArray(values)) {
-            values = values ? [values] : [];
-        }
-        const existingValues = [];
-        let otherValue = '';
-        values.forEach(value => {
-            const existingOption = this.options.find(opt => opt.id === value);
-            if (existingOption) {
-                existingValues.push(value);
-            } else if (value) {
-                otherValue = value;
+
+        // Get display names for main options
+        const mainDisplayNames = mainValues.map(value => {
+            const option = this.options.find(opt => opt.id === value);
+            if (option) {
+                // Handle multilingual names
+                const language = this.factory?.config?.language || this.factory?.language || 'fr';
+                if (typeof option.name === 'object' && option.name !== null) {
+                    return option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                }
+                return option.name;
             }
+            return value; // fallback to raw value
         });
-        this.selectedValues = [...existingValues];
-        if (otherValue) {
-            this.selectedValues.push('other');
+
+        // Combine main options with other value
+        const allDisplayValues = [...mainDisplayNames];
+        if (hasOther && this.otherValue) {
+            allDisplayValues.push(this.otherValue);
         }
-        if (this.element) {
-            Array.from(this.element.options)
-                .forEach(option => {
-                    option.selected = this.selectedValues.includes(option.value);
+
+        return {
+            arrayValue: allDisplayValues,
+            stringValue: allDisplayValues.join(', '),
+            main: mainValues,
+            other: this.otherValue || '',
+            rawValue: { // Keep backward compatibility
+                main: mainValues,
+                other: this.otherValue || ''
+            }
+        };
+    }
+
+    /**
+     * UPDATED: setValue() method to handle both formats
+     */
+    setValue(values) {
+        // Handle different input formats
+        if (typeof values === 'object' && values !== null) {
+            let mainValues = [];
+            let otherValue = '';
+
+            if (values.rawValue && typeof values.rawValue === 'object') {
+                mainValues = Array.isArray(values.rawValue.main) ? values.rawValue.main : [];
+                otherValue = values.rawValue.other || '';
+            } else if (values.main !== undefined) {
+                mainValues = Array.isArray(values.main) ? values.main : [];
+                otherValue = values.other || '';
+            } else if (Array.isArray(values)) {
+                // Handle array input - need to separate main from other
+                const existingValues = [];
+                let extractedOtherValue = '';
+                
+                values.forEach(value => {
+                    const existingOption = this.options.find(opt => opt.id === value);
+                    if (existingOption) {
+                        existingValues.push(value);
+                    } else if (value && value !== 'other') {
+                        extractedOtherValue = value;
+                    }
                 });
+                
+                mainValues = existingValues;
+                otherValue = extractedOtherValue;
+            }
+
+            this.selectedValues = [...mainValues];
+            if (otherValue) {
+                this.selectedValues.push('other');
+                this.otherValue = otherValue;
+            } else {
+                this.otherValue = '';
+            }
+        } else if (Array.isArray(values)) {
+            // Direct array handling
+            const existingValues = [];
+            let otherValue = '';
+            
+            values.forEach(value => {
+                const existingOption = this.options.find(opt => opt.id === value);
+                if (existingOption) {
+                    existingValues.push(value);
+                } else if (value && value !== 'other') {
+                    otherValue = value;
+                }
+            });
+            
+            this.selectedValues = [...existingValues];
+            if (otherValue) {
+                this.selectedValues.push('other');
+                this.otherValue = otherValue;
+            }
         }
+
+        // Update UI elements
+        if (this.element) {
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+        }
+
         if (this.customOptionsElement) {
             this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)')
                 .forEach(opt => {
@@ -5778,26 +5942,31 @@ class MultiSelectWithOtherField extends BaseField {
                 });
             this.updateSelectAllState();
         }
-        if (otherValue) {
-            this.otherValue = otherValue;
-            this.otherInput.value = otherValue;
+
+        if (this.otherValue && this.otherInput) {
+            this.otherInput.value = this.otherValue;
             this.otherContainer.style.display = 'block';
-        } else {
+        } else if (this.otherContainer) {
             this.otherContainer.style.display = 'none';
         }
+
         this.value = {
-            main: existingValues,
-            other: otherValue
+            main: this.selectedValues.filter(v => v !== 'other'),
+            other: this.otherValue
         };
+
         if (this.selectDisplayElement) {
             this.updateDisplayText();
         }
     }
+
     cleanup() {
         this.closeDropdown();
         super.cleanup();
     }
 }
+
+
 /**
  * SlidingWindowRangeField - Optimized with enhanced caching and performance
  */
@@ -7589,7 +7758,6 @@ class CreatForm {
         // Determine form structure
         this.determineFormStructure();
     }
-
     // ============================================================================
     // NEW: DATA PROCESSOR INITIALIZATION (replaces flatData approach)
     // ============================================================================
@@ -7617,9 +7785,8 @@ class CreatForm {
             this.logger.info('✅ Default BaseDataTransformer initialized');
         }
     }
-
     // ============================================================================
-    // ENHANCED LOGGING SYSTEM - ONLY ENHANCED LOGS, NO FORMAT CHANGES
+    // ENHANCED LOGGING SYSTEM
     // ============================================================================
     initializeLogging() {
         this.logger = {
@@ -7659,7 +7826,7 @@ class CreatForm {
             },
             transformation: (originalData, transformedData) => {
                 if (this.config.enableDetailedLogging) {
-                    console.group(`${this.config.logPrefix} 🔄 MULTISELECT ENHANCED DATA TRANSFORMATION`);
+                    console.group(`${this.config.logPrefix} 🔄 DATA TRANSFORMATION`);
                     console.log('📥 Original Form Data:', JSON.stringify(originalData, null, 2));
                     console.log('📤 Transformed Data:', JSON.stringify(transformedData, null, 2));
                     console.groupEnd();
@@ -7676,7 +7843,6 @@ class CreatForm {
             hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function'
         });
     }
-
     // ============================================================================
     // UTILITY METHODS (updated to use formatter - NO MORE extractValue!)
     // ============================================================================
@@ -7711,15 +7877,14 @@ class CreatForm {
         }
         return formattedValue;
     }
-
     // ============================================================================
-    // ENHANCED DATA TRANSFORMATION - NO MORE FLATDATA! KEEP ORIGINAL FORMAT!
+    // ENHANCED DATA TRANSFORMATION - NO MORE FLATDATA!
     // ============================================================================
     /**
      * Enhanced data preparation using FormDataProcessor (same as CustomField approach)
      */
     prepareDataForSubmission(originalFormValues) {
-        this.logger.info('🔧 Preparing MULTISELECT ENHANCED data for submission...', originalFormValues);
+        this.logger.info('🔧 Preparing data for submission using FormDataProcessor...', originalFormValues);
         try {
             // Use the data transformer to process the data
             const transformedData = this.dataTransformerInstance.transform(originalFormValues);
@@ -7728,7 +7893,8 @@ class CreatForm {
                 ...transformedData,
                 userAgent: navigator.userAgent,
                 submissionUrl: window.location.href,
-                submissionTimestamp: new Date().toISOString()
+                submissionTimestamp: new Date()
+                    .toISOString()
             };
             this.logger.transformation(originalFormValues, submissionData);
             return submissionData;
@@ -7738,7 +7904,8 @@ class CreatForm {
             return {
                 submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
                 formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
-                submissionTimestamp: new Date().toISOString(),
+                submissionTimestamp: new Date()
+                    .toISOString(),
                 language: this.config.language,
                 userAgent: navigator.userAgent,
                 rawFormData: originalFormValues,
@@ -7746,7 +7913,6 @@ class CreatForm {
             };
         }
     }
-
     // ============================================================================
     // ENHANCED FORM CREATION (updated to pass processor to CustomField)
     // ============================================================================
@@ -7798,12 +7964,11 @@ class CreatForm {
             return field;
         });
     }
-
     // ============================================================================
     // ENHANCED SUBMISSION HANDLING (FIXED to call custom onSubmit)
     // ============================================================================
     handleSubmission = async (formData) => {
-        this.logger.info('🚀 Starting MULTISELECT ENHANCED submission process...', {
+        this.logger.info('🚀 Starting enhanced submission process...', {
             formType: this.config.formType,
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
@@ -7850,7 +8015,7 @@ class CreatForm {
                 submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             } else {
-                this.logger.info('Processing regular MULTISELECT ENHANCED form submission...');
+                this.logger.info('Processing regular form submission...');
                 submissionData = this.prepareDataForSubmission(formData);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             }
@@ -7865,7 +8030,7 @@ class CreatForm {
             if (this.config.voiceflowEnabled) {
                 await this.sendToVoiceflow(submissionData, formData);
             }
-            this.logger.success('🎉 MULTISELECT ENHANCED submission completed successfully!');
+            this.logger.success('🎉 Enhanced submission completed successfully!');
             return submissionData;
         } catch (error) {
             this.logger.error('Enhanced submission failed:', error);
@@ -7879,17 +8044,14 @@ class CreatForm {
             throw error;
         }
     };
-
-    // UNCHANGED: Webhook submission method - KEEP ORIGINAL FORMAT!
+    // NEW: Separate webhook submission method
     async sendToWebhook(submissionData) {
-        this.logger.webhook('Sending MULTISELECT ENHANCED data to webhook...', {
+        this.logger.webhook('Sending data to webhook...', {
             url: this.config.webhookUrl,
-            dataType: 'original format with multiselect arrays'
+            dataType: 'structured (no flatData)'
         });
         try {
             const webhookStartTime = Date.now();
-            
-            // KEEP ORIGINAL FORMAT - Don't change webhook structure!
             const response = await fetch(this.config.webhookUrl, {
                 method: 'POST',
                 headers: {
@@ -7899,7 +8061,7 @@ class CreatForm {
             });
             const webhookDuration = Date.now() - webhookStartTime;
             if (response.ok) {
-                this.logger.webhook(`✅ MULTISELECT ENHANCED webhook submission successful (${webhookDuration}ms)`);
+                this.logger.webhook(`✅ Webhook submission successful (${webhookDuration}ms)`);
             } else {
                 this.logger.webhook(`⚠️ Webhook submission failed (${webhookDuration}ms)`, {
                     status: response.status,
@@ -7910,10 +8072,9 @@ class CreatForm {
             this.logger.webhook('❌ Webhook submission error', webhookError);
         }
     }
-
-    // UNCHANGED: Voiceflow submission method - KEEP ORIGINAL FORMAT!
+    // NEW: Separate Voiceflow submission method
     async sendToVoiceflow(submissionData, originalFormData) {
-        this.logger.voiceflow('Voiceflow integration enabled - preparing MULTISELECT ENHANCED data...');
+        this.logger.voiceflow('Voiceflow integration enabled - preparing data...');
         let voiceflowPayload = submissionData;
         // Apply Voiceflow-specific transformation if provided
         if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
@@ -7933,7 +8094,7 @@ class CreatForm {
         if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
             try {
                 const voiceflowStartTime = Date.now();
-                this.logger.voiceflow('📤 Sending MULTISELECT ENHANCED data to Voiceflow...', {
+                this.logger.voiceflow('📤 Sending data to Voiceflow...', {
                     payload: voiceflowPayload,
                     interactionType: 'success'
                 });
@@ -7942,7 +8103,7 @@ class CreatForm {
                     payload: voiceflowPayload
                 });
                 const voiceflowDuration = Date.now() - voiceflowStartTime;
-                this.logger.voiceflow(`✅ MULTISELECT ENHANCED Voiceflow interaction completed (${voiceflowDuration}ms)`);
+                this.logger.voiceflow(`✅ Voiceflow interaction completed (${voiceflowDuration}ms)`);
             } catch (voiceflowError) {
                 this.logger.voiceflow('❌ Voiceflow interaction error', voiceflowError);
             }
@@ -7950,9 +8111,8 @@ class CreatForm {
             this.logger.warning('Voiceflow not available in window object');
         }
     }
-
     // ============================================================================
-    // ALL OTHER METHODS REMAIN EXACTLY THE SAME AS YOUR ORIGINAL CODE
+    // FORM STRUCTURE DETECTION
     // ============================================================================
     determineFormStructure() {
         const steps = this.formConfig.steps || [];
@@ -7966,7 +8126,9 @@ class CreatForm {
         }
         this.logger.info(`Form structure determined: ${this.state.isSingleStep ? 'Single Step' : 'Multi Step'}`);
     }
-
+    // ============================================================================
+    // FIXED CSS MANAGEMENT - Container-scoped injection for Voiceflow compatibility
+    // ============================================================================
     async loadCSS() {
         if (this.state.cssLoaded) return;
         try {
@@ -7978,6 +8140,7 @@ class CreatForm {
                 .map(result => result.value)
                 .join('\n');
             if (validCSS.trim()) {
+                // Store the CSS for container injection
                 this.combinedCSS = validCSS;
             }
             this.state.cssLoaded = true;
@@ -7986,7 +8149,6 @@ class CreatForm {
             this.logger.error('Failed to load CSS:', error);
         }
     }
-
     async fetchCSS(url) {
         if (this.cssCache.has(url)) return this.cssCache.get(url);
         try {
@@ -7999,30 +8161,36 @@ class CreatForm {
             return '';
         }
     }
-
+    // NEW: Inject CSS into container instead of document.head (Voiceflow-compatible)
     injectCSSIntoContainer(container) {
         if (!this.combinedCSS) return;
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
+        // Remove existing styles from this container
         const existingStyle = container.querySelector(`.${styleClass}`);
         if (existingStyle) {
             existingStyle.remove();
         }
+        // Create new style element and inject into container
         const styleElement = document.createElement('style');
         styleElement.className = styleClass;
         styleElement.textContent = this.combinedCSS;
-        container.appendChild(styleElement);
+        container.appendChild(styleElement); // ← Inject into container, not document.head
         this.logger.success('CSS injected into container successfully');
     }
-
+    // DEPRECATED: Keep for backward compatibility but prefer container injection
     injectCSS(css) {
+        // Fallback to old method if container injection fails
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
-        document.querySelector(`.${styleClass}`)?.remove();
+        document.querySelector(`.${styleClass}`)
+            ?.remove();
         const styleElement = document.createElement('style');
         styleElement.className = styleClass;
         styleElement.textContent = css;
         document.head.appendChild(styleElement);
     }
-
+    // ============================================================================
+    // FORM CREATION - Enhanced for single/multistep support
+    // ============================================================================
     createFormSteps() {
         return this.formConfig.steps.map((stepConfig, index) => {
             if (stepConfig.fields.length === 1 &&
@@ -8046,13 +8214,17 @@ class CreatForm {
             };
         });
     }
-
+    // ============================================================================
+    // ENHANCED SINGLE STEP FORM CREATION WITH ROW SUPPORT AND OPTIONAL SUBMIT BUTTON
+    // ============================================================================
+    // Helper method to group fields by row (same logic as FormStep)
     groupFieldsForSingleStep(fields) {
         const groups = [];
         let i = 0;
         while (i < fields.length) {
             const currentField = fields[i];
             if (currentField.row) {
+                // Find all fields with the same row identifier
                 const rowFields = [];
                 let j = i;
                 while (j < fields.length && fields[j].row === currentField.row) {
@@ -8063,9 +8235,10 @@ class CreatForm {
                     isRow: true,
                     fields: rowFields
                 });
-                i = j;
+                i = j; // Skip the grouped fields
                 continue;
             }
+            // Single field without row
             groups.push({
                 isRow: false,
                 fields: [currentField]
@@ -8074,7 +8247,6 @@ class CreatForm {
         }
         return groups;
     }
-
     createSingleStepForm() {
         const firstStep = this.formConfig.steps[0];
         if (!firstStep) {
@@ -8082,16 +8254,22 @@ class CreatForm {
         }
         this.logger.info('Creating single step form with row support');
         const container = document.createElement('div');
+        // Use same base class as multi-step for consistent styling
         container.className = 'multistep-form single-step-variant';
+        // Create form - Use same structure as multi-step
         const form = document.createElement('form');
-        form.className = 'form-step active';
+        form.className = 'form-step active'; // Same as multi-step step class
+        // Create fields container
         const fieldsContainer = document.createElement('div');
         fieldsContainer.className = 'step-fields';
+        // Create fields with proper row grouping
         const fields = this.createFields(firstStep.fields);
         const fieldInstances = [];
+        // Use the same grouping logic as multi-step forms
         const fieldGroups = this.groupFieldsForSingleStep(fields);
         fieldGroups.forEach(group => {
             if (group.isRow) {
+                // Create row container
                 const rowContainer = document.createElement('div');
                 rowContainer.className = 'field-row';
                 group.fields.forEach(fieldConfig => {
@@ -8106,6 +8284,7 @@ class CreatForm {
                 });
                 fieldsContainer.appendChild(rowContainer);
             } else {
+                // Single field
                 const field = this.factory.createField(group.fields[0]);
                 if (field) {
                     fieldInstances.push(field);
@@ -8114,6 +8293,7 @@ class CreatForm {
             }
         });
         form.appendChild(fieldsContainer);
+        // Create navigation container only if submit button is enabled
         if (this.config.showSubmitButton) {
             const navigationContainer = document.createElement('div');
             navigationContainer.className = 'form-navigation';
@@ -8123,6 +8303,7 @@ class CreatForm {
             submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
             submitButton.addEventListener('click', async () => {
                 this.logger.info('Single step form submit button clicked');
+                // Validate all fields
                 let isValid = true;
                 fieldInstances.forEach(field => {
                     if (!field.validate()) {
@@ -8130,11 +8311,13 @@ class CreatForm {
                     }
                 });
                 if (isValid) {
+                    // Collect form data
                     const formData = {};
                     fieldInstances.forEach(field => {
                         formData[field.name] = field.getValue();
                     });
                     this.logger.info('Single step form validation passed, submitting...', formData);
+                    // Submit
                     await this.handleSubmission(formData);
                 } else {
                     this.logger.warning('Single step form validation failed');
@@ -8142,12 +8325,14 @@ class CreatForm {
             });
             navigationContainer.appendChild(submitButton);
             form.appendChild(navigationContainer);
+            // Store references for cleanup
             this.singleStepForm = {
                 container,
                 fieldInstances,
                 submitButton
             };
         } else {
+            // Store references for cleanup (without submit button)
             this.singleStepForm = {
                 container,
                 fieldInstances,
@@ -8158,7 +8343,9 @@ class CreatForm {
         this.logger.success('Single step form created successfully');
         return container;
     }
-
+    // ============================================================================
+    // BOOKING-SPECIFIC METHODS
+    // ============================================================================
     updateCalendarConfiguration(selectedService) {
         if (!this.isBookingForm || !selectedService) return;
         this.logger.info('Updating calendar configuration with service:', selectedService);
@@ -8194,15 +8381,16 @@ class CreatForm {
             this.logger.info('Calendar field not found, will be configured when calendar step is reached');
         }
     }
-
     getCalendarFieldInstance() {
         if (!this.isBookingForm) return null;
+        // For single step forms
         if (this.state.isSingleStep && this.singleStepForm) {
             const calendarField = this.singleStepForm.fieldInstances.find(field =>
                 field.constructor.name === 'CalendarField'
             );
             if (calendarField) return calendarField;
         }
+        // For multi-step forms
         if (this.multiStepForm) {
             for (let stepIndex = 0; stepIndex < this.multiStepForm.stepInstances.length; stepIndex++) {
                 const stepInstance = this.multiStepForm.stepInstances[stepIndex];
@@ -8216,7 +8404,6 @@ class CreatForm {
         }
         return null;
     }
-
     prepareBookingDataForSubmission(formValues, bookingResponse) {
         const appointment = formValues.appointment || {};
         const formattedDate = appointment.selectedDate ?
@@ -8225,13 +8412,15 @@ class CreatForm {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
-            }).format(new Date(appointment.selectedDate)) : '';
+            })
+            .format(new Date(appointment.selectedDate)) : '';
         const formattedTime = appointment.selectedTime ?
             new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
-            }).format(new Date(appointment.selectedTime)) : '';
+            })
+            .format(new Date(appointment.selectedTime)) : '';
         return {
             firstName: formValues.firstName || '',
             lastName: formValues.lastName || '',
@@ -8249,14 +8438,17 @@ class CreatForm {
             bookingId: bookingResponse?.data?.id || null,
             bookingUid: bookingResponse?.data?.uid || null,
             formLanguage: this.config.language,
-            submissionTimestamp: new Date().toISOString(),
+            submissionTimestamp: new Date()
+                .toISOString(),
             formVersion: this.defaultConfig.FORM_VERSION,
             userAgent: navigator.userAgent,
             formType: "booking_form",
             timezone: this.config.timezone
         };
     }
-
+    // ============================================================================
+    // ENHANCED EVENT HANDLERS
+    // ============================================================================
     handleFieldChange = (name, value) => {
         this.formValues[name] = value;
         this.logger.info(`Field ${name} changed:`, {
@@ -8268,7 +8460,9 @@ class CreatForm {
             this.updateCalendarConfiguration(value);
         }
     };
-
+    // ============================================================================
+    // FIXED SESSION MANAGEMENT - Container-scoped and Voiceflow-integrated
+    // ============================================================================
     setupSessionManagement() {
         if (!this.config.enableSessionTimeout) {
             this.logger.info('Session timeout disabled');
@@ -8281,14 +8475,16 @@ class CreatForm {
         this.warningTimer = setTimeout(() => this.showSessionWarning(), this.config.sessionWarning);
         this.sessionTimer = setTimeout(() => this.disableFormOnTimeout(), this.config.sessionTimeout);
     }
-
+    // FIXED: Show warning inside the form container (not document.body)
     showSessionWarning() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.logger.warning('Session warning displayed');
+        // Remove any existing warning first
         const existingWarning = this.container?.querySelector('.session-warning');
         if (existingWarning) {
             existingWarning.remove();
         }
+        // Create warning div
         const warningDiv = document.createElement('div');
         warningDiv.className = 'session-warning';
         warningDiv.style.cssText = `
@@ -8315,6 +8511,7 @@ class CreatForm {
                 Your session will expire in 2 minutes. Please complete the form soon.
             </p>
         `;
+        // Add CSS animation if not already present
         if (!document.querySelector('#session-warning-styles')) {
             const style = document.createElement('style');
             style.id = 'session-warning-styles';
@@ -8326,19 +8523,21 @@ class CreatForm {
             `;
             document.head.appendChild(style);
         }
+        // Append to form container instead of document.body
         if (this.container) {
-            this.container.style.position = 'relative';
+            this.container.style.position = 'relative'; // Ensure container can contain positioned elements
             this.container.appendChild(warningDiv);
         } else {
+            // Fallback if container not available
             document.body.appendChild(warningDiv);
         }
+        // Auto-remove after 30 seconds
         setTimeout(() => {
             if (warningDiv.parentNode) {
                 warningDiv.remove();
             }
         }, 30000);
     }
-
     disableFormOnTimeout() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.state.sessionExpired = true;
@@ -8354,16 +8553,19 @@ class CreatForm {
                     el.style.pointerEvents = 'none';
                 });
         }
+        // Show timeout overlay and send to Voiceflow
         this.showTimeoutOverlay();
     }
-
+    // FIXED: Better container positioning and Voiceflow integration
     showTimeoutOverlay() {
+        // Remove any existing timeout overlay
         const existingOverlay = this.container?.querySelector('.timeout-overlay');
         if (existingOverlay) {
             existingOverlay.remove();
         }
         const overlay = document.createElement('div');
         overlay.className = 'timeout-overlay';
+        // Enhanced styling for better container containment
         overlay.style.cssText = `
             position: absolute;
             top: 0;
@@ -8398,6 +8600,7 @@ class CreatForm {
                 </p>
             </div>
         `;
+        // Add CSS animation if not already present
         if (!document.querySelector('#timeout-overlay-styles')) {
             const style = document.createElement('style');
             style.id = 'timeout-overlay-styles';
@@ -8409,13 +8612,15 @@ class CreatForm {
             `;
             document.head.appendChild(style);
         }
+        // Ensure container can contain the overlay
         if (this.container) {
             this.container.style.position = 'relative';
             this.container.appendChild(overlay);
         }
+        // FIXED: Send timeout data to Voiceflow
         this.sendTimeoutToVoiceflow();
     }
-
+    // NEW: Send timeout notification to Voiceflow
     sendTimeoutToVoiceflow() {
         this.logger.voiceflow('Sending session timeout notification to Voiceflow...');
         if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
@@ -8424,11 +8629,12 @@ class CreatForm {
                     type: "timeEnd",
                     payload: {
                         message: "Time expired",
-                        sessionDuration: this.config.sessionTimeout / 60000,
+                        sessionDuration: this.config.sessionTimeout / 60000, // in minutes
                         formType: this.config.formType,
                         currentStep: this.state.currentStep,
-                        formData: this.getFormDataForTimeout(),
-                        timestamp: new Date().toISOString()
+                        formData: this.getFormDataForTimeout(), // Get current form state
+                        timestamp: new Date()
+                            .toISOString()
                     }
                 };
                 window.voiceflow.chat.interact(timeoutPayload);
@@ -8440,7 +8646,7 @@ class CreatForm {
             this.logger.warning('Voiceflow not available - cannot send timeout notification');
         }
     }
-
+    // NEW: Get current form data for timeout (non-intrusive)
     getFormDataForTimeout() {
         try {
             if (this.state.isSingleStep && this.singleStepForm) {
@@ -8465,7 +8671,6 @@ class CreatForm {
             return {};
         }
     }
-
     clearSessionTimers() {
         this.logger.info('Clearing session timers');
         if (this.sessionTimer) {
@@ -8476,13 +8681,18 @@ class CreatForm {
             clearTimeout(this.warningTimer);
             this.warningTimer = null;
         }
+        // Remove session warning from container (not document.body)
         const sessionWarning = this.container?.querySelector('.session-warning');
         if (sessionWarning) {
             sessionWarning.remove();
         }
-        document.querySelector('.session-warning')?.remove();
+        // Also remove any global session warnings (fallback cleanup)
+        document.querySelector('.session-warning')
+            ?.remove();
     }
-
+    // ============================================================================
+    // ENHANCED SUCCESS SCREEN - Beautiful Modern UI/UX
+    // ============================================================================
     showSuccessScreen() {
         const formContainer = this.state.isSingleStep ?
             this.singleStepForm?.container :
@@ -8490,6 +8700,7 @@ class CreatForm {
         if (formContainer) formContainer.style.display = 'none';
         const successScreen = document.createElement('div');
         successScreen.className = 'success-state';
+        // Get the SVG check mark from factory, with fallback
         const checkMarkSvg = this.factory?.SVG_ICONS?.CHECK || `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="80px" height="80px">
                 <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
@@ -8510,6 +8721,7 @@ class CreatForm {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         `;
         successScreen.innerHTML = `
+            <!-- Animated background elements -->
             <div style="
                 position: absolute;
                 top: -50%;
@@ -8520,6 +8732,7 @@ class CreatForm {
                 pointer-events: none;
             "></div>
             
+            <!-- Success icon container -->
             <div style="
                 width: 80px;
                 height: 80px;
@@ -8549,6 +8762,7 @@ class CreatForm {
                 </div>
             </div>
             
+            <!-- Success message -->
             <div style="position: relative; z-index: 2;">
                 <span style="
                     color: #1f2937;
@@ -8572,6 +8786,7 @@ class CreatForm {
                 </p>
             </div>
             
+            <!-- Decorative elements -->
             <div style="
                 position: absolute;
                 top: 20px;
@@ -8605,6 +8820,7 @@ class CreatForm {
                 animation: twinkle 4s ease-in-out infinite 0.5s;
             "></div>
         `;
+        // Add CSS animations if not already present
         if (!document.querySelector('#success-screen-styles')) {
             const style = document.createElement('style');
             style.id = 'success-screen-styles';
@@ -8639,6 +8855,7 @@ class CreatForm {
                     50% { opacity: 1; transform: scale(1.2); }
                 }
                 
+                /* Responsive design */
                 @media (max-width: 480px) {
                     .success-state {
                         padding: 40px 20px !important;
@@ -8657,16 +8874,19 @@ class CreatForm {
         this.container.appendChild(successScreen);
         this.logger.success('Enhanced success screen displayed with beautiful UI/UX');
     }
-
+    // ============================================================================
+    // PUBLIC API FOR EXTERNAL SUBMISSION
+    // ============================================================================
     getSubmitButton() {
         if (this.state.isSingleStep && this.singleStepForm) {
-            return this.singleStepForm.submitButton;
+            return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
         }
         return document.querySelector('.btn-submit');
     }
-
+    // Public method to trigger form submission programmatically
     async submitForm() {
         if (this.state.isSingleStep && this.singleStepForm) {
+            // Validate all fields
             let isValid = true;
             this.singleStepForm.fieldInstances.forEach(field => {
                 if (!field.validate()) {
@@ -8674,20 +8894,23 @@ class CreatForm {
                 }
             });
             if (isValid) {
+                // Collect form data
                 const formData = {};
                 this.singleStepForm.fieldInstances.forEach(field => {
                     formData[field.name] = field.getValue();
                 });
+                // Submit
                 return await this.handleSubmission(formData);
             } else {
                 throw new Error('Form validation failed');
             }
         } else if (this.multiStepForm) {
+            // For multi-step forms, delegate to the multistep form
             return await this.multiStepForm.submitForm();
         }
         throw new Error('Form not initialized');
     }
-
+    // Public method to validate form without submitting
     validateForm() {
         if (this.state.isSingleStep && this.singleStepForm) {
             return this.singleStepForm.fieldInstances.every(field => field.validate());
@@ -8696,15 +8919,19 @@ class CreatForm {
         }
         return false;
     }
-
+    // ============================================================================
+    // MAIN RENDER METHOD - Enhanced for single/multistep support with fixed CSS
+    // ============================================================================
     async render(element) {
         try {
-            this.logger.info('🎬 Starting MULTISELECT ENHANCED form render process...');
-            await this.loadCSS();
+            this.logger.info('🎬 Starting form render process...');
+            await this.loadCSS(); // Load CSS but don't inject globally
             this.container = document.createElement('div');
             this.container.className = this.isBookingForm ? 'booking-form-extension' : 'submission-form-extension';
             this.container.id = this.isBookingForm ? 'booking-form-root' : 'submission-form-root';
+            // NEW: Inject CSS into the container after creating it (Voiceflow-compatible)
             this.injectCSSIntoContainer(this.container);
+            // Enhanced FormFieldFactory configuration
             this.factory = new FormFieldFactory({
                 container: this.container,
                 formValues: this.formValues,
@@ -8723,6 +8950,7 @@ class CreatForm {
                     language: this.config.language
                 }
             });
+            // NEW: Set CreatForm instance in factory to initialize processors
             this.factory.setCreatFormInstance(this);
             if (this.state.isSingleStep) {
                 this.logger.info('Creating single step form');
@@ -8759,6 +8987,7 @@ class CreatForm {
                                 }
                             });
                         }
+                        // Call config onStepChange if provided
                         if (this.config.onStepChange) {
                             this.config.onStepChange(stepIndex, stepInstance);
                         }
@@ -8769,7 +8998,7 @@ class CreatForm {
             element.appendChild(this.container);
             this.setupSessionManagement();
             this.state.initialized = true;
-            this.logger.success('🎊 MULTISELECT ENHANCED form rendered successfully!');
+            this.logger.success('🎊 Form rendered successfully with container-scoped CSS and session management!');
             return this.createPublicAPI();
         } catch (error) {
             this.logger.error('Failed to render form:', error);
@@ -8780,7 +9009,9 @@ class CreatForm {
             };
         }
     }
-
+    // ============================================================================
+    // ENHANCED PUBLIC API (updated with new processor methods)
+    // ============================================================================
     createPublicAPI() {
         return {
             destroy: () => this.destroy(),
@@ -8795,9 +9026,11 @@ class CreatForm {
                 }
                 return this.multiStepForm?.getFormData() || {};
             },
+            // NEW: Enhanced data access methods using processor
             getDataProcessor: () => this.dataProcessor,
             getTransformerInstance: () => this.dataTransformerInstance,
             getFormatter: () => this.formatter,
+            // NEW: Test data transformation with processor
             testDataTransformation: (testData) => {
                 if (this.dataTransformerInstance) {
                     try {
@@ -8809,6 +9042,7 @@ class CreatForm {
                 }
                 return null;
             },
+            // NEW: Process data like CustomField does
             processDataLikeCustomField: (testData) => {
                 try {
                     return this.dataProcessor.processFormData(testData);
@@ -8817,6 +9051,7 @@ class CreatForm {
                     return null;
                 }
             },
+            // Updated configuration info
             getConfig: () => ({
                 webhookEnabled: this.config.webhookEnabled,
                 voiceflowEnabled: this.config.voiceflowEnabled,
@@ -8827,8 +9062,9 @@ class CreatForm {
                 hasDataTransformer: !!this.dataTransformerInstance,
                 hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function',
                 dataTransformerType: this.dataTransformerInstance?.constructor.name || 'none',
-                usesFormDataProcessor: true
+                usesFormDataProcessor: true // New flag
             }),
+            // Enhanced testing and debugging methods
             testVoiceflowTransformer: (testData) => {
                 if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
                     try {
@@ -8840,6 +9076,7 @@ class CreatForm {
                 }
                 return null;
             },
+            // Logging control methods
             enableLogging: () => {
                 this.config.enableDetailedLogging = true;
                 this.logger.info('Detailed logging enabled');
@@ -8848,6 +9085,7 @@ class CreatForm {
                 this.config.enableDetailedLogging = false;
                 console.log('📋 CreatForm: Detailed logging disabled');
             },
+            // Data inspection methods
             inspectFormValues: () => {
                 this.logger.info('Current form values:', this.formValues);
                 return this.formValues;
@@ -8858,18 +9096,22 @@ class CreatForm {
                 this.logger.info('Prepared submission data:', prepared);
                 return prepared;
             },
+            // NEW: Inspect processed data
             inspectProcessedData: () => {
                 const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
                 const processed = this.dataProcessor.processFormData(data);
                 this.logger.info('Processed form data (like CustomField):', processed);
                 return processed;
             },
+            // Form manipulation methods
             submitForm: () => this.submitForm(),
             validateForm: () => this.validateForm(),
             reset: () => this.reset()
         };
     }
-
+    // ============================================================================
+    // UTILITY METHODS
+    // ============================================================================
     reset() {
         this.logger.info('Resetting form...');
         this.clearSessionTimers();
@@ -8891,20 +9133,24 @@ class CreatForm {
         this.setupSessionManagement();
         this.logger.success('Form reset completed');
     }
-
+    // UPDATED: Enhanced destroy method to clean up session elements
     destroy() {
         this.logger.info('Destroying form...');
         this.clearSessionTimers();
         
+        // Clean up factory properly
         if (this.factory) {
+            // Unregister all custom fields if needed
             if (this.factory.fieldRegistry) {
                 this.factory.fieldRegistry = {};
             }
             this.factory.destroy();
         }
         
+        // Clean up multi-step form
         if (this.multiStepForm) {
             this.multiStepForm.clearSavedProgress();
+            // Destroy all field instances
             if (this.multiStepForm.stepInstances) {
                 this.multiStepForm.stepInstances.forEach(step => {
                     if (step.fieldInstances) {
@@ -8918,6 +9164,7 @@ class CreatForm {
             }
         }
         
+        // Clean up single-step form
         if (this.singleStepForm && this.singleStepForm.fieldInstances) {
             this.singleStepForm.fieldInstances.forEach(field => {
                 if (typeof field.destroy === 'function') {
@@ -8928,6 +9175,7 @@ class CreatForm {
         
         this.elements.clear();
         
+        // Clean up container-specific styles and session elements
         if (this.container) {
             const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
             const containerStyle = this.container.querySelector(`.${styleClass}`);
@@ -8935,6 +9183,7 @@ class CreatForm {
                 containerStyle.remove();
             }
             
+            // Remove session-related elements
             const sessionWarning = this.container.querySelector('.session-warning');
             const timeoutOverlay = this.container.querySelector('.timeout-overlay');
             if (sessionWarning) sessionWarning.remove();
@@ -8943,10 +9192,12 @@ class CreatForm {
             this.container.remove();
         }
         
+        // Clean up global styles and session elements (fallback)
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
         document.querySelector('.session-warning')?.remove();
         
+        // Clean up injected styles
         document.querySelector('#session-warning-styles')?.remove();
         document.querySelector('#timeout-overlay-styles')?.remove();
         document.querySelector('#success-screen-styles')?.remove();
@@ -8954,9 +9205,6 @@ class CreatForm {
         this.logger.success('Form destroyed successfully');
     }
 }
-
-
-
 /**
  * Enhanced CalendarField - Base class with optional service/provider selection
  * Replaces the need for three separate classes with configuration-driven approach
