@@ -4488,35 +4488,32 @@ const CancellationDirectExtension = {
 const ContactFormExtension = {
     name: "ContactForm",
     type: "response",
-    match: ({
-        trace
-    }) => trace.type === "ext_contact_form" || trace.payload?.name === "ext_contact_form",
-    render: async ({
-        trace,
-        element
-    }) => {
+    match: ({ trace }) => trace.type === "ext_contact_form" || trace.payload?.name === "ext_contact_form",
+    
+    render: async ({ trace, element }) => {
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
         // Following the improved pattern from SubmissionFormExtension
         // ============================================================================
-        let {
-            language = "fr",
-                vf,
-                webhookEnabled = true,
-                webhookUrl = CONFIG.DEFAULT_WEBHOOK,
-                voiceflowEnabled = true,
-                voiceflowDataTransformer = null,
-                enableDetailedLogging = true,
-                logPrefix = "📞 ContactForm",
-                enableSessionTimeout = true,
-                sessionTimeout = CONFIG.SESSION_TIMEOUT,
-                sessionWarning = CONFIG.SESSION_WARNING,
-                cssUrls = CONFIG.DEFAULT_CSS,
-                formType = "contact",
-                formStructure = "multistep",
-                useStructuredData = true,
-                dataTransformer = BaseDataTransformer
+        let { 
+            language = "fr", 
+            vf,
+            webhookEnabled = true,
+            webhookUrl = CONFIG.DEFAULT_WEBHOOK,
+            voiceflowEnabled = true,
+            voiceflowDataTransformer = null,
+            enableDetailedLogging = true,
+            logPrefix = "📞 ContactForm",
+            enableSessionTimeout = true,
+            sessionTimeout = CONFIG.SESSION_TIMEOUT,
+            sessionWarning = CONFIG.SESSION_WARNING,
+            cssUrls = CONFIG.DEFAULT_CSS,
+            formType = "contact",
+            formStructure = "multistep",
+            useStructuredData = true,
+            dataTransformer = BaseDataTransformer
         } = trace.payload || {};
+        
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
             const keys = key.split('.');
@@ -4526,40 +4523,50 @@ const ContactFormExtension = {
             }
             return value || key;
         };
+
         // ============================================================================
         // DRAMATICALLY SIMPLIFIED: No more specific field transformers!
         // Uses generic FormDataProcessor and BaseDataTransformer
         // Following the same pattern as SubmissionFormExtension
         // ============================================================================
+        
         // Create the form with the new generic architecture using extracted variables
-        const extension = new CreatForm({
+        const extension = new CreatForm(
+            {
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
+                
                 // ============================================================================
                 // NEW: Generic approach - no specific field transformers needed!
                 // BaseDataTransformer + FormDataProcessor handle everything automatically
                 // ============================================================================
                 useStructuredData: useStructuredData,
                 dataTransformer: dataTransformer, // Generic transformer works with any form!
+                
                 // ENABLED: Webhook integration using extracted variables
                 webhookEnabled: webhookEnabled,
                 webhookUrl: webhookUrl,
+                
                 // ENABLED: Voiceflow integration with optional custom transformer
                 voiceflowEnabled: voiceflowEnabled,
                 voiceflowDataTransformer: voiceflowDataTransformer,
+                
                 // Enhanced logging using extracted variables
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
+                
                 // Session management using extracted variables
                 enableSessionTimeout: enableSessionTimeout,
                 sessionTimeout: sessionTimeout,
                 sessionWarning: sessionWarning,
+                
                 // CSS configuration using extracted variables
                 cssUrls: cssUrls
             },
             ContactFormExtension.FORM_DATA,
-            ContactFormExtension.FORM_CONFIG, {
+            ContactFormExtension.FORM_CONFIG,
+            {
                 DEFAULT_WEBHOOK: CONFIG.DEFAULT_WEBHOOK,
                 DEFAULT_CSS: CONFIG.DEFAULT_CSS,
                 SESSION_TIMEOUT: CONFIG.SESSION_TIMEOUT,
@@ -4568,111 +4575,58 @@ const ContactFormExtension = {
                 FORM_VERSION: CONFIG.FORM_VERSION
             }
         );
+
         return await extension.render(element);
     },
+
     // ============================================================================
     // FORM DATA CONFIGURATION - Complete options and translations
     // ============================================================================
     FORM_DATA: {
         options: {
             agents: [
-                {
-                    id: "No Preference",
-                    name: {
-                        fr: "Pas de préférence",
-                        en: "No Preference"
-                    }
-                },
-                {
-                    id: "Emma Thompson",
-                    name: "Emma Thompson"
-                },
-                {
-                    id: "Liam Carter",
-                    name: "Liam Carter"
-                },
-                {
-                    id: "Sophia Martinez",
-                    name: "Sophia Martinez"
-                },
-                {
-                    id: "Ethan Brown",
-                    name: "Ethan Brown"
-                },
-                {
-                    id: "Olivia Davis",
-                    name: "Olivia Davis"
-                },
-                {
-                    id: "Noah Wilson",
-                    name: "Noah Wilson"
-                },
-                {
-                    id: "Ava Johnson",
-                    name: "Ava Johnson"
-                }
+                { id: "No Preference", name: { fr: "Pas de préférence", en: "No Preference" }},
+                { id: "Emma Thompson", name: "Emma Thompson" },
+                { id: "Liam Carter", name: "Liam Carter" },
+                { id: "Sophia Martinez", name: "Sophia Martinez" },
+                { id: "Ethan Brown", name: "Ethan Brown" },
+                { id: "Olivia Davis", name: "Olivia Davis" },
+                { id: "Noah Wilson", name: "Noah Wilson" },
+                { id: "Ava Johnson", name: "Ava Johnson" }
             ],
+            
             services: [
-                {
-                    id: "Ventes",
-                    name: {
-                        fr: "Ventes",
-                        en: "Sell"
-                    }
-                },
-                {
-                    id: "Achat",
-                    name: {
-                        fr: "Achat",
-                        en: "Buy"
-                    }
-                },
-                {
-                    id: "Information",
-                    name: {
-                        fr: "Information",
-                        en: "Information"
-                    }
-                }
+                { id: "Ventes", name: { fr: "Ventes", en: "Sell" }},
+                { id: "Achat", name: { fr: "Achat", en: "Buy" }},
+                { id: "Information", name: { fr: "Information", en: "Information" }}
             ]
         },
+        
         translations: {
             fr: {
-                nav: {
-                    next: "Suivant",
-                    previous: "Précédent",
-                    submit: "Envoyer",
-                    processing: "Traitement..."
+                nav: { 
+                    next: "Suivant", 
+                    previous: "Précédent", 
+                    submit: "Envoyer", 
+                    processing: "Traitement..." 
                 },
-                common: {
-                    yes: "Oui",
-                    no: "Non",
-                    other: "Autre",
-                    required: "requis",
-                    fieldRequired: "Ce champ est requis",
-                    edit: "Modifier",
-                    notSpecified: "Non spécifié",
+                common: { 
+                    yes: "Oui", 
+                    no: "Non", 
+                    other: "Autre", 
+                    required: "requis", 
+                    fieldRequired: "Ce champ est requis", 
+                    edit: "Modifier", 
+                    notSpecified: "Non spécifié", 
                     none: "Aucun",
                     pleaseSpecify: "Veuillez préciser...",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
                 },
                 steps: [
-                    {
-                        title: "Contact",
-                        desc: "Vos informations de contact"
-                    },
-                    {
-                        title: "Agent & Service",
-                        desc: "Sélection de l'agent et du service"
-                    },
-                    {
-                        title: "Message",
-                        desc: "Détails de votre message"
-                    },
-                    {
-                        title: "Résumé",
-                        desc: "Vérifiez vos informations avant envoi"
-                    }
+                    { title: "Contact", desc: "Vos informations de contact" },
+                    { title: "Agent & Service", desc: "Sélection de l'agent et du service" },
+                    { title: "Message", desc: "Détails de votre message" },
+                    { title: "Résumé", desc: "Vérifiez vos informations avant envoi" }
                 ],
                 fields: {
                     fullName: "Nom complet",
@@ -4701,9 +4655,9 @@ const ContactFormExtension = {
                     message: "Un message est obligatoire",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
                 },
-                success: {
-                    title: "Message envoyé avec succès !",
-                    message: "Votre message a été envoyé avec succès. Notre équipe vous contactera bientôt."
+                success: { 
+                    title: "Message envoyé avec succès !", 
+                    message: "Votre message a été envoyé avec succès. Notre équipe vous contactera bientôt." 
                 },
                 summary: {
                     title: "Vérifiez vos informations",
@@ -4721,42 +4675,31 @@ const ContactFormExtension = {
                     noDataProvided: "Aucune donnée fournie pour cette section"
                 }
             },
+            
             en: {
-                nav: {
-                    next: "Next",
-                    previous: "Previous",
-                    submit: "Submit",
-                    processing: "Processing..."
+                nav: { 
+                    next: "Next", 
+                    previous: "Previous", 
+                    submit: "Submit", 
+                    processing: "Processing..." 
                 },
-                common: {
-                    yes: "Yes",
-                    no: "No",
-                    other: "Other",
-                    required: "required",
-                    fieldRequired: "This field is required",
-                    edit: "Edit",
-                    notSpecified: "Not specified",
+                common: { 
+                    yes: "Yes", 
+                    no: "No", 
+                    other: "Other", 
+                    required: "required", 
+                    fieldRequired: "This field is required", 
+                    edit: "Edit", 
+                    notSpecified: "Not specified", 
                     none: "None",
                     pleaseSpecify: "Please specify...",
                     selectAtLeastOne: "Please select at least one option"
                 },
                 steps: [
-                    {
-                        title: "Contact",
-                        desc: "Your contact information"
-                    },
-                    {
-                        title: "Agent & Service",
-                        desc: "Agent and service selection"
-                    },
-                    {
-                        title: "Message",
-                        desc: "Your message details"
-                    },
-                    {
-                        title: "Summary",
-                        desc: "Review your information before submission"
-                    }
+                    { title: "Contact", desc: "Your contact information" },
+                    { title: "Agent & Service", desc: "Agent and service selection" },
+                    { title: "Message", desc: "Your message details" },
+                    { title: "Summary", desc: "Review your information before submission" }
                 ],
                 fields: {
                     fullName: "Full Name",
@@ -4785,9 +4728,9 @@ const ContactFormExtension = {
                     message: "A message is required",
                     selectAtLeastOne: "Please select at least one option"
                 },
-                success: {
-                    title: "Message Sent Successfully!",
-                    message: "Your message has been sent successfully. Our team will contact you soon."
+                success: { 
+                    title: "Message Sent Successfully!", 
+                    message: "Your message has been sent successfully. Our team will contact you soon." 
                 },
                 summary: {
                     title: "Review Your Information",
@@ -4807,6 +4750,7 @@ const ContactFormExtension = {
             }
         }
     },
+
     // ============================================================================
     // FORM CONFIGURATION - Field definitions and step structure
     // ============================================================================
@@ -4816,18 +4760,18 @@ const ContactFormExtension = {
             {
                 sectionId: "contact_information", // NEW: Explicit section ID for generic processing
                 fields: [
-                    {
-                        type: 'text',
-                        id: 'fullName',
-                        required: true,
+                    { 
+                        type: 'text', 
+                        id: 'fullName', 
+                        required: true, 
                         row: 'name',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.fullName,
                         getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.fullName
                     },
-                    {
-                        type: 'email',
-                        id: 'email',
-                        required: true,
+                    { 
+                        type: 'email', 
+                        id: 'email', 
+                        required: true, 
                         row: 'contact',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.email,
                         getCustomErrorMessages: (lang) => ({
@@ -4836,10 +4780,10 @@ const ContactFormExtension = {
                         }),
                         getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.email
                     },
-                    {
-                        type: 'phone',
-                        id: 'phone',
-                        required: true,
+                    { 
+                        type: 'phone', 
+                        id: 'phone', 
+                        required: true, 
                         row: 'contact',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.phone,
                         getCustomErrorMessages: (lang) => ({
@@ -4850,24 +4794,24 @@ const ContactFormExtension = {
                     }
                 ]
             },
-
+            
             // Step 2: Agent & Service Selection
             {
                 sectionId: "agent_service_selection", // NEW: Explicit section ID
                 fields: [
-                    {
-                        type: 'select',
-                        id: 'agent',
-                        required: true,
+                    { 
+                        type: 'select', 
+                        id: 'agent', 
+                        required: true, 
                         options: 'agents',
                         row: 'agent',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.agent,
                         getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.agent
                     },
-                    {
-                        type: 'select',
-                        id: 'service',
-                        required: true,
+                    { 
+                        type: 'select', 
+                        id: 'service', 
+                        required: true, 
                         options: 'services',
                         row: 'service',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.service,
@@ -4875,16 +4819,16 @@ const ContactFormExtension = {
                     }
                 ]
             },
-
+            
             // Step 3: Message Details
             {
                 sectionId: "message_details", // NEW: Explicit section ID
                 fields: [
-                    {
-                        type: 'textarea',
-                        id: 'message',
-                        required: true,
-                        maxLength: 1000,
+                    { 
+                        type: 'textarea', 
+                        id: 'message', 
+                        required: true, 
+                        maxLength: 1000, 
                         rows: 6,
                         row: 'message',
                         getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.message,
@@ -4892,13 +4836,13 @@ const ContactFormExtension = {
                     }
                 ]
             },
-
+            
             // Step 4: Contact Summary
             {
                 sectionId: "contact_summary", // NEW: Explicit section ID
                 fields: [
-                    {
-                        type: 'custom',
+                    { 
+                        type: 'custom', 
                         id: 'summary',
                         name: 'summary',
                         autoSummary: true,
@@ -4910,6 +4854,7 @@ const ContactFormExtension = {
         ]
     }
 };
+
 // ============================================================================
 // SETUP AND INITIALIZATION
 // ============================================================================
