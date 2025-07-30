@@ -3666,6 +3666,9 @@ class SingleSelectField extends BaseField {
 /**
  * MultiSelectField - Multiple dropdown with personalized error messages
  */
+/**
+ * FIXED MultiSelectField - Updated getValue() method to match MultiSelectWithOtherField technique
+ */
 class MultiSelectField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -3684,6 +3687,93 @@ class MultiSelectField extends BaseField {
         return super.validate();
     }
 
+    /**
+     * FIXED: Complete getValue() method - now matches MultiSelectWithOtherField technique
+     * This ensures proper display in summary step
+     */
+    getValue() {
+        if (this.selectedValues.length === 0) {
+            return {
+                arrayValue: [],
+                stringValue: '',
+                rawValue: this.selectedValues // Keep backward compatibility
+            };
+        }
+
+        // Get display names for selected options (FIXED: Complete implementation)
+        const displayNames = this.selectedValues.map(value => {
+            const option = this.options.find(opt => opt.id === value);
+            if (option) {
+                // Handle multilingual names - FIXED: Complete language handling
+                const language = this.factory?.config?.language || this.factory?.language || 'fr';
+                if (typeof option.name === 'object' && option.name !== null) {
+                    return option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
+                }
+                return option.name;
+            }
+            return value; // fallback to raw value
+        });
+
+        // FIXED: Return the same structure as MultiSelectWithOtherField
+        return {
+            arrayValue: displayNames,
+            stringValue: displayNames.join(', '),
+            rawValue: this.selectedValues // Keep backward compatibility for existing code
+        };
+    }
+
+    /**
+     * FIXED: Enhanced setValue() method to handle both formats
+     */
+    setValue(values) {
+        // Handle different input formats - same as MultiSelectWithOtherField
+        if (typeof values === 'object' && values !== null) {
+            if (values.arrayValue) {
+                this.selectedValues = Array.isArray(values.arrayValue) ? values.arrayValue : [];
+            } else if (values.rawValue) {
+                this.selectedValues = Array.isArray(values.rawValue) ? values.rawValue : [];
+            } else if (Array.isArray(values)) {
+                this.selectedValues = values;
+            } else {
+                this.selectedValues = [];
+            }
+        } else {
+            this.selectedValues = Array.isArray(values) ? values : [];
+        }
+
+        this.value = this.selectedValues;
+        
+        if (this.element) {
+            Array.from(this.element.options).forEach(option => {
+                option.selected = this.selectedValues.includes(option.value);
+            });
+            if (this.customOptionsElement) {
+                this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)')
+                    .forEach(opt => {
+                        if (this.selectedValues.includes(opt.dataset.value)) {
+                            opt.classList.add('selected');
+                        } else {
+                            opt.classList.remove('selected');
+                        }
+                    });
+                this.updateSelectAllState();
+            }
+            if (this.selectDisplayElement) {
+                this.updateDisplayText();
+            }
+        }
+    }
+
+    /**
+     * FIXED: Add getDisplayValue method for consistency
+     * This method ensures proper summary display
+     */
+    getDisplayValue() {
+        const value = this.getValue();
+        return value.stringValue || '';
+    }
+
+    // Rest of the MultiSelectField methods remain the same...
     render() {
         const container = this.createContainer();
         const label = this.createLabel();
@@ -3692,103 +3782,108 @@ class MultiSelectField extends BaseField {
 
         this.element = document.createElement('select');
         this.element.id = this.id;
-        this.element.name = this.name;
         this.element.multiple = true;
         this.element.style.display = 'none';
 
-        // Add options to select element
-        this.options.forEach(option => {
-            const optionElement = document.createElement('option');
-            optionElement.value = option.id;
-            optionElement.textContent = option.name;
-            this.element.appendChild(optionElement);
-        });
-
-        const selectWrapper = document.createElement('div');
-        selectWrapper.className = 'select-wrapper multi-select';
+        this.selectWrapper = document.createElement('div');
+        this.selectWrapper.className = 'select-wrapper';
 
         this.selectDisplayElement = document.createElement('div');
         this.selectDisplayElement.className = 'select-display placeholder';
         this.selectDisplayElement.innerHTML = `
             <span>${this.placeholder}</span>
-            <div class="dropdown-icon">
-                ${this.factory.SVG_ICONS.CHEVRON}
-            </div>
+            <div class="dropdown-icon">${this.factory.SVG_ICONS.DROPDOWN}</div>
         `;
 
         this.customOptionsElement = document.createElement('div');
         this.customOptionsElement.className = 'custom-options';
 
-        // Add select all option
-        const selectAllOption = document.createElement('div');
-        selectAllOption.className = 'custom-option select-all-option';
-        selectAllOption.innerHTML = `
-            <div class="option-checkbox">
-                ${this.factory.SVG_ICONS.CHECK}
-            </div>
-            <span>${this.factory.getText('selectAll')}</span>
-        `;
-        selectAllOption.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleSelectAll();
-        });
-        this.customOptionsElement.appendChild(selectAllOption);
+        this.selectWrapper.appendChild(this.selectDisplayElement);
+        this.selectWrapper.appendChild(this.customOptionsElement);
+        mainContainer.appendChild(this.element);
+        mainContainer.appendChild(this.selectWrapper);
+        container.appendChild(label);
+        container.appendChild(mainContainer);
+        this.container = container;
 
-        // Add individual options
-        this.options.forEach(option => {
-            const customOption = document.createElement('div');
-            customOption.className = 'custom-option';
-            customOption.setAttribute('data-value', option.id);
-            customOption.innerHTML = `
-                <div class="option-checkbox">
-                    ${this.factory.SVG_ICONS.CHECK}
-                </div>
-                <span>${option.name}</span>
-            `;
-            customOption.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleOption(option, customOption);
-            });
-            this.customOptionsElement.appendChild(customOption);
-        });
+        this.setupEventListeners();
+        this.populateOptions();
 
-        selectWrapper.appendChild(this.selectDisplayElement);
-        selectWrapper.appendChild(this.customOptionsElement);
+        return container;
+    }
 
+    setupEventListeners() {
         this.selectDisplayElement.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleDropdown();
         });
 
-        mainContainer.appendChild(this.element);
-        mainContainer.appendChild(selectWrapper);
-
-        const errorElement = this.createErrorElement();
-        container.appendChild(label);
-        container.appendChild(mainContainer);
-        container.appendChild(errorElement);
-
-        this.container = container;
-        this.selectWrapper = selectWrapper;
-        return container;
+        document.addEventListener('click', (e) => {
+            if (!this.selectWrapper.contains(e.target)) {
+                this.closeDropdown();
+            }
+        });
     }
 
-    toggleOption(option, customOption) {
-        const isSelected = customOption.classList.contains('selected');
-        const optElement = this.element.querySelector(`option[value="${option.id}"]`);
+    populateOptions() {
+        if (this.element && this.customOptionsElement) {
+            this.element.innerHTML = '';
+            this.customOptionsElement.innerHTML = '';
+
+            const selectAllOption = document.createElement('div');
+            selectAllOption.className = 'custom-option select-all-option';
+            selectAllOption.innerHTML = `
+                <div class="custom-checkbox">
+                    ${this.factory.SVG_ICONS.CHECK}
+                </div>
+                <span>${this.factory.getText('selectAll')}</span>
+            `;
+            selectAllOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleSelectAll();
+            });
+            this.customOptionsElement.appendChild(selectAllOption);
+
+            this.options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.id;
+                optionElement.textContent = option.name;
+                this.element.appendChild(optionElement);
+
+                const customOption = document.createElement('div');
+                customOption.className = 'custom-option';
+                customOption.dataset.value = option.id;
+                customOption.innerHTML = `
+                    <div class="custom-checkbox">
+                        ${this.factory.SVG_ICONS.CHECK}
+                    </div>
+                    <span>${option.name}</span>
+                `;
+                customOption.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.selectMainOption(option);
+                });
+                this.customOptionsElement.appendChild(customOption);
+            });
+        }
+    }
+
+    selectMainOption(option) {
+        const optionElement = this.customOptionsElement.querySelector(`[data-value="${option.id}"]`);
+        const selectElement = this.element.querySelector(`option[value="${option.id}"]`);
         
-        if (isSelected) {
-            customOption.classList.remove('selected');
-            if (optElement) optElement.selected = false;
-            this.selectedValues = this.selectedValues.filter(val => val !== option.id);
+        if (optionElement.classList.contains('selected')) {
+            optionElement.classList.remove('selected');
+            if (selectElement) selectElement.selected = false;
+            this.selectedValues = this.selectedValues.filter(v => v !== option.id);
         } else {
-            customOption.classList.add('selected');
-            if (optElement) optElement.selected = true;
+            optionElement.classList.add('selected');
+            if (selectElement) selectElement.selected = true;
             this.selectedValues.push(option.id);
         }
-
-        this.updateDisplayText();
+        
         this.updateSelectAllState();
+        this.updateDisplayText();
         this.value = this.selectedValues;
         this.hideError();
         this.handleChange();
@@ -3880,81 +3975,6 @@ class MultiSelectField extends BaseField {
         if (this.dropdownInstance) {
             this.factory.unregisterDropdown(this.dropdownInstance);
             this.dropdownInstance = null;
-        }
-    }
-
-    /**
-     * UPDATED: getValue() method to return both string and array formats
-     */
-    getValue() {
-        if (this.selectedValues.length === 0) {
-            return {
-                arrayValue: [],
-                stringValue: '',
-                rawValue: this.selectedValues // Keep backward compatibility
-            };
-        }
-
-        // Get display names for selected options
-        const displayNames = this.selectedValues.map(value => {
-            const option = this.options.find(opt => opt.id === value);
-            if (option) {
-                // Handle multilingual names
-                const language = this.factory?.config?.language || this.factory?.language || 'fr';
-                if (typeof option.name === 'object' && option.name !== null) {
-                    return option.name[language] || option.name.fr || option.name.en || Object.values(option.name)[0] || option.name;
-                }
-                return option.name;
-            }
-            return value; // fallback to raw value
-        });
-
-        return {
-            arrayValue: displayNames,
-            stringValue: displayNames.join(', '),
-            rawValue: this.selectedValues // Keep backward compatibility for existing code
-        };
-    }
-
-    /**
-     * UPDATED: setValue() method to handle both formats
-     */
-    setValue(values) {
-        // Handle different input formats
-        if (typeof values === 'object' && values !== null) {
-            if (values.arrayValue) {
-                this.selectedValues = Array.isArray(values.arrayValue) ? values.arrayValue : [];
-            } else if (values.rawValue) {
-                this.selectedValues = Array.isArray(values.rawValue) ? values.rawValue : [];
-            } else if (Array.isArray(values)) {
-                this.selectedValues = values;
-            } else {
-                this.selectedValues = [];
-            }
-        } else {
-            this.selectedValues = Array.isArray(values) ? values : [];
-        }
-
-        this.value = this.selectedValues;
-        
-        if (this.element) {
-            Array.from(this.element.options).forEach(option => {
-                option.selected = this.selectedValues.includes(option.value);
-            });
-            if (this.customOptionsElement) {
-                this.customOptionsElement.querySelectorAll('.custom-option:not(.select-all-option)')
-                    .forEach(opt => {
-                        if (this.selectedValues.includes(opt.dataset.value)) {
-                            opt.classList.add('selected');
-                        } else {
-                            opt.classList.remove('selected');
-                        }
-                    });
-                this.updateSelectAllState();
-            }
-            if (this.selectDisplayElement) {
-                this.updateDisplayText();
-            }
         }
     }
 
