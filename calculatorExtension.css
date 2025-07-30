@@ -145,17 +145,7 @@
     margin-bottom: 20px;
 }
 
-.summary-heading {
-    font-size: 16px;
-    font-weight: 600;
-    color: #e95d2c;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+
 
 .summary-row {
     display: flex;
