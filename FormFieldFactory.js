@@ -3985,7 +3985,7 @@ class SingleSelectSubsectionsField extends BaseField {
             return;
         }
         // Get language from factory with fallbacks
-        const language =  this.config.language || 'fr';
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
         this.subsectionOptions.forEach(group => {
             const mainDiv = document.createElement('div');
             mainDiv.className = 'custom-option category-option';
@@ -4024,7 +4024,7 @@ class SingleSelectSubsectionsField extends BaseField {
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
         // Get language from factory with fallbacks
-        const language =  this.config.language || 'fr';
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
         group.subcategories.forEach(item => {
             // Handle multilingual names for subcategories with better fallbacks
             let itemName = item.name;
@@ -4063,7 +4063,7 @@ class SingleSelectSubsectionsField extends BaseField {
     }
     selectOption(option) {
         // Get language from factory with fallbacks
-        const language =  this.config.language || 'fr';
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
         // Handle multilingual names for display
         let optionName = option.name;
         if (typeof option.name === 'object' && option.name !== null) {
@@ -4141,7 +4141,7 @@ class SingleSelectSubsectionsField extends BaseField {
         this.value = value;
         if (this.element) {
             // Get language from factory with fallbacks
-            const language =  this.config.language || 'fr';
+            const language = this.factory?.config?.language || this.factory?.language || 'fr';
             // Find the option in subsections
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === value);
@@ -4272,7 +4272,7 @@ class MultiSelectSubsectionsField extends BaseField {
             return;
         }
         // Get language from factory with fallbacks
-        const language =  this.config.language || 'fr';
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
         // Add Select All option
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
@@ -4328,7 +4328,7 @@ class MultiSelectSubsectionsField extends BaseField {
         const subWrapper = document.createElement('div');
         subWrapper.className = 'sub-options';
         // Get language from factory with fallbacks
-        const language =  this.config.language || 'fr';
+        const language = this.factory?.config?.language || this.factory?.language || 'fr';
         // Add Select All for this group
         const selectAllDiv = document.createElement('div');
         selectAllDiv.className = 'custom-option select-all-option';
@@ -4507,7 +4507,7 @@ class MultiSelectSubsectionsField extends BaseField {
             this.selectDisplayElement.classList.add('placeholder');
         } else if (this.selectedValues.length === 1) {
             // Get language from factory with fallbacks
-            const language =  this.config.language || 'fr';
+            const language = this.factory?.config?.language || this.factory?.language || 'fr';
             // Find the option name
             for (const group of this.subsectionOptions) {
                 const option = group.subcategories.find(opt => opt.id === this.selectedValues[0]);
