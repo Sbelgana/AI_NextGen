@@ -5596,6 +5596,11 @@ class SingleSelectWithOtherField extends BaseField {
 /**
  * MultiSelectWithOtherField - Multiple dropdown with "Other" option and personalized error messages
  */
+/**
+ * FIXED: MultiSelectWithOtherField - Proper error handling for "other" input
+ * The issue was in how the error element was created and structured
+ */
+
 class MultiSelectWithOtherField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -5706,7 +5711,7 @@ class MultiSelectWithOtherField extends BaseField {
         mainContainer.appendChild(this.element);
         mainContainer.appendChild(selectWrapper);
 
-        // Create other input container
+        // FIXED: Create other input container with proper error structure
         this.otherContainer = document.createElement('div');
         this.otherContainer.className = 'conditional-field-wrapper';
         this.otherContainer.id = `${this.id}-other-group`;
@@ -5723,9 +5728,14 @@ class MultiSelectWithOtherField extends BaseField {
         this.otherInput.placeholder = this.otherPlaceholder;
         this.otherInput.className = 'form-input';
 
+        // FIXED: Create error element with proper structure like the working version
         this.otherError = document.createElement('div');
-        this.otherError.className = 'field-error';
-        this.otherError.textContent = this.factory.getText('pleaseSpecify');
+        this.otherError.className = 'error-message'; // FIXED: Use 'error-message' instead of 'field-error'
+        this.otherError.id = `error-${this.id}-other`; // FIXED: Add proper ID
+        this.otherError.innerHTML = `
+            <div class="error-icon">!</div>
+            <span class="error-text">${this.getFieldErrorMessage('required')}</span>
+        `; // FIXED: Use proper structure with icon and getFieldErrorMessage
 
         this.otherContainer.appendChild(otherLabel);
         this.otherContainer.appendChild(this.otherInput);
@@ -5771,10 +5781,14 @@ class MultiSelectWithOtherField extends BaseField {
 
         if (this.selectedValues.includes('other')) {
             this.otherContainer.style.display = 'block';
+            // FIXED: Clear any existing error when "other" is first selected
+            this.otherError.classList.remove('show');
         } else {
             this.otherContainer.style.display = 'none';
             this.otherValue = '';
             this.otherInput.value = '';
+            // FIXED: Clear error when "other" is deselected
+            this.otherError.classList.remove('show');
         }
 
         this.updateDisplayText();
@@ -5810,10 +5824,14 @@ class MultiSelectWithOtherField extends BaseField {
             this.otherContainer.style.display = 'none';
             this.otherValue = '';
             this.otherInput.value = '';
+            // FIXED: Clear error when deselecting all
+            this.otherError.classList.remove('show');
         } else {
             selectAllOption.classList.add('selected');
             this.selectedValues = [...this.options.map(opt => opt.id), 'other'];
             this.otherContainer.style.display = 'block';
+            // FIXED: Clear error when selecting all (including other)
+            this.otherError.classList.remove('show');
         }
 
         this.updateDisplayText();
