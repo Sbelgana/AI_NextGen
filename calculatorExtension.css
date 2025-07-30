@@ -43,13 +43,13 @@
 
 .tab-button:hover {
     background: rgba(233, 93, 44, 0.05);
-    color: #e95d2c;
+    color: #b4946e;
 }
 
 .tab-button.active {
     background: white;
-    color: #e95d2c;
-    border-bottom: 3px solid #e95d2c;
+    color: #b4946e;
+    border-bottom: 3px solid #b4946e;
 }
 
 /* ========================================
@@ -84,13 +84,13 @@
 .result-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(2, 48, 71, 0.15);
-    border-color: #e95d2c;
+    border-color: #b4946e;
 }
 
 .result-title {
     font-size: 18px;
     font-weight: 600;
-    color: #e95d2c;
+    color: #b4946e;
     text-align: center;
     margin-bottom: 20px;
 }
@@ -120,7 +120,7 @@
 }
 
 .result-value.highlighted {
-    color: #e95d2c;
+    color: #b4946e;
     font-size: 22px;
 }
 
