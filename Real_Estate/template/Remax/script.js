@@ -4485,15 +4485,14 @@ const CancellationDirectExtension = {
 // ============================================================================
 // ENHANCED CONTACT FORM EXTENSION - REWRITTEN WITH GENERIC APPROACH
 // ============================================================================
-const ContactFormExtension = {
-    name: "ContactForm",
+       const ContactFormExtension = {
+    name: "RealEstateContactForm",
     type: "response",
     match: ({ trace }) => trace.type === "ext_contact_form" || trace.payload?.name === "ext_contact_form",
     
     render: async ({ trace, element }) => {
         // ============================================================================
         // EXTRACT ALL PAYLOAD DATA INTO VARIABLES USING DESTRUCTURING
-        // Following the improved pattern from SubmissionFormExtension
         // ============================================================================
         let { 
             language = "fr", 
@@ -4503,7 +4502,7 @@ const ContactFormExtension = {
             voiceflowEnabled = true,
             voiceflowDataTransformer = null,
             enableDetailedLogging = true,
-            logPrefix = "📞 ContactForm",
+            logPrefix = "🏠 ContactForm",
             enableSessionTimeout = true,
             sessionTimeout = CONFIG.SESSION_TIMEOUT,
             sessionWarning = CONFIG.SESSION_WARNING,
@@ -4512,8 +4511,8 @@ const ContactFormExtension = {
             formStructure = "multistep",
             useStructuredData = true,
             dataTransformer = BaseDataTransformer
-        } = trace.payload || {};
-        
+        } = trace.payload;
+
         // Helper function to get translated text
         const getTranslatedText = (key, lang = language) => {
             const keys = key.split('.');
@@ -4525,55 +4524,150 @@ const ContactFormExtension = {
         };
 
         // ============================================================================
-        // DRAMATICALLY SIMPLIFIED: No more specific field transformers!
-        // Uses generic FormDataProcessor and BaseDataTransformer
-        // Following the same pattern as SubmissionFormExtension
+        // CREATE DYNAMIC FORM CONFIGURATION WITH CURRENT LANGUAGE
         // ============================================================================
-        
-        // Create the form with the new generic architecture using extracted variables
+        const dynamicFormConfig = {
+            steps: [
+                // Step 1: Contact Information (Split into firstName and lastName)
+                {
+                    sectionId: "contact_information",
+                    fields: [
+                        { 
+                            type: 'text', 
+                            id: 'firstName', 
+                            required: true, 
+                            row: 'name',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.firstName,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.firstName
+                        },
+                        { 
+                            type: 'text', 
+                            id: 'lastName', 
+                            required: true, 
+                            row: 'name',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.lastName,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.lastName
+                        },
+                        { 
+                            type: 'email', 
+                            id: 'email', 
+                            required: true, 
+                            row: 'contact',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.email,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.email,
+                            customErrorMessages: {
+                                required: ContactFormExtension.FORM_DATA.translations[language].errors.email,
+                                invalid: ContactFormExtension.FORM_DATA.translations[language].errors.emailInvalid
+                            }
+                        },
+                        { 
+                            type: 'phone', 
+                            id: 'phone', 
+                            required: true, 
+                            row: 'contact',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.phone,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.phone,
+                            customErrorMessages: {
+                                required: ContactFormExtension.FORM_DATA.translations[language].errors.phone,
+                                phone: ContactFormExtension.FORM_DATA.translations[language].errors.phoneInvalid
+                            }
+                        }
+                    ]
+                },
+                
+                // Step 2: Agent & Service Selection
+                {
+                    sectionId: "agent_service_selection",
+                    fields: [
+                        { 
+                            type: 'select', 
+                            id: 'agent', 
+                            required: true, 
+                            options: 'agents',
+                            row: 'agent',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.agent,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.agent
+                        },
+                        { 
+                            type: 'select', 
+                            id: 'service', 
+                            required: true, 
+                            options: 'services',
+                            row: 'service',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.service,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.service
+                        }
+                    ]
+                },
+                
+                // Step 3: Message
+                {
+                    sectionId: "message_details",
+                    fields: [
+                        { 
+                            type: 'textarea', 
+                            id: 'message', 
+                            required: true, 
+                            maxLength: 1000, 
+                            rows: 6,
+                            row: 'textarea',
+                            placeholder: ContactFormExtension.FORM_DATA.translations[language].placeholders.message,
+                            customErrorMessage: ContactFormExtension.FORM_DATA.translations[language].errors.message
+                        }
+                    ]
+                },
+                
+                // Step 4: Summary
+                {
+                    sectionId: "contact_summary",
+                    fields: [
+                        { 
+                            type: 'custom', 
+                            id: 'summary',
+                            name: 'summary',
+                            autoSummary: true,
+                            getSummaryData: true,
+                            label: ''
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Create the form with the new generic architecture and dynamic config
         const extension = new CreatForm(
             {
                 language: language,
                 formType: formType,
                 formStructure: formStructure,
                 
-                // ============================================================================
-                // NEW: Generic approach - no specific field transformers needed!
-                // BaseDataTransformer + FormDataProcessor handle everything automatically
-                // ============================================================================
+                // Generic approach
                 useStructuredData: useStructuredData,
-                dataTransformer: dataTransformer, // Generic transformer works with any form!
+                dataTransformer: dataTransformer,
                 
-                // ENABLED: Webhook integration using extracted variables
+                // Webhook integration
                 webhookEnabled: webhookEnabled,
                 webhookUrl: webhookUrl,
                 
-                // ENABLED: Voiceflow integration with optional custom transformer
+                // Voiceflow integration
                 voiceflowEnabled: voiceflowEnabled,
                 voiceflowDataTransformer: voiceflowDataTransformer,
                 
-                // Enhanced logging using extracted variables
+                // Enhanced logging
                 enableDetailedLogging: enableDetailedLogging,
                 logPrefix: logPrefix,
                 
-                // Session management using extracted variables
+                // Session management
                 enableSessionTimeout: enableSessionTimeout,
                 sessionTimeout: sessionTimeout,
                 sessionWarning: sessionWarning,
                 
-                // CSS configuration using extracted variables
+                // CSS configuration
                 cssUrls: cssUrls
             },
             ContactFormExtension.FORM_DATA,
-            ContactFormExtension.FORM_CONFIG,
-            {
-                DEFAULT_WEBHOOK: CONFIG.DEFAULT_WEBHOOK,
-                DEFAULT_CSS: CONFIG.DEFAULT_CSS,
-                SESSION_TIMEOUT: CONFIG.SESSION_TIMEOUT,
-                SESSION_WARNING: CONFIG.SESSION_WARNING,
-                DEBOUNCE_DELAY: CONFIG.DEBOUNCE_DELAY,
-                FORM_VERSION: CONFIG.FORM_VERSION
-            }
+            dynamicFormConfig, // Use dynamic config instead of static FORM_CONFIG
+            CONFIG
         );
 
         return await extension.render(element);
@@ -4622,33 +4716,42 @@ const ContactFormExtension = {
                     pleaseSpecify: "Veuillez préciser...",
                     selectAtLeastOne: "Veuillez sélectionner au moins une option"
                 },
-                steps: [
-                    { title: "Contact", desc: "Vos informations de contact" },
-                    { title: "Agent & Service", desc: "Sélection de l'agent et du service" },
-                    { title: "Message", desc: "Détails de votre message" },
-                    { title: "Résumé", desc: "Vérifiez vos informations avant envoi" }
-                ],
-                fields: {
-                    fullName: "Nom complet",
-                    email: "Email",
-                    phone: "Numéro de téléphone",
-                    agent: "Sélectionnez un agent",
-                    service: "Sélectionnez un service",
-                    message: "Message"
+                labels: {
+                    otherLabel: "Autre",
+                    customLabel: "Personnalisé"
                 },
                 placeholders: {
-                    fullName: "Entrez votre nom complet",
+                    firstName: "Entrez votre prénom",
+                    lastName: "Entrez votre nom de famille",
                     email: "Entrez votre adresse email",
                     phone: "Entrez votre numéro de téléphone",
                     agent: "-- Sélectionnez un agent --",
                     service: "-- Sélectionnez un service --",
                     message: "Écrivez votre message ici..."
                 },
+                steps: [
+                    { title: "Vos coordonnées", desc: "Renseignez vos informations de contact" },
+                    { title: "Agent & Service", desc: "Sélection de l'agent et du service" },
+                    { title: "Message", desc: "Détails de votre message" },
+                    { title: "Vérifiez vos informations", desc: "Récapitulatif de votre demande" }
+                ],
+                fields: {
+                    firstName: "Prénom",
+                    lastName: "Nom de famille",
+                    fullName: "Nom complet",
+                    email: "Adresse électronique",
+                    phone: "Numéro de téléphone",
+                    agent: "Agent sélectionné",
+                    service: "Service souhaité",
+                    message: "Message",
+                    details: "Détails du message"
+                },
                 errors: {
-                    fullName: "Le nom complet est obligatoire",
-                    email: "Une adresse email valide est obligatoire",
-                    emailInvalid: "Le format de l'adresse email n'est pas valide",
-                    phone: "Un numéro de téléphone valide est obligatoire",
+                    firstName: "Veuillez saisir votre prénom",
+                    lastName: "Veuillez saisir votre nom de famille",
+                    email: "Veuillez saisir une adresse e-mail valide",
+                    emailInvalid: "Le format de l'adresse e-mail n'est pas valide",
+                    phone: "Veuillez saisir un numéro de téléphone valide",
                     phoneInvalid: "Le format du numéro de téléphone n'est pas valide",
                     agent: "Vous devez sélectionner un agent",
                     service: "Vous devez sélectionner un service",
@@ -4660,8 +4763,8 @@ const ContactFormExtension = {
                     message: "Votre message a été envoyé avec succès. Notre équipe vous contactera bientôt." 
                 },
                 summary: {
-                    title: "Vérifiez vos informations",
-                    description: "Vérifiez vos informations avant l'envoi final.",
+                    title: "Récapitulatif de votre demande",
+                    description: "Vérifiez les informations saisies avant de soumettre votre demande.",
                     editStep: "Modifier cette étape",
                     contact: "Contact",
                     agentService: "Agent & Service",
@@ -4695,33 +4798,42 @@ const ContactFormExtension = {
                     pleaseSpecify: "Please specify...",
                     selectAtLeastOne: "Please select at least one option"
                 },
-                steps: [
-                    { title: "Contact", desc: "Your contact information" },
-                    { title: "Agent & Service", desc: "Agent and service selection" },
-                    { title: "Message", desc: "Your message details" },
-                    { title: "Summary", desc: "Review your information before submission" }
-                ],
-                fields: {
-                    fullName: "Full Name",
-                    email: "Email",
-                    phone: "Phone Number",
-                    agent: "Select an Agent",
-                    service: "Select a Service",
-                    message: "Message"
+                labels: {
+                    otherLabel: "Other",
+                    customLabel: "Custom"
                 },
                 placeholders: {
-                    fullName: "Enter your full name",
+                    firstName: "Enter your first name",
+                    lastName: "Enter your last name",
                     email: "Enter your email address",
                     phone: "Enter your phone number",
                     agent: "-- Select an Agent --",
                     service: "-- Select a Service --",
                     message: "Write your message here..."
                 },
+                steps: [
+                    { title: "Your Contact Details", desc: "Enter your contact information" },
+                    { title: "Agent & Service", desc: "Agent and service selection" },
+                    { title: "Message", desc: "Your message details" },
+                    { title: "Review Your Information", desc: "Summary of your request" }
+                ],
+                fields: {
+                    firstName: "First Name",
+                    lastName: "Last Name",
+                    fullName: "Full Name",
+                    email: "Email Address",
+                    phone: "Phone Number",
+                    agent: "Selected Agent",
+                    service: "Desired Service",
+                    message: "Message",
+                    details: "Message Details"
+                },
                 errors: {
-                    fullName: "Full Name is required",
-                    email: "A valid email is required",
+                    firstName: "Please enter your first name",
+                    lastName: "Please enter your last name",
+                    email: "Please enter a valid email address",
                     emailInvalid: "Email format is not valid",
-                    phone: "A valid phone number is required",
+                    phone: "Please enter a valid phone number",
                     phoneInvalid: "Phone number format is not valid",
                     agent: "You must select an agent",
                     service: "You must select a service",
@@ -4733,8 +4845,8 @@ const ContactFormExtension = {
                     message: "Your message has been sent successfully. Our team will contact you soon." 
                 },
                 summary: {
-                    title: "Review Your Information",
-                    description: "Review your information before final submission.",
+                    title: "Request Summary",
+                    description: "Please review the information provided before submitting your request.",
                     editStep: "Edit this step",
                     contact: "Contact",
                     agentService: "Agent & Service",
@@ -4749,109 +4861,6 @@ const ContactFormExtension = {
                 }
             }
         }
-    },
-
-    // ============================================================================
-    // FORM CONFIGURATION - Field definitions and step structure
-    // ============================================================================
-    FORM_CONFIG: {
-        steps: [
-            // Step 1: Contact Information
-            {
-                sectionId: "contact_information", // NEW: Explicit section ID for generic processing
-                fields: [
-                    { 
-                        type: 'text', 
-                        id: 'fullName', 
-                        required: true, 
-                        row: 'name',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.fullName,
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.fullName
-                    },
-                    { 
-                        type: 'email', 
-                        id: 'email', 
-                        required: true, 
-                        row: 'contact',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.email,
-                        getCustomErrorMessages: (lang) => ({
-                            required: ContactFormExtension.FORM_DATA.translations[lang].errors.email,
-                            invalid: ContactFormExtension.FORM_DATA.translations[lang].errors.emailInvalid
-                        }),
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.email
-                    },
-                    { 
-                        type: 'phone', 
-                        id: 'phone', 
-                        required: true, 
-                        row: 'contact',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.phone,
-                        getCustomErrorMessages: (lang) => ({
-                            required: ContactFormExtension.FORM_DATA.translations[lang].errors.phone,
-                            phone: ContactFormExtension.FORM_DATA.translations[lang].errors.phoneInvalid
-                        }),
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.phone
-                    }
-                ]
-            },
-            
-            // Step 2: Agent & Service Selection
-            {
-                sectionId: "agent_service_selection", // NEW: Explicit section ID
-                fields: [
-                    { 
-                        type: 'select', 
-                        id: 'agent', 
-                        required: true, 
-                        options: 'agents',
-                        row: 'agent',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.agent,
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.agent
-                    },
-                    { 
-                        type: 'select', 
-                        id: 'service', 
-                        required: true, 
-                        options: 'services',
-                        row: 'service',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.service,
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.service
-                    }
-                ]
-            },
-            
-            // Step 3: Message Details
-            {
-                sectionId: "message_details", // NEW: Explicit section ID
-                fields: [
-                    { 
-                        type: 'textarea', 
-                        id: 'message', 
-                        required: true, 
-                        maxLength: 1000, 
-                        rows: 6,
-                        row: 'message',
-                        getCustomErrorMessage: (lang) => ContactFormExtension.FORM_DATA.translations[lang].errors.message,
-                        getPlaceholder: (lang) => ContactFormExtension.FORM_DATA.translations[lang].placeholders.message
-                    }
-                ]
-            },
-            
-            // Step 4: Contact Summary
-            {
-                sectionId: "contact_summary", // NEW: Explicit section ID
-                fields: [
-                    { 
-                        type: 'custom', 
-                        id: 'summary',
-                        name: 'summary',
-                        autoSummary: true,
-                        getSummaryData: true,
-                        label: ''
-                    }
-                ]
-            }
-        ]
     }
 };
 
