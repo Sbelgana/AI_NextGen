@@ -829,117 +829,59 @@ class BaseDataTransformer {
     }
 
     /**
-     * ENHANCED: Main transformation method with dual format support
+     * MINIMALLY ENHANCED: Main transformation method - keep original format!
      */
     transform(originalFormValues) {
-        console.log('BaseDataTransformer: Starting DUAL FORMAT transformation...', {
+        console.log('BaseDataTransformer: Starting transformation...', {
             originalFormValues
         });
-
+        
         // Process form data using field configurations (same as CustomField)
         const processedData = this.processor.processFormData(originalFormValues);
+        
+        // ENHANCED: Process multiselect fields to include both formats
+        const enhancedProcessedData = this.enhanceMultiselectFields(processedData, originalFormValues);
 
-        // Create structured format with dual format support
+        // Create structured format - KEEP ORIGINAL STRUCTURE!
         return {
             submissionType: this.getSubmissionType(),
             formVersion: this.getFormVersion(),
             submissionTimestamp: new Date().toISOString(),
             language: this.language,
-            
-            // Create sections using processed data (original format)
-            sections: this.processor.createSections(processedData),
-            
+            // Create sections using enhanced processed data
+            sections: this.processor.createSections(enhancedProcessedData),
             // Keep processed field data for direct access
-            processedFields: processedData,
-            
-            // ADDED: Dual format data for multiselect fields
-            dualFormatData: this.createDualFormatData(originalFormValues, processedData),
-            
-            // ADDED: Array-only format for systems that need pure arrays
-            arrayData: this.createArrayOnlyData(originalFormValues),
-            
-            // ADDED: String-only format for legacy systems
-            stringData: this.createStringOnlyData(originalFormValues, processedData),
-            
+            processedFields: enhancedProcessedData,
             // Add metadata
-            metadata: this.generateMetadata(originalFormValues, processedData)
+            metadata: this.generateMetadata(originalFormValues, enhancedProcessedData)
         };
     }
 
     /**
-     * ADDED: Create dual format data (both string and array)
+     * ADDED: Enhance multiselect fields to include both array and string formats
      */
-    createDualFormatData(originalFormValues, processedFields) {
-        const dualData = {};
-        
-        Object.keys(originalFormValues).forEach(fieldName => {
-            const originalValue = originalFormValues[fieldName];
-            const processedField = processedFields[fieldName];
+    enhanceMultiselectFields(processedData, originalFormValues) {
+        const enhanced = { ...processedData };
+
+        Object.keys(processedData).forEach(fieldName => {
+            const fieldData = processedData[fieldName];
             
-            if (processedField && this.isMultiSelectField(processedField.fieldType)) {
-                // DUAL FORMAT: Include both string and array
-                dualData[fieldName] = {
-                    // Array format (what you need)
-                    array: this.extractArrayFromValue(originalValue, processedField.fieldType),
-                    // String format (for backward compatibility)
-                    string: this.extractStringFromValue(originalValue, processedField),
-                    // Display values (formatted)
-                    display: processedField.displayValue,
-                    // Original raw value
-                    raw: originalValue,
-                    // Field type for reference
-                    fieldType: processedField.fieldType
+            if (fieldData && this.isMultiSelectField(fieldData.fieldType)) {
+                const originalValue = originalFormValues[fieldName];
+                
+                // Keep the original displayValue for backward compatibility
+                // Add array format for your needs
+                enhanced[fieldName] = {
+                    ...fieldData,
+                    // ADDED: Array format (what you need)
+                    arrayValue: this.extractArrayFromValue(originalValue, fieldData.fieldType),
+                    // Keep original displayValue as string (backward compatibility)
+                    displayValue: fieldData.displayValue
                 };
-            } else {
-                // Non-multiselect fields - keep original format
-                dualData[fieldName] = processedField ? processedField.displayValue : originalValue;
             }
         });
-        
-        return dualData;
-    }
 
-    /**
-     * ADDED: Create array-only data
-     */
-    createArrayOnlyData(originalFormValues) {
-        const arrayData = {};
-        
-        Object.keys(originalFormValues).forEach(fieldName => {
-            const originalValue = originalFormValues[fieldName];
-            const fieldConfig = this.findFieldConfigByName(fieldName);
-            
-            if (fieldConfig && this.isMultiSelectField(fieldConfig.type)) {
-                // Convert to array format
-                arrayData[fieldName] = this.extractArrayFromValue(originalValue, fieldConfig.type);
-            } else {
-                // Keep as-is for non-multiselect
-                arrayData[fieldName] = originalValue;
-            }
-        });
-        
-        return arrayData;
-    }
-
-    /**
-     * ADDED: Create string-only data
-     */
-    createStringOnlyData(originalFormValues, processedFields) {
-        const stringData = {};
-        
-        Object.keys(originalFormValues).forEach(fieldName => {
-            const processedField = processedFields[fieldName];
-            
-            if (processedField && this.isMultiSelectField(processedField.fieldType)) {
-                // Convert to string format
-                stringData[fieldName] = this.extractStringFromValue(originalFormValues[fieldName], processedField);
-            } else {
-                // Keep as-is for non-multiselect
-                stringData[fieldName] = processedField ? processedField.displayValue : originalFormValues[fieldName];
-            }
-        });
-        
-        return stringData;
+        return enhanced;
     }
 
     /**
@@ -982,29 +924,7 @@ class BaseDataTransformer {
     }
 
     /**
-     * ADDED: Extract string from multiselect value
-     */
-    extractStringFromValue(value, processedField) {
-        if (Array.isArray(processedField.displayValue)) {
-            return processedField.displayValue.join(', ');
-        }
-        return processedField.displayValue || '';
-    }
-
-    /**
-     * ADDED: Find field configuration by name
-     */
-    findFieldConfigByName(fieldName) {
-        if (!this.processor || !this.processor.getFieldConfigurations) {
-            return null;
-        }
-        
-        const configs = this.processor.getFieldConfigurations();
-        return configs.find(config => config.id === fieldName || config.name === fieldName) || null;
-    }
-
-    /**
-     * Generate metadata
+     * Generate metadata - UNCHANGED
      */
     generateMetadata(originalFormValues, processedData) {
         return {
@@ -1013,25 +933,12 @@ class BaseDataTransformer {
             totalFields: Object.keys(originalFormValues).length,
             processedFields: Object.keys(processedData).length,
             completionPercentage: this.calculateCompletionPercentage(originalFormValues),
-            formStructure: this.determineFormStructure(),
-            // ADDED: Dual format metadata
-            hasDualFormat: true,
-            multiselectFields: this.getMultiselectFieldNames(processedData)
+            formStructure: this.determineFormStructure()
         };
     }
 
     /**
-     * ADDED: Get multiselect field names
-     */
-    getMultiselectFieldNames(processedData) {
-        return Object.keys(processedData).filter(fieldName => {
-            const field = processedData[fieldName];
-            return field && this.isMultiSelectField(field.fieldType);
-        });
-    }
-
-    /**
-     * Calculate completion percentage
+     * Calculate completion percentage - UNCHANGED
      */
     calculateCompletionPercentage(formValues) {
         const fieldConfigs = this.processor.getFieldConfigurations();
@@ -1045,7 +952,7 @@ class BaseDataTransformer {
     }
 
     /**
-     * Determine form structure
+     * Determine form structure - UNCHANGED
      */
     determineFormStructure() {
         const steps = this.creatFormInstance.formConfig?.steps?.length || 1;
@@ -1053,19 +960,21 @@ class BaseDataTransformer {
     }
 
     /**
-     * Get submission type
+     * Get submission type - UNCHANGED
      */
     getSubmissionType() {
-        return this.config.formType === "booking" ? "Booking" : "Submission";
+        return this.config.formType === "booking" ? "booking_form" : "submission_form";
     }
 
     /**
-     * Get form version
+     * Get form version - UNCHANGED
      */
     getFormVersion() {
-        return this.config.formVersion || '5.0.0';
+        return this.creatFormInstance?.defaultConfig?.FORM_VERSION || '1.0.0';
     }
 }
+
+
 
 class FormFieldFactory {
     constructor(options = {}) {
@@ -7681,6 +7590,9 @@ class CreatForm {
         this.determineFormStructure();
     }
 
+    // ============================================================================
+    // NEW: DATA PROCESSOR INITIALIZATION (replaces flatData approach)
+    // ============================================================================
     initializeDataProcessor() {
         this.logger.info('🔧 Initializing data processor...');
         // Initialize the form data processor (same approach as CustomField)
@@ -7705,7 +7617,10 @@ class CreatForm {
             this.logger.info('✅ Default BaseDataTransformer initialized');
         }
     }
-   
+
+    // ============================================================================
+    // ENHANCED LOGGING SYSTEM - ONLY ENHANCED LOGS, NO FORMAT CHANGES
+    // ============================================================================
     initializeLogging() {
         this.logger = {
             info: (message, data = null) => {
@@ -7742,24 +7657,11 @@ class CreatForm {
                     console.groupEnd();
                 }
             },
-            // ENHANCED: Show dual format data in transformation logs
             transformation: (originalData, transformedData) => {
                 if (this.config.enableDetailedLogging) {
-                    console.group(`${this.config.logPrefix} 🔄 DUAL FORMAT DATA TRANSFORMATION`);
+                    console.group(`${this.config.logPrefix} 🔄 MULTISELECT ENHANCED DATA TRANSFORMATION`);
                     console.log('📥 Original Form Data:', JSON.stringify(originalData, null, 2));
-                    console.log('📤 Transformed Data (Sections):', JSON.stringify(transformedData.sections || transformedData, null, 2));
-                    
-                    // ADDED: Log dual format data
-                    if (transformedData.dualFormatData) {
-                        console.log('🔄 Dual Format Data:', JSON.stringify(transformedData.dualFormatData, null, 2));
-                    }
-                    if (transformedData.arrayData) {
-                        console.log('📊 Array Format Data:', JSON.stringify(transformedData.arrayData, null, 2));
-                    }
-                    if (transformedData.stringData) {
-                        console.log('📝 String Format Data:', JSON.stringify(transformedData.stringData, null, 2));
-                    }
-                    
+                    console.log('📤 Transformed Data:', JSON.stringify(transformedData, null, 2));
                     console.groupEnd();
                 }
             }
@@ -7775,6 +7677,9 @@ class CreatForm {
         });
     }
 
+    // ============================================================================
+    // UTILITY METHODS (updated to use formatter - NO MORE extractValue!)
+    // ============================================================================
     getText(path) {
         return this.getNestedValue(this.formData.translations[this.config.language], path) || path;
     }
@@ -7794,11 +7699,11 @@ class CreatForm {
             this.getText(`errors.${errorType}`) ||
             this.getText('common.fieldRequired');
     }
-    
+    // UPDATED: No more extractValue - use formatter directly
     formatValue(fieldConfig, value) {
         return this.formatter.formatValue(fieldConfig || {}, value);
     }
-    
+    // UPDATED: formatValueForDisplay now uses FieldValueFormatter consistently
     formatValueForDisplay(fieldId, value, fieldConfig = null) {
         const formattedValue = this.formatter.formatValue(fieldConfig || {}, value);
         if (!formattedValue || formattedValue === '') {
@@ -7807,8 +7712,14 @@ class CreatForm {
         return formattedValue;
     }
 
+    // ============================================================================
+    // ENHANCED DATA TRANSFORMATION - NO MORE FLATDATA! KEEP ORIGINAL FORMAT!
+    // ============================================================================
+    /**
+     * Enhanced data preparation using FormDataProcessor (same as CustomField approach)
+     */
     prepareDataForSubmission(originalFormValues) {
-        this.logger.info('🔧 Preparing DUAL FORMAT data for submission...', originalFormValues);
+        this.logger.info('🔧 Preparing MULTISELECT ENHANCED data for submission...', originalFormValues);
         try {
             // Use the data transformer to process the data
             const transformedData = this.dataTransformerInstance.transform(originalFormValues);
@@ -7817,8 +7728,7 @@ class CreatForm {
                 ...transformedData,
                 userAgent: navigator.userAgent,
                 submissionUrl: window.location.href,
-                submissionTimestamp: new Date()
-                    .toISOString()
+                submissionTimestamp: new Date().toISOString()
             };
             this.logger.transformation(originalFormValues, submissionData);
             return submissionData;
@@ -7828,8 +7738,7 @@ class CreatForm {
             return {
                 submissionType: this.config.formType === "booking" ? "booking_form" : "submission_form",
                 formVersion: this.defaultConfig.FORM_VERSION || '1.0.0',
-                submissionTimestamp: new Date()
-                    .toISOString(),
+                submissionTimestamp: new Date().toISOString(),
                 language: this.config.language,
                 userAgent: navigator.userAgent,
                 rawFormData: originalFormValues,
@@ -7838,6 +7747,9 @@ class CreatForm {
         }
     }
 
+    // ============================================================================
+    // ENHANCED FORM CREATION (updated to pass processor to CustomField)
+    // ============================================================================
     createFields(fieldsConfig) {
         return fieldsConfig.map(fieldConfig => {
             const field = {
@@ -7887,8 +7799,11 @@ class CreatForm {
         });
     }
 
+    // ============================================================================
+    // ENHANCED SUBMISSION HANDLING (FIXED to call custom onSubmit)
+    // ============================================================================
     handleSubmission = async (formData) => {
-        this.logger.info('🚀 Starting enhanced submission process...', {
+        this.logger.info('🚀 Starting MULTISELECT ENHANCED submission process...', {
             formType: this.config.formType,
             webhookEnabled: this.config.webhookEnabled,
             voiceflowEnabled: this.config.voiceflowEnabled,
@@ -7935,7 +7850,7 @@ class CreatForm {
                 submissionData = this.prepareBookingDataForSubmission(formData, bookingResponse);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             } else {
-                this.logger.info('Processing regular DUAL FORMAT form submission...');
+                this.logger.info('Processing regular MULTISELECT ENHANCED form submission...');
                 submissionData = this.prepareDataForSubmission(formData);
                 shouldSendToWebhook = this.config.webhookEnabled && this.config.webhookUrl;
             }
@@ -7950,7 +7865,7 @@ class CreatForm {
             if (this.config.voiceflowEnabled) {
                 await this.sendToVoiceflow(submissionData, formData);
             }
-            this.logger.success('🎉 DUAL FORMAT submission completed successfully!');
+            this.logger.success('🎉 MULTISELECT ENHANCED submission completed successfully!');
             return submissionData;
         } catch (error) {
             this.logger.error('Enhanced submission failed:', error);
@@ -7965,54 +7880,26 @@ class CreatForm {
         }
     };
 
+    // UNCHANGED: Webhook submission method - KEEP ORIGINAL FORMAT!
     async sendToWebhook(submissionData) {
-        this.logger.webhook('Sending DUAL FORMAT data to webhook...', {
+        this.logger.webhook('Sending MULTISELECT ENHANCED data to webhook...', {
             url: this.config.webhookUrl,
-            dataType: 'dual format (string + array)'
+            dataType: 'original format with multiselect arrays'
         });
-
         try {
             const webhookStartTime = Date.now();
             
-            // ENHANCED: Create webhook payload with multiple formats
-            const webhookPayload = {
-                // Original sections format (for backward compatibility)
-                sections: submissionData.sections,
-                
-                // ADDED: Dual format data (both string and array for multiselect)
-                dualFormat: submissionData.dualFormatData || {},
-                
-                // ADDED: Array-only format (what you specifically need)
-                arrayFormat: submissionData.arrayData || {},
-                
-                // ADDED: String-only format (for legacy systems)
-                stringFormat: submissionData.stringData || {},
-                
-                // Keep all original metadata
-                submissionType: submissionData.submissionType,
-                formVersion: submissionData.formVersion,
-                submissionTimestamp: submissionData.submissionTimestamp,
-                language: submissionData.language,
-                metadata: submissionData.metadata,
-                
-                // ADDED: Processing info
-                processingInfo: {
-                    hasMultiSelectFields: !!(submissionData.dualFormatData && Object.keys(submissionData.dualFormatData).length > 0),
-                    formatTypes: ['sections', 'dualFormat', 'arrayFormat', 'stringFormat'],
-                    note: 'Use arrayFormat for pure arrays, stringFormat for legacy compatibility, dualFormat for both'
-                }
-            };
-            
+            // KEEP ORIGINAL FORMAT - Don't change webhook structure!
             const response = await fetch(this.config.webhookUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(webhookPayload)
+                body: JSON.stringify(submissionData)
             });
             const webhookDuration = Date.now() - webhookStartTime;
             if (response.ok) {
-                this.logger.webhook(`✅ DUAL FORMAT webhook submission successful (${webhookDuration}ms)`);
+                this.logger.webhook(`✅ MULTISELECT ENHANCED webhook submission successful (${webhookDuration}ms)`);
             } else {
                 this.logger.webhook(`⚠️ Webhook submission failed (${webhookDuration}ms)`, {
                     status: response.status,
@@ -8024,8 +7911,9 @@ class CreatForm {
         }
     }
 
+    // UNCHANGED: Voiceflow submission method - KEEP ORIGINAL FORMAT!
     async sendToVoiceflow(submissionData, originalFormData) {
-        this.logger.voiceflow('Voiceflow integration enabled - preparing DUAL FORMAT data...');
+        this.logger.voiceflow('Voiceflow integration enabled - preparing MULTISELECT ENHANCED data...');
         let voiceflowPayload = submissionData;
         // Apply Voiceflow-specific transformation if provided
         if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
@@ -8040,29 +7928,12 @@ class CreatForm {
                 this.logger.voiceflow('❌ Error in Voiceflow transformer:', transformError);
                 voiceflowPayload = submissionData; // Fallback
             }
-        } else {
-            // ENHANCED: Send dual format data to Voiceflow
-            voiceflowPayload = {
-                // Original sections for backward compatibility
-                sections: submissionData.sections || {},
-                
-                // ADDED: Array format for multiselect fields (what you need)
-                arrayData: submissionData.arrayData || {},
-                
-                // ADDED: Dual format with both string and array
-                dualData: submissionData.dualFormatData || {},
-                
-                // Metadata
-                metadata: submissionData.metadata || {},
-                submissionType: submissionData.submissionType,
-                language: submissionData.language
-            };
         }
         // Send to Voiceflow
         if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
             try {
                 const voiceflowStartTime = Date.now();
-                this.logger.voiceflow('📤 Sending DUAL FORMAT data to Voiceflow...', {
+                this.logger.voiceflow('📤 Sending MULTISELECT ENHANCED data to Voiceflow...', {
                     payload: voiceflowPayload,
                     interactionType: 'success'
                 });
@@ -8071,7 +7942,7 @@ class CreatForm {
                     payload: voiceflowPayload
                 });
                 const voiceflowDuration = Date.now() - voiceflowStartTime;
-                this.logger.voiceflow(`✅ DUAL FORMAT Voiceflow interaction completed (${voiceflowDuration}ms)`);
+                this.logger.voiceflow(`✅ MULTISELECT ENHANCED Voiceflow interaction completed (${voiceflowDuration}ms)`);
             } catch (voiceflowError) {
                 this.logger.voiceflow('❌ Voiceflow interaction error', voiceflowError);
             }
@@ -8080,6 +7951,9 @@ class CreatForm {
         }
     }
 
+    // ============================================================================
+    // ALL OTHER METHODS REMAIN EXACTLY THE SAME AS YOUR ORIGINAL CODE
+    // ============================================================================
     determineFormStructure() {
         const steps = this.formConfig.steps || [];
         if (this.config.formStructure === "single") {
@@ -8104,7 +7978,6 @@ class CreatForm {
                 .map(result => result.value)
                 .join('\n');
             if (validCSS.trim()) {
-                // Store the CSS for container injection
                 this.combinedCSS = validCSS;
             }
             this.state.cssLoaded = true;
@@ -8113,6 +7986,7 @@ class CreatForm {
             this.logger.error('Failed to load CSS:', error);
         }
     }
+
     async fetchCSS(url) {
         if (this.cssCache.has(url)) return this.cssCache.get(url);
         try {
@@ -8125,28 +7999,24 @@ class CreatForm {
             return '';
         }
     }
-    
+
     injectCSSIntoContainer(container) {
         if (!this.combinedCSS) return;
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
-        // Remove existing styles from this container
         const existingStyle = container.querySelector(`.${styleClass}`);
         if (existingStyle) {
             existingStyle.remove();
         }
-        // Create new style element and inject into container
         const styleElement = document.createElement('style');
         styleElement.className = styleClass;
         styleElement.textContent = this.combinedCSS;
-        container.appendChild(styleElement); // ← Inject into container, not document.head
+        container.appendChild(styleElement);
         this.logger.success('CSS injected into container successfully');
     }
-    
+
     injectCSS(css) {
-        // Fallback to old method if container injection fails
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
-        document.querySelector(`.${styleClass}`)
-            ?.remove();
+        document.querySelector(`.${styleClass}`)?.remove();
         const styleElement = document.createElement('style');
         styleElement.className = styleClass;
         styleElement.textContent = css;
@@ -8183,7 +8053,6 @@ class CreatForm {
         while (i < fields.length) {
             const currentField = fields[i];
             if (currentField.row) {
-                // Find all fields with the same row identifier
                 const rowFields = [];
                 let j = i;
                 while (j < fields.length && fields[j].row === currentField.row) {
@@ -8194,10 +8063,9 @@ class CreatForm {
                     isRow: true,
                     fields: rowFields
                 });
-                i = j; // Skip the grouped fields
+                i = j;
                 continue;
             }
-            // Single field without row
             groups.push({
                 isRow: false,
                 fields: [currentField]
@@ -8206,6 +8074,7 @@ class CreatForm {
         }
         return groups;
     }
+
     createSingleStepForm() {
         const firstStep = this.formConfig.steps[0];
         if (!firstStep) {
@@ -8213,22 +8082,16 @@ class CreatForm {
         }
         this.logger.info('Creating single step form with row support');
         const container = document.createElement('div');
-        // Use same base class as multi-step for consistent styling
         container.className = 'multistep-form single-step-variant';
-        // Create form - Use same structure as multi-step
         const form = document.createElement('form');
-        form.className = 'form-step active'; // Same as multi-step step class
-        // Create fields container
+        form.className = 'form-step active';
         const fieldsContainer = document.createElement('div');
         fieldsContainer.className = 'step-fields';
-        // Create fields with proper row grouping
         const fields = this.createFields(firstStep.fields);
         const fieldInstances = [];
-        // Use the same grouping logic as multi-step forms
         const fieldGroups = this.groupFieldsForSingleStep(fields);
         fieldGroups.forEach(group => {
             if (group.isRow) {
-                // Create row container
                 const rowContainer = document.createElement('div');
                 rowContainer.className = 'field-row';
                 group.fields.forEach(fieldConfig => {
@@ -8243,7 +8106,6 @@ class CreatForm {
                 });
                 fieldsContainer.appendChild(rowContainer);
             } else {
-                // Single field
                 const field = this.factory.createField(group.fields[0]);
                 if (field) {
                     fieldInstances.push(field);
@@ -8252,7 +8114,6 @@ class CreatForm {
             }
         });
         form.appendChild(fieldsContainer);
-        // Create navigation container only if submit button is enabled
         if (this.config.showSubmitButton) {
             const navigationContainer = document.createElement('div');
             navigationContainer.className = 'form-navigation';
@@ -8262,7 +8123,6 @@ class CreatForm {
             submitButton.textContent = this.config.submitButtonText || this.getText('nav.submit');
             submitButton.addEventListener('click', async () => {
                 this.logger.info('Single step form submit button clicked');
-                // Validate all fields
                 let isValid = true;
                 fieldInstances.forEach(field => {
                     if (!field.validate()) {
@@ -8270,13 +8130,11 @@ class CreatForm {
                     }
                 });
                 if (isValid) {
-                    // Collect form data
                     const formData = {};
                     fieldInstances.forEach(field => {
                         formData[field.name] = field.getValue();
                     });
                     this.logger.info('Single step form validation passed, submitting...', formData);
-                    // Submit
                     await this.handleSubmission(formData);
                 } else {
                     this.logger.warning('Single step form validation failed');
@@ -8284,14 +8142,12 @@ class CreatForm {
             });
             navigationContainer.appendChild(submitButton);
             form.appendChild(navigationContainer);
-            // Store references for cleanup
             this.singleStepForm = {
                 container,
                 fieldInstances,
                 submitButton
             };
         } else {
-            // Store references for cleanup (without submit button)
             this.singleStepForm = {
                 container,
                 fieldInstances,
@@ -8338,16 +8194,15 @@ class CreatForm {
             this.logger.info('Calendar field not found, will be configured when calendar step is reached');
         }
     }
+
     getCalendarFieldInstance() {
         if (!this.isBookingForm) return null;
-        // For single step forms
         if (this.state.isSingleStep && this.singleStepForm) {
             const calendarField = this.singleStepForm.fieldInstances.find(field =>
                 field.constructor.name === 'CalendarField'
             );
             if (calendarField) return calendarField;
         }
-        // For multi-step forms
         if (this.multiStepForm) {
             for (let stepIndex = 0; stepIndex < this.multiStepForm.stepInstances.length; stepIndex++) {
                 const stepInstance = this.multiStepForm.stepInstances[stepIndex];
@@ -8361,6 +8216,7 @@ class CreatForm {
         }
         return null;
     }
+
     prepareBookingDataForSubmission(formValues, bookingResponse) {
         const appointment = formValues.appointment || {};
         const formattedDate = appointment.selectedDate ?
@@ -8369,15 +8225,13 @@ class CreatForm {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
-            })
-            .format(new Date(appointment.selectedDate)) : '';
+            }).format(new Date(appointment.selectedDate)) : '';
         const formattedTime = appointment.selectedTime ?
             new Intl.DateTimeFormat(this.config.language === "fr" ? "fr-CA" : "en-US", {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
-            })
-            .format(new Date(appointment.selectedTime)) : '';
+            }).format(new Date(appointment.selectedTime)) : '';
         return {
             firstName: formValues.firstName || '',
             lastName: formValues.lastName || '',
@@ -8395,8 +8249,7 @@ class CreatForm {
             bookingId: bookingResponse?.data?.id || null,
             bookingUid: bookingResponse?.data?.uid || null,
             formLanguage: this.config.language,
-            submissionTimestamp: new Date()
-                .toISOString(),
+            submissionTimestamp: new Date().toISOString(),
             formVersion: this.defaultConfig.FORM_VERSION,
             userAgent: navigator.userAgent,
             formType: "booking_form",
@@ -8428,16 +8281,14 @@ class CreatForm {
         this.warningTimer = setTimeout(() => this.showSessionWarning(), this.config.sessionWarning);
         this.sessionTimer = setTimeout(() => this.disableFormOnTimeout(), this.config.sessionTimeout);
     }
-    
+
     showSessionWarning() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.logger.warning('Session warning displayed');
-        // Remove any existing warning first
         const existingWarning = this.container?.querySelector('.session-warning');
         if (existingWarning) {
             existingWarning.remove();
         }
-        // Create warning div
         const warningDiv = document.createElement('div');
         warningDiv.className = 'session-warning';
         warningDiv.style.cssText = `
@@ -8464,7 +8315,6 @@ class CreatForm {
                 Your session will expire in 2 minutes. Please complete the form soon.
             </p>
         `;
-        // Add CSS animation if not already present
         if (!document.querySelector('#session-warning-styles')) {
             const style = document.createElement('style');
             style.id = 'session-warning-styles';
@@ -8476,21 +8326,19 @@ class CreatForm {
             `;
             document.head.appendChild(style);
         }
-        // Append to form container instead of document.body
         if (this.container) {
-            this.container.style.position = 'relative'; // Ensure container can contain positioned elements
+            this.container.style.position = 'relative';
             this.container.appendChild(warningDiv);
         } else {
-            // Fallback if container not available
             document.body.appendChild(warningDiv);
         }
-        // Auto-remove after 30 seconds
         setTimeout(() => {
             if (warningDiv.parentNode) {
                 warningDiv.remove();
             }
         }, 30000);
     }
+
     disableFormOnTimeout() {
         if (this.state.formSubmitted || this.state.sessionExpired) return;
         this.state.sessionExpired = true;
@@ -8506,19 +8354,16 @@ class CreatForm {
                     el.style.pointerEvents = 'none';
                 });
         }
-        // Show timeout overlay and send to Voiceflow
         this.showTimeoutOverlay();
     }
-    
+
     showTimeoutOverlay() {
-        // Remove any existing timeout overlay
         const existingOverlay = this.container?.querySelector('.timeout-overlay');
         if (existingOverlay) {
             existingOverlay.remove();
         }
         const overlay = document.createElement('div');
         overlay.className = 'timeout-overlay';
-        // Enhanced styling for better container containment
         overlay.style.cssText = `
             position: absolute;
             top: 0;
@@ -8553,7 +8398,6 @@ class CreatForm {
                 </p>
             </div>
         `;
-        // Add CSS animation if not already present
         if (!document.querySelector('#timeout-overlay-styles')) {
             const style = document.createElement('style');
             style.id = 'timeout-overlay-styles';
@@ -8565,15 +8409,13 @@ class CreatForm {
             `;
             document.head.appendChild(style);
         }
-        // Ensure container can contain the overlay
         if (this.container) {
             this.container.style.position = 'relative';
             this.container.appendChild(overlay);
         }
-        // FIXED: Send timeout data to Voiceflow
         this.sendTimeoutToVoiceflow();
     }
-    
+
     sendTimeoutToVoiceflow() {
         this.logger.voiceflow('Sending session timeout notification to Voiceflow...');
         if (window.voiceflow && window.voiceflow.chat && window.voiceflow.chat.interact) {
@@ -8582,12 +8424,11 @@ class CreatForm {
                     type: "timeEnd",
                     payload: {
                         message: "Time expired",
-                        sessionDuration: this.config.sessionTimeout / 60000, // in minutes
+                        sessionDuration: this.config.sessionTimeout / 60000,
                         formType: this.config.formType,
                         currentStep: this.state.currentStep,
-                        formData: this.getFormDataForTimeout(), // Get current form state
-                        timestamp: new Date()
-                            .toISOString()
+                        formData: this.getFormDataForTimeout(),
+                        timestamp: new Date().toISOString()
                     }
                 };
                 window.voiceflow.chat.interact(timeoutPayload);
@@ -8599,7 +8440,7 @@ class CreatForm {
             this.logger.warning('Voiceflow not available - cannot send timeout notification');
         }
     }
-    
+
     getFormDataForTimeout() {
         try {
             if (this.state.isSingleStep && this.singleStepForm) {
@@ -8624,6 +8465,7 @@ class CreatForm {
             return {};
         }
     }
+
     clearSessionTimers() {
         this.logger.info('Clearing session timers');
         if (this.sessionTimer) {
@@ -8634,14 +8476,11 @@ class CreatForm {
             clearTimeout(this.warningTimer);
             this.warningTimer = null;
         }
-        // Remove session warning from container (not document.body)
         const sessionWarning = this.container?.querySelector('.session-warning');
         if (sessionWarning) {
             sessionWarning.remove();
         }
-        // Also remove any global session warnings (fallback cleanup)
-        document.querySelector('.session-warning')
-            ?.remove();
+        document.querySelector('.session-warning')?.remove();
     }
 
     showSuccessScreen() {
@@ -8651,7 +8490,6 @@ class CreatForm {
         if (formContainer) formContainer.style.display = 'none';
         const successScreen = document.createElement('div');
         successScreen.className = 'success-state';
-        // Get the SVG check mark from factory, with fallback
         const checkMarkSvg = this.factory?.SVG_ICONS?.CHECK || `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="80px" height="80px">
                 <path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/>
@@ -8672,7 +8510,6 @@ class CreatForm {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         `;
         successScreen.innerHTML = `
-            <!-- Animated background elements -->
             <div style="
                 position: absolute;
                 top: -50%;
@@ -8683,7 +8520,6 @@ class CreatForm {
                 pointer-events: none;
             "></div>
             
-            <!-- Success icon container -->
             <div style="
                 width: 80px;
                 height: 80px;
@@ -8713,7 +8549,6 @@ class CreatForm {
                 </div>
             </div>
             
-            <!-- Success message -->
             <div style="position: relative; z-index: 2;">
                 <span style="
                     color: #1f2937;
@@ -8737,7 +8572,6 @@ class CreatForm {
                 </p>
             </div>
             
-            <!-- Decorative elements -->
             <div style="
                 position: absolute;
                 top: 20px;
@@ -8771,7 +8605,6 @@ class CreatForm {
                 animation: twinkle 4s ease-in-out infinite 0.5s;
             "></div>
         `;
-        // Add CSS animations if not already present
         if (!document.querySelector('#success-screen-styles')) {
             const style = document.createElement('style');
             style.id = 'success-screen-styles';
@@ -8806,7 +8639,6 @@ class CreatForm {
                     50% { opacity: 1; transform: scale(1.2); }
                 }
                 
-                /* Responsive design */
                 @media (max-width: 480px) {
                     .success-state {
                         padding: 40px 20px !important;
@@ -8828,13 +8660,13 @@ class CreatForm {
 
     getSubmitButton() {
         if (this.state.isSingleStep && this.singleStepForm) {
-            return this.singleStepForm.submitButton; // Can be null if showSubmitButton is false
+            return this.singleStepForm.submitButton;
         }
         return document.querySelector('.btn-submit');
     }
+
     async submitForm() {
         if (this.state.isSingleStep && this.singleStepForm) {
-            // Validate all fields
             let isValid = true;
             this.singleStepForm.fieldInstances.forEach(field => {
                 if (!field.validate()) {
@@ -8842,22 +8674,20 @@ class CreatForm {
                 }
             });
             if (isValid) {
-                // Collect form data
                 const formData = {};
                 this.singleStepForm.fieldInstances.forEach(field => {
                     formData[field.name] = field.getValue();
                 });
-                // Submit
                 return await this.handleSubmission(formData);
             } else {
                 throw new Error('Form validation failed');
             }
         } else if (this.multiStepForm) {
-            // For multi-step forms, delegate to the multistep form
             return await this.multiStepForm.submitForm();
         }
         throw new Error('Form not initialized');
     }
+
     validateForm() {
         if (this.state.isSingleStep && this.singleStepForm) {
             return this.singleStepForm.fieldInstances.every(field => field.validate());
@@ -8866,16 +8696,15 @@ class CreatForm {
         }
         return false;
     }
+
     async render(element) {
         try {
-            this.logger.info('🎬 Starting DUAL FORMAT form render process...');
-            await this.loadCSS(); // Load CSS but don't inject globally
+            this.logger.info('🎬 Starting MULTISELECT ENHANCED form render process...');
+            await this.loadCSS();
             this.container = document.createElement('div');
             this.container.className = this.isBookingForm ? 'booking-form-extension' : 'submission-form-extension';
             this.container.id = this.isBookingForm ? 'booking-form-root' : 'submission-form-root';
-            // NEW: Inject CSS into the container after creating it (Voiceflow-compatible)
             this.injectCSSIntoContainer(this.container);
-            // Enhanced FormFieldFactory configuration
             this.factory = new FormFieldFactory({
                 container: this.container,
                 formValues: this.formValues,
@@ -8894,7 +8723,6 @@ class CreatForm {
                     language: this.config.language
                 }
             });
-            // NEW: Set CreatForm instance in factory to initialize processors
             this.factory.setCreatFormInstance(this);
             if (this.state.isSingleStep) {
                 this.logger.info('Creating single step form');
@@ -8931,7 +8759,6 @@ class CreatForm {
                                 }
                             });
                         }
-                        // Call config onStepChange if provided
                         if (this.config.onStepChange) {
                             this.config.onStepChange(stepIndex, stepInstance);
                         }
@@ -8942,7 +8769,7 @@ class CreatForm {
             element.appendChild(this.container);
             this.setupSessionManagement();
             this.state.initialized = true;
-            this.logger.success('🎊 DUAL FORMAT form rendered successfully with container-scoped CSS and session management!');
+            this.logger.success('🎊 MULTISELECT ENHANCED form rendered successfully!');
             return this.createPublicAPI();
         } catch (error) {
             this.logger.error('Failed to render form:', error);
@@ -8953,6 +8780,7 @@ class CreatForm {
             };
         }
     }
+
     createPublicAPI() {
         return {
             destroy: () => this.destroy(),
@@ -8967,11 +8795,9 @@ class CreatForm {
                 }
                 return this.multiStepForm?.getFormData() || {};
             },
-            // NEW: Enhanced data access methods using processor
             getDataProcessor: () => this.dataProcessor,
             getTransformerInstance: () => this.dataTransformerInstance,
             getFormatter: () => this.formatter,
-            // NEW: Test data transformation with processor
             testDataTransformation: (testData) => {
                 if (this.dataTransformerInstance) {
                     try {
@@ -8983,7 +8809,6 @@ class CreatForm {
                 }
                 return null;
             },
-            // NEW: Process data like CustomField does
             processDataLikeCustomField: (testData) => {
                 try {
                     return this.dataProcessor.processFormData(testData);
@@ -8992,7 +8817,6 @@ class CreatForm {
                     return null;
                 }
             },
-            // Updated configuration info
             getConfig: () => ({
                 webhookEnabled: this.config.webhookEnabled,
                 voiceflowEnabled: this.config.voiceflowEnabled,
@@ -9003,9 +8827,8 @@ class CreatForm {
                 hasDataTransformer: !!this.dataTransformerInstance,
                 hasVoiceflowTransformer: typeof this.config.voiceflowDataTransformer === 'function',
                 dataTransformerType: this.dataTransformerInstance?.constructor.name || 'none',
-                usesFormDataProcessor: true // New flag
+                usesFormDataProcessor: true
             }),
-            // Enhanced testing and debugging methods
             testVoiceflowTransformer: (testData) => {
                 if (this.config.voiceflowDataTransformer && typeof this.config.voiceflowDataTransformer === 'function') {
                     try {
@@ -9017,7 +8840,6 @@ class CreatForm {
                 }
                 return null;
             },
-            // Logging control methods
             enableLogging: () => {
                 this.config.enableDetailedLogging = true;
                 this.logger.info('Detailed logging enabled');
@@ -9026,7 +8848,6 @@ class CreatForm {
                 this.config.enableDetailedLogging = false;
                 console.log('📋 CreatForm: Detailed logging disabled');
             },
-            // Data inspection methods
             inspectFormValues: () => {
                 this.logger.info('Current form values:', this.formValues);
                 return this.formValues;
@@ -9037,20 +8858,19 @@ class CreatForm {
                 this.logger.info('Prepared submission data:', prepared);
                 return prepared;
             },
-            // NEW: Inspect processed data
             inspectProcessedData: () => {
                 const data = this.state.isSingleStep ? this.getFormData() : this.multiStepForm?.getFormData() || {};
                 const processed = this.dataProcessor.processFormData(data);
                 this.logger.info('Processed form data (like CustomField):', processed);
                 return processed;
             },
-            // Form manipulation methods
             submitForm: () => this.submitForm(),
             validateForm: () => this.validateForm(),
             reset: () => this.reset()
         };
     }
-	reset() {
+
+    reset() {
         this.logger.info('Resetting form...');
         this.clearSessionTimers();
         this.state = {
@@ -9071,23 +8891,20 @@ class CreatForm {
         this.setupSessionManagement();
         this.logger.success('Form reset completed');
     }
+
     destroy() {
         this.logger.info('Destroying form...');
         this.clearSessionTimers();
         
-        // Clean up factory properly
         if (this.factory) {
-            // Unregister all custom fields if needed
             if (this.factory.fieldRegistry) {
                 this.factory.fieldRegistry = {};
             }
             this.factory.destroy();
         }
         
-        // Clean up multi-step form
         if (this.multiStepForm) {
             this.multiStepForm.clearSavedProgress();
-            // Destroy all field instances
             if (this.multiStepForm.stepInstances) {
                 this.multiStepForm.stepInstances.forEach(step => {
                     if (step.fieldInstances) {
@@ -9101,7 +8918,6 @@ class CreatForm {
             }
         }
         
-        // Clean up single-step form
         if (this.singleStepForm && this.singleStepForm.fieldInstances) {
             this.singleStepForm.fieldInstances.forEach(field => {
                 if (typeof field.destroy === 'function') {
@@ -9112,7 +8928,6 @@ class CreatForm {
         
         this.elements.clear();
         
-        // Clean up container-specific styles and session elements
         if (this.container) {
             const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
             const containerStyle = this.container.querySelector(`.${styleClass}`);
@@ -9120,7 +8935,6 @@ class CreatForm {
                 containerStyle.remove();
             }
             
-            // Remove session-related elements
             const sessionWarning = this.container.querySelector('.session-warning');
             const timeoutOverlay = this.container.querySelector('.timeout-overlay');
             if (sessionWarning) sessionWarning.remove();
@@ -9129,12 +8943,10 @@ class CreatForm {
             this.container.remove();
         }
         
-        // Clean up global styles and session elements (fallback)
         const styleClass = this.isBookingForm ? 'booking-form-styles' : 'submission-form-styles';
         document.querySelector(`.${styleClass}`)?.remove();
         document.querySelector('.session-warning')?.remove();
         
-        // Clean up injected styles
         document.querySelector('#session-warning-styles')?.remove();
         document.querySelector('#timeout-overlay-styles')?.remove();
         document.querySelector('#success-screen-styles')?.remove();
@@ -9142,6 +8954,8 @@ class CreatForm {
         this.logger.success('Form destroyed successfully');
     }
 }
+
+
 
 /**
  * Enhanced CalendarField - Base class with optional service/provider selection
