@@ -3054,7 +3054,6 @@ class YesNoWithOptionsField extends BaseField {
         this.noFieldsConfig = config.noFields || (config.noField ? [config.noField] : []);
         this.layout = config.layout || 'below';
         this.customOptions = config.customOptions || null;
-        
         // Set up option values and labels
         if (this.customOptions && Array.isArray(this.customOptions) && this.customOptions.length === 2) {
             this.yesOption = this.customOptions[0];
@@ -3069,186 +3068,384 @@ class YesNoWithOptionsField extends BaseField {
                 label: this.getText('no')
             };
         }
-        
         this.yesFieldInstances = [];
         this.noFieldInstances = [];
     }
-
     // FIXED: Add a helper method to safely get text
     getText(key) {
         return this.factory.getText ? this.factory.getText(key) :
-            this.factory.texts ? this.factory.texts[key] :
-            key;
+            this.factory.texts ? this.factory.texts[key] : key;
     }
-
     validate() {
-        const mainValue = this.container 
-            ? this.container.querySelector('input[type="radio"]:checked')?.value 
-            : this.value;
-
-        if (this.required && !mainValue) {
+        if (this.required && !this.getValue()
+            .main) {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-
-        // Validate conditional fields
-        const showYesFields = this.isYesValue(mainValue);
-        const showNoFields = this.isNoValue(mainValue);
-
-        if (showYesFields && this.yesFieldInstances.length > 0) {
-            for (const field of this.yesFieldInstances) {
-                if (!field.validate()) {
-                    return false;
+        let isValid = true;
+        const currentValue = this.getValue();
+        if (currentValue.main === this.yesOption.value &&
+            this.yesContainer && this.yesContainer.style.display === 'block') {
+            this.yesFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
                 }
-            }
+            });
         }
-
-        if (showNoFields && this.noFieldInstances.length > 0) {
-            for (const field of this.noFieldInstances) {
-                if (!field.validate()) {
-                    return false;
+        if (currentValue.main === this.noOption.value &&
+            this.noContainer && this.noContainer.style.display === 'block') {
+            this.noFieldInstances.forEach(fieldInstance => {
+                if (!fieldInstance.validate()) {
+                    isValid = false;
                 }
-            }
+            });
         }
-
-        return super.validate();
+        if (isValid) {
+            this.hideError();
+        }
+        return isValid;
     }
-
     render() {
         const container = this.createContainer();
-        const label = this.createLabel();
-
-        // Create main radio group
-        const radioGroup = document.createElement('div');
-        radioGroup.className = 'radio-group';
-
-        // Create Yes option
-        const yesContainer = document.createElement('div');
-        yesContainer.className = 'radio-option';
-        const yesInput = document.createElement('input');
-        yesInput.type = 'radio';
-        yesInput.id = `${this.id}-yes`;
-        yesInput.name = this.name;
-        yesInput.value = this.yesOption.value;
-        yesInput.className = 'radio-input';
-
-        const yesLabel = document.createElement('label');
-        yesLabel.htmlFor = `${this.id}-yes`;
-        yesLabel.className = 'radio-label';
-        yesLabel.textContent = this.yesOption.label;
-
-        yesContainer.appendChild(yesInput);
-        yesContainer.appendChild(yesLabel);
-
-        // Create No option
-        const noContainer = document.createElement('div');
-        noContainer.className = 'radio-option';
-        const noInput = document.createElement('input');
-        noInput.type = 'radio';
-        noInput.id = `${this.id}-no`;
-        noInput.name = this.name;
-        noInput.value = this.noOption.value;
-        noInput.className = 'radio-input';
-
-        const noLabel = document.createElement('label');
-        noLabel.htmlFor = `${this.id}-no`;
-        noLabel.className = 'radio-label';
-        noLabel.textContent = this.noOption.label;
-
-        noContainer.appendChild(noInput);
-        noContainer.appendChild(noLabel);
-
-        radioGroup.appendChild(yesContainer);
-        radioGroup.appendChild(noContainer);
-
-        // Create conditional containers
-        this.yesContainer = document.createElement('div');
-        this.yesContainer.className = 'conditional-fields yes-fields';
-        this.yesContainer.style.display = 'none';
-
-        this.noContainer = document.createElement('div');
-        this.noContainer.className = 'conditional-fields no-fields';
-        this.noContainer.style.display = 'none';
-
-        // Create Yes fields
+        const label = this.createQuestionLabel();
+        const optionsGroup = document.createElement('div');
+        optionsGroup.className = 'options-group';
+        const yesOption = document.createElement('label');
+        yesOption.className = 'radio-option';
+        yesOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${this.yesOption.value}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${this.yesOption.label}</span>
+        `;
+        const noOption = document.createElement('label');
+        noOption.className = 'radio-option';
+        noOption.innerHTML = `
+            <input type="radio" name="${this.name}" value="${this.noOption.value}" />
+            <span class="radio-icon"></span>
+            <span class="radio-label">${this.noOption.label}</span>
+        `;
+        optionsGroup.appendChild(yesOption);
+        optionsGroup.appendChild(noOption);
+        let conditionalContainer;
+        if (this.layout === 'side-by-side' && this.yesFieldsConfig.length > 0 && this.noFieldsConfig.length > 0) {
+            conditionalContainer = document.createElement('div');
+            conditionalContainer.className = 'conditional-side-by-side';
+        } else {
+            conditionalContainer = document.createElement('div');
+        }
+        let yesContainer = null;
         if (this.yesFieldsConfig.length > 0) {
-            this.createConditionalFields(this.yesFieldsConfig, this.yesContainer, this.yesFieldInstances);
+            yesContainer = document.createElement('div');
+            yesContainer.className = 'conditional-field-wrapper';
+            yesContainer.id = `${this.id}-yes-options`;
+            yesContainer.style.display = 'none';
+            // Group yesFields by row (same logic as FormStep)
+            const yesFieldGroups = this.groupFields(this.yesFieldsConfig);
+            yesFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `yes-${this.yesFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.yesFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    yesContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `yes-${this.yesFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.yesFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        yesContainer.appendChild(fieldElement);
+                    }
+                }
+            });
         }
-
-        // Create No fields
+        let noContainer = null;
         if (this.noFieldsConfig.length > 0) {
-            this.createConditionalFields(this.noFieldsConfig, this.noContainer, this.noFieldInstances);
+            noContainer = document.createElement('div');
+            noContainer.className = 'conditional-field-wrapper';
+            noContainer.id = `${this.id}-no-options`;
+            noContainer.style.display = 'none';
+            // Group noFields by row (same logic as FormStep)
+            const noFieldGroups = this.groupFields(this.noFieldsConfig);
+            noFieldGroups.forEach(group => {
+                if (group.isRow) {
+                    // Create row container
+                    const rowContainer = document.createElement('div');
+                    rowContainer.className = 'field-row';
+                    group.fields.forEach((fieldConfig, index) => {
+                        const colContainer = document.createElement('div');
+                        colContainer.className = 'field-col';
+                        const fieldInstance = this.createFieldInstance(fieldConfig, `no-${this.noFieldInstances.length}`);
+                        if (fieldInstance) {
+                            this.noFieldInstances.push(fieldInstance);
+                            colContainer.appendChild(fieldInstance.render());
+                        }
+                        rowContainer.appendChild(colContainer);
+                    });
+                    noContainer.appendChild(rowContainer);
+                } else {
+                    // Single field
+                    const fieldInstance = this.createFieldInstance(group.fields[0], `no-${this.noFieldInstances.length}`);
+                    if (fieldInstance) {
+                        this.noFieldInstances.push(fieldInstance);
+                        const fieldElement = fieldInstance.render();
+                        noContainer.appendChild(fieldElement);
+                    }
+                }
+            });
         }
-
-        // Add change listeners
-        yesInput.addEventListener('change', () => {
-            if (yesInput.checked) {
-                this.showYesFields();
-                this.value = this.yesOption.value;
-                this.hideError();
-                this.handleChange();
-            }
-        });
-
-        noInput.addEventListener('change', () => {
-            if (noInput.checked) {
-                this.showNoFields();
-                this.value = this.noOption.value;
-                this.hideError();
-                this.handleChange();
-            }
-        });
-
+        if (yesContainer) conditionalContainer.appendChild(yesContainer);
+        if (noContainer) conditionalContainer.appendChild(noContainer);
         const errorElement = this.createErrorElement();
         container.appendChild(label);
-        container.appendChild(radioGroup);
-        container.appendChild(this.yesContainer);
-        container.appendChild(this.noContainer);
+        container.appendChild(optionsGroup);
+        if (yesContainer || noContainer) {
+            container.appendChild(conditionalContainer);
+        }
         container.appendChild(errorElement);
-
+        const radioInputs = container.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(radio => {
+            radio.addEventListener('change', () => {
+                this.value = radio.value;
+                this.hideError();
+                const isYesValue = radio.value === this.yesOption.value;
+                const isNoValue = radio.value === this.noOption.value;
+                if (isYesValue) {
+                    if (yesContainer) yesContainer.style.display = 'block';
+                    if (noContainer) noContainer.style.display = 'none';
+                } else if (isNoValue) {
+                    if (yesContainer) yesContainer.style.display = 'none';
+                    if (noContainer) noContainer.style.display = 'block';
+                }
+                this.handleChange();
+            });
+        });
         this.container = container;
-        this.yesInput = yesInput;
-        this.noInput = noInput;
+        this.yesContainer = yesContainer;
+        this.noContainer = noContainer;
         return container;
     }
-
-    createConditionalFields(fieldsConfig, parentContainer, fieldInstances) {
-        const groupedFields = this.groupFields(fieldsConfig);
-        
-        groupedFields.forEach(group => {
-            if (group.isRow) {
-                const rowContainer = document.createElement('div');
-                rowContainer.className = `field-row row-${group.fields[0].row}`;
-                
-                group.fields.forEach(fieldConfig => {
-                    const fieldInstance = this.factory.createField(fieldConfig);
-                    if (fieldInstance) {
-                        fieldInstances.push(fieldInstance);
-                        const fieldElement = fieldInstance.render();
-                        rowContainer.appendChild(fieldElement);
+    createFieldInstance(fieldConfig, suffix) {
+        const fieldType = fieldConfig.type;
+        const config = {
+            ...fieldConfig,
+            id: `${this.id}-${suffix}-${fieldConfig.id}`,
+            name: fieldConfig.name || fieldConfig.id,
+            onChange: (value) => {
+                if (fieldConfig.onChange) {
+                    fieldConfig.onChange(value);
+                }
+                this.handleChange();
+            }
+        };
+        switch (fieldType) {
+        case 'text':
+            return this.factory.createTextField(config);
+        case 'email':
+            return this.factory.createEmailField(config);
+        case 'phone':
+            return this.factory.createPhoneField(config);
+        case 'url':
+            return this.factory.createUrlField(config);
+        case 'textarea':
+            return this.factory.createTextAreaField(config);
+        case 'number':
+            return this.factory.createNumberField(config);
+        case 'percentage':
+            return this.factory.createPercentageField(config);
+        case 'options-stepper':
+            return this.factory.createOptionsStepperField(config);
+        case 'yesno':
+            return this.factory.createYesNoField(config);
+        case 'select':
+            return this.factory.createSingleSelectField(config);
+        case 'multiselect':
+            return this.factory.createMultiSelectField(config);
+        case 'select-subsections':
+            return this.factory.createSingleSelectSubsectionsField(config);
+        case 'multiselect-subsections':
+            return this.factory.createMultiSelectSubsectionsField(config);
+        case 'yesno-with-options':
+            return this.factory.createYesNoWithOptionsField(config);
+        case 'select-with-other':
+            return this.factory.createSingleSelectWithOtherField(config);
+        case 'multiselect-with-other':
+            return this.factory.createMultiSelectWithOtherField(config);
+        case 'options-slider':
+            return this.factory.createOptionsSliderField(config);
+        default:
+            console.warn(`Unknown field type: ${fieldType}`);
+            return null;
+        }
+    }
+    // ENHANCED: getValue method to properly handle unselected states
+    getValue() {
+        const mainValue = this.container ?
+            this.container.querySelector('input[type="radio"]:checked')
+            ?.value :
+            this.value;
+        // If no selection made and field is not required, return null instead of empty string
+        if (!mainValue && !this.required) {
+            return {
+                main: null
+            };
+        }
+        // If no selection made but field is required, return empty string to trigger validation
+        if (!mainValue && this.required) {
+            return {
+                main: ''
+            };
+        }
+        const result = {
+            main: mainValue
+        };
+        if (mainValue === this.yesOption.value && this.yesFieldInstances.length > 0) {
+            result.yesValues = {};
+            this.yesFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.yesFieldsConfig[index];
+                const fieldValue = fieldInstance.getValue();
+                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
+                result.yesValues[fieldConfig.name || fieldConfig.id] = displayValue;
+            });
+        }
+        if (mainValue === this.noOption.value && this.noFieldInstances.length > 0) {
+            result.noValues = {};
+            this.noFieldInstances.forEach((fieldInstance, index) => {
+                const fieldConfig = this.noFieldsConfig[index];
+                const fieldValue = fieldInstance.getValue();
+                const displayValue = this.extractDisplayValue(fieldValue, fieldInstance, fieldConfig);
+                result.noValues[fieldConfig.name || fieldConfig.id] = displayValue;
+            });
+        }
+        return result;
+    }
+    // Method to extract display values for select/multi-select fields
+    extractDisplayValue(value, fieldInstance, fieldConfig) {
+        // Handle yes/no fields specifically to prevent double processing
+        if (fieldConfig.type === 'yesno') {
+            if (typeof value === 'boolean') {
+                return value ? this.getText('yes') : this.getText('no');
+            }
+            if (value === 'yes' || value === 'no') {
+                return value === 'yes' ? this.getText('yes') : this.getText('no');
+            }
+            // Handle true/false string values
+            if (value === 'true' || value === 'false') {
+                return value === 'true' ? this.getText('yes') : this.getText('no');
+            }
+            return value; // fallback
+        }
+        // For select and multi-select fields, get display names instead of IDs
+        if (fieldConfig.type === 'select' || fieldConfig.type === 'multiselect' ||
+            fieldConfig.type === 'select-with-other' || fieldConfig.type === 'multiselect-with-other') {
+            if (Array.isArray(value)) {
+                // Multi-select case
+                return value.map(item => {
+                        if (typeof item === 'object' && item.name) {
+                            return typeof item.name === 'object' ?
+                                (item.name[this.factory.texts?.language || 'fr'] || item.name.en || item.name.fr) :
+                                item.name;
+                        }
+                        return this.getOptionDisplayName(item, fieldConfig);
+                    })
+                    .filter(Boolean)
+                    .join(', ');
+            } else if (typeof value === 'object' && value !== null) {
+                // Single select with object value
+                if (value.name) {
+                    return typeof value.name === 'object' ?
+                        (value.name[this.factory.texts?.language || 'fr'] || value.name.en || value.name.fr) :
+                        value.name;
+                }
+                if (value.selectedValue) {
+                    return this.extractDisplayValue(value.selectedValue, fieldInstance, fieldConfig);
+                }
+                if (value.value) {
+                    return this.getOptionDisplayName(value.value, fieldConfig);
+                }
+                if (value.id) {
+                    return this.getOptionDisplayName(value.id, fieldConfig);
+                }
+            } else {
+                // Simple value - look up display name
+                return this.getOptionDisplayName(value, fieldConfig);
+            }
+        }
+        // For other field types, return the value as-is
+        return value;
+    }
+    // Helper method to get display name for an option ID
+    getOptionDisplayName(optionId, fieldConfig) {
+        if (!optionId || !fieldConfig.options) return optionId;
+        let options = fieldConfig.options;
+        // If options is a string (data path), try to get it from factory
+        if (typeof options === 'string' && this.factory.getData) {
+            options = this.factory.getData(options);
+        }
+        if (Array.isArray(options)) {
+            const option = options.find(opt => opt.id === optionId);
+            if (option && option.name) {
+                return typeof option.name === 'object' ?
+                    (option.name[this.factory.texts?.language || 'fr'] || option.name.en || option.name.fr) :
+                    option.name;
+            }
+        }
+        return optionId; // Fallback to ID if display name not found
+    }
+    setValue(value) {
+        let mainValue = value;
+        if (typeof value === 'object' && value.main) {
+            mainValue = value.main;
+            if (value.yesValues && this.yesFieldInstances.length > 0) {
+                this.yesFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.yesFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.yesValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.yesValues[fieldName]);
                     }
                 });
-                
-                parentContainer.appendChild(rowContainer);
-            } else {
-                const fieldConfig = group.fields[0];
-                const fieldInstance = this.factory.createField(fieldConfig);
-                if (fieldInstance) {
-                    fieldInstances.push(fieldInstance);
-                    const fieldElement = fieldInstance.render();
-                    parentContainer.appendChild(fieldElement);
+            }
+            if (value.noValues && this.noFieldInstances.length > 0) {
+                this.noFieldInstances.forEach((fieldInstance, index) => {
+                    const fieldConfig = this.noFieldsConfig[index];
+                    const fieldName = fieldConfig.name || fieldConfig.id;
+                    if (value.noValues[fieldName] !== undefined) {
+                        fieldInstance.setValue(value.noValues[fieldName]);
+                    }
+                });
+            }
+        }
+        this.value = mainValue;
+        if (this.container) {
+            const radio = this.container.querySelector(`input[value="${mainValue}"]`);
+            if (radio) {
+                radio.checked = true;
+                if (mainValue === this.yesOption.value) {
+                    if (this.yesContainer) this.yesContainer.style.display = 'block';
+                    if (this.noContainer) this.noContainer.style.display = 'none';
+                } else if (mainValue === this.noOption.value) {
+                    if (this.yesContainer) this.yesContainer.style.display = 'none';
+                    if (this.noContainer) this.noContainer.style.display = 'block';
                 }
             }
-        });
+        }
     }
-
     groupFields(fields) {
         const groups = [];
         let i = 0;
-        
         while (i < fields.length) {
             const currentField = fields[i];
             if (currentField.row) {
+                // Find all fields with the same row identifier
                 const rowFields = [];
                 let j = i;
                 while (j < fields.length && fields[j].row === currentField.row) {
@@ -3259,215 +3456,53 @@ class YesNoWithOptionsField extends BaseField {
                     isRow: true,
                     fields: rowFields
                 });
-                i = j;
+                i = j; // Skip the grouped fields
                 continue;
             }
-            
+            // Single field without row
             groups.push({
                 isRow: false,
                 fields: [currentField]
             });
             i++;
         }
-        
         return groups;
     }
-
-    isYesValue(value) {
-        return value === this.yesOption.value || value === 'multilingual';
-    }
-
-    isNoValue(value) {
-        return value === this.noOption.value || value === 'unilingual';
-    }
-
-    showYesFields() {
-        if (this.yesContainer) this.yesContainer.style.display = 'block';
-        if (this.noContainer) this.noContainer.style.display = 'none';
-    }
-
-    showNoFields() {
-        if (this.noContainer) this.noContainer.style.display = 'block';
-        if (this.yesContainer) this.yesContainer.style.display = 'none';
-    }
-
-    /**
-     * UPDATED: getValue() method to properly handle multiselect sub-fields
-     */
-    getValue() {
-        const mainValue = this.container 
-            ? this.container.querySelector('input[type="radio"]:checked')?.value 
-            : this.value;
-
-        if (!mainValue) {
-            return null;
-        }
-
-        const result = {
-            main: mainValue,
-            mainDisplayValue: this.formatMainValue(mainValue)
-        };
-
-        // Handle sub-fields based on main value
-        const showYesFields = this.isYesValue(mainValue);
-        const showNoFields = this.isNoValue(mainValue);
-
-        if (showYesFields && this.yesFieldInstances && this.yesFieldInstances.length > 0) {
-            const yesValues = {};
-            this.yesFieldInstances.forEach(field => {
-                const fieldValue = field.getValue();
-                
-                // UPDATED: Handle multiselect field values properly
-                if (this.isMultiSelectField(field)) {
-                    const multiSelectValue = this.processMultiSelectValue(fieldValue);
-                    yesValues[field.id] = multiSelectValue.stringValue; // Use string format for display
-                    // Store both formats in the result
-                    result[`${field.id}_array`] = multiSelectValue.arrayValue;
-                    result[`${field.id}_string`] = multiSelectValue.stringValue;
-                } else {
-                    yesValues[field.id] = fieldValue;
-                }
-            });
-            result.yesValues = yesValues;
-        }
-
-        if (showNoFields && this.noFieldInstances && this.noFieldInstances.length > 0) {
-            const noValues = {};
-            this.noFieldInstances.forEach(field => {
-                const fieldValue = field.getValue();
-                
-                // UPDATED: Handle multiselect field values properly
-                if (this.isMultiSelectField(field)) {
-                    const multiSelectValue = this.processMultiSelectValue(fieldValue);
-                    noValues[field.id] = multiSelectValue.stringValue; // Use string format for display
-                    // Store both formats in the result
-                    result[`${field.id}_array`] = multiSelectValue.arrayValue;
-                    result[`${field.id}_string`] = multiSelectValue.stringValue;
-                } else {
-                    noValues[field.id] = fieldValue;
-                }
-            });
-            result.noValues = noValues;
-        }
-
-        return result;
-    }
-
-    /**
-     * ADDED: Helper method to check if field is multiselect
-     */
-    isMultiSelectField(field) {
-        return field && (
-            field.constructor.name === 'MultiSelectField' ||
-            field.constructor.name === 'MultiSelectWithOtherField' ||
-            field.constructor.name === 'MultiSelectSubsectionsField' ||
-            (field.config && field.config.type && (
-                field.config.type.includes('multiselect') ||
-                field.config.type === 'multiselect' ||
-                field.config.type === 'multiselect-with-other' ||
-                field.config.type === 'multiselect-subsections'
-            ))
-        );
-    }
-
-    /**
-     * ADDED: Helper method to process multiselect values
-     */
-    processMultiSelectValue(fieldValue) {
-        if (!fieldValue) {
-            return { arrayValue: [], stringValue: '' };
-        }
-
-        // If the field already returns the new format
-        if (fieldValue.arrayValue !== undefined && fieldValue.stringValue !== undefined) {
-            return fieldValue;
-        }
-
-        // Handle legacy format - convert to new format
-        if (Array.isArray(fieldValue)) {
-            return {
-                arrayValue: fieldValue,
-                stringValue: fieldValue.join(', ')
-            };
-        }
-
-        // Handle MultiSelectWithOtherField format
-        if (typeof fieldValue === 'object' && fieldValue.main !== undefined) {
-            const allValues = [...(fieldValue.main || [])];
-            if (fieldValue.other) {
-                allValues.push(fieldValue.other);
-            }
-            return {
-                arrayValue: allValues,
-                stringValue: allValues.join(', ')
-            };
-        }
-
-        // Fallback for string values
-        if (typeof fieldValue === 'string') {
-            return {
-                arrayValue: fieldValue ? [fieldValue] : [],
-                stringValue: fieldValue || ''
-            };
-        }
-
-        return { arrayValue: [], stringValue: '' };
-    }
-
-    formatMainValue(value) {
-        if (value === this.yesOption.value) {
+    // Get display value for the main selection
+    getMainDisplayValue() {
+        const currentValue = this.getValue()
+            .main;
+        if (currentValue === this.yesOption.value) {
             return this.yesOption.label;
-        } else if (value === this.noOption.value) {
+        } else if (currentValue === this.noOption.value) {
             return this.noOption.label;
         }
-        return value;
+        return currentValue;
     }
-
-    setValue(value) {
-        if (typeof value === 'object' && value !== null) {
-            const mainValue = value.main;
-            if (mainValue === this.yesOption.value) {
-                if (this.yesInput) this.yesInput.checked = true;
-                this.showYesFields();
-                
-                if (value.yesValues && this.yesFieldInstances.length > 0) {
-                    this.yesFieldInstances.forEach(field => {
-                        if (value.yesValues[field.id] !== undefined) {
-                            field.setValue(value.yesValues[field.id]);
-                        }
-                    });
-                }
-            } else if (mainValue === this.noOption.value) {
-                if (this.noInput) this.noInput.checked = true;
-                this.showNoFields();
-                
-                if (value.noValues && this.noFieldInstances.length > 0) {
-                    this.noFieldInstances.forEach(field => {
-                        if (value.noValues[field.id] !== undefined) {
-                            field.setValue(value.noValues[field.id]);
-                        }
-                    });
-                }
-            }
-            this.value = mainValue;
-        } else {
-            if (value === this.yesOption.value) {
-                if (this.yesInput) this.yesInput.checked = true;
-                this.showYesFields();
-            } else if (value === this.noOption.value) {
-                if (this.noInput) this.noInput.checked = true;
-                this.showNoFields();
-            }
-            this.value = value;
+    parseYesNoWithOptionsValue(fieldValue, fieldId) {
+        if (!fieldValue || typeof fieldValue !== 'object' || fieldValue.main === undefined) {
+            return {
+                main: false,
+                conditionalValues: {}
+            };
         }
-    }
-
-    cleanup() {
-        // Clean up all field instances
-        [...this.yesFieldInstances, ...this.noFieldInstances].forEach(field => {
-            if (field.cleanup) field.cleanup();
-        });
-        super.cleanup();
+        let mainIsYes = fieldValue.main === true || fieldValue.main === 'yes';
+        const result = {
+            main: mainIsYes,
+            conditionalValues: {}
+        };
+        // Extract conditional values based on main selection
+        if (mainIsYes && fieldValue.yesValues) {
+            Object.entries(fieldValue.yesValues)
+                .forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && value !== '') {
+                        result.conditionalValues[key] = value;
+                    }
+                });
+        } else if (!mainIsYes && fieldValue.noValues) {
+            // Handle "no" conditional values
+        }
+        return result;
     }
 }
 
