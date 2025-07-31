@@ -5975,3 +5975,275 @@ button:contains("Confirmer la réservation") {
         margin: 10px auto !important;
     }
 }
+
+
+/* MOBILE CAROUSEL NAVIGATION CSS FIX
+   Add these styles to your FormFields.css file
+   ============================================================================ */
+
+/* Base carousel container improvements */
+.carousel-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+/* Desktop layout - buttons positioned on sides */
+.carousel-image-container.desktop-layout {
+  flex-direction: row;
+  align-items: center;
+}
+
+.carousel-image-container.desktop-layout .carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+}
+
+.carousel-image-container.desktop-layout .carousel-prev-btn {
+  left: -60px;
+}
+
+.carousel-image-container.desktop-layout .carousel-next-btn {
+  right: -60px;
+}
+
+/* Mobile layout - buttons positioned below cards */
+.carousel-image-container.mobile-layout {
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  align-items: center;
+}
+
+/* Mobile navigation container */
+.carousel-nav-container.mobile-nav {
+  order: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-xl);
+  width: 100%;
+  padding: var(--spacing-md) 0;
+  background: transparent;
+}
+
+/* Cards container positioning */
+.carousel-image-container.mobile-layout .carousel-cards-container {
+  order: 1;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex;
+  justify-content: center;
+}
+
+.carousel-image-container.desktop-layout .carousel-cards-container {
+  order: 1;
+  flex-shrink: 0;
+}
+
+/* Enhanced navigation button styling */
+.carousel-nav-btn {
+  position: static;
+  width: 48px;
+  height: 48px;
+  background: var(--gallery-nav-bg, rgba(255, 255, 255, 0.9));
+  color: var(--text-secondary, #666);
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-radius: var(--radius-full, 50%);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-base, all 0.2s ease);
+  z-index: 10;
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  backdrop-filter: blur(10px);
+  user-select: none;
+  flex-shrink: 0;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-color, #007bff) 0%, var(--primary-dark, #0056b3) 100%);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: var(--shadow-primary-hover, 0 6px 20px rgba(0, 123, 255, 0.3));
+  border-color: var(--primary-color, #007bff);
+}
+
+.carousel-nav-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.carousel-nav-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed;
+  background: var(--background-tertiary, #f8f9fa);
+  border-color: var(--border-color, #e0e0e0);
+  color: var(--text-muted, #999);
+  transform: none !important;
+}
+
+/* Button icons */
+.carousel-nav-btn svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.carousel-nav-btn:hover:not(:disabled) svg {
+  opacity: 1;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Force mobile layout */
+  .carousel-image-container {
+    flex-direction: column !important;
+    gap: var(--spacing-lg, 24px);
+    align-items: center;
+    padding: 0 var(--spacing-sm, 16px);
+  }
+  
+  /* Cards container mobile adjustments */
+  .carousel-cards-container {
+    order: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex;
+    justify-content: center;
+  }
+  
+  /* Navigation container mobile styling */
+  .carousel-nav-container {
+    order: 2 !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl, 32px);
+    width: 100%;
+    padding: var(--spacing-md, 20px) 0;
+    background: transparent;
+    position: static !important;
+    transform: none !important;
+  }
+  
+  /* Reset all absolute positioning on mobile */
+  .carousel-nav-btn {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    order: unset !important;
+    margin: 0;
+  }
+  
+  /* Enhanced mobile button styling */
+  .carousel-nav-btn {
+    width: 52px;
+    height: 52px;
+    background: var(--gallery-nav-bg, rgba(255, 255, 255, 0.95));
+    border: 3px solid var(--border-color, #e0e0e0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .carousel-nav-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .carousel-image-container {
+    gap: var(--spacing-md, 16px);
+    padding: 0 var(--spacing-xs, 8px);
+  }
+  
+  .carousel-nav-container {
+    gap: var(--spacing-lg, 24px);
+    padding: var(--spacing-sm, 16px) 0;
+  }
+  
+  .carousel-nav-btn {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .carousel-nav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Accessibility improvements */
+.carousel-nav-btn:focus,
+.carousel-nav-btn:focus-visible {
+  outline: 3px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.carousel-nav-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .carousel-nav-btn {
+    border-width: 3px;
+    background: white;
+    color: black;
+  }
+  
+  .carousel-nav-btn:hover:not(:disabled) {
+    background: black;
+    color: white;
+    border-color: black;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .carousel-nav-btn {
+    transition: none;
+    animation: none;
+  }
+  
+  .carousel-nav-btn:hover {
+    transform: none;
+  }
+  
+  .carousel-nav-btn:active {
+    transform: none;
+  }
+}
+
+/* Ensure buttons are always visible and clickable */
+.carousel-nav-btn {
+  pointer-events: auto !important;
+  visibility: visible !important;
+  display: flex !important;
+}
+
+/* Fix for potential z-index issues */
+.carousel-image-container {
+  position: relative;
+  z-index: 1;
+}
+
+.carousel-nav-container {
+  position: relative;
+  z-index: 2;
+}
+
+.carousel-nav-btn {
+  position: relative;
+  z-index: 3;
+}
