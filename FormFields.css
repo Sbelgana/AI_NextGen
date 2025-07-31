@@ -2126,7 +2126,6 @@ input[type="number"]:hover:not(:focus) {
   
   position: relative;
   width: 100%;
-  margin: 20px 0;
   font-family: var(--font-family);
 }
 
@@ -2142,7 +2141,7 @@ input[type="number"]:hover:not(:focus) {
 /* Header Styles */
 .carousel-header {
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
 }
 
 .carousel-title {
@@ -2184,7 +2183,6 @@ input[type="number"]:hover:not(:focus) {
 /* Mobile layout class */
 .carousel-image-container.mobile-layout {
   flex-direction: column;
-  gap: var(--spacing-lg);
   align-items: center;
   max-width: none;
   width: auto;
@@ -2555,7 +2553,6 @@ input[type="number"]:hover:not(:focus) {
     
     /* Center the container */
     margin: 0 auto;
-    left: 50%;
     transform: translateX(-50%);
   }
   
@@ -5088,8 +5085,6 @@ button:contains("Confirmer la réservation") {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    margin-top: 20px !important;
-    padding: 20px 0 !important;
 }
 
 /* Ensure submit button is properly positioned on last step */
