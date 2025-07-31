@@ -2682,20 +2682,18 @@ select:focus-visible,
   
   /* Radio options */
   .radio-option {
-    min-width: 100%;
+    min-width: 40%;
     padding: var(--spacing-md);
   }
   
   /* Sliders */
   .sliding-window-layout {
-    flex-direction: column;
     gap: var(--spacing-xs);
   }
   
   .slider-control-btn {
-    width: 100%;
-    max-width: 200px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
   }
   
   .slider-markers {
