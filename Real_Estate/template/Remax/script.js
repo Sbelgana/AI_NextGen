@@ -3,8 +3,8 @@
 // ============================================================================
 const CONFIG = {
     DEFAULT_CSS: [
-        'https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@bc356f6/FormFields.css',
-        'https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@232884c/calculatorExtension.css'
+        'https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@6bb00c0/FormFields.css',
+        'https://cdn.jsdelivr.net/gh/Sbelgana/AI_NextGen@10d40a1/calculatorExtension.css'
     ],
     SESSION_TIMEOUT: 900000, // 15 minutes for calculator
     SESSION_WARNING: 780000, // 13 minutes
