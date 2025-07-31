@@ -3952,17 +3952,7 @@ submission-form-extension {
   position: relative;
 }
 
-.terms-title::before {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-  border-radius: var(--radius-sm);
-}
+
 
 /* Terms Content */
 .terms-content {
