@@ -14211,6 +14211,10 @@ class ServiceProviderCalendarField extends BaseField {
 // Enhanced version of BaseCarouselField with mobile-first navigation
 // ============================================================================
 
+// COMPLETE ENHANCED BASECAROUSELFIELD CLASS WITH MOBILE NAVIGATION
+// Enhanced version of BaseCarouselField with mobile-first navigation
+// ============================================================================
+
 class BaseCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -14250,6 +14254,7 @@ class BaseCarouselField extends BaseField {
         // Event handler references for cleanup
         this.prevHandler = null;
         this.nextHandler = null;
+        this.resizeListener = null;
     }
 
     // ============================================================================
@@ -14257,7 +14262,16 @@ class BaseCarouselField extends BaseField {
     // ============================================================================
 
     checkMobileDevice() {
-        return window.innerWidth <= 768;
+        const isMobile = window.innerWidth <= 768;
+        const wasMobile = this.isMobile;
+        this.isMobile = isMobile;
+        
+        // If mobile state changed, rebuild navigation
+        if (wasMobile !== isMobile && this.container) {
+            this.rebuildNavigation();
+        }
+        
+        return isMobile;
     }
 
     // Utility method for debouncing
@@ -14273,57 +14287,29 @@ class BaseCarouselField extends BaseField {
         };
     }
 
-    // Responsive breakpoint detection
-    getBreakpoint() {
-        const width = window.innerWidth;
-        if (width < 768) return 'mobile';
-        if (width < 1024) return 'tablet';
-        return 'desktop';
+    // Enhanced resize handler with debouncing
+    handleResize() {
+        // Update mobile detection
+        this.checkMobileDevice();
+        
+        // Update items per view
+        this.itemsPerView = this.getItemsPerView();
+        
+        // Update container layout
+        this.updateContainerLayout();
+        
+        // Update navigation
+        this.updateNavigation();
+        
+        console.log(`📱 Resize: Mobile=${this.isMobile}, ItemsPerView=${this.itemsPerView}`);
     }
 
     getItemsPerView() {
-        const breakpoint = this.getBreakpoint();
-        return this.responsiveConfig[breakpoint].itemsPerView;
-    }
-
-    getCardWidth() {
-        const breakpoint = this.getBreakpoint();
-        return this.responsiveConfig[breakpoint].cardWidth;
-    }
-
-    // ============================================================================
-    // ENHANCED RESIZE HANDLING WITH MOBILE/DESKTOP SWITCHING
-    // ============================================================================
-
-    handleResize() {
-        const wasMobile = this.isMobile;
-        this.isMobile = this.checkMobileDevice();
-        
-        // If device type changed, rebuild navigation
-        if (wasMobile !== this.isMobile) {
-            this.rebuildNavigation();
-        }
-        
-        // Existing resize logic
-        const newItemsPerView = this.getItemsPerView();
-        if (newItemsPerView !== this.itemsPerView) {
-            this.itemsPerView = newItemsPerView;
-            
-            // Reset current index, but consider centering
-            const shouldCenter = this.items.length <= this.itemsPerView;
-            if (shouldCenter) {
-                this.currentIndex = 0;
-            } else {
-                this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.items.length - this.itemsPerView));
-            }
-            
-            // Update container sizing for new viewport
-            this.updateContainerSizing();
-            this.updateTrackPosition();
-            this.updateNavigationState();
-            
-            console.log(`📱 RESIZE: ${this.itemsPerView} cards per view, ${this.items.length} total cards`);
-        }
+        const width = window.innerWidth;
+        if (width <= 480) return this.responsiveConfig.mobile?.itemsPerView || 1;
+        if (width <= 768) return this.responsiveConfig.mobile?.itemsPerView || 1;
+        if (width <= 1024) return this.responsiveConfig.tablet?.itemsPerView || 2;
+        return Math.min(this.responsiveConfig.desktop?.itemsPerView || 2, 2); // Max 2 cards
     }
 
     // ============================================================================
@@ -14348,6 +14334,28 @@ class BaseCarouselField extends BaseField {
     // Enhanced carousel structure creation with mobile navigation
     createCarouselStructure() {
         const fragment = document.createDocumentFragment();
+        
+        // Add title and subtitle if provided
+        if (this.title || this.subtitle) {
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'carousel-header';
+            
+            if (this.title) {
+                const titleElement = document.createElement('h3');
+                titleElement.className = 'carousel-title';
+                titleElement.textContent = this.title;
+                headerDiv.appendChild(titleElement);
+            }
+            
+            if (this.subtitle) {
+                const subtitleElement = document.createElement('p');
+                subtitleElement.className = 'carousel-subtitle';
+                subtitleElement.textContent = this.subtitle;
+                headerDiv.appendChild(subtitleElement);
+            }
+            
+            fragment.appendChild(headerDiv);
+        }
         
         this.galleryContainer = document.createElement('div');
         this.galleryContainer.className = 'carousel-gallery-container';
@@ -14388,20 +14396,43 @@ class BaseCarouselField extends BaseField {
         this.prevButton = prevButton;
         this.nextButton = nextButton;
         
+        // Clear any existing navigation
+        this.clearExistingNavigation(carouselWrapper);
+        
         if (this.isMobile) {
-            // Mobile layout: buttons below cards
             this.createMobileNavigation(carouselWrapper, prevButton, nextButton);
         } else {
-            // Desktop layout: buttons beside cards
             this.createDesktopNavigation(carouselWrapper, prevButton, nextButton);
         }
+        
+        // Set up event listeners
+        this.setupNavigationEvents();
     }
 
-    // Create mobile navigation layout
+    // Clear existing navigation elements
+    clearExistingNavigation(carouselWrapper) {
+        // Remove existing navigation container
+        const existingNavContainer = carouselWrapper.querySelector('.carousel-nav-container');
+        if (existingNavContainer) {
+            existingNavContainer.remove();
+        }
+        
+        // Remove any standalone buttons
+        const existingPrevBtn = carouselWrapper.querySelector('.carousel-prev-btn');
+        const existingNextBtn = carouselWrapper.querySelector('.carousel-next-btn');
+        
+        if (existingPrevBtn) existingPrevBtn.remove();
+        if (existingNextBtn) existingNextBtn.remove();
+        
+        // Clear layout classes
+        carouselWrapper.classList.remove('mobile-layout', 'desktop-layout');
+    }
+
+    // Enhanced mobile navigation layout
     createMobileNavigation(carouselWrapper, prevButton, nextButton) {
         // Create navigation container for mobile
         const navContainer = document.createElement('div');
-        navContainer.className = 'carousel-nav-container';
+        navContainer.className = 'carousel-nav-container mobile-nav';
         navContainer.setAttribute('data-layout', 'mobile');
         
         // Add buttons to navigation container
@@ -14413,19 +14444,23 @@ class BaseCarouselField extends BaseField {
         
         // Update carousel wrapper for mobile layout
         carouselWrapper.classList.add('mobile-layout');
+        
+        console.log('📱 Created mobile navigation layout');
     }
 
-    // Create desktop navigation layout
+    // Enhanced desktop navigation layout
     createDesktopNavigation(carouselWrapper, prevButton, nextButton) {
-        // Add buttons directly to carousel wrapper (existing behavior)
+        // Add buttons directly to carousel wrapper for side positioning
         carouselWrapper.appendChild(prevButton);
         carouselWrapper.appendChild(nextButton);
         
         // Update carousel wrapper for desktop layout
         carouselWrapper.classList.add('desktop-layout');
+        
+        console.log('🖥️ Created desktop navigation layout');
     }
 
-    // Enhanced navigation button creation with better mobile styling
+    // Enhanced navigation button creation
     createNavigationButtons() {
         const prevButton = document.createElement('button');
         prevButton.type = 'button';
@@ -14437,7 +14472,7 @@ class BaseCarouselField extends BaseField {
         `;
         prevButton.setAttribute('aria-label', 'Previous item');
         prevButton.setAttribute('title', 'Previous item');
-
+        
         const nextButton = document.createElement('button');
         nextButton.type = 'button';
         nextButton.className = 'carousel-nav-btn carousel-next-btn';
@@ -14448,63 +14483,73 @@ class BaseCarouselField extends BaseField {
         `;
         nextButton.setAttribute('aria-label', 'Next item');
         nextButton.setAttribute('title', 'Next item');
-
+        
         return { prevButton, nextButton };
     }
 
-    // New method to rebuild navigation when switching between mobile/desktop
+    // Enhanced navigation rebuild method
     rebuildNavigation() {
-        if (!this.showNavigation) return;
+        if (!this.showNavigation || !this.container) return;
         
         const carouselWrapper = this.container.querySelector('.carousel-image-container');
         if (!carouselWrapper) return;
         
-        // Remove existing navigation elements
-        const existingNavContainer = carouselWrapper.querySelector('.carousel-nav-container');
-        const existingPrevBtn = carouselWrapper.querySelector('.carousel-prev-btn');
-        const existingNextBtn = carouselWrapper.querySelector('.carousel-next-btn');
-        
-        if (existingNavContainer) existingNavContainer.remove();
-        if (existingPrevBtn && !existingNavContainer?.contains(existingPrevBtn)) existingPrevBtn.remove();
-        if (existingNextBtn && !existingNavContainer?.contains(existingNextBtn)) existingNextBtn.remove();
-        
-        // Remove layout classes
-        carouselWrapper.classList.remove('mobile-layout', 'desktop-layout');
+        console.log(`🔄 Rebuilding navigation for ${this.isMobile ? 'mobile' : 'desktop'}`);
         
         // Recreate navigation with current layout
         this.createEnhancedNavigation(carouselWrapper);
         
-        // Reattach event listeners
-        this.setupNavigationEvents();
-        
-        console.log(`🔄 Navigation rebuilt for ${this.isMobile ? 'mobile' : 'desktop'} layout`);
+        // Update navigation state
+        this.updateNavigation();
     }
 
     // ============================================================================
     // EVENT HANDLING AND LISTENERS
     // ============================================================================
 
-    // Enhanced setupEventListeners method
+    // Enhanced setup event listeners
     setupEventListeners() {
-        this.setupNavigationEvents();
+        // Remove existing listeners first
+        if (this.resizeListener) {
+            window.removeEventListener('resize', this.resizeListener);
+        }
         
-        // Resize event
-        window.addEventListener('resize', this.handleResize);
+        // Create debounced resize handler
+        this.resizeListener = this.debounce(() => {
+            this.handleResize();
+        }, 250);
+        
+        // Add resize listener
+        window.addEventListener('resize', this.resizeListener);
+        
+        // Add navigation event listeners
+        this.setupNavigationEvents();
         
         // Additional listeners for subclasses
         this.setupAdditionalListeners();
     }
 
-    // Separate method for navigation events
+    // Setup navigation event listeners
     setupNavigationEvents() {
         if (this.prevButton && this.nextButton) {
-            // Remove existing listeners to avoid duplicates
-            if (this.prevHandler) this.prevButton.removeEventListener('click', this.prevHandler);
-            if (this.nextHandler) this.nextButton.removeEventListener('click', this.nextHandler);
+            // Remove existing listeners
+            if (this.prevHandler) {
+                this.prevButton.removeEventListener('click', this.prevHandler);
+            }
+            if (this.nextHandler) {
+                this.nextButton.removeEventListener('click', this.nextHandler);
+            }
             
-            // Create and store handlers
-            this.prevHandler = this.createNavigationHandler('prev');
-            this.nextHandler = this.createNavigationHandler('next');
+            // Create new handlers
+            this.prevHandler = (e) => {
+                e.preventDefault();
+                this.navigate('prev');
+            };
+            
+            this.nextHandler = (e) => {
+                e.preventDefault();
+                this.navigate('next');
+            };
             
             // Add new listeners
             this.prevButton.addEventListener('click', this.prevHandler);
@@ -14514,14 +14559,6 @@ class BaseCarouselField extends BaseField {
 
     // Hook for subclasses
     setupAdditionalListeners() {}
-
-    createNavigationHandler(direction) {
-        return (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            direction === 'prev' ? this.previousSlide() : this.nextSlide();
-        };
-    }
 
     // ============================================================================
     // ITEM RENDERING AND MANAGEMENT
@@ -14557,190 +14594,117 @@ class BaseCarouselField extends BaseField {
         emptyMessage.innerHTML = `
             <div class="empty-state">
                 <div class="empty-message">${this.getEmptyMessage()}</div>
-                ${this.getEmptySubMessage() ? 
-                    `<div class="empty-submessage">${this.getEmptySubMessage()}</div>` : ''}
+                ${this.getEmptySubMessage() ? `<div class="empty-submessage">${this.getEmptySubMessage()}</div>` : ''}
             </div>
         `;
         this.track.appendChild(emptyMessage);
     }
 
-    // Hooks for subclasses to customize empty state
     getEmptyMessage() {
-        return this.config.emptyMessage || 'No items available';
+        return 'No items available';
     }
 
     getEmptySubMessage() {
-        return '';
+        return null;
     }
 
     createItemElement(item, index) {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'carousel-item';
-        itemEl.dataset.index = index;
-
-        // Image
-        if (item.image) {
-            itemEl.appendChild(this.createItemImage(item));
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'carousel-item';
+        itemDiv.setAttribute('data-index', index);
+        itemDiv.setAttribute('data-id', item.id || index);
+        
+        // Add selection state
+        if (this.isItemSelected(item)) {
+            itemDiv.classList.add('selected');
         }
-
-        // Content
-        itemEl.appendChild(this.createItemContent(item));
         
-        // Event listener
-        itemEl.addEventListener('click', () => this.selectItem(index));
+        // Create item content
+        const content = this.createItemContent(item, index);
+        itemDiv.innerHTML = content;
         
-        return itemEl;
-    }
-
-    createItemImage(item) {
-        const img = document.createElement('img');
-        img.className = 'carousel-item-image';
-        img.src = item.image;
-        img.alt = item.title || item.name || '';
-        img.loading = 'lazy'; // Performance improvement
-        img.addEventListener('error', () => {
-            img.style.display = 'none';
+        // Add click handler
+        itemDiv.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleItemClick(item, index, itemDiv);
         });
-        return img;
+        
+        return itemDiv;
     }
 
-    createItemContent(item) {
-        const content = document.createElement('div');
-        content.className = 'carousel-item-content';
-
-        // Title
-        if (item.title || item.name) {
-            const title = document.createElement('span');
-            title.className = 'carousel-item-title';
-            title.textContent = item.title || item.name;
-            content.appendChild(title);
-        }
-
-        // Subtitle
-        if (item.position || item.category) {
-            const subtitle = document.createElement('p');
-            subtitle.className = 'carousel-item-subtitle';
-            subtitle.textContent = item.position || item.category;
-            content.appendChild(subtitle);
-        }
-
-        // Description
-        if (item.description) {
-            const desc = document.createElement('p');
-            desc.className = 'carousel-item-description';
-            desc.textContent = item.description;
-            content.appendChild(desc);
-        }
-
-        // Details
-        if (this.showDetails) {
-            const details = this.createItemDetails(item);
-            if (details.children.length > 0) {
-                content.appendChild(details);
-            }
-        }
-
-        return content;
+    createItemContent(item, index) {
+        // Default item template - override in subclasses
+        return `
+            ${item.image ? `<img src="${item.image}" alt="${item.title || 'Item'}" class="carousel-item-image" loading="lazy">` : ''}
+            <div class="carousel-item-content">
+                <h4 class="carousel-item-title">${item.title || 'Untitled'}</h4>
+                ${item.subtitle ? `<p class="carousel-item-subtitle">${item.subtitle}</p>` : ''}
+                ${item.description ? `<p class="carousel-item-description">${item.description}</p>` : ''}
+                ${this.showDetails ? this.createItemDetails(item) : ''}
+            </div>
+        `;
     }
 
     createItemDetails(item) {
-        const details = document.createElement('div');
-        details.className = 'carousel-item-details';
-
-        const detailItems = [
-            { key: 'price', value: item.price, className: 'carousel-item-price' },
-            { key: 'duration', value: item.duration, className: 'carousel-item-duration' },
-            { key: 'experience', value: item.experience ? 
-                `${item.experience} années d'expérience` : null, className: 'carousel-item-experience' }
-        ];
-
-        detailItems.forEach(({ value, className }) => {
-            if (value) {
-                const span = document.createElement('span');
-                span.className = className;
-                span.textContent = value;
-                details.appendChild(span);
-            }
-        });
-
-        return details;
+        return `
+            <div class="carousel-item-details">
+                ${item.price ? `<span class="carousel-item-price">${item.price}</span>` : ''}
+                ${item.duration ? `<span class="carousel-item-duration">${item.duration}</span>` : ''}
+            </div>
+        `;
     }
 
-    // ============================================================================
-    // SELECTION AND VALUE MANAGEMENT
-    // ============================================================================
-
-    selectItem(index) {
+    handleItemClick(item, index, element) {
         if (this.allowMultiple) {
-            this.toggleMultipleSelection(index);
+            this.toggleItemSelection(item, index, element);
         } else {
-            this.setSingleSelection(index);
+            this.selectSingleItem(item, index, element);
         }
-
-        this.updateSelection();
         this.handleChange();
     }
 
-    toggleMultipleSelection(index) {
-        const existingIndex = this.selectedItems.indexOf(index);
-        if (existingIndex > -1) {
-            this.selectedItems.splice(existingIndex, 1);
-        } else {
-            this.selectedItems.push(index);
+    selectSingleItem(item, index, element) {
+        // Remove previous selection
+        const previousSelected = this.container.querySelector('.carousel-item.selected');
+        if (previousSelected) {
+            previousSelected.classList.remove('selected');
         }
-    }
-
-    setSingleSelection(index) {
+        
+        // Add selection to new item
+        element.classList.add('selected');
         this.selectedItem = index;
-        this.selectedItems = [index];
+        this.selectedItems = [item];
     }
 
-    updateSelection() {
-        // Use cached query if available
-        let items = this.domCache.get('carousel-items');
-        if (!items) {
-            items = this.track.querySelectorAll('.carousel-item');
-            this.domCache.set('carousel-items', items);
+    toggleItemSelection(item, index, element) {
+        const isSelected = element.classList.contains('selected');
+        
+        if (isSelected) {
+            element.classList.remove('selected');
+            this.selectedItems = this.selectedItems.filter(selectedItem => selectedItem.id !== item.id);
+        } else {
+            element.classList.add('selected');
+            this.selectedItems.push(item);
         }
-
-        items.forEach((item, index) => {
-            item.classList.toggle('selected', this.selectedItems.includes(index));
-        });
     }
 
-    getValue() {
+    isItemSelected(item) {
         if (this.allowMultiple) {
-            return this.selectedItems.map(index => this.items[index]).filter(Boolean);
+            return this.selectedItems.some(selectedItem => selectedItem.id === item.id);
         } else {
-            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+            return this.selectedItem !== null && this.items[this.selectedItem]?.id === item.id;
         }
-    }
-
-    setValue(value) {
-        if (this.allowMultiple && Array.isArray(value)) {
-            this.selectedItems = value
-                .map(item => this.items.findIndex(i => i.id === item.id))
-                .filter(index => index !== -1);
-        } else if (value) {
-            this.selectedItem = this.items.findIndex(item => item.id === value.id);
-            this.selectedItems = this.selectedItem !== -1 ? [this.selectedItem] : [];
-        } else {
-            this.selectedItem = null;
-            this.selectedItems = [];
-        }
-        this.updateSelection();
     }
 
     // ============================================================================
     // NAVIGATION AND POSITIONING
     // ============================================================================
 
-    nextSlide() {
-        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
-        if (this.currentIndex < maxSlides) {
-            this.currentIndex++;
-            this.updateTrackPosition();
-            this.updateNavigationState();
+    navigate(direction) {
+        if (direction === 'prev') {
+            this.previousSlide();
+        } else if (direction === 'next') {
+            this.nextSlide();
         }
     }
 
@@ -14748,46 +14712,41 @@ class BaseCarouselField extends BaseField {
         if (this.currentIndex > 0) {
             this.currentIndex--;
             this.updateTrackPosition();
-            this.updateNavigationState();
+            this.updateNavigation();
+        }
+    }
+
+    nextSlide() {
+        const maxSlides = Math.max(0, this.items.length - this.itemsPerView);
+        if (this.currentIndex < maxSlides) {
+            this.currentIndex++;
+            this.updateTrackPosition();
+            this.updateNavigation();
         }
     }
 
     updateTrackPosition() {
-        if (!this.track || this.items.length === 0) return;
+        if (!this.track) return;
         
-        // Check if we should center the cards
         const shouldCenter = this.items.length <= this.itemsPerView;
         
         if (shouldCenter) {
-            // Center the cards
             this.track.classList.add('centered');
             this.track.style.transform = 'none';
-            console.log(`🎯 CENTERING: ${this.items.length} cards (capacity: ${this.itemsPerView})`);
         } else {
-            // Normal sliding behavior
             this.track.classList.remove('centered');
-            const cardWidth = this.getCardWidth();
+            const cardWidth = 300; // Fixed card width
             const translateX = -(this.currentIndex * (cardWidth + this.gap));
-            
-            // Use transform3d for better performance
-            this.track.style.transform = `translate3d(${translateX}px, 0, 0)`;
+            this.track.style.transform = `translateX(${translateX}px)`;
         }
     }
 
     updateContainerSizing() {
-        if (!this.galleryContainer) return;
-        
-        const carouselContainer = this.galleryContainer.querySelector('.carousel-cards-container');
+        const carouselContainer = this.container?.querySelector('.carousel-cards-container');
         if (!carouselContainer) return;
         
-        // Remove existing sizing classes
+        // Reset classes
         carouselContainer.classList.remove('container-1-card', 'container-2-cards');
-        
-        // Add appropriate sizing class based on number of items and viewport
-        if (this.items.length === 0) {
-            // Keep default size for empty state
-            return;
-        }
         
         const shouldCenter = this.items.length <= this.itemsPerView;
         
@@ -14799,6 +14758,19 @@ class BaseCarouselField extends BaseField {
                 carouselContainer.classList.add('container-2-cards');
                 console.log('📦 CONTAINER: Sized for 2 cards (centered)');
             }
+        }
+    }
+
+    updateContainerLayout() {
+        const carouselWrapper = this.container?.querySelector('.carousel-image-container');
+        if (!carouselWrapper) return;
+        
+        if (this.isMobile) {
+            carouselWrapper.classList.add('mobile-layout');
+            carouselWrapper.classList.remove('desktop-layout');
+        } else {
+            carouselWrapper.classList.add('desktop-layout');
+            carouselWrapper.classList.remove('mobile-layout');
         }
     }
 
@@ -14821,67 +14793,12 @@ class BaseCarouselField extends BaseField {
         this.prevButton.style.display = shouldShowNavigation && !shouldCenter ? 'flex' : 'none';
         this.nextButton.style.display = shouldShowNavigation && !shouldCenter ? 'flex' : 'none';
         
-        if (shouldCenter) {
-            console.log(`🎯 NAVIGATION: Hidden (${this.items.length} cards centered)`);
-        }
+        console.log(`🔄 Navigation updated: Index=${this.currentIndex}, Max=${maxSlides}, Show=${shouldShowNavigation}, Center=${shouldCenter}`);
     }
 
     // ============================================================================
-    // VALIDATION AND LIFECYCLE MANAGEMENT
+    // UTILITY METHODS AND DATA MANAGEMENT
     // ============================================================================
-
-    validate() {
-        if (this.required && this.selectedItems.length === 0) {
-            this.showError(this.getFieldErrorMessage('required'));
-            return false;
-        }
-        this.hideError();
-        return true;
-    }
-
-    // Enhanced cleanup method
-    cleanup() {
-        // Clear intervals and timeouts
-        this.cleanupAutoUpdate();
-        
-        // Remove event listeners
-        window.removeEventListener('resize', this.handleResize);
-        
-        if (this.prevButton && this.nextButton) {
-            if (this.prevHandler) this.prevButton.removeEventListener('click', this.prevHandler);
-            if (this.nextHandler) this.nextButton.removeEventListener('click', this.nextHandler);
-        }
-        
-        // Clear DOM cache
-        this.domCache.clear();
-        
-        super.cleanup();
-    }
-
-    // Hook for subclasses
-    cleanupAutoUpdate() {}
-
-    // Invalidate DOM cache when items change
-    invalidateCache() {
-        this.domCache.clear();
-    }
-
-    // ============================================================================
-    // UTILITY METHODS FOR LAYOUT MANAGEMENT
-    // ============================================================================
-
-    updateLayoutForCurrentDevice() {
-        const carouselWrapper = this.container.querySelector('.carousel-image-container');
-        if (!carouselWrapper) return;
-        
-        if (this.isMobile) {
-            carouselWrapper.classList.add('mobile-layout');
-            carouselWrapper.classList.remove('desktop-layout');
-        } else {
-            carouselWrapper.classList.add('desktop-layout');
-            carouselWrapper.classList.remove('mobile-layout');
-        }
-    }
 
     // Additional utility method for responsive behavior
     updateItemsFromConfig(newItems) {
@@ -14923,6 +14840,73 @@ class BaseCarouselField extends BaseField {
         this.selectedItem = null;
         this.selectedItems = [];
         this.handleChange();
+    }
+
+    invalidateCache() {
+        this.domCache.clear();
+    }
+
+    getValue() {
+        if (this.allowMultiple) {
+            return this.selectedItems;
+        } else {
+            return this.selectedItem !== null ? this.items[this.selectedItem] : null;
+        }
+    }
+
+    setValue(value) {
+        if (this.allowMultiple) {
+            this.selectedItems = Array.isArray(value) ? value : [];
+        } else {
+            if (value && typeof value === 'object') {
+                const index = this.items.findIndex(item => item.id === value.id);
+                this.selectedItem = index >= 0 ? index : null;
+            } else {
+                this.selectedItem = null;
+            }
+        }
+        
+        // Re-render to update selection display
+        if (this.container) {
+            this.renderItems();
+        }
+    }
+
+    // ============================================================================
+    // CLEANUP AND DESTROY
+    // ============================================================================
+
+    // Enhanced destroy method to clean up listeners
+    destroy() {
+        // Remove resize listener
+        if (this.resizeListener) {
+            window.removeEventListener('resize', this.resizeListener);
+            this.resizeListener = null;
+        }
+        
+        // Remove navigation listeners
+        if (this.prevButton && this.prevHandler) {
+            this.prevButton.removeEventListener('click', this.prevHandler);
+        }
+        if (this.nextButton && this.nextHandler) {
+            this.nextButton.removeEventListener('click', this.nextHandler);
+        }
+        
+        // Clear references
+        this.prevButton = null;
+        this.nextButton = null;
+        this.prevHandler = null;
+        this.nextHandler = null;
+        this.track = null;
+        this.galleryContainer = null;
+        
+        // Clear cache
+        this.invalidateCache();
+        
+        // Call parent destroy
+        if (super.destroy) {
+            super.destroy();
+        }
     }
 }
 
