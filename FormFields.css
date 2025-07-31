@@ -5310,6 +5310,7 @@ submission-form-extension {
   
   .carousel-image-container {
     gap: 15px;
+        display: block;
   }
 }
 
@@ -5644,6 +5645,7 @@ submission-form-extension {
   
   .carousel-image-container {
     gap: 10px;
+        display: block;
   }
 }
 
