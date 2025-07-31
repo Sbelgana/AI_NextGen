@@ -2597,6 +2597,30 @@ select:focus-visible,
 
 /* Mobile Portrait (320px - 480px) */
 @media (max-width: 480px) {
+
+       .calendar-header {
+        padding: 15px;
+        display: flex;
+        flex-direction: column-reverse;
+		
+}
+
+placeholder-message{
+	text-align: center;
+}
+
+.calendar-body {
+    display: flex;
+    background: linear-gradient(to bottom, var(--background-primary), var(--background-secondary));
+    flex-direction: column;
+}
+.days-container {
+    width: 100%;
+}
+
+.times-container{
+    width: 100%;
+}
   .multistep-form {
     margin: var(--spacing-xs);
     border-radius: var(--radius-md);
