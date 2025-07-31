@@ -384,7 +384,7 @@ body {
 
 .field-col {
   flex: 1;
-  min-width: 0;
+  max-width: 100%;
 }
 
 /* Force Two Columns */
@@ -2213,7 +2213,7 @@ input[type="number"]:hover:not(:focus) {
   width: 100% !important;
   max-width: 100% !important;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Container widths for fixed 300px cards */
@@ -2517,7 +2517,7 @@ input[type="number"]:hover:not(:focus) {
   /* Force mobile layout structure */
   .carousel-image-container {
     flex-direction: column !important;
-    gap: var(--spacing-lg, 24px);
+    gap: var(0px, 24px);
     align-items: center;
     padding: 0 var(--spacing-sm, 16px);
     /* Prevent overflow issues */
@@ -5108,9 +5108,4 @@ button:contains("Confirmer la réservation") {
         max-width: 300px !important;
         margin: 10px auto !important;
     }
-}
-
-.carousel-nav-container {
-  border: 2px solid red !important;
-  background: rgba(255, 0, 0, 0.1) !important;
 }
