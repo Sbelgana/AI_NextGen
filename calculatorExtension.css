@@ -147,23 +147,8 @@
 
 
 
-.summary-row {
-    display: flex;
-    border-bottom: 1px solid rgba(2, 48, 71, 0.1);
-    align-items: center;
-    transition: all 0.3s ease;
-}
 
-.summary-row:last-child {
-    border-bottom: none;
-}
 
-.summary-row:hover {
-    background-color: rgba(2, 48, 71, 0.05);
-    border-radius: 8px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
 
 .summary-label {
     font-weight: 600;
