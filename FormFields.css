@@ -2186,6 +2186,8 @@ input[type="number"]:hover:not(:focus) {
   flex-direction: column;
   gap: var(--spacing-lg);
   align-items: center;
+  max-width: none;
+  width: auto;
 }
 
 /* Cards container */
@@ -2419,12 +2421,12 @@ input[type="number"]:hover:not(:focus) {
 }
 
 .carousel-image-container.desktop-layout .carousel-prev-btn {
-  left: -60px;
+  left: 60px;
   order: 1;
 }
 
 .carousel-image-container.desktop-layout .carousel-next-btn {
-  right: -60px;
+  right: 60px;
   order: 3;
 }
 
@@ -2435,10 +2437,15 @@ input[type="number"]:hover:not(:focus) {
   justify-content: center;
   align-items: center;
   gap: var(--spacing-xl, 32px);
-  width: 100%;
+  /* FIX: Use viewport width instead of parent width */
+  width: 100vw !important;
+  max-width: 400px !important; /* Limit maximum width */
+  min-width: 200px !important; /* Ensure minimum width */
   padding: var(--spacing-md, 20px) 0;
   background: transparent;
   position: static;
+  /* Center the container itself */
+  margin: 0 auto;
 }
 
 /* Mobile positioning - static positioned in container */
@@ -2476,7 +2483,7 @@ input[type="number"]:hover:not(:focus) {
 }
 
 .carousel-nav-btn:disabled {
-  opacity: 0.4 !important;
+  opacity: 0 !important;
   cursor: not-allowed;
   background: var(--background-tertiary, #f8f9fa);
   border-color: var(--border-color, #e0e0e0);
@@ -2513,6 +2520,8 @@ input[type="number"]:hover:not(:focus) {
     gap: var(--spacing-lg, 24px);
     align-items: center;
     padding: 0 var(--spacing-sm, 16px);
+    /* Prevent overflow issues */
+    overflow: visible;
   }
   
   /* Cards container mobile adjustments */
@@ -2522,6 +2531,8 @@ input[type="number"]:hover:not(:focus) {
     max-width: 100% !important;
     display: flex;
     justify-content: center;
+    /* Prevent width inheritance issues */
+    flex-shrink: 0;
   }
   
   /* Navigation container mobile styling */
@@ -2531,11 +2542,21 @@ input[type="number"]:hover:not(:focus) {
     justify-content: center;
     align-items: center;
     gap: var(--spacing-xl, 32px);
-    width: 100%;
-    padding: var(--spacing-md, 20px) 0;
+    
+    /* KEY FIXES */
+    width: calc(100vw - 32px) !important; /* Use viewport width minus padding */
+    max-width: 400px !important;
+    min-width: 200px !important;
+    
+    padding: var(--spacing-md, 20px) var(--spacing-md, 20px);
     background: transparent;
-    position: static !important;
+    position: relative !important;
     transform: none !important;
+    
+    /* Center the container */
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   /* Reset all absolute positioning on mobile */
@@ -2547,43 +2568,34 @@ input[type="number"]:hover:not(:focus) {
     transform: none !important;
     order: unset !important;
     margin: 0;
-  }
-  
-  /* Enhanced mobile button styling */
-  .carousel-nav-btn {
+    
+    /* Enhanced mobile button styling */
     width: 52px;
     height: 52px;
     background: var(--gallery-nav-bg, rgba(255, 255, 255, 0.95));
     border: 3px solid var(--border-color, #e0e0e0);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  .carousel-nav-btn svg {
-    width: 22px;
-    height: 22px;
+    
+    /* Ensure visibility */
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    flex-shrink: 0;
   }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
-  .carousel-image-container {
-    gap: var(--spacing-md, 16px);
-    padding: 0 var(--spacing-xs, 8px);
-  }
-  
   .carousel-nav-container {
+    width: calc(100vw - 16px) !important;
+    max-width: 300px !important;
     gap: var(--spacing-lg, 24px);
-    padding: var(--spacing-sm, 16px) 0;
+    padding: var(--spacing-sm, 16px) var(--spacing-sm, 16px);
   }
   
   .carousel-nav-btn {
     width: 48px;
     height: 48px;
-  }
-  
-  .carousel-nav-btn svg {
-    width: 20px;
-    height: 20px;
   }
 }
 
@@ -5096,4 +5108,9 @@ button:contains("Confirmer la réservation") {
         max-width: 300px !important;
         margin: 10px auto !important;
     }
+}
+
+.carousel-nav-container {
+  border: 2px solid red !important;
+  background: rgba(255, 0, 0, 0.1) !important;
 }
