@@ -90,7 +90,7 @@
   
   /* Carousel Specific */
   --carousel-card-width: 400px;
-  --carousel-card-width-mobile: 250px;
+  --carousel-card-width-mobile: 320px;
   --carousel-card-height: 270px;
   --carousel-button-size: 48px;
   --carousel-button-size-mobile: 44px;
@@ -253,6 +253,7 @@
   color: var(--chat-primary-color);
   background-color: var(--chat-bg-secondary);
   font-weight: var(--chat-font-weight-bold);
+   white-space: nowrap !important;
 }
 
 ._1q15b0b1:hover {
@@ -633,7 +634,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   visibility: visible !important;
 }
 
-.vfrc-carousel--button.betklma, .betklmc {
+.vfrc-carousel--button.betklma, .vfrc-carousel--button.betklmc {
   position: absolute !important;
   top: auto !important;
   bottom: -50px !important;
