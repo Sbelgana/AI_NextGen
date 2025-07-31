@@ -602,7 +602,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* Card container */
-.o231sh1 {
+.vfrc-card._1lbxmyd0.o231sh1 {
   transition: transform var(--chat-transition-base);
   position: relative;
   flex: 0 0 auto;
@@ -693,7 +693,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
     --carousel-button-size: 44px;
   }
   
-  .o231sh1 {
+  .vfrc-card._1lbxmyd0.o231sh1 {
     width: var(--carousel-card-width);
   }
   
