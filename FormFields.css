@@ -2603,6 +2603,10 @@ select:focus-visible,
     min-width: 220px;
   }
 
+   .auto-summary .summary-label {
+    width: 95%;
+}
+
   .time-choice-container {
     width: 100%;
   }
