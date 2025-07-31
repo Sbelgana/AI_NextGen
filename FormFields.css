@@ -5298,34 +5298,89 @@ submission-form-extension {
 
 /* Mobile: Width for 1 card */
 @media (max-width: 767px) {
+     .carousel-image-container {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    align-items: center;
+  }
+  
+  /* Cards container takes full width and centers cards */
   .carousel-cards-container {
-    width: 300px;
-    max-width: 300px;
+    order: 1;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex;
+    justify-content: center;
   }
   
-  .carousel-cards-container.container-1-card {
-    width: 300px;
-    max-width: 300px;
+  /* Create navigation container below cards */
+  .carousel-nav-container {
+    order: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-xl);
+    width: 100%;
+    padding: var(--spacing-md) 0;
   }
   
-  .carousel-image-container {
-    gap: 15px;
-        display: block;
+  /* Remove side positioning for mobile */
+  .carousel-nav-btn {
+    position: static !important;
+    order: unset !important;
+    transform: none !important;
+    margin: 0;
+  }
+  
+  /* Enhanced mobile button styling */
+  .carousel-nav-btn {
+    width: 48px;
+    height: 48px;
+    background: var(--gallery-nav-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-base);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(10px);
+  }
+  
+  .carousel-nav-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-primary-hover);
+    border-color: var(--primary-color);
+  }
+  
+  .carousel-nav-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  
+  .carousel-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--background-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+  }
+  
+  /* Improve button icons for mobile */
+  .carousel-nav-btn svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+  
+  .carousel-nav-btn:hover:not(:disabled) svg {
+    opacity: 1;
   }
 }
 
-/* Tablet: Width for 1 card */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .carousel-cards-container {
-    width: 300px;
-    max-width: 300px;
-  }
-  
-  .carousel-cards-container.container-1-card {
-    width: 300px;
-    max-width: 300px;
-  }
-}
+
 
 /* Desktop: Width for maximum 2 cards */
 @media (min-width: 1024px) {
@@ -5565,20 +5620,9 @@ submission-form-extension {
   order: 3;
 }
 
-/* Mobile adjustments */
-@media (max-width: 767px) {
-  .carousel-nav-btn {
-    width: var(--gallery-nav-size-mobile);
-    height: var(--gallery-nav-size-mobile);
-  }
-}
 
-@media (max-width: 480px) {
-  .carousel-nav-btn {
-    width: var(--gallery-nav-size-small);
-    height: var(--gallery-nav-size-small);
-  }
-}
+
+
 
 /* ============================================================================
    EMPTY STATE
@@ -5618,34 +5662,24 @@ submission-form-extension {
    ============================================================================ */
 
 @media (max-width: 480px) {
-  .carousel-gallery-container {
-    padding: var(--spacing-md);
-  }
-  
-  .carousel-title {
-    font-size: 1.3rem;
-  }
-  
-  .carousel-subtitle {
-    font-size: 0.85rem;
-  }
-  
-  /* Keep cards at 300x400 even on small screens */
-  .carousel-item {
-    width: 300px !important;
-    min-width: 300px !important;
-    max-width: 300px !important;
-    height: 350px !important;
-  }
-  
-  .carousel-cards-container {
-    width: 300px !important;
-    max-width: 300px !important;
-  }
-  
   .carousel-image-container {
-    gap: 10px;
-        display: block;
+    gap: var(--spacing-md);
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .carousel-nav-container {
+    gap: var(--spacing-lg);
+    padding: var(--spacing-sm) 0;
+  }
+  
+  .carousel-nav-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .carousel-nav-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
