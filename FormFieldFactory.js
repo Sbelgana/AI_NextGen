@@ -14215,6 +14215,10 @@ class ServiceProviderCalendarField extends BaseField {
 // Enhanced version of BaseCarouselField with mobile-first navigation
 // ============================================================================
 
+// COMPLETE ENHANCED BASECAROUSELFIELD CLASS WITH MOBILE NAVIGATION
+// Enhanced version of BaseCarouselField with mobile-first navigation
+// ============================================================================
+
 class BaseCarouselField extends BaseField {
     constructor(factory, config) {
         super(factory, config);
@@ -14247,14 +14251,13 @@ class BaseCarouselField extends BaseField {
         // Mobile detection and navigation enhancement
         this.isMobile = this.checkMobileDevice();
         
-        // Bind methods once with debouncing
-        this.handleResize = this.debounce(this.handleResize.bind(this), 150);
-        this.selectItem = this.selectItem.bind(this);
-        
         // Event handler references for cleanup
         this.prevHandler = null;
         this.nextHandler = null;
         this.resizeListener = null;
+        
+        // Bind methods - will be set up in setupEventListeners
+        this.boundHandleResize = null;
     }
 
     // ============================================================================
@@ -14514,10 +14517,15 @@ class BaseCarouselField extends BaseField {
             window.removeEventListener('resize', this.resizeListener);
         }
         
-        // Create debounced resize handler
-        this.resizeListener = this.debounce(() => {
-            this.handleResize();
-        }, 250);
+        // Create bound resize handler if not already created
+        if (!this.boundHandleResize) {
+            this.boundHandleResize = this.debounce(() => {
+                this.handleResize();
+            }, 250);
+        }
+        
+        // Set resizeListener reference
+        this.resizeListener = this.boundHandleResize;
         
         // Add resize listener
         window.addEventListener('resize', this.resizeListener);
@@ -14661,6 +14669,33 @@ class BaseCarouselField extends BaseField {
             this.selectSingleItem(item, index, element);
         }
         this.handleChange();
+    }
+
+    selectItem(item, index) {
+        // Public method for selecting an item programmatically
+        if (typeof index === 'undefined') {
+            // Find index if not provided
+            index = this.items.findIndex(i => i.id === item.id);
+        }
+        
+        if (index >= 0 && index < this.items.length) {
+            const itemElement = this.container.querySelector(`[data-index="${index}"]`);
+            if (itemElement) {
+                this.handleItemClick(item, index, itemElement);
+            } else {
+                // Handle selection without DOM element (programmatic)
+                if (this.allowMultiple) {
+                    const isSelected = this.selectedItems.some(selectedItem => selectedItem.id === item.id);
+                    if (!isSelected) {
+                        this.selectedItems.push(item);
+                    }
+                } else {
+                    this.selectedItem = index;
+                    this.selectedItems = [item];
+                }
+                this.handleChange();
+            }
+        }
     }
 
     selectSingleItem(item, index, element) {
@@ -14897,6 +14932,7 @@ class BaseCarouselField extends BaseField {
         this.nextButton = null;
         this.prevHandler = null;
         this.nextHandler = null;
+        this.boundHandleResize = null;
         this.track = null;
         this.galleryContainer = null;
         
