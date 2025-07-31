@@ -3926,21 +3926,11 @@ submission-form-extension {
 
 /* Terms Container */
 .terms-container {
-  background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-primary) 100%);
-  border: 3px solid var(--border-color);
-  border-radius: var(--radius-xxl);
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
-  box-shadow: var(--shadow-primary);
-  transition: var(--transition-slow);
-  animation: fadeIn 0.8s ease-out;
 }
 
-.terms-container:hover {
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-primary-hover);
-  transform: translateY(-2px);
-}
+
 
 /* Terms Title */
 .terms-title {
@@ -4511,7 +4501,6 @@ submission-form-extension {
   /* Terms Field */
   .terms-container {
     padding: var(--spacing-sm);
-    border-radius: var(--radius-xl);
   }
   
   .terms-title {
@@ -4604,7 +4593,6 @@ submission-form-extension {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .service-calendar-container,
-  .terms-container,
   .file-upload {
     border-width: 4px;
   }
@@ -4623,8 +4611,7 @@ submission-form-extension {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .service-calendar-container,
-  .terms-container,
+  .service-calendar-container
   .file-upload,
   .time-choice,
   .selected-slot-item,
