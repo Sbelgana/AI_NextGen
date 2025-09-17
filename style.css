@@ -138,6 +138,8 @@
     background-color: #ebe8e8;
 }
 
+
+
 /* Chatbot container */
 .g3dqfd8 {
   display: block;
@@ -150,7 +152,7 @@
 }
 
 ._1wkq7nf0 {
-  z-index: var(--chat-z-base);
+  z-index: 10000;
 }
 
 ._1wkq7nf0 ._1wkq7nfd {
