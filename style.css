@@ -98,30 +98,6 @@
     background-color: #F1E9E4;
 }
 
-/* ========================================
-   ANIMATIONS
-======================================== */
-
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
-  }
-  20% {
-    transform: scale(1.15);
-  }
-  40% {
-    transform: scale(0.95);
-  }
-  60% {
-    transform: scale(1.1);
-  }
-  80% {
-    transform: scale(0.9);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
 
 /* ========================================
    BASE CHATBOT STYLES
@@ -502,7 +478,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   border: 2px solid #A17D78;
   position: relative;
   margin: 16px 0;
-  animation: heartbeat 1s infinite;
 }
 
 /* Adding the icon using ::before */
@@ -556,7 +531,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 ======================================== */
 
 .vfrc-launcher {
-  animation: heartbeat 1s infinite;
+
 }
 
 /* ========================================
