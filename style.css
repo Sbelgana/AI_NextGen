@@ -11,28 +11,26 @@
 
 .s9t60i0 {
   /* Color System - Woodsmoke Palette */
-  --chat-primary-color: #B4946E; /* Buccaneer - Strong accent */
-  --chat-primary-dark: #6E5634; /* Shingle Fawn - Sophisticated earth tone */
-  --chat-primary-light: #A17D78; /* Pharlap - Supporting shade */
-  --chat-secondary-color: #CCB4B2; /* Cold Turkey - Soft blush tone */
-  --chat-gradient-start: #B4946E; /* Main Gradient start */
-  --chat-gradient-end: #6E5634; /* Main Gradient end */
+  --chat-primary-color: #e95d2c;
+  --chat-primary-dark: #a63e1b;
+  --chat-primary-light: #f7b899;
+  --chat-secondary-color: #b0cee2;
   
-  --chat-text-primary: #181818; /* Woodsmoke - Primary text */
-  --chat-text-secondary: #4a4a4a;
+  --chat-text-primary: #1a2730;
+  --chat-text-secondary: #666;
   --chat-text-white: #fff;
-  --chat-text-black: #181818;
+  --chat-text-black: #000;
   
-  --chat-bg-primary: #F1E9E4; /* White Linen - Clean background */
-  --chat-bg-secondary: #faf6f3;
-  --chat-bg-tertiary: #f5ede8;
+  --chat-bg-primary: #fff;
+  --chat-bg-secondary: #fafafa;
+  --chat-bg-tertiary: #f5f5f5;
   --chat-bg-transparent: transparent;
   
-  --chat-error-color: #c65545;
-  --chat-error-dark: #a63e33;
-  --chat-success-color: #5a7a5a;
-  --chat-success-dark: #486848;
-  
+  --chat-error-color: #e52059;
+  --chat-error-dark: #d32f2f;
+  --chat-success-color: #4CAF50;
+  --chat-success-dark: #2e7d32;
+   
   /* Spacing System */
   --chat-spacing-xs: 4px;
   --chat-spacing-sm: 8px;
