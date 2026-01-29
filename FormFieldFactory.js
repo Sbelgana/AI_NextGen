@@ -66,7 +66,9 @@ class FieldValueFormatter {
                 return this.formatOptionsSliderValue(value, fieldConfig);
             case 'textarea':
                 return this.formatTextareaValue(value, context);
-            case 'email':
+            case 'birthdate-picker':
+                return this.BirthdatePickerField(value, context);
+			case 'email':
             case 'phone':
             case 'url':
                 return this.formatContactValue(value);
@@ -190,6 +192,8 @@ class FieldValueFormatter {
                 return this.formatOptionsSliderValue(value, fieldConfig);
             case 'textarea':
                 return this.formatTextareaValue(value, context);
+            case 'birthdate-picker':
+                return this.BirthdatePickerField(value, context);
             case 'email':
             case 'phone':
             case 'url':
@@ -15532,5 +15536,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.BirthdatePickerField = BirthdatePickerField;
 	
 }
+
 
 
