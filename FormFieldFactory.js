@@ -1404,9 +1404,6 @@ class FormFieldFactory {
     createFilteredCarouselField(config) {
         return new FilteredCarouselField(this, config);
     }
-	createBirthdatePickerField(config) {
-        return new BirthdatePickerField(this, config);
-    }
     createServiceProviderCalendarField(config) {
         return new ServiceProviderCalendarField(this, config);
     }
@@ -1443,6 +1440,9 @@ class FormFieldFactory {
     }
     createCurrentAppointmentCardField(config) {
         return new CurrentAppointmentCardField(this, config);
+    }
+    createBirthdatePickerField(config) {
+        return new BirthdatePickerField(this, config);
     }
     // ============================================================================
     // NEW: Public API for accessing processors
@@ -1897,9 +1897,6 @@ class FormStep {
         case 'bookingCancellationCard':
             return this.factory.createBookingCancellationCardField(fieldConfig);
             // ===== NEW CUSTOM FIELD TYPES =====
-		case 'birthdate-picker':
-        case 'birthdatePicker':
-            return this.factory.createBirthdatePickerField(fieldConfig);
         case 'service-request-calendar':
         case 'serviceRequestCalendar':
             return this.factory.createServiceRequestCalendarField(fieldConfig);
@@ -1911,6 +1908,9 @@ class FormStep {
             return this.factory.createCategoryRequestFileUploadField(fieldConfig);
         case 'currentAppointmentCard':
             return this.factory.createCurrentAppointmentCardField(fieldConfig);
+        case 'birthdate-picker':
+        case 'birthdatePicker':
+            return this.factory.createBirthdatePickerField(fieldConfig);
         case 'custom':
             // Handle custom fields with render functions
             if (fieldConfig.render && typeof fieldConfig.render === 'function') {
@@ -15116,32 +15116,22 @@ class FilteredCarouselField extends BaseCarouselField {
 
 /**
  * ============================================================
- * BIRTHDATE PICKER FIELD - À ajouter dans FormFieldFactory.js
+ * BIRTHDATE PICKER FIELD
  * ============================================================
  * Un sélecteur de date de naissance élégant avec 3 dropdowns
- * Style cohérent avec le calendrier existant
  * ============================================================
- * 
- * INSTRUCTIONS D'INTÉGRATION:
- * 1. Copier la classe BirthdatePickerField dans FormFieldFactory.js
- * 2. Ajouter 'birthdate-picker': BirthdatePickerField dans le FIELD_TYPES_MAP
- * 3. Copier les styles CSS dans FormFields.css
  */
 
-// ============================================================
-// CLASSE BIRTHDATE PICKER FIELD
-// ============================================================
-
 class BirthdatePickerField extends BaseField {
-    constructor(config, formData, language) {
-        super(config, formData, language);
-        this.minYear = config.minYear || 1900;
+    constructor(factory, config) {
+        super(factory, config);
+        this.minYear = config.minYear || 1920;
         this.maxYear = config.maxYear || new Date().getFullYear();
-        this.defaultYear = config.defaultYear || null;
-        this.yearOrder = config.yearOrder || 'desc'; // 'asc' ou 'desc'
+        this.yearOrder = config.yearOrder || 'desc';
+        this.language = factory.language || config.language || 'fr';
     }
 
-    getMonthNames(lang) {
+    getMonthNames() {
         const months = {
             fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
             en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -15151,10 +15141,10 @@ class BirthdatePickerField extends BaseField {
             ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
             pt: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
         };
-        return months[lang] || months['en'];
+        return months[this.language] || months['en'];
     }
 
-    getPlaceholders(lang) {
+    getPlaceholders() {
         const placeholders = {
             fr: { day: 'Jour', month: 'Mois', year: 'Année' },
             en: { day: 'Day', month: 'Month', year: 'Year' },
@@ -15164,7 +15154,7 @@ class BirthdatePickerField extends BaseField {
             ar: { day: 'اليوم', month: 'الشهر', year: 'السنة' },
             pt: { day: 'Dia', month: 'Mês', year: 'Ano' }
         };
-        return placeholders[lang] || placeholders['en'];
+        return placeholders[this.language] || placeholders['en'];
     }
 
     getDaysInMonth(month, year) {
@@ -15172,17 +15162,27 @@ class BirthdatePickerField extends BaseField {
         return new Date(year, month, 0).getDate();
     }
 
-    render(container) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'form-field birthdate-picker-field';
-        wrapper.id = `field-${this.id}`;
+    validate() {
+        const value = this.getValue();
+        if (this.required && !value) {
+            this.showError(this.getFieldErrorMessage('required'));
+            return false;
+        }
+        if (value) {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                this.showError(this.getFieldErrorMessage('invalid') || 'Invalid date');
+                return false;
+            }
+        }
+        this.hideError();
+        return true;
+    }
 
-        const placeholders = this.getPlaceholders(this.language);
-        const monthNames = this.getMonthNames(this.language);
-
-        // Label
-        const label = this.createLabel();
-        if (label) wrapper.appendChild(label);
+    render() {
+        const container = this.createContainer();
+        const placeholders = this.getPlaceholders();
+        const monthNames = this.getMonthNames();
 
         // Container pour les 3 selects
         const pickerContainer = document.createElement('div');
@@ -15236,31 +15236,34 @@ class BirthdatePickerField extends BaseField {
 
         // Ajouter dans l'ordre correct selon la langue
         if (this.language === 'en') {
-            // Format US: Month / Day / Year
             pickerContainer.appendChild(monthWrapper);
             pickerContainer.appendChild(dayWrapper);
             pickerContainer.appendChild(yearWrapper);
         } else {
-            // Format européen: Day / Month / Year
             pickerContainer.appendChild(dayWrapper);
             pickerContainer.appendChild(monthWrapper);
             pickerContainer.appendChild(yearWrapper);
         }
 
-        wrapper.appendChild(pickerContainer);
+        container.appendChild(pickerContainer);
 
         // Hidden input for the combined value
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.id = this.id;
-        hiddenInput.name = this.name || this.id;
-        wrapper.appendChild(hiddenInput);
+        hiddenInput.name = this.name;
+        container.appendChild(hiddenInput);
 
         // Error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'form-error';
-        errorDiv.id = `${this.id}-error`;
-        wrapper.appendChild(errorDiv);
+        const errorElement = this.createErrorElement();
+        container.appendChild(errorElement);
+
+        // Store references
+        this.container = container;
+        this.daySelect = daySelect;
+        this.monthSelect = monthSelect;
+        this.yearSelect = yearSelect;
+        this.hiddenInput = hiddenInput;
 
         // Event listeners
         const updateValue = () => {
@@ -15269,7 +15272,6 @@ class BirthdatePickerField extends BaseField {
             const year = yearSelect.value;
 
             if (day && month && year) {
-                // Format ISO: YYYY-MM-DD
                 hiddenInput.value = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             } else {
                 hiddenInput.value = '';
@@ -15280,7 +15282,6 @@ class BirthdatePickerField extends BaseField {
                 const maxDays = this.getDaysInMonth(parseInt(month), parseInt(year));
                 const currentDay = parseInt(daySelect.value);
                 
-                // Rebuild day options
                 const selectedDay = daySelect.value;
                 daySelect.innerHTML = `<option value="">${placeholders.day}</option>`;
                 for (let d = 1; d <= maxDays; d++) {
@@ -15288,30 +15289,20 @@ class BirthdatePickerField extends BaseField {
                     daySelect.innerHTML += `<option value="${d}" ${selected}>${d.toString().padStart(2, '0')}</option>`;
                 }
                 
-                // If previously selected day is greater than max, reset
                 if (currentDay > maxDays) {
                     daySelect.value = '';
                     hiddenInput.value = '';
                 }
             }
 
-            // Trigger change event
-            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            this.handleChange();
         };
 
         daySelect.addEventListener('change', updateValue);
         monthSelect.addEventListener('change', updateValue);
         yearSelect.addEventListener('change', updateValue);
 
-        container.appendChild(wrapper);
-        
-        this.element = wrapper;
-        this.daySelect = daySelect;
-        this.monthSelect = monthSelect;
-        this.yearSelect = yearSelect;
-        this.hiddenInput = hiddenInput;
-
-        return wrapper;
+        return container;
     }
 
     getValue() {
@@ -15321,71 +15312,15 @@ class BirthdatePickerField extends BaseField {
     setValue(value) {
         if (!value) return;
         
-        // Parse ISO date: YYYY-MM-DD
         const parts = value.split('-');
         if (parts.length === 3) {
-            this.yearSelect.value = parts[0];
-            this.monthSelect.value = parseInt(parts[1]).toString();
-            this.daySelect.value = parseInt(parts[2]).toString();
-            this.hiddenInput.value = value;
+            if (this.yearSelect) this.yearSelect.value = parts[0];
+            if (this.monthSelect) this.monthSelect.value = parseInt(parts[1]).toString();
+            if (this.daySelect) this.daySelect.value = parseInt(parts[2]).toString();
+            if (this.hiddenInput) this.hiddenInput.value = value;
         }
-    }
-
-    validate() {
-        const value = this.getValue();
-        const errorDiv = this.element?.querySelector('.form-error');
-        
-        if (this.required && !value) {
-            if (errorDiv) {
-                errorDiv.textContent = this.customErrorMessage || 'This field is required';
-                errorDiv.style.display = 'block';
-            }
-            this.element?.classList.add('has-error');
-            return false;
-        }
-
-        // Validate date is valid
-        if (value) {
-            const date = new Date(value);
-            if (isNaN(date.getTime())) {
-                if (errorDiv) {
-                    errorDiv.textContent = this.customErrorMessage || 'Invalid date';
-                    errorDiv.style.display = 'block';
-                }
-                this.element?.classList.add('has-error');
-                return false;
-            }
-        }
-
-        if (errorDiv) {
-            errorDiv.textContent = '';
-            errorDiv.style.display = 'none';
-        }
-        this.element?.classList.remove('has-error');
-        return true;
-    }
-
-    reset() {
-        if (this.daySelect) this.daySelect.value = '';
-        if (this.monthSelect) this.monthSelect.value = '';
-        if (this.yearSelect) this.yearSelect.value = '';
-        if (this.hiddenInput) this.hiddenInput.value = '';
-        
-        const errorDiv = this.element?.querySelector('.form-error');
-        if (errorDiv) {
-            errorDiv.textContent = '';
-            errorDiv.style.display = 'none';
-        }
-        this.element?.classList.remove('has-error');
     }
 }
-
-// ============================================================
-// AJOUTER AU FIELD_TYPES_MAP dans FormFieldFactory.js
-// ============================================================
-// Dans la section FIELD_TYPES_MAP, ajouter:
-// 'birthdate-picker': BirthdatePickerField,
-
 
 // ============================================================
 // STYLES CSS - À ajouter dans FormFields.css
@@ -15538,7 +15473,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.BirthdatePickerField = BirthdatePickerField;
 	
 }
-
 
 
 
