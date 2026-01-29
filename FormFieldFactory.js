@@ -15108,6 +15108,391 @@ class FilteredCarouselField extends BaseCarouselField {
     }
 }
 
+/**
+ * ============================================================
+ * BIRTHDATE PICKER FIELD - À ajouter dans FormFieldFactory.js
+ * ============================================================
+ * Un sélecteur de date de naissance élégant avec 3 dropdowns
+ * Style cohérent avec le calendrier existant
+ * ============================================================
+ * 
+ * INSTRUCTIONS D'INTÉGRATION:
+ * 1. Copier la classe BirthdatePickerField dans FormFieldFactory.js
+ * 2. Ajouter 'birthdate-picker': BirthdatePickerField dans le FIELD_TYPES_MAP
+ * 3. Copier les styles CSS dans FormFields.css
+ */
+
+// ============================================================
+// CLASSE BIRTHDATE PICKER FIELD
+// ============================================================
+
+class BirthdatePickerField extends BaseField {
+    constructor(config, formData, language) {
+        super(config, formData, language);
+        this.minYear = config.minYear || 1900;
+        this.maxYear = config.maxYear || new Date().getFullYear();
+        this.defaultYear = config.defaultYear || null;
+        this.yearOrder = config.yearOrder || 'desc'; // 'asc' ou 'desc'
+    }
+
+    getMonthNames(lang) {
+        const months = {
+            fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+            en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+            de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            it: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+            ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+            pt: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+        };
+        return months[lang] || months['en'];
+    }
+
+    getPlaceholders(lang) {
+        const placeholders = {
+            fr: { day: 'Jour', month: 'Mois', year: 'Année' },
+            en: { day: 'Day', month: 'Month', year: 'Year' },
+            es: { day: 'Día', month: 'Mes', year: 'Año' },
+            de: { day: 'Tag', month: 'Monat', year: 'Jahr' },
+            it: { day: 'Giorno', month: 'Mese', year: 'Anno' },
+            ar: { day: 'اليوم', month: 'الشهر', year: 'السنة' },
+            pt: { day: 'Dia', month: 'Mês', year: 'Ano' }
+        };
+        return placeholders[lang] || placeholders['en'];
+    }
+
+    getDaysInMonth(month, year) {
+        if (!month || !year) return 31;
+        return new Date(year, month, 0).getDate();
+    }
+
+    render(container) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-field birthdate-picker-field';
+        wrapper.id = `field-${this.id}`;
+
+        const placeholders = this.getPlaceholders(this.language);
+        const monthNames = this.getMonthNames(this.language);
+
+        // Label
+        const label = this.createLabel();
+        if (label) wrapper.appendChild(label);
+
+        // Container pour les 3 selects
+        const pickerContainer = document.createElement('div');
+        pickerContainer.className = 'birthdate-picker-container';
+
+        // Day Select
+        const dayWrapper = document.createElement('div');
+        dayWrapper.className = 'birthdate-select-wrapper';
+        
+        const daySelect = document.createElement('select');
+        daySelect.className = 'birthdate-select birthdate-day';
+        daySelect.id = `${this.id}-day`;
+        daySelect.innerHTML = `<option value="">${placeholders.day}</option>`;
+        for (let d = 1; d <= 31; d++) {
+            daySelect.innerHTML += `<option value="${d}">${d.toString().padStart(2, '0')}</option>`;
+        }
+        dayWrapper.appendChild(daySelect);
+        
+        // Month Select
+        const monthWrapper = document.createElement('div');
+        monthWrapper.className = 'birthdate-select-wrapper birthdate-month-wrapper';
+        
+        const monthSelect = document.createElement('select');
+        monthSelect.className = 'birthdate-select birthdate-month';
+        monthSelect.id = `${this.id}-month`;
+        monthSelect.innerHTML = `<option value="">${placeholders.month}</option>`;
+        monthNames.forEach((name, index) => {
+            monthSelect.innerHTML += `<option value="${index + 1}">${name}</option>`;
+        });
+        monthWrapper.appendChild(monthSelect);
+
+        // Year Select
+        const yearWrapper = document.createElement('div');
+        yearWrapper.className = 'birthdate-select-wrapper';
+        
+        const yearSelect = document.createElement('select');
+        yearSelect.className = 'birthdate-select birthdate-year';
+        yearSelect.id = `${this.id}-year`;
+        yearSelect.innerHTML = `<option value="">${placeholders.year}</option>`;
+        
+        const years = [];
+        for (let y = this.minYear; y <= this.maxYear; y++) {
+            years.push(y);
+        }
+        if (this.yearOrder === 'desc') years.reverse();
+        
+        years.forEach(y => {
+            yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+        });
+        yearWrapper.appendChild(yearSelect);
+
+        // Ajouter dans l'ordre correct selon la langue
+        if (this.language === 'en') {
+            // Format US: Month / Day / Year
+            pickerContainer.appendChild(monthWrapper);
+            pickerContainer.appendChild(dayWrapper);
+            pickerContainer.appendChild(yearWrapper);
+        } else {
+            // Format européen: Day / Month / Year
+            pickerContainer.appendChild(dayWrapper);
+            pickerContainer.appendChild(monthWrapper);
+            pickerContainer.appendChild(yearWrapper);
+        }
+
+        wrapper.appendChild(pickerContainer);
+
+        // Hidden input for the combined value
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.id = this.id;
+        hiddenInput.name = this.name || this.id;
+        wrapper.appendChild(hiddenInput);
+
+        // Error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'form-error';
+        errorDiv.id = `${this.id}-error`;
+        wrapper.appendChild(errorDiv);
+
+        // Event listeners
+        const updateValue = () => {
+            const day = daySelect.value;
+            const month = monthSelect.value;
+            const year = yearSelect.value;
+
+            if (day && month && year) {
+                // Format ISO: YYYY-MM-DD
+                hiddenInput.value = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            } else {
+                hiddenInput.value = '';
+            }
+
+            // Update days based on month/year
+            if (month && year) {
+                const maxDays = this.getDaysInMonth(parseInt(month), parseInt(year));
+                const currentDay = parseInt(daySelect.value);
+                
+                // Rebuild day options
+                const selectedDay = daySelect.value;
+                daySelect.innerHTML = `<option value="">${placeholders.day}</option>`;
+                for (let d = 1; d <= maxDays; d++) {
+                    const selected = d === currentDay ? 'selected' : '';
+                    daySelect.innerHTML += `<option value="${d}" ${selected}>${d.toString().padStart(2, '0')}</option>`;
+                }
+                
+                // If previously selected day is greater than max, reset
+                if (currentDay > maxDays) {
+                    daySelect.value = '';
+                    hiddenInput.value = '';
+                }
+            }
+
+            // Trigger change event
+            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        daySelect.addEventListener('change', updateValue);
+        monthSelect.addEventListener('change', updateValue);
+        yearSelect.addEventListener('change', updateValue);
+
+        container.appendChild(wrapper);
+        
+        this.element = wrapper;
+        this.daySelect = daySelect;
+        this.monthSelect = monthSelect;
+        this.yearSelect = yearSelect;
+        this.hiddenInput = hiddenInput;
+
+        return wrapper;
+    }
+
+    getValue() {
+        return this.hiddenInput?.value || '';
+    }
+
+    setValue(value) {
+        if (!value) return;
+        
+        // Parse ISO date: YYYY-MM-DD
+        const parts = value.split('-');
+        if (parts.length === 3) {
+            this.yearSelect.value = parts[0];
+            this.monthSelect.value = parseInt(parts[1]).toString();
+            this.daySelect.value = parseInt(parts[2]).toString();
+            this.hiddenInput.value = value;
+        }
+    }
+
+    validate() {
+        const value = this.getValue();
+        const errorDiv = this.element?.querySelector('.form-error');
+        
+        if (this.required && !value) {
+            if (errorDiv) {
+                errorDiv.textContent = this.customErrorMessage || 'This field is required';
+                errorDiv.style.display = 'block';
+            }
+            this.element?.classList.add('has-error');
+            return false;
+        }
+
+        // Validate date is valid
+        if (value) {
+            const date = new Date(value);
+            if (isNaN(date.getTime())) {
+                if (errorDiv) {
+                    errorDiv.textContent = this.customErrorMessage || 'Invalid date';
+                    errorDiv.style.display = 'block';
+                }
+                this.element?.classList.add('has-error');
+                return false;
+            }
+        }
+
+        if (errorDiv) {
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+        this.element?.classList.remove('has-error');
+        return true;
+    }
+
+    reset() {
+        if (this.daySelect) this.daySelect.value = '';
+        if (this.monthSelect) this.monthSelect.value = '';
+        if (this.yearSelect) this.yearSelect.value = '';
+        if (this.hiddenInput) this.hiddenInput.value = '';
+        
+        const errorDiv = this.element?.querySelector('.form-error');
+        if (errorDiv) {
+            errorDiv.textContent = '';
+            errorDiv.style.display = 'none';
+        }
+        this.element?.classList.remove('has-error');
+    }
+}
+
+// ============================================================
+// AJOUTER AU FIELD_TYPES_MAP dans FormFieldFactory.js
+// ============================================================
+// Dans la section FIELD_TYPES_MAP, ajouter:
+// 'birthdate-picker': BirthdatePickerField,
+
+
+// ============================================================
+// STYLES CSS - À ajouter dans FormFields.css
+// ============================================================
+const BIRTHDATE_PICKER_CSS = `
+/* ============================================================
+   BIRTHDATE PICKER STYLES
+   ============================================================ */
+
+.birthdate-picker-field {
+    margin-bottom: 1rem;
+}
+
+.birthdate-picker-container {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.birthdate-select-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.birthdate-month-wrapper {
+    flex: 1.5;
+}
+
+.birthdate-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-family: inherit;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+}
+
+.birthdate-select:hover {
+    border-color: #b0b0b0;
+}
+
+.birthdate-select:focus {
+    outline: none;
+    border-color: #D4A853;
+    box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.15);
+}
+
+.birthdate-select option {
+    padding: 0.5rem;
+}
+
+.birthdate-select option:first-child {
+    color: #999;
+}
+
+/* Error state */
+.birthdate-picker-field.has-error .birthdate-select {
+    border-color: #dc3545;
+}
+
+.birthdate-picker-field.has-error .birthdate-select:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+/* RTL Support */
+[dir="rtl"] .birthdate-picker-container {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .birthdate-select {
+    background-position: left 0.75rem center;
+    padding-right: 1rem;
+    padding-left: 2.5rem;
+    text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .birthdate-picker-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .birthdate-select-wrapper,
+    .birthdate-month-wrapper {
+        flex: none;
+        width: 100%;
+    }
+}
+
+/* Dark theme support (si nécessaire) */
+@media (prefers-color-scheme: dark) {
+    .birthdate-select {
+        /* Décommenter pour activer le dark mode
+        background-color: #2d2d2d;
+        border-color: #444;
+        color: #fff;
+        */
+    }
+}
+`;
+
 // Global function to notify dependent fields of changes
 window.notifyFieldDependents = function(fieldName, newValue) {
     if (!window._fieldDependencyRegistry) return;
@@ -15144,3 +15529,4 @@ if (typeof module !== 'undefined' && module.exports) {
     window.MultiStepForm = MultiStepForm;
     window.CalComBaseUtility = CalComBaseUtility;
 }
+
