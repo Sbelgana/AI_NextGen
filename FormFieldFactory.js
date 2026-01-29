@@ -15133,6 +15133,7 @@ class BirthdatePickerField extends BaseField {
         this.yearOrder = config.yearOrder || 'desc';
         this.language = factory.language || config.language || 'fr';
         this.locale = config.locale || (this.language === 'fr' ? 'fr-CA' : 'en-US');
+        this.placeholder = config.placeholder || this.getDefaultPlaceholder();
         
         // Popup state
         this.isOpen = false;
@@ -15148,6 +15149,23 @@ class BirthdatePickerField extends BaseField {
         // Set initial view to a reasonable default (e.g., 30 years ago for birth dates)
         const defaultViewYear = new Date().getFullYear() - 30;
         this.state.currentDate = new Date(defaultViewYear, 0, 1);
+    }
+
+    getDefaultPlaceholder() {
+        const placeholders = {
+            fr: 'Sélectionner une date',
+            en: 'Select a date',
+            es: 'Seleccionar una fecha',
+            de: 'Datum auswählen',
+            it: 'Seleziona una data',
+            ar: 'اختر تاريخ',
+            pt: 'Selecione uma data'
+        };
+        return placeholders[this.language] || placeholders['en'];
+    }
+
+    getPlaceholder() {
+        return this.placeholder;
     }
 
     getMonthNames() {
@@ -15174,19 +15192,6 @@ class BirthdatePickerField extends BaseField {
             pt: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
         };
         return weekdays[this.language] || weekdays['en'];
-    }
-
-    getPlaceholder() {
-        const placeholders = {
-            fr: 'Sélectionner une date',
-            en: 'Select a date',
-            es: 'Seleccionar una fecha',
-            de: 'Datum auswählen',
-            it: 'Seleziona una data',
-            ar: 'اختر تاريخ',
-            pt: 'Selecione uma data'
-        };
-        return this.config.placeholder || placeholders[this.language] || placeholders['en'];
     }
 
     formatDate(date) {
