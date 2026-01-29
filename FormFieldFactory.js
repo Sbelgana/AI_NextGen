@@ -15259,9 +15259,6 @@ class BirthdatePickerField extends BaseField {
                             <div class="select-wrapper birthdate-dropdown month-dropdown">
                                 <div class="select-display">
                                     <span>${monthNames[this.state.currentDate.getMonth()]}</span>
-                                    <div class="dropdown-icon">
-                                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
-                                    </div>
                                 </div>
                                 <div class="custom-options month-options"></div>
                             </div>
@@ -15269,9 +15266,6 @@ class BirthdatePickerField extends BaseField {
                             <div class="select-wrapper birthdate-dropdown year-dropdown">
                                 <div class="select-display">
                                     <span>${this.state.currentDate.getFullYear()}</span>
-                                    <div class="dropdown-icon">
-                                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
-                                    </div>
                                 </div>
                                 <div class="custom-options year-options"></div>
                             </div>
@@ -15384,12 +15378,7 @@ class BirthdatePickerField extends BaseField {
                 option.classList.add('selected');
             }
             option.setAttribute('data-value', index);
-            option.innerHTML = `
-                <div class="option-checkbox">
-                    ${this.factory.SVG_ICONS?.CHECK || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'}
-                </div>
-                <span>${name}</span>
-            `;
+            option.innerHTML = `<span>${name}</span>`;
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectMonth(index);
@@ -15417,12 +15406,7 @@ class BirthdatePickerField extends BaseField {
                 option.classList.add('selected');
             }
             option.setAttribute('data-value', year);
-            option.innerHTML = `
-                <div class="option-checkbox">
-                    ${this.factory.SVG_ICONS?.CHECK || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'}
-                </div>
-                <span>${year}</span>
-            `;
+            option.innerHTML = `<span>${year}</span>`;
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectYear(year);
