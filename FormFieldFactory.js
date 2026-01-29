@@ -15116,12 +15116,10 @@ class FilteredCarouselField extends BaseCarouselField {
 
 /**
  * ============================================================
- * BIRTHDATE PICKER FIELD - Style Calendrier
+ * BIRTHDATE PICKER FIELD - Style Calendrier avec Custom Dropdowns
  * ============================================================
  * Un sélecteur de date de naissance avec le même style que CalendarField
- * - Sélecteur d'année en dropdown
- * - Navigation mois précédent/suivant
- * - Grille de jours cliquables
+ * Utilise les mêmes dropdowns personnalisés que les autres champs
  * ============================================================
  */
 
@@ -15133,6 +15131,10 @@ class BirthdatePickerField extends BaseField {
         this.yearOrder = config.yearOrder || 'desc';
         this.language = factory.language || config.language || 'fr';
         this.locale = config.locale || (this.language === 'fr' ? 'fr-CA' : 'en-US');
+        
+        // Dropdown state
+        this.monthDropdownOpen = false;
+        this.yearDropdownOpen = false;
         
         // State
         this.state = {
@@ -15197,6 +15199,8 @@ class BirthdatePickerField extends BaseField {
         const container = this.createContainer();
         container.classList.add('birthdate-picker-field');
 
+        const monthNames = this.getMonthNames();
+
         // Create the calendar-style picker
         const pickerContainer = document.createElement('div');
         pickerContainer.className = 'calendar-container birthdate-calendar';
@@ -15207,8 +15211,26 @@ class BirthdatePickerField extends BaseField {
                         ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
                     </button>
                     <div class="birthdate-selectors">
-                        <select class="birthdate-month-select"></select>
-                        <select class="birthdate-year-select"></select>
+                        <!-- Month Custom Dropdown -->
+                        <div class="select-wrapper birthdate-dropdown month-dropdown">
+                            <div class="select-display">
+                                <span>${monthNames[this.state.currentDate.getMonth()]}</span>
+                                <div class="dropdown-icon">
+                                    ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
+                                </div>
+                            </div>
+                            <div class="custom-options month-options"></div>
+                        </div>
+                        <!-- Year Custom Dropdown -->
+                        <div class="select-wrapper birthdate-dropdown year-dropdown">
+                            <div class="select-display">
+                                <span>${this.state.currentDate.getFullYear()}</span>
+                                <div class="dropdown-icon">
+                                    ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
+                                </div>
+                            </div>
+                            <div class="custom-options year-options"></div>
+                        </div>
                     </div>
                     <button class="nav-btn next-btn" type="button" aria-label="Next month">
                         ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
@@ -15241,9 +15263,9 @@ class BirthdatePickerField extends BaseField {
         this.pickerContainer = pickerContainer;
         this.hiddenInput = hiddenInput;
 
-        // Populate selectors
-        this.populateMonthSelector();
-        this.populateYearSelector();
+        // Populate dropdowns
+        this.populateMonthDropdown();
+        this.populateYearDropdown();
         this.renderWeekdays();
         this.renderDays();
         this.attachEvents();
@@ -15251,19 +15273,37 @@ class BirthdatePickerField extends BaseField {
         return container;
     }
 
-    populateMonthSelector() {
-        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
-        if (!monthSelect) return;
+    populateMonthDropdown() {
+        const monthOptions = this.pickerContainer.querySelector('.month-options');
+        if (!monthOptions) return;
 
         const monthNames = this.getMonthNames();
-        monthSelect.innerHTML = monthNames.map((name, index) => 
-            `<option value="${index}" ${index === this.state.currentDate.getMonth() ? 'selected' : ''}>${name}</option>`
-        ).join('');
+        monthOptions.innerHTML = '';
+
+        monthNames.forEach((name, index) => {
+            const option = document.createElement('div');
+            option.className = 'custom-option';
+            if (index === this.state.currentDate.getMonth()) {
+                option.classList.add('selected');
+            }
+            option.setAttribute('data-value', index);
+            option.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS?.CHECK || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'}
+                </div>
+                <span>${name}</span>
+            `;
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectMonth(index);
+            });
+            monthOptions.appendChild(option);
+        });
     }
 
-    populateYearSelector() {
-        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
-        if (!yearSelect) return;
+    populateYearDropdown() {
+        const yearOptions = this.pickerContainer.querySelector('.year-options');
+        if (!yearOptions) return;
 
         const years = [];
         for (let y = this.minYear; y <= this.maxYear; y++) {
@@ -15271,9 +15311,142 @@ class BirthdatePickerField extends BaseField {
         }
         if (this.yearOrder === 'desc') years.reverse();
 
-        yearSelect.innerHTML = years.map(year => 
-            `<option value="${year}" ${year === this.state.currentDate.getFullYear() ? 'selected' : ''}>${year}</option>`
-        ).join('');
+        yearOptions.innerHTML = '';
+
+        years.forEach(year => {
+            const option = document.createElement('div');
+            option.className = 'custom-option';
+            if (year === this.state.currentDate.getFullYear()) {
+                option.classList.add('selected');
+            }
+            option.setAttribute('data-value', year);
+            option.innerHTML = `
+                <div class="option-checkbox">
+                    ${this.factory.SVG_ICONS?.CHECK || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'}
+                </div>
+                <span>${year}</span>
+            `;
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectYear(year);
+            });
+            yearOptions.appendChild(option);
+        });
+    }
+
+    selectMonth(monthIndex) {
+        this.state.currentDate.setMonth(monthIndex);
+        this.updateMonthDisplay();
+        this.closeMonthDropdown();
+        this.renderDays();
+    }
+
+    selectYear(year) {
+        this.state.currentDate.setFullYear(year);
+        this.updateYearDisplay();
+        this.closeYearDropdown();
+        this.renderDays();
+    }
+
+    updateMonthDisplay() {
+        const monthNames = this.getMonthNames();
+        const display = this.pickerContainer.querySelector('.month-dropdown .select-display span');
+        if (display) {
+            display.textContent = monthNames[this.state.currentDate.getMonth()];
+        }
+        // Update selected state in options
+        const monthOptions = this.pickerContainer.querySelectorAll('.month-options .custom-option');
+        monthOptions.forEach((opt, index) => {
+            opt.classList.toggle('selected', index === this.state.currentDate.getMonth());
+        });
+    }
+
+    updateYearDisplay() {
+        const display = this.pickerContainer.querySelector('.year-dropdown .select-display span');
+        if (display) {
+            display.textContent = this.state.currentDate.getFullYear();
+        }
+        // Update selected state in options
+        const yearOptions = this.pickerContainer.querySelectorAll('.year-options .custom-option');
+        yearOptions.forEach(opt => {
+            const value = parseInt(opt.getAttribute('data-value'));
+            opt.classList.toggle('selected', value === this.state.currentDate.getFullYear());
+        });
+    }
+
+    toggleMonthDropdown() {
+        if (this.monthDropdownOpen) {
+            this.closeMonthDropdown();
+        } else {
+            this.openMonthDropdown();
+        }
+    }
+
+    openMonthDropdown() {
+        this.closeYearDropdown();
+        const dropdown = this.pickerContainer.querySelector('.month-dropdown');
+        const options = this.pickerContainer.querySelector('.month-options');
+        if (dropdown && options) {
+            options.classList.add('show-options');
+            dropdown.querySelector('.dropdown-icon').classList.add('rotate');
+            this.monthDropdownOpen = true;
+            
+            // Scroll to selected month
+            const selected = options.querySelector('.selected');
+            if (selected) {
+                selected.scrollIntoView({ block: 'center' });
+            }
+        }
+    }
+
+    closeMonthDropdown() {
+        const dropdown = this.pickerContainer.querySelector('.month-dropdown');
+        const options = this.pickerContainer.querySelector('.month-options');
+        if (dropdown && options) {
+            options.classList.remove('show-options');
+            dropdown.querySelector('.dropdown-icon').classList.remove('rotate');
+            this.monthDropdownOpen = false;
+        }
+    }
+
+    toggleYearDropdown() {
+        if (this.yearDropdownOpen) {
+            this.closeYearDropdown();
+        } else {
+            this.openYearDropdown();
+        }
+    }
+
+    openYearDropdown() {
+        this.closeMonthDropdown();
+        const dropdown = this.pickerContainer.querySelector('.year-dropdown');
+        const options = this.pickerContainer.querySelector('.year-options');
+        if (dropdown && options) {
+            options.classList.add('show-options');
+            dropdown.querySelector('.dropdown-icon').classList.add('rotate');
+            this.yearDropdownOpen = true;
+            
+            // Scroll to selected year
+            const selected = options.querySelector('.selected');
+            if (selected) {
+                selected.scrollIntoView({ block: 'center' });
+            }
+        }
+    }
+
+    closeYearDropdown() {
+        const dropdown = this.pickerContainer.querySelector('.year-dropdown');
+        const options = this.pickerContainer.querySelector('.year-options');
+        if (dropdown && options) {
+            options.classList.remove('show-options');
+            dropdown.querySelector('.dropdown-icon').classList.remove('rotate');
+            this.yearDropdownOpen = false;
+        }
+    }
+
+    closeAllDropdowns() {
+        this.closeMonthDropdown();
+        this.closeYearDropdown();
     }
 
     renderWeekdays() {
@@ -15403,20 +15576,9 @@ class BirthdatePickerField extends BaseField {
         }
 
         this.state.currentDate = newDate;
-        this.updateSelectors();
+        this.updateMonthDisplay();
+        this.updateYearDisplay();
         this.renderDays();
-    }
-
-    updateSelectors() {
-        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
-        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
-
-        if (monthSelect) {
-            monthSelect.value = this.state.currentDate.getMonth();
-        }
-        if (yearSelect) {
-            yearSelect.value = this.state.currentDate.getFullYear();
-        }
     }
 
     attachEvents() {
@@ -15425,6 +15587,7 @@ class BirthdatePickerField extends BaseField {
         if (prevBtn) {
             prevBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                this.closeAllDropdowns();
                 this.navigateMonth(-1);
             });
         }
@@ -15434,27 +15597,35 @@ class BirthdatePickerField extends BaseField {
         if (nextBtn) {
             nextBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                this.closeAllDropdowns();
                 this.navigateMonth(1);
             });
         }
 
-        // Month selector
-        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
-        if (monthSelect) {
-            monthSelect.addEventListener('change', (e) => {
-                this.state.currentDate.setMonth(parseInt(e.target.value));
-                this.renderDays();
+        // Month dropdown toggle
+        const monthDisplay = this.pickerContainer.querySelector('.month-dropdown .select-display');
+        if (monthDisplay) {
+            monthDisplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMonthDropdown();
             });
         }
 
-        // Year selector
-        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
-        if (yearSelect) {
-            yearSelect.addEventListener('change', (e) => {
-                this.state.currentDate.setFullYear(parseInt(e.target.value));
-                this.renderDays();
+        // Year dropdown toggle
+        const yearDisplay = this.pickerContainer.querySelector('.year-dropdown .select-display');
+        if (yearDisplay) {
+            yearDisplay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleYearDropdown();
             });
         }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.pickerContainer.contains(e.target)) {
+                this.closeAllDropdowns();
+            }
+        });
     }
 
     getValue() {
@@ -15471,7 +15642,8 @@ class BirthdatePickerField extends BaseField {
             this.hiddenInput.value = value;
             
             if (this.pickerContainer) {
-                this.updateSelectors();
+                this.updateMonthDisplay();
+                this.updateYearDisplay();
                 this.renderDays();
                 this.updateSelectedDisplay();
             }
