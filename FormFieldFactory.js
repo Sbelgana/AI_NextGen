@@ -66,8 +66,6 @@ class FieldValueFormatter {
                 return this.formatOptionsSliderValue(value, fieldConfig);
             case 'textarea':
                 return this.formatTextareaValue(value, context);
-            case 'birthdate-picker':
-                return this.BirthdatePickerField(value, context);
 			case 'email':
             case 'phone':
             case 'url':
@@ -192,8 +190,6 @@ class FieldValueFormatter {
                 return this.formatOptionsSliderValue(value, fieldConfig);
             case 'textarea':
                 return this.formatTextareaValue(value, context);
-            case 'birthdate-picker':
-                return this.BirthdatePickerField(value, context);
             case 'email':
             case 'phone':
             case 'url':
@@ -1408,6 +1404,9 @@ class FormFieldFactory {
     createFilteredCarouselField(config) {
         return new FilteredCarouselField(this, config);
     }
+	createBirthdatePickerField(config) {
+        return new BirthdatePickerField(this, config);
+    }
     createServiceProviderCalendarField(config) {
         return new ServiceProviderCalendarField(this, config);
     }
@@ -1898,6 +1897,9 @@ class FormStep {
         case 'bookingCancellationCard':
             return this.factory.createBookingCancellationCardField(fieldConfig);
             // ===== NEW CUSTOM FIELD TYPES =====
+		case 'birthdate-picker':
+        case 'birthdatePicker':
+            return this.factory.createBirthdatePickerField(fieldConfig);
         case 'service-request-calendar':
         case 'serviceRequestCalendar':
             return this.factory.createServiceRequestCalendarField(fieldConfig);
@@ -15536,6 +15538,7 @@ if (typeof module !== 'undefined' && module.exports) {
     window.BirthdatePickerField = BirthdatePickerField;
 	
 }
+
 
 
 
