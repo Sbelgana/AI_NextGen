@@ -15116,9 +15116,12 @@ class FilteredCarouselField extends BaseCarouselField {
 
 /**
  * ============================================================
- * BIRTHDATE PICKER FIELD
+ * BIRTHDATE PICKER FIELD - Style Calendrier
  * ============================================================
- * Un sélecteur de date de naissance élégant avec 3 dropdowns
+ * Un sélecteur de date de naissance avec le même style que CalendarField
+ * - Sélecteur d'année en dropdown
+ * - Navigation mois précédent/suivant
+ * - Grille de jours cliquables
  * ============================================================
  */
 
@@ -15129,6 +15132,17 @@ class BirthdatePickerField extends BaseField {
         this.maxYear = config.maxYear || new Date().getFullYear();
         this.yearOrder = config.yearOrder || 'desc';
         this.language = factory.language || config.language || 'fr';
+        this.locale = config.locale || (this.language === 'fr' ? 'fr-CA' : 'en-US');
+        
+        // State
+        this.state = {
+            currentDate: new Date(),
+            selectedDate: null
+        };
+        
+        // Set initial view to a reasonable default (e.g., 30 years ago for birth dates)
+        const defaultViewYear = new Date().getFullYear() - 30;
+        this.state.currentDate = new Date(defaultViewYear, 0, 1);
     }
 
     getMonthNames() {
@@ -15144,22 +15158,29 @@ class BirthdatePickerField extends BaseField {
         return months[this.language] || months['en'];
     }
 
-    getPlaceholders() {
-        const placeholders = {
-            fr: { day: 'Jour', month: 'Mois', year: 'Année' },
-            en: { day: 'Day', month: 'Month', year: 'Year' },
-            es: { day: 'Día', month: 'Mes', year: 'Año' },
-            de: { day: 'Tag', month: 'Monat', year: 'Jahr' },
-            it: { day: 'Giorno', month: 'Mese', year: 'Anno' },
-            ar: { day: 'اليوم', month: 'الشهر', year: 'السنة' },
-            pt: { day: 'Dia', month: 'Mês', year: 'Ano' }
+    getWeekdayNames() {
+        const weekdays = {
+            fr: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+            en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            es: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            de: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            it: ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+            ar: ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'],
+            pt: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
         };
-        return placeholders[this.language] || placeholders['en'];
+        return weekdays[this.language] || weekdays['en'];
     }
 
-    getDaysInMonth(month, year) {
-        if (!month || !year) return 31;
-        return new Date(year, month, 0).getDate();
+    formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    isSameDay(date1, date2) {
+        if (!date1 || !date2) return false;
+        return this.formatDate(date1) === this.formatDate(date2);
     }
 
     validate() {
@@ -15168,141 +15189,272 @@ class BirthdatePickerField extends BaseField {
             this.showError(this.getFieldErrorMessage('required'));
             return false;
         }
-        if (value) {
-            const date = new Date(value);
-            if (isNaN(date.getTime())) {
-                this.showError(this.getFieldErrorMessage('invalid') || 'Invalid date');
-                return false;
-            }
-        }
         this.hideError();
         return true;
     }
 
     render() {
         const container = this.createContainer();
-        const placeholders = this.getPlaceholders();
-        const monthNames = this.getMonthNames();
+        container.classList.add('birthdate-picker-field');
 
-        // Container pour les 3 selects
+        // Create the calendar-style picker
         const pickerContainer = document.createElement('div');
-        pickerContainer.className = 'birthdate-picker-container';
-
-        // Day Select
-        const dayWrapper = document.createElement('div');
-        dayWrapper.className = 'birthdate-select-wrapper';
-        
-        const daySelect = document.createElement('select');
-        daySelect.className = 'birthdate-select birthdate-day';
-        daySelect.id = `${this.id}-day`;
-        daySelect.innerHTML = `<option value="">${placeholders.day}</option>`;
-        for (let d = 1; d <= 31; d++) {
-            daySelect.innerHTML += `<option value="${d}">${d.toString().padStart(2, '0')}</option>`;
-        }
-        dayWrapper.appendChild(daySelect);
-        
-        // Month Select
-        const monthWrapper = document.createElement('div');
-        monthWrapper.className = 'birthdate-select-wrapper birthdate-month-wrapper';
-        
-        const monthSelect = document.createElement('select');
-        monthSelect.className = 'birthdate-select birthdate-month';
-        monthSelect.id = `${this.id}-month`;
-        monthSelect.innerHTML = `<option value="">${placeholders.month}</option>`;
-        monthNames.forEach((name, index) => {
-            monthSelect.innerHTML += `<option value="${index + 1}">${name}</option>`;
-        });
-        monthWrapper.appendChild(monthSelect);
-
-        // Year Select
-        const yearWrapper = document.createElement('div');
-        yearWrapper.className = 'birthdate-select-wrapper';
-        
-        const yearSelect = document.createElement('select');
-        yearSelect.className = 'birthdate-select birthdate-year';
-        yearSelect.id = `${this.id}-year`;
-        yearSelect.innerHTML = `<option value="">${placeholders.year}</option>`;
-        
-        const years = [];
-        for (let y = this.minYear; y <= this.maxYear; y++) {
-            years.push(y);
-        }
-        if (this.yearOrder === 'desc') years.reverse();
-        
-        years.forEach(y => {
-            yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
-        });
-        yearWrapper.appendChild(yearSelect);
-
-        // Ajouter dans l'ordre correct selon la langue
-        if (this.language === 'en') {
-            pickerContainer.appendChild(monthWrapper);
-            pickerContainer.appendChild(dayWrapper);
-            pickerContainer.appendChild(yearWrapper);
-        } else {
-            pickerContainer.appendChild(dayWrapper);
-            pickerContainer.appendChild(monthWrapper);
-            pickerContainer.appendChild(yearWrapper);
-        }
+        pickerContainer.className = 'calendar-container birthdate-calendar';
+        pickerContainer.innerHTML = `
+            <div class="calendar-header">
+                <div class="calendar-nav birthdate-nav">
+                    <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
+                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
+                    </button>
+                    <div class="birthdate-selectors">
+                        <select class="birthdate-month-select"></select>
+                        <select class="birthdate-year-select"></select>
+                    </div>
+                    <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-body">
+                <div class="days-container">
+                    <div class="weekdays"></div>
+                    <div class="days"></div>
+                </div>
+            </div>
+            <div class="selected-date-display"></div>
+        `;
 
         container.appendChild(pickerContainer);
 
-        // Hidden input for the combined value
+        // Hidden input for form value
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
         hiddenInput.id = this.id;
         hiddenInput.name = this.name;
         container.appendChild(hiddenInput);
 
-        // Error message
+        // Error element
         const errorElement = this.createErrorElement();
         container.appendChild(errorElement);
 
-        // Store references
         this.container = container;
-        this.daySelect = daySelect;
-        this.monthSelect = monthSelect;
-        this.yearSelect = yearSelect;
+        this.pickerContainer = pickerContainer;
         this.hiddenInput = hiddenInput;
 
-        // Event listeners
-        const updateValue = () => {
-            const day = daySelect.value;
-            const month = monthSelect.value;
-            const year = yearSelect.value;
-
-            if (day && month && year) {
-                hiddenInput.value = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            } else {
-                hiddenInput.value = '';
-            }
-
-            // Update days based on month/year
-            if (month && year) {
-                const maxDays = this.getDaysInMonth(parseInt(month), parseInt(year));
-                const currentDay = parseInt(daySelect.value);
-                
-                const selectedDay = daySelect.value;
-                daySelect.innerHTML = `<option value="">${placeholders.day}</option>`;
-                for (let d = 1; d <= maxDays; d++) {
-                    const selected = d === currentDay ? 'selected' : '';
-                    daySelect.innerHTML += `<option value="${d}" ${selected}>${d.toString().padStart(2, '0')}</option>`;
-                }
-                
-                if (currentDay > maxDays) {
-                    daySelect.value = '';
-                    hiddenInput.value = '';
-                }
-            }
-
-            this.handleChange();
-        };
-
-        daySelect.addEventListener('change', updateValue);
-        monthSelect.addEventListener('change', updateValue);
-        yearSelect.addEventListener('change', updateValue);
+        // Populate selectors
+        this.populateMonthSelector();
+        this.populateYearSelector();
+        this.renderWeekdays();
+        this.renderDays();
+        this.attachEvents();
 
         return container;
+    }
+
+    populateMonthSelector() {
+        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
+        if (!monthSelect) return;
+
+        const monthNames = this.getMonthNames();
+        monthSelect.innerHTML = monthNames.map((name, index) => 
+            `<option value="${index}" ${index === this.state.currentDate.getMonth() ? 'selected' : ''}>${name}</option>`
+        ).join('');
+    }
+
+    populateYearSelector() {
+        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
+        if (!yearSelect) return;
+
+        const years = [];
+        for (let y = this.minYear; y <= this.maxYear; y++) {
+            years.push(y);
+        }
+        if (this.yearOrder === 'desc') years.reverse();
+
+        yearSelect.innerHTML = years.map(year => 
+            `<option value="${year}" ${year === this.state.currentDate.getFullYear() ? 'selected' : ''}>${year}</option>`
+        ).join('');
+    }
+
+    renderWeekdays() {
+        const weekdaysEl = this.pickerContainer.querySelector('.weekdays');
+        if (!weekdaysEl) return;
+
+        const weekdayNames = this.getWeekdayNames();
+        weekdaysEl.innerHTML = weekdayNames.map(day => `<div>${day}</div>`).join('');
+    }
+
+    renderDays() {
+        const daysEl = this.pickerContainer.querySelector('.days');
+        if (!daysEl) return;
+
+        daysEl.innerHTML = '';
+
+        const year = this.state.currentDate.getFullYear();
+        const month = this.state.currentDate.getMonth();
+
+        // First day of month and days from previous month
+        const firstDay = new Date(year, month, 1);
+        const daysFromPrevMonth = firstDay.getDay();
+        const lastDay = new Date(year, month + 1, 0);
+        const totalDays = lastDay.getDate();
+
+        let daysToShow = [];
+
+        // Previous month days
+        for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+            const day = new Date(firstDay);
+            day.setDate(day.getDate() - i - 1);
+            daysToShow.push({ date: day, inactive: true });
+        }
+
+        // Current month days
+        for (let i = 1; i <= totalDays; i++) {
+            const day = new Date(year, month, i);
+            daysToShow.push({ date: day, inactive: false });
+        }
+
+        // Next month days to fill grid
+        const remainingDays = 42 - daysToShow.length;
+        for (let i = 1; i <= remainingDays; i++) {
+            const day = new Date(lastDay);
+            day.setDate(day.getDate() + i);
+            daysToShow.push({ date: day, inactive: true });
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        daysToShow.forEach(({ date, inactive }) => {
+            const dayEl = document.createElement('div');
+            dayEl.className = 'day';
+            dayEl.textContent = date.getDate();
+
+            if (inactive) {
+                dayEl.classList.add('inactive');
+            } else {
+                // Check if date is in the future (invalid for birthdate)
+                if (date > today) {
+                    dayEl.classList.add('inactive', 'future');
+                } else {
+                    dayEl.classList.add('available');
+
+                    // Check if this is the selected date
+                    if (this.state.selectedDate && this.isSameDay(date, this.state.selectedDate)) {
+                        dayEl.classList.add('active', 'selected');
+                    }
+
+                    // Check if today
+                    if (this.isSameDay(date, today)) {
+                        dayEl.classList.add('today');
+                    }
+
+                    dayEl.addEventListener('click', () => {
+                        this.selectDate(new Date(date));
+                    });
+                }
+            }
+
+            daysEl.appendChild(dayEl);
+        });
+    }
+
+    selectDate(date) {
+        this.state.selectedDate = date;
+        this.hiddenInput.value = this.formatDate(date);
+        
+        // Update display
+        this.renderDays();
+        this.updateSelectedDisplay();
+        this.handleChange();
+        this.hideError();
+    }
+
+    updateSelectedDisplay() {
+        const displayEl = this.pickerContainer.querySelector('.selected-date-display');
+        if (!displayEl) return;
+
+        if (this.state.selectedDate) {
+            const formatter = new Intl.DateTimeFormat(this.locale, {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            displayEl.innerHTML = `<div class="selected-date-text">${formatter.format(this.state.selectedDate)}</div>`;
+            displayEl.classList.add('has-selection');
+        } else {
+            displayEl.innerHTML = '';
+            displayEl.classList.remove('has-selection');
+        }
+    }
+
+    navigateMonth(delta) {
+        const newDate = new Date(this.state.currentDate);
+        newDate.setMonth(newDate.getMonth() + delta);
+        
+        // Clamp to min/max year
+        if (newDate.getFullYear() < this.minYear) {
+            newDate.setFullYear(this.minYear);
+            newDate.setMonth(0);
+        } else if (newDate.getFullYear() > this.maxYear) {
+            newDate.setFullYear(this.maxYear);
+            newDate.setMonth(11);
+        }
+
+        this.state.currentDate = newDate;
+        this.updateSelectors();
+        this.renderDays();
+    }
+
+    updateSelectors() {
+        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
+        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
+
+        if (monthSelect) {
+            monthSelect.value = this.state.currentDate.getMonth();
+        }
+        if (yearSelect) {
+            yearSelect.value = this.state.currentDate.getFullYear();
+        }
+    }
+
+    attachEvents() {
+        // Previous month button
+        const prevBtn = this.pickerContainer.querySelector('.prev-btn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateMonth(-1);
+            });
+        }
+
+        // Next month button
+        const nextBtn = this.pickerContainer.querySelector('.next-btn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateMonth(1);
+            });
+        }
+
+        // Month selector
+        const monthSelect = this.pickerContainer.querySelector('.birthdate-month-select');
+        if (monthSelect) {
+            monthSelect.addEventListener('change', (e) => {
+                this.state.currentDate.setMonth(parseInt(e.target.value));
+                this.renderDays();
+            });
+        }
+
+        // Year selector
+        const yearSelect = this.pickerContainer.querySelector('.birthdate-year-select');
+        if (yearSelect) {
+            yearSelect.addEventListener('change', (e) => {
+                this.state.currentDate.setFullYear(parseInt(e.target.value));
+                this.renderDays();
+            });
+        }
     }
 
     getValue() {
@@ -15311,13 +15463,18 @@ class BirthdatePickerField extends BaseField {
 
     setValue(value) {
         if (!value) return;
-        
-        const parts = value.split('-');
-        if (parts.length === 3) {
-            if (this.yearSelect) this.yearSelect.value = parts[0];
-            if (this.monthSelect) this.monthSelect.value = parseInt(parts[1]).toString();
-            if (this.daySelect) this.daySelect.value = parseInt(parts[2]).toString();
-            if (this.hiddenInput) this.hiddenInput.value = value;
+
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+            this.state.selectedDate = date;
+            this.state.currentDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            this.hiddenInput.value = value;
+            
+            if (this.pickerContainer) {
+                this.updateSelectors();
+                this.renderDays();
+                this.updateSelectedDisplay();
+            }
         }
     }
 }
@@ -15473,6 +15630,3 @@ if (typeof module !== 'undefined' && module.exports) {
     window.BirthdatePickerField = BirthdatePickerField;
 	
 }
-
-
-
