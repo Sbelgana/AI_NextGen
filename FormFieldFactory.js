@@ -15518,7 +15518,8 @@ if (typeof module !== 'undefined' && module.exports) {
         FormFieldFactory,
         CreatForm,
         MultiStepForm,
-        CalComBaseUtility
+        CalComBaseUtility,
+		BirthdatePickerField
     };
 } else {
     window.FieldValueFormatter = FieldValueFormatter; // ← Add
@@ -15528,5 +15529,8 @@ if (typeof module !== 'undefined' && module.exports) {
     window.CreatForm = CreatForm;
     window.MultiStepForm = MultiStepForm;
     window.CalComBaseUtility = CalComBaseUtility;
+    window.BirthdatePickerField = BirthdatePickerField;
+	
 }
+
 
