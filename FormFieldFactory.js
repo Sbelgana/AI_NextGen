@@ -15244,56 +15244,54 @@ class BirthdatePickerField extends BaseField {
             </div>
         `;
 
-        // Calendar popup
-        const popupContainer = document.createElement('div');
-        popupContainer.className = 'birthdate-popup';
-        popupContainer.innerHTML = `
-            <div class="birthdate-popup-content">
-                <div class="calendar-container birthdate-calendar">
-                    <div class="calendar-header">
-                        <div class="calendar-nav birthdate-nav">
-                            <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
-                                ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
-                            </button>
-                            <div class="birthdate-selectors">
-                                <!-- Month Custom Dropdown -->
-                                <div class="select-wrapper birthdate-dropdown month-dropdown">
-                                    <div class="select-display">
-                                        <span>${monthNames[this.state.currentDate.getMonth()]}</span>
-                                        <div class="dropdown-icon">
-                                            ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
-                                        </div>
+        // Calendar container (inline, not popup)
+        const calendarWrapper = document.createElement('div');
+        calendarWrapper.className = 'birthdate-calendar-wrapper';
+        calendarWrapper.innerHTML = `
+            <div class="calendar-container birthdate-calendar">
+                <div class="calendar-header">
+                    <div class="calendar-nav birthdate-nav">
+                        <button class="nav-btn prev-btn" type="button" aria-label="Previous month">
+                            ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
+                        </button>
+                        <div class="birthdate-selectors">
+                            <!-- Month Custom Dropdown -->
+                            <div class="select-wrapper birthdate-dropdown month-dropdown">
+                                <div class="select-display">
+                                    <span>${monthNames[this.state.currentDate.getMonth()]}</span>
+                                    <div class="dropdown-icon">
+                                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
                                     </div>
-                                    <div class="custom-options month-options"></div>
                                 </div>
-                                <!-- Year Custom Dropdown -->
-                                <div class="select-wrapper birthdate-dropdown year-dropdown">
-                                    <div class="select-display">
-                                        <span>${this.state.currentDate.getFullYear()}</span>
-                                        <div class="dropdown-icon">
-                                            ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
-                                        </div>
-                                    </div>
-                                    <div class="custom-options year-options"></div>
-                                </div>
+                                <div class="custom-options month-options"></div>
                             </div>
-                            <button class="nav-btn next-btn" type="button" aria-label="Next month">
-                                ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
-                            </button>
+                            <!-- Year Custom Dropdown -->
+                            <div class="select-wrapper birthdate-dropdown year-dropdown">
+                                <div class="select-display">
+                                    <span>${this.state.currentDate.getFullYear()}</span>
+                                    <div class="dropdown-icon">
+                                        ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>'}
+                                    </div>
+                                </div>
+                                <div class="custom-options year-options"></div>
+                            </div>
                         </div>
+                        <button class="nav-btn next-btn" type="button" aria-label="Next month">
+                            ${this.factory.SVG_ICONS?.CHEVRON || '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>'}
+                        </button>
                     </div>
-                    <div class="calendar-body">
-                        <div class="days-container">
-                            <div class="weekdays"></div>
-                            <div class="days"></div>
-                        </div>
+                </div>
+                <div class="calendar-body">
+                    <div class="days-container">
+                        <div class="weekdays"></div>
+                        <div class="days"></div>
                     </div>
                 </div>
             </div>
         `;
 
         container.appendChild(inputWrapper);
-        container.appendChild(popupContainer);
+        container.appendChild(calendarWrapper);
 
         // Hidden input for form value
         const hiddenInput = document.createElement('input');
@@ -15310,8 +15308,8 @@ class BirthdatePickerField extends BaseField {
         this.inputWrapper = inputWrapper;
         this.displayElement = inputWrapper.querySelector('.birthdate-display');
         this.displayText = inputWrapper.querySelector('.birthdate-display-text');
-        this.popupContainer = popupContainer;
-        this.pickerContainer = popupContainer.querySelector('.birthdate-calendar');
+        this.calendarWrapper = calendarWrapper;
+        this.pickerContainer = calendarWrapper.querySelector('.birthdate-calendar');
         this.hiddenInput = hiddenInput;
 
         // Populate dropdowns
@@ -15324,11 +15322,11 @@ class BirthdatePickerField extends BaseField {
         return container;
     }
 
-    openPopup() {
+    openCalendar() {
         if (this.isOpen) return;
         
         this.isOpen = true;
-        this.popupContainer.classList.add('open');
+        this.calendarWrapper.classList.add('open');
         this.displayElement.classList.add('active');
         
         // If there's a selected date, navigate to that month/year
@@ -15338,22 +15336,27 @@ class BirthdatePickerField extends BaseField {
             this.updateYearDisplay();
             this.renderDays();
         }
+        
+        // Scroll to make calendar visible
+        setTimeout(() => {
+            this.calendarWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
     }
 
-    closePopup() {
+    closeCalendar() {
         if (!this.isOpen) return;
         
         this.isOpen = false;
-        this.popupContainer.classList.remove('open');
+        this.calendarWrapper.classList.remove('open');
         this.displayElement.classList.remove('active');
         this.closeAllDropdowns();
     }
 
-    togglePopup() {
+    toggleCalendar() {
         if (this.isOpen) {
-            this.closePopup();
+            this.closeCalendar();
         } else {
-            this.openPopup();
+            this.openCalendar();
         }
     }
 
@@ -15647,19 +15650,19 @@ class BirthdatePickerField extends BaseField {
     }
 
     attachEvents() {
-        // Click on display to open popup
+        // Click on display to toggle calendar
         this.displayElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.togglePopup();
+            this.toggleCalendar();
         });
 
         // Keyboard support
         this.displayElement.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                this.togglePopup();
+                this.toggleCalendar();
             } else if (e.key === 'Escape' && this.isOpen) {
-                this.closePopup();
+                this.closeCalendar();
             }
         });
 
@@ -15703,16 +15706,11 @@ class BirthdatePickerField extends BaseField {
             });
         }
 
-        // Close popup when clicking outside
-        document.addEventListener('click', (e) => {
-            if (this.isOpen && !this.container.contains(e.target)) {
-                this.closePopup();
+        // Close dropdowns when clicking inside calendar but outside dropdowns
+        this.calendarWrapper.addEventListener('click', (e) => {
+            if (!e.target.closest('.birthdate-dropdown')) {
+                this.closeAllDropdowns();
             }
-        });
-
-        // Prevent popup close when clicking inside
-        this.popupContainer.addEventListener('click', (e) => {
-            e.stopPropagation();
         });
     }
 
