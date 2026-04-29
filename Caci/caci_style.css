@@ -1,12 +1,24 @@
 /**
- * CACI Voiceflow Chatbot CSS · Palette officielle CACI
- * @version 4.0.0
- * @description Personnalisation visuelle du widget Voiceflow pour CACI
- *              Centre d'appui aux communautés immigrantes de Bordeaux-Cartierville
- *              Palette · bleu nuit institutionnel + jaune doré d'accent
- *              Variables définies sur .s9t60i0, valeurs hardcodées pour
- *              les éléments rendus en dehors du conteneur principal
+ * CACI Voiceflow Chatbot CSS · Version fusionnée v5.0.0
+ * @version 5.0.0
+ * @description Fusion de deux versions complémentaires pour couverture complète
+ *              Partie A · classes obfusquées (.s9t60i0, .jyiuei3, etc.) qui
+ *                         ciblent les éléments précis du widget compilé
+ *              Partie B · classes documentées (.vfrc-*) qui complètent la
+ *                         couverture pour les éléments non touchés par la Partie A
+ *              Palette · bleu nuit institutionnel CACI + jaune doré d'accent
+ *              L'ordre des deux parties est important · la Partie A définit les
+ *              règles de base et la Partie B ajoute uniquement ce qui manque
  */
+
+/* ============================================================================
+   PARTIE A · CLASSES OBFUSQUÉES (version 4 fonctionnelle)
+   ----------------------------------------------------------------------------
+   Cette section est conservée intégralement parce qu'elle produit déjà les
+   effets visibles dans vos captures (titre personnalisé du header, fond blanc
+   du widget, animations heartbeat, classes obfusquées des boutons). Elle
+   constitue la base fonctionnelle sur laquelle la Partie B vient s'ajouter.
+   ============================================================================ */
 
 /* ========================================
    DÉFINITIONS DES VARIABLES CSS
@@ -20,43 +32,34 @@
 
 .s9t60i0 {
   /* === Système de couleurs · palette CACI officielle === */
-  /* Couleur dominante institutionnelle · ancrage de l'identité visuelle */
-  --chat-primary-color: #0a1f2c;       /* Bleu nuit · couleur principale */
-  --chat-primary-dark: #061520;        /* Bleu nuit assombri · états actifs */
-  --chat-primary-light: #193b4d;       /* Bleu profond · variantes secondaires */
-  --chat-secondary-color: #6ec1e4;     /* Bleu eau turquoise · accents doux */
+  --chat-primary-color: #0a1f2c;
+  --chat-primary-dark: #061520;
+  --chat-primary-light: #193b4d;
+  --chat-secondary-color: #6ec1e4;
 
-  /* Gradient du header · transition douce du bleu nuit au bleu profond */
-  --chat-gradient-start: #0a1f2c;      /* Début gradient · plus sombre */
-  --chat-gradient-end: #193b4d;        /* Fin gradient · plus clair */
+  --chat-gradient-start: #0a1f2c;
+  --chat-gradient-end: #193b4d;
 
-  /* Couleur d'accent CACI · le jaune doré qui remplace l'orange Skalean */
-  /* Utilisé pour les boutons CTA, les survols, et les bordures d'attention */
-  --chat-accent-color: #ffb92a;        /* Jaune doré CACI · couleur d'accent */
-  --chat-accent-dark: #e6a420;         /* Jaune assombri · état hover */
-  --chat-accent-light: #fff676;        /* Jaune pâle · backgrounds doux */
+  --chat-accent-color: #ffb92a;
+  --chat-accent-dark: #e6a420;
+  --chat-accent-light: #fff676;
 
-  /* Couleurs de texte · contraste optimisé pour la lisibilité */
-  --chat-text-primary: #0a1f2c;        /* Bleu nuit pour textes principaux */
-  --chat-text-secondary: #4a4a4a;      /* Gris foncé pour textes secondaires */
+  --chat-text-primary: #0a1f2c;
+  --chat-text-secondary: #4a4a4a;
   --chat-text-white: #ffffff;
-  --chat-text-black: #0a1f2c;          /* Bleu nuit · plus doux que noir pur */
+  --chat-text-black: #0a1f2c;
 
-  /* Couleurs de fond · tons clairs et neutres adaptés à la palette CACI */
-  --chat-bg-primary: #eaf3fb;          /* Bleu lavande très pâle · bulles bot */
-  --chat-bg-secondary: #f8fbfe;        /* Blanc bleuté · fonds secondaires */
-  --chat-bg-tertiary: #ffffff;         /* Blanc pur · cartes carrousel */
+  --chat-bg-primary: #eaf3fb;
+  --chat-bg-secondary: #f8fbfe;
+  --chat-bg-tertiary: #ffffff;
   --chat-bg-transparent: transparent;
 
-  /* Couleurs sémantiques · gardées proches du standard pour la lisibilité */
-  /* Ces couleurs ne doivent pas être modifiées pour respecter les conventions
-     d'interface où le rouge signale le danger et le vert la validation */
   --chat-error-color: #c65545;
   --chat-error-dark: #a63e33;
   --chat-success-color: #5a7a5a;
   --chat-success-dark: #486848;
 
-  /* Système d'espacement · échelle cohérente pour toute la mise en page */
+  /* Échelle d'espacement */
   --chat-spacing-xs: 4px;
   --chat-spacing-sm: 8px;
   --chat-spacing-md: 16px;
@@ -64,7 +67,7 @@
   --chat-spacing-xl: 32px;
   --chat-spacing-xxl: 40px;
 
-  /* Typographie · polices et tailles adaptées au lecteur multilingue */
+  /* Typographie */
   --chat-font-family: var(--_1bof89na);
   --chat-font-size-sm: 14px;
   --chat-font-size-base: 16px;
@@ -75,7 +78,7 @@
   --chat-font-weight-semibold: 600;
   --chat-font-weight-bold: 700;
 
-  /* Border radius · arrondis cohérents pour les coins des éléments */
+  /* Border radius */
   --chat-radius-sm: 6px;
   --chat-radius-md: 8px;
   --chat-radius-lg: 10px;
@@ -84,14 +87,12 @@
   --chat-radius-round: 24px;
   --chat-radius-full: 50%;
 
-  /* Transitions · durées courtes pour rester réactif sans saccades */
+  /* Transitions */
   --chat-transition-fast: 0.15s ease;
   --chat-transition-base: 0.3s ease;
   --chat-transition-color: background-color 0.3s ease, color 0.3s ease;
 
-  /* Ombres · teinte bleue cohérente avec la palette CACI dominante */
-  /* L'ancien rgba(99, 55, 52, ...) qui était brun-rougeâtre est remplacé
-     par rgba(10, 31, 44, ...) qui est bleu nuit transparent · cohérence */
+  /* Ombres en bleu transparent cohérent avec la palette CACI */
   --chat-shadow-sm: 0 2px 4px rgba(10, 31, 44, 0.05);
   --chat-shadow-md: 0 4px 10px rgba(10, 31, 44, 0.15);
   --chat-shadow-lg: 0 8px 25px rgba(10, 31, 44, 0.15);
@@ -99,7 +100,7 @@
   --chat-shadow-none: none;
   --chat-shadow-inset: inset 0 0 0 2px var(--chat-primary-color);
 
-  /* Dimensions des composants · mesures précises pour les boutons et icônes */
+  /* Dimensions des composants */
   --chat-button-height: 40px;
   --chat-button-padding: 7px 12px 6px;
   --chat-border-width: 2px;
@@ -108,12 +109,12 @@
   --chat-icon-size-lg: 32px;
   --chat-icon-size-xl: 40px;
 
-  /* Z-index · hiérarchie de superposition des éléments */
+  /* Z-index */
   --chat-z-base: 1000;
   --chat-z-tooltip: 1100;
   --chat-z-modal: 1200;
 
-  /* Carousel · dimensions des cartes et boutons de navigation */
+  /* Carousel */
   --carousel-card-width: 400px;
   --carousel-card-width-mobile: 320px;
   --carousel-card-height: 270px;
@@ -121,17 +122,11 @@
   --carousel-button-size-mobile: 44px;
   --carousel-gap: 15px;
 
-  /* Background du widget entier · blanc pur pour ne pas alourdir */
   background-color: #ffffff;
 }
 
 /* ========================================
    ANIMATIONS GLOBALES
-   ----------------------------------------
-   Le heartbeat est utilisé pour le launcher et la bulle proactive afin
-   d'attirer l'attention de l'utilisateur sans être agressif. La durée de
-   1 seconde est suffisamment lente pour ne pas distraire pendant la
-   lecture du contenu de la page WordPress.
 ======================================== */
 
 @keyframes heartbeat {
@@ -163,7 +158,6 @@
     background-color: white;
 }
 
-/* Conteneur du chatbot · transparent pour laisser passer le fond du widget */
 .g3dqfd8 {
   display: block;
   box-sizing: border-box;
@@ -182,13 +176,12 @@
   right: -200px;
 }
 
-/* Header · gradient bleu nuit institutionnel CACI */
+/* Header · gradient bleu nuit institutionnel CACI · règle critique pour couleur header */
 .jyiuei3 {
     background-color: transparent;
-    background: linear-gradient(135deg, #0a1f2c, #193b4d);
+    background: linear-gradient(135deg, #0a1f2c, #193b4d) !important;
 }
 
-/* Mise en page responsive · ajustements pour grands écrans */
 @media (min-width: 1000px) {
   ._1wkq7nf4 {
     min-height: 600px;
@@ -207,7 +200,6 @@
   }
 }
 
-/* Éléments du header · couleur d'accent jaune CACI */
 ._15emaa41 {
   background-color: var(--chat-accent-color);
 }
@@ -228,16 +220,9 @@
 }
 
 /* ========================================
-   STYLES DU CARROUSEL
-   ----------------------------------------
-   Le carrousel est utilisé pour afficher les sept catégories de services
-   dans le workflow Services et les sous-services dans Service_Categorie.
-   Les couleurs des cartes et boutons doivent rester cohérentes avec la
-   palette CACI tout en restant visuellement distinctes des bulles texte
-   pour signaler que ce sont des éléments interactifs.
+   CARROUSEL · cartes et boutons
 ======================================== */
 
-/* Fond carrousel · blanc bleuté pour distinguer des messages texte */
 ._1lbxmyd0 {
   background-color: var(--chat-bg-tertiary);
   width: var(--carousel-card-width);
@@ -253,7 +238,6 @@
   flex-direction: row;
 }
 
-/* Bouton de carte carrousel · bleu nuit en bordure, jaune au hover */
 ._1q15b0b3 {
   border-radius: var(--chat-radius-md);
   color: var(--chat-primary-color);
@@ -269,7 +253,6 @@
   font-weight: var(--chat-font-weight-bold);
 }
 
-/* Hover bouton carrousel · inversion en jaune doré CACI · contraste fort */
 ._1q15b0b3:hover {
   color: var(--chat-text-primary);
   background-color: var(--chat-accent-color);
@@ -277,7 +260,6 @@
   font-weight: var(--chat-font-weight-bold);
 }
 
-/* Bouton secondaire de carte · même style que le bouton principal */
 ._1q15b0b1 {
   border: var(--chat-border-width) solid var(--chat-primary-color);
   color: var(--chat-primary-color);
@@ -294,7 +276,7 @@
 }
 
 /* ========================================
-   FOOTER DU CHAT · zone de saisie
+   FOOTER · zone de saisie
 ======================================== */
 
 ._1vj16245 {
@@ -315,10 +297,6 @@
 
 /* ========================================
    AVATAR UTILISATEUR
-   ----------------------------------------
-   L'avatar utilisateur est généré via un SVG inline avec un cercle de
-   fond bleu nuit CACI et une silhouette blanche. C'est différent de
-   l'avatar bot qui est masqué via le snippet JavaScript.
 ======================================== */
 
 ._15emaa42::after {
@@ -331,9 +309,6 @@
   border-radius: var(--chat-radius-full);
   background-size: cover;
   background-repeat: no-repeat;
-  /* SVG avatar utilisateur · cercle bleu nuit CACI avec silhouette blanche
-     %230a1f2c est l'encodage URL de #0a1f2c (le caractère # devient %23)
-     Voir doc MDN sur l'encodage des URLs dans les data: URIs SVG */
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(120, 100) scale(0.6)'><path fill='white' d='M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z'/></g></svg>");
 }
 
@@ -344,7 +319,7 @@
 }
 
 /* ========================================
-   ESPACEMENT ET MISE EN PAGE
+   ESPACEMENT
 ======================================== */
 
 .g3dqfd6 {
@@ -360,7 +335,7 @@
 }
 
 /* ========================================
-   STYLES DES TOOLTIPS
+   TOOLTIPS
 ======================================== */
 
 ._6r9xee0 {
@@ -385,23 +360,14 @@
   background-color: transparent;
 }
 
-/* Couleur des liens dans les tooltips · jaune CACI pour rester visibles */
 ._12m8tlu4 {
   color: var(--chat-accent-color) !important;
 }
 
 /* ========================================
-   BOUTONS D'ACTION
-   ----------------------------------------
-   Deux variantes de boutons sémantiques · positif (validation) et
-   négatif (annulation). Les couleurs success/error sont gardées proches
-   du standard parce qu'elles ont une signification universelle qui
-   transcende la palette de marque · vert pour valider, rouge pour
-   annuler. Modifier ces couleurs au profit de la palette CACI nuirait à
-   la clarté de l'interaction.
+   BOUTONS D'ACTION SÉMANTIQUES
 ======================================== */
 
-/* Bouton négatif · état normal en bleu nuit, hover en rouge */
 ._1q15b0b2._1q15b0b4 {
   color: var(--chat-primary-color);
   background-color: var(--chat-bg-secondary);
@@ -416,7 +382,6 @@
   border: var(--chat-border-width) solid var(--chat-error-dark);
 }
 
-/* Bouton positif · état normal en bleu nuit, hover en vert */
 ._1q15b0b3._1q15b0b4 {
   color: var(--chat-primary-color);
   background-color: var(--chat-bg-secondary);
@@ -431,7 +396,6 @@
   border: var(--chat-border-width) solid var(--chat-success-dark);
 }
 
-/* Bouton primaire · bleu nuit avec inversion blanc au hover */
 .jyiuei7 {
   background-color: var(--chat-primary-color);
   border: var(--chat-border-width) solid var(--chat-primary-color);
@@ -444,18 +408,12 @@
   font-weight: var(--chat-font-weight-semibold);
 }
 
-/* Hover bouton primaire · inversion en blanc avec bordure bleue */
 .jyiuei7:hover {
   background-color: var(--chat-text-white);
   border: var(--chat-border-width) solid var(--chat-primary-color);
   color: var(--chat-primary-color);
 }
 
-/* Variante de bouton additionnelle · valeurs hardcodées pour robustesse */
-/* Cette règle utilise des valeurs explicites parce que les éléments ciblés
-   peuvent être rendus en dehors du conteneur principal où les variables
-   CSS ne sont pas accessibles. C'est une précaution contre l'isolation
-   du Shadow DOM dans certains cas particuliers. */
 .f6dof81._1q15b0b0.c26d8x0._1q15b0b5 {
   color: #0a1f2c;
   background-color: #f8fbfe;
@@ -470,20 +428,13 @@
 
 /* ========================================
    PERSONNALISATION DU LAUNCHER
-   ----------------------------------------
-   Le launcher est l'icône permanente en bas à droite de la page WordPress
-   qui ouvre le widget. Ces éléments sont rendus en dehors du conteneur
-   principal du widget, donc les variables CSS ne sont pas accessibles
-   et nous devons utiliser des valeurs hardcodées pour garantir le rendu.
 ======================================== */
 
-/* Masquer les SVG et images originaux du launcher Voiceflow */
 div.f6dof80 div.f6dof87.f6dof89 > svg,
 div.f6dof80 div.f6dof87.f6dof89 > img {
   display: none !important;
 }
 
-/* Transformer le wrapper en cercle coloré bleu nuit CACI */
 div.f6dof80 div.f6dof87.f6dof89 {
   border-radius: 50% !important;
   width: 40px !important;
@@ -494,10 +445,9 @@ div.f6dof80 div.f6dof87.f6dof89 {
   position: relative !important;
   overflow: hidden !important;
   padding: 4px !important;
+  background-color: #0a1f2c !important;
 }
 
-/* Injecter un SVG personnalisé avec icône speech bubble en jaune CACI */
-/* Le %23ffb92a est l'encodage URL de #ffb92a (jaune doré CACI) */
 div.f6dof80 div.f6dof87.f6dof89::after {
   content: "" !important;
   display: block !important;
@@ -519,7 +469,6 @@ div.f6dof80 div.f6dof87.f6dof89::after {
   pointer-events: none !important;
 }
 
-/* Au hover, l'icône passe au blanc pour signaler l'interaction */
 div.f6dof80 div.f6dof87.f6dof89:hover::after {
   background-image: url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
@@ -531,12 +480,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* ========================================
-   BULLE DE NOTIFICATION PROACTIVE
-   ----------------------------------------
-   La bulle proactive flotte à côté du launcher pour inciter l'utilisateur
-   à ouvrir le chat. Elle est rendue en dehors du conteneur principal donc
-   les valeurs sont hardcodées. L'animation heartbeat la fait pulser pour
-   attirer l'attention sans être agressive.
+   BULLE PROACTIVE
 ======================================== */
 
 ._6r9xee4 {
@@ -548,16 +492,12 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   display: flex;
   align-items: center;
   max-width: 400px;
-  /* Bordure jaune CACI · pour distinguer la bulle du fond blanc */
   border: 2px solid #ffb92a;
   position: relative;
   margin: 16px 0;
   animation: heartbeat 1s infinite;
 }
 
-/* Icône CACI flottante au-dessus de la bulle proactive */
-/* Le SVG contient une silhouette de personnage avec écouteurs · cercle de
-   fond changé en blanc et silhouette en bleu nuit CACI pour cohérence */
 ._6r9xee4::before {
   content: "";
   position: absolute;
@@ -570,13 +510,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* ========================================
-   PERSONNALISATION DU TITRE DU HEADER
-   ----------------------------------------
-   Le titre par défaut du header est masqué et remplacé par un texte CACI
-   personnalisé via le pseudo-élément ::before. Cette technique permet
-   d'écraser le titre défini dans le snippet JavaScript directement depuis
-   le CSS, ce qui est utile pour faire des ajustements rapides sans
-   redéployer le snippet.
+   TITRE DU HEADER PERSONNALISÉ
 ======================================== */
 
 .vfrc-header--title.jyiuei4::before {
@@ -588,34 +522,30 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   color: var(--chat-text-white);
 }
 
-/* Masquer le texte original pour ne pas avoir de doublon */
 .vfrc-header--title.jyiuei4 {
   color: transparent !important;
   display: flex;
 }
 
 /* ========================================
-   STYLES DE BOUTONS ADDITIONNELS
+   BOUTONS ADDITIONNELS
 ======================================== */
 
-/* Bouton secondaire · bordure bleue, fond clair, texte bleu */
 ._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5._12m8tlu1 {
   border: var(--chat-border-width) solid var(--chat-primary-color);
   color: var(--chat-primary-color);
   background-color: var(--chat-bg-primary);
 }
 
-/* Bouton primaire · fond bleu nuit, texte blanc · maximum de visibilité */
 ._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5 {
   color: var(--chat-text-white);
   background-color: var(--chat-primary-color);
 }
 
 /* ========================================
-   ASSIGNATIONS D'ANIMATIONS
+   ANIMATIONS
 ======================================== */
 
-/* Le launcher pulse en permanence pour attirer l'œil sans être agressif */
 .vfrc-launcher {
   animation: heartbeat 1s infinite;
 }
@@ -654,7 +584,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   padding-bottom: 0;
 }
 
-/* Track de défilement horizontal du carrousel */
 .w2917p1 {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -665,12 +594,10 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   flex-wrap: nowrap;
 }
 
-/* Masquer la scrollbar horizontale pour un rendu plus propre */
 .w2917p1::-webkit-scrollbar {
   display: none;
 }
 
-/* Conteneur de carte avec marge entre cartes successives */
 .vfrc-card._1lbxmyd0.o231sh1 {
   transition: transform var(--chat-transition-base);
   position: relative;
@@ -678,7 +605,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   margin-right: var(--carousel-gap);
 }
 
-/* Style des cartes individuelles · arrondies avec ombre douce */
 .vfrc-card._1lbxmyd0 {
   background: white;
   border-radius: var(--chat-radius-xxl);
@@ -691,13 +617,8 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 
 /* ========================================
    BOUTONS DE NAVIGATION DU CARROUSEL
-   ----------------------------------------
-   Les flèches de navigation sont positionnées sous le carrousel pour ne
-   pas masquer le contenu des cartes. Elles utilisent le bleu nuit CACI
-   en bordure et passent au jaune au hover pour signaler l'interaction.
 ======================================== */
 
-/* Bouton de défilement à droite (positionné à gauche) */
 .vfrc-carousel--button.betklma {
   left: calc(50% - 60px) !important;
   right: auto !important;
@@ -705,7 +626,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   visibility: visible !important;
 }
 
-/* Bouton de défilement à gauche (positionné à droite) */
 .vfrc-carousel--button.betklmc {
   right: calc(50% - 60px) !important;
   left: auto !important;
@@ -721,7 +641,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   border-radius: var(--chat-radius-full);
 }
 
-/* Couleur des flèches dans les boutons · bleu nuit CACI */
 .vfrc-carousel--button.betklmc .vfrc-icon svg,
 .vfrc-carousel--button.betklma .vfrc-icon svg {
   transform: rotate(0deg);
@@ -734,38 +653,30 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   color: var(--chat-primary-color);
 }
 
-/* État actif du bouton · couleur blanche pour signaler le clic */
 .vfrc-carousel--button.betklmc:active .vfrc-icon svg,
 .vfrc-carousel--button.betklma:active .vfrc-icon svg {
   transform: rotate(0deg);
   color: var(--chat-text-white);
 }
 
-/* Fond et bordure des boutons de navigation · bleu nuit CACI */
 .vfrc-carousel--button.betklma,
 .vfrc-carousel--button.betklmc {
   background: var(--chat-bg-tertiary) !important;
   border-color: var(--chat-primary-color) !important;
 }
 
-/* Hover · fond jaune CACI pour signaler l'interaction */
 .vfrc-carousel--button.betklma:hover,
 .vfrc-carousel--button.betklmc:hover {
   background: var(--chat-accent-color) !important;
 }
 
-/* Active · fond bleu nuit pour signaler le clic effectif */
 .vfrc-carousel--button.betklma:active,
 .vfrc-carousel--button.betklmc:active {
   background: var(--chat-primary-color) !important;
 }
 
 /* ========================================
-   AJUSTEMENTS RESPONSIVE
-   ----------------------------------------
-   Sur mobile, les cartes du carrousel sont réduites pour rentrer dans
-   l'écran et les boutons de navigation sont rapprochés. C'est un
-   compromis entre lisibilité et accessibilité tactile.
+   RESPONSIVE
 ======================================== */
 
 @media (max-width: 768px) {
@@ -810,15 +721,403 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   height: auto;
 }
 
+/* ============================================================================
+   PARTIE B · CLASSES DOCUMENTÉES VOICEFLOW (apport de la version 2)
+   ----------------------------------------------------------------------------
+   Cette section ajoute la couverture des classes publiques .vfrc-* qui sont
+   utilisées par la version moderne widget-next du widget Voiceflow. Elle
+   complète la Partie A en ciblant les éléments qui ne sont pas couverts par
+   les classes obfusquées spécifiques. C'est cette partie qui résout le
+   problème du bouton "Talk to AI" en bleu vif visible dans la capture
+   précédente, et qui apporte le support RTL pour l'arabe et les bulles
+   différenciées bot/utilisateur.
+   ============================================================================ */
+
 /* ========================================
-   FALLBACK · masquage forcé de l'avatar
+   VARIABLES SUPPLÉMENTAIRES
+   ----------------------------------------
+   Ces variables ne dupliquent pas celles de la Partie A · elles ajoutent
+   des références sémantiques avec préfixe --caci pour les nouvelles règles.
+======================================== */
+
+.s9t60i0,
+.voiceflow-chat {
+  --caci-bleu-nuit: #0a1f2c;
+  --caci-bleu-profond: #193b4d;
+  --caci-bleu-ciel: #90d5ff;
+  --caci-bleu-tres-clair: #eaf3fb;
+  --caci-jaune-or: #ffb92a;
+  --caci-jaune-fonce: #e6a420;
+  --caci-blanc: #ffffff;
+  --caci-blanc-casse: #fbfbfb;
+  --caci-gris-bordure: #e5e5e5;
+  --caci-gris-texte: #4b4f58;
+
+  --vfrc-radius-bubble: 18px;
+  --vfrc-radius-button: 12px;
+}
+
+/* ========================================
+   ÉLÉMENTS DE PAGE · launcher, overlay, prompt
+======================================== */
+
+.voiceflow-chat {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  color: var(--caci-bleu-profond);
+}
+
+.vfrc-launcher {
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
+  box-shadow: 0 8px 24px rgba(10, 31, 44, 0.12);
+  border: 2px solid var(--caci-blanc);
+}
+
+.vfrc-launcher:hover {
+  box-shadow: 0 12px 32px rgba(10, 31, 44, 0.2);
+}
+
+.vfrc-launcher svg {
+  fill: var(--caci-jaune-or);
+}
+
+.vfrc-chat--overlay {
+  background: rgba(10, 31, 44, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.vfrc-prompt {
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border-radius: var(--vfrc-radius-bubble);
+  font-weight: 500;
+  padding: 12px 16px;
+  border: 2px solid var(--caci-jaune-or);
+}
+
+/* ========================================
+   HEADER · règles complémentaires aux classes obfusquées
+   ----------------------------------------
+   Ces règles ciblent les éléments du header non couverts par .jyiuei3 et
+   .vfrc-header--title.jyiuei4 de la Partie A. Le !important est utilisé
+   pour s'assurer que les couleurs CACI prennent le dessus sur les valeurs
+   par défaut de Voiceflow qui peuvent être plus spécifiques.
+======================================== */
+
+.vfrc-header {
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
+  color: var(--caci-blanc);
+  border-bottom: 3px solid var(--caci-jaune-or);
+  padding: 16px 20px;
+}
+
+.vfrc-assistant-info {
+  color: var(--caci-blanc);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vfrc-assistant-info--title {
+  color: var(--caci-blanc);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+.vfrc-assistant-info--description {
+  color: var(--caci-bleu-ciel);
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+.vfrc-icon {
+  color: var(--caci-blanc);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  background: transparent !important;
+}
+
+.vfrc-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--caci-jaune-or);
+}
+
+/* ========================================
+   CORPS DU CHAT · zone des messages
+======================================== */
+
+.vfrc-chat {
+  background: var(--caci-blanc-casse);
+}
+
+.vfrc-chat--dialog {
+  background: var(--caci-blanc-casse);
+  padding: 16px 12px;
+}
+
+.vfrc-chat--spacer {
+  height: 12px;
+}
+
+.vfrc-chat--session-time {
+  color: var(--caci-gris-texte);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  background: var(--caci-bleu-tres-clair);
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin: 8px auto;
+  display: inline-block;
+}
+
+.vfrc-chat--status {
+  color: var(--caci-bleu-profond);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.vfrc-message {
+  border-radius: var(--vfrc-radius-bubble);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  word-wrap: break-word;
+  box-shadow: 0 1px 3px rgba(10, 31, 44, 0.06);
+}
+
+.vfrc-timestamp {
+  color: var(--caci-gris-texte);
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* ========================================
+   RÉPONSES DE L'ASSISTANT · bulles bot
+======================================== */
+
+.vfrc-system-response {
+  margin-bottom: 8px;
+}
+
+.vfrc-system-response--indicator {
+  background: var(--caci-bleu-tres-clair);
+  border-radius: var(--vfrc-radius-bubble);
+  padding: 8px 16px;
+}
+
+.vfrc-system-response--indicator div {
+  background: var(--caci-bleu-nuit);
+}
+
+.vfrc-system-response--controls {
+  color: var(--caci-bleu-profond);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.vfrc-system-response--controls:hover {
+  opacity: 1;
+}
+
+.vfrc-system-response--list {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.vfrc-system-response--actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vfrc-system-response .vfrc-message {
+  background: var(--caci-bleu-tres-clair);
+  color: var(--caci-bleu-profond);
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(10, 31, 44, 0.05);
+}
+
+/* ========================================
+   RÉPONSES UTILISATEUR · bulles à droite
+   ----------------------------------------
+   Ces règles résolvent le problème du bouton "Français" en bleu vif visible
+   dans la capture · elles forcent le bleu nuit CACI sur les bulles user.
+======================================== */
+
+.vfrc-user-response {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.vfrc-user-response .vfrc-message {
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
+  color: var(--caci-blanc) !important;
+  border-bottom-right-radius: 4px;
+  border: 1px solid rgba(10, 31, 44, 0.1);
+  font-weight: 500;
+}
+
+.vfrc-user-response .vfrc-message a {
+  color: var(--caci-jaune-or);
+  text-decoration: underline;
+}
+
+/* ========================================
+   BOUTON "TALK TO AI" · résolution du bouton bleu vif dans la capture 2
+   ----------------------------------------
+   La bulle proactive de widget-next contient un bouton "Talk to AI" qui
+   utilise une classe différente des boutons de carrousel. On le force au
+   bleu nuit CACI ici pour qu'il s'harmonise avec la palette.
+======================================== */
+
+.vfrc-button {
+  background: var(--caci-bleu-nuit) !important;
+  color: var(--caci-blanc) !important;
+  border: 2px solid var(--caci-bleu-nuit);
+  border-radius: var(--vfrc-radius-button);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vfrc-button:hover {
+  background: var(--caci-jaune-or) !important;
+  color: var(--caci-bleu-nuit) !important;
+  border-color: var(--caci-jaune-or);
+}
+
+/* ========================================
+   FOOTER · zone de saisie complète
+======================================== */
+
+.vf-footer {
+  background: var(--caci-blanc);
+  border-top: 1px solid var(--caci-gris-bordure);
+  padding: 12px 16px;
+}
+
+.vfrc-input {
+  background: #f5f5f5;
+  color: var(--caci-bleu-profond);
+  border: 2px solid var(--caci-gris-bordure);
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vfrc-input:focus {
+  border-color: var(--caci-bleu-ciel);
+  background: var(--caci-blanc);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(144, 213, 255, 0.2);
+}
+
+.vfrc-input::placeholder {
+  color: var(--caci-gris-texte);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.vfrc-chat-input--button {
+  background: var(--caci-jaune-or);
+  color: var(--caci-bleu-nuit);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vfrc-chat-input--button:hover {
+  background: var(--caci-jaune-fonce);
+  transform: rotate(15deg) scale(1.05);
+}
+
+.vfrc-chat-input--button:active {
+  transform: rotate(15deg) scale(0.95);
+}
+
+.vfrc-chat-input--button:disabled {
+  background: #eaeaea;
+  color: var(--caci-gris-texte);
+  cursor: not-allowed;
+}
+
+.vfrc-footer--watermark {
+  color: var(--caci-gris-texte);
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.vfrc-footer--watermark:hover {
+  opacity: 0.8;
+}
+
+/* ========================================
+   SUPPORT RTL · arabe écrit de droite à gauche
+   ----------------------------------------
+   Cette section est l'apport unique de la Partie B · la Partie A ne
+   gérait pas le sens d'écriture droite-gauche pour l'arabe. Ces règles
+   inversent les coins arrondis et l'alignement quand le widget est en
+   mode RTL, ce qui se déclenche automatiquement quand user_lang vaut "ar".
+======================================== */
+
+.voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
+  border-bottom-left-radius: var(--vfrc-radius-bubble);
+  border-bottom-right-radius: 4px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-user-response .vfrc-message {
+  border-bottom-right-radius: var(--vfrc-radius-bubble);
+  border-bottom-left-radius: 4px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-user-response {
+  justify-content: flex-start;
+}
+
+/* ========================================
+   ANIMATION DES MESSAGES · apparition douce
+======================================== */
+
+@keyframes caci-message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vfrc-message {
+  animation: caci-message-appear 0.3s ease-out;
+}
+
+/* ========================================
+   FALLBACK · masquage forcé de l'avatar bot
    ----------------------------------------
    Si la version actuelle du widget Voiceflow ignore le hide:true du
-   snippet JavaScript, cette règle force le masquage de l'avatar par CSS.
-   C'est un filet de sécurité au cas où le paramètre du snippet ne soit
-   pas pris en compte.
+   snippet JavaScript, cette règle force le masquage de l'avatar bot.
 ======================================== */
 
 .vfrc-avatar {
   display: none !important;
 }
+
+/* ============================================================================
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v5.0.0 fusionné
+   ============================================================================ */
