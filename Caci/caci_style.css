@@ -1,512 +1,824 @@
-/* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2 corrigée)
-   ----------------------------------------------------------------------------
-   Palette révisée après identification du jaune doré comme couleur d'accent
-   réelle de CACI (et non l'orange pêche extrait par erreur du HTML brut).
-   L'orange a été retiré partout. Le jaune CACI prend sa place sur tous les
-   éléments d'appel à l'action, avec texte en bleu nuit pour le contraste.
-   ============================================================================ */
+/**
+ * CACI Voiceflow Chatbot CSS · Palette officielle CACI
+ * @version 4.0.0
+ * @description Personnalisation visuelle du widget Voiceflow pour CACI
+ *              Centre d'appui aux communautés immigrantes de Bordeaux-Cartierville
+ *              Palette · bleu nuit institutionnel + jaune doré d'accent
+ *              Variables définies sur .s9t60i0, valeurs hardcodées pour
+ *              les éléments rendus en dehors du conteneur principal
+ */
 
-/* ============================================================================
-   VARIABLES DE LA PALETTE CACI · double déclaration pour la robustesse
-   ----------------------------------------------------------------------------
-   Le widget Voiceflow charge son contenu dans un Shadow DOM isolé du
-   document hôte. Pour garantir que les variables CSS sont visibles par
-   les classes .vfrc-*, on les déclare à la fois sur le sélecteur stable
-   .voiceflow-chat et sur le sélecteur empirique .s9t60i0 que vous avez
-   identifié. Si l'un des deux change avec une mise à jour Voiceflow,
-   l'autre prend le relais et le widget reste correctement stylé.
-   ============================================================================ */
-.voiceflow-chat,
-.s9t60i0,
-* {
-  /* Couleurs principales CACI · les vraies, après correction */
-  --caci-bleu-nuit: #0a1f2c;          /* Couleur dominante institutionnelle */
-  --caci-bleu-profond: #193b4d;       /* Variante texte secondaire */
-  --caci-bleu-ciel: #90d5ff;          /* Bleu pastel pour accents doux */
-  --caci-bleu-tres-clair: #eaf3fb;    /* Bleu lavande pâle pour bulles bot */
-  --caci-bleu-eau: #6ec1e4;           /* Turquoise navigation */
+/* ========================================
+   DÉFINITIONS DES VARIABLES CSS
+   ----------------------------------------
+   Le widget Voiceflow charge son contenu dans un Shadow DOM isolé. La
+   classe .s9t60i0 est le conteneur racine du widget compilé · c'est le
+   seul endroit où les variables CSS sont visibles par toutes les autres
+   classes obfusquées du widget. :root ne fonctionne pas dans ce contexte
+   parce qu'il désigne le document hôte, pas le Shadow DOM du widget.
+======================================== */
 
-  /* Jaune CACI · NOUVELLE couleur d'accent qui remplace l'orange */
-  --caci-jaune-or: #ffb92a;           /* Jaune doré principal · boutons CTA */
-  --caci-jaune-clair: #fff676;        /* Jaune pâle · backgrounds doux */
-  --caci-jaune-fonce: #e6a420;        /* Jaune assombri · état hover */
+.s9t60i0 {
+  /* === Système de couleurs · palette CACI officielle === */
+  /* Couleur dominante institutionnelle · ancrage de l'identité visuelle */
+  --chat-primary-color: #0a1f2c;       /* Bleu nuit · couleur principale */
+  --chat-primary-dark: #061520;        /* Bleu nuit assombri · états actifs */
+  --chat-primary-light: #193b4d;       /* Bleu profond · variantes secondaires */
+  --chat-secondary-color: #6ec1e4;     /* Bleu eau turquoise · accents doux */
 
-  /* Neutres · pour textes, bordures, fonds */
-  --caci-blanc: #ffffff;
-  --caci-blanc-casse: #fbfbfb;
-  --caci-gris-tres-clair: #f5f5f5;
-  --caci-gris-clair: #eaeaea;
-  --caci-gris-bordure: #e5e5e5;
-  --caci-gris-texte: #4b4f58;
-  --caci-gris-fonce: #3a3a3a;
-  --caci-noir: #000000;
+  /* Gradient du header · transition douce du bleu nuit au bleu profond */
+  --chat-gradient-start: #0a1f2c;      /* Début gradient · plus sombre */
+  --chat-gradient-end: #193b4d;        /* Fin gradient · plus clair */
 
-  /* Variables sémantiques · plus lisibles dans le code que les noms bruts */
-  --vfrc-color-primary: var(--caci-bleu-nuit);
-  --vfrc-color-accent: var(--caci-jaune-or);
-  --vfrc-color-text: var(--caci-bleu-profond);
-  --vfrc-color-bg-bot: var(--caci-bleu-tres-clair);
-  --vfrc-color-bg-user: var(--caci-bleu-nuit);
-  --vfrc-color-text-on-accent: var(--caci-bleu-nuit);
-  --vfrc-shadow-soft: 0 4px 16px rgba(10, 31, 44, 0.08);
-  --vfrc-shadow-medium: 0 8px 24px rgba(10, 31, 44, 0.12);
-  --vfrc-radius-bubble: 18px;
-  --vfrc-radius-button: 12px;
-  --vfrc-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                      "Helvetica Neue", Arial, sans-serif;
+  /* Couleur d'accent CACI · le jaune doré qui remplace l'orange Skalean */
+  /* Utilisé pour les boutons CTA, les survols, et les bordures d'attention */
+  --chat-accent-color: #ffb92a;        /* Jaune doré CACI · couleur d'accent */
+  --chat-accent-dark: #e6a420;         /* Jaune assombri · état hover */
+  --chat-accent-light: #fff676;        /* Jaune pâle · backgrounds doux */
+
+  /* Couleurs de texte · contraste optimisé pour la lisibilité */
+  --chat-text-primary: #0a1f2c;        /* Bleu nuit pour textes principaux */
+  --chat-text-secondary: #4a4a4a;      /* Gris foncé pour textes secondaires */
+  --chat-text-white: #ffffff;
+  --chat-text-black: #0a1f2c;          /* Bleu nuit · plus doux que noir pur */
+
+  /* Couleurs de fond · tons clairs et neutres adaptés à la palette CACI */
+  --chat-bg-primary: #eaf3fb;          /* Bleu lavande très pâle · bulles bot */
+  --chat-bg-secondary: #f8fbfe;        /* Blanc bleuté · fonds secondaires */
+  --chat-bg-tertiary: #ffffff;         /* Blanc pur · cartes carrousel */
+  --chat-bg-transparent: transparent;
+
+  /* Couleurs sémantiques · gardées proches du standard pour la lisibilité */
+  /* Ces couleurs ne doivent pas être modifiées pour respecter les conventions
+     d'interface où le rouge signale le danger et le vert la validation */
+  --chat-error-color: #c65545;
+  --chat-error-dark: #a63e33;
+  --chat-success-color: #5a7a5a;
+  --chat-success-dark: #486848;
+
+  /* Système d'espacement · échelle cohérente pour toute la mise en page */
+  --chat-spacing-xs: 4px;
+  --chat-spacing-sm: 8px;
+  --chat-spacing-md: 16px;
+  --chat-spacing-lg: 24px;
+  --chat-spacing-xl: 32px;
+  --chat-spacing-xxl: 40px;
+
+  /* Typographie · polices et tailles adaptées au lecteur multilingue */
+  --chat-font-family: var(--_1bof89na);
+  --chat-font-size-sm: 14px;
+  --chat-font-size-base: 16px;
+  --chat-font-size-lg: 20px;
+  --chat-line-height: 20px;
+  --chat-font-weight-normal: 400;
+  --chat-font-weight-medium: 500;
+  --chat-font-weight-semibold: 600;
+  --chat-font-weight-bold: 700;
+
+  /* Border radius · arrondis cohérents pour les coins des éléments */
+  --chat-radius-sm: 6px;
+  --chat-radius-md: 8px;
+  --chat-radius-lg: 10px;
+  --chat-radius-xl: 16px;
+  --chat-radius-xxl: 20px;
+  --chat-radius-round: 24px;
+  --chat-radius-full: 50%;
+
+  /* Transitions · durées courtes pour rester réactif sans saccades */
+  --chat-transition-fast: 0.15s ease;
+  --chat-transition-base: 0.3s ease;
+  --chat-transition-color: background-color 0.3s ease, color 0.3s ease;
+
+  /* Ombres · teinte bleue cohérente avec la palette CACI dominante */
+  /* L'ancien rgba(99, 55, 52, ...) qui était brun-rougeâtre est remplacé
+     par rgba(10, 31, 44, ...) qui est bleu nuit transparent · cohérence */
+  --chat-shadow-sm: 0 2px 4px rgba(10, 31, 44, 0.05);
+  --chat-shadow-md: 0 4px 10px rgba(10, 31, 44, 0.15);
+  --chat-shadow-lg: 0 8px 25px rgba(10, 31, 44, 0.15);
+  --chat-shadow-xl: 10px 10px 10px rgba(10, 31, 44, 0.16);
+  --chat-shadow-none: none;
+  --chat-shadow-inset: inset 0 0 0 2px var(--chat-primary-color);
+
+  /* Dimensions des composants · mesures précises pour les boutons et icônes */
+  --chat-button-height: 40px;
+  --chat-button-padding: 7px 12px 6px;
+  --chat-border-width: 2px;
+  --chat-border-width-thick: 3px;
+  --chat-icon-size: 24px;
+  --chat-icon-size-lg: 32px;
+  --chat-icon-size-xl: 40px;
+
+  /* Z-index · hiérarchie de superposition des éléments */
+  --chat-z-base: 1000;
+  --chat-z-tooltip: 1100;
+  --chat-z-modal: 1200;
+
+  /* Carousel · dimensions des cartes et boutons de navigation */
+  --carousel-card-width: 400px;
+  --carousel-card-width-mobile: 320px;
+  --carousel-card-height: 270px;
+  --carousel-button-size: 48px;
+  --carousel-button-size-mobile: 44px;
+  --carousel-gap: 15px;
+
+  /* Background du widget entier · blanc pur pour ne pas alourdir */
+  background-color: #ffffff;
 }
 
-/* ============================================================================
-   PAGE ELEMENTS · launcher, overlay, prompt
-   ============================================================================ */
-.voiceflow-chat {
-  font-family: var(--vfrc-font-family);
-  color: var(--caci-bleu-profond);
+/* ========================================
+   ANIMATIONS GLOBALES
+   ----------------------------------------
+   Le heartbeat est utilisé pour le launcher et la bulle proactive afin
+   d'attirer l'attention de l'utilisateur sans être agressif. La durée de
+   1 seconde est suffisamment lente pour ne pas distraire pendant la
+   lecture du contenu de la page WordPress.
+======================================== */
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  80% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.vfrc-launcher {
-  /* Bulle launcher · bleu nuit avec accent jaune au lieu d'orange */
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
-  box-shadow: var(--vfrc-shadow-medium);
-  border: 2px solid var(--caci-blanc);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* ========================================
+   STYLES DE BASE DU CHATBOT
+======================================== */
+
+._11kfxpg0 {
+    background-color: white;
 }
 
-.vfrc-launcher:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(10, 31, 44, 0.2);
+/* Conteneur du chatbot · transparent pour laisser passer le fond du widget */
+.g3dqfd8 {
+  display: block;
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: var(--chat-radius-lg);
+  overflow-wrap: anywhere;
+  color: var(--chat-text-black);
+  background-color: var(--chat-bg-transparent);
 }
 
-.vfrc-launcher svg {
-  /* Icône SVG du launcher · jaune CACI au lieu d'orange */
-  fill: var(--caci-jaune-or);
+._1wkq7nf0 {
+  z-index: var(--chat-z-base);
 }
 
-.vfrc-chat--overlay {
-  /* Voile sombre derrière le widget en mode popover */
-  background: rgba(10, 31, 44, 0.4);
-  backdrop-filter: blur(4px);
+._1wkq7nf0 ._1wkq7nfd {
+  right: -200px;
 }
 
-.vfrc-prompt {
-  /* Bulle proactive flottante · "Des questions? J'ai les réponses!" */
-  background: var(--caci-bleu-nuit);
-  color: var(--caci-blanc);
-  border-radius: var(--vfrc-radius-bubble);
-  box-shadow: var(--vfrc-shadow-soft);
-  font-weight: 500;
-  padding: 12px 16px;
-  border: 2px solid var(--caci-jaune-or);
+/* Header · gradient bleu nuit institutionnel CACI */
+.jyiuei3 {
+    background-color: transparent;
+    background: linear-gradient(135deg, #0a1f2c, #193b4d);
 }
 
-/* ============================================================================
-   CHAT WIDGET HEADER · bandeau supérieur du widget
-   ============================================================================ */
-.vfrc-header {
-  /* Header bleu nuit avec liseré jaune CACI au lieu de la liseré orange */
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
-  color: var(--caci-blanc);
-  border-bottom: 3px solid var(--caci-jaune-or);
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15);
+/* Mise en page responsive · ajustements pour grands écrans */
+@media (min-width: 1000px) {
+  ._1wkq7nf4 {
+    min-height: 600px;
+    max-height: 100%;
+  }
+  .s9t60i0 {
+    min-width: 800px;
+    left: calc(50% - 400px);
+  }
 }
 
-.vfrc-assistant-info {
-  color: var(--caci-blanc);
+@media (min-width: 1200px) {
+  .s9t60i0 {
+    min-width: 1000px;
+    left: calc(50% - 500px);
+  }
+}
+
+/* Éléments du header · couleur d'accent jaune CACI */
+._15emaa41 {
+  background-color: var(--chat-accent-color);
+}
+
+._1gdvh9t1:focus-within ._1gdvh9t4 {
+  box-shadow: var(--chat-shadow-inset);
+}
+
+.g931q12 {
+  box-shadow: var(--chat-shadow-none);
+  height: auto;
+  width: auto;
+}
+
+.g931q10 {
+  background-color: var(--chat-bg-transparent);
+  border-radius: 0;
+}
+
+/* ========================================
+   STYLES DU CARROUSEL
+   ----------------------------------------
+   Le carrousel est utilisé pour afficher les sept catégories de services
+   dans le workflow Services et les sous-services dans Service_Categorie.
+   Les couleurs des cartes et boutons doivent rester cohérentes avec la
+   palette CACI tout en restant visuellement distinctes des bulles texte
+   pour signaler que ce sont des éléments interactifs.
+======================================== */
+
+/* Fond carrousel · blanc bleuté pour distinguer des messages texte */
+._1lbxmyd0 {
+  background-color: var(--chat-bg-tertiary);
+  width: var(--carousel-card-width);
+}
+
+._1lbxmyd4 {
+  white-space: pre-line;
+  height: var(--chat-button-height);
+}
+
+._1lbxmyd3 {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: row;
 }
 
-.vfrc-assistant-info--title {
-  /* Titre principal du header · sera "CACI" après correction du snippet */
-  color: var(--caci-blanc);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.2px;
-}
-
-.vfrc-assistant-info--description {
-  /* Sous-titre du header · description courte de l'organisme */
-  color: var(--caci-bleu-ciel);
-  font-size: 12px;
-  font-weight: 400;
-  margin-top: 2px;
-  opacity: 0.9;
-}
-
-.vfrc-avatar {
-  /* Cadre rond de l'avatar · jaune CACI au lieu d'orange */
-  border: 2px solid var(--caci-jaune-or);
-  background: var(--caci-blanc);
-  box-shadow: 0 2px 8px rgba(255, 185, 42, 0.3);
-}
-
-.vfrc-icon {
-  /* Icônes contrôles header · réinitialiser, fermer */
-  color: var(--caci-blanc);
-  opacity: 0.85;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  background: transparent !important;
-}
-
-.vfrc-icon:hover {
-  /* Hover des icônes · passe au jaune au lieu d'orange */
-  opacity: 1;
-  transform: scale(1.1);
-  color: var(--caci-jaune-or);
-}
-
-/* ============================================================================
-   CHAT MESSAGE BODY · zone centrale de la conversation
-   ============================================================================ */
-.vfrc-chat {
-  background: var(--caci-blanc-casse);
-  font-family: var(--vfrc-font-family);
-}
-
-.vfrc-chat--dialog {
-  background: var(--caci-blanc-casse);
-  padding: 16px 12px;
-}
-
-.vfrc-chat--spacer {
-  height: 12px;
-}
-
-.vfrc-chat--session-time {
-  /* Etiquette d'heure · fond bleu très clair pour rester subtil */
-  color: var(--caci-gris-texte);
-  font-size: 11px;
-  font-weight: 500;
+/* Bouton de carte carrousel · bleu nuit en bordure, jaune au hover */
+._1q15b0b3 {
+  border-radius: var(--chat-radius-md);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  line-height: var(--chat-line-height);
+  padding: var(--chat-button-padding);
+  white-space: normal;
+  word-break: break-word;
   text-align: center;
-  background: var(--caci-bleu-tres-clair);
-  padding: 4px 12px;
-  border-radius: 12px;
-  margin: 8px auto;
+  height: fit-content;
+  transition: var(--chat-transition-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+/* Hover bouton carrousel · inversion en jaune doré CACI · contraste fort */
+._1q15b0b3:hover {
+  color: var(--chat-text-primary);
+  background-color: var(--chat-accent-color);
+  border: var(--chat-border-width) solid var(--chat-accent-dark);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+/* Bouton secondaire de carte · même style que le bouton principal */
+._1q15b0b1 {
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  font-weight: var(--chat-font-weight-bold);
+  white-space: nowrap !important;
+}
+
+._1q15b0b1:hover {
+  color: var(--chat-text-primary);
+  background-color: var(--chat-accent-color);
+  border: var(--chat-border-width) solid var(--chat-accent-dark);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+/* ========================================
+   FOOTER DU CHAT · zone de saisie
+======================================== */
+
+._1vj16245 {
+  background: var(--chat-bg-transparent);
+}
+
+.jsli367 {
+  color: var(--chat-text-primary);
+}
+
+.s9t60i2 {
+  display: none;
+}
+
+.g3dqfd1 {
+  align-items: center;
+}
+
+/* ========================================
+   AVATAR UTILISATEUR
+   ----------------------------------------
+   L'avatar utilisateur est généré via un SVG inline avec un cercle de
+   fond bleu nuit CACI et une silhouette blanche. C'est différent de
+   l'avatar bot qui est masqué via le snippet JavaScript.
+======================================== */
+
+._15emaa42::after {
+  content: "";
   display: inline-block;
+  width: var(--chat-icon-size-lg);
+  height: var(--chat-icon-size-lg);
+  margin-left: 12px;
+  vertical-align: middle;
+  border-radius: var(--chat-radius-full);
+  background-size: cover;
+  background-repeat: no-repeat;
+  /* SVG avatar utilisateur · cercle bleu nuit CACI avec silhouette blanche
+     %230a1f2c est l'encodage URL de #0a1f2c (le caractère # devient %23)
+     Voir doc MDN sur l'encodage des URLs dans les data: URIs SVG */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(120, 100) scale(0.6)'><path fill='white' d='M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z'/></g></svg>");
 }
 
-.vfrc-chat--status {
-  color: var(--caci-bleu-profond);
-  font-size: 12px;
-  font-style: italic;
-}
-
-.vfrc-message {
-  /* Style de base bulles · arrondis et ombres légères */
-  border-radius: var(--vfrc-radius-bubble);
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 10px 14px;
-  word-wrap: break-word;
-  box-shadow: 0 1px 3px rgba(10, 31, 44, 0.06);
-}
-
-.vfrc-timestamp {
-  color: var(--caci-gris-texte);
-  font-size: 10px;
-  opacity: 0.7;
-  margin-top: 4px;
-}
-
-/* ============================================================================
-   ASSISTANT RESPONSES · bulles bot et leurs boutons d'action
-   ============================================================================ */
-.vfrc-system-response {
-  margin-bottom: 8px;
-}
-
-.vfrc-system-response--indicator {
-  /* Indicateur "en train d'écrire" · trois points qui pulsent */
-  background: var(--caci-bleu-tres-clair);
-  border-radius: var(--vfrc-radius-bubble);
-  padding: 8px 16px;
-}
-
-.vfrc-system-response--indicator div {
-  background: var(--caci-bleu-nuit);
-}
-
-.vfrc-system-response--controls {
-  color: var(--caci-bleu-profond);
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-}
-
-.vfrc-system-response--controls:hover {
-  opacity: 1;
-}
-
-.vfrc-system-response--list {
-  padding-left: 20px;
-  margin: 8px 0;
-}
-
-.vfrc-system-response--actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.vfrc-system-response .vfrc-message {
-  /* Bulle bot · fond bleu très pâle, texte bleu profond, ancrage à gauche */
-  background: var(--caci-bleu-tres-clair);
-  color: var(--caci-bleu-profond);
-  border-bottom-left-radius: 4px;
-  border: 1px solid rgba(10, 31, 44, 0.05);
-}
-
-.vfrc-system-response .vfrc-button {
-  /* Boutons proposés par le bot · JAUNE CACI au lieu d'orange */
-  background: var(--caci-jaune-or);
-  color: var(--caci-bleu-nuit);
-  border: 2px solid var(--caci-jaune-or);
-  border-radius: var(--vfrc-radius-button);
-  font-weight: 600;
-  font-size: 13px;
-  padding: 8px 16px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(255, 185, 42, 0.25);
-}
-
-.vfrc-system-response .vfrc-button:hover {
-  /* Hover bouton · jaune assombri pour signaler l'interaction */
-  background: var(--caci-jaune-fonce);
-  border-color: var(--caci-jaune-fonce);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(230, 164, 32, 0.35);
-}
-
-.vfrc-system-response .vfrc-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(230, 164, 32, 0.25);
-}
-
-.vfrc-button {
-  /* Style de base boutons hors carrousel · JAUNE CACI partout */
-  background: var(--caci-jaune-or);
-  color: var(--caci-bleu-nuit);
-  border: 2px solid var(--caci-jaune-or);
-  border-radius: var(--vfrc-radius-button);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.vfrc-button:hover {
-  background: var(--caci-jaune-fonce);
-  border-color: var(--caci-jaune-fonce);
-}
-
-.vfrc-image {
-  border-radius: 12px;
-  border: 1px solid var(--caci-gris-bordure);
-  overflow: hidden;
-}
-
-.vfrc-image--background {
-  background: var(--caci-bleu-tres-clair);
-}
-
-.vfrc-card--content {
-  /* Contenu carte carrousel · fond blanc, texte bleu profond */
-  background: var(--caci-blanc);
-  color: var(--caci-bleu-profond);
-  padding: 12px 16px;
-  border-bottom-left-radius: var(--vfrc-radius-bubble);
-  border-bottom-right-radius: var(--vfrc-radius-bubble);
-}
-
-.vfrc-card--header {
-  /* Titre carte · bleu nuit pour contraste fort */
-  color: var(--caci-bleu-nuit);
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 4px;
-  line-height: 1.3;
-}
-
-.vfrc-card--description {
-  color: var(--caci-gris-texte);
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 8px;
-}
-
-.vfrc-carousel {
-  padding: 4px 8px;
-  background: transparent;
-}
-
-.vfrc-carousel--button {
-  /* Flèches navigation carrousel · bleu nuit, hover jaune */
-  background: var(--caci-bleu-nuit);
-  color: var(--caci-blanc);
-  border: 2px solid var(--caci-blanc);
-  box-shadow: var(--vfrc-shadow-soft);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.vfrc-carousel--button:hover {
-  background: var(--caci-jaune-or);
-  color: var(--caci-bleu-nuit);
-  transform: scale(1.1);
-}
-
-/* ============================================================================
-   USER RESPONSES · bulles utilisateur (vous, Saad, ou l'usager final)
-   ============================================================================ */
-.vfrc-user-response {
+._15emaa42 {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 8px;
+  align-items: center;
 }
 
-.vfrc-user-response .vfrc-message {
-  /* Bulle utilisateur · BLEU NUIT au lieu du bleu trop saturé actuel */
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
-  color: var(--caci-blanc);
-  border-bottom-right-radius: 4px;
-  border: 1px solid rgba(10, 31, 44, 0.1);
-  font-weight: 500;
+/* ========================================
+   ESPACEMENT ET MISE EN PAGE
+======================================== */
+
+.g3dqfd6 {
+    display: flex;
+    margin: 16px 0 8px;
+    padding-left: 44px;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
-.vfrc-user-response .vfrc-message a {
-  /* Liens dans bulle utilisateur · jaune CACI pour rester visibles */
-  color: var(--caci-jaune-or);
-  text-decoration: underline;
+.knxm730 {
+  margin: var(--chat-spacing-sm) 0;
 }
 
-/* ============================================================================
-   FOOTER · zone de saisie et watermark
-   ============================================================================ */
-.vf-footer {
-  background: var(--caci-blanc);
-  border-top: 1px solid var(--caci-gris-bordure);
-  padding: 12px 16px;
-  box-shadow: 0 -2px 8px rgba(10, 31, 44, 0.04);
+/* ========================================
+   STYLES DES TOOLTIPS
+======================================== */
+
+._6r9xee0 {
+  position: absolute;
+  bottom: 100%;
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity var(--chat-transition-fast);
 }
 
-.vfrc-input {
-  /* Champ saisie · bordure focus en bleu ciel CACI */
-  background: var(--caci-gris-tres-clair);
-  color: var(--caci-bleu-profond);
-  border: 2px solid var(--caci-gris-bordure);
+._6r9xee3 {
+  padding: 11px var(--chat-spacing-md) 10px;
+  min-width: 250px;
+  font-weight: var(--chat-font-weight-medium);
+  white-space: pre-line;
+  box-shadow: var(--chat-shadow-none);
+  color: var(--chat-text-primary);
+  font-size: var(--chat-font-size-sm);
+  font-family: var(--chat-font-family);
+  transition: opacity var(--chat-transition-fast);
+  background-color: transparent;
+}
+
+/* Couleur des liens dans les tooltips · jaune CACI pour rester visibles */
+._12m8tlu4 {
+  color: var(--chat-accent-color) !important;
+}
+
+/* ========================================
+   BOUTONS D'ACTION
+   ----------------------------------------
+   Deux variantes de boutons sémantiques · positif (validation) et
+   négatif (annulation). Les couleurs success/error sont gardées proches
+   du standard parce qu'elles ont une signification universelle qui
+   transcende la palette de marque · vert pour valider, rouge pour
+   annuler. Modifier ces couleurs au profit de la palette CACI nuirait à
+   la clarté de l'interaction.
+======================================== */
+
+/* Bouton négatif · état normal en bleu nuit, hover en rouge */
+._1q15b0b2._1q15b0b4 {
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  height: var(--chat-button-height);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+._1q15b0b2._1q15b0b4:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-error-color);
+  border: var(--chat-border-width) solid var(--chat-error-dark);
+}
+
+/* Bouton positif · état normal en bleu nuit, hover en vert */
+._1q15b0b3._1q15b0b4 {
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-secondary);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  height: var(--chat-button-height);
+  font-weight: var(--chat-font-weight-bold);
+}
+
+._1q15b0b3._1q15b0b4:hover {
+  color: var(--chat-text-white);
+  background-color: var(--chat-success-color);
+  border: var(--chat-border-width) solid var(--chat-success-dark);
+}
+
+/* Bouton primaire · bleu nuit avec inversion blanc au hover */
+.jyiuei7 {
+  background-color: var(--chat-primary-color);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-text-white);
+}
+
+._5x612k0 {
+  display: flex;
+  flex-direction: row;
+  font-weight: var(--chat-font-weight-semibold);
+}
+
+/* Hover bouton primaire · inversion en blanc avec bordure bleue */
+.jyiuei7:hover {
+  background-color: var(--chat-text-white);
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-primary-color);
+}
+
+/* Variante de bouton additionnelle · valeurs hardcodées pour robustesse */
+/* Cette règle utilise des valeurs explicites parce que les éléments ciblés
+   peuvent être rendus en dehors du conteneur principal où les variables
+   CSS ne sont pas accessibles. C'est une précaution contre l'isolation
+   du Shadow DOM dans certains cas particuliers. */
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5 {
+  color: #0a1f2c;
+  background-color: #f8fbfe;
+  border: 2px solid #0a1f2c;
+}
+
+.f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover {
+  color: #0a1f2c;
+  background-color: #ffb92a;
+  border: 2px solid #e6a420;
+}
+
+/* ========================================
+   PERSONNALISATION DU LAUNCHER
+   ----------------------------------------
+   Le launcher est l'icône permanente en bas à droite de la page WordPress
+   qui ouvre le widget. Ces éléments sont rendus en dehors du conteneur
+   principal du widget, donc les variables CSS ne sont pas accessibles
+   et nous devons utiliser des valeurs hardcodées pour garantir le rendu.
+======================================== */
+
+/* Masquer les SVG et images originaux du launcher Voiceflow */
+div.f6dof80 div.f6dof87.f6dof89 > svg,
+div.f6dof80 div.f6dof87.f6dof89 > img {
+  display: none !important;
+}
+
+/* Transformer le wrapper en cercle coloré bleu nuit CACI */
+div.f6dof80 div.f6dof87.f6dof89 {
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 4px !important;
+}
+
+/* Injecter un SVG personnalisé avec icône speech bubble en jaune CACI */
+/* Le %23ffb92a est l'encodage URL de #ffb92a (jaune doré CACI) */
+div.f6dof80 div.f6dof87.f6dof89::after {
+  content: "" !important;
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffb92a'>\
+<g stroke='%23ffb92a' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
+<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
+<circle cx='236.071' cy='164.571' r='19'/>\
+<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
+</g></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: none !important;
+}
+
+/* Au hover, l'icône passe au blanc pour signaler l'interaction */
+div.f6dof80 div.f6dof87.f6dof89:hover::after {
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
+<g stroke='%23ffffff' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
+<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
+<circle cx='236.071' cy='164.571' r='19'/>\
+<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.950,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
+</g></svg>") !important;
+}
+
+/* ========================================
+   BULLE DE NOTIFICATION PROACTIVE
+   ----------------------------------------
+   La bulle proactive flotte à côté du launcher pour inciter l'utilisateur
+   à ouvrir le chat. Elle est rendue en dehors du conteneur principal donc
+   les valeurs sont hardcodées. L'animation heartbeat la fait pulser pour
+   attirer l'attention sans être agressive.
+======================================== */
+
+._6r9xee4 {
+  position: fixed;
+  background-color: #ffffff;
   border-radius: 24px;
-  padding: 10px 16px;
-  font-family: var(--vfrc-font-family);
-  font-size: 14px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.vfrc-input:focus {
-  border-color: var(--caci-bleu-ciel);
-  background: var(--caci-blanc);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(144, 213, 255, 0.2);
-}
-
-.vfrc-input::placeholder {
-  color: var(--caci-gris-texte);
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.vfrc-chat-input--button {
-  /* Bouton envoi · JAUNE CACI au lieu d'orange · contraste avec le fond clair */
-  background: var(--caci-jaune-or);
-  color: var(--caci-bleu-nuit);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0px 4px 10px rgba(10, 31, 44, 0.15);
+  padding: 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(255, 185, 42, 0.3);
+  max-width: 400px;
+  /* Bordure jaune CACI · pour distinguer la bulle du fond blanc */
+  border: 2px solid #ffb92a;
+  position: relative;
+  margin: 16px 0;
+  animation: heartbeat 1s infinite;
 }
 
-.vfrc-chat-input--button:hover {
-  background: var(--caci-jaune-fonce);
-  transform: rotate(15deg) scale(1.05);
-  box-shadow: 0 4px 10px rgba(230, 164, 32, 0.4);
+/* Icône CACI flottante au-dessus de la bulle proactive */
+/* Le SVG contient une silhouette de personnage avec écouteurs · cercle de
+   fond changé en blanc et silhouette en bleu nuit CACI pour cohérence */
+._6r9xee4::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  width: 40px;
+  height: 40px;
+  background: url("data:image/svg+xml;utf8,<svg version='1.0' xmlns='http://www.w3.org/2000/svg' width='512.000000pt' height='512.000000pt' viewBox='0 0 512.000000 512.000000' preserveAspectRatio='xMidYMid meet'><circle cx='256' cy='256' r='256' fill='white'/><g transform='translate(0.000000,512.000000) scale(0.100000,-0.100000)' fill='%230a1f2c'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z m129 -119 c16 -10 37 -33 47 -52 67 -124 -67 -258 -189 -190 -55 31 -76 73 -70 139 11 108 114 158 212 103z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z m133 -121 c57 -34 78 -107 50 -173 -37 -89 -157 -113 -225 -45 -59 59 -60 147 -3 203 52 49 114 54 178 15z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>") no-repeat center / cover;
+  border-radius: 50%;
+  box-shadow: 0px 4px 10px rgba(10, 31, 44, 0.15);
 }
 
-.vfrc-chat-input--button:active {
-  transform: rotate(15deg) scale(0.95);
-}
+/* ========================================
+   PERSONNALISATION DU TITRE DU HEADER
+   ----------------------------------------
+   Le titre par défaut du header est masqué et remplacé par un texte CACI
+   personnalisé via le pseudo-élément ::before. Cette technique permet
+   d'écraser le titre défini dans le snippet JavaScript directement depuis
+   le CSS, ce qui est utile pour faire des ajustements rapides sans
+   redéployer le snippet.
+======================================== */
 
-.vfrc-chat-input--button:disabled {
-  background: var(--caci-gris-clair);
-  color: var(--caci-gris-texte);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.vfrc-chat-input--button svg {
-  fill: currentColor;
-  width: 18px;
-  height: 18px;
-}
-
-.vfrc-footer--watermark {
-  /* Mention "Powered by Voiceflow" · gris discret */
-  color: var(--caci-gris-texte);
-  font-size: 10px;
-  opacity: 0.5;
+.vfrc-header--title.jyiuei4::before {
+  content: "CACI · Centre d'appui aux communautés immigrantes";
+  font-weight: var(--chat-font-weight-bold);
+  display: block;
   text-align: center;
-  margin-top: 4px;
-  transition: opacity 0.2s ease;
+  font-size: var(--chat-font-size-base);
+  color: var(--chat-text-white);
 }
 
-.vfrc-footer--watermark:hover {
-  opacity: 0.8;
+/* Masquer le texte original pour ne pas avoir de doublon */
+.vfrc-header--title.jyiuei4 {
+  color: transparent !important;
+  display: flex;
 }
 
-/* ============================================================================
-   ADAPTATIONS RTL · arabe écrit de droite à gauche
-   ============================================================================ */
-.voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
-  border-bottom-left-radius: var(--vfrc-radius-bubble);
-  border-bottom-right-radius: 4px;
+/* ========================================
+   STYLES DE BOUTONS ADDITIONNELS
+======================================== */
+
+/* Bouton secondaire · bordure bleue, fond clair, texte bleu */
+._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5._12m8tlu1 {
+  border: var(--chat-border-width) solid var(--chat-primary-color);
+  color: var(--chat-primary-color);
+  background-color: var(--chat-bg-primary);
 }
 
-.voiceflow-chat[dir="rtl"] .vfrc-user-response .vfrc-message {
-  border-bottom-right-radius: var(--vfrc-radius-bubble);
-  border-bottom-left-radius: 4px;
+/* Bouton primaire · fond bleu nuit, texte blanc · maximum de visibilité */
+._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5 {
+  color: var(--chat-text-white);
+  background-color: var(--chat-primary-color);
 }
 
-.voiceflow-chat[dir="rtl"] .vfrc-user-response {
-  justify-content: flex-start;
+/* ========================================
+   ASSIGNATIONS D'ANIMATIONS
+======================================== */
+
+/* Le launcher pulse en permanence pour attirer l'œil sans être agressif */
+.vfrc-launcher {
+  animation: heartbeat 1s infinite;
 }
 
-/* ============================================================================
-   ANIMATIONS GLOBALES
-   ============================================================================ */
-@keyframes caci-message-appear {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+/* ========================================
+   MISE EN PAGE DU CARROUSEL
+======================================== */
+
+._1lbxmyd2 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-spacing-xs);
+  font-family: var(--chat-font-family);
+  line-height: var(--chat-line-height);
+  padding: 11px var(--chat-spacing-md) 10px;
+  justify-content: space-around;
+}
+
+._1lbxmyd1 {
+  width: 100%;
+  height: var(--carousel-card-height);
+}
+
+._1375ap13 {
+    display: flex;
+    object-fit: cover;
+    width: 100%;
+    align-content: space-between;
+    height: 200px;
+}
+
+.vfrc-carousel.w2917p4 {
+  position: relative;
+  overflow: visible;
+  margin-bottom: 50px;
+  padding-bottom: 0;
+}
+
+/* Track de défilement horizontal du carrousel */
+.w2917p1 {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  padding-bottom: 0;
+  flex-wrap: nowrap;
+}
+
+/* Masquer la scrollbar horizontale pour un rendu plus propre */
+.w2917p1::-webkit-scrollbar {
+  display: none;
+}
+
+/* Conteneur de carte avec marge entre cartes successives */
+.vfrc-card._1lbxmyd0.o231sh1 {
+  transition: transform var(--chat-transition-base);
+  position: relative;
+  flex: 0 0 auto;
+  margin-right: var(--carousel-gap);
+}
+
+/* Style des cartes individuelles · arrondies avec ombre douce */
+.vfrc-card._1lbxmyd0 {
+  background: white;
+  border-radius: var(--chat-radius-xxl);
+  box-shadow: var(--chat-shadow-xl);
+  transition: all var(--chat-transition-base);
+  display: flex;
+  flex-direction: column;
+  margin: 10px 10px;
+}
+
+/* ========================================
+   BOUTONS DE NAVIGATION DU CARROUSEL
+   ----------------------------------------
+   Les flèches de navigation sont positionnées sous le carrousel pour ne
+   pas masquer le contenu des cartes. Elles utilisent le bleu nuit CACI
+   en bordure et passent au jaune au hover pour signaler l'interaction.
+======================================== */
+
+/* Bouton de défilement à droite (positionné à gauche) */
+.vfrc-carousel--button.betklma {
+  left: calc(50% - 60px) !important;
+  right: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Bouton de défilement à gauche (positionné à droite) */
+.vfrc-carousel--button.betklmc {
+  right: calc(50% - 60px) !important;
+  left: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.vfrc-carousel--button.betklma,
+.vfrc-carousel--button.betklmc {
+  position: absolute !important;
+  top: auto !important;
+  bottom: -50px !important;
+  border-radius: var(--chat-radius-full);
+}
+
+/* Couleur des flèches dans les boutons · bleu nuit CACI */
+.vfrc-carousel--button.betklmc .vfrc-icon svg,
+.vfrc-carousel--button.betklma .vfrc-icon svg {
+  transform: rotate(0deg);
+  color: var(--chat-primary-color);
+}
+
+.vfrc-carousel--button.betklmc:hover .vfrc-icon svg,
+.vfrc-carousel--button.betklma:hover .vfrc-icon svg {
+  transform: rotate(0deg);
+  color: var(--chat-primary-color);
+}
+
+/* État actif du bouton · couleur blanche pour signaler le clic */
+.vfrc-carousel--button.betklmc:active .vfrc-icon svg,
+.vfrc-carousel--button.betklma:active .vfrc-icon svg {
+  transform: rotate(0deg);
+  color: var(--chat-text-white);
+}
+
+/* Fond et bordure des boutons de navigation · bleu nuit CACI */
+.vfrc-carousel--button.betklma,
+.vfrc-carousel--button.betklmc {
+  background: var(--chat-bg-tertiary) !important;
+  border-color: var(--chat-primary-color) !important;
+}
+
+/* Hover · fond jaune CACI pour signaler l'interaction */
+.vfrc-carousel--button.betklma:hover,
+.vfrc-carousel--button.betklmc:hover {
+  background: var(--chat-accent-color) !important;
+}
+
+/* Active · fond bleu nuit pour signaler le clic effectif */
+.vfrc-carousel--button.betklma:active,
+.vfrc-carousel--button.betklmc:active {
+  background: var(--chat-primary-color) !important;
+}
+
+/* ========================================
+   AJUSTEMENTS RESPONSIVE
+   ----------------------------------------
+   Sur mobile, les cartes du carrousel sont réduites pour rentrer dans
+   l'écran et les boutons de navigation sont rapprochés. C'est un
+   compromis entre lisibilité et accessibilité tactile.
+======================================== */
+
+@media (max-width: 768px) {
+  .s9t60i0 {
+    --carousel-card-width: 320px;
+    --carousel-button-size: 44px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .vfrc-card._1lbxmyd0.o231sh1 {
+    width: var(--carousel-card-width);
+  }
+
+  .vfrc-carousel--button {
+    width: var(--carousel-button-size) !important;
+    height: var(--carousel-button-size) !important;
+    bottom: 15px !important;
+  }
+
+  .vfrc-carousel--button.betklma {
+    left: calc(50% - 55px) !important;
+  }
+
+  .vfrc-carousel--button.betklmc {
+    right: calc(50% - 55px) !important;
   }
 }
 
-.vfrc-message {
-  animation: caci-message-appear 0.3s ease-out;
+/* ========================================
+   STYLES MISCELLANÉS
+======================================== */
+
+.jyiuei8 {
+  color: transparent;
 }
 
-/* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v2
-   ============================================================================ */
+.dio4eo4 {
+  display: none;
+}
+
+.g931q13 {
+  width: 100px;
+  height: auto;
+}
+
+/* ========================================
+   FALLBACK · masquage forcé de l'avatar
+   ----------------------------------------
+   Si la version actuelle du widget Voiceflow ignore le hide:true du
+   snippet JavaScript, cette règle force le masquage de l'avatar par CSS.
+   C'est un filet de sécurité au cas où le paramètre du snippet ne soit
+   pas pris en compte.
+======================================== */
+
+.vfrc-avatar {
+  display: none !important;
+}
