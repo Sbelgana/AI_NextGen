@@ -1,0 +1,556 @@
+/* ============================================================================
+   CACI · Voiceflow Web Chat · Personnalisation visuelle complète
+   ----------------------------------------------------------------------------
+   Palette de couleurs extraite de caci-bc.org et appliquée à tous les
+   éléments du widget de chat Voiceflow. Conserve l'identité visuelle du
+   CACI tout en respectant les principes d'accessibilité (contraste AA).
+   ============================================================================ */
+
+/* ============================================================================
+   VARIABLES DE LA PALETTE CACI
+   ----------------------------------------------------------------------------
+   Définies en :root pour permettre une réutilisation cohérente partout.
+   Ne pas modifier sans concertation · ces couleurs sont l'identité de
+   l'organisme et toute déviation crée une rupture perçue par l'utilisateur.
+   ============================================================================ */
+:root {
+  /* Couleurs principales · les trois piliers de l'identité CACI */
+  --caci-bleu-nuit: #0a1f2c;        /* Couleur dominante · header, accents forts */
+  --caci-bleu-profond: #193b4d;     /* Variante plus claire · textes secondaires */
+  --caci-bleu-ciel: #90d5ff;        /* Bleu pastel · backgrounds clairs, hover */
+  --caci-orange-peche: #f8ad7f;     /* Orange chaud · boutons d'action */
+
+  /* Couleurs secondaires · pour les nuances et les états interactifs */
+  --caci-orange-vif: #f58c3c;       /* Orange plus saturé · hover des boutons */
+  --caci-peche-clair: #fed1ac;      /* Pêche très clair · backgrounds doux */
+  --caci-bleu-eau: #6ec1e4;         /* Turquoise · éléments de navigation */
+  --caci-bleu-tres-clair: #eaf3fb;  /* Bleu lavande très pâle · bulles assistant */
+
+  /* Neutres · pour le texte, les bordures, et les fonds */
+  --caci-blanc: #ffffff;
+  --caci-blanc-casse: #fbfbfb;
+  --caci-gris-tres-clair: #f5f5f5;
+  --caci-gris-clair: #eaeaea;
+  --caci-gris-bordure: #e5e5e5;
+  --caci-gris-texte: #4b4f58;
+  --caci-gris-fonce: #3a3a3a;
+  --caci-noir: #000000;
+
+  /* Variables sémantiques · utilisées dans les règles ci-dessous */
+  --vfrc-bg-page: transparent;
+  --vfrc-color-primary: var(--caci-bleu-nuit);
+  --vfrc-color-accent: var(--caci-orange-peche);
+  --vfrc-color-text: var(--caci-bleu-profond);
+  --vfrc-color-border: var(--caci-gris-bordure);
+  --vfrc-shadow-soft: 0 4px 16px rgba(10, 31, 44, 0.08);
+  --vfrc-shadow-medium: 0 8px 24px rgba(10, 31, 44, 0.12);
+  --vfrc-radius-bubble: 18px;
+  --vfrc-radius-button: 12px;
+  --vfrc-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                      "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ============================================================================
+   PAGE ELEMENTS
+   ----------------------------------------------------------------------------
+   La page hôte qui contient le widget. La bulle launcher est l'icône
+   permanente en bas à droite que l'utilisateur clique pour ouvrir le chat.
+   ============================================================================ */
+.voiceflow-chat {
+  font-family: var(--vfrc-font-family);
+  color: var(--caci-bleu-profond);
+  --vfrc-color-message-system: var(--caci-bleu-profond);
+  --vfrc-color-message-user: var(--caci-blanc);
+  --vfrc-color-background: var(--caci-blanc);
+}
+
+.vfrc-launcher {
+  /* Icône bulle de lancement · doit attirer l'œil sans être agressif */
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
+  box-shadow: var(--vfrc-shadow-medium);
+  border: 2px solid var(--caci-blanc);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vfrc-launcher:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(10, 31, 44, 0.2);
+}
+
+.vfrc-launcher svg {
+  fill: var(--caci-orange-peche);
+}
+
+.vfrc-chat--overlay {
+  /* Couche de fond derrière le widget en mode overlay */
+  background: rgba(10, 31, 44, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.vfrc-prompt {
+  /* Bulle d'incitation qui apparaît à côté du launcher */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border-radius: var(--vfrc-radius-bubble);
+  box-shadow: var(--vfrc-shadow-soft);
+  font-weight: 500;
+  padding: 12px 16px;
+}
+
+.vfrc-prompt::after {
+  /* Petit triangle pointu qui pointe vers le launcher */
+  border-top-color: var(--caci-bleu-nuit) !important;
+}
+
+/* ============================================================================
+   CHAT WIDGET HEADER
+   ----------------------------------------------------------------------------
+   Le bandeau supérieur qui contient le nom de l'assistant et les contrôles.
+   Reçoit le bleu nuit dominant pour ancrer l'identité CACI dès l'ouverture.
+   ============================================================================ */
+.vfrc-header {
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
+  color: var(--caci-blanc);
+  border-bottom: 3px solid var(--caci-orange-peche);
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15);
+}
+
+.vfrc-assistant-info {
+  /* Bloc qui contient le nom et la description de l'assistant */
+  color: var(--caci-blanc);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vfrc-assistant-info--title {
+  /* Nom de l'assistant · "CACI Assistant" ou équivalent */
+  color: var(--caci-blanc);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+.vfrc-assistant-info--description {
+  /* Sous-titre sous le nom · "Centre d'appui aux communautés immigrantes" */
+  color: var(--caci-bleu-ciel);
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+
+.vfrc-avatar {
+  /* Photo de profil de l'assistant · cadre rond avec bordure orange */
+  border: 2px solid var(--caci-orange-peche);
+  background: var(--caci-blanc);
+  box-shadow: 0 2px 8px rgba(248, 173, 127, 0.3);
+}
+
+.vfrc-icon {
+  /* Icônes de contrôle dans le header · fermeture, minimisation, etc. */
+  color: var(--caci-blanc);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vfrc-icon:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--caci-orange-peche);
+}
+
+/* ============================================================================
+   CHAT MESSAGE BODY
+   ----------------------------------------------------------------------------
+   La zone centrale qui contient le déroulé de la conversation. Reçoit un
+   fond blanc cassé pour ne pas fatiguer l'œil sur de longs échanges, avec
+   des accents subtils de bleu pour rappeler l'identité.
+   ============================================================================ */
+.vfrc-chat {
+  background: var(--caci-blanc-casse);
+  font-family: var(--vfrc-font-family);
+}
+
+.vfrc-chat--dialog {
+  /* Le conteneur scrollable qui regroupe tous les messages */
+  background: var(--caci-blanc-casse);
+  padding: 16px 12px;
+}
+
+.vfrc-chat--spacer {
+  /* Espacements verticaux entre groupes de messages */
+  height: 12px;
+}
+
+.vfrc-chat--session-time {
+  /* Étiquette qui indique l'heure de début de session */
+  color: var(--caci-gris-texte);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  background: var(--caci-bleu-tres-clair);
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin: 8px auto;
+  display: inline-block;
+}
+
+.vfrc-chat--status {
+  /* Indicateur de statut · "En train d'écrire", "En ligne", etc. */
+  color: var(--caci-bleu-profond);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.vfrc-message {
+  /* Style de base pour toutes les bulles de message */
+  border-radius: var(--vfrc-radius-bubble);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  word-wrap: break-word;
+  box-shadow: 0 1px 3px rgba(10, 31, 44, 0.06);
+}
+
+.vfrc-timestamp {
+  /* Petit texte qui indique l'heure d'envoi sous chaque message */
+  color: var(--caci-gris-texte);
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   ASSISTANT RESPONSES
+   ----------------------------------------------------------------------------
+   Les messages produits par l'assistant. Reçoivent un fond bleu très clair
+   pour signaler visuellement qu'ils viennent du bot, avec texte en bleu
+   profond pour le contraste lisible.
+   ============================================================================ */
+.vfrc-system-response {
+  /* Conteneur d'une réponse complète de l'assistant */
+  margin-bottom: 8px;
+}
+
+.vfrc-system-response--indicator {
+  /* Indicateur de chargement quand l'assistant écrit */
+  background: var(--caci-bleu-tres-clair);
+  border-radius: var(--vfrc-radius-bubble);
+  padding: 8px 16px;
+}
+
+.vfrc-system-response--indicator div {
+  /* Les trois points qui pulsent pendant le chargement */
+  background: var(--caci-bleu-nuit);
+}
+
+.vfrc-system-response--controls {
+  /* Boutons de contrôle sur une réponse · copier, signaler, etc. */
+  color: var(--caci-bleu-profond);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.vfrc-system-response--controls:hover {
+  opacity: 1;
+}
+
+.vfrc-system-response--list {
+  /* Listes générées par l'assistant · puces ou numérotation */
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.vfrc-system-response--actions {
+  /* Conteneur des boutons d'action sous une réponse */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vfrc-system-response .vfrc-message {
+  /* Bulle de l'assistant · fond bleu très clair, texte bleu profond */
+  background: var(--caci-bleu-tres-clair);
+  color: var(--caci-bleu-profond);
+  border-bottom-left-radius: 4px; /* Coin spécial qui pointe vers le bot */
+  border: 1px solid rgba(10, 31, 44, 0.05);
+}
+
+.vfrc-system-response .vfrc-button {
+  /* Boutons proposés par l'assistant · style orange pêche */
+  background: var(--caci-orange-peche);
+  color: var(--caci-bleu-nuit);
+  border: 2px solid var(--caci-orange-peche);
+  border-radius: var(--vfrc-radius-button);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(248, 173, 127, 0.25);
+}
+
+.vfrc-system-response .vfrc-button:hover {
+  background: var(--caci-orange-vif);
+  border-color: var(--caci-orange-vif);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 140, 60, 0.35);
+}
+
+.vfrc-system-response .vfrc-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(245, 140, 60, 0.25);
+}
+
+.vfrc-button {
+  /* Style de base pour tous les boutons hors carrousel */
+  background: var(--caci-orange-peche);
+  color: var(--caci-bleu-nuit);
+  border: 2px solid var(--caci-orange-peche);
+  border-radius: var(--vfrc-radius-button);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vfrc-button:hover {
+  background: var(--caci-orange-vif);
+  border-color: var(--caci-orange-vif);
+}
+
+.vfrc-image {
+  /* Images affichées dans les messages */
+  border-radius: 12px;
+  border: 1px solid var(--caci-gris-bordure);
+  overflow: hidden;
+}
+
+.vfrc-image--background {
+  /* Couche de fond pendant le chargement de l'image */
+  background: var(--caci-bleu-tres-clair);
+}
+
+.vfrc-card--content {
+  /* Contenu textuel d'une carte · titre, description, etc. */
+  background: var(--caci-blanc);
+  color: var(--caci-bleu-profond);
+  padding: 12px 16px;
+  border-bottom-left-radius: var(--vfrc-radius-bubble);
+  border-bottom-right-radius: var(--vfrc-radius-bubble);
+}
+
+.vfrc-card--header {
+  /* Titre principal d'une carte · gros, en gras, bleu nuit */
+  color: var(--caci-bleu-nuit);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.vfrc-card--description {
+  /* Texte descriptif d'une carte sous le titre */
+  color: var(--caci-gris-texte);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.vfrc-carousel {
+  /* Conteneur d'un carrousel de cartes · scroll horizontal */
+  padding: 4px 8px;
+  background: transparent;
+}
+
+.vfrc-carousel--button {
+  /* Flèches de navigation à gauche et à droite du carrousel */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border: 2px solid var(--caci-blanc);
+  box-shadow: var(--vfrc-shadow-soft);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.vfrc-carousel--button:hover {
+  background: var(--caci-orange-peche);
+  color: var(--caci-bleu-nuit);
+  transform: scale(1.1);
+}
+
+/* ============================================================================
+   USER RESPONSES
+   ----------------------------------------------------------------------------
+   Les messages envoyés par l'utilisateur. Reçoivent le bleu nuit en fond
+   avec texte blanc, ce qui crée un contraste fort qui distingue clairement
+   les deux interlocuteurs au premier coup d'œil.
+   ============================================================================ */
+.vfrc-user-response {
+  /* Conteneur d'un message utilisateur · alignement à droite */
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.vfrc-user-response .vfrc-message {
+  /* Bulle utilisateur · fond bleu nuit, texte blanc */
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
+  color: var(--caci-blanc);
+  border-bottom-right-radius: 4px; /* Coin spécial qui pointe vers la droite */
+  border: 1px solid rgba(10, 31, 44, 0.1);
+  font-weight: 500;
+}
+
+.vfrc-user-response .vfrc-message a {
+  /* Liens dans les messages utilisateur · soulignés en orange */
+  color: var(--caci-orange-peche);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   FOOTER
+   ----------------------------------------------------------------------------
+   Le bandeau inférieur qui contient le champ de saisie, le bouton d'envoi,
+   et le watermark de marque. Reçoit un fond clair pour ne pas alourdir.
+   ============================================================================ */
+.vf-footer {
+  /* Conteneur du footer · fond légèrement teinté */
+  background: var(--caci-blanc);
+  border-top: 1px solid var(--caci-gris-bordure);
+  padding: 12px 16px;
+  box-shadow: 0 -2px 8px rgba(10, 31, 44, 0.04);
+}
+
+.vfrc-input {
+  /* Champ de saisie de message · fond clair, bordure subtile */
+  background: var(--caci-gris-tres-clair);
+  color: var(--caci-bleu-profond);
+  border: 2px solid var(--caci-gris-bordure);
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-family: var(--vfrc-font-family);
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vfrc-input:focus {
+  /* État focus · bordure bleu ciel pour signaler la saisie active */
+  border-color: var(--caci-bleu-ciel);
+  background: var(--caci-blanc);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(144, 213, 255, 0.2);
+}
+
+.vfrc-input::placeholder {
+  /* Texte de placeholder · gris discret */
+  color: var(--caci-gris-texte);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.vfrc-chat-input--button {
+  /* Bouton d'envoi à droite du champ · rond, orange, animation au survol */
+  background: var(--caci-orange-peche);
+  color: var(--caci-bleu-nuit);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(248, 173, 127, 0.3);
+}
+
+.vfrc-chat-input--button:hover {
+  background: var(--caci-orange-vif);
+  transform: rotate(15deg) scale(1.05);
+  box-shadow: 0 4px 10px rgba(245, 140, 60, 0.4);
+}
+
+.vfrc-chat-input--button:active {
+  transform: rotate(15deg) scale(0.95);
+}
+
+.vfrc-chat-input--button:disabled {
+  /* État désactivé · grisé quand le champ est vide */
+  background: var(--caci-gris-clair);
+  color: var(--caci-gris-texte);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.vfrc-chat-input--button svg {
+  /* Icône SVG dans le bouton d'envoi */
+  fill: currentColor;
+  width: 18px;
+  height: 18px;
+}
+
+.vfrc-footer--watermark {
+  /* Mention "Powered by Voiceflow" · discrète mais lisible */
+  color: var(--caci-gris-texte);
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  margin-top: 4px;
+  transition: opacity 0.2s ease;
+}
+
+.vfrc-footer--watermark:hover {
+  opacity: 0.8;
+}
+
+/* ============================================================================
+   ADAPTATIONS POUR L'ÉCRITURE DROITE-GAUCHE (ARABE)
+   ----------------------------------------------------------------------------
+   Le CACI sert sept langues dont l'arabe qui s'écrit de droite à gauche.
+   Cette section ajuste les coins arrondis et les alignements pour rendre
+   le widget cohérent dans cette direction.
+   ============================================================================ */
+.voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
+  border-bottom-left-radius: var(--vfrc-radius-bubble);
+  border-bottom-right-radius: 4px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-user-response .vfrc-message {
+  border-bottom-right-radius: var(--vfrc-radius-bubble);
+  border-bottom-left-radius: 4px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-user-response {
+  justify-content: flex-start;
+}
+
+/* ============================================================================
+   ANIMATIONS ET TRANSITIONS GLOBALES
+   ----------------------------------------------------------------------------
+   Animations subtiles qui rendent l'interface vivante sans la distraire.
+   Les durées sont volontairement courtes (200ms) pour rester réactives.
+   ============================================================================ */
+@keyframes caci-message-appear {
+  /* Apparition douce des nouveaux messages · slide up + fade in */
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vfrc-message {
+  animation: caci-message-appear 0.3s ease-out;
+}
+
+/* ============================================================================
+   FIN DU FICHIER · CACI Voiceflow Custom Styling
+   ============================================================================ */
