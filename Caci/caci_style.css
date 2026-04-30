@@ -1,19 +1,27 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.3.1)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.0.0)
    ----------------------------------------------------------------------------
-   Version finale qui intègre toutes les itérations précédentes plus les
-   corrections finales · flèches de navigation sans transformation au
-   survol pour préserver l'orientation native, avatars bot affichés
-   correctement avec l'image personnalisée fournie par le snippet.
+   Version finale consolidée organisée selon la documentation officielle
+   Voiceflow · https://docs.voiceflow.com/documentation/deploy/widget/custom-web-chat-styling
    
-   Le snippet JavaScript fournit maintenant une image CACI personnalisée
-   pour l'avatar via assistant.avatar.imageUrl, donc le CSS se contente
-   de styliser la bordure et l'ombre sans masquer l'image source.
+   Structure du fichier · variables, puis sept sections officielles
+   1. PAGE ELEMENTS · launcher, overlay, prompt
+   2. CHAT WIDGET HEADER · bandeau supérieur
+   3. CHAT MESSAGE BODY · zone de conversation
+   4. ASSISTANT RESPONSES · bulles bot, boutons, carrousel
+   5. USER RESPONSES · bulles utilisateur
+   6. FOOTER · zone de saisie
+   7. RTL ET ANIMATIONS · adaptations linguistiques et transitions
    ============================================================================ */
 
 /* ============================================================================
    VARIABLES DE LA PALETTE CACI
+   ----------------------------------------------------------------------------
+   Le widget Voiceflow utilise un Shadow DOM isolé. On déclare les variables
+   sur les sélecteurs .voiceflow-chat (officiel), .s9t60i0 (obfusqué interne)
+   et l'astérisque pour garantir la disponibilité dans tout le widget.
    ============================================================================ */
+
 .voiceflow-chat,
 .s9t60i0,
 * {
@@ -24,7 +32,7 @@
   --caci-bleu-tres-clair: #eaf3fb;
   --caci-bleu-eau: #6ec1e4;
 
-  /* Jaune CACI */
+  /* Jaune CACI · couleur d'accent */
   --caci-jaune-or: #ffb92a;
   --caci-jaune-clair: #fff676;
   --caci-jaune-fonce: #e6a420;
@@ -39,13 +47,12 @@
   --caci-gris-fonce: #3a3a3a;
   --caci-noir: #000000;
 
-  /* Variables sémantiques */
+  /* Variables sémantiques pour références plus lisibles dans le code */
   --vfrc-color-primary: var(--caci-bleu-nuit);
   --vfrc-color-accent: var(--caci-jaune-or);
   --vfrc-color-text: var(--caci-bleu-profond);
   --vfrc-color-bg-bot: var(--caci-bleu-tres-clair);
   --vfrc-color-bg-user: var(--caci-bleu-nuit);
-  --vfrc-color-text-on-accent: var(--caci-bleu-nuit);
   --vfrc-shadow-soft: 0 4px 16px rgba(10, 31, 44, 0.08);
   --vfrc-shadow-medium: 0 8px 24px rgba(10, 31, 44, 0.12);
   --vfrc-radius-bubble: 18px;
@@ -55,8 +62,13 @@
 }
 
 /* ============================================================================
-   PAGE ELEMENTS · launcher, overlay, prompt
+   1. PAGE ELEMENTS
+   ----------------------------------------------------------------------------
+   Personnalisation des éléments rendus sur la page autour du chat ·
+   le launcher (bouton d'ouverture), l'overlay (voile derrière le widget),
+   et le prompt (bulle proactive avec message d'accueil).
    ============================================================================ */
+
 .voiceflow-chat {
   font-family: var(--vfrc-font-family);
   color: var(--caci-bleu-profond);
@@ -93,9 +105,33 @@
   border: 2px solid var(--caci-jaune-or);
 }
 
+/* Boutons à l'intérieur de la prompt · le célèbre Talk to AI */
+.vfrc-prompt button,
+.vfrc-prompt [role="button"] {
+  background: var(--caci-jaune-or) !important;
+  color: var(--caci-bleu-nuit) !important;
+  border: 2px solid var(--caci-jaune-or) !important;
+  border-radius: 24px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.vfrc-prompt button:hover,
+.vfrc-prompt [role="button"]:hover {
+  background: var(--caci-bleu-nuit) !important;
+  color: var(--caci-blanc) !important;
+  border-color: var(--caci-bleu-nuit) !important;
+}
+
 /* ============================================================================
-   HEADER · bandeau supérieur du widget
+   2. CHAT WIDGET HEADER
+   ----------------------------------------------------------------------------
+   Bandeau supérieur du widget avec titre, sous-titre, avatar, et boutons
+   de contrôle (reload et close).
    ============================================================================ */
+
 .vfrc-header {
   background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
   color: var(--caci-blanc);
@@ -124,6 +160,17 @@
   font-weight: 400;
   margin-top: 2px;
   opacity: 0.9;
+}
+
+.vfrc-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--caci-jaune-or) !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+  flex-shrink: 0 !important;
+  object-fit: cover !important;
+  display: block !important;
 }
 
 .vfrc-icon {
@@ -164,6 +211,24 @@
   transform: scale(1.1) !important;
 }
 
+.vfrc-header [aria-label*="reset" i] svg,
+.vfrc-header [aria-label*="reload" i] svg,
+.vfrc-header [aria-label*="restart" i] svg,
+.vfrc-header [aria-label*="recommencer" i] svg {
+  color: var(--caci-bleu-nuit) !important;
+  fill: var(--caci-bleu-nuit) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.vfrc-header [aria-label*="reset" i]:hover svg,
+.vfrc-header [aria-label*="reload" i]:hover svg,
+.vfrc-header [aria-label*="restart" i]:hover svg,
+.vfrc-header [aria-label*="recommencer" i]:hover svg {
+  color: var(--caci-jaune-or) !important;
+  fill: var(--caci-jaune-or) !important;
+}
+
 /* Bouton close · bleu nuit au repos, bleu profond au survol */
 .vfrc-header [aria-label*="close" i],
 .vfrc-header [aria-label*="fermer" i] {
@@ -186,25 +251,6 @@
   transform: scale(1.1) !important;
 }
 
-/* Icônes des boutons reload et close */
-.vfrc-header [aria-label*="reset" i] svg,
-.vfrc-header [aria-label*="reload" i] svg,
-.vfrc-header [aria-label*="restart" i] svg,
-.vfrc-header [aria-label*="recommencer" i] svg {
-  color: var(--caci-bleu-nuit) !important;
-  fill: var(--caci-bleu-nuit) !important;
-  width: 16px !important;
-  height: 16px !important;
-}
-
-.vfrc-header [aria-label*="reset" i]:hover svg,
-.vfrc-header [aria-label*="reload" i]:hover svg,
-.vfrc-header [aria-label*="restart" i]:hover svg,
-.vfrc-header [aria-label*="recommencer" i]:hover svg {
-  color: var(--caci-jaune-or) !important;
-  fill: var(--caci-jaune-or) !important;
-}
-
 .vfrc-header [aria-label*="close" i] svg,
 .vfrc-header [aria-label*="fermer" i] svg {
   color: var(--caci-blanc) !important;
@@ -213,38 +259,12 @@
   height: 16px !important;
 }
 
-.vfrc-header [aria-label*="close" i]:hover svg,
-.vfrc-header [aria-label*="fermer" i]:hover svg {
-  color: var(--caci-blanc) !important;
-  fill: var(--caci-blanc) !important;
-}
-
 /* ============================================================================
-   AVATAR BOT · décoration sans masquage de l'image source
+   3. CHAT MESSAGE BODY
    ----------------------------------------------------------------------------
-   Le snippet fournit maintenant une image CACI personnalisée via
-   assistant.avatar.imageUrl. Le CSS se contente de styliser la bordure,
-   l'ombre, et la forme circulaire sans masquer l'image source. C'est
-   l'approche correcte de séparation des responsabilités entre snippet
-   (contenu) et CSS (apparence).
+   Zone centrale de la conversation avec sa mise en page et ses métadonnées.
    ============================================================================ */
 
-.vfrc-avatar,
-img.vfrc-avatar {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  border: 2px solid var(--caci-jaune-or) !important;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
-  flex-shrink: 0 !important;
-  object-fit: cover !important;
-  display: block !important;
-  /* Pas de background-image qui masquerait l'image source CACI du snippet */
-}
-
-/* ============================================================================
-   CHAT MESSAGE BODY · zone centrale de la conversation
-   ============================================================================ */
 .vfrc-chat {
   background: var(--caci-blanc-casse);
   font-family: var(--vfrc-font-family);
@@ -293,9 +313,25 @@ img.vfrc-avatar {
   margin-top: 4px;
 }
 
+/* Indicateur de frappe · les trois points qui pulsent quand le bot écrit */
+.vfrc-typing-indicator {
+  background: var(--caci-bleu-tres-clair);
+  border-radius: var(--vfrc-radius-bubble);
+  padding: 10px 14px;
+}
+
+.vfrc-typing-indicator div,
+.vfrc-typing-indicator span {
+  background-color: var(--caci-bleu-nuit) !important;
+}
+
 /* ============================================================================
-   ASSISTANT RESPONSES · bulles bot et leurs boutons d'action
+   4. ASSISTANT RESPONSES
+   ----------------------------------------------------------------------------
+   Bulles de réponse du bot, boutons proposés, cartes de carrousel, et
+   navigation du carrousel.
    ============================================================================ */
+
 .vfrc-system-response {
   margin-bottom: 8px;
 }
@@ -365,7 +401,7 @@ img.vfrc-avatar {
   box-shadow: 0 2px 4px rgba(10, 31, 44, 0.25);
 }
 
-/* Boutons standards (hors carrousel et hors bulle bot) */
+/* Boutons standards en dehors du contexte des bulles bot */
 .vfrc-button {
   background: var(--caci-jaune-or);
   color: var(--caci-bleu-nuit);
@@ -392,9 +428,189 @@ img.vfrc-avatar {
   background: var(--caci-bleu-tres-clair);
 }
 
+/* Cartes du carrousel · structure en colonnes flex pour uniformité */
+.vfrc-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  background: var(--caci-blanc) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.08) !important;
+  border: 1px solid var(--caci-gris-bordure) !important;
+}
+
+.vfrc-card img {
+  height: 140px !important;
+  width: 100% !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+.vfrc-card--content {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  padding: 12px 16px !important;
+  gap: 6px !important;
+  background: var(--caci-blanc) !important;
+}
+
+.vfrc-card--header {
+  flex-shrink: 0 !important;
+  color: var(--caci-bleu-nuit) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+.vfrc-card--description {
+  flex-grow: 1 !important;
+  color: var(--caci-gris-texte) !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.vfrc-card--description p {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--caci-gris-texte) !important;
+}
+
+/* Carrousel · conteneur principal */
+.vfrc-carousel {
+  padding: 4px 8px;
+  background: transparent;
+}
+
+/* Boutons de navigation du carrousel · respect des mécanismes Voiceflow */
+.vfrc-carousel--button {
+  background: var(--caci-blanc) !important;
+  background-color: var(--caci-blanc) !important;
+  border: 2px solid var(--caci-bleu-nuit) !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 0.15s ease, visibility 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.vfrc-carousel--button:hover {
+  background: var(--caci-jaune-or) !important;
+  background-color: var(--caci-jaune-or) !important;
+  border-color: var(--caci-jaune-fonce) !important;
+  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.4) !important;
+}
+
+.vfrc-carousel--button:active {
+  background: var(--caci-bleu-nuit) !important;
+  background-color: var(--caci-bleu-nuit) !important;
+  box-shadow: 0 2px 4px rgba(10, 31, 44, 0.3) !important;
+}
+
+/* Couleur de la flèche SVG · bleu nuit au repos */
+.vfrc-carousel--button .vfrc-icon,
+.vfrc-carousel--button svg,
+.vfrc-carousel--button svg path {
+  color: var(--caci-bleu-nuit) !important;
+  fill: var(--caci-bleu-nuit) !important;
+}
+
+.vfrc-carousel--button:hover .vfrc-icon,
+.vfrc-carousel--button:hover svg,
+.vfrc-carousel--button:hover svg path {
+  color: var(--caci-blanc) !important;
+  fill: var(--caci-blanc) !important;
+}
+
+.vfrc-carousel--button:active .vfrc-icon,
+.vfrc-carousel--button:active svg,
+.vfrc-carousel--button:active svg path {
+  color: var(--caci-jaune-or) !important;
+  fill: var(--caci-jaune-or) !important;
+}
+
+/* Visibilité contextuelle native de Voiceflow */
+.vfrc-carousel--button._675wn07 {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+.vfrc-carousel--button._675wn08 {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+.vfrc-carousel--button:disabled,
+.vfrc-carousel--button[disabled],
+.vfrc-carousel--button[aria-disabled="true"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Préserver la rotation de la flèche gauche imposée par Voiceflow */
+.vfrc-icon._675wn0h,
+.vfrc-icon._675wn0h svg,
+._675wn0h {
+  transform: rotate(180deg) !important;
+}
+
+.vfrc-carousel--button:hover .vfrc-icon._675wn0h,
+.vfrc-carousel--button:active .vfrc-icon._675wn0h,
+.vfrc-carousel--button:focus .vfrc-icon._675wn0h {
+  transform: rotate(180deg) !important;
+}
+
+/* Annuler les transformations sur les éléments enfants sauf _675wn0h */
+.vfrc-carousel--button > div:not(._675wn0h),
+.vfrc-carousel--button .vfrc-icon:not(._675wn0h) {
+  transform: none !important;
+}
+
+/* Avatar fixe pendant le défilement horizontal du carrousel */
+.vfrc-avatar._1d8p3b81,
+img.vfrc-avatar._1d8p3b81 {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 5 !important;
+  flex-shrink: 0 !important;
+  background-color: var(--caci-blanc) !important;
+  align-self: flex-start !important;
+}
+
+/* Ajustements responsive pour les cartes du carrousel */
+@media (max-width: 480px) {
+  .vfrc-card {
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+  }
+
+  .vfrc-card img {
+    height: 120px !important;
+  }
+}
+
 /* ============================================================================
-   USER RESPONSES · bulles utilisateur
+   5. USER RESPONSES
+   ----------------------------------------------------------------------------
+   Bulles de message envoyées par l'utilisateur · alignées à droite avec
+   un fond bleu nuit pour les distinguer visuellement des bulles bot.
    ============================================================================ */
+
 .vfrc-user-response {
   display: flex;
   justify-content: flex-end;
@@ -402,8 +618,8 @@ img.vfrc-avatar {
 }
 
 .vfrc-user-response .vfrc-message {
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
-  color: var(--caci-blanc);
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
+  color: var(--caci-blanc) !important;
   border-bottom-right-radius: 4px;
   border: 1px solid rgba(10, 31, 44, 0.1);
   font-weight: 500;
@@ -415,8 +631,12 @@ img.vfrc-avatar {
 }
 
 /* ============================================================================
-   FOOTER · zone de saisie et watermark
+   6. FOOTER
+   ----------------------------------------------------------------------------
+   Zone de saisie du message en bas du widget avec champ texte, bouton
+   d'envoi, et watermark Voiceflow.
    ============================================================================ */
+
 .vf-footer {
   background: var(--caci-blanc);
   border-top: 1px solid var(--caci-gris-bordure);
@@ -424,7 +644,8 @@ img.vfrc-avatar {
   box-shadow: 0 -2px 8px rgba(10, 31, 44, 0.04);
 }
 
-.vfrc-input {
+.vfrc-input,
+.vfrc-chat-input {
   background: var(--caci-gris-tres-clair);
   color: var(--caci-bleu-profond);
   border: 2px solid var(--caci-gris-bordure);
@@ -435,14 +656,16 @@ img.vfrc-avatar {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.vfrc-input:focus {
+.vfrc-input:focus,
+.vfrc-chat-input:focus {
   border-color: var(--caci-bleu-ciel);
   background: var(--caci-blanc);
   outline: none;
   box-shadow: 0 0 0 3px rgba(144, 213, 255, 0.2);
 }
 
-.vfrc-input::placeholder {
+.vfrc-input::placeholder,
+.vfrc-chat-input::placeholder {
   color: var(--caci-gris-texte);
   opacity: 0.7;
   font-style: italic;
@@ -501,9 +724,37 @@ img.vfrc-avatar {
   opacity: 0.8;
 }
 
+/* Boutons de feedback · pouce vers le haut/bas après réponse du bot */
+.vfrc-feedback {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.vfrc-feedback button {
+  background: transparent;
+  border: 1px solid var(--caci-gris-bordure);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: var(--caci-gris-texte);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vfrc-feedback button:hover {
+  background: var(--caci-jaune-or);
+  border-color: var(--caci-jaune-or);
+  color: var(--caci-bleu-nuit);
+}
+
 /* ============================================================================
-   ADAPTATIONS RTL · arabe écrit de droite à gauche
+   7. RTL ET ANIMATIONS
+   ----------------------------------------------------------------------------
+   Adaptations pour les langues à écriture droite-à-gauche (arabe), et
+   animations globales pour les transitions de messages.
    ============================================================================ */
+
 .voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
   border-bottom-left-radius: var(--vfrc-radius-bubble);
   border-bottom-right-radius: 4px;
@@ -518,9 +769,11 @@ img.vfrc-avatar {
   justify-content: flex-start;
 }
 
-/* ============================================================================
-   ANIMATIONS GLOBALES
-   ============================================================================ */
+.voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
+  left: auto !important;
+  right: 0 !important;
+}
+
 @keyframes caci-message-appear {
   from {
     opacity: 0;
@@ -537,239 +790,5 @@ img.vfrc-avatar {
 }
 
 /* ============================================================================
-   CARROUSEL · UNIFORMISATION DES CARTES (basée sur HTML inspecté)
-   ============================================================================ */
-
-/* Niveau 1 · Le track horizontal devient flex pour aligner les cartes */
-.vfrc-carousel-inner-container,
-._1d8p3b85 {
-  display: flex !important;
-  align-items: stretch !important;
-  gap: 12px !important;
-}
-
-/* Niveau 2 · Chaque carte devient un conteneur flex vertical avec hauteur unifiée */
-.vfrc-card,
-.vfrc-card._1375ap10,
-.vfrc-card._1375ap11,
-.vfrc-card._1375ap10._1375ap11 {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-  width: 280px !important;
-  min-width: 280px !important;
-  max-width: 280px !important;
-  background: var(--caci-blanc) !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.08) !important;
-  border: 1px solid var(--caci-gris-bordure) !important;
-}
-
-/* Niveau 3 · Image · hauteur fixe pour cohérence visuelle */
-._1375ap13,
-.vfrc-card img,
-.vfrc-card ._1375ap13 {
-  height: 140px !important;
-  width: 100% !important;
-  object-fit: cover !important;
-  flex-shrink: 0 !important;
-  display: block !important;
-}
-
-/* Niveau 4 · Zone contenu · prend tout l'espace restant entre image et bouton */
-.vfrc-card--content,
-._1375ap14,
-.vfrc-card--content._1375ap14 {
-  display: flex !important;
-  flex-direction: column !important;
-  flex-grow: 1 !important;
-  padding: 12px 16px !important;
-  gap: 6px !important;
-}
-
-/* Niveau 5 · Titre · hauteur naturelle, en haut de la zone contenu */
-.vfrc-card--header,
-._1375ap16,
-.vfrc-card--header._1375ap16 {
-  flex-shrink: 0 !important;
-  color: var(--caci-bleu-nuit) !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
-  line-height: 1.3 !important;
-  margin: 0 !important;
-}
-
-/* Niveau 6 · Description · absorbe l'espace variable entre titre et bouton */
-.vfrc-card--description,
-._1375ap17,
-.vfrc-card--description._1375ap17 {
-  flex-grow: 1 !important;
-  color: var(--caci-gris-texte) !important;
-  font-size: 13px !important;
-  line-height: 1.4 !important;
-  margin: 0 !important;
-}
-
-.vfrc-card--description p,
-._1375ap19 {
-  margin: 0 !important;
-  padding: 0 !important;
-  color: var(--caci-gris-texte) !important;
-}
-
-/* Niveau 7 · Conteneur du bouton · ancré en bas via margin-top:auto */
-._1375ap15 {
-  margin-top: auto !important;
-  padding: 12px 16px 16px !important;
-  flex-shrink: 0 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
-/* Niveau 8 · Bouton Explorer · jaune au repos, bleu nuit au hover */
-._1375ap15 .vfrc-button,
-.vfrc-card .vfrc-button {
-  width: 100% !important;
-  background: var(--caci-jaune-or) !important;
-  color: var(--caci-bleu-nuit) !important;
-  border: 2px solid var(--caci-jaune-or) !important;
-  border-radius: var(--vfrc-radius-button) !important;
-  font-weight: 700 !important;
-  padding: 10px 16px !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 4px rgba(255, 185, 42, 0.25) !important;
-}
-
-._1375ap15 .vfrc-button:hover,
-.vfrc-card .vfrc-button:hover {
-  background: var(--caci-bleu-nuit) !important;
-  color: var(--caci-blanc) !important;
-  border-color: var(--caci-bleu-nuit) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(10, 31, 44, 0.35) !important;
-}
-
-/* Le wrapper individuel de chaque carte */
-.o231sh2 {
-  display: flex !important;
-  flex-shrink: 0 !important;
-  height: auto !important;
-}
-
-/* Adaptation mobile · cartes plus étroites pour rentrer dans l'écran */
-@media (max-width: 480px) {
-  .vfrc-card,
-  .vfrc-card._1375ap10,
-  .vfrc-card._1375ap11 {
-    width: 240px !important;
-    min-width: 240px !important;
-    max-width: 240px !important;
-  }
-  
-  ._1375ap13 {
-    height: 120px !important;
-  }
-}
-
-/* ============================================================================
-   CARROUSEL · BOUTONS DE NAVIGATION
-   ----------------------------------------------------------------------------
-   Sans transformation au survol pour préserver l'orientation native des
-   flèches (Voiceflow utilise scaleX(-1) sur le bouton gauche pour
-   inverser visuellement la flèche, et nos transformations écrasaient
-   ce retournement). On signale l'interaction par les changements de
-   couleur de fond et les ombres uniquement.
-   ============================================================================ */
-
-.vfrc-carousel--button {
-  background: var(--caci-blanc) !important;
-  background-color: var(--caci-blanc) !important;
-  border: 2px solid var(--caci-bleu-nuit) !important;
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50% !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: opacity 0.15s ease, visibility 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
-}
-
-/* Hover · changement de fond et d'ombre, pas de transformation */
-.vfrc-carousel--button:hover {
-  background: var(--caci-jaune-or) !important;
-  background-color: var(--caci-jaune-or) !important;
-  border-color: var(--caci-jaune-fonce) !important;
-  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.4) !important;
-}
-
-/* Active · fond bleu nuit pendant le clic */
-.vfrc-carousel--button:active {
-  background: var(--caci-bleu-nuit) !important;
-  background-color: var(--caci-bleu-nuit) !important;
-  box-shadow: 0 2px 4px rgba(10, 31, 44, 0.3) !important;
-}
-
-/* Disparition aux extrémités du carrousel · masquer les boutons désactivés */
-.vfrc-carousel--button:disabled,
-.vfrc-carousel--button[disabled],
-.vfrc-carousel--button[aria-disabled="true"] {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-/* Neutraliser le conteneur intermédiaire qui créait le double cercle */
-.vfrc-carousel--button > div,
-.vfrc-carousel--button ._675wn0g,
-.vfrc-carousel--button [class*="_675wn"] {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-/* Couleur de la flèche SVG au repos · bleu nuit pour contraste sur fond blanc */
-.vfrc-carousel--button .vfrc-icon,
-.vfrc-carousel--button .vfrc-icon svg,
-.vfrc-carousel--button .vfrc-icon svg path,
-.vfrc-carousel--button svg,
-.vfrc-carousel--button svg path {
-  color: var(--caci-bleu-nuit) !important;
-  fill: var(--caci-bleu-nuit) !important;
-}
-
-/* Au survol, la flèche passe au blanc sur fond jaune */
-.vfrc-carousel--button:hover .vfrc-icon,
-.vfrc-carousel--button:hover .vfrc-icon svg,
-.vfrc-carousel--button:hover .vfrc-icon svg path,
-.vfrc-carousel--button:hover svg,
-.vfrc-carousel--button:hover svg path {
-  color: var(--caci-blanc) !important;
-  fill: var(--caci-blanc) !important;
-}
-
-/* Pendant le clic, la flèche passe au jaune sur fond bleu nuit */
-.vfrc-carousel--button:active .vfrc-icon,
-.vfrc-carousel--button:active .vfrc-icon svg,
-.vfrc-carousel--button:active .vfrc-icon svg path,
-.vfrc-carousel--button:active svg,
-.vfrc-carousel--button:active svg path {
-  color: var(--caci-jaune-or) !important;
-  fill: var(--caci-jaune-or) !important;
-}
-
-/* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.3.1
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.0.0
    ============================================================================ */
