@@ -1,15 +1,14 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.3.0)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.3.1)
    ----------------------------------------------------------------------------
    Version finale qui intègre toutes les itérations précédentes plus les
-   règles précises ciblées sur les classes obfusquées du carrousel
-   identifiées par inspection du HTML réel · _1375ap10 à _1375ap17 pour
-   les cartes, _1d8p3b8x pour le track, _675wn0x pour les boutons de
-   navigation.
+   corrections finales · flèches de navigation sans transformation au
+   survol pour préserver l'orientation native, avatars bot affichés
+   correctement avec l'image personnalisée fournie par le snippet.
    
-   Couvre l'ensemble du widget · header, bulles, boutons, footer, avatar
-   bot personnalisé, cartes carrousel uniformisées, navigation contextuelle
-   avec disparition aux extrémités, support RTL pour l'arabe.
+   Le snippet JavaScript fournit maintenant une image CACI personnalisée
+   pour l'avatar via assistant.avatar.imageUrl, donc le CSS se contente
+   de styliser la bordure et l'ombre sans masquer l'image source.
    ============================================================================ */
 
 /* ============================================================================
@@ -221,42 +220,26 @@
 }
 
 /* ============================================================================
-   AVATAR BOT · masquage de l'avatar par défaut + injection CACI
+   AVATAR BOT · décoration sans masquage de l'image source
    ----------------------------------------------------------------------------
-   Le HTML révèle que Voiceflow injecte un avatar SVG inline avec un cercle
-   Buccaneer brun #B4946E qui ne correspond pas à la palette CACI. Comme
-   on ne peut pas modifier le data URI depuis le CSS, on masque l'image
-   avatar originale et on injecte une icône CACI via background-image sur
-   le conteneur. La classe ciblée est .vfrc-avatar.
+   Le snippet fournit maintenant une image CACI personnalisée via
+   assistant.avatar.imageUrl. Le CSS se contente de styliser la bordure,
+   l'ombre, et la forme circulaire sans masquer l'image source. C'est
+   l'approche correcte de séparation des responsabilités entre snippet
+   (contenu) et CSS (apparence).
    ============================================================================ */
 
-.vfrc-avatar {
-  /* Masquer l'image originale et imposer un fond CACI personnalisé */
+.vfrc-avatar,
+img.vfrc-avatar {
   width: 32px !important;
   height: 32px !important;
   border-radius: 50% !important;
-  background-color: var(--caci-bleu-nuit) !important;
   border: 2px solid var(--caci-jaune-or) !important;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.2) !important;
-  /* Image SVG CACI · cercle bleu nuit avec icône jaune doré */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(0,512) scale(0.1,-0.1)' fill='%23ffb92a'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z'/></g></svg>") !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  /* Cacher le contenu img original avec une astuce · le rendre 0x0 */
-  font-size: 0 !important;
-  color: transparent !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
   flex-shrink: 0 !important;
-}
-
-/* L'image SVG inline originale est neutralisée par les règles ci-dessus
-   parce que le background-image l'écrase visuellement. On force aussi
-   l'opacité à 0 sur l'élément img enfant pour garantir l'invisibilité. */
-
-.vfrc-avatar img,
-img.vfrc-avatar {
-  opacity: 0 !important;
-  visibility: hidden !important;
+  object-fit: cover !important;
+  display: block !important;
+  /* Pas de background-image qui masquerait l'image source CACI du snippet */
 }
 
 /* ============================================================================
@@ -555,17 +538,6 @@ img.vfrc-avatar {
 
 /* ============================================================================
    CARROUSEL · UNIFORMISATION DES CARTES (basée sur HTML inspecté)
-   ----------------------------------------------------------------------------
-   L'inspection du HTML a révélé la structure exacte du carrousel ·
-   - .vfrc-carousel · conteneur principal du carrousel
-   - .vfrc-carousel-scroll-container (_1d8p3b82) · zone de défilement
-   - .vfrc-carousel-inner-container (_1d8p3b85) · track horizontal des cartes
-   - .vfrc-card._1375ap10._1375ap11 · une carte individuelle
-   - .vfrc-card--content._1375ap14 · zone titre + description
-   - .vfrc-card--header._1375ap16 · titre de la carte
-   - .vfrc-card--description._1375ap17 · description de la carte
-   - ._1375ap15 · conteneur du bouton (sibling de .vfrc-card--content)
-   - ._1375ap13 · image de la carte
    ============================================================================ */
 
 /* Niveau 1 · Le track horizontal devient flex pour aligner les cartes */
@@ -573,7 +545,6 @@ img.vfrc-avatar {
 ._1d8p3b85 {
   display: flex !important;
   align-items: stretch !important;
-  /* stretch · toutes les cartes prennent la même hauteur que la plus grande */
   gap: 12px !important;
 }
 
@@ -680,7 +651,7 @@ img.vfrc-avatar {
   box-shadow: 0 4px 8px rgba(10, 31, 44, 0.35) !important;
 }
 
-/* Le wrapper individuel de chaque carte (.o231sh2) doit aussi avoir flex */
+/* Le wrapper individuel de chaque carte */
 .o231sh2 {
   display: flex !important;
   flex-shrink: 0 !important;
@@ -703,15 +674,15 @@ img.vfrc-avatar {
 }
 
 /* ============================================================================
-   CARROUSEL · BOUTONS DE NAVIGATION (basé sur HTML inspecté)
+   CARROUSEL · BOUTONS DE NAVIGATION
    ----------------------------------------------------------------------------
-   Le HTML révèle que les boutons utilisent les classes _675wn04 jusqu'à
-   _675wn0c. Le conteneur intermédiaire avec _675wn0g créait le double
-   cercle visible précédemment. Les règles suivantes neutralisent ce
-   conteneur et stylisent correctement le bouton parent.
+   Sans transformation au survol pour préserver l'orientation native des
+   flèches (Voiceflow utilise scaleX(-1) sur le bouton gauche pour
+   inverser visuellement la flèche, et nos transformations écrasaient
+   ce retournement). On signale l'interaction par les changements de
+   couleur de fond et les ombres uniquement.
    ============================================================================ */
 
-/* Bouton parent au repos · cercle blanc avec bordure bleu nuit */
 .vfrc-carousel--button {
   background: var(--caci-blanc) !important;
   background-color: var(--caci-blanc) !important;
@@ -724,21 +695,22 @@ img.vfrc-avatar {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  /* Pas de transition sur les changements rapides · réactivité maximale */
-  transition: opacity 0.15s ease, visibility 0.15s ease !important;
+  transition: opacity 0.15s ease, visibility 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-/* Hover · le bouton passe au jaune CACI */
+/* Hover · changement de fond et d'ombre, pas de transformation */
 .vfrc-carousel--button:hover {
   background: var(--caci-jaune-or) !important;
   background-color: var(--caci-jaune-or) !important;
   border-color: var(--caci-jaune-fonce) !important;
+  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.4) !important;
 }
 
-/* Active · pendant le clic, fond bleu nuit */
+/* Active · fond bleu nuit pendant le clic */
 .vfrc-carousel--button:active {
   background: var(--caci-bleu-nuit) !important;
   background-color: var(--caci-bleu-nuit) !important;
+  box-shadow: 0 2px 4px rgba(10, 31, 44, 0.3) !important;
 }
 
 /* Disparition aux extrémités du carrousel · masquer les boutons désactivés */
@@ -766,7 +738,6 @@ img.vfrc-avatar {
   justify-content: center !important;
   padding: 0 !important;
   margin: 0 !important;
-  transition: none !important;
 }
 
 /* Couleur de la flèche SVG au repos · bleu nuit pour contraste sur fond blanc */
@@ -777,7 +748,6 @@ img.vfrc-avatar {
 .vfrc-carousel--button svg path {
   color: var(--caci-bleu-nuit) !important;
   fill: var(--caci-bleu-nuit) !important;
-  transition: none !important;
 }
 
 /* Au survol, la flèche passe au blanc sur fond jaune */
@@ -800,13 +770,6 @@ img.vfrc-avatar {
   fill: var(--caci-jaune-or) !important;
 }
 
-/* Avatar bot juste avant le carrousel · masquer pour éviter doublon visuel
-   Le HTML montre qu'un avatar Buccaneer apparaît juste avant le track
-   du carrousel (_1d8p3b81). On le force à utiliser le style CACI personnalisé */
-.vfrc-avatar._1d8p3b81 {
-  /* Hérite déjà des styles .vfrc-avatar définis plus haut · cohérence garantie */
-}
-
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.3.0
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.3.1
    ============================================================================ */
