@@ -1,27 +1,31 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.5)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.7)
    ----------------------------------------------------------------------------
-   CHANGELOG v3.2.4 → v3.2.5
+   CHANGELOG v3.2.6 → v3.2.7
    
-   Correction empirique de la formule de rotation.
+   Le scroll-snap CSS de v3.2.6 ne fonctionnait pas parce que Voiceflow
+   utilise vraisemblablement transform:translateX() sur ._1d8p3b85 plutôt
+   que scrollLeft sur ._1d8p3b82. Le browser ne peut pas snaper sur quelque
+   chose qui n'est pas un scroll réel.
    
-   v3.2.4 supposait que Voiceflow scrollait de exactement card_width + gap
-   (290px) par clic. Tests sur staging · Voiceflow scrolle en réalité de
-   card_width + 3*gap (310px), probablement parce que les wrappers de
-   cartes ._1d8p3b84 ajoutent margin-left:2px et que d'autres espaces
-   internes Voiceflow (transitions, padding internes des wrappers) gonflent
-   la pas de rotation effective au-delà du gap visible.
+   v3.2.7 abandonne le scroll-snap CSS et délègue le contrôle de la
+   rotation au patch JavaScript dans le snippet WordPress (caroussel-snap).
+   Le JS intercepte les clics sur les boutons next/prev de Voiceflow,
+   stoppe la propagation, et applique scrollLeft directement avec un pas
+   de N*(card+gap). Voiceflow ne voit jamais le clic.
    
-   v3.2.5 utilise la formule empiriquement validée ·
-   - 1 carte · card + 3*gap + padding = 280 + 30 + 16 = 326px
-   - 2 cartes · 2 * (card + 3*gap) + padding = 620 + 16 = 636px
-   
-   Ajout · !important sur max-width pour forcer le constraint au-dessus de
-   width:100% natif de Voiceflow et éviter les conflits de spécificité avec
-   les autres règles de v3.1.2 sur .vfrc-carousel.
+   Côté CSS ·
+   - Suppression de toutes les règles scroll-snap-* (._1d8p3b82, .vfrc-card)
+   - ._1d8p3b82 reste en overflow-x:auto (pour permettre scrollLeft du JS)
+   - max-width avec formule géométrique propre · N*(card+gap) + padding
+   - Avatar toujours caché dans le carrousel
    
    Sections inchangées par rapport à v3.1.2 · launcher, header, body, cartes,
    navigation buttons, user responses, footer, animations.
+   
+   ATTENTION · cette version REQUIERT le patch JS dans le snippet WordPress
+   v3.2.7 pour que la rotation fonctionne. Les deux fichiers sont liés et
+   doivent être déployés ensemble.
    ============================================================================ */
 
 /* ============================================================================
@@ -654,75 +658,73 @@
 }
 
 /* ============================================================================
-   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.5
+   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.7
    ----------------------------------------------------------------------------
-   Voiceflow scrolle en réalité de card_width + 3*gap (310px) par clic, pas
-   de card_width + gap comme on aurait pu penser. Les wrappers internes des
-   cartes (._1d8p3b84 avec margin-left:2px et autres espaces internes
-   Voiceflow) gonflent le pas de rotation effectif. Cette valeur (310px par
-   carte) est validée par tests sur staging.
+   La rotation est désormais entièrement contrôlée par le patch JS dans le
+   snippet WordPress. Côté CSS, seulement deux choses ·
    
-   PRINCIPE · viewport interne = N * (card_width + 3*gap) pour que chaque
-   clic remplace proprement les N cartes visibles.
+   1. Cacher l'avatar Voiceflow dans le carrousel (Voiceflow ignore hide:true
+      pour les carrousels).
+   2. Contraindre la largeur du conteneur à N*(card+gap) + padding pour que
+      les bords du clipping coïncident avec les fins de carte.
    
-   Calculs ·
-   - 1 carte · card + 3*gap + padding = 280 + 30 + 16 = 326px
-   - 2 cartes · 2 * (card + 3*gap) + padding = 620 + 16 = 636px
-   
-   !important sur max-width · indispensable pour forcer le constraint au-
-   dessus du width:100% natif de Voiceflow.
+   Le ._1d8p3b82 reste en overflow-x:auto pour permettre au scrollLeft
+   programmatique du patch JS de fonctionner. La scrollbar native est cachée
+   visuellement.
    ============================================================================ */
 
-/* Cacher l'avatar Voiceflow dans le carrousel · respecte le hide:true
-   du snippet JS, que Voiceflow ignore par défaut pour les carrousels */
+/* Cacher l'avatar Voiceflow dans le carrousel · respecte le hide:true du
+   snippet JS, que Voiceflow ignore par défaut pour les carrousels */
 .vfrc-carousel ._1d8p3b81,
 .vfrc-carousel img.vfrc-avatar._1d8p3b81 {
   display: none !important;
 }
 
-/* Container query · permet de mesurer la largeur disponible pour le
-   carrousel et de basculer entre 1 et 2 cartes visibles proprement */
-.vfrc-chat,
-.s9t60i0 {
-  container-type: inline-size;
-  container-name: caci-chat;
+/* Activer le scroll programmatique pour permettre au patch JS de scroller.
+   Voiceflow gère la classe en overflow:hidden nativement, on bascule en
+   overflow-x:auto pour que scrollLeft soit pleinement opérationnel. */
+.vfrc-carousel-scroll-container,
+._1d8p3b82 {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  scroll-behavior: smooth !important;
 }
 
-/* Par défaut · 1 carte visible (mode popover ~400px)
-   Pas de rotation Voiceflow = 310px · le viewport correspond exactement */
+/* Cacher la scrollbar WebKit (Chrome, Safari, Edge) */
+.vfrc-carousel-scroll-container::-webkit-scrollbar,
+._1d8p3b82::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Contrainte de largeur · empêche les fragments de cartes sur le bord droit
+   quand le viewport disponible dépasse N*(card+gap).
+   
+   Formule géométrique propre, alignée avec le step du patch JS ·
+   - 1 carte · card + gap + padding = 280 + 10 + 16 = 306px
+   - 2 cartes · 2 * (card + gap) + padding = 580 + 16 = 596px */
 .vfrc-carousel,
 ._1d8p3b86 {
   max-width: calc(
     var(--caci-card-width) +
-    3 * var(--caci-card-gap) +
+    var(--caci-card-gap) +
     var(--caci-carousel-padding-h)
   ) !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
-/* Largeur >= 600px · 2 cartes visibles côte à côte
-   Pas de rotation Voiceflow = 2 * 310 = 620px */
-@container caci-chat (min-width: 600px) {
+/* Largeur >= 768px · 2 cartes visibles côte à côte */
+@media (min-width: 768px) {
   .vfrc-carousel,
   ._1d8p3b86 {
     max-width: calc(
-      2 * (var(--caci-card-width) + 3 * var(--caci-card-gap)) +
+      2 * (var(--caci-card-width) + var(--caci-card-gap)) +
       var(--caci-carousel-padding-h)
     ) !important;
-  }
-}
-
-/* Repli sans container queries · utilise les media queries viewport */
-@supports not (container-type: inline-size) {
-  @media (min-width: 768px) {
-    .vfrc-carousel,
-    ._1d8p3b86 {
-      max-width: calc(
-        2 * (var(--caci-card-width) + 3 * var(--caci-card-gap)) +
-        var(--caci-carousel-padding-h)
-      ) !important;
-    }
   }
 }
 
@@ -923,5 +925,5 @@
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.5
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.7
    ============================================================================ */
