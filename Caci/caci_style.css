@@ -1,22 +1,31 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.0)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.1)
    ----------------------------------------------------------------------------
-   CHANGELOG v3.1.2 → v3.2.0
+   CHANGELOG v3.2.0 → v3.2.1
    
-   Refactor architectural de l'avatar du carrousel.
+   Correction du bug d'avatar persistant après v3.2.0.
    
-   Voiceflow place l'avatar (._1d8p3b81) comme PREMIER enfant flex du ruban
-   scrollable (._1d8p3b85), avec align-self:flex-end. La v3.1.2 stabilisait
-   cet emplacement par couches successives · position:sticky, fond blanc
-   opaque, transform:translateZ(0), will-change, cinq sélecteurs en cascade,
-   box-shadow blanc pour masquer les cartes derrière. Solution fragile car
-   React peut recycler le nœud DOM et casser le contexte du sticky.
+   v3.2.0 utilisait position:absolute sur l'avatar ciblant vfrc-system-response
+   comme containing block. Cette approche était théoriquement correcte mais
+   échouait en pratique · l'avatar ._1d8p3b81 reste un DESCENDANT DOM de
+   ._1d8p3b85 (le ruban scrollable). Les coordonnées d'un élément absolu
+   référencent bien son ancêtre positionné, MAIS il reste rendu à l'intérieur
+   de la chaîne DOM. Quand Voiceflow translate/scrolle ._1d8p3b85, tous ses
+   descendants subissent le déplacement visuel, indépendamment de leur
+   stratégie de positionnement. Idem pour position:fixed (les transforms
+   créent un nouveau containing block pour fixed aussi).
    
-   v3.2.0 extrait l'avatar du ruban via position:absolute relativement au
-   conteneur .vfrc-system-response, et réserve l'espace dans le ruban via
-   padding-left sur ._1d8p3b85. L'avatar n'est plus DANS le scroll, il est
-   AU-DESSUS et stable par construction · le problème est résolu, pas
-   maquillé.
+   v3.2.1 adopte une approche radicalement différente · pseudo-élément ::before
+   sur vfrc-system-response. Le pseudo-élément est un enfant direct de
+   vfrc-system-response et n'est PAS un descendant de ._1d8p3b85. Il échappe
+   donc fondamentalement à la chaîne de scroll. L'avatar Voiceflow original
+   est masqué par display:none uniquement dans le contexte carrousel.
+   
+   L'avatar visuel est défini via la variable CSS --caci-avatar-image. Une
+   image SVG par défaut (cercle jaune CACI avec smiley bot) est fournie.
+   Pour utiliser l'avatar SVG personnalisé déjà injecté par le snippet JS
+   sur le launcher/welcome, on peut surcharger --caci-avatar-image avec la
+   même data URI dans le snippet.
    
    Compatibilité · :has() · Chrome 105+, Firefox 121+, Safari 15.4+.
    Repli · sur navigateur sans :has(), la stratégie sticky de v3.1.2 est
@@ -60,6 +69,11 @@
   --caci-avatar-size: 32px;
   --caci-avatar-gap: 18px;
   --caci-left-button-offset: calc(var(--caci-avatar-size) + var(--caci-avatar-gap));
+
+  /* v3.2.1 · Image de l'avatar du carrousel (pseudo-élément ::before).
+     Surcharge possible depuis le snippet WordPress avec la même data URI
+     SVG que celle utilisée pour l'avatar du welcome screen. */
+  --caci-avatar-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23ffb92a' stroke='%230a1f2c' stroke-width='1.5'/><circle cx='12' cy='14' r='1.6' fill='%230a1f2c'/><circle cx='20' cy='14' r='1.6' fill='%230a1f2c'/><path d='M11 20 Q16 23 21 20' fill='none' stroke='%230a1f2c' stroke-width='1.5' stroke-linecap='round'/></svg>");
 
   /* Variables sémantiques */
   --vfrc-color-primary: var(--caci-bleu-nuit);
@@ -661,57 +675,68 @@
 }
 
 /* ============================================================================
-   AVATAR DU CARROUSEL · ARCHITECTURE v3.2.0
+   AVATAR DU CARROUSEL · ARCHITECTURE v3.2.1 (pseudo-élément)
    ----------------------------------------------------------------------------
-   Voiceflow place l'avatar (._1d8p3b81) comme premier enfant flex du ruban
-   scrollable. La v3.1.2 utilisait position:sticky pour le stabiliser, mais
-   React peut recycler le nœud et casser le contexte sticky.
+   v3.2.0 ciblait l'avatar Voiceflow (._1d8p3b81) avec position:absolute en
+   pensant qu'il échapperait au scroll de ._1d8p3b85. Bug · même avec
+   position:absolute, l'avatar reste un descendant DOM du conteneur scrollé.
+   Les transformations/scrollLeft du ruban affectent visuellement TOUS leurs
+   descendants, indépendamment de leur stratégie de positionnement.
    
-   v3.2.0 sort l'avatar du flux du ruban via position:absolute par rapport
-   au conteneur .vfrc-system-response (qui reçoit position:relative + has()
-   plus haut dans le fichier). Le padding-left sur ._1d8p3b85 réserve
-   l'espace pour que les cartes commencent après l'avatar.
+   v3.2.1 utilise un pseudo-élément ::before sur vfrc-system-response. Le
+   pseudo-élément est un enfant DIRECT de vfrc-system-response et n'est PAS
+   un descendant de ._1d8p3b85. Il échappe donc fondamentalement à la chaîne
+   de scroll · sa stabilité est garantie par construction.
    
-   Résultat · l'avatar n'est plus DANS le scroll, donc plus de problème
-   structurel. Le box-shadow blanc de masquage (qui simulait l'opacité)
-   et le will-change deviennent inutiles · ils sont supprimés.
-   
-   Repli · pour navigateurs sans :has() (rares en 2026), la stratégie
-   sticky de v3.1.2 est réinjectée automatiquement via @supports.
+   L'avatar Voiceflow original (._1d8p3b81) est masqué par display:none
+   uniquement dans le contexte d'une réponse contenant un carrousel. Les
+   réponses texte normales conservent leur avatar Voiceflow inchangé.
    ============================================================================ */
 
-.vfrc-avatar._1d8p3b81,
-img.vfrc-avatar._1d8p3b81 {
-  position: absolute !important;
-  left: 0 !important;
-  bottom: 12px !important;
-  z-index: 10 !important;
-  flex-shrink: 0 !important;
-  /* Override de align-self:flex-end natif · n'a plus de sens en absolute */
-  align-self: auto !important;
-  background-color: var(--caci-blanc) !important;
-  background: var(--caci-blanc) !important;
-  /* Couche GPU dédiée pour stabilité face au recyclage React */
-  transform: translateZ(0) !important;
-  -webkit-transform: translateZ(0) !important;
-  /* Ombre douce sans masque latéral · plus besoin du box-shadow blanc */
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+/* 1. Masquer l'avatar Voiceflow original DANS le carrousel uniquement */
+.vfrc-system-response:has(.vfrc-carousel) ._1d8p3b81,
+.vfrc-system-response:has(.vfrc-carousel) img.vfrc-avatar._1d8p3b81 {
+  display: none !important;
+}
+
+/* 2. Injecter notre avatar stable via pseudo-élément · enfant direct de
+      vfrc-system-response, hors de toute chaîne de scroll */
+.vfrc-system-response:has(.vfrc-carousel)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 12px;
+  width: var(--caci-avatar-size);
+  height: var(--caci-avatar-size);
+  background-image: var(--caci-avatar-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--caci-blanc);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15);
+  z-index: 10;
+  pointer-events: none;
+  /* Couche GPU dédiée · sécurité contre les re-renders React */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Repli graceful pour navigateurs sans :has() · réinjection v3.1.2 */
 @supports not selector(:has(*)) {
-  /* Annuler le padding réservé pour l'avatar absolu (qui ne sera pas absolute) */
+  /* Annuler le padding réservé (n'aura pas de pseudo-élément à compenser) */
   .vfrc-carousel-inner-container,
   ._1d8p3b85 {
     padding-left: 0 !important;
   }
   
-  /* Réactiver la stratégie sticky de v3.1.2 */
+  /* Réactiver la stratégie sticky de v3.1.2 sur l'avatar Voiceflow original */
   .vfrc-avatar._1d8p3b81,
   img.vfrc-avatar._1d8p3b81,
   .vfrc-carousel .vfrc-avatar._1d8p3b81,
   ._1d8p3b85 .vfrc-avatar._1d8p3b81,
   .vfrc-system-response .vfrc-avatar._1d8p3b81 {
+    display: block !important;
     position: sticky !important;
     position: -webkit-sticky !important;
     left: 0 !important;
@@ -904,12 +929,10 @@ img.vfrc-avatar._1d8p3b81 {
   justify-content: flex-start;
 }
 
-.voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
-  /* v3.2.0 · adaptation RTL pour avatar absolu · le côté libre devient à droite */
-  left: auto !important;
-  right: 0 !important;
-  /* Ombre douce sans masque latéral (architecture absolue) */
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+/* v3.2.1 · adaptation RTL · le pseudo-élément passe à droite */
+.voiceflow-chat[dir="rtl"] .vfrc-system-response:has(.vfrc-carousel)::before {
+  left: auto;
+  right: 0;
 }
 
 /* RTL · symétrie du padding réservé sur le ruban */
@@ -919,9 +942,11 @@ img.vfrc-avatar._1d8p3b81 {
   padding-right: var(--caci-left-button-offset) !important;
 }
 
-/* RTL · repli sticky · réajustement du masque latéral inversé */
+/* RTL · repli sticky pour navigateurs sans :has() */
 @supports not selector(:has(*)) {
   .voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
+    left: auto !important;
+    right: 0 !important;
     box-shadow: -8px 0 0 0 var(--caci-blanc),
                 2px 0 0 0 var(--caci-blanc),
                 0 2px 8px rgba(10, 31, 44, 0.15) !important;
@@ -957,5 +982,5 @@ img.vfrc-avatar._1d8p3b81 {
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.0
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.1
    ============================================================================ */
