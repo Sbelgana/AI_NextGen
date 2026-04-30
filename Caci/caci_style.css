@@ -1,39 +1,33 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.1)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.2)
    ----------------------------------------------------------------------------
-   CHANGELOG v3.2.0 → v3.2.1
+   CHANGELOG v3.2.1 → v3.2.2
    
-   Correction du bug d'avatar persistant après v3.2.0.
+   Correction du bug des cartes partielles visibles sur les bords du carrousel.
    
-   v3.2.0 utilisait position:absolute sur l'avatar ciblant vfrc-system-response
-   comme containing block. Cette approche était théoriquement correcte mais
-   échouait en pratique · l'avatar ._1d8p3b81 reste un DESCENDANT DOM de
-   ._1d8p3b85 (le ruban scrollable). Les coordonnées d'un élément absolu
-   référencent bien son ancêtre positionné, MAIS il reste rendu à l'intérieur
-   de la chaîne DOM. Quand Voiceflow translate/scrolle ._1d8p3b85, tous ses
-   descendants subissent le déplacement visuel, indépendamment de leur
-   stratégie de positionnement. Idem pour position:fixed (les transforms
-   créent un nouveau containing block pour fixed aussi).
+   v3.2.1 plaçait un pseudo-élément circulaire de 32px à bottom-left pour
+   l'avatar, en supposant que le padding-left sur ._1d8p3b85 (v3.2.0)
+   protégerait le reste de la colonne gauche. Ce padding ne fonctionne qu'à
+   scroll=0 · dès qu'un translate est appliqué, le padding sort de l'écran
+   et les cartes peuvent envahir la colonne. De plus, aucun masque n'existait
+   à droite, donc les cartes partielles à droite restaient toujours visibles.
    
-   v3.2.1 adopte une approche radicalement différente · pseudo-élément ::before
-   sur vfrc-system-response. Le pseudo-élément est un enfant direct de
-   vfrc-system-response et n'est PAS un descendant de ._1d8p3b85. Il échappe
-   donc fondamentalement à la chaîne de scroll. L'avatar Voiceflow original
-   est masqué par display:none uniquement dans le contexte carrousel.
+   v3.2.2 transforme le pseudo-élément avatar en bande blanche pleine hauteur
+   sur le bord gauche du carrousel, avec l'avatar SVG positionné en bas.
+   Ajoute un ::after symétrique pour masquer la bande de cartes partielles à
+   droite. Les deux bandes vivent sur .vfrc-carousel directement (pas sur
+   vfrc-system-response), ce qui les place dans le même contexte d'empilement
+   que les boutons de navigation · les boutons (z-index 6) restent au-dessus
+   des bandes (z-index 4) pendant que les cartes (z-index auto) sont en
+   dessous · empilement final · boutons > avatar+masques > cartes.
    
-   L'avatar visuel est défini via la variable CSS --caci-avatar-image. Une
-   image SVG par défaut (cercle jaune CACI avec smiley bot) est fournie.
-   Pour utiliser l'avatar SVG personnalisé déjà injecté par le snippet JS
-   sur le launcher/welcome, on peut surcharger --caci-avatar-image avec la
-   même data URI dans le snippet.
+   Simplification · plus besoin de :has(). Le sélecteur direct .vfrc-carousel
+   ._1d8p3b81 cible uniquement l'avatar du carrousel (puisque les avatars
+   texte ne sont pas descendants de .vfrc-carousel). Plus de bloc @supports
+   de fallback à maintenir, plus de contraintes de compatibilité navigateur.
    
-   Compatibilité · :has() · Chrome 105+, Firefox 121+, Safari 15.4+.
-   Repli · sur navigateur sans :has(), la stratégie sticky de v3.1.2 est
-   réinjectée automatiquement via @supports.
-   
-   Sections inchangées par rapport à v3.1.2 · launcher, header, body,
-   cartes, navigation buttons, user responses, footer, animations,
-   breakpoint mobile.
+   Sections inchangées par rapport à v3.1.2 · launcher, header, body, cartes,
+   user responses, footer, animations, breakpoint mobile.
    ============================================================================ */
 
 /* ============================================================================
@@ -348,15 +342,6 @@
   margin-bottom: 8px;
   /* CRITIQUE · empêcher le débordement vers les cartes du carrousel */
   overflow: hidden !important;
-}
-
-/* v3.2.0 · contexte de positionnement pour l'avatar absolu du carrousel.
-   On utilise :has() pour ne créer ce contexte QUE pour les réponses
-   contenant un carrousel · les réponses texte normales ne sont pas
-   affectées et conservent leur layout flex Voiceflow par défaut. */
-.vfrc-system-response:has(.vfrc-carousel) {
-  position: relative !important;
-  isolation: isolate;
 }
 
 .vfrc-system-response--indicator {
@@ -675,84 +660,60 @@
 }
 
 /* ============================================================================
-   AVATAR DU CARROUSEL · ARCHITECTURE v3.2.1 (pseudo-élément)
+   AVATAR ET MASQUES DU CARROUSEL · ARCHITECTURE v3.2.2
    ----------------------------------------------------------------------------
-   v3.2.0 ciblait l'avatar Voiceflow (._1d8p3b81) avec position:absolute en
-   pensant qu'il échapperait au scroll de ._1d8p3b85. Bug · même avec
-   position:absolute, l'avatar reste un descendant DOM du conteneur scrollé.
-   Les transformations/scrollLeft du ruban affectent visuellement TOUS leurs
-   descendants, indépendamment de leur stratégie de positionnement.
+   Deux pseudo-éléments sur .vfrc-carousel · ::before (gauche) combine la
+   bande de masquage et l'avatar ; ::after (droite) masque les fragments
+   de cartes partiels de droite.
    
-   v3.2.1 utilise un pseudo-élément ::before sur vfrc-system-response. Le
-   pseudo-élément est un enfant DIRECT de vfrc-system-response et n'est PAS
-   un descendant de ._1d8p3b85. Il échappe donc fondamentalement à la chaîne
-   de scroll · sa stabilité est garantie par construction.
+   Empilement contrôlé · bandes z-index:4, boutons z-index:6 (existants),
+   cartes z-index:auto. Les boutons restent visibles ET cliquables au-dessus
+   des bandes blanches.
    
-   L'avatar Voiceflow original (._1d8p3b81) est masqué par display:none
-   uniquement dans le contexte d'une réponse contenant un carrousel. Les
-   réponses texte normales conservent leur avatar Voiceflow inchangé.
+   Pas de :has() · le sélecteur .vfrc-carousel ._1d8p3b81 cible uniquement
+   l'avatar du carrousel (les avatars des réponses texte ne sont pas
+   descendants de .vfrc-carousel), donc compatible tous navigateurs.
    ============================================================================ */
 
 /* 1. Masquer l'avatar Voiceflow original DANS le carrousel uniquement */
-.vfrc-system-response:has(.vfrc-carousel) ._1d8p3b81,
-.vfrc-system-response:has(.vfrc-carousel) img.vfrc-avatar._1d8p3b81 {
+.vfrc-carousel ._1d8p3b81,
+.vfrc-carousel img.vfrc-avatar._1d8p3b81 {
   display: none !important;
 }
 
-/* 2. Injecter notre avatar stable via pseudo-élément · enfant direct de
-      vfrc-system-response, hors de toute chaîne de scroll */
-.vfrc-system-response:has(.vfrc-carousel)::before {
+/* 2. Bande gauche pleine hauteur + avatar SVG positionné en bas
+      · ::before sur .vfrc-carousel (qui a position:relative déjà) */
+.vfrc-carousel::before {
   content: '';
   position: absolute;
   left: 0;
-  bottom: 12px;
-  width: var(--caci-avatar-size);
-  height: var(--caci-avatar-size);
-  background-image: var(--caci-avatar-image);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  top: 0;
+  bottom: 0;
+  width: var(--caci-left-button-offset);
   background-color: var(--caci-blanc);
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15);
-  z-index: 10;
+  background-image: var(--caci-avatar-image);
+  background-size: var(--caci-avatar-size) var(--caci-avatar-size);
+  background-repeat: no-repeat;
+  /* Syntaxe à 4 valeurs · "left 0 bottom 12px" = avatar collé à gauche,
+     son bord inférieur à 12px du bas du conteneur */
+  background-position: left 0 bottom 12px;
+  z-index: 4;
   pointer-events: none;
-  /* Couche GPU dédiée · sécurité contre les re-renders React */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
-/* Repli graceful pour navigateurs sans :has() · réinjection v3.1.2 */
-@supports not selector(:has(*)) {
-  /* Annuler le padding réservé (n'aura pas de pseudo-élément à compenser) */
-  .vfrc-carousel-inner-container,
-  ._1d8p3b85 {
-    padding-left: 0 !important;
-  }
-  
-  /* Réactiver la stratégie sticky de v3.1.2 sur l'avatar Voiceflow original */
-  .vfrc-avatar._1d8p3b81,
-  img.vfrc-avatar._1d8p3b81,
-  .vfrc-carousel .vfrc-avatar._1d8p3b81,
-  ._1d8p3b85 .vfrc-avatar._1d8p3b81,
-  .vfrc-system-response .vfrc-avatar._1d8p3b81 {
-    display: block !important;
-    position: sticky !important;
-    position: -webkit-sticky !important;
-    left: 0 !important;
-    top: 0 !important;
-    bottom: auto !important;
-    z-index: 10 !important;
-    flex-shrink: 0 !important;
-    align-self: flex-start !important;
-    background-color: var(--caci-blanc) !important;
-    box-shadow: 8px 0 0 0 var(--caci-blanc),
-                -2px 0 0 0 var(--caci-blanc),
-                0 2px 8px rgba(10, 31, 44, 0.15) !important;
-    transform: translateZ(0) !important;
-    -webkit-transform: translateZ(0) !important;
-    will-change: transform !important;
-  }
+/* 3. Bande droite · masque les fragments de cartes partiels
+      · ::after sur .vfrc-carousel
+      · La largeur 60px couvre le pire cas observé · ajuster si besoin */
+.vfrc-carousel::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background-color: var(--caci-blanc);
+  z-index: 4;
+  pointer-events: none;
 }
 
 /* Adaptation mobile · cartes plus étroites, ajustement variable */
@@ -929,10 +890,17 @@
   justify-content: flex-start;
 }
 
-/* v3.2.1 · adaptation RTL · le pseudo-élément passe à droite */
-.voiceflow-chat[dir="rtl"] .vfrc-system-response:has(.vfrc-carousel)::before {
+/* v3.2.2 · adaptation RTL · les bandes inversent leurs côtés */
+.voiceflow-chat[dir="rtl"] .vfrc-carousel::before {
   left: auto;
   right: 0;
+  /* Avatar SVG passe à droite-bas en mode RTL */
+  background-position: right 0 bottom 12px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-carousel::after {
+  right: auto;
+  left: 0;
 }
 
 /* RTL · symétrie du padding réservé sur le ruban */
@@ -940,22 +908,6 @@
 .voiceflow-chat[dir="rtl"] ._1d8p3b85 {
   padding-left: 0 !important;
   padding-right: var(--caci-left-button-offset) !important;
-}
-
-/* RTL · repli sticky pour navigateurs sans :has() */
-@supports not selector(:has(*)) {
-  .voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
-    left: auto !important;
-    right: 0 !important;
-    box-shadow: -8px 0 0 0 var(--caci-blanc),
-                2px 0 0 0 var(--caci-blanc),
-                0 2px 8px rgba(10, 31, 44, 0.15) !important;
-  }
-  
-  .voiceflow-chat[dir="rtl"] .vfrc-carousel-inner-container,
-  .voiceflow-chat[dir="rtl"] ._1d8p3b85 {
-    padding-right: 0 !important;
-  }
 }
 
 .voiceflow-chat[dir="rtl"] .vfrc-carousel--button._675wn05 {
@@ -982,5 +934,5 @@
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.1
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.2
    ============================================================================ */
