@@ -1,42 +1,36 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.2.0)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.3.0)
    ----------------------------------------------------------------------------
-   Version v2.1 enrichie de la correction ciblée pour la navigation du
-   carrousel après inspection du HTML réel. Trois ajustements majeurs ·
-   Ajustement 1 · les boutons jaunes deviennent bleu nuit avec texte blanc
-                  au survol pour un contraste plus fort que le jaune assombri
-   Ajustement 2 · les boutons reload et close du header gardent leur fond
-                  spécifique au repos et passent en bleu nuit CACI au survol
-   Ajustement 3 · navigation du carrousel · cercle unique sans doublon, flèche
-                  bleu nuit visible au repos, jaune au survol
+   Version finale qui intègre toutes les itérations précédentes plus les
+   règles précises ciblées sur les classes obfusquées du carrousel
+   identifiées par inspection du HTML réel · _1375ap10 à _1375ap17 pour
+   les cartes, _1d8p3b8x pour le track, _675wn0x pour les boutons de
+   navigation.
+   
+   Couvre l'ensemble du widget · header, bulles, boutons, footer, avatar
+   bot personnalisé, cartes carrousel uniformisées, navigation contextuelle
+   avec disparition aux extrémités, support RTL pour l'arabe.
    ============================================================================ */
 
 /* ============================================================================
-   VARIABLES DE LA PALETTE CACI · double déclaration pour la robustesse
-   ----------------------------------------------------------------------------
-   Le widget Voiceflow charge son contenu dans un Shadow DOM isolé du
-   document hôte. Pour garantir que les variables CSS sont visibles par
-   les classes .vfrc-*, on les déclare à la fois sur le sélecteur stable
-   .voiceflow-chat et sur le sélecteur empirique .s9t60i0. Si l'un des
-   deux change avec une mise à jour Voiceflow, l'autre prend le relais
-   et le widget reste correctement stylé.
+   VARIABLES DE LA PALETTE CACI
    ============================================================================ */
 .voiceflow-chat,
 .s9t60i0,
 * {
   /* Couleurs principales CACI */
-  --caci-bleu-nuit: #0a1f2c;          /* Couleur dominante institutionnelle */
-  --caci-bleu-profond: #193b4d;       /* Variante texte secondaire */
-  --caci-bleu-ciel: #90d5ff;          /* Bleu pastel pour accents doux */
-  --caci-bleu-tres-clair: #eaf3fb;    /* Bleu lavande pâle pour bulles bot */
-  --caci-bleu-eau: #6ec1e4;           /* Turquoise navigation */
+  --caci-bleu-nuit: #0a1f2c;
+  --caci-bleu-profond: #193b4d;
+  --caci-bleu-ciel: #90d5ff;
+  --caci-bleu-tres-clair: #eaf3fb;
+  --caci-bleu-eau: #6ec1e4;
 
-  /* Jaune CACI · couleur d'accent */
-  --caci-jaune-or: #ffb92a;           /* Jaune doré principal · boutons CTA */
-  --caci-jaune-clair: #fff676;        /* Jaune pâle · backgrounds doux */
-  --caci-jaune-fonce: #e6a420;        /* Jaune assombri · état hover */
+  /* Jaune CACI */
+  --caci-jaune-or: #ffb92a;
+  --caci-jaune-clair: #fff676;
+  --caci-jaune-fonce: #e6a420;
 
-  /* Neutres · pour textes, bordures, fonds */
+  /* Neutres */
   --caci-blanc: #ffffff;
   --caci-blanc-casse: #fbfbfb;
   --caci-gris-tres-clair: #f5f5f5;
@@ -46,7 +40,7 @@
   --caci-gris-fonce: #3a3a3a;
   --caci-noir: #000000;
 
-  /* Variables sémantiques · plus lisibles dans le code que les noms bruts */
+  /* Variables sémantiques */
   --vfrc-color-primary: var(--caci-bleu-nuit);
   --vfrc-color-accent: var(--caci-jaune-or);
   --vfrc-color-text: var(--caci-bleu-profond);
@@ -101,7 +95,7 @@
 }
 
 /* ============================================================================
-   CHAT WIDGET HEADER · bandeau supérieur du widget
+   HEADER · bandeau supérieur du widget
    ============================================================================ */
 .vfrc-header {
   background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
@@ -133,15 +127,6 @@
   opacity: 0.9;
 }
 
-.vfrc-avatar {
-  border: 2px solid var(--caci-jaune-or);
-  background: var(--caci-blanc);
-  box-shadow: 0 2px 8px rgba(255, 185, 42, 0.3);
-}
-
-/* AJUSTEMENT 2A · Style de base des icônes du header
-   Les icônes restent stables · pas de changement de couleur au survol */
-
 .vfrc-icon {
   color: var(--caci-blanc);
   opacity: 0.85;
@@ -152,12 +137,7 @@
 .vfrc-icon:hover {
   opacity: 1;
   transform: scale(1.1);
-  /* La couleur reste blanche · stabilité visuelle demandée */
 }
-
-/* AJUSTEMENT 2B · Boutons reload et close du header
-   ----------------------------------------
-   Les boutons changent de fond au survol mais les icônes restent stables */
 
 /* Bouton reload · jaune au repos, bleu nuit au survol */
 .vfrc-header [aria-label*="reset" i],
@@ -207,12 +187,7 @@
   transform: scale(1.1) !important;
 }
 
-/* Icônes des boutons reload et close
-   ----------------------------------------
-   La flèche reload est en bleu nuit au repos (contraste sur fond jaune)
-   et passe au jaune au survol (contraste sur fond bleu nuit). Le X close
-   reste en blanc dans tous les états pour stabilité visuelle. */
-
+/* Icônes des boutons reload et close */
 .vfrc-header [aria-label*="reset" i] svg,
 .vfrc-header [aria-label*="reload" i] svg,
 .vfrc-header [aria-label*="restart" i] svg,
@@ -243,6 +218,45 @@
 .vfrc-header [aria-label*="fermer" i]:hover svg {
   color: var(--caci-blanc) !important;
   fill: var(--caci-blanc) !important;
+}
+
+/* ============================================================================
+   AVATAR BOT · masquage de l'avatar par défaut + injection CACI
+   ----------------------------------------------------------------------------
+   Le HTML révèle que Voiceflow injecte un avatar SVG inline avec un cercle
+   Buccaneer brun #B4946E qui ne correspond pas à la palette CACI. Comme
+   on ne peut pas modifier le data URI depuis le CSS, on masque l'image
+   avatar originale et on injecte une icône CACI via background-image sur
+   le conteneur. La classe ciblée est .vfrc-avatar.
+   ============================================================================ */
+
+.vfrc-avatar {
+  /* Masquer l'image originale et imposer un fond CACI personnalisé */
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background-color: var(--caci-bleu-nuit) !important;
+  border: 2px solid var(--caci-jaune-or) !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.2) !important;
+  /* Image SVG CACI · cercle bleu nuit avec icône jaune doré */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(0,512) scale(0.1,-0.1)' fill='%23ffb92a'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z'/></g></svg>") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  /* Cacher le contenu img original avec une astuce · le rendre 0x0 */
+  font-size: 0 !important;
+  color: transparent !important;
+  flex-shrink: 0 !important;
+}
+
+/* L'image SVG inline originale est neutralisée par les règles ci-dessus
+   parce que le background-image l'écrase visuellement. On force aussi
+   l'opacité à 0 sur l'élément img enfant pour garantir l'invisibilité. */
+
+.vfrc-avatar img,
+img.vfrc-avatar {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* ============================================================================
@@ -342,13 +356,7 @@
   border: 1px solid rgba(10, 31, 44, 0.05);
 }
 
-/* AJUSTEMENT 1 · Boutons proposés par le bot · jaune au repos, bleu nuit au hover
-   ----------------------------------------
-   Au lieu de passer du jaune doré au jaune assombri au survol comme avant,
-   on inverse complètement les couleurs · le fond passe du jaune au bleu
-   nuit, la bordure suit, et le texte bleu nuit du repos passe au blanc
-   au survol pour préserver la lisibilité. */
-
+/* Boutons proposés par le bot · jaune au repos, bleu nuit au hover */
 .vfrc-system-response .vfrc-button {
   background: var(--caci-jaune-or);
   color: var(--caci-bleu-nuit);
@@ -374,8 +382,7 @@
   box-shadow: 0 2px 4px rgba(10, 31, 44, 0.25);
 }
 
-/* Boutons standards (hors carrousel et hors bulle bot) · même comportement */
-
+/* Boutons standards (hors carrousel et hors bulle bot) */
 .vfrc-button {
   background: var(--caci-jaune-or);
   color: var(--caci-bleu-nuit);
@@ -401,38 +408,6 @@
 .vfrc-image--background {
   background: var(--caci-bleu-tres-clair);
 }
-
-.vfrc-card--content {
-  background: var(--caci-blanc);
-  color: var(--caci-bleu-profond);
-  padding: 12px 16px;
-  border-bottom-left-radius: var(--vfrc-radius-bubble);
-  border-bottom-right-radius: var(--vfrc-radius-bubble);
-}
-
-.vfrc-card--header {
-  color: var(--caci-bleu-nuit);
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 4px;
-  line-height: 1.3;
-}
-
-.vfrc-card--description {
-  color: var(--caci-gris-texte);
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 8px;
-}
-
-.vfrc-carousel {
-  padding: 4px 8px;
-  background: transparent;
-}
-
-/* Note · les règles spécifiques pour .vfrc-carousel--button sont
-   définies dans la section finale CORRECTION CIBLÉE avec les sélecteurs
-   plus précis qui ciblent la structure HTML réelle de widget-next */
 
 /* ============================================================================
    USER RESPONSES · bulles utilisateur
@@ -579,26 +554,164 @@
 }
 
 /* ============================================================================
-   CORRECTION CIBLÉE · NAVIGATION DU CARROUSEL VOICEFLOW WIDGET-NEXT
+   CARROUSEL · UNIFORMISATION DES CARTES (basée sur HTML inspecté)
    ----------------------------------------------------------------------------
-   Le widget Voiceflow widget-next utilise une structure HTML imbriquée à
-   trois niveaux pour les boutons de navigation du carrousel · le bouton
-   parent .vfrc-carousel--button, un conteneur intermédiaire avec la classe
-   obfusquée _675wn0g qui créait un second cercle indésirable, et le
-   conteneur d'icône .vfrc-icon qui contient le SVG de la flèche.
-   
-   Cette section corrige les deux problèmes identifiés ·
-   Problème 1 · les flèches étaient invisibles parce que la couleur du SVG
-                n'était pas correctement définie au niveau du bon conteneur
-   Problème 2 · un second cercle blanc apparaissait parce que le conteneur
-                intermédiaire _675wn0g avait un fond qui masquait le bouton
-   
-   L'identification de ces classes a été possible grâce à l'inspection du
-   HTML réel rendu par Voiceflow · technique de débogage à retenir pour
-   les futurs cas similaires.
+   L'inspection du HTML a révélé la structure exacte du carrousel ·
+   - .vfrc-carousel · conteneur principal du carrousel
+   - .vfrc-carousel-scroll-container (_1d8p3b82) · zone de défilement
+   - .vfrc-carousel-inner-container (_1d8p3b85) · track horizontal des cartes
+   - .vfrc-card._1375ap10._1375ap11 · une carte individuelle
+   - .vfrc-card--content._1375ap14 · zone titre + description
+   - .vfrc-card--header._1375ap16 · titre de la carte
+   - .vfrc-card--description._1375ap17 · description de la carte
+   - ._1375ap15 · conteneur du bouton (sibling de .vfrc-card--content)
+   - ._1375ap13 · image de la carte
    ============================================================================ */
 
-/* Bouton parent · cercle blanc avec bordure bleu nuit au repos */
+/* Niveau 1 · Le track horizontal devient flex pour aligner les cartes */
+.vfrc-carousel-inner-container,
+._1d8p3b85 {
+  display: flex !important;
+  align-items: stretch !important;
+  /* stretch · toutes les cartes prennent la même hauteur que la plus grande */
+  gap: 12px !important;
+}
+
+/* Niveau 2 · Chaque carte devient un conteneur flex vertical avec hauteur unifiée */
+.vfrc-card,
+.vfrc-card._1375ap10,
+.vfrc-card._1375ap11,
+.vfrc-card._1375ap10._1375ap11 {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  background: var(--caci-blanc) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.08) !important;
+  border: 1px solid var(--caci-gris-bordure) !important;
+}
+
+/* Niveau 3 · Image · hauteur fixe pour cohérence visuelle */
+._1375ap13,
+.vfrc-card img,
+.vfrc-card ._1375ap13 {
+  height: 140px !important;
+  width: 100% !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+/* Niveau 4 · Zone contenu · prend tout l'espace restant entre image et bouton */
+.vfrc-card--content,
+._1375ap14,
+.vfrc-card--content._1375ap14 {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  padding: 12px 16px !important;
+  gap: 6px !important;
+}
+
+/* Niveau 5 · Titre · hauteur naturelle, en haut de la zone contenu */
+.vfrc-card--header,
+._1375ap16,
+.vfrc-card--header._1375ap16 {
+  flex-shrink: 0 !important;
+  color: var(--caci-bleu-nuit) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* Niveau 6 · Description · absorbe l'espace variable entre titre et bouton */
+.vfrc-card--description,
+._1375ap17,
+.vfrc-card--description._1375ap17 {
+  flex-grow: 1 !important;
+  color: var(--caci-gris-texte) !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.vfrc-card--description p,
+._1375ap19 {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--caci-gris-texte) !important;
+}
+
+/* Niveau 7 · Conteneur du bouton · ancré en bas via margin-top:auto */
+._1375ap15 {
+  margin-top: auto !important;
+  padding: 12px 16px 16px !important;
+  flex-shrink: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Niveau 8 · Bouton Explorer · jaune au repos, bleu nuit au hover */
+._1375ap15 .vfrc-button,
+.vfrc-card .vfrc-button {
+  width: 100% !important;
+  background: var(--caci-jaune-or) !important;
+  color: var(--caci-bleu-nuit) !important;
+  border: 2px solid var(--caci-jaune-or) !important;
+  border-radius: var(--vfrc-radius-button) !important;
+  font-weight: 700 !important;
+  padding: 10px 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(255, 185, 42, 0.25) !important;
+}
+
+._1375ap15 .vfrc-button:hover,
+.vfrc-card .vfrc-button:hover {
+  background: var(--caci-bleu-nuit) !important;
+  color: var(--caci-blanc) !important;
+  border-color: var(--caci-bleu-nuit) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(10, 31, 44, 0.35) !important;
+}
+
+/* Le wrapper individuel de chaque carte (.o231sh2) doit aussi avoir flex */
+.o231sh2 {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  height: auto !important;
+}
+
+/* Adaptation mobile · cartes plus étroites pour rentrer dans l'écran */
+@media (max-width: 480px) {
+  .vfrc-card,
+  .vfrc-card._1375ap10,
+  .vfrc-card._1375ap11 {
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
+  }
+  
+  ._1375ap13 {
+    height: 120px !important;
+  }
+}
+
+/* ============================================================================
+   CARROUSEL · BOUTONS DE NAVIGATION (basé sur HTML inspecté)
+   ----------------------------------------------------------------------------
+   Le HTML révèle que les boutons utilisent les classes _675wn04 jusqu'à
+   _675wn0c. Le conteneur intermédiaire avec _675wn0g créait le double
+   cercle visible précédemment. Les règles suivantes neutralisent ce
+   conteneur et stylisent correctement le bouton parent.
+   ============================================================================ */
+
+/* Bouton parent au repos · cercle blanc avec bordure bleu nuit */
 .vfrc-carousel--button {
   background: var(--caci-blanc) !important;
   background-color: var(--caci-blanc) !important;
@@ -606,58 +719,39 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
-  opacity: 1 !important;
-  visibility: visible !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
   box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  /* Pas de transition sur les changements rapides · réactivité maximale */
+  transition: opacity 0.15s ease, visibility 0.15s ease !important;
 }
 
-/* Hover · le bouton passe au jaune CACI avec bordure assombrie */
+/* Hover · le bouton passe au jaune CACI */
 .vfrc-carousel--button:hover {
   background: var(--caci-jaune-or) !important;
   background-color: var(--caci-jaune-or) !important;
   border-color: var(--caci-jaune-fonce) !important;
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.35) !important;
 }
 
-/* Active · le bouton devient bleu nuit pendant le clic */
+/* Active · pendant le clic, fond bleu nuit */
 .vfrc-carousel--button:active {
   background: var(--caci-bleu-nuit) !important;
   background-color: var(--caci-bleu-nuit) !important;
-  transform: scale(0.95) !important;
 }
 
-/* Annuler le fond et la bordure du conteneur intermédiaire qui créait le
-   second cercle indésirable. Le combinateur > cible uniquement l'enfant
-   direct du bouton, et non les descendants plus profonds qui contiennent
-   la flèche elle-même. */
-
-.vfrc-carousel--button > div {
-  background: transparent !important;
-  background-color: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  width: 100% !important;
-  height: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
+/* Disparition aux extrémités du carrousel · masquer les boutons désactivés */
+.vfrc-carousel--button:disabled,
+.vfrc-carousel--button[disabled],
+.vfrc-carousel--button[aria-disabled="true"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
-/* Filet de sécurité · cibler aussi spécifiquement la classe obfusquée
-   _675wn0g du conteneur intermédiaire pour s'assurer qu'elle est
-   neutralisée même si elle change de nom dans une future mise à jour
-   Voiceflow. Le sélecteur [class*="_675wn"] capture tout descendant
-   ayant une classe qui contient cette chaîne. */
-
+/* Neutraliser le conteneur intermédiaire qui créait le double cercle */
+.vfrc-carousel--button > div,
 .vfrc-carousel--button ._675wn0g,
 .vfrc-carousel--button [class*="_675wn"] {
   background: transparent !important;
@@ -665,14 +759,17 @@
   border: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: none !important;
 }
 
-/* Couleur de la flèche SVG au repos · bleu nuit pour contraste sur fond blanc
-   ----------------------------------------
-   La propriété color est utilisée parce que le SVG a fill="currentColor"
-   qui hérite de la couleur définie sur le parent. C'est pour cela qu'on
-   doit définir color en plus de fill pour garantir le rendu. */
-
+/* Couleur de la flèche SVG au repos · bleu nuit pour contraste sur fond blanc */
 .vfrc-carousel--button .vfrc-icon,
 .vfrc-carousel--button .vfrc-icon svg,
 .vfrc-carousel--button .vfrc-icon svg path,
@@ -680,12 +777,10 @@
 .vfrc-carousel--button svg path {
   color: var(--caci-bleu-nuit) !important;
   fill: var(--caci-bleu-nuit) !important;
-  transition: all 0.2s ease !important;
+  transition: none !important;
 }
 
-/* Au survol du bouton, la flèche passe au blanc pour rester visible
-   sur le nouveau fond jaune doré CACI. */
-
+/* Au survol, la flèche passe au blanc sur fond jaune */
 .vfrc-carousel--button:hover .vfrc-icon,
 .vfrc-carousel--button:hover .vfrc-icon svg,
 .vfrc-carousel--button:hover .vfrc-icon svg path,
@@ -695,8 +790,7 @@
   fill: var(--caci-blanc) !important;
 }
 
-/* Pendant le clic, la flèche passe au jaune sur le fond bleu nuit foncé. */
-
+/* Pendant le clic, la flèche passe au jaune sur fond bleu nuit */
 .vfrc-carousel--button:active .vfrc-icon,
 .vfrc-carousel--button:active .vfrc-icon svg,
 .vfrc-carousel--button:active .vfrc-icon svg path,
@@ -706,6 +800,13 @@
   fill: var(--caci-jaune-or) !important;
 }
 
+/* Avatar bot juste avant le carrousel · masquer pour éviter doublon visuel
+   Le HTML montre qu'un avatar Buccaneer apparaît juste avant le track
+   du carrousel (_1d8p3b81). On le force à utiliser le style CACI personnalisé */
+.vfrc-avatar._1d8p3b81 {
+  /* Hérite déjà des styles .vfrc-avatar définis plus haut · cohérence garantie */
+}
+
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.2.0
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.3.0
    ============================================================================ */
