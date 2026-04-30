@@ -1,39 +1,33 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.3)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.4)
    ----------------------------------------------------------------------------
-   CHANGELOG v3.2.2 → v3.2.3
+   CHANGELOG v3.2.3 → v3.2.4
    
-   Refactor géométrique propre · suppression de toutes les hacks d'avatar.
+   Correction de la formule de contrainte du carrousel.
    
-   La cause racine des cartes partielles · le padding-left de 50px sur
-   ._1d8p3b85 (ajouté en v3.2.0 pour réserver l'espace de l'avatar) décalait
-   tout le ruban des cartes. Voiceflow scrolle de card_width+gap (290px) par
-   clic, mais avec un décalage initial de 50px, chaque clic atterrissait
-   hors-grille. Symptômes · cartes coupées à gauche après scroll, cartes
-   partielles permanentes à droite parce que viewport > N×(card+gap)-gap.
+   v3.2.3 contraignait le carrousel à card_width + padding (296px pour 1 carte)
+   et 2*card_width + gap + padding (586px pour 2 cartes). Erreur · le viewport
+   interne était de 280px (juste la largeur d'une carte), pas 290px (carte +
+   gap). Du coup la rotation de Voiceflow (qui scrolle de card+gap = 290)
+   tombait systématiquement décalée de 10px par clic.
    
-   v3.2.3 respecte l'intention du snippet JS (avatar.hide: true) en cachant
-   définitivement l'avatar dans les carrousels via CSS. Voiceflow ignore le
-   hide:true uniquement pour les carrousels · on rétablit le contrat. Sans
-   avatar, plus besoin de réserver d'espace, plus de décalage, plus de
-   bandes de masquage. Le ruban retrouve sa géométrie native. Voiceflow
-   scrolle proprement de card_width+gap par clic et atterrit pile.
+   v3.2.4 corrige · le viewport interne doit être un multiple exact de
+   (card_width + gap), pas de card_width seul. Le gap à la fin de la dernière
+   carte visible sert d'air visuel propre · à la rotation, le gap de la carte
+   précédente apparaît à gauche, le gap de la carte courante reste à droite.
+   Alignement parfait à chaque clic, exactement 1 (ou 2) carte par rotation.
    
-   Pour éliminer les fragments à droite (problème distinct lié à la largeur
-   du viewport), on contraint .vfrc-carousel à un multiple exact de
-   (card_width + gap) via container queries · 1 carte ou 2 cartes selon la
-   largeur disponible, jamais de fragment.
+   Formule corrigée ·
+   - 1 carte · card_width + gap + padding = 280 + 10 + 16 = 306px
+   - 2 cartes · 2 * (card_width + gap) + padding = 580 + 16 = 596px
    
-   Suppressions par rapport à v3.2.2 ·
-   - --caci-avatar-image (variable plus utilisée)
-   - .vfrc-carousel::before et ::after (bandes de masquage)
-   - padding-left sur ._1d8p3b85 (la source du décalage)
-   - offset gauche du bouton de navigation (plus d'avatar à éviter)
-   - sections RTL avatar (devenues sans objet)
+   Synchronisation mobile · la variable --caci-card-width est maintenant mise
+   à jour à 240px dans le breakpoint @media max-width:480 pour rester cohérente
+   avec la largeur réelle de .vfrc-card en mode mobile. v3.2.3 oubliait cette
+   synchronisation, donc la contrainte mobile était fausse.
    
    Sections inchangées par rapport à v3.1.2 · launcher, header, body, cartes,
-   navigation buttons (sauf reset de left), user responses, footer,
-   animations, breakpoint mobile.
+   navigation buttons, user responses, footer, animations.
    ============================================================================ */
 
 /* ============================================================================
@@ -666,21 +660,20 @@
 }
 
 /* ============================================================================
-   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.3
+   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.4
    ----------------------------------------------------------------------------
    Avec l'avatar caché et le ruban revenu à sa géométrie native, Voiceflow
-   scrolle proprement de card_width+gap (290px) par clic. Reste à éliminer
-   les fragments de cartes à droite, qui apparaissent quand la largeur du
-   viewport n'est pas un multiple exact de (card_width + gap) - gap.
+   scrolle proprement de card_width+gap (290px) par clic. Reste à dimensionner
+   le viewport pour que ce scroll tombe pile sur les bons multiples.
    
-   Solution · contraindre la largeur de .vfrc-carousel à un multiple exact
-   via container queries · 1 carte ou 2 cartes selon la largeur disponible.
-   Le carrousel est centré dans son conteneur via margin auto, l'espace
-   restant est de l'air blanc propre (pas de fragment de carte).
+   PRINCIPE · le viewport interne doit être un multiple exact de
+   (card_width + gap). Le gap à la fin de la dernière carte visible joue le
+   rôle d'air visuel propre · pas de fragment, pas de bande blanche
+   artificielle, juste la géométrie native de Voiceflow respectée.
    
    Calculs ·
-   - 1 carte · card_width + carousel_padding = 280 + 16 = 296px
-   - 2 cartes · 2*card_width + gap + carousel_padding = 570 + 16 = 586px
+   - 1 carte · card + gap + padding = 280 + 10 + 16 = 306px
+   - 2 cartes · 2 * (card + gap) + padding = 580 + 16 = 596px
    ============================================================================ */
 
 /* Cacher l'avatar Voiceflow dans le carrousel · respecte le hide:true
@@ -698,21 +691,26 @@
   container-name: caci-chat;
 }
 
-/* Par défaut · 1 carte visible (mode popover ~400px) */
+/* Par défaut · 1 carte visible (mode popover ~400px)
+   Viewport interne = card_width + gap = 290px · rotation propre 1 carte/clic */
 .vfrc-carousel,
 ._1d8p3b86 {
-  max-width: calc(var(--caci-card-width) + var(--caci-carousel-padding-h));
+  max-width: calc(
+    var(--caci-card-width) +
+    var(--caci-card-gap) +
+    var(--caci-carousel-padding-h)
+  );
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
-/* Largeur >= 600px · 2 cartes visibles côte à côte */
+/* Largeur >= 600px · 2 cartes visibles côte à côte
+   Viewport interne = 2 × (card_width + gap) = 580px · rotation 2 cartes/clic */
 @container caci-chat (min-width: 600px) {
   .vfrc-carousel,
   ._1d8p3b86 {
     max-width: calc(
-      2 * var(--caci-card-width) +
-      var(--caci-card-gap) +
+      2 * (var(--caci-card-width) + var(--caci-card-gap)) +
       var(--caci-carousel-padding-h)
     );
   }
@@ -724,8 +722,7 @@
     .vfrc-carousel,
     ._1d8p3b86 {
       max-width: calc(
-        2 * var(--caci-card-width) +
-        var(--caci-card-gap) +
+        2 * (var(--caci-card-width) + var(--caci-card-gap)) +
         var(--caci-carousel-padding-h)
       );
     }
@@ -738,6 +735,9 @@
   .s9t60i0,
   * {
     --caci-avatar-gap: 12px;
+    /* v3.2.4 · synchroniser avec la largeur réelle de .vfrc-card en mobile
+       pour que la contrainte du carrousel soit calculée correctement */
+    --caci-card-width: 240px;
   }
 
   .vfrc-card {
@@ -926,5 +926,5 @@
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.3
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.4
    ============================================================================ */
