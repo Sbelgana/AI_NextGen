@@ -1,14 +1,12 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.1.0)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.1.1)
    ----------------------------------------------------------------------------
-   Version finale corrigée qui adresse les régressions v3.0.0 ·
-   - Le vrai cercle visible des boutons de navigation est ._675wn0g, pas
-     .vfrc-carousel--button qui est juste un conteneur transparent
-   - Le bouton gauche doit être décalé pour ne pas se trouver sous l'avatar
-   - L'avatar doit masquer visuellement les cartes qui défilent derrière
-   
-   Variables dynamiques pour la position du bouton gauche · permet d'ajuster
-   facilement si la taille de l'avatar change.
+   Version finale corrigée qui intègre les deux dernières corrections ·
+   - Rotation de la flèche gauche avec spécificité maximale pour qu'elle
+     persiste à tous les états (normal, hover, active, focus)
+   - Neutralisation des marges négatives natives de Voiceflow sur le
+     conteneur scrollable pour que les cartes soient strictement coupées
+     au bord du conteneur sans débordement visuel
    ============================================================================ */
 
 /* ============================================================================
@@ -44,7 +42,6 @@
   --caci-avatar-size: 32px;
   --caci-avatar-gap: 18px;
   --caci-left-button-offset: calc(var(--caci-avatar-size) + var(--caci-avatar-gap));
-  /* Le bouton gauche du carrousel sera positionné après l'avatar avec un gap */
 
   /* Variables sémantiques */
   --vfrc-color-primary: var(--caci-bleu-nuit);
@@ -471,22 +468,38 @@
 }
 
 /* ============================================================================
-   BOUTONS DE NAVIGATION DU CARROUSEL · APPROCHE CORRIGÉE v3.1.0
+   CARROUSEL · CONTENEUR SCROLLABLE STRICT (NOUVEAU v3.1.1)
    ----------------------------------------------------------------------------
-   IMPORTANT · Le vrai cercle visible avec bordure est le div interne
-   ._675wn0g, pas le bouton parent .vfrc-carousel--button qui est un
-   conteneur transparent de 48x48px. On cible donc ._675wn0g pour le
-   styling visuel, et on neutralise son scale au hover qui faisait sauter
-   le bouton.
-   ----------------------------------------------------------------------------
-   POSITIONNEMENT · Le bouton gauche ._675wn06 est placé par défaut à
-   left:0 par Voiceflow, ce qui le met sous l'avatar sticky. On le décale
-   à droite via la variable --caci-left-button-offset qui calcule la
-   position dynamiquement en fonction de la taille de l'avatar.
+   Voiceflow utilise margin-left:-20px et margin-right:-20px sur le
+   conteneur _1d8p3b82 pour créer un effet visuel de débordement où on
+   voit les cartes "peek" sur les côtés. On neutralise cet effet pour
+   que les cartes soient strictement coupées au bord du conteneur sans
+   débordement visuel.
    ============================================================================ */
 
-/* Le bouton parent est juste un conteneur · on le rend transparent
-   et on retire toute bordure ou fond qui était par erreur appliqué */
+.vfrc-carousel-scroll-container,
+._1d8p3b82 {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  overflow: hidden !important;
+}
+
+.vfrc-carousel,
+._1d8p3b86 {
+  overflow: hidden !important;
+}
+
+/* ============================================================================
+   BOUTONS DE NAVIGATION DU CARROUSEL · APPROCHE CORRIGÉE v3.1.1
+   ----------------------------------------------------------------------------
+   Le vrai cercle visible avec bordure est le div interne ._675wn0g, pas
+   le bouton parent .vfrc-carousel--button qui est juste un conteneur
+   transparent de 48x48px. On cible donc ._675wn0g pour le styling visuel
+   et on neutralise son scale au hover qui faisait sauter le bouton.
+   ============================================================================ */
+
 .vfrc-carousel--button {
   background: transparent !important;
   background-color: transparent !important;
@@ -520,7 +533,6 @@
   align-items: center !important;
   justify-content: center !important;
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
-  /* CRITIQUE · annuler le transform:scale(1.15) du hover natif Voiceflow */
   transform: none !important;
 }
 
@@ -530,7 +542,6 @@
   background-color: var(--caci-jaune-or) !important;
   border-color: var(--caci-jaune-fonce) !important;
   box-shadow: 0 4px 12px rgba(255, 185, 42, 0.4) !important;
-  /* Pas de transform:scale qui ferait sauter le bouton */
   transform: none !important;
 }
 
@@ -567,18 +578,34 @@
   fill: var(--caci-jaune-or) !important;
 }
 
-/* Préserver la rotation de la flèche gauche imposée par Voiceflow
-   (transform: rotate(180deg) sur ._675wn0h) à tous les états */
-.vfrc-icon._675wn0h,
-.vfrc-icon._675wn0h svg,
-._675wn0h {
+/* ============================================================================
+   ROTATION PERSISTANTE DE LA FLÈCHE GAUCHE (v3.1.1)
+   ----------------------------------------------------------------------------
+   On force rotate(180deg) sur _675wn0h avec spécificité maximale pour
+   garantir que la flèche reste toujours pointée vers la gauche, à tous
+   les états (normal, hover, active, focus). Les sélecteurs composés
+   augmentent la spécificité naturellement.
+   ============================================================================ */
+
+.vfrc-icon._675wn0h {
   transform: rotate(180deg) !important;
+  -webkit-transform: rotate(180deg) !important;
 }
 
+.vfrc-carousel--button .vfrc-icon._675wn0h,
 .vfrc-carousel--button:hover .vfrc-icon._675wn0h,
 .vfrc-carousel--button:active .vfrc-icon._675wn0h,
-.vfrc-carousel--button:focus .vfrc-icon._675wn0h {
+.vfrc-carousel--button:focus .vfrc-icon._675wn0h,
+.vfrc-carousel--button:focus-within .vfrc-icon._675wn0h {
   transform: rotate(180deg) !important;
+  -webkit-transform: rotate(180deg) !important;
+}
+
+/* S'assurer que le SVG à l'intérieur n'a pas son propre transform qui
+   annulerait la rotation du parent */
+.vfrc-icon._675wn0h svg,
+.vfrc-icon._675wn0h svg * {
+  transform: none !important;
 }
 
 /* Visibilité contextuelle native gérée par Voiceflow · _675wn07/08 */
@@ -787,7 +814,6 @@ img.vfrc-avatar._1d8p3b81 {
   justify-content: flex-start;
 }
 
-/* En mode RTL · l'avatar passe à droite et le bouton droit est décalé */
 .voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
   left: auto !important;
   right: 0 !important;
@@ -817,5 +843,5 @@ img.vfrc-avatar._1d8p3b81 {
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.1.0
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.1.1
    ============================================================================ */
