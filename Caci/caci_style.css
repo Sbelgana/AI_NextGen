@@ -1,30 +1,24 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.4)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.5)
    ----------------------------------------------------------------------------
-   CHANGELOG v3.2.3 → v3.2.4
+   CHANGELOG v3.2.4 → v3.2.5
    
-   Correction de la formule de contrainte du carrousel.
+   Correction empirique de la formule de rotation.
    
-   v3.2.3 contraignait le carrousel à card_width + padding (296px pour 1 carte)
-   et 2*card_width + gap + padding (586px pour 2 cartes). Erreur · le viewport
-   interne était de 280px (juste la largeur d'une carte), pas 290px (carte +
-   gap). Du coup la rotation de Voiceflow (qui scrolle de card+gap = 290)
-   tombait systématiquement décalée de 10px par clic.
+   v3.2.4 supposait que Voiceflow scrollait de exactement card_width + gap
+   (290px) par clic. Tests sur staging · Voiceflow scrolle en réalité de
+   card_width + 3*gap (310px), probablement parce que les wrappers de
+   cartes ._1d8p3b84 ajoutent margin-left:2px et que d'autres espaces
+   internes Voiceflow (transitions, padding internes des wrappers) gonflent
+   la pas de rotation effective au-delà du gap visible.
    
-   v3.2.4 corrige · le viewport interne doit être un multiple exact de
-   (card_width + gap), pas de card_width seul. Le gap à la fin de la dernière
-   carte visible sert d'air visuel propre · à la rotation, le gap de la carte
-   précédente apparaît à gauche, le gap de la carte courante reste à droite.
-   Alignement parfait à chaque clic, exactement 1 (ou 2) carte par rotation.
+   v3.2.5 utilise la formule empiriquement validée ·
+   - 1 carte · card + 3*gap + padding = 280 + 30 + 16 = 326px
+   - 2 cartes · 2 * (card + 3*gap) + padding = 620 + 16 = 636px
    
-   Formule corrigée ·
-   - 1 carte · card_width + gap + padding = 280 + 10 + 16 = 306px
-   - 2 cartes · 2 * (card_width + gap) + padding = 580 + 16 = 596px
-   
-   Synchronisation mobile · la variable --caci-card-width est maintenant mise
-   à jour à 240px dans le breakpoint @media max-width:480 pour rester cohérente
-   avec la largeur réelle de .vfrc-card en mode mobile. v3.2.3 oubliait cette
-   synchronisation, donc la contrainte mobile était fausse.
+   Ajout · !important sur max-width pour forcer le constraint au-dessus de
+   width:100% natif de Voiceflow et éviter les conflits de spécificité avec
+   les autres règles de v3.1.2 sur .vfrc-carousel.
    
    Sections inchangées par rapport à v3.1.2 · launcher, header, body, cartes,
    navigation buttons, user responses, footer, animations.
@@ -660,20 +654,23 @@
 }
 
 /* ============================================================================
-   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.4
+   CARROUSEL · CONTRAINTE GÉOMÉTRIQUE v3.2.5
    ----------------------------------------------------------------------------
-   Avec l'avatar caché et le ruban revenu à sa géométrie native, Voiceflow
-   scrolle proprement de card_width+gap (290px) par clic. Reste à dimensionner
-   le viewport pour que ce scroll tombe pile sur les bons multiples.
+   Voiceflow scrolle en réalité de card_width + 3*gap (310px) par clic, pas
+   de card_width + gap comme on aurait pu penser. Les wrappers internes des
+   cartes (._1d8p3b84 avec margin-left:2px et autres espaces internes
+   Voiceflow) gonflent le pas de rotation effectif. Cette valeur (310px par
+   carte) est validée par tests sur staging.
    
-   PRINCIPE · le viewport interne doit être un multiple exact de
-   (card_width + gap). Le gap à la fin de la dernière carte visible joue le
-   rôle d'air visuel propre · pas de fragment, pas de bande blanche
-   artificielle, juste la géométrie native de Voiceflow respectée.
+   PRINCIPE · viewport interne = N * (card_width + 3*gap) pour que chaque
+   clic remplace proprement les N cartes visibles.
    
    Calculs ·
-   - 1 carte · card + gap + padding = 280 + 10 + 16 = 306px
-   - 2 cartes · 2 * (card + gap) + padding = 580 + 16 = 596px
+   - 1 carte · card + 3*gap + padding = 280 + 30 + 16 = 326px
+   - 2 cartes · 2 * (card + 3*gap) + padding = 620 + 16 = 636px
+   
+   !important sur max-width · indispensable pour forcer le constraint au-
+   dessus du width:100% natif de Voiceflow.
    ============================================================================ */
 
 /* Cacher l'avatar Voiceflow dans le carrousel · respecte le hide:true
@@ -692,27 +689,27 @@
 }
 
 /* Par défaut · 1 carte visible (mode popover ~400px)
-   Viewport interne = card_width + gap = 290px · rotation propre 1 carte/clic */
+   Pas de rotation Voiceflow = 310px · le viewport correspond exactement */
 .vfrc-carousel,
 ._1d8p3b86 {
   max-width: calc(
     var(--caci-card-width) +
-    var(--caci-card-gap) +
+    3 * var(--caci-card-gap) +
     var(--caci-carousel-padding-h)
-  );
+  ) !important;
   margin-left: auto !important;
   margin-right: auto !important;
 }
 
 /* Largeur >= 600px · 2 cartes visibles côte à côte
-   Viewport interne = 2 × (card_width + gap) = 580px · rotation 2 cartes/clic */
+   Pas de rotation Voiceflow = 2 * 310 = 620px */
 @container caci-chat (min-width: 600px) {
   .vfrc-carousel,
   ._1d8p3b86 {
     max-width: calc(
-      2 * (var(--caci-card-width) + var(--caci-card-gap)) +
+      2 * (var(--caci-card-width) + 3 * var(--caci-card-gap)) +
       var(--caci-carousel-padding-h)
-    );
+    ) !important;
   }
 }
 
@@ -722,9 +719,9 @@
     .vfrc-carousel,
     ._1d8p3b86 {
       max-width: calc(
-        2 * (var(--caci-card-width) + var(--caci-card-gap)) +
+        2 * (var(--caci-card-width) + 3 * var(--caci-card-gap)) +
         var(--caci-carousel-padding-h)
-      );
+      ) !important;
     }
   }
 }
@@ -926,5 +923,5 @@
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.4
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.5
    ============================================================================ */
