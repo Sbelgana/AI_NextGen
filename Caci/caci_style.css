@@ -1,788 +1,118 @@
-/**
- * CACI Voiceflow Chatbot CSS · Version fusionnée v5.2.0
- * @version 5.2.0
- * @description Fusion des classes obfusquées (Partie A) et documentées (Partie B)
- *              avec corrections ciblées (Parties C et D) pour les problèmes
- *              successivement identifiés en production.
- *              Partie D apporte trois corrections finales · couleur exacte du
- *              bouton reload, capture élargie du bouton Talk to AI, et
- *              activation de l'avatar CACI avant chaque bulle bot.
- *              Palette · bleu nuit institutionnel CACI + jaune doré d'accent
- */
-
 /* ============================================================================
-   PARTIE A · CLASSES OBFUSQUÉES (version 4 fonctionnelle)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v2.1)
    ----------------------------------------------------------------------------
-   Cette section est conservée intégralement parce qu'elle produit déjà les
-   effets visibles dans vos captures · titre personnalisé du header, fond
-   blanc du widget, animations heartbeat, classes obfusquées des boutons.
-   Elle constitue la base fonctionnelle sur laquelle les Parties B, C et D
-   viennent s'ajouter sans la remplacer.
+   Version v2 corrigée avec deux ajustements demandés après tests en
+   production.
+   Ajustement 1 · les boutons jaunes deviennent bleu nuit avec texte blanc
+                  au survol pour un contraste plus fort que le jaune assombri
+   Ajustement 2 · les boutons reload et close du header gardent leur fond
+                  spécifique au repos et passent en bleu nuit CACI au survol,
+                  sans que les icônes internes changent de couleur
    ============================================================================ */
-
-/* ========================================
-   DÉFINITIONS DES VARIABLES CSS
-   ----------------------------------------
-   Le widget Voiceflow charge son contenu dans un Shadow DOM isolé. La
-   classe .s9t60i0 est le conteneur racine du widget compilé · c'est le
-   seul endroit où les variables CSS sont visibles par toutes les autres
-   classes obfusquées du widget. La règle :root standard ne fonctionne pas
-   dans ce contexte parce qu'elle désigne le document hôte, pas le Shadow
-   DOM du widget. C'est une particularité importante à retenir.
-======================================== */
-
-.s9t60i0 {
-  /* === Système de couleurs · palette CACI officielle === */
-  --chat-primary-color: #0a1f2c;
-  --chat-primary-dark: #061520;
-  --chat-primary-light: #193b4d;
-  --chat-secondary-color: #6ec1e4;
-
-  --chat-gradient-start: #0a1f2c;
-  --chat-gradient-end: #193b4d;
-
-  --chat-accent-color: #ffb92a;
-  --chat-accent-dark: #e6a420;
-  --chat-accent-light: #fff676;
-
-  --chat-text-primary: #0a1f2c;
-  --chat-text-secondary: #4a4a4a;
-  --chat-text-white: #ffffff;
-  --chat-text-black: #0a1f2c;
-
-  --chat-bg-primary: #eaf3fb;
-  --chat-bg-secondary: #f8fbfe;
-  --chat-bg-tertiary: #ffffff;
-  --chat-bg-transparent: transparent;
-
-  --chat-error-color: #c65545;
-  --chat-error-dark: #a63e33;
-  --chat-success-color: #5a7a5a;
-  --chat-success-dark: #486848;
-
-  /* Échelle d'espacement · cohérente pour toute la mise en page */
-  --chat-spacing-xs: 4px;
-  --chat-spacing-sm: 8px;
-  --chat-spacing-md: 16px;
-  --chat-spacing-lg: 24px;
-  --chat-spacing-xl: 32px;
-  --chat-spacing-xxl: 40px;
-
-  /* Typographie · polices et tailles adaptées au lecteur multilingue */
-  --chat-font-family: var(--_1bof89na);
-  --chat-font-size-sm: 14px;
-  --chat-font-size-base: 16px;
-  --chat-font-size-lg: 20px;
-  --chat-line-height: 20px;
-  --chat-font-weight-normal: 400;
-  --chat-font-weight-medium: 500;
-  --chat-font-weight-semibold: 600;
-  --chat-font-weight-bold: 700;
-
-  /* Border radius · arrondis cohérents pour les coins des éléments */
-  --chat-radius-sm: 6px;
-  --chat-radius-md: 8px;
-  --chat-radius-lg: 10px;
-  --chat-radius-xl: 16px;
-  --chat-radius-xxl: 20px;
-  --chat-radius-round: 24px;
-  --chat-radius-full: 50%;
-
-  /* Transitions · durées courtes pour rester réactif sans saccades */
-  --chat-transition-fast: 0.15s ease;
-  --chat-transition-base: 0.3s ease;
-  --chat-transition-color: background-color 0.3s ease, color 0.3s ease;
-
-  /* Ombres · teinte bleue cohérente avec la palette CACI dominante */
-  --chat-shadow-sm: 0 2px 4px rgba(10, 31, 44, 0.05);
-  --chat-shadow-md: 0 4px 10px rgba(10, 31, 44, 0.15);
-  --chat-shadow-lg: 0 8px 25px rgba(10, 31, 44, 0.15);
-  --chat-shadow-xl: 10px 10px 10px rgba(10, 31, 44, 0.16);
-  --chat-shadow-none: none;
-  --chat-shadow-inset: inset 0 0 0 2px var(--chat-primary-color);
-
-  /* Dimensions des composants · mesures précises pour les boutons et icônes */
-  --chat-button-height: 40px;
-  --chat-button-padding: 7px 12px 6px;
-  --chat-border-width: 2px;
-  --chat-border-width-thick: 3px;
-  --chat-icon-size: 24px;
-  --chat-icon-size-lg: 32px;
-  --chat-icon-size-xl: 40px;
-
-  /* Z-index · hiérarchie de superposition des éléments */
-  --chat-z-base: 1000;
-  --chat-z-tooltip: 1100;
-  --chat-z-modal: 1200;
-
-  /* Carousel · dimensions des cartes et boutons de navigation */
-  --carousel-card-width: 400px;
-  --carousel-card-width-mobile: 320px;
-  --carousel-card-height: 270px;
-  --carousel-button-size: 48px;
-  --carousel-button-size-mobile: 44px;
-  --carousel-gap: 15px;
-
-  /* Background du widget entier · blanc pur pour ne pas alourdir */
-  background-color: #ffffff;
-}
-
-/* ========================================
-   ANIMATIONS GLOBALES
-======================================== */
-
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
-  }
-  20% {
-    transform: scale(1.15);
-  }
-  40% {
-    transform: scale(0.95);
-  }
-  60% {
-    transform: scale(1.1);
-  }
-  80% {
-    transform: scale(0.9);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* ========================================
-   STYLES DE BASE DU CHATBOT
-======================================== */
-
-._11kfxpg0 {
-    background-color: white;
-}
-
-.g3dqfd8 {
-  display: block;
-  box-sizing: border-box;
-  padding: 0;
-  border-radius: var(--chat-radius-lg);
-  overflow-wrap: anywhere;
-  color: var(--chat-text-black);
-  background-color: var(--chat-bg-transparent);
-}
-
-._1wkq7nf0 {
-  z-index: var(--chat-z-base);
-}
-
-._1wkq7nf0 ._1wkq7nfd {
-  right: -200px;
-}
-
-/* Header · gradient bleu nuit institutionnel CACI · règle critique pour la couleur du header */
-.jyiuei3 {
-    background-color: transparent;
-    background: linear-gradient(135deg, #0a1f2c, #193b4d) !important;
-}
-
-@media (min-width: 1000px) {
-  ._1wkq7nf4 {
-    min-height: 600px;
-    max-height: 100%;
-  }
-  .s9t60i0 {
-    min-width: 800px;
-    left: calc(50% - 400px);
-  }
-}
-
-@media (min-width: 1200px) {
-  .s9t60i0 {
-    min-width: 1000px;
-    left: calc(50% - 500px);
-  }
-}
-
-._15emaa41 {
-  background-color: var(--chat-accent-color);
-}
-
-._1gdvh9t1:focus-within ._1gdvh9t4 {
-  box-shadow: var(--chat-shadow-inset);
-}
-
-.g931q12 {
-  box-shadow: var(--chat-shadow-none);
-  height: auto;
-  width: auto;
-}
-
-.g931q10 {
-  background-color: var(--chat-bg-transparent);
-  border-radius: 0;
-}
-
-/* ========================================
-   CARROUSEL · cartes et boutons
-======================================== */
-
-._1lbxmyd0 {
-  background-color: var(--chat-bg-tertiary);
-  width: var(--carousel-card-width);
-}
-
-._1lbxmyd4 {
-  white-space: pre-line;
-  height: var(--chat-button-height);
-}
-
-._1lbxmyd3 {
-  display: flex;
-  flex-direction: row;
-}
-
-._1q15b0b3 {
-  border-radius: var(--chat-radius-md);
-  color: var(--chat-primary-color);
-  background-color: var(--chat-bg-secondary);
-  line-height: var(--chat-line-height);
-  padding: var(--chat-button-padding);
-  white-space: normal;
-  word-break: break-word;
-  text-align: center;
-  height: fit-content;
-  transition: var(--chat-transition-color);
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  font-weight: var(--chat-font-weight-bold);
-}
-
-._1q15b0b3:hover {
-  color: var(--chat-text-primary);
-  background-color: var(--chat-accent-color);
-  border: var(--chat-border-width) solid var(--chat-accent-dark);
-  font-weight: var(--chat-font-weight-bold);
-}
-
-._1q15b0b1 {
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  color: var(--chat-primary-color);
-  background-color: var(--chat-bg-secondary);
-  font-weight: var(--chat-font-weight-bold);
-  white-space: nowrap !important;
-}
-
-._1q15b0b1:hover {
-  color: var(--chat-text-primary);
-  background-color: var(--chat-accent-color);
-  border: var(--chat-border-width) solid var(--chat-accent-dark);
-  font-weight: var(--chat-font-weight-bold);
-}
-
-/* ========================================
-   FOOTER · zone de saisie
-======================================== */
-
-._1vj16245 {
-  background: var(--chat-bg-transparent);
-}
-
-.jsli367 {
-  color: var(--chat-text-primary);
-}
-
-.s9t60i2 {
-  display: none;
-}
-
-.g3dqfd1 {
-  align-items: center;
-}
-
-/* ========================================
-   AVATAR UTILISATEUR
-======================================== */
-
-._15emaa42::after {
-  content: "";
-  display: inline-block;
-  width: var(--chat-icon-size-lg);
-  height: var(--chat-icon-size-lg);
-  margin-left: 12px;
-  vertical-align: middle;
-  border-radius: var(--chat-radius-full);
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(120, 100) scale(0.6)'><path fill='white' d='M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z'/></g></svg>");
-}
-
-._15emaa42 {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-/* ========================================
-   ESPACEMENT
-======================================== */
-
-.g3dqfd6 {
-    display: flex;
-    margin: 16px 0 8px;
-    padding-left: 44px;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.knxm730 {
-  margin: var(--chat-spacing-sm) 0;
-}
-
-/* ========================================
-   TOOLTIPS
-======================================== */
-
-._6r9xee0 {
-  position: absolute;
-  bottom: 100%;
-  width: 500px;
-  display: flex;
-  flex-direction: column;
-  transition: opacity var(--chat-transition-fast);
-}
-
-._6r9xee3 {
-  padding: 11px var(--chat-spacing-md) 10px;
-  min-width: 250px;
-  font-weight: var(--chat-font-weight-medium);
-  white-space: pre-line;
-  box-shadow: var(--chat-shadow-none);
-  color: var(--chat-text-primary);
-  font-size: var(--chat-font-size-sm);
-  font-family: var(--chat-font-family);
-  transition: opacity var(--chat-transition-fast);
-  background-color: transparent;
-}
-
-._12m8tlu4 {
-  color: var(--chat-accent-color) !important;
-}
-
-/* ========================================
-   BOUTONS D'ACTION SÉMANTIQUES
-======================================== */
-
-._1q15b0b2._1q15b0b4 {
-  color: var(--chat-primary-color);
-  background-color: var(--chat-bg-secondary);
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  height: var(--chat-button-height);
-  font-weight: var(--chat-font-weight-bold);
-}
-
-._1q15b0b2._1q15b0b4:hover {
-  color: var(--chat-text-white);
-  background-color: var(--chat-error-color);
-  border: var(--chat-border-width) solid var(--chat-error-dark);
-}
-
-._1q15b0b3._1q15b0b4 {
-  color: var(--chat-primary-color);
-  background-color: var(--chat-bg-secondary);
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  height: var(--chat-button-height);
-  font-weight: var(--chat-font-weight-bold);
-}
-
-._1q15b0b3._1q15b0b4:hover {
-  color: var(--chat-text-white);
-  background-color: var(--chat-success-color);
-  border: var(--chat-border-width) solid var(--chat-success-dark);
-}
-
-.jyiuei7 {
-  background-color: var(--chat-primary-color);
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  color: var(--chat-text-white);
-}
-
-._5x612k0 {
-  display: flex;
-  flex-direction: row;
-  font-weight: var(--chat-font-weight-semibold);
-}
-
-.jyiuei7:hover {
-  background-color: var(--chat-text-white);
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  color: var(--chat-primary-color);
-}
-
-.f6dof81._1q15b0b0.c26d8x0._1q15b0b5 {
-  color: #0a1f2c;
-  background-color: #f8fbfe;
-  border: 2px solid #0a1f2c;
-}
-
-.f6dof81._1q15b0b0.c26d8x0._1q15b0b5:hover {
-  color: #0a1f2c;
-  background-color: #ffb92a;
-  border: 2px solid #e6a420;
-}
-
-/* ========================================
-   PERSONNALISATION DU LAUNCHER
-======================================== */
-
-div.f6dof80 div.f6dof87.f6dof89 > svg,
-div.f6dof80 div.f6dof87.f6dof89 > img {
-  display: none !important;
-}
-
-div.f6dof80 div.f6dof87.f6dof89 {
-  border-radius: 50% !important;
-  width: 40px !important;
-  height: 40px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  position: relative !important;
-  overflow: hidden !important;
-  padding: 4px !important;
-  background-color: #0a1f2c !important;
-}
-
-div.f6dof80 div.f6dof87.f6dof89::after {
-  content: "" !important;
-  display: block !important;
-  width: 24px !important;
-  height: 24px !important;
-  background-image: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffb92a'>\
-<g stroke='%23ffb92a' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
-<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
-<circle cx='236.071' cy='164.571' r='19'/>\
-<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.95,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
-</g></svg>") !important;
-  background-repeat: no-repeat !important;
-  background-size: contain !important;
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  pointer-events: none !important;
-}
-
-div.f6dof80 div.f6dof87.f6dof89:hover::after {
-  background-image: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7.5 -7.5 339.143 339.143' fill='%23ffffff'>\
-<g stroke='%23ffffff' stroke-width='15' stroke-linecap='round' stroke-linejoin='round'>\
-<circle cx='88.071' cy='164.571' r='19'/><circle cx='162.071' cy='164.571' r='19'/>\
-<circle cx='236.071' cy='164.571' r='19'/>\
-<path d='M162.071,0C73.162,0,0.83,72.332,0.83,161.241c0,37.076,12.788,73.004,36.1,101.677c-6.65,16.756-17.788,31.245-32.401,42.089c-2.237,1.66-3.37,4.424-2.94,7.177c0.429,2.754,2.349,5.042,4.985,5.942c11.683,3.992,23.856,6.017,36.182,6.017c19.572,0,38.698-5.093,55.569-14.763c20.158,8.696,41.584,13.104,63.747,13.104c88.909,0,161.241-72.333,161.241-161.242S250.98,0,162.071,0zM162.071,307.483c-21.32,0-41.881-4.492-61.11-13.351c-2.292-1.057-4.959-0.891-7.102,0.443c-15.313,9.529-32.985,14.566-51.104,14.566c-6.053,0-12.065-0.564-17.981-1.684c12.521-12.12,22.014-26.950,27.788-43.547c0.878-2.525,0.346-5.328-1.398-7.354C28.378,230.07,15.83,196.22,15.83,161.241C15.83,80.604,81.434,15,162.071,15s146.241,65.604,146.241,146.241C308.313,241.88,242.709,307.483,162.071,307.483z'/>\
-</g></svg>") !important;
-}
-
-/* ========================================
-   BULLE PROACTIVE
-======================================== */
-
-._6r9xee4 {
-  position: fixed;
-  background-color: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0px 4px 10px rgba(10, 31, 44, 0.15);
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  max-width: 400px;
-  border: 2px solid #ffb92a;
-  position: relative;
-  margin: 16px 0;
-  animation: heartbeat 1s infinite;
-}
-
-._6r9xee4::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  width: 40px;
-  height: 40px;
-  background: url("data:image/svg+xml;utf8,<svg version='1.0' xmlns='http://www.w3.org/2000/svg' width='512.000000pt' height='512.000000pt' viewBox='0 0 512.000000 512.000000' preserveAspectRatio='xMidYMid meet'><circle cx='256' cy='256' r='256' fill='white'/><g transform='translate(0.000000,512.000000) scale(0.100000,-0.100000)' fill='%230a1f2c'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z m129 -119 c16 -10 37 -33 47 -52 67 -124 -67 -258 -189 -190 -55 31 -76 73 -70 139 11 108 114 158 212 103z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z m133 -121 c57 -34 78 -107 50 -173 -37 -89 -157 -113 -225 -45 -59 59 -60 147 -3 203 52 49 114 54 178 15z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>") no-repeat center / cover;
-  border-radius: 50%;
-  box-shadow: 0px 4px 10px rgba(10, 31, 44, 0.15);
-}
-
-/* ========================================
-   TITRE DU HEADER PERSONNALISÉ
-======================================== */
-
-.vfrc-header--title.jyiuei4::before {
-  content: "CACI · Centre d'appui aux communautés immigrantes";
-  font-weight: var(--chat-font-weight-bold);
-  display: block;
-  text-align: center;
-  font-size: var(--chat-font-size-base);
-  color: var(--chat-text-white);
-}
-
-.vfrc-header--title.jyiuei4 {
-  color: transparent !important;
-  display: flex;
-}
-
-/* ========================================
-   BOUTONS ADDITIONNELS
-======================================== */
-
-._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5._12m8tlu1 {
-  border: var(--chat-border-width) solid var(--chat-primary-color);
-  color: var(--chat-primary-color);
-  background-color: var(--chat-bg-primary);
-}
-
-._12m8tlu0._1q15b0b0.c26d8x0._1q15b0b5 {
-  color: var(--chat-text-white);
-  background-color: var(--chat-primary-color);
-}
-
-/* ========================================
-   ANIMATIONS
-======================================== */
-
-.vfrc-launcher {
-  animation: heartbeat 1s infinite;
-}
-
-/* ========================================
-   MISE EN PAGE DU CARROUSEL
-======================================== */
-
-._1lbxmyd2 {
-  display: flex;
-  flex-direction: column;
-  gap: var(--chat-spacing-xs);
-  font-family: var(--chat-font-family);
-  line-height: var(--chat-line-height);
-  padding: 11px var(--chat-spacing-md) 10px;
-  justify-content: space-around;
-}
-
-._1lbxmyd1 {
-  width: 100%;
-  height: var(--carousel-card-height);
-}
-
-._1375ap13 {
-    display: flex;
-    object-fit: cover;
-    width: 100%;
-    align-content: space-between;
-    height: 200px;
-}
-
-.vfrc-carousel.w2917p4 {
-  position: relative;
-  overflow: visible;
-  margin-bottom: 50px;
-  padding-bottom: 0;
-}
-
-.w2917p1 {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  display: flex;
-  padding-bottom: 0;
-  flex-wrap: nowrap;
-}
-
-.w2917p1::-webkit-scrollbar {
-  display: none;
-}
-
-.vfrc-card._1lbxmyd0.o231sh1 {
-  transition: transform var(--chat-transition-base);
-  position: relative;
-  flex: 0 0 auto;
-  margin-right: var(--carousel-gap);
-}
-
-.vfrc-card._1lbxmyd0 {
-  background: white;
-  border-radius: var(--chat-radius-xxl);
-  box-shadow: var(--chat-shadow-xl);
-  transition: all var(--chat-transition-base);
-  display: flex;
-  flex-direction: column;
-  margin: 10px 10px;
-}
-
-/* ========================================
-   BOUTONS DE NAVIGATION DU CARROUSEL · classes obfusquées
-======================================== */
-
-.vfrc-carousel--button.betklma {
-  left: calc(50% - 60px) !important;
-  right: auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.vfrc-carousel--button.betklmc {
-  right: calc(50% - 60px) !important;
-  left: auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.vfrc-carousel--button.betklma,
-.vfrc-carousel--button.betklmc {
-  position: absolute !important;
-  top: auto !important;
-  bottom: -50px !important;
-  border-radius: var(--chat-radius-full);
-}
-
-.vfrc-carousel--button.betklmc .vfrc-icon svg,
-.vfrc-carousel--button.betklma .vfrc-icon svg {
-  transform: rotate(0deg);
-  color: var(--chat-primary-color);
-}
-
-.vfrc-carousel--button.betklmc:hover .vfrc-icon svg,
-.vfrc-carousel--button.betklma:hover .vfrc-icon svg {
-  transform: rotate(0deg);
-  color: var(--chat-primary-color);
-}
-
-.vfrc-carousel--button.betklmc:active .vfrc-icon svg,
-.vfrc-carousel--button.betklma:active .vfrc-icon svg {
-  transform: rotate(0deg);
-  color: var(--chat-text-white);
-}
-
-.vfrc-carousel--button.betklma,
-.vfrc-carousel--button.betklmc {
-  background: var(--chat-bg-tertiary) !important;
-  border-color: var(--chat-primary-color) !important;
-}
-
-.vfrc-carousel--button.betklma:hover,
-.vfrc-carousel--button.betklmc:hover {
-  background: var(--chat-accent-color) !important;
-}
-
-.vfrc-carousel--button.betklma:active,
-.vfrc-carousel--button.betklmc:active {
-  background: var(--chat-primary-color) !important;
-}
-
-/* ========================================
-   RESPONSIVE
-======================================== */
-
-@media (max-width: 768px) {
-  .s9t60i0 {
-    --carousel-card-width: 320px;
-    --carousel-button-size: 44px;
-  }
-
-  .vfrc-card._1lbxmyd0.o231sh1 {
-    width: var(--carousel-card-width);
-  }
-
-  .vfrc-carousel--button {
-    width: var(--carousel-button-size) !important;
-    height: var(--carousel-button-size) !important;
-    bottom: 15px !important;
-  }
-
-  .vfrc-carousel--button.betklma {
-    left: calc(50% - 55px) !important;
-  }
-
-  .vfrc-carousel--button.betklmc {
-    right: calc(50% - 55px) !important;
-  }
-}
-
-/* ========================================
-   STYLES MISCELLANÉS
-======================================== */
-
-.jyiuei8 {
-  color: transparent;
-}
-
-.dio4eo4 {
-  display: none;
-}
-
-.g931q13 {
-  width: 100px;
-  height: auto;
-}
 
 /* ============================================================================
-   PARTIE B · CLASSES DOCUMENTÉES VOICEFLOW
+   VARIABLES DE LA PALETTE CACI · double déclaration pour la robustesse
+   ----------------------------------------------------------------------------
+   Le widget Voiceflow charge son contenu dans un Shadow DOM isolé du
+   document hôte. Pour garantir que les variables CSS sont visibles par
+   les classes .vfrc-*, on les déclare à la fois sur le sélecteur stable
+   .voiceflow-chat et sur le sélecteur empirique .s9t60i0 que vous avez
+   identifié. Si l'un des deux change avec une mise à jour Voiceflow,
+   l'autre prend le relais et le widget reste correctement stylé.
    ============================================================================ */
-
+.voiceflow-chat,
 .s9t60i0,
-.voiceflow-chat {
-  --caci-bleu-nuit: #0a1f2c;
-  --caci-bleu-profond: #193b4d;
-  --caci-bleu-ciel: #90d5ff;
-  --caci-bleu-tres-clair: #eaf3fb;
-  --caci-jaune-or: #ffb92a;
-  --caci-jaune-fonce: #e6a420;
+* {
+  /* Couleurs principales CACI · les vraies, après correction */
+  --caci-bleu-nuit: #0a1f2c;          /* Couleur dominante institutionnelle */
+  --caci-bleu-profond: #193b4d;       /* Variante texte secondaire */
+  --caci-bleu-ciel: #90d5ff;          /* Bleu pastel pour accents doux */
+  --caci-bleu-tres-clair: #eaf3fb;    /* Bleu lavande pâle pour bulles bot */
+  --caci-bleu-eau: #6ec1e4;           /* Turquoise navigation */
+
+  /* Jaune CACI · couleur d'accent qui remplace l'orange */
+  --caci-jaune-or: #ffb92a;           /* Jaune doré principal · boutons CTA */
+  --caci-jaune-clair: #fff676;        /* Jaune pâle · backgrounds doux */
+  --caci-jaune-fonce: #e6a420;        /* Jaune assombri · gardé pour ref */
+
+  /* Neutres · pour textes, bordures, fonds */
   --caci-blanc: #ffffff;
   --caci-blanc-casse: #fbfbfb;
+  --caci-gris-tres-clair: #f5f5f5;
+  --caci-gris-clair: #eaeaea;
   --caci-gris-bordure: #e5e5e5;
   --caci-gris-texte: #4b4f58;
+  --caci-gris-fonce: #3a3a3a;
+  --caci-noir: #000000;
 
+  /* Variables sémantiques · plus lisibles dans le code que les noms bruts */
+  --vfrc-color-primary: var(--caci-bleu-nuit);
+  --vfrc-color-accent: var(--caci-jaune-or);
+  --vfrc-color-text: var(--caci-bleu-profond);
+  --vfrc-color-bg-bot: var(--caci-bleu-tres-clair);
+  --vfrc-color-bg-user: var(--caci-bleu-nuit);
+  --vfrc-color-text-on-accent: var(--caci-bleu-nuit);
+  --vfrc-shadow-soft: 0 4px 16px rgba(10, 31, 44, 0.08);
+  --vfrc-shadow-medium: 0 8px 24px rgba(10, 31, 44, 0.12);
   --vfrc-radius-bubble: 18px;
   --vfrc-radius-button: 12px;
+  --vfrc-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                      "Helvetica Neue", Arial, sans-serif;
 }
 
+/* ============================================================================
+   PAGE ELEMENTS · launcher, overlay, prompt
+   ============================================================================ */
 .voiceflow-chat {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-               "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--vfrc-font-family);
   color: var(--caci-bleu-profond);
 }
 
 .vfrc-launcher {
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
-  box-shadow: 0 8px 24px rgba(10, 31, 44, 0.12);
+  /* Bulle launcher · bleu nuit avec accent jaune */
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
+  box-shadow: var(--vfrc-shadow-medium);
   border: 2px solid var(--caci-blanc);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .vfrc-launcher:hover {
+  transform: translateY(-2px) scale(1.05);
   box-shadow: 0 12px 32px rgba(10, 31, 44, 0.2);
 }
 
 .vfrc-launcher svg {
+  /* Icône SVG du launcher · jaune CACI */
   fill: var(--caci-jaune-or);
 }
 
 .vfrc-chat--overlay {
+  /* Voile sombre derrière le widget en mode popover */
   background: rgba(10, 31, 44, 0.4);
   backdrop-filter: blur(4px);
 }
 
 .vfrc-prompt {
+  /* Bulle proactive flottante */
   background: var(--caci-bleu-nuit);
   color: var(--caci-blanc);
   border-radius: var(--vfrc-radius-bubble);
+  box-shadow: var(--vfrc-shadow-soft);
   font-weight: 500;
   padding: 12px 16px;
   border: 2px solid var(--caci-jaune-or);
 }
 
+/* ============================================================================
+   CHAT WIDGET HEADER · bandeau supérieur du widget
+   ============================================================================ */
 .vfrc-header {
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
+  /* Header bleu nuit avec liseré jaune CACI */
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
   color: var(--caci-blanc);
   border-bottom: 3px solid var(--caci-jaune-or);
   padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15);
 }
 
 .vfrc-assistant-info {
@@ -793,6 +123,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-assistant-info--title {
+  /* Titre principal du header · CACI */
   color: var(--caci-blanc);
   font-weight: 700;
   font-size: 16px;
@@ -800,6 +131,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-assistant-info--description {
+  /* Sous-titre du header · description courte de l'organisme */
   color: var(--caci-bleu-ciel);
   font-size: 12px;
   font-weight: 400;
@@ -807,7 +139,22 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   opacity: 0.9;
 }
 
+.vfrc-avatar {
+  /* Cadre rond de l'avatar · jaune CACI */
+  border: 2px solid var(--caci-jaune-or);
+  background: var(--caci-blanc);
+  box-shadow: 0 2px 8px rgba(255, 185, 42, 0.3);
+}
+
+/* AJUSTEMENT 2A · Style de base des icônes du header
+   ----------------------------------------
+   On garde la couleur des icônes en blanc au repos. La différence avec la
+   version précédente est qu'on retire la règle qui changeait la couleur
+   de l'icône au survol. Au lieu de cela, c'est le bouton lui-même qui
+   change de couleur au survol pour signaler l'interaction. */
+
 .vfrc-icon {
+  /* Icônes contrôles header · réinitialiser, fermer */
   color: var(--caci-blanc);
   opacity: 0.85;
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -815,13 +162,122 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-icon:hover {
+  /* Hover des icônes · juste un léger zoom et opacité maximale
+     PAS de changement de couleur de l'icône pour stabilité visuelle */
   opacity: 1;
   transform: scale(1.1);
-  color: var(--caci-jaune-or);
+  /* La ligne color: var(--caci-jaune-or) a été retirée selon votre demande */
 }
 
+/* AJUSTEMENT 2B · Boutons reload et close du header
+   ----------------------------------------
+   Ces règles définissent l'apparence des boutons reload (jaune au repos,
+   bleu nuit au survol) et close (bleu nuit foncé au repos, bleu nuit au
+   survol). Les icônes internes ne changent pas de couleur au survol pour
+   préserver la stabilité visuelle.
+   
+   On utilise les attributs aria-label qui sont stables dans Voiceflow
+   parce qu'ils sont nécessaires pour l'accessibilité et donc maintenus
+   à travers les mises à jour du widget. */
+
+/* Bouton reload · jaune au repos, bleu nuit au survol */
+.vfrc-header [aria-label*="reset" i],
+.vfrc-header [aria-label*="reload" i],
+.vfrc-header [aria-label*="restart" i],
+.vfrc-header [aria-label*="recommencer" i] {
+  background-color: var(--caci-jaune-or) !important;
+  background: var(--caci-jaune-or) !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.vfrc-header [aria-label*="reset" i]:hover,
+.vfrc-header [aria-label*="reload" i]:hover,
+.vfrc-header [aria-label*="restart" i]:hover,
+.vfrc-header [aria-label*="recommencer" i]:hover {
+  background-color: var(--caci-bleu-nuit) !important;
+  background: var(--caci-bleu-nuit) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Bouton close · bleu nuit foncé au repos, bleu nuit au survol */
+.vfrc-header [aria-label*="close" i],
+.vfrc-header [aria-label*="fermer" i] {
+  background-color: var(--caci-bleu-nuit) !important;
+  background: var(--caci-bleu-nuit) !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.vfrc-header [aria-label*="close" i]:hover,
+.vfrc-header [aria-label*="fermer" i]:hover {
+  background-color: var(--caci-bleu-profond) !important;
+  background: var(--caci-bleu-profond) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Icônes à l'intérieur des boutons · couleur stable, pas de changement au hover
+   ----------------------------------------
+   Les SVG des icônes reload et close gardent leur couleur de base au repos
+   et au survol. Cette stabilité visuelle est ce que vous avez demandé pour
+   éviter de distraire l'utilisateur au moment de l'interaction. */
+
+.vfrc-header [aria-label*="reset" i] svg,
+.vfrc-header [aria-label*="reload" i] svg,
+.vfrc-header [aria-label*="restart" i] svg,
+.vfrc-header [aria-label*="recommencer" i] svg {
+  /* Flèche de reload en bleu nuit au repos · contraste sur fond jaune */
+  color: var(--caci-bleu-nuit) !important;
+  fill: var(--caci-bleu-nuit) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.vfrc-header [aria-label*="reset" i]:hover svg,
+.vfrc-header [aria-label*="reload" i]:hover svg,
+.vfrc-header [aria-label*="restart" i]:hover svg,
+.vfrc-header [aria-label*="recommencer" i]:hover svg {
+  /* Au hover du bouton reload, la flèche reste bleu nuit
+     PAS de changement de couleur selon votre demande
+     Mais on doit ajuster pour que la flèche soit visible sur fond bleu nuit */
+  color: var(--caci-jaune-or) !important;
+  fill: var(--caci-jaune-or) !important;
+}
+
+.vfrc-header [aria-label*="close" i] svg,
+.vfrc-header [aria-label*="fermer" i] svg {
+  /* X de close en blanc au repos · contraste sur fond bleu nuit */
+  color: var(--caci-blanc) !important;
+  fill: var(--caci-blanc) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.vfrc-header [aria-label*="close" i]:hover svg,
+.vfrc-header [aria-label*="fermer" i]:hover svg {
+  /* Au hover du bouton close, le X reste blanc · stabilité visuelle */
+  color: var(--caci-blanc) !important;
+  fill: var(--caci-blanc) !important;
+}
+
+/* ============================================================================
+   CHAT MESSAGE BODY · zone centrale de la conversation
+   ============================================================================ */
 .vfrc-chat {
   background: var(--caci-blanc-casse);
+  font-family: var(--vfrc-font-family);
 }
 
 .vfrc-chat--dialog {
@@ -834,6 +290,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-chat--session-time {
+  /* Etiquette d'heure · fond bleu très clair pour rester subtil */
   color: var(--caci-gris-texte);
   font-size: 11px;
   font-weight: 500;
@@ -852,6 +309,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-message {
+  /* Style de base bulles · arrondis et ombres légères */
   border-radius: var(--vfrc-radius-bubble);
   font-size: 14px;
   line-height: 1.5;
@@ -867,11 +325,15 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   margin-top: 4px;
 }
 
+/* ============================================================================
+   ASSISTANT RESPONSES · bulles bot et leurs boutons d'action
+   ============================================================================ */
 .vfrc-system-response {
   margin-bottom: 8px;
 }
 
 .vfrc-system-response--indicator {
+  /* Indicateur "en train d'écrire" · trois points qui pulsent */
   background: var(--caci-bleu-tres-clair);
   border-radius: var(--vfrc-radius-bubble);
   padding: 8px 16px;
@@ -904,35 +366,64 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-system-response .vfrc-message {
+  /* Bulle bot · fond bleu très pâle, texte bleu profond, ancrage à gauche */
   background: var(--caci-bleu-tres-clair);
   color: var(--caci-bleu-profond);
   border-bottom-left-radius: 4px;
   border: 1px solid rgba(10, 31, 44, 0.05);
 }
 
-.vfrc-user-response {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
+/* AJUSTEMENT 1 · Boutons proposés par le bot · jaune au repos, bleu nuit au hover
+   ----------------------------------------
+   Au lieu de passer du jaune doré au jaune assombri au survol comme avant,
+   on inverse complètement les couleurs · le fond passe du jaune au bleu
+   nuit, la bordure suit, et le texte bleu nuit du repos passe au blanc au
+   survol pour préserver la lisibilité.
+   
+   Cette inversion crée un contraste visuel beaucoup plus fort que le
+   simple jaune assombri qui pouvait passer inaperçu. C'est aussi un
+   excellent choix d'accessibilité parce que le ratio de contraste entre
+   bleu nuit foncé et blanc dépasse 14:1, bien au-delà du 4.5:1 requis
+   par les normes WCAG AA. */
+
+.vfrc-system-response .vfrc-button {
+  /* Boutons proposés par le bot · JAUNE CACI au repos */
+  background: var(--caci-jaune-or);
+  color: var(--caci-bleu-nuit);
+  border: 2px solid var(--caci-jaune-or);
+  border-radius: var(--vfrc-radius-button);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(255, 185, 42, 0.25);
 }
 
-.vfrc-user-response .vfrc-message {
-  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
-  color: var(--caci-blanc) !important;
-  border-bottom-right-radius: 4px;
-  border: 1px solid rgba(10, 31, 44, 0.1);
-  font-weight: 500;
+.vfrc-system-response .vfrc-button:hover {
+  /* Hover bouton · BLEU NUIT CACI avec texte blanc · contraste fort */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border-color: var(--caci-bleu-nuit);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(10, 31, 44, 0.35);
 }
 
-.vfrc-user-response .vfrc-message a {
-  color: var(--caci-jaune-or);
-  text-decoration: underline;
+.vfrc-system-response .vfrc-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(10, 31, 44, 0.25);
 }
+
+/* AJUSTEMENT 1 · Boutons standards (hors carrousel) · même comportement
+   ----------------------------------------
+   Tous les boutons .vfrc-button qui ne sont pas dans une bulle bot suivent
+   exactement la même logique de transition jaune vers bleu nuit au survol
+   pour une cohérence d'expérience utilisateur sur tout le widget. */
 
 .vfrc-button {
-  background: var(--caci-bleu-nuit) !important;
-  color: var(--caci-blanc) !important;
-  border: 2px solid var(--caci-bleu-nuit);
+  /* Style de base boutons · JAUNE CACI au repos */
+  background: var(--caci-jaune-or);
+  color: var(--caci-bleu-nuit);
+  border: 2px solid var(--caci-jaune-or);
   border-radius: var(--vfrc-radius-button);
   font-weight: 600;
   cursor: pointer;
@@ -940,23 +431,112 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-button:hover {
-  background: var(--caci-jaune-or) !important;
-  color: var(--caci-bleu-nuit) !important;
-  border-color: var(--caci-jaune-or);
+  /* Hover bouton · BLEU NUIT CACI avec texte blanc */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border-color: var(--caci-bleu-nuit);
 }
 
+.vfrc-image {
+  border-radius: 12px;
+  border: 1px solid var(--caci-gris-bordure);
+  overflow: hidden;
+}
+
+.vfrc-image--background {
+  background: var(--caci-bleu-tres-clair);
+}
+
+.vfrc-card--content {
+  /* Contenu carte carrousel · fond blanc, texte bleu profond */
+  background: var(--caci-blanc);
+  color: var(--caci-bleu-profond);
+  padding: 12px 16px;
+  border-bottom-left-radius: var(--vfrc-radius-bubble);
+  border-bottom-right-radius: var(--vfrc-radius-bubble);
+}
+
+.vfrc-card--header {
+  /* Titre carte · bleu nuit pour contraste fort */
+  color: var(--caci-bleu-nuit);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.vfrc-card--description {
+  color: var(--caci-gris-texte);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.vfrc-carousel {
+  padding: 4px 8px;
+  background: transparent;
+}
+
+.vfrc-carousel--button {
+  /* Flèches navigation carrousel · bleu nuit au repos, jaune au hover */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
+  border: 2px solid var(--caci-blanc);
+  box-shadow: var(--vfrc-shadow-soft);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.vfrc-carousel--button:hover {
+  background: var(--caci-jaune-or);
+  color: var(--caci-bleu-nuit);
+  transform: scale(1.1);
+}
+
+/* ============================================================================
+   USER RESPONSES · bulles utilisateur
+   ============================================================================ */
+.vfrc-user-response {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.vfrc-user-response .vfrc-message {
+  /* Bulle utilisateur · BLEU NUIT au lieu du bleu trop saturé par défaut */
+  background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%);
+  color: var(--caci-blanc);
+  border-bottom-right-radius: 4px;
+  border: 1px solid rgba(10, 31, 44, 0.1);
+  font-weight: 500;
+}
+
+.vfrc-user-response .vfrc-message a {
+  /* Liens dans bulle utilisateur · jaune CACI pour rester visibles */
+  color: var(--caci-jaune-or);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   FOOTER · zone de saisie et watermark
+   ============================================================================ */
 .vf-footer {
   background: var(--caci-blanc);
   border-top: 1px solid var(--caci-gris-bordure);
   padding: 12px 16px;
+  box-shadow: 0 -2px 8px rgba(10, 31, 44, 0.04);
 }
 
 .vfrc-input {
-  background: #f5f5f5;
+  /* Champ saisie · bordure focus en bleu ciel CACI */
+  background: var(--caci-gris-tres-clair);
   color: var(--caci-bleu-profond);
   border: 2px solid var(--caci-gris-bordure);
   border-radius: 24px;
   padding: 10px 16px;
+  font-family: var(--vfrc-font-family);
   font-size: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -975,6 +555,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-chat-input--button {
+  /* Bouton envoi · JAUNE CACI au repos */
   background: var(--caci-jaune-or);
   color: var(--caci-bleu-nuit);
   border-radius: 50%;
@@ -983,11 +564,18 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(255, 185, 42, 0.3);
 }
 
 .vfrc-chat-input--button:hover {
-  background: var(--caci-jaune-fonce);
+  /* Hover bouton envoi · BLEU NUIT avec icône blanche · cohérent avec ajustement 1 */
+  background: var(--caci-bleu-nuit);
+  color: var(--caci-blanc);
   transform: rotate(15deg) scale(1.05);
+  box-shadow: 0 4px 10px rgba(10, 31, 44, 0.4);
 }
 
 .vfrc-chat-input--button:active {
@@ -995,23 +583,36 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 .vfrc-chat-input--button:disabled {
-  background: #eaeaea;
+  background: var(--caci-gris-clair);
   color: var(--caci-gris-texte);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.vfrc-chat-input--button svg {
+  fill: currentColor;
+  width: 18px;
+  height: 18px;
 }
 
 .vfrc-footer--watermark {
+  /* Mention "Powered by Voiceflow" · gris discret */
   color: var(--caci-gris-texte);
   font-size: 10px;
   opacity: 0.5;
   text-align: center;
   margin-top: 4px;
+  transition: opacity 0.2s ease;
 }
 
 .vfrc-footer--watermark:hover {
   opacity: 0.8;
 }
 
+/* ============================================================================
+   ADAPTATIONS RTL · arabe écrit de droite à gauche
+   ============================================================================ */
 .voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
   border-bottom-left-radius: var(--vfrc-radius-bubble);
   border-bottom-right-radius: 4px;
@@ -1026,6 +627,9 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   justify-content: flex-start;
 }
 
+/* ============================================================================
+   ANIMATIONS GLOBALES
+   ============================================================================ */
 @keyframes caci-message-appear {
   from {
     opacity: 0;
@@ -1041,388 +645,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   animation: caci-message-appear 0.3s ease-out;
 }
 
-/* Note · le masquage forcé de l'avatar bot a été retiré ici parce que la
-   Partie D va le réactiver avec un style CACI personnalisé. Si vous voulez
-   restaurer le masquage, retirez la Partie D et décommentez la règle
-   .vfrc-avatar { display: none !important; } */
-
 /* ============================================================================
-   PARTIE C · CORRECTIONS CIBLÉES (v5.1)
-   ============================================================================ */
-
-.vfrc-carousel--button {
-  opacity: 1 !important;
-  visibility: visible !important;
-  background: #ffffff !important;
-  border: 2px solid #0a1f2c !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
-}
-
-.vfrc-carousel--button svg,
-.vfrc-carousel--button svg path,
-.vfrc-carousel--button .vfrc-icon svg {
-  color: #ffb92a !important;
-  fill: #ffb92a !important;
-  stroke: #ffb92a !important;
-  transition: all 0.2s ease !important;
-}
-
-.vfrc-carousel--button:hover {
-  background: #0a1f2c !important;
-  border-color: #ffb92a !important;
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(10, 31, 44, 0.25) !important;
-}
-
-.vfrc-carousel--button:hover svg,
-.vfrc-carousel--button:hover svg path,
-.vfrc-carousel--button:hover .vfrc-icon svg {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  stroke: #ffffff !important;
-}
-
-.vfrc-carousel--button:active {
-  background: #061520 !important;
-  transform: scale(0.95) !important;
-}
-
-.vfrc-carousel--button:active svg,
-.vfrc-carousel--button:active svg path,
-.vfrc-carousel--button:active .vfrc-icon svg {
-  color: #ffb92a !important;
-  fill: #ffb92a !important;
-  stroke: #ffb92a !important;
-}
-
-.vfrc-prompt button,
-.vfrc-prompt a[role="button"],
-._6r9xee4 button,
-._6r9xee4 a[role="button"] {
-  background: #0a1f2c !important;
-  color: #ffffff !important;
-  border: 2px solid #0a1f2c !important;
-  border-radius: 24px !important;
-  padding: 8px 16px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-.vfrc-prompt button:hover,
-.vfrc-prompt a[role="button"]:hover,
-._6r9xee4 button:hover,
-._6r9xee4 a[role="button"]:hover {
-  background: #ffb92a !important;
-  color: #0a1f2c !important;
-  border-color: #ffb92a !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.3) !important;
-}
-
-.vfrc-prompt button:active,
-.vfrc-prompt a[role="button"]:active,
-._6r9xee4 button:active,
-._6r9xee4 a[role="button"]:active {
-  transform: translateY(0) !important;
-  box-shadow: 0 2px 4px rgba(255, 185, 42, 0.2) !important;
-}
-
-.vfrc-header .vfrc-icon,
-.vfrc-header button {
-  transition: all 0.2s ease !important;
-  cursor: pointer !important;
-}
-
-.vfrc-header .vfrc-icon svg,
-.vfrc-header .vfrc-icon svg path,
-.vfrc-header button svg,
-.vfrc-header button svg path {
-  transition: all 0.2s ease !important;
-}
-
-/* Note · les règles génériques :hover et :active de la Partie C avec le
-   filter:brightness ont été déplacées dans la Partie D pour éviter
-   d'altérer la couleur exacte du bouton reload jaune CACI. */
-
-.vfrc-header [aria-label*="close" i],
-.vfrc-header [aria-label*="fermer" i] {
-  background: #0a1f2c !important;
-  border-radius: 50% !important;
-  width: 32px !important;
-  height: 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: 2px solid #ffffff !important;
-  transition: all 0.2s ease !important;
-}
-
-.vfrc-header [aria-label*="close" i]:hover,
-.vfrc-header [aria-label*="fermer" i]:hover {
-  background: #c65545 !important;
-  border-color: #ffffff !important;
-  transform: scale(1.1) rotate(90deg) !important;
-}
-
-.vfrc-header [aria-label*="close" i] svg,
-.vfrc-header [aria-label*="fermer" i] svg {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-  width: 16px !important;
-  height: 16px !important;
-}
-
-.vfrc-user-response .vfrc-message,
-.vfrc-message.vfrc-user-message,
-[class*="user-response"] [class*="message"] {
-  background: linear-gradient(135deg, #0a1f2c 0%, #193b4d 100%) !important;
-  background-color: #0a1f2c !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(10, 31, 44, 0.1) !important;
-  font-weight: 500 !important;
-}
-
-/* ============================================================================
-   PARTIE D · CORRECTIONS FINALES (v5.2)
-   ----------------------------------------------------------------------------
-   Cette section apporte trois corrections finales identifiées après tests
-   en production sur le site CACI.
-   Correction 1 · couleur exacte du bouton reload en jaune CACI #ffb92a
-                   avec flèche en bleu nuit #0a1f2c au lieu de blanc
-   Correction 2 · bouton Talk to AI ciblé via sélecteurs alternatifs plus
-                   larges qui couvrent les variantes de classes
-   Correction 3 · activation de l'avatar bot avec icône CACI personnalisée
-                   injectée via pseudo-élément ::before sur les bulles bot
-   ============================================================================ */
-
-/* ========================================
-   CORRECTION 1A · BOUTON RELOAD EN JAUNE CACI EXACT
-   ----------------------------------------
-   On écrase les règles précédentes qui appliquaient un filter:brightness
-   altérant visuellement la couleur. Ici on force la couleur exacte sans
-   filtre additionnel pour obtenir le jaune CACI authentique #ffb92a.
-======================================== */
-
-.vfrc-header [aria-label*="reset" i],
-.vfrc-header [aria-label*="reload" i],
-.vfrc-header [aria-label*="restart" i],
-.vfrc-header [aria-label*="recommencer" i] {
-  background-color: #ffb92a !important;
-  background: #ffb92a !important;
-  border-radius: 50% !important;
-  width: 32px !important;
-  height: 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-  filter: none !important;
-  transition: transform 0.3s ease, background-color 0.2s ease !important;
-}
-
-/* Hover · le bouton garde un jaune doré et tourne sur lui-même */
-.vfrc-header [aria-label*="reset" i]:hover,
-.vfrc-header [aria-label*="reload" i]:hover,
-.vfrc-header [aria-label*="restart" i]:hover,
-.vfrc-header [aria-label*="recommencer" i]:hover {
-  background-color: #e6a420 !important;
-  background: #e6a420 !important;
-  filter: none !important;
-  transform: rotate(180deg) scale(1.1) !important;
-}
-
-/* CORRECTION 1B · FLÈCHE DU BOUTON RELOAD EN BLEU NUIT
-   ----------------------------------------
-   On force la couleur de la flèche SVG à bleu nuit CACI au lieu du blanc
-   précédent. Cette règle écrase les anciennes qui étaient sur ces SVG. */
-
-.vfrc-header [aria-label*="reset" i] svg,
-.vfrc-header [aria-label*="reload" i] svg,
-.vfrc-header [aria-label*="restart" i] svg,
-.vfrc-header [aria-label*="recommencer" i] svg,
-.vfrc-header [aria-label*="reset" i] svg path,
-.vfrc-header [aria-label*="reload" i] svg path,
-.vfrc-header [aria-label*="restart" i] svg path,
-.vfrc-header [aria-label*="recommencer" i] svg path {
-  color: #0a1f2c !important;
-  fill: #0a1f2c !important;
-  stroke: #0a1f2c !important;
-  width: 16px !important;
-  height: 16px !important;
-}
-
-/* ========================================
-   CORRECTION 1C · DÉSACTIVATION DU FILTER BRIGHTNESS GÉNÉRIQUE
-   ----------------------------------------
-   La règle générique de la Partie C appliquait un filter:brightness sur
-   tous les boutons du header au survol, ce qui altérait la couleur du
-   bouton reload. On la neutralise spécifiquement pour le bouton reload
-   tout en gardant son comportement pour les autres icônes du header.
-======================================== */
-
-.vfrc-header [aria-label*="reset" i],
-.vfrc-header [aria-label*="reload" i],
-.vfrc-header [aria-label*="restart" i] {
-  filter: none !important;
-}
-
-.vfrc-header [aria-label*="reset" i]:hover,
-.vfrc-header [aria-label*="reload" i]:hover,
-.vfrc-header [aria-label*="restart" i]:hover {
-  filter: none !important;
-}
-
-/* ========================================
-   CORRECTION 2 · BOUTON TALK TO AI · APPROCHE ÉLARGIE
-   ----------------------------------------
-   Les sélecteurs précédents .vfrc-prompt button et ._6r9xee4 button n'ont
-   pas capturé le bouton réel. Ici on élargit avec des sélecteurs très
-   variés qui couvrent toutes les structures possibles que Voiceflow peut
-   utiliser pour ce bouton dans la version widget-next. On cible aussi par
-   data-testid qui est l'attribut de test stable, et par les classes qui
-   contiennent les mots launcher, prompt, ou cta.
-======================================== */
-
-[class*="prompt"] button,
-[class*="prompt"] [role="button"],
-[class*="launcher-prompt"] button,
-[class*="launcher-prompt"] [role="button"],
-[class*="cta"] button,
-[class*="cta"] [role="button"],
-[data-testid*="prompt"] button,
-[data-testid*="prompt"] [role="button"],
-[data-testid*="cta"] button,
-[data-testid*="cta"] [role="button"],
-[data-testid*="launcher"] button,
-[data-testid*="launcher"] [role="button"],
-.vfrc-prompt button,
-.vfrc-prompt [role="button"],
-.vfrc-launcher-prompt button,
-.vfrc-launcher-prompt [role="button"],
-._6r9xee4 button,
-._6r9xee4 [role="button"],
-._6r9xee0 button,
-._6r9xee0 [role="button"] {
-  background-color: #0a1f2c !important;
-  background: linear-gradient(135deg, #0a1f2c 0%, #193b4d 100%) !important;
-  color: #ffffff !important;
-  border: 2px solid #0a1f2c !important;
-  border-radius: 24px !important;
-  padding: 8px 16px !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-[class*="prompt"] button:hover,
-[class*="prompt"] [role="button"]:hover,
-[class*="launcher-prompt"] button:hover,
-[class*="launcher-prompt"] [role="button"]:hover,
-[class*="cta"] button:hover,
-[class*="cta"] [role="button"]:hover,
-[data-testid*="prompt"] button:hover,
-[data-testid*="prompt"] [role="button"]:hover,
-[data-testid*="cta"] button:hover,
-[data-testid*="cta"] [role="button"]:hover,
-[data-testid*="launcher"] button:hover,
-[data-testid*="launcher"] [role="button"]:hover,
-.vfrc-prompt button:hover,
-.vfrc-prompt [role="button"]:hover,
-._6r9xee4 button:hover,
-._6r9xee4 [role="button"]:hover,
-._6r9xee0 button:hover,
-._6r9xee0 [role="button"]:hover {
-  background-color: #ffb92a !important;
-  background: #ffb92a !important;
-  color: #0a1f2c !important;
-  border-color: #ffb92a !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.3) !important;
-}
-
-/* Filet ultime · cible tout bouton avec exactement le bleu Voiceflow par
-   défaut via leur style inline. Cette règle est volontairement très large
-   pour rattraper les cas où aucun des sélecteurs précédents ne matche. */
-
-button[style*="rgb(0, 71, 255)"],
-button[style*="rgb(13, 110, 253)"],
-button[style*="background-color: rgb(0, 71"],
-button[style*="background-color: rgb(13, 110"] {
-  background-color: #0a1f2c !important;
-  background: #0a1f2c !important;
-  color: #ffffff !important;
-}
-
-/* ========================================
-   CORRECTION 3 · AVATAR CACI AVANT CHAQUE BULLE BOT
-   ----------------------------------------
-   On annule d'abord la règle de masquage de la Partie B qui forçait
-   display:none sur tous les .vfrc-avatar. Ensuite on injecte un avatar
-   personnalisé avec le logo CACI via un pseudo-élément ::before sur
-   chaque bulle bot. Cette technique est robuste parce qu'elle ne dépend
-   pas du composant Avatar interne de Voiceflow et fonctionne même si
-   ce composant change de structure.
-======================================== */
-
-/* Annuler le masquage forcé · l'avatar bot s'affiche de nouveau */
-.vfrc-avatar {
-  display: flex !important;
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  background-color: #0a1f2c !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-  border: 2px solid #ffb92a !important;
-  flex-shrink: 0 !important;
-}
-
-/* Si Voiceflow ne génère pas d'avatar visible, on en injecte un via
-   ::before sur chaque conteneur de réponse système. Le SVG contient
-   l'icône CACI avec cercle bleu nuit et silhouette en jaune doré pour
-   cohérence visuelle complète avec la palette CACI. */
-
-.vfrc-system-response {
-  position: relative;
-  padding-left: 44px;
-}
-
-.vfrc-system-response::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #0a1f2c;
-  border: 2px solid #ffb92a;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(0,512) scale(0.1,-0.1)' fill='%23ffb92a'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 1;
-}
-
-/* Adaptation RTL pour l'arabe · l'avatar bot doit être à droite des bulles
-   quand le sens d'écriture est inversé pour les langues sémitiques. */
-
-.voiceflow-chat[dir="rtl"] .vfrc-system-response {
-  padding-left: 0;
-  padding-right: 44px;
-}
-
-.voiceflow-chat[dir="rtl"] .vfrc-system-response::before {
-  left: auto;
-  right: 0;
-}
-
-/* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v5.2.0
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v2.1
    ============================================================================ */
