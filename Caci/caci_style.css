@@ -1,11 +1,12 @@
 /**
- * CACI Voiceflow Chatbot CSS · Version fusionnée v5.1.0
- * @version 5.1.0
+ * CACI Voiceflow Chatbot CSS · Version fusionnée v5.2.0
+ * @version 5.2.0
  * @description Fusion des classes obfusquées (Partie A) et documentées (Partie B)
- *              avec corrections ciblées (Partie C) pour les problèmes visibles
- *              dans les captures · flèches de carrousel toujours visibles,
- *              bouton Talk to AI en couleurs CACI, icônes du header avec
- *              feedback visuel hover et active.
+ *              avec corrections ciblées (Parties C et D) pour les problèmes
+ *              successivement identifiés en production.
+ *              Partie D apporte trois corrections finales · couleur exacte du
+ *              bouton reload, capture élargie du bouton Talk to AI, et
+ *              activation de l'avatar CACI avant chaque bulle bot.
  *              Palette · bleu nuit institutionnel CACI + jaune doré d'accent
  */
 
@@ -15,7 +16,7 @@
    Cette section est conservée intégralement parce qu'elle produit déjà les
    effets visibles dans vos captures · titre personnalisé du header, fond
    blanc du widget, animations heartbeat, classes obfusquées des boutons.
-   Elle constitue la base fonctionnelle sur laquelle les Parties B et C
+   Elle constitue la base fonctionnelle sur laquelle les Parties B, C et D
    viennent s'ajouter sans la remplacer.
    ============================================================================ */
 
@@ -128,11 +129,6 @@
 
 /* ========================================
    ANIMATIONS GLOBALES
-   ----------------------------------------
-   L'animation heartbeat est utilisée pour le launcher et la bulle proactive
-   afin d'attirer l'attention sans être agressive. La durée d'une seconde
-   est volontairement lente pour ne pas distraire pendant la lecture du
-   contenu de la page WordPress.
 ======================================== */
 
 @keyframes heartbeat {
@@ -623,10 +619,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 
 /* ========================================
    BOUTONS DE NAVIGATION DU CARROUSEL · classes obfusquées
-   ----------------------------------------
-   Ces règles utilisent les classes obfusquées betklma et betklmc qui
-   peuvent muter avec les mises à jour Voiceflow. La Partie C ajoute des
-   règles plus génériques qui les complètent en cas de changement.
 ======================================== */
 
 .vfrc-carousel--button.betklma {
@@ -733,22 +725,7 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 
 /* ============================================================================
    PARTIE B · CLASSES DOCUMENTÉES VOICEFLOW
-   ----------------------------------------------------------------------------
-   Cette section ajoute la couverture des classes publiques préfixées par
-   .vfrc- qui sont utilisées par la version moderne widget-next du widget.
-   Elle complète la Partie A en ciblant les éléments qui ne sont pas
-   couverts par les classes obfusquées spécifiques. C'est cette partie qui
-   apporte le support RTL pour l'arabe et les bulles différenciées
-   bot/utilisateur.
    ============================================================================ */
-
-/* ========================================
-   VARIABLES SUPPLÉMENTAIRES
-   ----------------------------------------
-   Ces variables ne dupliquent pas celles de la Partie A · elles ajoutent
-   des références sémantiques avec préfixe --caci pour les nouvelles
-   règles de la Partie B.
-======================================== */
 
 .s9t60i0,
 .voiceflow-chat {
@@ -766,10 +743,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   --vfrc-radius-bubble: 18px;
   --vfrc-radius-button: 12px;
 }
-
-/* ========================================
-   ÉLÉMENTS DE PAGE · launcher, overlay, prompt
-======================================== */
 
 .voiceflow-chat {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -804,10 +777,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   padding: 12px 16px;
   border: 2px solid var(--caci-jaune-or);
 }
-
-/* ========================================
-   HEADER · règles complémentaires
-======================================== */
 
 .vfrc-header {
   background: linear-gradient(135deg, var(--caci-bleu-nuit) 0%, var(--caci-bleu-profond) 100%) !important;
@@ -850,10 +819,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   transform: scale(1.1);
   color: var(--caci-jaune-or);
 }
-
-/* ========================================
-   CORPS DU CHAT · zone des messages
-======================================== */
 
 .vfrc-chat {
   background: var(--caci-blanc-casse);
@@ -902,10 +867,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   margin-top: 4px;
 }
 
-/* ========================================
-   RÉPONSES DE L'ASSISTANT · bulles bot
-======================================== */
-
 .vfrc-system-response {
   margin-bottom: 8px;
 }
@@ -949,10 +910,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   border: 1px solid rgba(10, 31, 44, 0.05);
 }
 
-/* ========================================
-   RÉPONSES UTILISATEUR · bulles à droite
-======================================== */
-
 .vfrc-user-response {
   display: flex;
   justify-content: flex-end;
@@ -972,10 +929,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   text-decoration: underline;
 }
 
-/* ========================================
-   BOUTON STANDARD · règle de base
-======================================== */
-
 .vfrc-button {
   background: var(--caci-bleu-nuit) !important;
   color: var(--caci-blanc) !important;
@@ -991,10 +944,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   color: var(--caci-bleu-nuit) !important;
   border-color: var(--caci-jaune-or);
 }
-
-/* ========================================
-   FOOTER · zone de saisie complète
-======================================== */
 
 .vf-footer {
   background: var(--caci-blanc);
@@ -1063,10 +1012,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   opacity: 0.8;
 }
 
-/* ========================================
-   SUPPORT RTL · arabe écrit de droite à gauche
-======================================== */
-
 .voiceflow-chat[dir="rtl"] .vfrc-system-response .vfrc-message {
   border-bottom-left-radius: var(--vfrc-radius-bubble);
   border-bottom-right-radius: 4px;
@@ -1080,10 +1025,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 .voiceflow-chat[dir="rtl"] .vfrc-user-response {
   justify-content: flex-start;
 }
-
-/* ========================================
-   ANIMATION DES MESSAGES · apparition douce
-======================================== */
 
 @keyframes caci-message-appear {
   from {
@@ -1100,56 +1041,27 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   animation: caci-message-appear 0.3s ease-out;
 }
 
-/* ========================================
-   FALLBACK · masquage forcé de l'avatar bot
-======================================== */
-
-.vfrc-avatar {
-  display: none !important;
-}
+/* Note · le masquage forcé de l'avatar bot a été retiré ici parce que la
+   Partie D va le réactiver avec un style CACI personnalisé. Si vous voulez
+   restaurer le masquage, retirez la Partie D et décommentez la règle
+   .vfrc-avatar { display: none !important; } */
 
 /* ============================================================================
-   PARTIE C · CORRECTIONS CIBLÉES (NOUVELLE SECTION v5.1)
-   ----------------------------------------------------------------------------
-   Cette section ajoute trois corrections spécifiques pour résoudre les
-   problèmes identifiés dans les captures de production.
-   Correction 1 · flèches de carrousel toujours visibles, pas seulement au hover
-   Correction 2 · bouton Talk to AI de la prompt en couleurs CACI
-   Correction 3 · icônes reload et close du header avec feedback visuel hover
-   
-   Ces règles utilisent des sélecteurs plus larges et plus stables que les
-   classes obfusquées betklma et betklmc qui peuvent muter avec les mises
-   à jour de Voiceflow. C'est notre filet de sécurité.
+   PARTIE C · CORRECTIONS CIBLÉES (v5.1)
    ============================================================================ */
 
-/* ========================================
-   CORRECTION 1 · FLÈCHES DE CARROUSEL TOUJOURS VISIBLES
-   ----------------------------------------
-   Le problème observé est que les flèches de navigation du carrousel
-   apparaissent uniquement au survol de la zone, ce qui est mauvais pour
-   l'accessibilité car un utilisateur novice ne saura pas qu'il peut
-   naviguer. Ces règles forcent la visibilité permanente en utilisant le
-   sélecteur générique .vfrc-carousel--button qui est plus stable que
-   les classes obfusquées betklma et betklmc utilisées en Partie A.
-======================================== */
-
 .vfrc-carousel--button {
-  /* Forcer la visibilité permanente des flèches de navigation */
   opacity: 1 !important;
   visibility: visible !important;
-  /* Style visuel · cercle blanc avec bordure bleue nuit CACI */
   background: #ffffff !important;
   border: 2px solid #0a1f2c !important;
   width: 40px !important;
   height: 40px !important;
   border-radius: 50% !important;
-  /* Animation douce sur les changements d'état */
   transition: all 0.2s ease !important;
-  /* Ombre subtile pour détacher du fond */
   box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
 }
 
-/* Couleur de la flèche elle-même · jaune CACI au repos */
 .vfrc-carousel--button svg,
 .vfrc-carousel--button svg path,
 .vfrc-carousel--button .vfrc-icon svg {
@@ -1159,7 +1071,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   transition: all 0.2s ease !important;
 }
 
-/* Hover · le bouton devient bleu nuit et la flèche passe au blanc */
 .vfrc-carousel--button:hover {
   background: #0a1f2c !important;
   border-color: #ffb92a !important;
@@ -1175,7 +1086,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   stroke: #ffffff !important;
 }
 
-/* Active · pendant le clic, le bouton devient encore plus sombre */
 .vfrc-carousel--button:active {
   background: #061520 !important;
   transform: scale(0.95) !important;
@@ -1188,16 +1098,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   fill: #ffb92a !important;
   stroke: #ffb92a !important;
 }
-
-/* ========================================
-   CORRECTION 2 · BOUTON TALK TO AI DE LA PROMPT
-   ----------------------------------------
-   La bulle proactive contient un bouton qui n'utilise pas la classe
-   .vfrc-button standard. On utilise donc un sélecteur descendant qui
-   cible tous les éléments button HTML à l'intérieur des conteneurs de
-   la prompt. Cette approche est robuste parce qu'elle ne dépend pas du
-   nom de classe spécifique que Voiceflow utilise.
-======================================== */
 
 .vfrc-prompt button,
 .vfrc-prompt a[role="button"],
@@ -1232,18 +1132,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   box-shadow: 0 2px 4px rgba(255, 185, 42, 0.2) !important;
 }
 
-/* ========================================
-   CORRECTION 3 · ICÔNES DU HEADER AVEC FEEDBACK VISUEL
-   ----------------------------------------
-   Les boutons reload et close du header doivent donner un retour visuel
-   au survol et au clic pour que l'utilisateur sache que son interaction
-   a été reçue. On cible deux niveaux · une règle générique pour toutes
-   les icônes du header, et une règle spécifique pour les boutons reload
-   et close via leurs attributs aria-label qui sont plus stables que
-   les classes CSS.
-======================================== */
-
-/* Niveau générique · animation pour toutes les icônes du header */
 .vfrc-header .vfrc-icon,
 .vfrc-header button {
   transition: all 0.2s ease !important;
@@ -1257,44 +1145,10 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   transition: all 0.2s ease !important;
 }
 
-.vfrc-header .vfrc-icon:hover,
-.vfrc-header button:hover {
-  transform: scale(1.1) !important;
-  filter: brightness(1.2) !important;
-  opacity: 0.9 !important;
-}
+/* Note · les règles génériques :hover et :active de la Partie C avec le
+   filter:brightness ont été déplacées dans la Partie D pour éviter
+   d'altérer la couleur exacte du bouton reload jaune CACI. */
 
-.vfrc-header .vfrc-icon:active,
-.vfrc-header button:active {
-  transform: scale(0.95) !important;
-  filter: brightness(0.9) !important;
-}
-
-/* Niveau spécifique · bouton reload via aria-label */
-.vfrc-header [aria-label*="reset" i],
-.vfrc-header [aria-label*="reload" i],
-.vfrc-header [aria-label*="restart" i],
-.vfrc-header [aria-label*="recommencer" i] {
-  background: #ffb92a !important;
-  border-radius: 50% !important;
-  width: 32px !important;
-  height: 32px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border: none !important;
-  transition: all 0.2s ease !important;
-}
-
-.vfrc-header [aria-label*="reset" i]:hover,
-.vfrc-header [aria-label*="reload" i]:hover,
-.vfrc-header [aria-label*="restart" i]:hover,
-.vfrc-header [aria-label*="recommencer" i]:hover {
-  background: #e6a420 !important;
-  transform: scale(1.1) rotate(180deg) !important;
-}
-
-/* Niveau spécifique · bouton close via aria-label */
 .vfrc-header [aria-label*="close" i],
 .vfrc-header [aria-label*="fermer" i] {
   background: #0a1f2c !important;
@@ -1315,10 +1169,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   transform: scale(1.1) rotate(90deg) !important;
 }
 
-/* SVG à l'intérieur des boutons reload et close · couleur blanche */
-.vfrc-header [aria-label*="reset" i] svg,
-.vfrc-header [aria-label*="reload" i] svg,
-.vfrc-header [aria-label*="restart" i] svg,
 .vfrc-header [aria-label*="close" i] svg,
 .vfrc-header [aria-label*="fermer" i] svg {
   color: #ffffff !important;
@@ -1326,16 +1176,6 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
   width: 16px !important;
   height: 16px !important;
 }
-
-/* ========================================
-   CORRECTION 4 · BULLES UTILISATEUR EN BLEU NUIT FORCÉ
-   ----------------------------------------
-   Cette règle de doublure s'assure que les bulles utilisateur restent en
-   bleu nuit CACI même si Voiceflow ajoute de nouvelles classes par-dessus
-   les classes existantes. Le sélecteur d'attribut [class*="user-response"]
-   capture toute classe qui contient le mot user-response, ce qui couvre
-   les variations potentielles de nommage.
-======================================== */
 
 .vfrc-user-response .vfrc-message,
 .vfrc-message.vfrc-user-message,
@@ -1348,5 +1188,241 @@ div.f6dof80 div.f6dof87.f6dof89:hover::after {
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v5.1.0
+   PARTIE D · CORRECTIONS FINALES (v5.2)
+   ----------------------------------------------------------------------------
+   Cette section apporte trois corrections finales identifiées après tests
+   en production sur le site CACI.
+   Correction 1 · couleur exacte du bouton reload en jaune CACI #ffb92a
+                   avec flèche en bleu nuit #0a1f2c au lieu de blanc
+   Correction 2 · bouton Talk to AI ciblé via sélecteurs alternatifs plus
+                   larges qui couvrent les variantes de classes
+   Correction 3 · activation de l'avatar bot avec icône CACI personnalisée
+                   injectée via pseudo-élément ::before sur les bulles bot
+   ============================================================================ */
+
+/* ========================================
+   CORRECTION 1A · BOUTON RELOAD EN JAUNE CACI EXACT
+   ----------------------------------------
+   On écrase les règles précédentes qui appliquaient un filter:brightness
+   altérant visuellement la couleur. Ici on force la couleur exacte sans
+   filtre additionnel pour obtenir le jaune CACI authentique #ffb92a.
+======================================== */
+
+.vfrc-header [aria-label*="reset" i],
+.vfrc-header [aria-label*="reload" i],
+.vfrc-header [aria-label*="restart" i],
+.vfrc-header [aria-label*="recommencer" i] {
+  background-color: #ffb92a !important;
+  background: #ffb92a !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  filter: none !important;
+  transition: transform 0.3s ease, background-color 0.2s ease !important;
+}
+
+/* Hover · le bouton garde un jaune doré et tourne sur lui-même */
+.vfrc-header [aria-label*="reset" i]:hover,
+.vfrc-header [aria-label*="reload" i]:hover,
+.vfrc-header [aria-label*="restart" i]:hover,
+.vfrc-header [aria-label*="recommencer" i]:hover {
+  background-color: #e6a420 !important;
+  background: #e6a420 !important;
+  filter: none !important;
+  transform: rotate(180deg) scale(1.1) !important;
+}
+
+/* CORRECTION 1B · FLÈCHE DU BOUTON RELOAD EN BLEU NUIT
+   ----------------------------------------
+   On force la couleur de la flèche SVG à bleu nuit CACI au lieu du blanc
+   précédent. Cette règle écrase les anciennes qui étaient sur ces SVG. */
+
+.vfrc-header [aria-label*="reset" i] svg,
+.vfrc-header [aria-label*="reload" i] svg,
+.vfrc-header [aria-label*="restart" i] svg,
+.vfrc-header [aria-label*="recommencer" i] svg,
+.vfrc-header [aria-label*="reset" i] svg path,
+.vfrc-header [aria-label*="reload" i] svg path,
+.vfrc-header [aria-label*="restart" i] svg path,
+.vfrc-header [aria-label*="recommencer" i] svg path {
+  color: #0a1f2c !important;
+  fill: #0a1f2c !important;
+  stroke: #0a1f2c !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* ========================================
+   CORRECTION 1C · DÉSACTIVATION DU FILTER BRIGHTNESS GÉNÉRIQUE
+   ----------------------------------------
+   La règle générique de la Partie C appliquait un filter:brightness sur
+   tous les boutons du header au survol, ce qui altérait la couleur du
+   bouton reload. On la neutralise spécifiquement pour le bouton reload
+   tout en gardant son comportement pour les autres icônes du header.
+======================================== */
+
+.vfrc-header [aria-label*="reset" i],
+.vfrc-header [aria-label*="reload" i],
+.vfrc-header [aria-label*="restart" i] {
+  filter: none !important;
+}
+
+.vfrc-header [aria-label*="reset" i]:hover,
+.vfrc-header [aria-label*="reload" i]:hover,
+.vfrc-header [aria-label*="restart" i]:hover {
+  filter: none !important;
+}
+
+/* ========================================
+   CORRECTION 2 · BOUTON TALK TO AI · APPROCHE ÉLARGIE
+   ----------------------------------------
+   Les sélecteurs précédents .vfrc-prompt button et ._6r9xee4 button n'ont
+   pas capturé le bouton réel. Ici on élargit avec des sélecteurs très
+   variés qui couvrent toutes les structures possibles que Voiceflow peut
+   utiliser pour ce bouton dans la version widget-next. On cible aussi par
+   data-testid qui est l'attribut de test stable, et par les classes qui
+   contiennent les mots launcher, prompt, ou cta.
+======================================== */
+
+[class*="prompt"] button,
+[class*="prompt"] [role="button"],
+[class*="launcher-prompt"] button,
+[class*="launcher-prompt"] [role="button"],
+[class*="cta"] button,
+[class*="cta"] [role="button"],
+[data-testid*="prompt"] button,
+[data-testid*="prompt"] [role="button"],
+[data-testid*="cta"] button,
+[data-testid*="cta"] [role="button"],
+[data-testid*="launcher"] button,
+[data-testid*="launcher"] [role="button"],
+.vfrc-prompt button,
+.vfrc-prompt [role="button"],
+.vfrc-launcher-prompt button,
+.vfrc-launcher-prompt [role="button"],
+._6r9xee4 button,
+._6r9xee4 [role="button"],
+._6r9xee0 button,
+._6r9xee0 [role="button"] {
+  background-color: #0a1f2c !important;
+  background: linear-gradient(135deg, #0a1f2c 0%, #193b4d 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #0a1f2c !important;
+  border-radius: 24px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+[class*="prompt"] button:hover,
+[class*="prompt"] [role="button"]:hover,
+[class*="launcher-prompt"] button:hover,
+[class*="launcher-prompt"] [role="button"]:hover,
+[class*="cta"] button:hover,
+[class*="cta"] [role="button"]:hover,
+[data-testid*="prompt"] button:hover,
+[data-testid*="prompt"] [role="button"]:hover,
+[data-testid*="cta"] button:hover,
+[data-testid*="cta"] [role="button"]:hover,
+[data-testid*="launcher"] button:hover,
+[data-testid*="launcher"] [role="button"]:hover,
+.vfrc-prompt button:hover,
+.vfrc-prompt [role="button"]:hover,
+._6r9xee4 button:hover,
+._6r9xee4 [role="button"]:hover,
+._6r9xee0 button:hover,
+._6r9xee0 [role="button"]:hover {
+  background-color: #ffb92a !important;
+  background: #ffb92a !important;
+  color: #0a1f2c !important;
+  border-color: #ffb92a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 185, 42, 0.3) !important;
+}
+
+/* Filet ultime · cible tout bouton avec exactement le bleu Voiceflow par
+   défaut via leur style inline. Cette règle est volontairement très large
+   pour rattraper les cas où aucun des sélecteurs précédents ne matche. */
+
+button[style*="rgb(0, 71, 255)"],
+button[style*="rgb(13, 110, 253)"],
+button[style*="background-color: rgb(0, 71"],
+button[style*="background-color: rgb(13, 110"] {
+  background-color: #0a1f2c !important;
+  background: #0a1f2c !important;
+  color: #ffffff !important;
+}
+
+/* ========================================
+   CORRECTION 3 · AVATAR CACI AVANT CHAQUE BULLE BOT
+   ----------------------------------------
+   On annule d'abord la règle de masquage de la Partie B qui forçait
+   display:none sur tous les .vfrc-avatar. Ensuite on injecte un avatar
+   personnalisé avec le logo CACI via un pseudo-élément ::before sur
+   chaque bulle bot. Cette technique est robuste parce qu'elle ne dépend
+   pas du composant Avatar interne de Voiceflow et fonctionne même si
+   ce composant change de structure.
+======================================== */
+
+/* Annuler le masquage forcé · l'avatar bot s'affiche de nouveau */
+.vfrc-avatar {
+  display: flex !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background-color: #0a1f2c !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  border: 2px solid #ffb92a !important;
+  flex-shrink: 0 !important;
+}
+
+/* Si Voiceflow ne génère pas d'avatar visible, on en injecte un via
+   ::before sur chaque conteneur de réponse système. Le SVG contient
+   l'icône CACI avec cercle bleu nuit et silhouette en jaune doré pour
+   cohérence visuelle complète avec la palette CACI. */
+
+.vfrc-system-response {
+  position: relative;
+  padding-left: 44px;
+}
+
+.vfrc-system-response::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #0a1f2c;
+  border: 2px solid #ffb92a;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%230a1f2c'/><g transform='translate(0,512) scale(0.1,-0.1)' fill='%23ffb92a'><path d='M2247 5095 c-571 -72 -1086 -324 -1492 -730 -153 -152 -235 -253 -345 -421 -206 -316 -334 -665 -392 -1069 -20 -139 -16 -532 6 -680 69 -458 257 -887 542 -1245 87 -109 275 -297 384 -384 312 -249 707 -437 1069 -511 264 -53 575 -69 814 -41 587 68 1083 302 1500 706 426 412 684 925 762 1515 22 161 22 481 0 640 -77 576 -328 1086 -732 1491 -375 374 -844 617 -1373 711 -124 22 -181 26 -390 29 -166 2 -280 -1 -353 -11z m436 -968 c248 -113 225 -481 -35 -559 l-38 -11 0 -104 0 -103 -55 0 -55 0 0 103 0 102 -52 19 c-72 25 -149 104 -173 176 -86 260 163 490 408 377z m897 -908 c78 -36 124 -80 160 -151 l30 -61 0 -662 0 -662 -30 -61 c-33 -65 -76 -109 -143 -144 -41 -22 -53 -23 -394 -28 -296 -4 -355 -7 -366 -20 -8 -8 -71 -115 -141 -237 -70 -123 -131 -225 -136 -228 -4 -2 -67 99 -140 226 -73 126 -142 236 -154 244 -17 12 -78 15 -346 15 -274 0 -334 3 -374 16 -64 22 -147 100 -177 166 l-24 53 0 665 0 665 27 50 c49 94 134 159 227 175 25 4 469 7 986 6 l940 -1 55 -26z m-2340 -869 c0 -570 9 -521 -93 -502 -67 13 -110 45 -133 99 -20 47 -20 749 0 797 29 69 87 103 179 105 l47 1 0 -500z m2780 478 c25 -13 55 -38 67 -57 23 -34 23 -36 23 -426 0 -390 0 -392 -23 -425 -31 -47 -73 -69 -145 -76 l-62 -7 0 507 0 506 48 0 c30 0 65 -9 92 -22z'/><path d='M1865 2771 c-222 -54 -259 -347 -56 -453 91 -48 202 -32 275 39 51 50 68 86 74 158 9 114 -61 217 -169 249 -56 17 -77 18 -124 7z'/><path d='M3143 2770 c-134 -32 -217 -172 -179 -303 39 -133 174 -205 310 -165 55 16 138 99 154 154 40 135 -31 270 -162 309 -54 16 -74 17 -123 5z'/><path d='M2167 2062 c-10 -10 -17 -25 -17 -33 0 -26 55 -102 109 -152 169 -158 449 -150 615 16 90 90 114 160 60 181 -32 12 -44 5 -83 -52 -98 -144 -283 -199 -435 -129 -65 30 -108 66 -157 134 -42 56 -65 65 -92 35z'/></g></svg>");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+/* Adaptation RTL pour l'arabe · l'avatar bot doit être à droite des bulles
+   quand le sens d'écriture est inversé pour les langues sémitiques. */
+
+.voiceflow-chat[dir="rtl"] .vfrc-system-response {
+  padding-left: 0;
+  padding-right: 44px;
+}
+
+.voiceflow-chat[dir="rtl"] .vfrc-system-response::before {
+  left: auto;
+  right: 0;
+}
+
+/* ============================================================================
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v5.2.0
    ============================================================================ */
