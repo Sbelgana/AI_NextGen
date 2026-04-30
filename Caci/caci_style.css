@@ -1,17 +1,30 @@
 /* ============================================================================
-   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.1.2)
+   CACI · Voiceflow Web Chat · Personnalisation visuelle (v3.2.0)
    ----------------------------------------------------------------------------
-   Version finale qui résout les deux derniers problèmes identifiés ·
-   - Les cartes du carrousel passaient sous l'avatar sticky au lieu d'être
-     strictement coupées au bord du conteneur scrollable
-   - L'avatar disparaissait après plusieurs défilements horizontaux
+   CHANGELOG v3.1.2 → v3.2.0
    
-   Solution en trois leviers ·
-   1. Neutralisation complète des marges négatives natives de Voiceflow
-      sur _1d8p3b82 qui créaient l'effet "peek" de débordement
-   2. Avatar sticky avec fond blanc opaque, z-index élevé et persistance
-      garantie via plusieurs sélecteurs en cascade
-   3. Overflow:hidden imposé strictement à chaque niveau du carrousel
+   Refactor architectural de l'avatar du carrousel.
+   
+   Voiceflow place l'avatar (._1d8p3b81) comme PREMIER enfant flex du ruban
+   scrollable (._1d8p3b85), avec align-self:flex-end. La v3.1.2 stabilisait
+   cet emplacement par couches successives · position:sticky, fond blanc
+   opaque, transform:translateZ(0), will-change, cinq sélecteurs en cascade,
+   box-shadow blanc pour masquer les cartes derrière. Solution fragile car
+   React peut recycler le nœud DOM et casser le contexte du sticky.
+   
+   v3.2.0 extrait l'avatar du ruban via position:absolute relativement au
+   conteneur .vfrc-system-response, et réserve l'espace dans le ruban via
+   padding-left sur ._1d8p3b85. L'avatar n'est plus DANS le scroll, il est
+   AU-DESSUS et stable par construction · le problème est résolu, pas
+   maquillé.
+   
+   Compatibilité · :has() · Chrome 105+, Firefox 121+, Safari 15.4+.
+   Repli · sur navigateur sans :has(), la stratégie sticky de v3.1.2 est
+   réinjectée automatiquement via @supports.
+   
+   Sections inchangées par rapport à v3.1.2 · launcher, header, body,
+   cartes, navigation buttons, user responses, footer, animations,
+   breakpoint mobile.
    ============================================================================ */
 
 /* ============================================================================
@@ -323,6 +336,15 @@
   overflow: hidden !important;
 }
 
+/* v3.2.0 · contexte de positionnement pour l'avatar absolu du carrousel.
+   On utilise :has() pour ne créer ce contexte QUE pour les réponses
+   contenant un carrousel · les réponses texte normales ne sont pas
+   affectées et conservent leur layout flex Voiceflow par défaut. */
+.vfrc-system-response:has(.vfrc-carousel) {
+  position: relative !important;
+  isolation: isolate;
+}
+
 .vfrc-system-response--indicator {
   background: var(--caci-bleu-tres-clair);
   border-radius: var(--vfrc-radius-bubble);
@@ -504,6 +526,10 @@
 .vfrc-carousel-inner-container,
 ._1d8p3b85 {
   position: relative !important;
+  /* v3.2.0 · réserver l'espace pour l'avatar absolu (qui n'est plus
+     dans le flux flex). Sans ce padding, les cartes commenceraient
+     à gauche=0 et passeraient sous l'avatar. */
+  padding-left: var(--caci-left-button-offset) !important;
 }
 
 /* ============================================================================
@@ -635,39 +661,73 @@
 }
 
 /* ============================================================================
-   AVATAR STICKY DU CARROUSEL · PERSISTANCE GARANTIE (CORRECTION v3.1.2)
+   AVATAR DU CARROUSEL · ARCHITECTURE v3.2.0
    ----------------------------------------------------------------------------
-   L'avatar _1d8p3b81 doit rester fixe à gauche pendant le défilement
-   horizontal des cartes. Plusieurs sélecteurs en cascade pour garantir
-   que la propriété sticky persiste même après plusieurs défilements
-   quand React recycle les éléments du DOM.
+   Voiceflow place l'avatar (._1d8p3b81) comme premier enfant flex du ruban
+   scrollable. La v3.1.2 utilisait position:sticky pour le stabiliser, mais
+   React peut recycler le nœud et casser le contexte sticky.
    
-   Fond blanc OPAQUE pour masquer physiquement les cartes qui passent
-   derrière l'avatar pendant qu'elles défilent.
+   v3.2.0 sort l'avatar du flux du ruban via position:absolute par rapport
+   au conteneur .vfrc-system-response (qui reçoit position:relative + has()
+   plus haut dans le fichier). Le padding-left sur ._1d8p3b85 réserve
+   l'espace pour que les cartes commencent après l'avatar.
+   
+   Résultat · l'avatar n'est plus DANS le scroll, donc plus de problème
+   structurel. Le box-shadow blanc de masquage (qui simulait l'opacité)
+   et le will-change deviennent inutiles · ils sont supprimés.
+   
+   Repli · pour navigateurs sans :has() (rares en 2026), la stratégie
+   sticky de v3.1.2 est réinjectée automatiquement via @supports.
    ============================================================================ */
 
 .vfrc-avatar._1d8p3b81,
-img.vfrc-avatar._1d8p3b81,
-.vfrc-carousel .vfrc-avatar._1d8p3b81,
-._1d8p3b85 .vfrc-avatar._1d8p3b81,
-.vfrc-system-response .vfrc-avatar._1d8p3b81 {
-  position: sticky !important;
-  position: -webkit-sticky !important;
+img.vfrc-avatar._1d8p3b81 {
+  position: absolute !important;
   left: 0 !important;
-  top: 0 !important;
+  bottom: 12px !important;
   z-index: 10 !important;
   flex-shrink: 0 !important;
+  /* Override de align-self:flex-end natif · n'a plus de sens en absolute */
+  align-self: auto !important;
   background-color: var(--caci-blanc) !important;
   background: var(--caci-blanc) !important;
-  align-self: flex-start !important;
-  /* Bordure blanche large pour créer un masque visuel sur les côtés */
-  box-shadow: 8px 0 0 0 var(--caci-blanc), 
-              -2px 0 0 0 var(--caci-blanc),
-              0 2px 8px rgba(10, 31, 44, 0.15) !important;
-  /* Forcer la persistance du positionnement */
+  /* Couche GPU dédiée pour stabilité face au recyclage React */
   transform: translateZ(0) !important;
   -webkit-transform: translateZ(0) !important;
-  will-change: transform !important;
+  /* Ombre douce sans masque latéral · plus besoin du box-shadow blanc */
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+}
+
+/* Repli graceful pour navigateurs sans :has() · réinjection v3.1.2 */
+@supports not selector(:has(*)) {
+  /* Annuler le padding réservé pour l'avatar absolu (qui ne sera pas absolute) */
+  .vfrc-carousel-inner-container,
+  ._1d8p3b85 {
+    padding-left: 0 !important;
+  }
+  
+  /* Réactiver la stratégie sticky de v3.1.2 */
+  .vfrc-avatar._1d8p3b81,
+  img.vfrc-avatar._1d8p3b81,
+  .vfrc-carousel .vfrc-avatar._1d8p3b81,
+  ._1d8p3b85 .vfrc-avatar._1d8p3b81,
+  .vfrc-system-response .vfrc-avatar._1d8p3b81 {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: auto !important;
+    z-index: 10 !important;
+    flex-shrink: 0 !important;
+    align-self: flex-start !important;
+    background-color: var(--caci-blanc) !important;
+    box-shadow: 8px 0 0 0 var(--caci-blanc),
+                -2px 0 0 0 var(--caci-blanc),
+                0 2px 8px rgba(10, 31, 44, 0.15) !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+    will-change: transform !important;
+  }
 }
 
 /* Adaptation mobile · cartes plus étroites, ajustement variable */
@@ -845,11 +905,32 @@ img.vfrc-avatar._1d8p3b81,
 }
 
 .voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
+  /* v3.2.0 · adaptation RTL pour avatar absolu · le côté libre devient à droite */
   left: auto !important;
   right: 0 !important;
-  box-shadow: -8px 0 0 0 var(--caci-blanc),
-              2px 0 0 0 var(--caci-blanc),
-              0 2px 8px rgba(10, 31, 44, 0.15) !important;
+  /* Ombre douce sans masque latéral (architecture absolue) */
+  box-shadow: 0 2px 8px rgba(10, 31, 44, 0.15) !important;
+}
+
+/* RTL · symétrie du padding réservé sur le ruban */
+.voiceflow-chat[dir="rtl"] .vfrc-carousel-inner-container,
+.voiceflow-chat[dir="rtl"] ._1d8p3b85 {
+  padding-left: 0 !important;
+  padding-right: var(--caci-left-button-offset) !important;
+}
+
+/* RTL · repli sticky · réajustement du masque latéral inversé */
+@supports not selector(:has(*)) {
+  .voiceflow-chat[dir="rtl"] .vfrc-avatar._1d8p3b81 {
+    box-shadow: -8px 0 0 0 var(--caci-blanc),
+                2px 0 0 0 var(--caci-blanc),
+                0 2px 8px rgba(10, 31, 44, 0.15) !important;
+  }
+  
+  .voiceflow-chat[dir="rtl"] .vfrc-carousel-inner-container,
+  .voiceflow-chat[dir="rtl"] ._1d8p3b85 {
+    padding-right: 0 !important;
+  }
 }
 
 .voiceflow-chat[dir="rtl"] .vfrc-carousel--button._675wn05 {
@@ -876,5 +957,5 @@ img.vfrc-avatar._1d8p3b81,
 }
 
 /* ============================================================================
-   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.1.2
+   FIN DU FICHIER · CACI Voiceflow Custom Styling v3.2.0
    ============================================================================ */
